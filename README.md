@@ -1,17 +1,20 @@
-# AI SLOP Detector
- 
-[![PyPI version](https://badge.fury.io/py/ai-slop-detector.svg)](https://badge.fury.io/py/ai-slop-detector)
-[![Tests](https://github.com/flamehaven/ai-slop-detector/workflows/CI/badge.svg)](https://github.com/flamehaven/ai-slop-detector/actions)
-[![Sovereign S++](https://img.shields.io/badge/Sovereign-S%2B%2B-violet.svg)](https://github.com/flamehaven/ai-slop-detector/blob/main/certification_report.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
- 
-**Enterprise-grade AI code quality analyzer** | **v2.5.0** | **Polyglot-Ready**
- 
-Detects "slop" in codebases using:
-- **Polyglot Architecture**: Extensible foundation for Python, JS, Go, Rust (v3.0 ready)
-- **Enterprise Auth**: SSO (SAML, OAuth2/OIDC) + RBAC + Audit Logging
-- **Hybrid Detection**: Metrics + Patterns + ML Classification
-- **Cloud-Native**: Kubernetes, Docker, AWS/Azure/GCP ready
+<div align="center">
+  <img src="docs/assets/logo.png" alt="AI Code Quality Detector Logo" width="180">
+
+  # AI Code Quality Detector
+
+  **Enterprise-grade Deficit & Inflation Analysis | Sovereign S++ Certified**
+
+  [![PyPI](https://img.shields.io/badge/PyPI-v2.5.0-06B6D4?style=flat-square&labelColor=4C1D95)](https://pypi.org/project/ai-slop-detector)
+  [![Tests](https://img.shields.io/badge/Tests-Passing-06B6D4?style=flat-square&labelColor=4C1D95)](https://github.com/flamehaven/ai-slop-detector/actions)
+  [![Sovereign S++](https://img.shields.io/badge/Sovereign-S%2B%2B-06B6D4?style=flat-square&labelColor=4C1D95)](certification_report.md)
+  [![License](https://img.shields.io/badge/License-MIT-gray?style=flat-square&labelColor=4C1D95)](LICENSE)
+
+  <p align="center">
+    Detects "Code Deficit" (Slop) and "Inflation" (Jargon) using <br>
+    <strong>Polyglot AST Analysis</strong> • <strong>Deep Dependency Checks</strong> • <strong>Hybrid ML Classification</strong>
+  </p>
+</div>
 
 ---
 
