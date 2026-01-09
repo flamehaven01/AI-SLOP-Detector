@@ -116,21 +116,21 @@ class SlopClassifier:
         good_examples = data["good"]
         bad_examples = data["bad"]
 
-        X = []
-        y = []
+        features = []
+        labels = []
 
         for example in good_examples:
-            X.append([example[feat] for feat in self.FEATURE_NAMES])
-            y.append(0)  # Clean
+            features.append([example[feat] for feat in self.FEATURE_NAMES])
+            labels.append(0)  # Clean
 
         for example in bad_examples:
-            X.append([example[feat] for feat in self.FEATURE_NAMES])
-            y.append(1)  # Slop
+            features.append([example[feat] for feat in self.FEATURE_NAMES])
+            labels.append(1)  # Slop
 
-        return np.array(X), np.array(y)
+        return np.array(features), np.array(labels)
 
     def train_random_forest(
-        self, X_train: np.ndarray, y_train: np.ndarray
+        self, features_train: np.ndarray, labels_train: np.ndarray
     ) -> RandomForestClassifier:
         """Train RandomForest classifier."""
         logger.info("Training RandomForest...")
@@ -144,7 +144,7 @@ class SlopClassifier:
             n_jobs=-1,
         )
 
-        rf.fit(X_train, y_train)
+        rf.fit(features_train, labels_train)
 
         # Feature importance
         feature_importance = sorted(
@@ -157,7 +157,7 @@ class SlopClassifier:
         return rf
 
     def train_xgboost(
-        self, X_train: np.ndarray, y_train: np.ndarray
+        self, features_train: np.ndarray, labels_train: np.ndarray
     ) -> Optional[xgb.XGBClassifier]:
         """Train XGBoost classifier."""
         if not XGBOOST_AVAILABLE:
@@ -176,7 +176,7 @@ class SlopClassifier:
             n_jobs=-1,
         )
 
-        xgb_model.fit(X_train, y_train)
+        xgb_model.fit(features_train, labels_train)
 
         return xgb_model
 
@@ -192,36 +192,39 @@ class SlopClassifier:
             Dict mapping model name to metrics
         """
         logger.info(f"Loading dataset from {dataset_path}...")
-        X, y = self.load_dataset(dataset_path)
+        features, labels = self.load_dataset(dataset_path)
 
-        logger.info(f"Dataset: {len(X)} examples ({sum(y == 0)} clean, {sum(y == 1)} slop)")
-
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=42, stratify=y
+        logger.info(
+            f"Dataset: {len(features)} examples "
+            f"({sum(labels == 0)} clean, {sum(labels == 1)} slop)"
         )
 
-        logger.info(f"Train: {len(X_train)}, Test: {len(X_test)}")
+        # Split data
+        features_train, features_test, labels_train, labels_test = train_test_split(
+            features, labels, test_size=test_size, random_state=42, stratify=labels
+        )
+
+        logger.info(f"Train: {len(features_train)}, Test: {len(features_test)}")
 
         metrics = {}
 
         # Train RandomForest
-        self.rf_model = self.train_random_forest(X_train, y_train)
-        rf_metrics = self.evaluate(self.rf_model, X_test, y_test)
+        self.rf_model = self.train_random_forest(features_train, labels_train)
+        rf_metrics = self.evaluate(self.rf_model, features_test, labels_test)
         metrics["random_forest"] = rf_metrics
         logger.info(f"RandomForest: {rf_metrics}")
 
         # Train XGBoost
         if self.model_type in ["xgboost", "ensemble"] and XGBOOST_AVAILABLE:
-            self.xgb_model = self.train_xgboost(X_train, y_train)
+            self.xgb_model = self.train_xgboost(features_train, labels_train)
             if self.xgb_model:
-                xgb_metrics = self.evaluate(self.xgb_model, X_test, y_test)
+                xgb_metrics = self.evaluate(self.xgb_model, features_test, labels_test)
                 metrics["xgboost"] = xgb_metrics
                 logger.info(f"XGBoost: {xgb_metrics}")
 
         # Evaluate ensemble
         if self.model_type == "ensemble" and self.xgb_model:
-            ensemble_metrics = self.evaluate_ensemble(X_test, y_test)
+            ensemble_metrics = self.evaluate_ensemble(features_test, labels_test)
             metrics["ensemble"] = ensemble_metrics
             logger.info(f"Ensemble: {ensemble_metrics}")
 
@@ -230,30 +233,32 @@ class SlopClassifier:
 
         return metrics
 
-    def evaluate(self, model, X_test: np.ndarray, y_test: np.ndarray) -> ModelMetrics:
+    def evaluate(self, model, features_test: np.ndarray, labels_test: np.ndarray) -> ModelMetrics:
         """Evaluate model on test set."""
-        y_pred = model.predict(X_test)
+        labels_pred = model.predict(features_test)
 
         return ModelMetrics(
-            accuracy=accuracy_score(y_test, y_pred),
-            precision=precision_score(y_test, y_pred, zero_division=0),
-            recall=recall_score(y_test, y_pred, zero_division=0),
-            f1_score=f1_score(y_test, y_pred, zero_division=0),
+            accuracy=accuracy_score(labels_test, labels_pred),
+            precision=precision_score(labels_test, labels_pred, zero_division=0),
+            recall=recall_score(labels_test, labels_pred, zero_division=0),
+            f1_score=f1_score(labels_test, labels_pred, zero_division=0),
         )
 
-    def evaluate_ensemble(self, X_test: np.ndarray, y_test: np.ndarray) -> ModelMetrics:
+    def evaluate_ensemble(
+        self, features_test: np.ndarray, labels_test: np.ndarray
+    ) -> ModelMetrics:
         """Evaluate ensemble (voting) on test set."""
-        rf_pred = self.rf_model.predict(X_test)
-        xgb_pred = self.xgb_model.predict(X_test)
+        rf_pred = self.rf_model.predict(features_test)
+        xgb_pred = self.xgb_model.predict(features_test)
 
         # Voting: majority wins
         ensemble_pred = ((rf_pred + xgb_pred) >= 1).astype(int)
 
         return ModelMetrics(
-            accuracy=accuracy_score(y_test, ensemble_pred),
-            precision=precision_score(y_test, ensemble_pred, zero_division=0),
-            recall=recall_score(y_test, ensemble_pred, zero_division=0),
-            f1_score=f1_score(y_test, ensemble_pred, zero_division=0),
+            accuracy=accuracy_score(labels_test, ensemble_pred),
+            precision=precision_score(labels_test, ensemble_pred, zero_division=0),
+            recall=recall_score(labels_test, ensemble_pred, zero_division=0),
+            f1_score=f1_score(labels_test, ensemble_pred, zero_division=0),
         )
 
     def predict(self, features: Dict[str, float]) -> Tuple[float, float]:
