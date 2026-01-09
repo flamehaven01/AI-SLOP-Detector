@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from slop_detector.config import Config
 from slop_detector.core import SlopDetector
 from slop_detector.models import SlopStatus
 
@@ -43,9 +42,9 @@ def process_data(data):
 '''
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     assert result.file_path == temp_python_file.name
     assert result.ldr.ldr_score > 0.7  # Good logic density
     assert result.status == SlopStatus.CLEAN
@@ -70,9 +69,9 @@ def yet_another():
 '''
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     assert result.ldr.ldr_score < 0.3  # Low logic density
     assert result.status in [SlopStatus.CRITICAL_DEFICIT, SlopStatus.SUSPICIOUS]
     assert result.deficit_score > 30
@@ -92,9 +91,9 @@ def simple_function():
 '''
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     assert result.ddc.usage_ratio < 0.5  # Many unused imports
     assert len(result.ddc.unused) > 0
 
@@ -108,7 +107,7 @@ def risky_function():
         dangerous_operation()
     except:  # Bare except!
         pass
-    
+
 def bad_default(items=[]):  # Mutable default!
     """Function with mutable default."""
     items.append(1)
@@ -116,9 +115,9 @@ def bad_default(items=[]):  # Mutable default!
 '''
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     assert len(result.pattern_issues) > 0
     assert any("bare except" in issue.message.lower() for issue in result.pattern_issues)
 
@@ -132,9 +131,9 @@ def broken_function(
 '''
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     # Should return error analysis, not crash
     assert result.file_path == temp_python_file.name
     # CRITICAL: Syntax errors must be flagged as CRITICAL_DEFICIT
@@ -150,12 +149,12 @@ from abc import ABC, abstractmethod
 
 class DataProcessor(ABC):
     """Abstract base class for processors."""
-    
+
     @abstractmethod
     def process(self, data):
         """Process data."""
         pass
-    
+
     @abstractmethod
     def validate(self, data):
         """Validate data."""
@@ -163,9 +162,9 @@ class DataProcessor(ABC):
 '''
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     # ABC interface should get better score due to penalty reduction
     assert result.ldr.ldr_score > 0.3  # Not penalized as much
 
@@ -173,22 +172,29 @@ class DataProcessor(ABC):
 def test_calculate_slop_status_thresholds(detector):
     """Test status calculation respects thresholds."""
     from slop_detector.models import DDCResult, InflationResult, LDRResult
-    
+
     # Mock results
     high_ldr = LDRResult(ldr_score=0.85, logic_lines=85, empty_lines=15, total_lines=100, grade="A")
     low_inflation = InflationResult(
-        inflation_score=0.2, jargon_count=2, avg_complexity=10.0,
-        status="pass", jargon_found=[], jargon_details=[]
+        inflation_score=0.2,
+        jargon_count=2,
+        avg_complexity=10.0,
+        status="pass",
+        jargon_found=[],
+        jargon_details=[],
     )
     good_ddc = DDCResult(
-        usage_ratio=0.9, imported=["os", "sys"], actually_used=["os"],
-        unused=["sys"], fake_imports=[], type_checking_imports=[], grade="A"
+        usage_ratio=0.9,
+        imported=["os", "sys"],
+        actually_used=["os"],
+        unused=["sys"],
+        fake_imports=[],
+        type_checking_imports=[],
+        grade="A",
     )
-    
-    score, status, warnings = detector._calculate_slop_status(
-        high_ldr, low_inflation, good_ddc, []
-    )
-    
+
+    score, status, warnings = detector._calculate_slop_status(high_ldr, low_inflation, good_ddc, [])
+
     assert score < 30
     assert status == SlopStatus.CLEAN
     assert len(warnings) == 0
@@ -196,7 +202,8 @@ def test_calculate_slop_status_thresholds(detector):
 
 def test_weighted_analysis(detector, temp_python_file):
     """Test weighted analysis considers file size."""
-    code = '''
+    code = (
+        '''
 def function_one():
     """First function."""
     return 1
@@ -204,13 +211,15 @@ def function_one():
 def function_two():
     """Second function."""
     return 2
-''' * 10  # Repeat to make larger file
-    
+'''
+        * 10
+    )  # Repeat to make larger file
+
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     # Larger files should still be analyzed correctly
     assert result.ldr.total_lines > 50
     assert result.deficit_score >= 0
@@ -218,22 +227,17 @@ def function_two():
 
 def test_config_thresholds_respected(temp_python_file):
     """Test custom config thresholds are respected."""
-    config_data = {
-        "thresholds": {
-            "ldr": {
-                "critical": 0.5  # Higher threshold
-            }
-        }
-    }
-    
+    config_data = {"thresholds": {"ldr": {"critical": 0.5}}}  # Higher threshold
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         import yaml
+
         yaml.dump(config_data, f)
         config_path = f.name
-    
+
     try:
         detector = SlopDetector(config_path=config_path)
-        
+
         code = '''
 def simple():
     """Simple function."""
@@ -241,12 +245,12 @@ def simple():
 '''
         temp_python_file.write(code)
         temp_python_file.flush()
-        
+
         result = detector.analyze_file(temp_python_file.name)
-        
+
         # Config should affect threshold evaluation
         assert result.ldr.ldr_score > 0.5
-        
+
     finally:
         Path(config_path).unlink(missing_ok=True)
 
@@ -255,7 +259,7 @@ def test_pattern_registry_disabled(detector, temp_python_file):
     """Test patterns can be disabled via config."""
     # Detector should have pattern registry
     assert detector.pattern_registry is not None
-    
+
     code = '''
 def function():
     """Function with bare except."""
@@ -266,8 +270,8 @@ def function():
 '''
     temp_python_file.write(code)
     temp_python_file.flush()
-    
+
     result = detector.analyze_file(temp_python_file.name)
-    
+
     # Pattern issues should be detected (unless disabled)
     assert isinstance(result.pattern_issues, list)
