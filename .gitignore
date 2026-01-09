@@ -57,3 +57,6 @@ RELEASE_v*.md
 certification_report.md
 SLOPPYLINT_COMPARISON.md
 tests/manual_test/*.md
+
+# Development artifacts
+GITHUB_METADATA.md
