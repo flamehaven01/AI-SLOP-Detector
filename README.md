@@ -95,7 +95,7 @@ Identifies unused imports and fake dependencies.
 ### 4. Pattern Registry (v2.1+)
 Detects 12+ anti-patterns including bare except, mutable defaults, TODO/FIXME comments, star imports, and cross-language mistakes.
 
-**[→ Detailed Architecture Documentation](docs/ARCHITECTURE.md)**
+**[→ Detailed Architecture Documentation](docs/ARCHITECTURE.md)** | **[→ Visual Guide: How It Works](docs/HOW_IT_WORKS.md)**
 
 ---
 
