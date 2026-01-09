@@ -6,7 +6,6 @@ with distributed processing capabilities.
 """
 
 
-
 def function_0(data=[]):
     """Serverless blockchain processing function.
 

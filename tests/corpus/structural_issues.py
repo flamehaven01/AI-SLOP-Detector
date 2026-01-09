@@ -55,7 +55,5 @@ def good_function(items=None):  # [+] None as default
     return items
 
 
-
-
 def good_function_without_global(value):  # [+] Pass as argument
     return value + 1
