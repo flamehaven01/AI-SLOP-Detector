@@ -7,7 +7,7 @@ name = "ai-slop-detector"
 version = "2.5.0"
 description = "AI-generated code quality analyzer with LDR, BCR, and DDC metrics"
 authors = [
-    {name = "Flamehaven Labs", email = "slop-detector@flamehaven.io"}
+    {name = "Flamehaven Labs", email = "info@flamehaven.space"}
 ]
 readme = "README.md"
 license = {text = "MIT"}

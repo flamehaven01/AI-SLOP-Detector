@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-LABEL maintainer="Flamehaven Labs <slop-detector@flamehaven.io>"
+LABEL maintainer="Flamehaven Labs <info@flamehaven.space>"
 LABEL description="AI SLOP Detector - Production-ready code quality analyzer"
 LABEL version="2.0.0"
 

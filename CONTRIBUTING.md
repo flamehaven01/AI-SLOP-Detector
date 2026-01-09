@@ -56,4 +56,4 @@ make lint
 
 ## Questions?
 
-Open an issue or email: slop-detector@flamehaven.io
+Open an issue or email: info@flamehaven.space

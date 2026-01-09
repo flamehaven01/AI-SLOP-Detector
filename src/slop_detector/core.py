@@ -303,10 +303,10 @@ class SlopDetector:
         return FileAnalysis(
             file_path=file_path,
             ldr=LDRResult(0, 0, 0, 0.0, "N/A"),
-            inflation=InflationResult(0, 0.0, 0.0, "N/A", []),
+            inflation=InflationResult(0, 0.0, float("inf"), "error", []),
             ddc=DDCResult([], [], [], [], [], 0.0, "N/A"),
-            deficit_score=0.0,
-            status=SlopStatus.CLEAN,
+            deficit_score=100.0,  # CRITICAL: Syntax errors are severe
+            status=SlopStatus.CRITICAL_DEFICIT,
             warnings=[f"Parse error: {error}"],
         )
 
