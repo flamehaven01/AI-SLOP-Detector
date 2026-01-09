@@ -244,9 +244,7 @@ class SlopClassifier:
             f1_score=f1_score(labels_test, labels_pred, zero_division=0),
         )
 
-    def evaluate_ensemble(
-        self, features_test: np.ndarray, labels_test: np.ndarray
-    ) -> ModelMetrics:
+    def evaluate_ensemble(self, features_test: np.ndarray, labels_test: np.ndarray) -> ModelMetrics:
         """Evaluate ensemble (voting) on test set."""
         rf_pred = self.rf_model.predict(features_test)
         xgb_pred = self.xgb_model.predict(features_test)
@@ -275,21 +273,21 @@ class SlopClassifier:
             raise RuntimeError("Model not trained. Call train() first.")
 
         # Convert features to vector
-        X = np.array([[features[feat] for feat in self.FEATURE_NAMES]])
+        x = np.array([[features[feat] for feat in self.FEATURE_NAMES]])
 
         if self.model_type == "random_forest":
-            proba = self.rf_model.predict_proba(X)[0]
+            proba = self.rf_model.predict_proba(x)[0]
             return proba[1], max(proba)
 
         elif self.model_type == "xgboost":
             if not self.xgb_model:
                 raise RuntimeError("XGBoost model not available")
-            proba = self.xgb_model.predict_proba(X)[0]
+            proba = self.xgb_model.predict_proba(x)[0]
             return proba[1], max(proba)
 
         elif self.model_type == "ensemble":
-            rf_proba = self.rf_model.predict_proba(X)[0]
-            xgb_proba = self.xgb_model.predict_proba(X)[0] if self.xgb_model else rf_proba
+            rf_proba = self.rf_model.predict_proba(x)[0]
+            xgb_proba = self.xgb_model.predict_proba(x)[0] if self.xgb_model else rf_proba
 
             # Weighted average
             ensemble_proba = 0.5 * rf_proba + 0.5 * xgb_proba
