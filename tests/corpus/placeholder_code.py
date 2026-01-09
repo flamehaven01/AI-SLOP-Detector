@@ -1,5 +1,6 @@
 """Test corpus for placeholder patterns."""
 
+
 # pass_placeholder - Should trigger HIGH
 def not_implemented_yet():
     """This function is not implemented."""
@@ -34,10 +35,10 @@ def stub_function():
 def lots_of_work():
     # TODO: validate input  # [!]
     data = get_data()
-    
+
     # TODO: process data  # [!]
     result = data
-    
+
     # TODO: return formatted result  # [!]
     return result
 

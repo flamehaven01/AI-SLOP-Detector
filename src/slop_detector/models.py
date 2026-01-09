@@ -112,7 +112,7 @@ class FileAnalysis:
             "status": self.status.value,
             "warnings": self.warnings,
             "pattern_issues": [
-                issue.to_dict() if hasattr(issue, 'to_dict') else str(issue)
+                issue.to_dict() if hasattr(issue, "to_dict") else str(issue)
                 for issue in self.pattern_issues
             ],
         }

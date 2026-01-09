@@ -23,7 +23,7 @@ from .models import (
 
 def create_app(config_path: Optional[Path] = None) -> FastAPI:
     """Create FastAPI application"""
-    
+
     app = FastAPI(
         title="AI SLOP Detector API",
         description="REST API for detecting AI-generated code quality issues",
@@ -31,7 +31,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
     )
-    
+
     # CORS
     app.add_middleware(
         CORSMiddleware,
@@ -40,14 +40,14 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Dependency injection
     def get_detector() -> SlopDetector:
         return SlopDetector(config_path=config_path)
-    
+
     def get_history() -> HistoryTracker:
         return HistoryTracker()
-    
+
     # Routes
     @app.get("/")
     async def root():
@@ -57,11 +57,11 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             "docs": "/docs",
             "health": "/health",
         }
-    
+
     @app.get("/health")
     async def health():
         return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
-    
+
     @app.post("/analyze/file", response_model=AnalysisResponse)
     async def analyze_file(
         request: AnalysisRequest,
@@ -73,9 +73,9 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             file_path = Path(request.file_path)
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail="File not found")
-            
+
             result = detector.analyze_file(str(file_path))
-            
+
             # Save to history if enabled
             if request.save_history:
                 history.record_analysis(
@@ -83,12 +83,12 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
                     result=result,
                     metadata=request.metadata,
                 )
-            
+
             return AnalysisResponse.from_result(result)
-        
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @app.post("/analyze/project", response_model=List[AnalysisResponse])
     async def analyze_project(
         request: AnalysisRequest,
@@ -100,9 +100,9 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             project_path = Path(request.project_path)
             if not project_path.exists():
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             results = detector.analyze_project(str(project_path))
-            
+
             # Background task: save to history
             if request.save_history:
                 background_tasks.add_task(
@@ -110,12 +110,12 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
                     results,
                     request.metadata,
                 )
-            
+
             return [AnalysisResponse.from_result(r) for r in results]
-        
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @app.get("/history/file/{file_path:path}", response_model=List[AnalysisResponse])
     async def get_file_history(
         file_path: str,
@@ -125,7 +125,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         """Get analysis history for a file"""
         records = history.get_file_history(file_path, limit=limit)
         return [AnalysisResponse.from_dict(r) for r in records]
-    
+
     @app.get("/trends/project", response_model=TrendResponse)
     async def get_project_trends(
         project_path: str,
@@ -135,7 +135,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         """Get quality trends for project"""
         trends = history.get_trends(project_path, days=days)
         return TrendResponse.from_dict(trends)
-    
+
     @app.post("/webhook/github")
     async def github_webhook(
         payload: WebhookPayload,
@@ -145,13 +145,13 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         # Validate signature in production
         background_tasks.add_task(_analyze_github_push, payload)
         return {"status": "accepted", "job_id": payload.after[:8]}
-    
+
     @app.get("/status/project/{project_id}")
     async def get_project_status(project_id: str) -> ProjectStatus:
         """Get current project quality status"""
         # Implementation depends on dashboard backend
         pass
-    
+
     return app
 
 
@@ -179,7 +179,7 @@ def run_server(
 ):
     """Run API server"""
     import uvicorn
-    
+
     app = create_app(config_path)
     uvicorn.run(app, host=host, port=port)
 

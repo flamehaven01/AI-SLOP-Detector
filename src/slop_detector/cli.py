@@ -14,16 +14,16 @@ from slop_detector.patterns import get_all_patterns
 def list_patterns() -> None:
     """List all available patterns."""
     patterns = get_all_patterns()
-    
+
     print("Available Patterns:")
     print("=" * 80)
-    
+
     by_category = {
         "Structural Issues": [],
         "Placeholder Code": [],
         "Cross-Language Patterns": [],
     }
-    
+
     for pattern in patterns:
         if "structural" in pattern.__class__.__module__:
             by_category["Structural Issues"].append(pattern)
@@ -31,14 +31,14 @@ def list_patterns() -> None:
             by_category["Placeholder Code"].append(pattern)
         elif "cross_language" in pattern.__class__.__module__:
             by_category["Cross-Language Patterns"].append(pattern)
-    
+
     for category, category_patterns in by_category.items():
         if category_patterns:
             print(f"\n{category}:")
             print("-" * 80)
             for pattern in category_patterns:
                 print(f"  {pattern.id:30s} [{pattern.severity.value:8s}] {pattern.message}")
-    
+
     print("\n" + "=" * 80)
     print(f"Total: {len(patterns)} patterns")
     print("\nUsage: slop-detector --disable <pattern_id> ...")
@@ -47,10 +47,7 @@ def list_patterns() -> None:
 def setup_logging(verbose: bool = False) -> None:
     """Configure logging."""
     level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=level, format="[%(levelname)s] %(message)s", stream=sys.stderr
-    )
-
+    logging.basicConfig(level=level, format="[%(levelname)s] %(message)s", stream=sys.stderr)
 
     return 0
 
@@ -63,6 +60,7 @@ try:
     from rich.panel import Panel
     from rich.text import Text
     from rich import box
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -71,14 +69,12 @@ except ImportError:
 def print_rich_report(result) -> None:
     """Print report using Rich."""
     console = Console()
-    
+
     # Title
     console.print()
-    console.print(Panel.fit(
-        Text("AI CODE QUALITY REPORT", style="bold cyan"),
-        style="blue",
-        box=box.DOUBLE
-    ))
+    console.print(
+        Panel.fit(Text("AI CODE QUALITY REPORT", style="bold cyan"), style="blue", box=box.DOUBLE)
+    )
     console.print()
 
     if hasattr(result, "project_path"):
@@ -90,11 +86,20 @@ def print_rich_report(result) -> None:
         summary_table.add_row("Project", str(result.project_path))
         summary_table.add_row("Total Files", str(result.total_files))
         summary_table.add_row("Clean Files", str(result.clean_files))
-        summary_table.add_row("Deficit Files", f"[red]{result.deficit_files}[/red]" if result.deficit_files > 0 else str(result.deficit_files))
-        
+        summary_table.add_row(
+            "Deficit Files",
+            (
+                f"[red]{result.deficit_files}[/red]"
+                if result.deficit_files > 0
+                else str(result.deficit_files)
+            ),
+        )
+
         status_color = "red" if result.overall_status != "clean" else "green"
-        summary_table.add_row("Overall Status", f"[{status_color}]{result.overall_status.upper()}[/{status_color}]")
-        
+        summary_table.add_row(
+            "Overall Status", f"[{status_color}]{result.overall_status.upper()}[/{status_color}]"
+        )
+
         console.print(summary_table)
         console.print()
 
@@ -102,13 +107,13 @@ def print_rich_report(result) -> None:
         metrics_table = Table(title="Average Metrics", box=box.SIMPLE)
         metrics_table.add_column("Metric")
         metrics_table.add_column("Score")
-        
+
         metrics_table.add_row("Deficit Score", f"{result.avg_deficit_score:.1f}/100")
         metrics_table.add_row("Weighted Score", f"{result.weighted_deficit_score:.1f}/100")
         metrics_table.add_row("LDR (Logic)", f"{result.avg_ldr:.2%}")
         metrics_table.add_row("ICR (Inflation)", f"{result.avg_inflation:.2f}")
         metrics_table.add_row("DDC (Deps)", f"{result.avg_ddc:.2%}")
-        
+
         console.print(metrics_table)
         console.print()
 
@@ -125,15 +130,17 @@ def print_rich_report(result) -> None:
         for file_result in result.file_results:
             if file_result.status == "clean":
                 continue
-                
+
             status_style = "red" if file_result.status == "critical" else "yellow"
-            
+
             # Notes (Warnings + Jargon)
             notes = []
             if file_result.warnings:
                 notes.append(f"{len(file_result.warnings)} Warnings")
-            
-            jargon_count = sum(1 for d in file_result.inflation.jargon_details if not d.get("justified"))
+
+            jargon_count = sum(
+                1 for d in file_result.inflation.jargon_details if not d.get("justified")
+            )
             if jargon_count > 0:
                 notes.append(f"{jargon_count} Jargon Terms")
 
@@ -144,19 +151,19 @@ def print_rich_report(result) -> None:
                 f"{file_result.ldr.ldr_score:.0%}",
                 f"{file_result.inflation.inflation_score:.2f}",
                 f"{file_result.ddc.usage_ratio:.0%}",
-                ", ".join(notes)
+                ", ".join(notes),
             )
-            
+
             # Detailed Jargon row (if relevant)
             if jargon_count > 0:
-                 jargon_text = ", ".join([
-                     f"{d['word']}(L{d['line']})" 
-                     for d in file_result.inflation.jargon_details 
-                     if not d.get("justified")
-                 ])
-                 files_table.add_row(
-                     "", "", "", "", "", "", f"[dim]Jargon: {jargon_text}[/dim]"
-                 )
+                jargon_text = ", ".join(
+                    [
+                        f"{d['word']}(L{d['line']})"
+                        for d in file_result.inflation.jargon_details
+                        if not d.get("justified")
+                    ]
+                )
+                files_table.add_row("", "", "", "", "", "", f"[dim]Jargon: {jargon_text}[/dim]")
 
         if result.deficit_files > 0:
             console.print(files_table)
@@ -173,12 +180,12 @@ def print_rich_report(result) -> None:
         content.append(f"LDR: {result.ldr.ldr_score:.2%} ({result.ldr.grade})\n")
         content.append(f"ICR: {result.inflation.inflation_score:.2f} ({result.inflation.status})\n")
         content.append(f"DDC: {result.ddc.usage_ratio:.2%} ({result.ddc.grade})\n")
-        
+
         if result.warnings:
             content.append("\nWarnings:\n", style="bold yellow")
             for w in result.warnings:
                 content.append(f"- {w}\n")
-                
+
         # Jargon
         jargon = [d for d in result.inflation.jargon_details if not d.get("justified")]
         if jargon:
@@ -206,7 +213,7 @@ def get_mitigation(issue_type: str, detail: str = "") -> str:
 
 def generate_markdown_report(result) -> str:
     """Generates a detailed developer-focused Markdown report."""
-    
+
     # Handle both ProjectAnalysis and single FileAnalysis
     is_project = hasattr(result, "project_path")
     root_dir = result.project_path if is_project else str(Path(result.file_path).parent)
@@ -214,7 +221,7 @@ def generate_markdown_report(result) -> str:
     avg_deficit = result.avg_deficit_score if is_project else result.deficit_score
     avg_inflation = result.avg_inflation if is_project else result.inflation.inflation_score
     timestamp = getattr(result, "timestamp", None)
-    
+
     lines = []
     lines.append(f"# AI Code Quality Audit Report")
     if timestamp:
@@ -237,15 +244,15 @@ def generate_markdown_report(result) -> str:
 
     # 2. Detailed Findings
     lines.append("## 2. Detailed Findings")
-    
+
     file_results = []
     if is_project:
         if hasattr(result, "files") and result.files:
-             # If result.files is a dict (path -> FileAnalysis)
-             file_results = result.files.items()
+            # If result.files is a dict (path -> FileAnalysis)
+            file_results = result.files.items()
         elif hasattr(result, "file_results"):
-             # If result.file_results is a list [FileAnalysis]
-             file_results = [(r.file_path, r) for r in result.file_results]
+            # If result.file_results is a list [FileAnalysis]
+            file_results = [(r.file_path, r) for r in result.file_results]
     else:
         file_results = [(result.file_path, result)]
 
@@ -254,22 +261,28 @@ def generate_markdown_report(result) -> str:
 
     for file_path, f_res in file_results:
         # Only report files with issues
-        if f_res.deficit_score < 0.3 and not f_res.pattern_issues and not f_res.inflation.jargon_details:
-             continue
+        if (
+            f_res.deficit_score < 0.3
+            and not f_res.pattern_issues
+            and not f_res.inflation.jargon_details
+        ):
+            continue
 
         lines.append(f"### 📄 `{Path(str(file_path)).name}`")
         lines.append(f"- **Deficit Score**: {f_res.deficit_score:.2f}")
         lines.append(f"- **Lines of Code**: {f_res.ldr.total_lines}")
-        
+
         # Inflation / Jargon
-        jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get('justified')]
+        jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
         if jargon_issues:
             lines.append(f"#### 🔴 Inflation (Jargon) Detected")
             lines.append("| Line | Term | Category | Actionable Mitigation |")
             lines.append("| :--- | :--- | :--- | :--- |")
             for det in jargon_issues:
-                 mitigation = get_mitigation("jargon")
-                 lines.append(f"| {det['line']} | `{det['word']}` | {det['category']} | {mitigation} |")
+                mitigation = get_mitigation("jargon")
+                lines.append(
+                    f"| {det['line']} | `{det['word']}` | {det['category']} | {mitigation} |"
+                )
             lines.append("")
 
         # Patterns (Static Analysis)
@@ -285,26 +298,37 @@ def generate_markdown_report(result) -> str:
                 else:
                     desc = str(p)
                     line_val = "-"
-                
+
                 issue_key = "unknown"
                 desc_lower = desc.lower()
-                if "mutable default" in desc_lower: issue_key = "mutable_default"
-                elif "bare except" in desc_lower: issue_key = "bare_except"
-                elif "broad exception" in desc_lower: issue_key = "broad_except"
-                elif "empty function" in desc_lower: issue_key = "empty_function"
-                elif "unused import" in desc_lower: issue_key = "unused_import"
-                
+                if "mutable default" in desc_lower:
+                    issue_key = "mutable_default"
+                elif "bare except" in desc_lower:
+                    issue_key = "bare_except"
+                elif "broad exception" in desc_lower:
+                    issue_key = "broad_except"
+                elif "empty function" in desc_lower:
+                    issue_key = "empty_function"
+                elif "unused import" in desc_lower:
+                    issue_key = "unused_import"
+
                 mitigation = get_mitigation(issue_key, desc)
                 lines.append(f"| {line_val} | {desc} | {mitigation} |")
             lines.append("")
-        
+
         lines.append("---")
-    
+
     # 3. Recommendations
     lines.append("## 3. Global Recommendations")
-    lines.append("- **Refactor High-Deficit Modules**: Files with scores > 0.5 lack sufficient logic. Verify they aren't just empty wrappers.")
-    lines.append("- **Purify Terminology**: Replace abstract 'hype' terms with concrete engineering definitions.")
-    lines.append("- **Harden Error Handling**: Eliminate bare except clauses to ensure system stability and debuggability.")
+    lines.append(
+        "- **Refactor High-Deficit Modules**: Files with scores > 0.5 lack sufficient logic. Verify they aren't just empty wrappers."
+    )
+    lines.append(
+        "- **Purify Terminology**: Replace abstract 'hype' terms with concrete engineering definitions."
+    )
+    lines.append(
+        "- **Harden Error Handling**: Eliminate bare except clauses to ensure system stability and debuggability."
+    )
 
     return "\n".join(lines)
 
@@ -325,14 +349,10 @@ Examples:
     )
 
     parser.add_argument("path", help="Path to Python file or project directory")
-    parser.add_argument(
-        "--project", action="store_true", help="Analyze entire project"
-    )
+    parser.add_argument("--project", action="store_true", help="Analyze entire project")
     parser.add_argument("--output", "-o", help="Output file (txt, json, or html)")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
-    parser.add_argument(
-        "--config", "-c", help="Path to .slopconfig.yaml configuration file"
-    )
+    parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument(
         "--disable",
         "-d",
@@ -341,13 +361,13 @@ Examples:
         metavar="PATTERN_ID",
         help="Disable specific pattern by ID (can be repeated)",
     )
-    
+
     parser.add_argument(
         "--patterns-only",
         action="store_true",
         help="Only run pattern detection (skip metrics)",
     )
-    
+
     parser.add_argument(
         "--list-patterns",
         action="store_true",
@@ -361,9 +381,7 @@ Examples:
         help="Exit with code 1 if slop score exceeds threshold",
     )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-    parser.add_argument(
-        "--version", action="version", version=f"ai-slop-detector {__version__}"
-    )
+    parser.add_argument("--version", action="version", version=f"ai-slop-detector {__version__}")
     parser.add_argument(
         "--no-color", action="store_true", help="Disable rich output (force plain text)"
     )
@@ -372,12 +390,12 @@ Examples:
 
     # Setup logging
     setup_logging(args.verbose)
-    
+
     # Auto-detect project mode for directories
     if Path(args.path).is_dir() and not args.project:
         args.project = True
         logging.info("Directory detected, enabling --project mode")
-    
+
     # v2.1: List patterns if requested
     if args.list_patterns:
         list_patterns()
@@ -425,12 +443,12 @@ Examples:
     else:
         # Console / Text Report
         if args.output:
-             # If writing to file (and not json/html/md), use plain text or markdown?
-             # Let's default to markdown if extension unknown, or just text. 
-             # For now, text fallback.
-             report = generate_text_report(result)
-             with open(args.output, "w", encoding="utf-8") as f:
-                 f.write(report)
+            # If writing to file (and not json/html/md), use plain text or markdown?
+            # Let's default to markdown if extension unknown, or just text.
+            # For now, text fallback.
+            report = generate_text_report(result)
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(report)
         else:
             # If printing to stdout, check Rich availability
             if RICH_AVAILABLE and not args.no_color:
@@ -485,19 +503,17 @@ def generate_text_report(result) -> str:
                 lines.append(f"[!] {Path(file_result.file_path).name}")
                 lines.append(f"    Status: {file_result.status.upper()}")
                 lines.append(f"    Deficit Score: {file_result.deficit_score:.1f}/100")
-                lines.append(
-                    f"    LDR: {file_result.ldr.ldr_score:.2%} ({file_result.ldr.grade})"
-                )
+                lines.append(f"    LDR: {file_result.ldr.ldr_score:.2%} ({file_result.ldr.grade})")
                 lines.append(
                     f"    ICR: {file_result.inflation.inflation_score:.2f} ({file_result.inflation.status})"
                 )
-                
+
                 # Show jargon locations
                 if file_result.inflation.jargon_details:
-                     lines.append("    Jargon Locations:")
-                     for detail in file_result.inflation.jargon_details:
-                         if not detail.get("justified"):
-                             lines.append(f"      - Line {detail['line']}: \"{detail['word']}\"")
+                    lines.append("    Jargon Locations:")
+                    for detail in file_result.inflation.jargon_details:
+                        if not detail.get("justified"):
+                            lines.append(f"      - Line {detail['line']}: \"{detail['word']}\"")
 
                 lines.append(
                     f"    DDC: {file_result.ddc.usage_ratio:.2%} ({file_result.ddc.grade})"

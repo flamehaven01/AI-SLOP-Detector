@@ -7,12 +7,12 @@ from pydantic import BaseModel, Field
 
 class AnalysisRequest(BaseModel):
     """Request to analyze file or project"""
-    
+
     file_path: Optional[str] = None
     project_path: Optional[str] = None
     save_history: bool = True
     metadata: Dict[str, Any] = Field(default_factory=dict)
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -25,7 +25,7 @@ class AnalysisRequest(BaseModel):
 
 class AnalysisResponse(BaseModel):
     """Analysis result"""
-    
+
     file_path: str
     slop_score: float
     grade: str
@@ -35,7 +35,7 @@ class AnalysisResponse(BaseModel):
     patterns: List[Dict[str, Any]]
     ml_prediction: Optional[float] = None
     timestamp: str
-    
+
     @classmethod
     def from_result(cls, result: Any) -> "AnalysisResponse":
         """Convert core result to API response"""
@@ -50,7 +50,7 @@ class AnalysisResponse(BaseModel):
             ml_prediction=getattr(result, "ml_score", None),
             timestamp=datetime.utcnow().isoformat(),
         )
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "AnalysisResponse":
         """Create from dict"""
@@ -59,17 +59,17 @@ class AnalysisResponse(BaseModel):
 
 class WebhookPayload(BaseModel):
     """GitHub webhook payload"""
-    
+
     ref: str
     before: str
     after: str
     repository: Dict[str, Any]
     commits: List[Dict[str, Any]]
-    
+
     @property
     def branch(self) -> str:
         return self.ref.split("/")[-1]
-    
+
     @property
     def changed_files(self) -> List[str]:
         """Extract all changed Python files"""
@@ -82,7 +82,7 @@ class WebhookPayload(BaseModel):
 
 class ProjectStatus(BaseModel):
     """Current project quality status"""
-    
+
     project_id: str
     project_name: str
     overall_score: float
@@ -96,14 +96,14 @@ class ProjectStatus(BaseModel):
 
 class TrendResponse(BaseModel):
     """Quality trends over time"""
-    
+
     project_path: str
     period_days: int
     data_points: List[Dict[str, Any]]
     average_score: float
     trend_direction: str
     regression_count: int
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "TrendResponse":
         return cls(**data)

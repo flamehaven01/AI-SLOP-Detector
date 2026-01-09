@@ -10,25 +10,22 @@ from .audit import AuditLogger, AuditEvent, AuditEventType, AuditSeverity
 
 __all__ = [
     # SSO
-    'SSOProvider',
-    'OAuth2Handler',
-    'SAMLHandler',
-    
+    "SSOProvider",
+    "OAuth2Handler",
+    "SAMLHandler",
     # RBAC
-    'RBACManager',
-    'Role',
-    'Permission',
-    'require_permission',
-    
+    "RBACManager",
+    "Role",
+    "Permission",
+    "require_permission",
     # Session
-    'SessionManager',
-    'TokenValidator',
-    
+    "SessionManager",
+    "TokenValidator",
     # Audit
-    'AuditLogger',
-    'AuditEvent',
-    'AuditEventType',
-    'AuditSeverity',
+    "AuditLogger",
+    "AuditEvent",
+    "AuditEventType",
+    "AuditSeverity",
 ]
 
-__version__ = '3.0.0'
+__version__ = "3.0.0"

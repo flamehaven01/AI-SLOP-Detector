@@ -24,11 +24,11 @@ class SlopDetector:
         self.ldr_calc = LDRCalculator(self.config)
         self.inflation_calc = InflationCalculator(self.config)
         self.ddc_calc = DDCCalculator(self.config)
-        
+
         # v2.1: Initialize pattern registry
         self.pattern_registry = PatternRegistry()
         self.pattern_registry.register_all(get_all_patterns())
-        
+
         # Disable patterns from config
         disabled = self.config.get("patterns.disabled", [])
         for pattern_id in disabled:
@@ -37,7 +37,7 @@ class SlopDetector:
     def analyze_file(self, file_path: str) -> FileAnalysis:
         """
         Analyze a single Python file.
-        
+
         Improvements in v2.1:
         - Pattern-based detection alongside metrics
         - Hybrid scoring (metrics + patterns)
@@ -65,7 +65,7 @@ class SlopDetector:
         ldr = self.ldr_calc.calculate(file_path, content, tree)
         inflation = self.inflation_calc.calculate(file_path, content, tree)
         ddc = self.ddc_calc.calculate(file_path, content, tree)
-        
+
         # v2.1: Run pattern detection
         pattern_issues = self._run_patterns(tree, Path(file_path), content)
 
@@ -85,12 +85,10 @@ class SlopDetector:
             pattern_issues=pattern_issues,  # New field
         )
 
-    def analyze_project(
-        self, project_path: str, pattern: str = "**/*.py"
-    ) -> ProjectAnalysis:
+    def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """
         Analyze entire project with weighted scoring.
-        
+
         v2.0 improvements:
         - Weighted by file size (LOC)
         - Respects ignore patterns
@@ -130,7 +128,11 @@ class SlopDetector:
         # Simple average
         avg_deficit_score = sum(r.deficit_score for r in results) / total_files
         avg_ldr = sum(r.ldr.ldr_score for r in results) / total_files
-        avg_inflation = sum(r.inflation.inflation_score for r in results if r.inflation.inflation_score != float('inf')) / max(1, sum(1 for r in results if r.inflation.inflation_score != float('inf')))
+        avg_inflation = sum(
+            r.inflation.inflation_score
+            for r in results
+            if r.inflation.inflation_score != float("inf")
+        ) / max(1, sum(1 for r in results if r.inflation.inflation_score != float("inf")))
         avg_ddc = sum(r.ddc.usage_ratio for r in results) / total_files
 
         # Weighted average (by LOC)
@@ -169,18 +171,18 @@ class SlopDetector:
     def _run_patterns(self, tree: ast.AST, file: Path, content: str) -> List[Issue]:
         """
         Run all enabled patterns on the file.
-        
+
         v2.1: New pattern-based detection.
         """
         issues = []
-        
+
         for pattern in self.pattern_registry.get_all():
             try:
                 pattern_issues = pattern.check(tree, file, content)
                 issues.extend(pattern_issues)
             except Exception as e:
                 logger.warning(f"Pattern {pattern.id} failed: {e}")
-        
+
         return issues
 
     def _calculate_slop_status(
@@ -188,31 +190,35 @@ class SlopDetector:
     ) -> tuple[float, SlopStatus, List[str]]:
         """
         Calculate slop score using weighted formula + pattern penalties.
-        
+
         v2.1: Includes pattern-based scoring.
         """
         warnings = []
         pattern_issues = pattern_issues or []
-        
+
         # Get weights from config
         weights = self.config.get_weights()
-        
+
         # Normalize Inflation (cap at 2.0, treat inf as 2.0)
-        inflation_normalized = min(inflation.inflation_score, 2.0) / 2.0 if inflation.inflation_score != float('inf') else 1.0
-        
+        inflation_normalized = (
+            min(inflation.inflation_score, 2.0) / 2.0
+            if inflation.inflation_score != float("inf")
+            else 1.0
+        )
+
         # Calculate base quality factor (0.0 = bad, 1.0 = good)
         base_quality = (
-            ldr.ldr_score * weights["ldr"] +
-            (1 - inflation_normalized) * weights["inflation"] +
-            ddc.usage_ratio * weights["ddc"]
+            ldr.ldr_score * weights["ldr"]
+            + (1 - inflation_normalized) * weights["inflation"]
+            + ddc.usage_ratio * weights["ddc"]
         )
-        
+
         # Base deficit score from metrics
         base_deficit_score = 100 * (1 - base_quality)
-        
+
         # v2.1: Add pattern penalties
         pattern_penalty = self._calculate_pattern_penalty(pattern_issues)
-        
+
         # Final deficit score (capped at 100)
         deficit_score = min(base_deficit_score + pattern_penalty, 100.0)
 
@@ -234,11 +240,11 @@ class SlopDetector:
 
         if ddc.fake_imports:
             warnings.append(f"FAKE IMPORTS: {', '.join(ddc.fake_imports)}")
-        
+
         # v2.1: Add pattern warnings
         critical_patterns = [i for i in pattern_issues if i.severity.value == "critical"]
         high_patterns = [i for i in pattern_issues if i.severity.value == "high"]
-        
+
         if critical_patterns:
             warnings.append(f"PATTERNS: {len(critical_patterns)} critical issues found")
         if high_patterns:
@@ -259,11 +265,11 @@ class SlopDetector:
             status = SlopStatus.CLEAN
 
         return deficit_score, status, warnings
-    
+
     def _calculate_pattern_penalty(self, issues: List[Issue]) -> float:
         """
         Calculate penalty from pattern issues.
-        
+
         v2.1: Pattern-based scoring.
         """
         SEVERITY_WEIGHTS = {
@@ -272,12 +278,12 @@ class SlopDetector:
             "medium": 2.0,
             "low": 1.0,
         }
-        
+
         penalty = 0.0
         for issue in issues:
             weight = SEVERITY_WEIGHTS.get(issue.severity.value, 1.0)
             penalty += weight
-        
+
         # Cap pattern penalty at 50 points
         return min(penalty, 50.0)
 
@@ -291,7 +297,7 @@ class SlopDetector:
     def _create_error_analysis(self, file_path: str, error: str) -> FileAnalysis:
         """Create minimal analysis for files with errors."""
         from slop_detector.models import LDRResult, InflationResult, DDCResult
-        
+
         return FileAnalysis(
             file_path=file_path,
             ldr=LDRResult(0, 0, 0, 0.0, "N/A"),

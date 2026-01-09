@@ -49,3 +49,11 @@ reports/
 *.log
 .slopconfig.yaml
 target/
+
+# Internal Documentation & Reports
+PROJECT_MASTER_SUMMARY.md
+PROJECT_COMPLETION_*.md
+RELEASE_v*.md
+certification_report.md
+SLOPPYLINT_COMPARISON.md
+tests/manual_test/*.md

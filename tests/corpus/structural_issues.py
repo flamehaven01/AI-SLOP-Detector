@@ -1,5 +1,6 @@
 """Test corpus for structural patterns - intentionally bad code."""
 
+
 # bare_except - Should trigger CRITICAL
 def bad_exception_handling():
     try:
@@ -8,7 +9,7 @@ def bad_exception_handling():
         pass
 
 
-# mutable_default_arg - Should trigger CRITICAL  
+# mutable_default_arg - Should trigger CRITICAL
 def bad_function(items=[]):  # [!] Shared state bug
     items.append(1)
     return items
@@ -20,6 +21,7 @@ from os import *  # [!] Pollutes namespace
 
 # global_statement - Should trigger HIGH
 global_var = 0
+
 
 def bad_global_usage():
     global global_var  # [!] Makes testing harder

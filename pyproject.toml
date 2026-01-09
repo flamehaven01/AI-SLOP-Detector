@@ -73,6 +73,9 @@ addopts = "--cov=slop_detector --cov-report=term-missing --cov-report=html"
 [tool.black]
 line-length = 100
 target-version = ["py38", "py39", "py310", "py311"]
+force-exclude = '''
+tests/corpus/cross_language_mistakes.py
+'''
 
 [tool.ruff]
 line-length = 100

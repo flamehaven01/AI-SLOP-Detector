@@ -5,7 +5,7 @@ from slop_detector.patterns.registry import PatternRegistry
 
 __all__ = [
     "BasePattern",
-    "Issue", 
+    "Issue",
     "Severity",
     "Axis",
     "PatternRegistry",
@@ -34,19 +34,17 @@ def get_all_patterns() -> list[BasePattern]:
         CSharpLengthPattern,
         PHPStrlenPattern,
     )
-    
+
     return [
         # Structural (Critical/High)
         BareExceptPattern(),
         MutableDefaultArgPattern(),
         StarImportPattern(),
         GlobalStatementPattern(),
-        
         # Placeholder (High/Medium)
         PassPlaceholderPattern(),
         TodoCommentPattern(),
         FixmeCommentPattern(),
-        
         # Cross-language (High)
         JavaScriptPushPattern(),
         JavaEqualsPattern(),

@@ -3,6 +3,7 @@ This file contains standard logic with minimal jargon.
 It should receive a low Inflation Score (ICR) and a 'PASS' status.
 """
 
+
 def calculate_sum(numbers):
     """Calculate sum of numbers."""
     total = 0
@@ -10,9 +11,10 @@ def calculate_sum(numbers):
         total += n
     return total
 
+
 class DataProcessor:
     """Process simple data."""
-    
+
     def process(self, data):
         """Process data items."""
         results = []

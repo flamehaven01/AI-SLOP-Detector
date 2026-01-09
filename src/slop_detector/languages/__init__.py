@@ -5,6 +5,7 @@ Extensible architecture for analyzing 7+ programming languages
 
 from .base import LanguageAnalyzer, AnalysisResult
 from .python_analyzer import PythonAnalyzer
+
 # from .javascript_analyzer import JavaScriptAnalyzer
 # from .typescript_analyzer import TypeScriptAnalyzer
 # from .java_analyzer import JavaAnalyzer
@@ -14,9 +15,9 @@ from .python_analyzer import PythonAnalyzer
 # from .csharp_analyzer import CSharpAnalyzer
 
 __all__ = [
-    'LanguageAnalyzer',
-    'AnalysisResult',
-    'PythonAnalyzer',
+    "LanguageAnalyzer",
+    "AnalysisResult",
+    "PythonAnalyzer",
     # 'JavaScriptAnalyzer',
     # 'TypeScriptAnalyzer',
     # 'JavaAnalyzer',
@@ -24,12 +25,12 @@ __all__ = [
     # 'RustAnalyzer',
     # 'CppAnalyzer',
     # 'CSharpAnalyzer',
-    'get_analyzer_for_file',
+    "get_analyzer_for_file",
 ]
 
 # Language to analyzer mapping
 LANGUAGE_ANALYZERS = {
-    '.py': PythonAnalyzer,
+    ".py": PythonAnalyzer,
     # '.js': JavaScriptAnalyzer,
     # '.jsx': JavaScriptAnalyzer,
     # '.ts': TypeScriptAnalyzer,
@@ -49,13 +50,13 @@ LANGUAGE_ANALYZERS = {
 def get_analyzer_for_file(file_path: str) -> LanguageAnalyzer:
     """Get appropriate analyzer for file extension"""
     import os
-    
+
     _, ext = os.path.splitext(file_path)
     ext = ext.lower()
-    
+
     analyzer_class = LANGUAGE_ANALYZERS.get(ext)
-    
+
     if analyzer_class is None:
         raise ValueError(f"Unsupported file extension: {ext}")
-    
+
     return analyzer_class()

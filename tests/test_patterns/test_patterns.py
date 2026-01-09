@@ -28,7 +28,7 @@ except:  # Should trigger
     tree = ast.parse(code)
     pattern = BareExceptPattern()
     issues = pattern.check(tree, Path("test.py"), code)
-    
+
     assert len(issues) == 1
     assert issues[0].pattern_id == "bare_except"
     assert issues[0].severity.value == "critical"
@@ -44,7 +44,7 @@ def bad_function(items=[]):  # Should trigger
     tree = ast.parse(code)
     pattern = MutableDefaultArgPattern()
     issues = pattern.check(tree, Path("test.py"), code)
-    
+
     assert len(issues) == 1
     assert issues[0].pattern_id == "mutable_default_arg"
     assert issues[0].severity.value == "critical"
@@ -56,7 +56,7 @@ def test_star_import():
     tree = ast.parse(code)
     pattern = StarImportPattern()
     issues = pattern.check(tree, Path("test.py"), code)
-    
+
     assert len(issues) == 1
     assert issues[0].pattern_id == "star_import"
 
@@ -70,7 +70,7 @@ def not_implemented():
     tree = ast.parse(code)
     pattern = PassPlaceholderPattern()
     issues = pattern.check(tree, Path("test.py"), code)
-    
+
     assert len(issues) == 1
     assert issues[0].pattern_id == "pass_placeholder"
 
@@ -85,7 +85,7 @@ def needs_work():
     tree = ast.parse(code)
     pattern = TodoCommentPattern()
     issues = pattern.check(tree, Path("test.py"), code)
-    
+
     assert len(issues) == 1
     assert issues[0].pattern_id == "todo_comment"
 
@@ -99,7 +99,7 @@ items.push(1)  # Should trigger
     tree = ast.parse(code)
     pattern = JavaScriptPushPattern()
     issues = pattern.check(tree, Path("test.py"), code)
-    
+
     assert len(issues) == 1
     assert issues[0].pattern_id == "js_push"
     assert "append" in issues[0].suggestion.lower()
@@ -114,7 +114,7 @@ if text1.equals(text2):  # Should trigger
     tree = ast.parse(code)
     pattern = JavaEqualsPattern()
     issues = pattern.check(tree, Path("test.py"), code)
-    
+
     assert len(issues) == 1
     assert issues[0].pattern_id == "java_equals"
 
@@ -136,13 +136,13 @@ def good_function(items=None):
     return items
 """
     tree = ast.parse(good_code)
-    
+
     patterns = [
         BareExceptPattern(),
         MutableDefaultArgPattern(),
         PassPlaceholderPattern(),
     ]
-    
+
     for pattern in patterns:
         issues = pattern.check(tree, Path("test.py"), good_code)
         assert len(issues) == 0, f"False positive from {pattern.id}"

@@ -89,9 +89,7 @@ class InflationCalculator:
         self.config = config
         self.use_radon = config.use_radon() and RADON_AVAILABLE
 
-    def calculate(
-        self, file_path: str, content: str, tree: ast.AST
-    ) -> InflationResult:
+    def calculate(self, file_path: str, content: str, tree: ast.AST) -> InflationResult:
         """Calculate Inflation with context awareness."""
         jargon_found = []
         justified_jargon = []
@@ -101,7 +99,7 @@ class InflationCalculator:
 
         for line_idx, line in enumerate(lines, 1):
             line_lower = line.lower()
-            
+
             for category, words in self.JARGON.items():
                 for word in words:
                     # Simple check: word must be present
@@ -110,17 +108,19 @@ class InflationCalculator:
                         count = line_lower.count(word.lower())
                         for _ in range(count):
                             jargon_found.append(word)
-                            
+
                             is_justified = self._is_jargon_justified(category, word, content)
                             if is_justified:
                                 justified_jargon.append(word)
-                            
-                            jargon_details.append({
-                                "word": word,
-                                "line": line_idx,
-                                "category": category,
-                                "justified": is_justified
-                            })
+
+                            jargon_details.append(
+                                {
+                                    "word": word,
+                                    "line": line_idx,
+                                    "category": category,
+                                    "justified": is_justified,
+                                }
+                            )
 
         jargon_count = len(jargon_found)
         justified_count = len(justified_jargon)

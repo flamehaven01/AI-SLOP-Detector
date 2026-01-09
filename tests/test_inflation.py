@@ -14,13 +14,10 @@ def bcr_calc():
     # Ensure config pattern matches settings.py
     config.config = {
         "exceptions": {
-            "config_files": {
-                "enabled": True,
-                "patterns": ["settings.py", "*.conf", "*.config"]
-            }
+            "config_files": {"enabled": True, "patterns": ["settings.py", "*.conf", "*.config"]}
         },
         "inflation": {"enabled": True},
-        "use_radon": False
+        "use_radon": False,
     }
     return InflationCalculator(config)
 
@@ -39,7 +36,7 @@ def optimize():
 '''
     tree = ast.parse(code)
     result = bcr_calc.calculate("test.py", code, tree)
-    
+
     # Should detect high Inflation
     assert result.inflation_score > 1.0
     assert result.status == "FAIL"
@@ -57,7 +54,7 @@ def neural_network_training():
 """
     tree = ast.parse(code)
     result = bcr_calc.calculate("test.py", code, tree)
-    
+
     # "neural" should be justified
     assert len(result.justified_jargon) > 0
 
@@ -72,7 +69,7 @@ DEBUG = True
 """
     tree = ast.parse(code)
     result = bcr_calc.calculate("settings.py", code, tree)
-    
+
     # Should be recognized as config file
     assert result.is_config_file is True
     # Should have Inflation = 0.0
@@ -89,7 +86,7 @@ def calculate_statistics(data):
 """
     tree = ast.parse(code)
     result = bcr_calc.calculate("test.py", code, tree)
-    
+
     # Should have low Inflation
     assert result.inflation_score < 0.5
     assert result.status == "PASS"

@@ -25,7 +25,7 @@ logger.info("Hello")
 """
     tree = ast.parse(code)
     result = ddc_calc.calculate("test.py", code, tree)
-    
+
     # torch and numpy are unused
     assert "torch" in result.unused
     assert "numpy" in result.unused
@@ -42,7 +42,7 @@ def calculate(data):
 """
     tree = ast.parse(code)
     result = ddc_calc.calculate("test.py", code, tree)
-    
+
     # All imports used
     assert result.usage_ratio == 1.0
     assert result.grade == "EXCELLENT"
@@ -61,7 +61,7 @@ def process(data):
 """
     tree = ast.parse(code)
     result = ddc_calc.calculate("test.py", code, tree)
-    
+
     # torch should be in type_checking_imports
     assert "torch" in result.type_checking_imports
     # Should not be counted as unused
@@ -79,7 +79,7 @@ def simple_function():
 """
     tree = ast.parse(code)
     result = ddc_calc.calculate("test.py", code, tree)
-    
+
     # Should detect fake imports
     assert len(result.fake_imports) > 0
     assert result.usage_ratio < 0.5

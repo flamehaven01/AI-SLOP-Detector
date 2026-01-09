@@ -42,7 +42,7 @@ class LDRCalculator:
 
         total_lines = 0
         logic_lines = 0
-        
+
         # Use enumerate to get 1-based line numbers matching AST
         lines = content.split("\n")
         for i, line in enumerate(lines, 1):
@@ -57,7 +57,7 @@ class LDRCalculator:
             # Check if it's an empty pattern OR inside an empty function
             is_empty_pattern = any(pattern.match(stripped) for pattern in self.compiled_patterns)
             is_inside_empty_func = i in empty_func_lines
-            
+
             if is_empty_pattern or is_inside_empty_func:
                 # Count as empty line (do not increment logic_lines)
                 pass
@@ -69,9 +69,7 @@ class LDRCalculator:
 
         # Apply penalty reduction for ABC interfaces
         if (is_abc_interface or is_type_stub) and self.config.is_abc_exception_enabled():
-            penalty_reduction = self.config.get(
-                "exceptions.abc_interface.penalty_reduction", 0.5
-            )
+            penalty_reduction = self.config.get("exceptions.abc_interface.penalty_reduction", 0.5)
             adjusted_logic_lines = logic_lines + (empty_lines * penalty_reduction)
             ldr_score = adjusted_logic_lines / total_lines if total_lines > 0 else 0.0
 
@@ -114,7 +112,7 @@ class LDRCalculator:
                         is_abc = True
                     elif isinstance(base, ast.Name) and base.id == "ABC":
                         is_abc = True
-                    
+
                     if is_abc:
                         for item in node.body:
                             if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):

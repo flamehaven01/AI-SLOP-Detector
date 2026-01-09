@@ -1,5 +1,7 @@
 """Deep Dependency Check (DDC) calculator with type hint awareness."""
 
+
+from __future__ import annotations
 import ast
 from typing import Set, List
 
@@ -31,13 +33,13 @@ class DDCCalculator:
         """Calculate DDC with type hint and TYPE_CHECKING awareness."""
         # Collect imports (alias -> library)
         imports_map, type_checking_imports = self._collect_imports(tree, content)
-        
+
         # All imported libraries
         all_imported_libs = set(imports_map.values())
 
         # Collect actual usage (excluding type hints)
         used_names = self._collect_usage(tree)
-        
+
         # Determine actually used libraries based on used aliases
         actually_used = set()
         for name in used_names:
@@ -51,10 +53,8 @@ class DDCCalculator:
 
         # Type checking imports are not counted as unused
         total_imports = len(all_imported_libs)
-        
-        usage_ratio = (
-            len(actually_used) / total_imports if total_imports > 0 else 1.0
-        )
+
+        usage_ratio = len(actually_used) / total_imports if total_imports > 0 else 1.0
 
         # Determine grade
         if usage_ratio >= 0.90:
@@ -101,7 +101,7 @@ class DDCCalculator:
                 for alias in node.names:
                     lib = alias.name.split(".")[0]
                     name_to_use = alias.asname or alias.name.split(".")[0]
-                    
+
                     if lib not in type_checking_imports:
                         imports_map[name_to_use] = lib
 

@@ -27,7 +27,7 @@ def returns_none():
 """
     tree = ast.parse(code)
     result = ldr_calc.calculate("test.py", code, tree)
-    
+
     # Should detect empty patterns
     assert result.ldr_score < 0.5
 
@@ -49,7 +49,7 @@ def process_items(items):
 """
     tree = ast.parse(code)
     result = ldr_calc.calculate("test.py", code, tree)
-    
+
     # Should have high LDR
     assert result.ldr_score > 0.8
     assert result.grade in ["S++", "S", "A"]
@@ -71,7 +71,7 @@ class DataProcessor(ABC):
 """
     tree = ast.parse(code)
     result = ldr_calc.calculate("test.py", code, tree)
-    
+
     # Should be recognized as ABC interface
     assert result.is_abc_interface is True
     # Should have reduced penalty
@@ -86,7 +86,7 @@ class MyClass: ...
 """
     tree = ast.parse(code)
     result = ldr_calc.calculate("test.pyi", code, tree)
-    
+
     # Should recognize as type stub
     assert result.is_type_stub is True
 
