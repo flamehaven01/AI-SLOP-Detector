@@ -77,6 +77,31 @@ def add_numbers(a, b):
 
 AI-SLOP Detector uses a **multi-metric analysis engine** with four core components:
 
+```mermaid
+graph TB
+    A[Python Code] --> B[SlopDetector]
+    B --> C[LDR Calculator]
+    B --> D[Inflation Calculator]
+    B --> E[DDC Calculator]
+    B --> F[Pattern Registry]
+    
+    C --> G[Deficit Score]
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H{Status}
+    H -->|>70| I[CRITICAL]
+    H -->|30-70| J[SUSPICIOUS]
+    H -->|<30| K[CLEAN]
+    
+    style A fill:#e3f2fd
+    style G fill:#fff3cd
+    style I fill:#ffcdd2
+    style J fill:#fff9c4
+    style K fill:#c8e6c9
+```
+
 ### 1. Logic Density Ratio (LDR)
 Measures the ratio of actual logic to empty/placeholder code.
 - **High LDR (>75%)**: Well-implemented code
