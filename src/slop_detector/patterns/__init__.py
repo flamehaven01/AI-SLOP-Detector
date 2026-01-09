@@ -1,5 +1,6 @@
 """Pattern system for AI SLOP Detector v2.1.0"""
 
+from __future__ import annotations
 from slop_detector.patterns.base import BasePattern, Issue, Severity, Axis
 from slop_detector.patterns.registry import PatternRegistry
 
