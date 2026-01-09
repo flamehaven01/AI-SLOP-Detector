@@ -90,5 +90,5 @@ def risky_operation():
     """Process with bare except."""
     try:
         complex_calculation()
-    except:
+    except:  # noqa: E722
         pass

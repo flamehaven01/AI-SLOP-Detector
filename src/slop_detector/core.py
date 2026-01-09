@@ -274,7 +274,7 @@ class SlopDetector:
 
         v2.1: Pattern-based scoring.
         """
-        SEVERITY_WEIGHTS = {
+        severity_weights = {
             "critical": 10.0,
             "high": 5.0,
             "medium": 2.0,
@@ -283,7 +283,7 @@ class SlopDetector:
 
         penalty = 0.0
         for issue in issues:
-            weight = SEVERITY_WEIGHTS.get(issue.severity.value, 1.0)
+            weight = severity_weights.get(issue.severity.value, 1.0)
             penalty += weight
 
         # Cap pattern penalty at 50 points
