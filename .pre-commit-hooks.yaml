@@ -1,0 +1,26 @@
+- id: slop-detector
+  name: AI SLOP Detector
+  description: Detect AI-generated code anti-patterns
+  entry: slop-detector
+  language: python
+  types: [python]
+  args: ['--fail-threshold', '30']
+  require_serial: false
+  
+- id: slop-detector-strict
+  name: AI SLOP Detector (Strict)
+  description: Strict mode - only critical and high severity issues
+  entry: slop-detector
+  language: python
+  types: [python]
+  args: ['--fail-threshold', '20', '--severity', 'high']
+  require_serial: false
+  
+- id: slop-detector-patterns
+  name: AI SLOP Detector (Patterns Only)
+  description: Only check for pattern violations
+  entry: slop-detector
+  language: python
+  types: [python]
+  args: ['--patterns-only']
+  require_serial: false

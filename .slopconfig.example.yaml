@@ -1,0 +1,121 @@
+# AI SLOP Detector Configuration
+# Copy to .slopconfig.yaml and customize
+
+version: "2.0"
+
+# Metric thresholds
+thresholds:
+  ldr:
+    # Logic Density Ratio grades
+    excellent: 0.85  # S++
+    good: 0.75       # S
+    acceptable: 0.60 # A
+    warning: 0.45    # B
+    critical: 0.30   # C
+    
+  bcr:
+    # Buzzword-to-Code Ratio
+    pass: 0.50
+    warning: 1.0
+    fail: 2.0
+    
+  ddc:
+    # Deep Dependency Check
+    excellent: 0.90
+    good: 0.70
+    acceptable: 0.50
+    suspicious: 0.30
+
+# Slop score calculation weights
+weights:
+  ldr: 0.40  # 40% weight
+  bcr: 0.30  # 30% weight
+  ddc: 0.30  # 30% weight
+
+# File patterns to ignore
+ignore:
+  - "**/__init__.py"
+  - "tests/**"
+  - "**/*_test.py"
+  - "**/test_*.py"
+  - "**/*.pyi"
+  - ".venv/**"
+  - "venv/**"
+  - "build/**"
+  - "dist/**"
+  - "**/.git/**"
+
+# Exception handling
+exceptions:
+  # ABC interfaces get reduced LDR penalty
+  abc_interface:
+    enabled: true
+    penalty_reduction: 0.5  # 50% reduction
+    
+  # Config files get BCR exemption
+  config_files:
+    enabled: true
+    patterns:
+      - "**/settings.py"
+      - "**/config.py"
+      - "**/constants.py"
+      - "**/*_config.py"
+      
+  # Type stub files
+  type_stubs:
+    enabled: true
+    patterns:
+      - "**/*.pyi"
+
+# Buzzword categories (context-aware)
+buzzwords:
+  # AI/ML terms - justified if torch/tf is used
+  ai_ml:
+    terms: ["neural", "transformer", "deep learning", "reinforcement learning"]
+    justify_with: ["torch", "tensorflow", "keras", "jax"]
+    
+  # Architecture terms - justified if complex patterns present
+  architecture:
+    terms: ["byzantine", "fault-tolerant", "distributed", "scalable"]
+    justify_with: ["multiprocessing", "concurrent.futures", "asyncio"]
+    
+  # Performance terms - justified if optimization code present
+  performance:
+    terms: ["optimized", "optimization", "performant", "efficient"]
+    justify_with: ["numba", "cython", "vectorized", "cached"]
+
+# Reporting options
+reporting:
+  # Output formats
+  formats:
+    - text
+    - html
+    - json
+    
+  # HTML report customization
+  html:
+    theme: "dark"
+    show_charts: true
+    show_code_snippets: true
+    
+  # Fail CI if slop score exceeds threshold
+  ci:
+    fail_threshold: 30
+    fail_on_critical: true
+
+# Advanced options
+advanced:
+  # Use radon for complexity calculation
+  use_radon: true
+  
+  # Enable ML-based detection (experimental)
+  ml_detection: false
+  
+  # Weight files by LOC in project analysis
+  weighted_analysis: true
+  
+  # Minimum file size to analyze (LOC)
+  min_file_size: 10
+  
+  # Maximum file size (skip very large files)
+  max_file_size: 10000

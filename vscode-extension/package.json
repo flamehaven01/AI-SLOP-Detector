@@ -1,0 +1,123 @@
+{
+  "name": "vscode-slop-detector",
+  "displayName": "AI SLOP Detector",
+  "description": "Real-time AI-generated code quality analysis for VS Code",
+  "version": "2.3.0",
+  "publisher": "flamehaven-labs",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "ai",
+    "code-quality",
+    "linter",
+    "slop-detection",
+    "static-analysis"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "slop-detector.analyzeFile",
+        "title": "Analyze Current File",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.analyzeWorkspace",
+        "title": "Analyze Workspace",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.showHistory",
+        "title": "Show File History",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.installGitHook",
+        "title": "Install Git Pre-Commit Hook",
+        "category": "SLOP Detector"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "AI SLOP Detector",
+      "properties": {
+        "slopDetector.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable SLOP Detector"
+        },
+        "slopDetector.lintOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run analysis on file save"
+        },
+        "slopDetector.lintOnType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run analysis while typing (may impact performance)"
+        },
+        "slopDetector.showInlineWarnings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline warnings in editor"
+        },
+        "slopDetector.failThreshold": {
+          "type": "number",
+          "default": 50.0,
+          "description": "Slop score threshold for errors (0-100)"
+        },
+        "slopDetector.warnThreshold": {
+          "type": "number",
+          "default": 30.0,
+          "description": "Slop score threshold for warnings (0-100)"
+        },
+        "slopDetector.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python interpreter"
+        },
+        "slopDetector.configPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to .slopconfig.yaml (optional)"
+        },
+        "slopDetector.recordHistory": {
+          "type": "boolean",
+          "default": true,
+          "description": "Record analysis results in history database"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^2.20.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flamehaven/ai-slop-detector"
+  },
+  "license": "MIT"
+}

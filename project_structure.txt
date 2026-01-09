@@ -1,0 +1,40 @@
+data 볼륨에 대한 폴더 경로의 목록입니다.
+볼륨 일련 번호는 48BB-594A입니다.
+D:.
+|   .gitignore
+|   .slopconfig.example.yaml
+|   CONTRIBUTING.md
+|   docker-compose.yml
+|   Dockerfile
+|   LICENSE
+|   Makefile
+|   project_structure.txt
+|   pyproject.toml
+|   README.md
+|   
++---.github
+|   \---workflows
+|           ci.yml
+|           
++---docs
++---src
+|   \---slop_detector
+|       |   cli.py
+|       |   config.py
+|       |   core.py
+|       |   models.py
+|       |   __init__.py
+|       |   
+|       +---metrics
+|       |       bcr.py
+|       |       ddc.py
+|       |       ldr.py
+|       |       __init__.py
+|       |       
+|       \---reporters
+\---tests
+        test_bcr.py
+        test_ddc.py
+        test_ldr.py
+        __init__.py
+        

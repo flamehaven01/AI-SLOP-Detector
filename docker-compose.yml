@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  slop-detector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flamehaven/ai-slop-detector:2.0.0
+    container_name: slop-detector
+    volumes:
+      # Mount your project to analyze
+      - ./target:/workspace:ro
+      # Mount output directory
+      - ./reports:/reports
+    environment:
+      - SLOP_CONFIG=/workspace/.slopconfig.yaml
+      - OUTPUT_DIR=/reports
+    command: ["--project", "/workspace", "--output", "/reports/slop_report.html"]
+    
+  slop-detector-ci:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flamehaven/ai-slop-detector:2.0.0
+    container_name: slop-detector-ci
+    volumes:
+      - ./target:/workspace:ro
+    environment:
+      - FAIL_THRESHOLD=30
+    command: >
+      sh -c "slop-detector --project /workspace --json | 
+             jq -e '.avg_slop_score < $FAIL_THRESHOLD'"
+    
+networks:
+  default:
+    name: slop-detector-network

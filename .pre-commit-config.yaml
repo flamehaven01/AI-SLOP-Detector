@@ -1,0 +1,22 @@
+# Pre-commit hooks for AI SLOP Detector
+# See https://pre-commit.com for more information
+
+repos:
+  - repo: local
+    hooks:
+      - id: slop-detector
+        name: AI SLOP Detector
+        entry: slop-detector
+        language: system
+        types: [python]
+        args: ['--fail-threshold', '30', '--severity', 'high']
+        pass_filenames: true
+        
+      - id: slop-detector-critical
+        name: AI SLOP Detector (Critical Only)
+        entry: slop-detector
+        language: system
+        types: [python]
+        args: ['--fail-threshold', '50', '--severity', 'critical']
+        pass_filenames: true
+        stages: [push]
