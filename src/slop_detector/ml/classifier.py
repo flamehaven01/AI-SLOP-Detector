@@ -244,9 +244,7 @@ class SlopClassifier:
             f1_score=f1_score(labels_test, labels_pred, zero_division=0),
         )
 
-    def evaluate_ensemble(
-        self, features_test: np.ndarray, labels_test: np.ndarray
-    ) -> ModelMetrics:
+    def evaluate_ensemble(self, features_test: np.ndarray, labels_test: np.ndarray) -> ModelMetrics:
         """Evaluate ensemble (voting) on test set."""
         rf_pred = self.rf_model.predict(features_test)
         xgb_pred = self.xgb_model.predict(features_test)
