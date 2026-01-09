@@ -2,8 +2,6 @@
 
 import ast
 import re
-from pathlib import Path
-from typing import Set, Tuple
 
 from slop_detector.models import LDRResult
 

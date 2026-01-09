@@ -5,7 +5,7 @@ Provides pre-commit hook and git info extraction.
 
 import subprocess
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 
 class GitIntegration:

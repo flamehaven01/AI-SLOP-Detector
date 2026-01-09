@@ -1,6 +1,7 @@
 """Test suite for Inflation calculator."""
 
 import ast
+
 import pytest
 
 from slop_detector.config import Config

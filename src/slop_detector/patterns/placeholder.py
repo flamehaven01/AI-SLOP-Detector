@@ -1,11 +1,11 @@
 """Placeholder code detectors."""
 
 from __future__ import annotations
+
 import ast
-import re
 from typing import Optional
 
-from slop_detector.patterns.base import ASTPattern, RegexPattern, Issue, Severity, Axis
+from slop_detector.patterns.base import ASTPattern, Axis, Issue, RegexPattern, Severity
 
 
 class PassPlaceholderPattern(ASTPattern):

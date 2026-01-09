@@ -1,13 +1,15 @@
 """Core SLOP detector with improved architecture."""
 
+from __future__ import annotations
+
 import ast
 import logging
 from pathlib import Path
 from typing import List, Optional
 
 from slop_detector.config import Config
+from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
-from slop_detector.metrics import LDRCalculator, InflationCalculator, DDCCalculator
 from slop_detector.patterns import get_all_patterns
 from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
@@ -296,7 +298,7 @@ class SlopDetector:
 
     def _create_error_analysis(self, file_path: str, error: str) -> FileAnalysis:
         """Create minimal analysis for files with errors."""
-        from slop_detector.models import LDRResult, InflationResult, DDCResult
+        from slop_detector.models import DDCResult, InflationResult, LDRResult
 
         return FileAnalysis(
             file_path=file_path,

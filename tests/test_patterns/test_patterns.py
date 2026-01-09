@@ -5,15 +5,15 @@ from pathlib import Path
 
 import pytest
 
+from slop_detector.patterns.cross_language import (
+    JavaEqualsPattern,
+    JavaScriptPushPattern,
+)
+from slop_detector.patterns.placeholder import PassPlaceholderPattern, TodoCommentPattern
 from slop_detector.patterns.structural import (
     BareExceptPattern,
     MutableDefaultArgPattern,
     StarImportPattern,
-)
-from slop_detector.patterns.placeholder import PassPlaceholderPattern, TodoCommentPattern
-from slop_detector.patterns.cross_language import (
-    JavaScriptPushPattern,
-    JavaEqualsPattern,
 )
 
 
@@ -125,13 +125,13 @@ def test_no_false_positives():
 def good_function(items=None):
     if items is None:
         items = []
-    
+
     try:
         result = process(items)
     except ValueError as e:
         logger.error(f"Error: {e}")
         return None
-    
+
     items.append(result)
     return items
 """

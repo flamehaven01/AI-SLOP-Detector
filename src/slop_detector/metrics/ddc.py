@@ -1,8 +1,9 @@
 """Deep Dependency Check (DDC) calculator with type hint awareness."""
 
 from __future__ import annotations
+
 import ast
-from typing import Set, List
+from typing import Set
 
 from slop_detector.models import DDCResult
 

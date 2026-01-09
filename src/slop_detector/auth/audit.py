@@ -5,11 +5,10 @@ Tracks all user actions, permission checks, and system events
 
 import json
 import sqlite3
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, field, asdict
 from enum import Enum
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 class AuditEventType(str, Enum):
@@ -147,28 +146,28 @@ class AuditLogger:
         # Create indices for common queries
         cursor.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_timestamp 
+            CREATE INDEX IF NOT EXISTS idx_timestamp
             ON audit_logs(timestamp)
         """
         )
 
         cursor.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_user_id 
+            CREATE INDEX IF NOT EXISTS idx_user_id
             ON audit_logs(user_id)
         """
         )
 
         cursor.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_event_type 
+            CREATE INDEX IF NOT EXISTS idx_event_type
             ON audit_logs(event_type)
         """
         )
 
         cursor.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_severity 
+            CREATE INDEX IF NOT EXISTS idx_severity
             ON audit_logs(severity)
         """
         )
@@ -418,10 +417,10 @@ class AuditLogger:
         # Events by type
         cursor.execute(
             """
-            SELECT event_type, COUNT(*) as count 
-            FROM audit_logs 
-            GROUP BY event_type 
-            ORDER BY count DESC 
+            SELECT event_type, COUNT(*) as count
+            FROM audit_logs
+            GROUP BY event_type
+            ORDER BY count DESC
             LIMIT 10
         """
         )
@@ -430,8 +429,8 @@ class AuditLogger:
         # Events by severity
         cursor.execute(
             """
-            SELECT severity, COUNT(*) as count 
-            FROM audit_logs 
+            SELECT severity, COUNT(*) as count
+            FROM audit_logs
             GROUP BY severity
         """
         )
@@ -440,11 +439,11 @@ class AuditLogger:
         # Most active users
         cursor.execute(
             """
-            SELECT user_id, COUNT(*) as count 
-            FROM audit_logs 
-            WHERE user_id IS NOT NULL 
-            GROUP BY user_id 
-            ORDER BY count DESC 
+            SELECT user_id, COUNT(*) as count
+            FROM audit_logs
+            WHERE user_id IS NOT NULL
+            GROUP BY user_id
+            ORDER BY count DESC
             LIMIT 10
         """
         )
@@ -462,7 +461,6 @@ class AuditLogger:
 
 # Example usage
 if __name__ == "__main__":
-    import uuid
 
     # Initialize logger
     logger = AuditLogger("test_audit.db")

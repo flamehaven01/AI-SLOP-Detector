@@ -3,11 +3,11 @@ Role-Based Access Control (RBAC) System
 Supports hierarchical roles and fine-grained permissions
 """
 
-from enum import Enum
-from typing import Set, Dict, Optional, List
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
-import json
+from enum import Enum
+from typing import Dict, List, Optional, Set
 
 
 class Permission(str, Enum):

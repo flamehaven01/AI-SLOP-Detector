@@ -1,7 +1,8 @@
 """Pattern system for AI SLOP Detector v2.1.0"""
 
 from __future__ import annotations
-from slop_detector.patterns.base import BasePattern, Issue, Severity, Axis
+
+from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 from slop_detector.patterns.registry import PatternRegistry
 
 __all__ = [
@@ -16,24 +17,24 @@ __all__ = [
 
 def get_all_patterns() -> list[BasePattern]:
     """Get all registered patterns."""
-    from slop_detector.patterns.structural import (
-        BareExceptPattern,
-        MutableDefaultArgPattern,
-        StarImportPattern,
-        GlobalStatementPattern,
+    from slop_detector.patterns.cross_language import (
+        CSharpLengthPattern,
+        GoPrintPattern,
+        JavaEqualsPattern,
+        JavaScriptPushPattern,
+        PHPStrlenPattern,
+        RubyEachPattern,
     )
     from slop_detector.patterns.placeholder import (
+        FixmeCommentPattern,
         PassPlaceholderPattern,
         TodoCommentPattern,
-        FixmeCommentPattern,
     )
-    from slop_detector.patterns.cross_language import (
-        JavaScriptPushPattern,
-        JavaEqualsPattern,
-        RubyEachPattern,
-        GoPrintPattern,
-        CSharpLengthPattern,
-        PHPStrlenPattern,
+    from slop_detector.patterns.structural import (
+        BareExceptPattern,
+        GlobalStatementPattern,
+        MutableDefaultArgPattern,
+        StarImportPattern,
     )
 
     return [

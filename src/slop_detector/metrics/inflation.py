@@ -2,7 +2,6 @@
 
 import ast
 from pathlib import Path
-from typing import List, Set
 
 from slop_detector.models import InflationResult
 
@@ -206,7 +205,7 @@ class InflationCalculator:
 
     def _is_config_file(self, file_path: str, tree: ast.AST) -> bool:
         """Check if file is a configuration file."""
-        file_name = Path(file_path).name.lower()
+        Path(file_path).name.lower()
 
         # Check filename patterns
         config_patterns = self.config.get("exceptions.config_files.patterns", [])

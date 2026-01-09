@@ -3,7 +3,7 @@ Multi-Language Support Framework
 Extensible architecture for analyzing 7+ programming languages
 """
 
-from .base import LanguageAnalyzer, AnalysisResult
+from .base import AnalysisResult, LanguageAnalyzer
 from .python_analyzer import PythonAnalyzer
 
 # from .javascript_analyzer import JavaScriptAnalyzer

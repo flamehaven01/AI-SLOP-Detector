@@ -23,21 +23,22 @@ Date: 2026-01-08
 import json
 import logging
 import pickle
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+
 import numpy as np
 
 try:
     from sklearn.ensemble import RandomForestClassifier
-    from sklearn.model_selection import train_test_split, cross_val_score
     from sklearn.metrics import (
         accuracy_score,
+        classification_report,
+        f1_score,
         precision_score,
         recall_score,
-        f1_score,
-        classification_report,
     )
+    from sklearn.model_selection import cross_val_score, train_test_split
 
     SKLEARN_AVAILABLE = True
 except ImportError:

@@ -5,8 +5,8 @@ All language-specific analyzers must implement this interface
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Dict, Set, Optional
 from enum import Enum
+from typing import Dict, List, Optional, Set
 
 
 class SeverityLevel(str, Enum):

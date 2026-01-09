@@ -3,13 +3,13 @@ Historical trend tracking for slop detection.
 Stores analysis results in SQLite and provides trend analysis.
 """
 
+import hashlib
 import json
 import sqlite3
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import hashlib
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -61,14 +61,14 @@ class HistoryTracker:
 
         cursor.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_file_path 
+            CREATE INDEX IF NOT EXISTS idx_file_path
             ON history(file_path)
         """
         )
 
         cursor.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_timestamp 
+            CREATE INDEX IF NOT EXISTS idx_timestamp
             ON history(timestamp DESC)
         """
         )
@@ -113,8 +113,8 @@ class HistoryTracker:
 
         cursor.execute(
             """
-            INSERT OR REPLACE INTO history 
-            (timestamp, file_path, file_hash, slop_score, ldr_score, 
+            INSERT OR REPLACE INTO history
+            (timestamp, file_path, file_hash, slop_score, ldr_score,
              bcr_score, ddc_usage_ratio, grade, git_commit, git_branch)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -142,7 +142,7 @@ class HistoryTracker:
 
         cursor.execute(
             """
-            SELECT timestamp, file_hash, slop_score, ldr_score, 
+            SELECT timestamp, file_hash, slop_score, ldr_score,
                    bcr_score, ddc_usage_ratio, grade, git_commit, git_branch
             FROM history
             WHERE file_path = ?
@@ -204,7 +204,7 @@ class HistoryTracker:
 
         cursor.execute(
             """
-            SELECT 
+            SELECT
                 DATE(timestamp) as date,
                 AVG(slop_score) as avg_slop,
                 AVG(ldr_score) as avg_ldr,
@@ -245,7 +245,7 @@ class HistoryTracker:
 
         cursor.execute(
             """
-            SELECT timestamp, file_path, file_hash, slop_score, 
+            SELECT timestamp, file_path, file_hash, slop_score,
                    ldr_score, bcr_score, ddc_usage_ratio, grade,
                    git_commit, git_branch
             FROM history

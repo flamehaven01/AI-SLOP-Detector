@@ -4,10 +4,9 @@ Implementation of LanguageAnalyzer for Python
 """
 
 import ast
-import re
-from typing import List, Dict, Set, Tuple
+from typing import Dict, List, Set
 
-from .base import LanguageAnalyzer, FunctionMetrics, CodeIssue, SeverityLevel, AnalysisResult
+from .base import AnalysisResult, CodeIssue, FunctionMetrics, LanguageAnalyzer, SeverityLevel
 
 
 class PythonAnalyzer(LanguageAnalyzer):

@@ -1,10 +1,11 @@
 """Cross-language pattern detectors - AI leaks patterns from other languages."""
 
 from __future__ import annotations
+
 import ast
 from typing import Optional
 
-from slop_detector.patterns.base import ASTPattern, Issue, Severity, Axis
+from slop_detector.patterns.base import ASTPattern, Axis, Issue, Severity
 
 
 class JavaScriptPushPattern(ASTPattern):

@@ -1,6 +1,7 @@
 """Test suite for DDC calculator."""
 
 import ast
+
 import pytest
 
 from slop_detector.config import Config

@@ -5,10 +5,6 @@ Implements state-of-the-art serverless architecture
 with distributed processing capabilities.
 """
 
-import torch
-import tensorflow as tf
-import numpy as np
-from typing import List, Dict, Any
 
 
 def function_0(data=[]):
@@ -94,6 +90,6 @@ def cross_language_mistakes():
 def risky_operation():
     """Process with bare except."""
     try:
-        result = complex_calculation()
+        complex_calculation()
     except:
         pass

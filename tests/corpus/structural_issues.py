@@ -18,7 +18,6 @@ def bad_function(items=[]):  # [!] Shared state bug
 # star_import - Should trigger HIGH
 from os import *  # [!] Pollutes namespace
 
-
 # global_statement - Should trigger HIGH
 global_var = 0
 
@@ -56,7 +55,6 @@ def good_function(items=None):  # [+] None as default
     return items
 
 
-from os import path, environ  # [+] Specific imports
 
 
 def good_function_without_global(value):  # [+] Pass as argument

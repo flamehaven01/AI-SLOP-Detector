@@ -6,12 +6,12 @@ __email__ = "slop-detector@flamehaven.io"
 
 from slop_detector.core import SlopDetector
 from slop_detector.models import (
-    SlopStatus,
-    LDRResult,
-    InflationResult,
     DDCResult,
     FileAnalysis,
+    InflationResult,
+    LDRResult,
     ProjectAnalysis,
+    SlopStatus,
 )
 
 __all__ = [

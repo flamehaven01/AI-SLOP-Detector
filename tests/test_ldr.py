@@ -1,6 +1,7 @@
 """Test suite for LDR calculator."""
 
 import ast
+
 import pytest
 
 from slop_detector.config import Config
@@ -64,7 +65,7 @@ class DataProcessor(ABC):
     @abstractmethod
     def process(self, data):
         pass
-    
+
     @abstractmethod
     def validate(self, data):
         pass

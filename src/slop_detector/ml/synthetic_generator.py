@@ -6,7 +6,6 @@ Generates realistic low-quality/noise code samples for training.
 
 import random
 from pathlib import Path
-from typing import List
 
 # Jargon for ICR inflation
 JARGON_TERMS = [

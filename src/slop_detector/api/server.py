@@ -1,23 +1,20 @@
 """FastAPI REST API server for AI SLOP Detector"""
 
-import asyncio
-from pathlib import Path
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 
 from ..core import SlopDetector
 from ..history import HistoryTracker
-from ..git_integration import GitIntegration
 from .models import (
     AnalysisRequest,
     AnalysisResponse,
     ProjectStatus,
-    WebhookPayload,
     TrendResponse,
+    WebhookPayload,
 )
 
 

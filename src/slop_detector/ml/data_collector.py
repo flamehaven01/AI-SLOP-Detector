@@ -8,11 +8,11 @@ This module handles:
 - Slop code collection and generation
 """
 
-import json
 import ast
-from dataclasses import dataclass, asdict
+import json
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from slop_detector.core import SlopDetector
 from slop_detector.models import FileAnalysis

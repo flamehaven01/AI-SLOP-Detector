@@ -55,11 +55,11 @@ def setup_logging(verbose: bool = False) -> None:
 # --- Rich Support ---
 
 try:
-    from rich.console import Console
-    from rich.table import Table
-    from rich.panel import Panel
-    from rich.text import Text
     from rich import box
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+    from rich.text import Text
 
     RICH_AVAILABLE = True
 except ImportError:
@@ -223,7 +223,7 @@ def generate_markdown_report(result) -> str:
     timestamp = getattr(result, "timestamp", None)
 
     lines = []
-    lines.append(f"# AI Code Quality Audit Report")
+    lines.append("# AI Code Quality Audit Report")
     if timestamp:
         lines.append(f"**Date**: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
     lines.append(f"**Target**: `{root_dir}`")
@@ -275,7 +275,7 @@ def generate_markdown_report(result) -> str:
         # Inflation / Jargon
         jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
         if jargon_issues:
-            lines.append(f"#### 🔴 Inflation (Jargon) Detected")
+            lines.append("#### 🔴 Inflation (Jargon) Detected")
             lines.append("| Line | Term | Category | Actionable Mitigation |")
             lines.append("| :--- | :--- | :--- | :--- |")
             for det in jargon_issues:
@@ -287,7 +287,7 @@ def generate_markdown_report(result) -> str:
 
         # Patterns (Static Analysis)
         if hasattr(f_res, "pattern_issues") and f_res.pattern_issues:
-            lines.append(f"#### ⚠️ Anti-Patterns & Risk")
+            lines.append("#### ⚠️ Anti-Patterns & Risk")
             lines.append("| Line | Issue | Mitigation Strategy |")
             lines.append("| :--- | :--- | :--- |")
             for p in f_res.pattern_issues:

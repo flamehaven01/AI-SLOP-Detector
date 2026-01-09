@@ -3,10 +3,10 @@ AI SLOP Detector - Authentication Module
 Enterprise SSO, RBAC, and Audit Logging
 """
 
-from .sso import SSOProvider, OAuth2Handler, SAMLHandler
-from .rbac import RBACManager, Role, Permission, require_permission
+from .audit import AuditEvent, AuditEventType, AuditLogger, AuditSeverity
+from .rbac import Permission, RBACManager, Role, require_permission
 from .session import SessionManager, TokenValidator
-from .audit import AuditLogger, AuditEvent, AuditEventType, AuditSeverity
+from .sso import OAuth2Handler, SAMLHandler, SSOProvider
 
 __all__ = [
     # SSO

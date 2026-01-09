@@ -3,16 +3,15 @@ Single Sign-On (SSO) Provider Integration
 Supports OAuth2 (Google, GitHub, Azure AD) and SAML 2.0
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, Optional, Any
-from dataclasses import dataclass
-from datetime import datetime, timedelta
+import base64
 import hashlib
 import secrets
-import base64
-import json
-from urllib.parse import urlencode, parse_qs
 import xml.etree.ElementTree as ET
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict
+from urllib.parse import urlencode
 
 
 @dataclass
@@ -230,7 +229,7 @@ class SAMLHandler(SSOProvider):
 
         # Create SAML AuthnRequest
         authn_request = f"""
-        <samlp:AuthnRequest 
+        <samlp:AuthnRequest
             xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
             xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
             ID="_{secrets.token_urlsafe(32)}"
