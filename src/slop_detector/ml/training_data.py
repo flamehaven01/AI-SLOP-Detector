@@ -186,7 +186,7 @@ class TrainingDataCollector:
                     avg_function_length = total_func_lines / len(functions) if functions else 0.0
                 else:
                     avg_function_length = 0.0
-            except:
+            except Exception:
                 avg_function_length = 0.0
 
             # Count cross-language and hallucination patterns
