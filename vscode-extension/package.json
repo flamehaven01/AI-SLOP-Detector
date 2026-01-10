@@ -2,7 +2,7 @@
   "name": "vscode-slop-detector",
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
-  "version": "2.3.0",
+  "version": "2.5.1",
   "publisher": "flamehaven-labs",
   "engines": {
     "vscode": "^1.80.0"
@@ -117,7 +117,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/flamehaven/ai-slop-detector"
+    "url": "https://github.com/flamehaven01/AI-SLOP-Detector"
   },
+  "bugs": {
+    "url": "https://github.com/flamehaven01/AI-SLOP-Detector/issues"
+  },
+  "homepage": "https://github.com/flamehaven01/AI-SLOP-Detector#readme",
   "license": "MIT"
 }

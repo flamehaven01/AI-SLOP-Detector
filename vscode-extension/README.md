@@ -21,11 +21,14 @@ npm run compile
 npm run package
 
 # Install in VS Code
-code --install-extension vscode-slop-detector-2.3.0.vsix
+code --install-extension vscode-slop-detector-2.5.1.vsix
 ```
 
-### From Marketplace (Coming Soon)
-Search for "AI SLOP Detector" in VS Code Extensions.
+### From Marketplace
+Search for "AI SLOP Detector" in VS Code Extensions or install directly:
+```
+ext install flamehaven-labs.vscode-slop-detector
+```
 
 ## Usage
 
@@ -61,14 +64,7 @@ Open Settings (Ctrl+,) and search for "SLOP Detector":
 
 ## Screenshots
 
-### Status Bar
-![Status Bar](images/statusbar.png)
-
-### Inline Warnings
-![Inline Warnings](images/inline.png)
-
-### History View
-![History](images/history.png)
+Coming soon after marketplace release.
 
 ## Development
 
