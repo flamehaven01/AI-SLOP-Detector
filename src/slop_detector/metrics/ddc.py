@@ -163,7 +163,7 @@ class UsageCollector(ast.NodeVisitor):
             self.visit(stmt)
 
     # Alias for async functions (same logic as regular functions)
-    def visit_AsyncFunctionDef(self, node):
+    def visit_AsyncFunctionDef(self, node):  # noqa: N815
         """Visit async function definition (same as regular function)."""
         return self.visit_FunctionDef(node)
 
