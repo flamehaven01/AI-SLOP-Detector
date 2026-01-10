@@ -413,8 +413,9 @@ Examples:
     # Analyze
     try:
         if args.project:
-            result = detector.analyze_project(args.path)
-            score = result.weighted_deficit_score
+            project_result = detector.analyze_project(args.path)
+            result = project_result
+            score = project_result.weighted_deficit_score
         else:
             file_result = detector.analyze_file(args.path)
             result = file_result

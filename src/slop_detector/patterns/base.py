@@ -165,8 +165,13 @@ class RegexPattern(BasePattern):
         issues = []
         lines = content.split("\n")
 
+        # Type guard for mypy
+        pattern = self.pattern
+        if isinstance(pattern, str):
+            pattern = self.re.compile(pattern)
+
         for line_num, line in enumerate(lines, start=1):
-            for match in self.pattern.finditer(line):
+            for match in pattern.finditer(line):
                 issue = self.create_issue(
                     file=file,
                     line=line_num,
