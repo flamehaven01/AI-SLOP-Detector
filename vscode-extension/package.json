@@ -3,7 +3,7 @@
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
   "version": "2.5.1",
-  "publisher": "flamehaven-labs",
+  "publisher": "Flamehaven",
   "engines": {
     "vscode": "^1.80.0"
   },

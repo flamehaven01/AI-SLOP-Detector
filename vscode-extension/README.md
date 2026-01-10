@@ -27,7 +27,7 @@ code --install-extension vscode-slop-detector-2.5.1.vsix
 ### From Marketplace
 Search for "AI SLOP Detector" in VS Code Extensions or install directly:
 ```
-ext install flamehaven-labs.vscode-slop-detector
+ext install Flamehaven.vscode-slop-detector
 ```
 
 ## Usage
