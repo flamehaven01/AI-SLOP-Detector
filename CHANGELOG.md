@@ -16,14 +16,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.1] - 2026-01-10
+
+### Fixed
+- **Type Hint Detection**: Implemented proper `_is_in_annotation()` using NodeVisitor pattern for accurate import usage detection
+- **API Compatibility**: Migrated `run_scan.py` to v2.x API (was using deprecated v1.x API)
+- **Type Safety**: Enabled mypy type checking (removed `ignore_errors = true`)
+- **Code Quality**: Removed dead code and unnecessary return statements
+
+### Added
+- **Comprehensive CLI Tests**: 58 test cases covering all CLI functionality (JSON, HTML, Markdown outputs)
+- **Test Coverage**: Achieved 80% coverage on core modules (up from 26%)
+
+### Changed
+- **Coverage Measurement**: Focused on core modules (excluded enterprise features in beta)
+- **Documentation**: Updated badges and status to reflect actual metrics
+- **ASCII Safety**: Replaced emoji markers with ASCII equivalents in `run_scan.py`
+
+### Includes all features from 2.5.0
+- Polyglot architecture with LanguageAnalyzer interface
+- Pattern refinement for anti-pattern detection
+- Professional terminology (Deficit, Inflation, Jargon)
+- Python-focused quality analysis
+
+---
+
 ## [2.5.0] - 2026-01-09
 
-### Certified - Sovereign S++ Edition
-- **S++ Grade Certification**: Achieved Ω 0.98 score in Sentinel Audit (Drift-Free).
-- **Polyglot Architecture**: Re-architected `src/slop_detector/languages` with `LanguageAnalyzer` interface and robust `PythonAnalyzer`.
-- **Legacy Liquidation**: Removed conflicting `slop_detector.py` from root (OSOT compliance).
-- **Pattern Refinement**: Obfuscated regex patterns to prevent self-detection of TODO/FIXME tags.
-- **Terminology Refactor**: Renamed metrics for professional clarity (Slop->Deficit, Hype->Inflation/Jargon).
+### Added
+- Re-architected `src/slop_detector/languages` with `LanguageAnalyzer` interface
+- Robust `PythonAnalyzer` implementation
+- Pattern-based detection system
+
+### Changed
+- Renamed metrics for clarity: Slop→Deficit, Hype→Inflation/Jargon
+- Removed conflicting `slop_detector.py` from root
+
+### Fixed
+- Obfuscated regex patterns to prevent self-detection of TODO/FIXME tags
 
 ---
 
