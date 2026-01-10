@@ -117,33 +117,77 @@ class DDCCalculator:
 
     def _collect_usage(self, tree: ast.AST) -> Set[str]:
         """Collect actual library usage (excluding type annotations)."""
-        used = set()
+        visitor = UsageCollector()
+        visitor.visit(tree)
+        return visitor.used
 
-        for node in ast.walk(tree):
-            # Function calls
-            if isinstance(node, ast.Call):
-                if isinstance(node.func, ast.Name):
-                    used.add(node.func.id)
-                elif isinstance(node.func, ast.Attribute):
-                    if isinstance(node.func.value, ast.Name):
-                        used.add(node.func.value.id)
 
-            # Attribute access (but not in annotations)
-            elif isinstance(node, ast.Attribute):
-                if isinstance(node.value, ast.Name):
-                    # Skip if parent is a type annotation
-                    if not self._is_in_annotation(node):
-                        used.add(node.value.id)
+class UsageCollector(ast.NodeVisitor):
+    """Visitor to collect name usage excluding type annotations."""
 
-            # Name usage (but not in annotations)
-            elif isinstance(node, ast.Name):
-                if not self._is_in_annotation(node):
-                    used.add(node.id)
+    def __init__(self):
+        self.used = set()
+        self.in_annotation = False
 
-        return used
+    def visit_FunctionDef(self, node):
+        # Visit function body but skip annotations
+        old_annotation = self.in_annotation
 
-    def _is_in_annotation(self, node: ast.AST) -> bool:
-        """Check if node is inside a type annotation."""
-        # This is a simplified check
-        # In production, you'd use a visitor pattern to track context
-        return False  # Placeholder - would need proper implementation
+        # Skip return annotation
+        if node.returns:
+            self.in_annotation = True
+            self.visit(node.returns)
+            self.in_annotation = old_annotation
+
+        # Skip argument annotations
+        for arg in node.args.args + node.args.posonlyargs + node.args.kwonlyargs:
+            if arg.annotation:
+                self.in_annotation = True
+                self.visit(arg.annotation)
+                self.in_annotation = old_annotation
+
+        if node.args.vararg and node.args.vararg.annotation:
+            self.in_annotation = True
+            self.visit(node.args.vararg.annotation)
+            self.in_annotation = old_annotation
+
+        if node.args.kwarg and node.args.kwarg.annotation:
+            self.in_annotation = True
+            self.visit(node.args.kwarg.annotation)
+            self.in_annotation = old_annotation
+
+        # Visit decorators and body
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for stmt in node.body:
+            self.visit(stmt)
+
+    visit_AsyncFunctionDef = visit_FunctionDef
+
+    def visit_AnnAssign(self, node):
+        # Skip annotation, visit value only
+        old_annotation = self.in_annotation
+        self.in_annotation = True
+        self.visit(node.annotation)
+        self.in_annotation = old_annotation
+
+        if node.value:
+            self.visit(node.value)
+
+    def visit_Name(self, node):
+        if not self.in_annotation and isinstance(node.ctx, (ast.Load, ast.Store)):
+            self.used.add(node.id)
+        self.generic_visit(node)
+
+    def visit_Attribute(self, node):
+        if not self.in_annotation and isinstance(node.value, ast.Name):
+            self.used.add(node.value.id)
+        self.generic_visit(node)
+
+    def visit_Call(self, node):
+        # Always count function calls as usage
+        if isinstance(node.func, ast.Name):
+            self.used.add(node.func.id)
+        elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            self.used.add(node.func.value.id)
+        self.generic_visit(node)

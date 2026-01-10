@@ -205,8 +205,6 @@ class InflationCalculator:
 
     def _is_config_file(self, file_path: str, tree: ast.AST) -> bool:
         """Check if file is a configuration file."""
-        Path(file_path).name.lower()
-
         # Check filename patterns
         config_patterns = self.config.get("exceptions.config_files.patterns", [])
         for pattern in config_patterns:

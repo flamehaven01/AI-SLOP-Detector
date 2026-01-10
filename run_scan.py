@@ -18,48 +18,50 @@ def scan_project(root_dir):
     warning_count = 0
 
     print(f"{'='*80}")
-    print(f"{'FILE':<50} | {'LDR':<5} | {'HYPE':<5} | {'GHOSTS'}")
+    print(f"{'FILE':<50} | {'LDR':<5} | {'ICR':<5} | {'DDC':<5} | {'STATUS'}")
     print(f"{'-'*80}")
 
     for file_path in python_files:
         try:
             result = detector.analyze_file(file_path)
 
-            if result.get("status") == "error":
-                print(f"[ERR] {os.path.basename(file_path)}: {result.get('msg')}")
-                continue
-
-            ldr = result['density_score']
-            hype = result['hype_score']
-            ghosts = len(result['ghost_imports'])
-            is_slop = result['is_slop']
+            # v2.x API
+            ldr = result.ldr.ldr_score
+            inflation = result.inflation.inflation_score
+            ddc = result.ddc.usage_ratio
+            status = result.status.value
+            deficit = result.deficit_score
 
             rel_path = os.path.relpath(file_path, root_dir)
 
             # Formatting
             ldr_str = f"{ldr:.2f}"
-            if ldr < 0.15:
+            if ldr < 0.30:
                 ldr_str = f"!!{ldr_str}"
 
-            hype_str = f"{hype:.2f}"
-            if hype > 3.0:
-                hype_str = f"!!{hype_str}"
+            inflation_str = f"{inflation:.2f}" if inflation != float('inf') else "INF"
+            if inflation > 1.0:
+                inflation_str = f"!!{inflation_str}"
 
-            ghost_str = str(ghosts)
-            if ghosts > 0:
-                ghost_str = f"({ghosts}) {','.join(result['ghost_imports'][:3])}"
+            ddc_str = f"{ddc:.2f}"
+            if ddc < 0.50:
+                ddc_str = f"!!{ddc_str}"
 
-            if is_slop:
-                print(f"❌ {rel_path[:48]:<50} | {ldr_str:<5} | {hype_str:<5} | {ghost_str}")
+            # ASCII-safe markers
+            if status == "critical_deficit":
+                marker = "[-]"
                 slop_count += 1
-            elif ghosts > 0 or ldr < 0.3:
-                print(f"⚠️ {rel_path[:48]:<50} | {ldr_str:<5} | {hype_str:<5} | {ghost_str}")
+            elif status in ("suspicious", "inflated_signal", "dependency_noise"):
+                marker = "[!]"
                 warning_count += 1
             else:
-                # Optional: Don't print clean files to reduce noise, or print with checkmark
-                # print(f"✅ {rel_path[:48]:<50} | {ldr_str:<5} | {hype_str:<5} | {ghost_str}")
-                pass
+                marker = "[+]"
 
+            if status != "clean":
+                print(f"{marker} {rel_path[:48]:<50} | {ldr_str:<5} | {inflation_str:<5} | {ddc_str:<5} | {status.upper()}")
+
+        except SyntaxError as e:
+            print(f"[ERR] {os.path.basename(file_path)}: Syntax error - {e}")
         except Exception as e:
             print(f"[ERR] Failed to scan {file_path}: {e}")
 

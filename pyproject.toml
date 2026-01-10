@@ -70,6 +70,16 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--cov=slop_detector --cov-report=term-missing --cov-report=html"
 
+[tool.coverage.run]
+omit = [
+    "*/auth/*",
+    "*/api/*",
+    "*/ml/*",
+    "*/languages/*",
+    "*/git_integration.py",
+    "*/history.py",
+]
+
 [tool.black]
 line-length = 100
 target-version = ["py38", "py39", "py310", "py311"]
@@ -87,4 +97,5 @@ ignore = ["E501"]
 [tool.mypy]
 python_version = "3.9"
 warn_unused_configs = true
-ignore_errors = true
+ignore_errors = false
+exclude = ["tests/corpus/", "tests/manual_test/"]

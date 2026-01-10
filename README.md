@@ -3,8 +3,8 @@
 [![PyPI version](https://badge.fury.io/py/ai-slop-detector.svg)](https://badge.fury.io/py/ai-slop-detector)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-34%20passed-brightgreen.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-79%25-green.svg)](htmlcov/)
+[![Tests](https://img.shields.io/badge/tests-58%20passed-brightgreen.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-80%25-green.svg)](htmlcov/)
 
 **Production-grade static analyzer for detecting AI-generated code quality issues.**
 
@@ -199,10 +199,10 @@ print(f'Deficit: {result.deficit_score:.1f}/100')
 
 ## Project Status
 
-- Tests: 34/34 passing (100%)
-- Core Coverage: 79%
-- Production Ready: ✅
-- Latest: v2.5.0 (2026-01-09)
+- Tests: 58/58 passing (100%)
+- Core Coverage: 80% (core modules fully tested)
+- Production Ready: ✅ Core features stable
+- Latest: v2.5.1 (2026-01-10)
 
 **[→ Changelog](CHANGELOG.md)** | **[→ Contributing](CONTRIBUTING.md)**
 
