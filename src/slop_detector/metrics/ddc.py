@@ -129,6 +129,11 @@ class UsageCollector(ast.NodeVisitor):
         self.used = set()
         self.in_annotation = False
 
+    def visit(self, node):
+        if isinstance(node, ast.AsyncFunctionDef):
+            return self.visit_FunctionDef(node)
+        return super().visit(node)
+
     def visit_FunctionDef(self, node):
         # Visit function body but skip annotations
         old_annotation = self.in_annotation
