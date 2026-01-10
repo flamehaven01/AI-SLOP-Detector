@@ -14,6 +14,7 @@ from slop_detector.patterns import get_all_patterns
 def list_patterns() -> None:
     """List all available patterns."""
     from typing import Dict, List
+
     from slop_detector.patterns.base import BasePattern
 
     patterns = get_all_patterns()
