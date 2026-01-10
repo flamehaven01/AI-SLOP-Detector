@@ -162,7 +162,10 @@ class UsageCollector(ast.NodeVisitor):
         for stmt in node.body:
             self.visit(stmt)
 
-    visit_AsyncFunctionDef = visit_FunctionDef
+    # Alias for async functions (same logic as regular functions)
+    def visit_AsyncFunctionDef(self, node):
+        """Visit async function definition (same as regular function)."""
+        return self.visit_FunctionDef(node)
 
     def visit_AnnAssign(self, node):
         # Skip annotation, visit value only
