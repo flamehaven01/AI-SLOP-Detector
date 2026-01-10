@@ -124,7 +124,12 @@ def test_generate_markdown_report_single_file():
         file_path="/test/file.py",
         ldr=LDRResult(100, 80, 20, 0.80, "A"),
         inflation=InflationResult(
-            5, 2.0, 0.5, "PASS", ["neural"], [{"line": 10, "word": "neural", "category": "ai_ml", "justified": False}]
+            5,
+            2.0,
+            0.5,
+            "PASS",
+            ["neural"],
+            [{"line": 10, "word": "neural", "category": "ai_ml", "justified": False}],
         ),
         ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
         deficit_score=25.0,
@@ -149,7 +154,10 @@ def test_generate_markdown_report_project():
             1.5,
             "WARNING",
             ["neural"] * 10,
-            [{"line": i, "word": "neural", "category": "ai_ml", "justified": False} for i in range(5)],
+            [
+                {"line": i, "word": "neural", "category": "ai_ml", "justified": False}
+                for i in range(5)
+            ],
         ),
         ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
         deficit_score=60.0,
@@ -218,7 +226,9 @@ def test_main_single_file_json(tmp_path):
 
     output_file = tmp_path / "output.json"
 
-    with patch.object(sys, "argv", ["slop-detector", str(test_file), "--json", "-o", str(output_file)]):
+    with patch.object(
+        sys, "argv", ["slop-detector", str(test_file), "--json", "-o", str(output_file)]
+    ):
         result = main()
         assert result == 0
         assert output_file.exists()
@@ -279,7 +289,9 @@ def test_main_fail_threshold(tmp_path):
     # Create a file with high deficit score
     test_file.write_text("def empty():\n    pass\n" * 10)
 
-    with patch.object(sys, "argv", ["slop-detector", str(test_file), "--fail-threshold", "50", "--no-color"]):
+    with patch.object(
+        sys, "argv", ["slop-detector", str(test_file), "--fail-threshold", "50", "--no-color"]
+    ):
         result = main()
         # Should fail if deficit > 50
         assert result in (0, 1)
@@ -303,7 +315,9 @@ def test_main_config_file(tmp_path):
     config_file = tmp_path / "config.yaml"
     config_file.write_text("version: '2.0'\nweights:\n  ldr: 0.5\n  inflation: 0.3\n  ddc: 0.2\n")
 
-    with patch.object(sys, "argv", ["slop-detector", str(test_file), "-c", str(config_file), "--no-color"]):
+    with patch.object(
+        sys, "argv", ["slop-detector", str(test_file), "-c", str(config_file), "--no-color"]
+    ):
         result = main()
         assert result == 0
 
@@ -314,7 +328,17 @@ def test_main_disable_patterns(tmp_path):
     test_file.write_text("def func():\n    pass\n")
 
     with patch.object(
-        sys, "argv", ["slop-detector", str(test_file), "--disable", "bare_except", "--disable", "star_import", "--no-color"]
+        sys,
+        "argv",
+        [
+            "slop-detector",
+            str(test_file),
+            "--disable",
+            "bare_except",
+            "--disable",
+            "star_import",
+            "--no-color",
+        ],
     ):
         result = main()
         assert result == 0
@@ -333,7 +357,9 @@ def test_main_auto_detect_project_mode(tmp_path):
 
 def test_main_initialization_error():
     """Test main handles detector initialization errors."""
-    with patch.object(sys, "argv", ["slop-detector", "/nonexistent/config.yaml", "-c", "/nonexistent/config.yaml"]):
+    with patch.object(
+        sys, "argv", ["slop-detector", "/nonexistent/config.yaml", "-c", "/nonexistent/config.yaml"]
+    ):
         with patch("slop_detector.cli.SlopDetector", side_effect=Exception("Config error")):
             result = main()
             assert result == 1
