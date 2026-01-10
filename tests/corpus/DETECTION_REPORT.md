@@ -14,7 +14,7 @@
 - **Deficit Score:** 100.0/100
 - **Logic Density (LDR):** 46.03% (B)
 - **Inflation Ratio:** 2.54x
-- **Import Usage (DDC):** 50.00%
+- **Import Usage (DDC):** 0.00%
 
 ### Metrics Breakdown
 
@@ -23,7 +23,7 @@
 | Logic Lines | 29/63 | B |
 | Empty Lines | 34 | - |
 | Jargon Count | 37 | FAIL |
-| Unused Imports | 1 | - |
+| Unused Imports | 2 | - |
 
 ### Buzzwords Detected
 
@@ -45,7 +45,7 @@ Found **7** anti-patterns:
 
 - ⚠️ WARNING: Low logic density 46.03%
 - ⚠️ CRITICAL: Inflation ratio 2.54
-- ⚠️ WARNING: Low import usage 50.00%
+- ⚠️ CRITICAL: Only 0.00% of imports used
 - ⚠️ PATTERNS: 1 critical issues found
 - ⚠️ PATTERNS: 4 high-severity issues found
 
@@ -58,8 +58,8 @@ Found **7** anti-patterns:
 
 ### Summary
 
-- **Status:** `CRITICAL_DEFICIT`
-- **Deficit Score:** 78.7/100
+- **Status:** `INFLATED_SIGNAL`
+- **Deficit Score:** 69.6/100
 - **Logic Density (LDR):** 90.79% (S++)
 - **Inflation Ratio:** 3.27x
 - **Import Usage (DDC):** 0.00%
@@ -101,7 +101,7 @@ Found **2** anti-patterns:
 ### Summary
 
 - **Status:** `INFLATED_SIGNAL`
-- **Deficit Score:** 44.7/100
+- **Deficit Score:** 44.8/100
 - **Logic Density (LDR):** 98.31% (S++)
 - **Inflation Ratio:** 2.28x
 - **Import Usage (DDC):** 100.00%
@@ -140,5 +140,5 @@ Found **3** anti-patterns:
 | Test Case | Status | Deficit | LDR | Inflation | Patterns |
 |-----------|--------|---------|-----|-----------|----------|
 | Test Case 1: AI Slop | critical_deficit | 100.0 | 46.03% | 2.54x | 7 |
-| Test Case 2: Fake Docs | critical_deficit | 78.7 | 90.79% | 3.27x | 2 |
-| Test Case 3: Hyped Comments | inflated_signal | 44.7 | 98.31% | 2.28x | 3 |
+| Test Case 2: Fake Docs | inflated_signal | 69.6 | 90.79% | 3.27x | 2 |
+| Test Case 3: Hyped Comments | inflated_signal | 44.8 | 98.31% | 2.28x | 3 |
