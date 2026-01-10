@@ -1,6 +1,6 @@
 # AI-SLOP Detector
 
-[![PyPI version](https://badge.fury.io/py/ai-slop-detector.svg)](https://badge.fury.io/py/ai-slop-detector)
+[![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-58%20passed-brightgreen.svg)](tests/)
