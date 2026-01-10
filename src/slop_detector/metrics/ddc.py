@@ -194,3 +194,7 @@ class UsageCollector(ast.NodeVisitor):
         elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
             self.used.add(node.func.value.id)
         self.generic_visit(node)
+
+
+# Alias for async functions (same logic as regular functions)
+setattr(UsageCollector, "visit_AsyncFunctionDef", UsageCollector.visit_FunctionDef)
