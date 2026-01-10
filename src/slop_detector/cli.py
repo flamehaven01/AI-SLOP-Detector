@@ -8,6 +8,7 @@ from pathlib import Path
 
 from slop_detector import __version__
 from slop_detector.core import SlopDetector
+from slop_detector.models import FileAnalysis, ProjectAnalysis
 from slop_detector.patterns import get_all_patterns
 
 
@@ -412,14 +413,15 @@ Examples:
 
     # Analyze
     try:
+        from typing import Union
+
+        result: Union[ProjectAnalysis, FileAnalysis]
         if args.project:
-            project_result = detector.analyze_project(args.path)
-            result = project_result
-            score = project_result.weighted_deficit_score
+            result = detector.analyze_project(args.path)
+            score = result.weighted_deficit_score
         else:
-            file_result = detector.analyze_file(args.path)
-            result = file_result
-            score = file_result.deficit_score
+            result = detector.analyze_file(args.path)
+            score = result.deficit_score
     except Exception as e:
         print(f"[!] Analysis failed: {e}", file=sys.stderr)
         return 1
