@@ -38,7 +38,11 @@ class LDRCalculator:
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if self._is_truly_empty_function(node):
-                    if hasattr(node, "lineno") and hasattr(node, "end_lineno") and node.end_lineno is not None:
+                    if (
+                        hasattr(node, "lineno")
+                        and hasattr(node, "end_lineno")
+                        and node.end_lineno is not None
+                    ):
                         empty_func_lines.update(range(node.lineno, node.end_lineno + 1))
 
         total_lines = 0
@@ -144,7 +148,11 @@ class LDRCalculator:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if self._is_truly_empty_function(node):
                     # Count lines in this function
-                    if hasattr(node, "lineno") and hasattr(node, "end_lineno") and node.end_lineno is not None:
+                    if (
+                        hasattr(node, "lineno")
+                        and hasattr(node, "end_lineno")
+                        and node.end_lineno is not None
+                    ):
                         empty_lines += node.end_lineno - node.lineno + 1
 
         return empty_lines
