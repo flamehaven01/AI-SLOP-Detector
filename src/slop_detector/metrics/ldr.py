@@ -1,7 +1,10 @@
 """Logic Density Ratio (LDR) calculator with improved accuracy."""
 
+from __future__ import annotations
+
 import ast
 import re
+from typing import Union
 
 from slop_detector.models import LDRResult
 
@@ -31,11 +34,11 @@ class LDRCalculator:
         is_type_stub = file_path.endswith(".pyi")
 
         # Identify lines belonging to truly empty functions
-        empty_func_lines = set()
+        empty_func_lines: set[int] = set()
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if self._is_truly_empty_function(node):
-                    if hasattr(node, "lineno") and hasattr(node, "end_lineno"):
+                    if hasattr(node, "lineno") and hasattr(node, "end_lineno") and node.end_lineno is not None:
                         empty_func_lines.update(range(node.lineno, node.end_lineno + 1))
 
         total_lines = 0
@@ -141,12 +144,12 @@ class LDRCalculator:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if self._is_truly_empty_function(node):
                     # Count lines in this function
-                    if hasattr(node, "lineno") and hasattr(node, "end_lineno"):
+                    if hasattr(node, "lineno") and hasattr(node, "end_lineno") and node.end_lineno is not None:
                         empty_lines += node.end_lineno - node.lineno + 1
 
         return empty_lines
 
-    def _is_truly_empty_function(self, func_node: ast.FunctionDef) -> bool:
+    def _is_truly_empty_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         """Check if function is truly empty (only pass or return None)."""
         body = [n for n in func_node.body if not isinstance(n, (ast.Pass, ast.Expr))]
 

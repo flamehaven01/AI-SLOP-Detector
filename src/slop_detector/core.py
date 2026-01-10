@@ -96,12 +96,12 @@ class SlopDetector:
         - Respects ignore patterns
         - Parallel-ready architecture
         """
-        project_path = Path(project_path)
+        project_path_obj = Path(project_path)
         ignore_patterns = self.config.get_ignore_patterns()
 
         # Find Python files
         python_files = []
-        for file_path in project_path.glob(pattern):
+        for file_path in project_path_obj.glob(pattern):
             # Check ignore patterns
             if self._should_ignore(file_path, ignore_patterns):
                 continue
@@ -188,7 +188,7 @@ class SlopDetector:
         return issues
 
     def _calculate_slop_status(
-        self, ldr, inflation, ddc, pattern_issues: List[Issue] = None
+        self, ldr, inflation, ddc, pattern_issues: Optional[List[Issue]] = None
     ) -> tuple[float, SlopStatus, List[str]]:
         """
         Calculate slop score using weighted formula + pattern penalties.

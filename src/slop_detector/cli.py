@@ -13,12 +13,15 @@ from slop_detector.patterns import get_all_patterns
 
 def list_patterns() -> None:
     """List all available patterns."""
+    from typing import Dict, List
+    from slop_detector.patterns.base import BasePattern
+
     patterns = get_all_patterns()
 
     print("Available Patterns:")
     print("=" * 80)
 
-    by_category = {
+    by_category: Dict[str, List[BasePattern]] = {
         "Structural Issues": [],
         "Placeholder Code": [],
         "Cross-Language Patterns": [],
@@ -412,8 +415,9 @@ Examples:
             result = detector.analyze_project(args.path)
             score = result.weighted_deficit_score
         else:
-            result = detector.analyze_file(args.path)
-            score = result.deficit_score
+            file_result = detector.analyze_file(args.path)
+            result = file_result
+            score = file_result.deficit_score
     except Exception as e:
         print(f"[!] Analysis failed: {e}", file=sys.stderr)
         return 1

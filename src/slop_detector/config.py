@@ -94,7 +94,7 @@ class Config:
     def get(self, path: str, default: Any = None) -> Any:
         """Get config value by dot-separated path."""
         keys = path.split(".")
-        value = self.config
+        value: Any = self.config
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)

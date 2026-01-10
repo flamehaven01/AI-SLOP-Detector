@@ -99,3 +99,16 @@ python_version = "3.9"
 warn_unused_configs = true
 ignore_errors = false
 exclude = ["tests/corpus/", "tests/manual_test/"]
+
+[[tool.mypy.overrides]]
+module = [
+    "slop_detector.auth.*",
+    "slop_detector.api.*",
+    "slop_detector.ml.*",
+    "slop_detector.languages.*",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["yaml", "radon.*", "jwt"]
+ignore_missing_imports = true

@@ -149,13 +149,16 @@ class RegexPattern(BasePattern):
     """Base class for regex-based patterns."""
 
     import re
+    from typing import Pattern
 
     # Override in subclasses
-    pattern: re.Pattern | str = ""
+    pattern: Pattern[str] | str = ""
 
     def __init__(self):
         if isinstance(self.pattern, str):
             self.pattern = self.re.compile(self.pattern)
+        # Type narrowing for mypy
+        assert not isinstance(self.pattern, str)
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         """Search content for regex matches."""

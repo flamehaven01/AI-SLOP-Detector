@@ -47,9 +47,9 @@ class DDCCalculator:
                 actually_used.add(imports_map[name])
 
         # Calculate metrics
-        actually_used = sorted(actually_used)
-        unused = sorted(all_imported_libs - set(actually_used) - type_checking_imports)
-        fake_imports = sorted(self.HEAVYWEIGHT_LIBS & all_imported_libs - set(actually_used))
+        actually_used_list = sorted(list(actually_used))
+        unused = sorted(all_imported_libs - set(actually_used_list) - type_checking_imports)
+        fake_imports = sorted(self.HEAVYWEIGHT_LIBS & all_imported_libs - set(actually_used_list))
 
         # Type checking imports are not counted as unused
         total_imports = len(all_imported_libs)
@@ -68,7 +68,7 @@ class DDCCalculator:
 
         return DDCResult(
             imported=sorted(list(all_imported_libs)),
-            actually_used=actually_used,
+            actually_used=actually_used_list,
             unused=unused,
             fake_imports=fake_imports,
             type_checking_imports=sorted(list(type_checking_imports)),
