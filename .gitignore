@@ -55,8 +55,11 @@ PROJECT_MASTER_SUMMARY.md
 PROJECT_COMPLETION_*.md
 RELEASE_v*.md
 certification_report.md
+certification_report_*.md
 SLOPPYLINT_COMPARISON.md
 tests/manual_test/*.md
+slop_report*.txt
 
-# Development artifacts
+# Development artifacts & Test files
 GITHUB_METADATA.md
+test_slop_example.py
