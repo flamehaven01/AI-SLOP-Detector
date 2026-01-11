@@ -123,5 +123,6 @@
     "url": "https://github.com/flamehaven01/AI-SLOP-Detector/issues"
   },
   "homepage": "https://github.com/flamehaven01/AI-SLOP-Detector#readme",
+  "icon": "images/icon.png",
   "license": "MIT"
 }
