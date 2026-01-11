@@ -131,26 +131,59 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
 
     const deficitScore = result.deficit_score || 0;
 
-    let severity = vscode.DiagnosticSeverity.Information;
+    let overallSeverity = vscode.DiagnosticSeverity.Information;
     if (deficitScore >= failThreshold) {
-        severity = vscode.DiagnosticSeverity.Error;
+        overallSeverity = vscode.DiagnosticSeverity.Error;
     } else if (deficitScore >= warnThreshold) {
-        severity = vscode.DiagnosticSeverity.Warning;
+        overallSeverity = vscode.DiagnosticSeverity.Warning;
     }
 
-    const message = `Deficit Score: ${deficitScore.toFixed(1)} (${result.status})\n` +
-                   `LDR: ${result.ldr.ldr_score.toFixed(3)}, ` +
-                   `Inflation: ${result.inflation.inflation_score.toFixed(3)}, ` +
-                   `DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
+    // Overall summary diagnostic
+    const summaryMessage = `Code Quality Summary (Score: ${deficitScore.toFixed(1)})\n` +
+                          `Status: ${result.status}\n` +
+                          `LDR: ${result.ldr.ldr_score.toFixed(3)}, ` +
+                          `Inflation: ${result.inflation.inflation_score.toFixed(3)}, ` +
+                          `DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
 
-    const diagnostic = new vscode.Diagnostic(
+    const summaryDiagnostic = new vscode.Diagnostic(
         new vscode.Range(0, 0, 0, 0),
-        message,
-        severity
+        summaryMessage,
+        overallSeverity
     );
-    diagnostic.source = 'SLOP Detector';
+    summaryDiagnostic.source = 'SLOP Detector';
+    diagnostics.push(summaryDiagnostic);
 
-    diagnostics.push(diagnostic);
+    // Add jargon-specific diagnostics
+    if (result.inflation && result.inflation.jargon_details) {
+        for (const jargon of result.inflation.jargon_details) {
+            const line = Math.max(0, (jargon.line || 1) - 1);
+            const message = `Unjustified jargon: "${jargon.word}" (${jargon.category})`;
+
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(line, 0, line, 1000),
+                message,
+                vscode.DiagnosticSeverity.Warning
+            );
+            diagnostic.source = 'SLOP Detector - Inflation';
+            diagnostic.code = 'jargon';
+            diagnostics.push(diagnostic);
+        }
+    }
+
+    // Add unused import diagnostics
+    if (result.ddc && result.ddc.unused && result.ddc.unused.length > 0) {
+        const unusedImports = result.ddc.unused;
+        const message = `Unused imports detected: ${unusedImports.join(', ')}`;
+
+        const diagnostic = new vscode.Diagnostic(
+            new vscode.Range(0, 0, 0, 1000),
+            message,
+            vscode.DiagnosticSeverity.Information
+        );
+        diagnostic.source = 'SLOP Detector - DDC';
+        diagnostic.code = 'unused-import';
+        diagnostics.push(diagnostic);
+    }
 
     // Add pattern-specific diagnostics
     if (result.patterns) {
@@ -177,17 +210,24 @@ function updateStatusBar(result: any) {
     const status = result.status || 'unknown';
 
     let icon = '$(check)';
+    let severityLabel = 'Good';
     if (deficitScore >= 50) {
         icon = '$(error)';
+        severityLabel = 'Error';
     } else if (deficitScore >= 30) {
         icon = '$(warning)';
+        severityLabel = 'Warning';
     }
 
-    statusBarItem.text = `${icon} SLOP: ${deficitScore.toFixed(1)}`;
-    statusBarItem.tooltip = `Status: ${status}\n` +
-                           `LDR: ${result.ldr.ldr_score.toFixed(3)}\n` +
-                           `Inflation: ${result.inflation.inflation_score.toFixed(3)}\n` +
-                           `DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
+    // Show severity level first, score in parentheses
+    statusBarItem.text = `${icon} ${severityLabel} (${deficitScore.toFixed(1)})`;
+    statusBarItem.tooltip = `Code Quality: ${severityLabel}\n` +
+                           `Deficit Score: ${deficitScore.toFixed(1)}\n` +
+                           `Status: ${status}\n\n` +
+                           `Metrics:\n` +
+                           `• LDR: ${result.ldr.ldr_score.toFixed(3)}\n` +
+                           `• Inflation: ${result.inflation.inflation_score.toFixed(3)}\n` +
+                           `• DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
 }
 
 async function analyzeWorkspace() {
