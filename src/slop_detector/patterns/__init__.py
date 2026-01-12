@@ -51,16 +51,16 @@ def get_all_patterns() -> list[BasePattern]:
         StarImportPattern(),
         GlobalStatementPattern(),
         # Placeholder (Critical/High/Medium)
-        EmptyExceptPattern(),           # CRITICAL - NEW
-        NotImplementedPattern(),         # HIGH - NEW
+        EmptyExceptPattern(),  # CRITICAL - NEW
+        NotImplementedPattern(),  # HIGH - NEW
         PassPlaceholderPattern(),
-        EllipsisPlaceholderPattern(),   # HIGH - NEW
-        HackCommentPattern(),           # HIGH
-        ReturnNonePlaceholderPattern(), # MEDIUM - NEW
+        EllipsisPlaceholderPattern(),  # HIGH - NEW
+        HackCommentPattern(),  # HIGH
+        ReturnNonePlaceholderPattern(),  # MEDIUM - NEW
         TodoCommentPattern(),
         FixmeCommentPattern(),
-        InterfaceOnlyClassPattern(),    # MEDIUM - NEW
-        XXXCommentPattern(),            # LOW
+        InterfaceOnlyClassPattern(),  # MEDIUM - NEW
+        XXXCommentPattern(),  # LOW
         # Cross-language (High)
         JavaScriptPushPattern(),
         JavaEqualsPattern(),
