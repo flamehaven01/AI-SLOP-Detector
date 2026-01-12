@@ -4,9 +4,11 @@ import ast
 import pytest
 from slop_detector.metrics.docstring_inflation import DocstringInflationDetector
 
+
 @pytest.fixture
 def detector():
     return DocstringInflationDetector(config={})
+
 
 def test_critical_inflation(detector):
     """Test detection of massively inflated docstrings."""
@@ -21,10 +23,11 @@ def simple_add(a, b):
 '''
     tree = ast.parse(code)
     result = detector.analyze("test.py", code, tree)
-    
+
     assert result.inflated_count == 1
     assert result.status != "PASS"
     assert result.details[0].severity == "critical"
+
 
 def test_acceptable_docstring(detector):
     """Test acceptable documentation."""
@@ -40,9 +43,10 @@ def complex_logic(x):
 '''
     tree = ast.parse(code)
     result = detector.analyze("test.py", code, tree)
-    
+
     assert result.inflated_count == 0
     assert result.status == "PASS"
+
 
 def test_module_level_check(detector):
     """Test module docstring analysis."""
@@ -54,7 +58,7 @@ import os
 '''
     tree = ast.parse(code)
     result = detector.analyze("test.py", code, tree)
-    
+
     # Implementation is just import (1 line)
     # Docstring is 3 lines -> ratio 3.0 -> critical/warning
     assert len(result.details) > 0

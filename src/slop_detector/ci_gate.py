@@ -166,7 +166,9 @@ class CIGate:
             elif failed_files:
                 verdict = GateVerdict.QUARANTINE
                 should_fail = False
-                message = f"Build QUARANTINE: {len(failed_files)} files flagged, tracking violations"
+                message = (
+                    f"Build QUARANTINE: {len(failed_files)} files flagged, tracking violations"
+                )
             elif warned_files:
                 verdict = GateVerdict.WARN
                 should_fail = False
@@ -242,7 +244,9 @@ class CIGate:
             else []
         )
 
-        pr_comment = self._generate_pr_comment(result, failed_files, warned_files, quarantined_files)
+        pr_comment = self._generate_pr_comment(
+            result, failed_files, warned_files, quarantined_files
+        )
 
         return GateResult(
             verdict=verdict,
@@ -299,8 +303,7 @@ class CIGate:
         if isinstance(result, FileAnalysis):
             record.last_deficit_score = result.deficit_score
             record.violations.append(
-                f"Deficit: {result.deficit_score:.1f}, "
-                f"Patterns: {len(result.pattern_issues)}"
+                f"Deficit: {result.deficit_score:.1f}, " f"Patterns: {len(result.pattern_issues)}"
             )
         elif isinstance(result, ProjectAnalysis):
             # Find the specific file result
@@ -354,7 +357,9 @@ class CIGate:
         elif failed_files:
             return f"{len(failed_files)} files have critical quality issues (soft mode - informational only)"
         elif warned_files:
-            return f"{len(warned_files)} files have quality warnings (soft mode - informational only)"
+            return (
+                f"{len(warned_files)} files have quality warnings (soft mode - informational only)"
+            )
         else:
             return "All files meet quality standards"
 
@@ -425,7 +430,9 @@ class CIGate:
         # Recommendations
         if failed_files or warned_files or quarantined_files:
             lines.append("### Recommendations")
-            lines.append("Run `slop-detector <file>` locally for detailed analysis and review questions.")
+            lines.append(
+                "Run `slop-detector <file>` locally for detailed analysis and review questions."
+            )
             lines.append("")
 
         return "\n".join(lines)

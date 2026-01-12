@@ -140,7 +140,9 @@ class ContextJargonDetector:
             found_evidence = [e for e in required_evidence if evidence.get(e, False)]
             missing_evidence = [e for e in required_evidence if not evidence.get(e, False)]
 
-            evidence_ratio = len(found_evidence) / len(required_evidence) if required_evidence else 0
+            evidence_ratio = (
+                len(found_evidence) / len(required_evidence) if required_evidence else 0
+            )
             is_justified = evidence_ratio >= 0.5  # At least 50% evidence required
 
             if is_justified:
