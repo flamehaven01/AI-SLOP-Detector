@@ -2,7 +2,7 @@
   <img src="docs/assets/AI SLop DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
 </p>
 
-# AI-SLOP Detector v2.6
+# AI-SLOP Detector v2.6.1
 
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -40,7 +40,7 @@ slop-detector mycode.py --json --output report.json
 
 ---
 
-## What's New in v2.6
+## What's New in v2.6.1
 
 ### 6 Killer Upgrades
 
@@ -520,7 +520,7 @@ If you use AI-SLOP Detector in research, please cite:
   title = {AI-SLOP Detector: Evidence-Based Static Analysis for AI-Generated Code},
   author = {Flamehaven},
   year = {2024},
-  version = {2.2.0},
+  version = {2.6.1},
   url = {https://github.com/yourusername/ai-slop-detector}
 }
 ```

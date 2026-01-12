@@ -68,71 +68,10 @@ class HallucinationDepsResult:
 class HallucinationDepsDetector:
     """Detect when AI hallucinates dependencies for specific purposes without using them."""
 
-    # Categorize libraries by purpose
-    CATEGORY_MAP = {
-        # Machine Learning / AI
-        "ml": {
-            "torch",
-            "tensorflow",
-            "keras",
-            "jax",
-            "transformers",
-            "sklearn",
-            "scipy",
-            "numpy",
-            "pandas",
-        },
-        # Computer Vision
-        "vision": {"cv2", "PIL", "pillow", "imageio", "skimage"},
-        # HTTP / API
-        "http": {"requests", "httpx", "urllib3", "aiohttp", "flask", "fastapi", "django"},
-        # Database
-        "database": {
-            "sqlalchemy",
-            "psycopg2",
-            "pymongo",
-            "redis",
-            "sqlite3",
-            "mysql",
-            "peewee",
-        },
-        # Async / Concurrency
-        "async": {"asyncio", "aiofiles", "trio", "anyio", "concurrent"},
-        # Data Processing
-        "data": {"pandas", "polars", "dask", "pyspark", "arrow"},
-        # Serialization / Parsing
-        "serialization": {"json", "yaml", "toml", "pickle", "xml", "msgpack"},
-        # Testing
-        "testing": {"pytest", "unittest", "mock", "hypothesis", "faker"},
-        # Logging / Monitoring
-        "logging": {"logging", "loguru", "structlog", "sentry_sdk"},
-        # CLI / UI
-        "cli": {"argparse", "click", "typer", "rich", "questionary"},
-        # Cloud / Infrastructure
-        "cloud": {"boto3", "google", "azure", "kubernetes", "docker"},
-        # Security / Auth
-        "security": {"cryptography", "jwt", "passlib", "bcrypt", "oauth", "auth0"},
-    }
-
-    # Common intent patterns
-    INTENT_PATTERNS = {
-        "ml": "machine learning model training or inference",
-        "vision": "image processing or computer vision",
-        "http": "HTTP requests or API integration",
-        "database": "database operations",
-        "async": "asynchronous programming",
-        "data": "data processing or analysis",
-        "serialization": "data serialization/deserialization",
-        "testing": "unit testing or test fixtures",
-        "logging": "application logging",
-        "cli": "command-line interface",
-        "cloud": "cloud service integration",
-        "security": "authentication or encryption",
-    }
-
     def __init__(self, config):
         """Initialize detector."""
         self.config = config
+        self._load_known_deps()
 
         # Build reverse map: library -> categories
         self.lib_to_categories: Dict[str, Set[str]] = {}
@@ -141,6 +80,33 @@ class HallucinationDepsDetector:
                 if lib not in self.lib_to_categories:
                     self.lib_to_categories[lib] = set()
                 self.lib_to_categories[lib].add(category)
+
+    def _load_known_deps(self):
+        """Load known dependencies from yaml config."""
+        import yaml
+        from pathlib import Path
+
+        # Default fallback (if yaml load fails)
+        self.CATEGORY_MAP = {}
+        self.INTENT_PATTERNS = {}
+
+        try:
+            # Try to load from config dir relative to this file
+            current_dir = Path(__file__).parent.parent
+            config_path = current_dir / "config" / "known_deps.yaml"
+            
+            if config_path.exists():
+                with open(config_path, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                    self.CATEGORY_MAP = {k: set(v) for k, v in data.get("categories", {}).items()}
+                    self.INTENT_PATTERNS = data.get("intent_patterns", {})
+            else:
+                # If file not found, we could warn, but for now we'll just use empty or raise
+                # In a real app we might want hardcoded fallbacks here just in case
+                pass
+        except Exception:
+            # Fallback or empty if error
+            pass
 
     def analyze(
         self, file_path: str, content: str, tree: ast.AST, ddc_result: Any

@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 2.5.0  
-**Last Updated:** 2026-01-09
+**Version:** 2.6.1
+**Last Updated:** 2026-01-12
 
 ---
 
@@ -15,7 +15,7 @@ AI-SLOP Detector is a production-grade static analysis tool designed to identify
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    CLI / API Entry Point                 │
+│              CLI / API Entry Point / CI Gate             │
 └────────────────────┬────────────────────────────────────┘
                      │
                      ▼
@@ -29,27 +29,42 @@ AI-SLOP Detector is a production-grade static analysis tool designed to identify
 │  └───────────────────────────────────────────────────┘  │
 └────────────────────┬────────────────────────────────────┘
                      │
-        ┌────────────┼────────────┐
-        │            │            │
-        ▼            ▼            ▼
-┌──────────┐  ┌──────────┐  ┌──────────┐
-│   LDR    │  │Inflation │  │   DDC    │
-│Calculator│  │Calculator│  │Calculator│
-└────┬─────┘  └────┬─────┘  └────┬─────┘
-     │             │             │
-     └─────────────┼─────────────┘
-                   │
-                   ▼
-          ┌─────────────────┐
-          │ Pattern Registry │
-          │  12+ Detectors   │
-          └────────┬─────────┘
-                   │
-                   ▼
-          ┌─────────────────┐
-          │  FileAnalysis   │
-          │  Result Object  │
-          └─────────────────┘
+        ┌────────────┼────────────┬──────────────┐
+        │            │            │              │
+        ▼            ▼            ▼              ▼
+┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐
+│   LDR    │  │Inflation │  │   DDC    │  │Context Jargon│
+│Calculator│  │Calculator│  │Calculator│  │   Detector   │
+└────┬─────┘  └────┬─────┘  └────┬─────┘  └──────┬───────┘
+     │             │             │                │
+     │             │             └────────┬───────┘
+     │             │                      │
+     │             └──────────┬───────────┘
+     │                        │
+     └────────────┬───────────┘
+                  │
+     ┌────────────┼──────────────┬─────────────────┐
+     │            │              │                 │
+     ▼            ▼              ▼                 ▼
+┌──────────┐  ┌───────┐  ┌──────────────┐  ┌─────────────┐
+│Docstring │  │Pattern│  │Hallucination │  │  Question   │
+│Inflation │  │Registry│  │ Dependencies │  │  Generator  │
+│ Detector │  │14+ Det│  │   Detector   │  │  (v2.6)     │
+└────┬─────┘  └───┬───┘  └──────┬───────┘  └──────┬──────┘
+     │            │              │                 │
+     └────────────┼──────────────┼─────────────────┘
+                  │              │
+                  ▼              ▼
+          ┌─────────────────────────────┐
+          │     FileAnalysis Result     │
+          │  + Actionable Questions     │
+          └────────────┬────────────────┘
+                       │
+                       ▼
+                  ┌─────────┐
+                  │ CI Gate │
+                  │ (v2.6)  │
+                  └─────────┘
 ```
 
 ---
@@ -223,6 +238,194 @@ obj.toString()    # Should be: str(obj)
 ```
 
 **Implementation:** `src/slop_detector/patterns/`
+
+---
+
+### 5. Docstring Inflation Detector (v2.6+)
+
+**Purpose:** Detects documentation-heavy, implementation-light code patterns.
+
+**Algorithm:**
+```python
+Inflation_Ratio = docstring_lines / implementation_lines
+
+Where:
+- docstring_lines = lines in docstring (excluding quotes)
+- implementation_lines = actual code lines (excluding pass, ..., etc.)
+```
+
+**Severity Thresholds:**
+```
+CRITICAL: ratio >= 2.0  (2x+ more docs than code)
+WARNING:  ratio >= 1.0  (more docs than code)
+INFO:     ratio >= 0.5  (substantial docs)
+PASS:     ratio <  0.5  (balanced or code-heavy)
+```
+
+**Detection Features:**
+- Per-function/class/module analysis
+- File-level aggregation
+- Top 10 worst offenders reporting
+- Preview of inflated docstrings
+
+**Implementation:** `src/slop_detector/metrics/docstring_inflation.py`
+
+---
+
+### 6. Hallucination Dependencies Detector (v2.6+)
+
+**Purpose:** Identifies purpose-specific imports that are never used, revealing AI's intended but unimplemented features.
+
+**Algorithm:**
+```python
+Category_Usage = used_in_category / imported_in_category
+
+Categories (12 total):
+- ML: torch, tensorflow, keras, transformers
+- Vision: cv2, PIL, imageio
+- HTTP: requests, httpx, aiohttp, flask
+- Database: sqlalchemy, pymongo, redis
+- Async: asyncio, trio, anyio
+- Data: pandas, polars, dask
+- Serialization: json, yaml, toml
+- Testing: pytest, unittest, mock
+- Logging: logging, loguru, structlog
+- CLI: argparse, click, typer, rich
+- Cloud: boto3, google-cloud, azure
+- Security: cryptography, jwt, passlib
+```
+
+**Intent Inference:**
+- "torch" unused → "machine learning model training or inference"
+- "requests" unused → "HTTP requests or API integration"
+- "sqlalchemy" unused → "database operations and ORM"
+
+**Detection Features:**
+- 60+ libraries tracked across 12 categories
+- Per-category usage analysis
+- Intent-based questioning
+- Hallucination severity scoring
+
+**Implementation:** `src/slop_detector/metrics/hallucination_deps.py`
+
+---
+
+### 7. Context-Based Jargon Detector (v2.6+)
+
+**Purpose:** Cross-validates quality claims with actual codebase evidence instead of just flagging buzzwords.
+
+**Algorithm:**
+```python
+Justification_Ratio = justified_claims / total_claims
+
+Where:
+- justified_claims = jargon terms with supporting evidence
+- total_claims = all quality claims detected
+- evidence_types = 14 categories (see below)
+```
+
+**Evidence Requirements (14 types):**
+
+**Production-Ready:**
+- error_handling (try/except with handlers)
+- logging (actual logger usage)
+- tests (test functions/files)
+- input_validation (isinstance, type checks)
+- config_management (settings, .env, yaml)
+
+**Enterprise-Grade:**
+- monitoring (prometheus, statsd, sentry)
+- documentation (meaningful docstrings)
+- security (auth, encryption, sanitization)
+
+**Scalable:**
+- caching (@cache, redis, memcache)
+- async_support (async/await usage)
+- connection_pooling
+- rate_limiting
+
+**Fault-Tolerant:**
+- retry_logic (@retry, backoff)
+- circuit_breaker
+- fallback mechanisms
+
+**Additional Evidence:**
+- design_patterns (Factory, Singleton, Observer)
+- advanced_algorithms (complexity >= 10)
+- optimization (vectorization, memoization)
+
+**Detection Features:**
+- 14 jargon terms with evidence requirements
+- Missing evidence reporting
+- Worst offenders (0 evidence) identification
+- Per-claim justification ratio
+
+**Implementation:** `src/slop_detector/metrics/context_jargon.py`
+
+---
+
+### 8. Question Generator (v2.6+)
+
+**Purpose:** Converts analysis findings into actionable review questions for code reviewers.
+
+**Question Categories:**
+- **Critical:** Low justification ratio, zero evidence, massive hallucination
+- **Warning:** Unjustified jargon, category-specific unused imports, docstring inflation
+- **Info:** Excessive empty lines, low logic density, pattern-specific questions
+
+**Examples:**
+```
+CRITICAL:
+"Only 14% of quality claims are backed by evidence.
+ Are these marketing buzzwords without substance?"
+
+WARNING:
+"'production-ready' claim at line 42 lacks: error_handling, logging, tests.
+ Only 20% of required evidence present."
+
+INFO:
+"Function 'process' has 15 lines of docstring but only 2 lines of implementation.
+ Is this AI-generated documentation without substance?"
+```
+
+**Implementation:** `src/slop_detector/question_generator.py`
+
+---
+
+### 9. CI Gate System (v2.6+)
+
+**Purpose:** Progressive enforcement for CI/CD pipelines with 3-tier quality gates.
+
+**Modes:**
+
+**Soft Mode (Informational):**
+- PR comments only
+- Never fails build
+- Use for: visibility, onboarding
+
+**Hard Mode (Strict):**
+- Fails build on thresholds
+- deficit_score >= 70 → FAIL
+- critical_patterns >= 3 → FAIL
+- Use for: production branches
+
+**Quarantine Mode (Gradual):**
+- Tracks repeat offenders
+- Escalates to FAIL after 3 violations
+- Persistent tracking (.slop_quarantine.json)
+- Use for: gradual rollout
+
+**Thresholds (Configurable):**
+```python
+deficit_fail: 70.0
+deficit_warn: 30.0
+critical_patterns_fail: 3
+high_patterns_warn: 5
+inflation_fail: 1.5
+ddc_fail: 0.5
+```
+
+**Implementation:** `src/slop_detector/ci_gate.py`
 
 ---
 
@@ -539,9 +742,9 @@ slop-detector scan ./src --format json
 
 ### Research Areas
 - Semantic analysis (beyond syntax)
-- Context-aware jargon detection
 - Learning from user feedback
 - Cross-project pattern mining
+- AI-based pattern evolution
 
 ---
 
@@ -567,5 +770,5 @@ slop-detector scan ./src --format json
 
 ---
 
-**Last Updated:** 2026-01-09  
-**Version:** 2.5.0
+**Last Updated:** 2026-01-12
+**Version:** 2.6.1

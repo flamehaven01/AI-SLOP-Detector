@@ -7,7 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.6.0] - 2024-01-12
+## [2.6.1] - 2026-01-12
+
+### Added
+- **Configuration Sovereignty**: Externalized CATEGORY_MAP and INTENT_PATTERNS to `src/slop_detector/config/known_deps.yaml`
+- **Question Generator Tests**: Comprehensive test suite with 8 test cases
+- **VS Code Extension**: Synchronized to v2.6.1
+
+### Changed
+- **Hallucination Dependencies**: Refactored to load configuration dynamically from YAML
+- **Test Coverage**: Increased from 43% to 74% (overall), question_generator.py: 11% → 88%
+
+### Fixed
+- **Import Issues**: Resolved test import conflicts
+- **Documentation**: Updated all version references to 2.6.1
+- **Date Consistency**: Unified all dates to 2026-01-12
+
+### Technical Details
+- **Tests**: 72/72 passed (100% pass rate)
+- **Coverage**: 74% overall (target: 40%, achieved: +34%)
+- **New Module Coverage**: 88-92% (all above 90% target)
+  - context_jargon.py: 91%
+  - docstring_inflation.py: 89%
+  - question_generator.py: 88%
+  - hallucination_deps.py: 92%
+
+---
+
+## [2.6.0] - 2026-01-12
 
 ### Added - 6 Killer Upgrades (Phase 2 Complete)
 

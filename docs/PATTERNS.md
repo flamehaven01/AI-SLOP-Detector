@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 2.5.0  
-**Last Updated:** 2026-01-09
+**Version:** 2.6.1
+**Last Updated:** 2026-01-12
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -200,7 +200,190 @@ class QuantumEncoder(ABC):
 
 ---
 
-### 5. Ellipsis Placeholder
+### 5. Not Implemented Error (v2.6+)
+
+**ID:** `not_implemented`
+**Severity:** HIGH
+**Category:** Empty Implementation
+
+**Description:**
+Function raises `NotImplementedError`, indicating incomplete or interface-only implementation.
+
+**Bad Example:**
+```python
+def advanced_algorithm(data):
+    """State-of-the-art processing."""
+    raise NotImplementedError  # ← Not implemented!
+```
+
+**Good Example:**
+```python
+# Either implement it:
+def advanced_algorithm(data):
+    """Process data using XYZ algorithm."""
+    result = actual_processing(data)
+    return result
+
+# Or use ABC for interfaces:
+from abc import ABC, abstractmethod
+
+class DataProcessor(ABC):
+    @abstractmethod
+    def process(self, data):
+        """Subclasses must implement."""
+        raise NotImplementedError  # OK in abstract methods
+```
+
+**Why It's Bad:**
+- Promises functionality without delivering
+- Crashes at runtime if called
+- Common AI code generation placeholder
+- Should use ABC for proper interfaces
+
+---
+
+### 6. Empty Exception Handler (v2.6+)
+
+**ID:** `empty_except`
+**Severity:** CRITICAL
+**Category:** Error Handling
+
+**Description:**
+Exception handler catches errors but does nothing (empty `except: pass`), silently swallowing all errors.
+
+**Bad Example:**
+```python
+try:
+    critical_operation()
+except ValueError:
+    pass  # ← Errors silently ignored!
+except IOError:
+    pass  # ← No logging, no handling!
+```
+
+**Good Example:**
+```python
+try:
+    critical_operation()
+except ValueError as e:
+    logger.warning(f"Invalid value: {e}")
+    use_default_value()
+except IOError as e:
+    logger.error(f"I/O error: {e}")
+    raise  # Re-raise if can't handle
+```
+
+**Why It's Bad:**
+- Silently ignores errors
+- Makes debugging impossible
+- Hides critical failures
+- Violates error handling best practices
+- Even worse than bare except
+
+**Fix:**
+```python
+except ValueError as e:
+    logger.error(f"Error: {e}")
+    # Take corrective action
+```
+
+---
+
+### 7. Return None Placeholder (v2.6+)
+
+**ID:** `return_none_placeholder`
+**Severity:** MEDIUM
+**Category:** Empty Implementation
+
+**Description:**
+Function only returns `None` with no other logic, indicating placeholder implementation.
+
+**Bad Example:**
+```python
+def calculate_result(x, y):
+    """Compute advanced calculation."""
+    return None  # ← Not implemented!
+```
+
+**Good Example:**
+```python
+def calculate_result(x, y):
+    """Compute sum of x and y."""
+    return x + y
+```
+
+**Why It's Concerning:**
+- Indicates incomplete implementation
+- Misleading function signature
+- May cause None-related errors downstream
+- Common AI placeholder pattern
+
+**Note:** Functions with actual None-returning logic (validation, optional results) are not flagged.
+
+---
+
+### 8. Interface-Only Class (v2.6+)
+
+**ID:** `interface_only_class`
+**Severity:** MEDIUM
+**Category:** Empty Implementation
+
+**Description:**
+Class where 75%+ of methods are placeholders (pass, ..., NotImplementedError), indicating an incomplete implementation masquerading as a class.
+
+**Bad Example:**
+```python
+class DataProcessor:
+    """Advanced data processing system."""
+
+    def load(self):
+        pass
+
+    def validate(self):
+        pass
+
+    def process(self):
+        pass
+
+    def save(self):
+        pass
+    # 4/4 methods are placeholders = 100% placeholder class!
+```
+
+**Good Example:**
+```python
+# Option 1: Implement the methods
+class DataProcessor:
+    def load(self):
+        self.data = read_file()
+
+    def process(self):
+        return transform(self.data)
+
+# Option 2: Use ABC for proper interfaces
+from abc import ABC, abstractmethod
+
+class DataProcessor(ABC):
+    @abstractmethod
+    def load(self):
+        """Load data from source."""
+        pass  # OK in abstract methods
+
+    @abstractmethod
+    def process(self):
+        """Process loaded data."""
+        pass  # OK in abstract methods
+```
+
+**Why It's Bad:**
+- Fake implementation with no functionality
+- Should be an Abstract Base Class (ABC)
+- Misleads about class capabilities
+- Common AI code scaffolding pattern
+
+---
+
+### 9. Ellipsis Placeholder
 
 **ID:** `ellipsis_placeholder`  
 **Severity:** HIGH  

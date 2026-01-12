@@ -2,7 +2,7 @@
   "name": "vscode-slop-detector",
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
-  "version": "2.5.1",
+  "version": "2.6.1",
   "publisher": "Flamehaven",
   "engines": {
     "vscode": "^1.80.0"

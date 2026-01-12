@@ -1,7 +1,7 @@
 # Complete Usage Guide - AI-SLOP Detector
 
-**Version:** 2.5.0  
-**Last Updated:** 2026-01-09
+**Version:** 2.6.1
+**Last Updated:** 2026-01-12
 
 ---
 

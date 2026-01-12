@@ -188,12 +188,16 @@ class DocstringInflationDetector:
         # For functions/classes, count non-trivial body lines
         body = node.body if hasattr(node, "body") else []
 
+        # Identify docstring node (it's always the first statement if present)
+        docstring_node = None
+        if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) and isinstance(body[0].value.value, str):
+             docstring_node = body[0]
+
         impl_lines = 0
         for item in body:
             # Skip the docstring node
-            if isinstance(item, ast.Expr) and isinstance(item.value, ast.Constant):
-                if isinstance(item.value.value, str) and item.value.value == docstring:
-                    continue
+            if item is docstring_node:
+                continue
 
             # Count this as an implementation line
             # For multi-line statements, count end_lineno - lineno + 1

@@ -528,5 +528,5 @@ flowchart TD
 
 ---
 
-**Generated:** 2026-01-09  
-**Version:** 2.5.0
+**Generated:** 2026-01-12  
+**Version:** 2.6.1
