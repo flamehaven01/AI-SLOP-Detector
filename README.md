@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/AI SLop DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
+</p>
+
 # AI-SLOP Detector v2.6
 
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
