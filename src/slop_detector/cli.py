@@ -439,6 +439,18 @@ Examples:
         "--no-color", action="store_true", help="Disable rich output (force plain text)"
     )
 
+    # CI/CD Gate options (v2.2)
+    parser.add_argument(
+        "--ci-mode",
+        choices=["soft", "hard", "quarantine"],
+        help="CI gate mode: soft (PR comments only), hard (fail build), quarantine (track repeat offenders)",
+    )
+    parser.add_argument(
+        "--ci-report",
+        action="store_true",
+        help="Output CI gate report and exit with appropriate code",
+    )
+
     args = parser.parse_args()
 
     # Setup logging
@@ -475,6 +487,24 @@ Examples:
     except Exception as e:
         print(f"[!] Analysis failed: {e}", file=sys.stderr)
         return 1
+
+    # CI Gate evaluation (v2.2)
+    if args.ci_mode or args.ci_report:
+        from slop_detector.ci_gate import CIGate, GateMode
+
+        gate_mode = GateMode(args.ci_mode) if args.ci_mode else GateMode.SOFT
+        ci_gate = CIGate(mode=gate_mode)
+        gate_result = ci_gate.evaluate(result)
+
+        if args.ci_report:
+            # Output CI gate report and exit
+            if args.json:
+                print(json.dumps(gate_result.to_dict(), indent=2))
+            else:
+                print(gate_result.pr_comment or gate_result.message)
+
+            # Exit with appropriate code
+            return 1 if gate_result.should_fail_build else 0
 
     # Output
     if args.json:
