@@ -10,7 +10,9 @@ from slop_detector.models import FileAnalysis
 class Question:
     """A review question about code quality."""
 
-    def __init__(self, question: str, severity: str, line: int | None = None, context: str | None = None):
+    def __init__(
+        self, question: str, severity: str, line: int | None = None, context: str | None = None
+    ):
         self.question = question
         self.severity = severity  # "critical", "warning", "info"
         self.line = line
@@ -64,7 +66,7 @@ class QuestionGenerator:
                 Question(
                     question=f"Why is '{unused[0]}' imported if it's never used?",
                     severity="warning",
-                    context="unused_import"
+                    context="unused_import",
                 )
             )
         elif len(unused) <= 3:
@@ -73,16 +75,16 @@ class QuestionGenerator:
                 Question(
                     question=f"Why are '{imports_str}' imported if they're never used?",
                     severity="warning",
-                    context="unused_imports"
+                    context="unused_imports",
                 )
             )
         else:
             questions.append(
                 Question(
                     question=f"Why are {len(unused)} imports ({', '.join(unused[:3])}, ...) never used? "
-                             f"Were they left over from AI code generation?",
+                    f"Were they left over from AI code generation?",
                     severity="warning",
-                    context="many_unused_imports"
+                    context="many_unused_imports",
                 )
             )
 
@@ -91,9 +93,9 @@ class QuestionGenerator:
             questions.append(
                 Question(
                     question=f"Only {result.ddc.usage_ratio:.0%} of imports are actually used. "
-                             f"Did an AI generate these imports without understanding the code?",
+                    f"Did an AI generate these imports without understanding the code?",
                     severity="critical",
-                    context="hallucination_dependencies"
+                    context="hallucination_dependencies",
                 )
             )
 
@@ -124,10 +126,10 @@ class QuestionGenerator:
                 questions.append(
                     Question(
                         question=f"What evidence supports the claim '{word}'? "
-                                 f"Where are the {self._get_evidence_type(category)}?",
+                        f"Where are the {self._get_evidence_type(category)}?",
                         severity="warning",
                         line=line,
-                        context=f"jargon_{category}"
+                        context=f"jargon_{category}",
                     )
                 )
             else:
@@ -135,10 +137,10 @@ class QuestionGenerator:
                 questions.append(
                     Question(
                         question=f"Multiple buzzwords ('{words}') on this line. "
-                                 f"What concrete evidence supports these claims?",
+                        f"What concrete evidence supports these claims?",
                         severity="warning",
                         line=line,
-                        context="multiple_jargon"
+                        context="multiple_jargon",
                     )
                 )
 
@@ -147,9 +149,9 @@ class QuestionGenerator:
             questions.append(
                 Question(
                     question=f"Jargon density is {result.inflation.inflation_score:.1f}x normal. "
-                             f"Is this documentation or sales copy? Where's the actual code?",
+                    f"Is this documentation or sales copy? Where's the actual code?",
                     severity="critical",
-                    context="high_inflation"
+                    context="high_inflation",
                 )
             )
 
@@ -160,16 +162,20 @@ class QuestionGenerator:
         questions = []
 
         if result.ldr.ldr_score < 0.3:
-            empty_ratio = result.ldr.empty_lines / result.ldr.total_lines if result.ldr.total_lines > 0 else 0
-            logic_ratio = result.ldr.logic_lines / result.ldr.total_lines if result.ldr.total_lines > 0 else 0
+            empty_ratio = (
+                result.ldr.empty_lines / result.ldr.total_lines if result.ldr.total_lines > 0 else 0
+            )
+            logic_ratio = (
+                result.ldr.logic_lines / result.ldr.total_lines if result.ldr.total_lines > 0 else 0
+            )
 
             if empty_ratio > 0.5:
                 questions.append(
                     Question(
                         question=f"{empty_ratio:.0%} of this file is empty lines. "
-                                 f"Is this intentional spacing or AI-generated fluff?",
+                        f"Is this intentional spacing or AI-generated fluff?",
                         severity="info",
-                        context="excessive_empty_lines"
+                        context="excessive_empty_lines",
                     )
                 )
 
@@ -177,9 +183,9 @@ class QuestionGenerator:
                 questions.append(
                     Question(
                         question=f"Only {logic_ratio:.0%} of lines contain actual logic. "
-                                 f"What's the purpose of the rest?",
+                        f"What's the purpose of the rest?",
                         severity="warning",
-                        context="low_logic_density"
+                        context="low_logic_density",
                     )
                 )
 
@@ -348,20 +354,24 @@ class QuestionGenerator:
                 "critical": "critical",
                 "high": "warning",
                 "medium": "info",
-                "low": "info"
+                "low": "info",
             }
 
             # Convert pattern to question
             question_text = self._pattern_to_question(issue)
             if question_text:
                 # Issue is a dataclass, access attributes directly
-                severity_val = issue.severity.value if hasattr(issue.severity, 'value') else str(issue.severity)
+                severity_val = (
+                    issue.severity.value
+                    if hasattr(issue.severity, "value")
+                    else str(issue.severity)
+                )
                 questions.append(
                     Question(
                         question=question_text,
                         severity=severity_map.get(severity_val, "info"),
                         line=issue.line,
-                        context=f"pattern_{issue.pattern_id}"
+                        context=f"pattern_{issue.pattern_id}",
                     )
                 )
 
@@ -397,7 +407,7 @@ class QuestionGenerator:
             "architecture": "architecture diagrams, design docs, or code structure",
             "performance": "benchmarks, profiling results, or performance tests",
             "security": "security audits, penetration tests, or compliance certs",
-            "scale": "load tests, capacity planning, or production metrics"
+            "scale": "load tests, capacity planning, or production metrics",
         }
         return evidence_map.get(category, "supporting evidence")
 

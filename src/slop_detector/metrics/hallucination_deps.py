@@ -94,7 +94,7 @@ class HallucinationDepsDetector:
             # Try to load from config dir relative to this file
             current_dir = Path(__file__).parent.parent
             config_path = current_dir / "config" / "known_deps.yaml"
-            
+
             if config_path.exists():
                 with open(config_path, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)

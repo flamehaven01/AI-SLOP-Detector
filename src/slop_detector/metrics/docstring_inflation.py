@@ -146,9 +146,7 @@ class DocstringInflationDetector:
             details=sorted(details, key=lambda d: d.inflation_ratio, reverse=True)[:10],
         )
 
-    def _analyze_node(
-        self, node: ast.AST, content: str
-    ) -> Optional[DocstringInflationDetail]:
+    def _analyze_node(self, node: ast.AST, content: str) -> Optional[DocstringInflationDetail]:
         """Analyze a function or class for docstring inflation."""
         docstring = ast.get_docstring(node)
         if not docstring:
@@ -190,8 +188,13 @@ class DocstringInflationDetector:
 
         # Identify docstring node (it's always the first statement if present)
         docstring_node = None
-        if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) and isinstance(body[0].value.value, str):
-             docstring_node = body[0]
+        if (
+            body
+            and isinstance(body[0], ast.Expr)
+            and isinstance(body[0].value, ast.Constant)
+            and isinstance(body[0].value.value, str)
+        ):
+            docstring_node = body[0]
 
         impl_lines = 0
         for item in body:
@@ -252,9 +255,7 @@ class DocstringInflationDetector:
         else:
             return "info"
 
-    def _get_file_status(
-        self, overall_ratio: float, inflated_count: int, total_count: int
-    ) -> str:
+    def _get_file_status(self, overall_ratio: float, inflated_count: int, total_count: int) -> str:
         """Determine overall file status."""
         if overall_ratio >= self.FILE_CRITICAL_RATIO:
             return "FAIL"

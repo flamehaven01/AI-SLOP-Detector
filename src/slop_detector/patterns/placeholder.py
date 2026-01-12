@@ -158,7 +158,9 @@ class NotImplementedPattern(ASTPattern):
                 if isinstance(exc, ast.Call):
                     if isinstance(exc.func, ast.Name) and exc.func.id == "NotImplementedError":
                         return self.create_issue_from_node(
-                            node, file, suggestion="Implement the function or use ABC if intentional"
+                            node,
+                            file,
+                            suggestion="Implement the function or use ABC if intentional",
                         )
                 elif isinstance(exc, ast.Name) and exc.id == "NotImplementedError":
                     return self.create_issue_from_node(
@@ -184,7 +186,7 @@ class EmptyExceptPattern(ASTPattern):
                     node,
                     file,
                     message=f"Empty exception handler for {exc_type} - errors silently ignored",
-                    suggestion="Log the exception or handle it properly"
+                    suggestion="Log the exception or handle it properly",
                 )
         return None
 
@@ -235,7 +237,9 @@ class InterfaceOnlyClassPattern(ASTPattern):
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
         if isinstance(node, ast.ClassDef):
             # Get all methods
-            methods = [n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+            methods = [
+                n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+            ]
 
             if not methods:
                 return None
@@ -272,7 +276,10 @@ class InterfaceOnlyClassPattern(ASTPattern):
                             isinstance(stmt, ast.Return)
                             and (
                                 stmt.value is None
-                                or (isinstance(stmt.value, ast.Constant) and stmt.value.value is None)
+                                or (
+                                    isinstance(stmt.value, ast.Constant)
+                                    and stmt.value.value is None
+                                )
                             )
                         )
                         or isinstance(stmt, ast.Raise)
@@ -286,7 +293,7 @@ class InterfaceOnlyClassPattern(ASTPattern):
                     node,
                     file,
                     message=f"Class has {placeholder_methods}/{len(methods)} placeholder methods",
-                    suggestion="Use ABC (Abstract Base Class) if this is intentional, or implement methods"
+                    suggestion="Use ABC (Abstract Base Class) if this is intentional, or implement methods",
                 )
 
         return None
