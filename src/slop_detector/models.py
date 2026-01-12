@@ -103,6 +103,7 @@ class FileAnalysis:
     pattern_issues: List[Any] = field(default_factory=list)  # v2.1: Pattern issues
     docstring_inflation: Any = None  # v2.2: Docstring inflation analysis
     hallucination_deps: Any = None  # v2.2: Hallucinated dependencies
+    context_jargon: Any = None  # v2.2: Context-based jargon validation
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -129,6 +130,12 @@ class FileAnalysis:
                 self.hallucination_deps.to_dict()
                 if hasattr(self.hallucination_deps, "to_dict")
                 else self.hallucination_deps
+            )
+        if self.context_jargon:
+            result["context_jargon"] = (
+                self.context_jargon.to_dict()
+                if hasattr(self.context_jargon, "to_dict")
+                else self.context_jargon
             )
         return result
 

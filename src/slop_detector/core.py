@@ -9,6 +9,7 @@ from typing import List, Optional
 
 from slop_detector.config import Config
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
+from slop_detector.metrics.context_jargon import ContextJargonDetector
 from slop_detector.metrics.docstring_inflation import DocstringInflationDetector
 from slop_detector.metrics.hallucination_deps import HallucinationDepsDetector
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
@@ -30,6 +31,7 @@ class SlopDetector:
         self.ddc_calc = DDCCalculator(self.config)
         self.docstring_inflation_detector = DocstringInflationDetector(self.config)  # v2.2
         self.hallucination_deps_detector = HallucinationDepsDetector(self.config)  # v2.2
+        self.context_jargon_detector = ContextJargonDetector(self.config)  # v2.2
 
         # v2.1: Initialize pattern registry
         self.pattern_registry = PatternRegistry()
@@ -78,6 +80,9 @@ class SlopDetector:
         # v2.2: Analyze hallucination dependencies
         hallucination_deps = self.hallucination_deps_detector.analyze(file_path, content, tree, ddc)
 
+        # v2.2: Analyze context-based jargon
+        context_jargon = self.context_jargon_detector.analyze(file_path, content, tree, inflation)
+
         # v2.1: Run pattern detection
         pattern_issues = self._run_patterns(tree, Path(file_path), content)
 
@@ -97,6 +102,7 @@ class SlopDetector:
             pattern_issues=pattern_issues,  # v2.1
             docstring_inflation=docstring_inflation,  # v2.2
             hallucination_deps=hallucination_deps,  # v2.2
+            context_jargon=context_jargon,  # v2.2
         )
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:

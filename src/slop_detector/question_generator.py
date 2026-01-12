@@ -43,6 +43,9 @@ class QuestionGenerator:
         # Hallucination dependencies questions (v2.2)
         questions.extend(self._generate_hallucination_deps_questions(result))
 
+        # Context-based jargon questions (v2.2)
+        questions.extend(self._generate_context_jargon_questions(result))
+
         # Pattern questions
         questions.extend(self._generate_pattern_questions(result))
 
@@ -285,6 +288,54 @@ class QuestionGenerator:
                     context=f"hallucinated_{hal_dep.category}",
                 )
             )
+
+        return questions
+
+    def _generate_context_jargon_questions(self, result: FileAnalysis) -> List[Question]:
+        """Generate questions about context-based jargon validation (v2.2)."""
+        questions = []
+
+        if not result.context_jargon:
+            return questions
+
+        ctx_jargon = result.context_jargon
+
+        # Critical: Low justification ratio
+        if ctx_jargon.justification_ratio < 0.3:
+            questions.append(
+                Question(
+                    question=f"Only {ctx_jargon.justification_ratio:.0%} of quality claims are backed by evidence. "
+                    f"Are these marketing buzzwords without substance?",
+                    severity="critical",
+                    context="low_justification_ratio",
+                )
+            )
+
+        # Worst offenders (0 evidence)
+        if ctx_jargon.worst_offenders:
+            offenders_str = "', '".join(ctx_jargon.worst_offenders[:3])
+            questions.append(
+                Question(
+                    question=f"Claims like '{offenders_str}' have ZERO supporting evidence. "
+                    f"Where are the tests, error handling, and other indicators?",
+                    severity="critical",
+                    context="zero_evidence",
+                )
+            )
+
+        # Individual unjustified jargon
+        for evidence in ctx_jargon.evidence_details[:5]:  # Top 5
+            if not evidence.is_justified and evidence.evidence_ratio < 0.3:
+                missing_str = ", ".join(evidence.missing_evidence[:3])
+                questions.append(
+                    Question(
+                        question=f"'{evidence.jargon}' claim at line {evidence.line} lacks: {missing_str}. "
+                        f"Only {evidence.evidence_ratio:.0%} of required evidence present.",
+                        severity="warning",
+                        line=evidence.line,
+                        context=f"unjustified_{evidence.jargon}",
+                    )
+                )
 
         return questions
 
