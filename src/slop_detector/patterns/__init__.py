@@ -26,9 +26,16 @@ def get_all_patterns() -> list[BasePattern]:
         RubyEachPattern,
     )
     from slop_detector.patterns.placeholder import (
+        EllipsisPlaceholderPattern,
+        EmptyExceptPattern,
         FixmeCommentPattern,
+        HackCommentPattern,
+        InterfaceOnlyClassPattern,
+        NotImplementedPattern,
         PassPlaceholderPattern,
+        ReturnNonePlaceholderPattern,
         TodoCommentPattern,
+        XXXCommentPattern,
     )
     from slop_detector.patterns.structural import (
         BareExceptPattern,
@@ -43,10 +50,17 @@ def get_all_patterns() -> list[BasePattern]:
         MutableDefaultArgPattern(),
         StarImportPattern(),
         GlobalStatementPattern(),
-        # Placeholder (High/Medium)
+        # Placeholder (Critical/High/Medium)
+        EmptyExceptPattern(),           # CRITICAL - NEW
+        NotImplementedPattern(),         # HIGH - NEW
         PassPlaceholderPattern(),
+        EllipsisPlaceholderPattern(),   # HIGH - NEW
+        HackCommentPattern(),           # HIGH
+        ReturnNonePlaceholderPattern(), # MEDIUM - NEW
         TodoCommentPattern(),
         FixmeCommentPattern(),
+        InterfaceOnlyClassPattern(),    # MEDIUM - NEW
+        XXXCommentPattern(),            # LOW
         # Cross-language (High)
         JavaScriptPushPattern(),
         JavaEqualsPattern(),

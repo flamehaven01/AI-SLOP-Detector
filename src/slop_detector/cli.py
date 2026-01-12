@@ -10,6 +10,7 @@ from slop_detector import __version__
 from slop_detector.core import SlopDetector
 from slop_detector.models import FileAnalysis, ProjectAnalysis
 from slop_detector.patterns import get_all_patterns
+from slop_detector.question_generator import QuestionGenerator
 
 
 def list_patterns() -> None:
@@ -197,6 +198,38 @@ def print_rich_report(result) -> None:
                 content.append(f"- Line {d['line']}: {d['word']}\n")
 
         console.print(Panel(content, title="Single File Analysis", border_style=color))
+
+        # Generate review questions
+        question_gen = QuestionGenerator()
+        questions = question_gen.generate_questions(result)
+
+        if questions:
+            console.print()
+            console.print(Panel.fit(Text("REVIEW QUESTIONS", style="bold yellow"), style="yellow"))
+
+            critical = [q for q in questions if q.severity == "critical"]
+            warnings = [q for q in questions if q.severity == "warning"]
+            info = [q for q in questions if q.severity == "info"]
+
+            if critical:
+                console.print("\n[bold red]CRITICAL QUESTIONS:[/bold red]")
+                for i, q in enumerate(critical, 1):
+                    loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
+                    console.print(f"{i}.{loc} {q.question}")
+
+            if warnings:
+                console.print("\n[bold yellow]WARNING QUESTIONS:[/bold yellow]")
+                for i, q in enumerate(warnings, 1):
+                    loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
+                    console.print(f"{i}.{loc} {q.question}")
+
+            if info:
+                console.print("\n[bold cyan]INFO QUESTIONS:[/bold cyan]")
+                for i, q in enumerate(info, 1):
+                    loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
+                    console.print(f"{i}.{loc} {q.question}")
+
+            console.print()
 
 
 def get_mitigation(issue_type: str, detail: str = "") -> str:

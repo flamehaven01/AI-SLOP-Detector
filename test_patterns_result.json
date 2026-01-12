@@ -1,0 +1,194 @@
+{
+  "file_path": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+  "ldr": {
+    "total_lines": 36,
+    "logic_lines": 17,
+    "empty_lines": 19,
+    "ldr_score": 0.4722222222222222,
+    "grade": "B",
+    "is_abc_interface": false,
+    "is_type_stub": false
+  },
+  "inflation": {
+    "jargon_count": 0,
+    "avg_complexity": 1.1538461538461537,
+    "inflation_score": 0.0,
+    "status": "PASS",
+    "jargon_found": [],
+    "jargon_details": [],
+    "justified_jargon": [],
+    "is_config_file": false
+  },
+  "ddc": {
+    "imported": [],
+    "actually_used": [],
+    "unused": [],
+    "fake_imports": [],
+    "type_checking_imports": [],
+    "usage_ratio": 1.0,
+    "grade": "EXCELLENT"
+  },
+  "deficit_score": 71.11111111111111,
+  "status": "critical_deficit",
+  "warnings": [
+    "WARNING: Low logic density 47.22%",
+    "PATTERNS: 2 critical issues found",
+    "PATTERNS: 7 high-severity issues found"
+  ],
+  "pattern_issues": [
+    {
+      "pattern_id": "bare_except",
+      "severity": "critical",
+      "axis": "structure",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 44,
+      "column": 4,
+      "message": "Bare except catches everything including SystemExit and KeyboardInterrupt",
+      "code": null,
+      "suggestion": "Catch specific exceptions: except ValueError as e:"
+    },
+    {
+      "pattern_id": "empty_except",
+      "severity": "critical",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 44,
+      "column": 4,
+      "message": "Empty exception handler for all exceptions - errors silently ignored",
+      "code": null,
+      "suggestion": "Log the exception or handle it properly"
+    },
+    {
+      "pattern_id": "not_implemented",
+      "severity": "high",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 14,
+      "column": 0,
+      "message": "Function raises NotImplementedError - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or use ABC if intentional"
+    },
+    {
+      "pattern_id": "not_implemented",
+      "severity": "high",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 57,
+      "column": 4,
+      "message": "Function raises NotImplementedError - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or use ABC if intentional"
+    },
+    {
+      "pattern_id": "pass_placeholder",
+      "severity": "high",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 4,
+      "column": 0,
+      "message": "Empty function with only pass - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or remove it"
+    },
+    {
+      "pattern_id": "pass_placeholder",
+      "severity": "high",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 51,
+      "column": 4,
+      "message": "Empty function with only pass - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or remove it"
+    },
+    {
+      "pattern_id": "ellipsis_placeholder",
+      "severity": "high",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 9,
+      "column": 0,
+      "message": "Empty function with only ... - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or remove it"
+    },
+    {
+      "pattern_id": "ellipsis_placeholder",
+      "severity": "high",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 54,
+      "column": 4,
+      "message": "Empty function with only ... - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or remove it"
+    },
+    {
+      "pattern_id": "hack_comment",
+      "severity": "high",
+      "axis": "style",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 36,
+      "column": 4,
+      "message": "HACK comment - technical debt indicator",
+      "code": "# HACK: This is a workaround",
+      "suggestion": "Refactor the hacky solution properly"
+    },
+    {
+      "pattern_id": "return_none_placeholder",
+      "severity": "medium",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 19,
+      "column": 0,
+      "message": "Function only returns None - likely placeholder",
+      "code": null,
+      "suggestion": "Implement the function or clarify intent"
+    },
+    {
+      "pattern_id": "return_none_placeholder",
+      "severity": "medium",
+      "axis": "quality",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 60,
+      "column": 4,
+      "message": "Function only returns None - likely placeholder",
+      "code": null,
+      "suggestion": "Implement the function or clarify intent"
+    },
+    {
+      "pattern_id": "todo_comment",
+      "severity": "medium",
+      "axis": "noise",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 25,
+      "column": 4,
+      "message": "TODO comment - incomplete implementation",
+      "code": "# TODO: Implement this function",
+      "suggestion": "Complete the TODO or create a ticket"
+    },
+    {
+      "pattern_id": "fixme_comment",
+      "severity": "medium",
+      "axis": "noise",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 30,
+      "column": 4,
+      "message": "FIXME comment - known issue not addressed",
+      "code": "# FIXME: This is broken",
+      "suggestion": "Fix the issue or create a ticket"
+    },
+    {
+      "pattern_id": "interface_only_class",
+      "severity": "medium",
+      "axis": "style",
+      "file": "D:\\Sanctum\\ai-slop-detector\\test_placeholder_patterns.py",
+      "line": 48,
+      "column": 0,
+      "message": "Class has 4/4 placeholder methods",
+      "code": null,
+      "suggestion": "Use ABC (Abstract Base Class) if this is intentional, or implement methods"
+    }
+  ]
+}
