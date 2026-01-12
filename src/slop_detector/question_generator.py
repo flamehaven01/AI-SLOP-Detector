@@ -40,6 +40,9 @@ class QuestionGenerator:
         # Docstring inflation questions (v2.2)
         questions.extend(self._generate_docstring_inflation_questions(result))
 
+        # Hallucination dependencies questions (v2.2)
+        questions.extend(self._generate_hallucination_deps_questions(result))
+
         # Pattern questions
         questions.extend(self._generate_pattern_questions(result))
 
@@ -232,6 +235,54 @@ class QuestionGenerator:
                     f"Were these docstrings auto-generated without verifying they match the implementation?",
                     severity="warning",
                     context="multiple_docstring_inflation",
+                )
+            )
+
+        return questions
+
+    def _generate_hallucination_deps_questions(self, result: FileAnalysis) -> List[Question]:
+        """Generate questions about hallucinated dependencies (v2.2)."""
+        questions = []
+
+        if not result.hallucination_deps:
+            return questions
+
+        hal_deps = result.hallucination_deps
+
+        # Critical: Multiple hallucinated deps in same category
+        if hal_deps.total_hallucinated >= 5:
+            questions.append(
+                Question(
+                    question=f"{hal_deps.total_hallucinated} unused purpose-specific imports detected. "
+                    f"Did an AI generate these imports without implementing the actual functionality?",
+                    severity="critical",
+                    context="massive_hallucination",
+                )
+            )
+
+        # Category-specific questions
+        for category_usage in hal_deps.category_usage:
+            if category_usage.unused and category_usage.usage_ratio < 0.5:
+                unused_str = "', '".join(category_usage.unused[:3])
+                questions.append(
+                    Question(
+                        question=f"Category '{category_usage.category}': Imported '{unused_str}' "
+                        f"but never used. Was {category_usage.unused[0]} intended for "
+                        f"{hal_deps.hallucinated_deps[0].likely_intent if hal_deps.hallucinated_deps else 'specific functionality'}?",
+                        severity="warning",
+                        context=f"category_{category_usage.category}",
+                    )
+                )
+
+        # Individual hallucinated deps
+        for hal_dep in hal_deps.hallucinated_deps[:5]:  # Top 5
+            questions.append(
+                Question(
+                    question=f"Why import '{hal_dep.library}' for {hal_dep.likely_intent} "
+                    f"but never use it? Was this AI-generated boilerplate?",
+                    severity="warning",
+                    line=hal_dep.line,
+                    context=f"hallucinated_{hal_dep.category}",
                 )
             )
 

@@ -102,6 +102,7 @@ class FileAnalysis:
     warnings: List[str] = field(default_factory=list)
     pattern_issues: List[Any] = field(default_factory=list)  # v2.1: Pattern issues
     docstring_inflation: Any = None  # v2.2: Docstring inflation analysis
+    hallucination_deps: Any = None  # v2.2: Hallucinated dependencies
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -122,6 +123,12 @@ class FileAnalysis:
                 self.docstring_inflation.to_dict()
                 if hasattr(self.docstring_inflation, "to_dict")
                 else self.docstring_inflation
+            )
+        if self.hallucination_deps:
+            result["hallucination_deps"] = (
+                self.hallucination_deps.to_dict()
+                if hasattr(self.hallucination_deps, "to_dict")
+                else self.hallucination_deps
             )
         return result
 
