@@ -37,6 +37,9 @@ class QuestionGenerator:
         # LDR questions (low logic density)
         questions.extend(self._generate_ldr_questions(result))
 
+        # Docstring inflation questions (v2.2)
+        questions.extend(self._generate_docstring_inflation_questions(result))
+
         # Pattern questions
         questions.extend(self._generate_pattern_questions(result))
 
@@ -173,6 +176,64 @@ class QuestionGenerator:
                         context="low_logic_density"
                     )
                 )
+
+        return questions
+
+    def _generate_docstring_inflation_questions(self, result: FileAnalysis) -> List[Question]:
+        """Generate questions about docstring inflation (v2.2)."""
+        questions = []
+
+        if not result.docstring_inflation:
+            return questions
+
+        doc_inflation = result.docstring_inflation
+
+        # Check for individual inflated docstrings
+        for detail in doc_inflation.details[:5]:  # Limit to top 5
+            if detail.severity == "critical":
+                questions.append(
+                    Question(
+                        question=f"Function '{detail.name}' has {detail.docstring_lines} lines of docstring "
+                        f"but only {detail.implementation_lines} lines of implementation. "
+                        f"Is this AI-generated documentation without substance?",
+                        severity="critical",
+                        line=detail.line,
+                        context="docstring_inflation_critical",
+                    )
+                )
+            elif detail.severity == "warning":
+                questions.append(
+                    Question(
+                        question=f"'{detail.name}' has more documentation ({detail.docstring_lines} lines) "
+                        f"than implementation ({detail.implementation_lines} lines). "
+                        f"Does the code actually do what the docstring claims?",
+                        severity="warning",
+                        line=detail.line,
+                        context="docstring_inflation_warning",
+                    )
+                )
+
+        # Overall file inflation
+        if doc_inflation.status == "FAIL":
+            questions.append(
+                Question(
+                    question=f"This file has {doc_inflation.total_docstring_lines} lines of docstrings "
+                    f"but only {doc_inflation.total_implementation_lines} lines of implementation "
+                    f"(ratio: {doc_inflation.overall_ratio:.1f}). "
+                    f"Is this AI-generated boilerplate with minimal actual logic?",
+                    severity="critical",
+                    context="file_docstring_inflation",
+                )
+            )
+        elif doc_inflation.status == "WARNING" and doc_inflation.inflated_count > 0:
+            questions.append(
+                Question(
+                    question=f"{doc_inflation.inflated_count} functions/classes have inflated docstrings. "
+                    f"Were these docstrings auto-generated without verifying they match the implementation?",
+                    severity="warning",
+                    context="multiple_docstring_inflation",
+                )
+            )
 
         return questions
 

@@ -197,6 +197,23 @@ def print_rich_report(result) -> None:
             for d in jargon:
                 content.append(f"- Line {d['line']}: {d['word']}\n")
 
+        # Docstring Inflation (v2.2)
+        if result.docstring_inflation and result.docstring_inflation.details:
+            doc_inflation = result.docstring_inflation
+            content.append("\nDocstring Inflation:\n", style="bold yellow")
+            content.append(
+                f"Overall: {doc_inflation.total_docstring_lines} doc lines / "
+                f"{doc_inflation.total_implementation_lines} impl lines "
+                f"(ratio: {doc_inflation.overall_ratio:.2f})\n"
+            )
+            if doc_inflation.inflated_count > 0:
+                content.append(f"{doc_inflation.inflated_count} inflated functions/classes:\n")
+                for detail in doc_inflation.details[:3]:  # Show top 3
+                    content.append(
+                        f"- Line {detail.line}: {detail.name} "
+                        f"({detail.docstring_lines}doc/{detail.implementation_lines}impl = {detail.inflation_ratio:.1f}x)\n"
+                    )
+
         console.print(Panel(content, title="Single File Analysis", border_style=color))
 
         # Generate review questions

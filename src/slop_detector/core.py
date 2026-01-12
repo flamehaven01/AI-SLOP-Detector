@@ -9,6 +9,7 @@ from typing import List, Optional
 
 from slop_detector.config import Config
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
+from slop_detector.metrics.docstring_inflation import DocstringInflationDetector
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
 from slop_detector.patterns import get_all_patterns
 from slop_detector.patterns.base import Issue
@@ -26,6 +27,7 @@ class SlopDetector:
         self.ldr_calc = LDRCalculator(self.config)
         self.inflation_calc = InflationCalculator(self.config)
         self.ddc_calc = DDCCalculator(self.config)
+        self.docstring_inflation_detector = DocstringInflationDetector(self.config)  # v2.2
 
         # v2.1: Initialize pattern registry
         self.pattern_registry = PatternRegistry()
@@ -68,6 +70,9 @@ class SlopDetector:
         inflation = self.inflation_calc.calculate(file_path, content, tree)
         ddc = self.ddc_calc.calculate(file_path, content, tree)
 
+        # v2.2: Analyze docstring inflation
+        docstring_inflation = self.docstring_inflation_detector.analyze(file_path, content, tree)
+
         # v2.1: Run pattern detection
         pattern_issues = self._run_patterns(tree, Path(file_path), content)
 
@@ -84,7 +89,8 @@ class SlopDetector:
             deficit_score=slop_score,
             status=slop_status,
             warnings=warnings,
-            pattern_issues=pattern_issues,  # New field
+            pattern_issues=pattern_issues,  # v2.1
+            docstring_inflation=docstring_inflation,  # v2.2
         )
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:

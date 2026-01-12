@@ -101,9 +101,10 @@ class FileAnalysis:
     status: SlopStatus
     warnings: List[str] = field(default_factory=list)
     pattern_issues: List[Any] = field(default_factory=list)  # v2.1: Pattern issues
+    docstring_inflation: Any = None  # v2.2: Docstring inflation analysis
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "file_path": self.file_path,
             "ldr": self.ldr.to_dict(),
             "inflation": self.inflation.to_dict(),
@@ -116,6 +117,13 @@ class FileAnalysis:
                 for issue in self.pattern_issues
             ],
         }
+        if self.docstring_inflation:
+            result["docstring_inflation"] = (
+                self.docstring_inflation.to_dict()
+                if hasattr(self.docstring_inflation, "to_dict")
+                else self.docstring_inflation
+            )
+        return result
 
 
 @dataclass
