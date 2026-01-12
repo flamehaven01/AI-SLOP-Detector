@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ast
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Set
 
 
@@ -83,8 +83,9 @@ class HallucinationDepsDetector:
 
     def _load_known_deps(self):
         """Load known dependencies from yaml config."""
-        import yaml
         from pathlib import Path
+
+        import yaml
 
         # Default fallback (if yaml load fails)
         self.CATEGORY_MAP = {}

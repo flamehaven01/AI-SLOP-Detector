@@ -213,7 +213,7 @@ class CIGate:
         elif self.mode == GateMode.HARD:
             should_fail = verdict == GateVerdict.FAIL
             message = (
-                f"File FAILED quality gate"
+                "File FAILED quality gate"
                 if should_fail
                 else f"File quality: {verdict.value.upper()}"
             )
@@ -223,9 +223,9 @@ class CIGate:
                 self._update_quarantine(result.file_path, result)
                 should_fail = self._should_escalate(result.file_path)
                 message = (
-                    f"File FAILED (repeat offender)"
+                    "File FAILED (repeat offender)"
                     if should_fail
-                    else f"File QUARANTINE (violation tracked)"
+                    else "File QUARANTINE (violation tracked)"
                 )
                 self._save_quarantine_db()
             else:

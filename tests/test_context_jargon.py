@@ -1,8 +1,10 @@
 """Test context-based jargon detection."""
 
 import ast
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from slop_detector.metrics.context_jargon import ContextJargonDetector
 
 

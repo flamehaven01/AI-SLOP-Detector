@@ -1,7 +1,9 @@
 """Test docstring inflation detection."""
 
 import ast
+
 import pytest
+
 from slop_detector.metrics.docstring_inflation import DocstringInflationDetector
 
 

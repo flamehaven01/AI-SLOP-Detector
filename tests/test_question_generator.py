@@ -1,12 +1,15 @@
 """Tests for the question generator."""
 
-import pytest
 from unittest.mock import MagicMock
-from slop_detector.question_generator import QuestionGenerator, Question
-from slop_detector.models import FileAnalysis, DDCResult, InflationResult, LDRResult
+
+import pytest
+
+from slop_detector.metrics.context_jargon import ContextJargonResult
 from slop_detector.metrics.docstring_inflation import DocstringInflationResult
 from slop_detector.metrics.hallucination_deps import HallucinationDepsResult
-from slop_detector.metrics.context_jargon import ContextJargonResult
+from slop_detector.models import DDCResult, FileAnalysis, InflationResult, LDRResult
+from slop_detector.question_generator import Question, QuestionGenerator
+
 
 
 @pytest.fixture
