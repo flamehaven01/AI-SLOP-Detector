@@ -9,7 +9,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
+from slop_detector.models import FileAnalysis, ProjectAnalysis
 
 
 class GateMode(str, Enum):
@@ -327,23 +327,24 @@ class CIGate:
         db_path = Path(self.quarantine_db_path)
         if db_path.exists():
             try:
-                with open(db_path, "r") as f:
+                with open(db_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.quarantine_records = {
                         path: QuarantineRecord(**record) for path, record in data.items()
                     }
-            except Exception:
+            except (json.JSONDecodeError, KeyError, TypeError, OSError) as e:
                 # If load fails, start fresh
+                print(f"Warning: Failed to load quarantine DB: {e}", file=sys.stderr)
                 self.quarantine_records = {}
 
     def _save_quarantine_db(self) -> None:
         """Save quarantine database to disk."""
         db_path = Path(self.quarantine_db_path)
         try:
-            with open(db_path, "w") as f:
+            with open(db_path, "w", encoding="utf-8") as f:
                 data = {path: record.to_dict() for path, record in self.quarantine_records.items()}
                 json.dump(data, f, indent=2)
-        except Exception as e:
+        except (OSError, TypeError) as e:
             print(f"Warning: Failed to save quarantine DB: {e}", file=sys.stderr)
 
     def _generate_soft_message(self, failed_files: List[str], warned_files: List[str]) -> str:

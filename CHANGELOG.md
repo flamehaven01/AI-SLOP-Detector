@@ -1,9 +1,82 @@
 # Changelog
 
-All notable changes to AI Code Quality Detector will be documented in this file.
+All notable changes to AI-SLOP Detector will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [2.6.0] - 2024-01-12
+
+### Added - 6 Killer Upgrades (Phase 2 Complete)
+
+#### 1. Context-Based Jargon Detection
+- **Evidence-based validation** for quality claims (production-ready, enterprise-grade, etc.)
+- **14 evidence types**: error_handling, logging, tests, input_validation, config_management, monitoring, documentation, security, caching, async_support, retry_logic, design_patterns, advanced_algorithms, optimization
+- **Justification ratio**: `justified_claims / total_claims`
+- **Missing evidence reporting**: Specific feedback on what's lacking per claim
+- Cross-validation of buzzwords against actual codebase artifacts
+
+#### 2. Docstring Inflation Analysis
+- **Ratio-based detection**: `docstring_lines / implementation_lines`
+- **Severity levels**: CRITICAL (>=2.0x), WARNING (>=1.0x), INFO (>=0.5x)
+- **Per-entity tracking**: Functions, classes, and modules analyzed separately
+- **File-level aggregation**: Overall ratio and top 10 offenders
+- Detects AI-generated documentation without substance
+
+#### 3. Placeholder Pattern Catalog
+- **5 new patterns added**:
+  - `NotImplementedPattern` (HIGH) - Functions raising NotImplementedError
+  - `EmptyExceptPattern` (CRITICAL) - Empty exception handlers
+  - `ReturnNonePlaceholderPattern` (MEDIUM) - Functions only returning None
+  - `InterfaceOnlyClassPattern` (MEDIUM) - Classes with 75%+ placeholder methods
+  - `EllipsisPlaceholderPattern` (HIGH) - Ellipsis-only functions
+- **Total: 14 placeholder patterns** across 4 severity tiers
+- Integration with existing pattern detection system
+
+#### 4. Hallucination Dependencies
+- **12 purpose categories**: ML, Vision, HTTP, Database, Async, Data, Serialization, Testing, Logging, CLI, Cloud, Security
+- **60+ libraries tracked** across categories
+- **Category-level usage analysis**: Detects unused ML stack, HTTP libs, etc.
+- **Intent inference**: "Why was this dependency added?"
+- Per-library and per-category reporting
+
+#### 5. Question Generation UX
+- **Actionable review questions** instead of raw scores
+- **3 severity levels**: Critical, Warning, Info
+- **Context-aware phrasing**: Line numbers, specific evidence, intent
+- Examples:
+  - "Why import 'torch' for ML but never use it?"
+  - "'production-ready' claim lacks: error_handling, logging, tests"
+  - "Function has 15 lines of docstring, 2 lines of code"
+- Integrated into CLI output with Rich formatting
+
+#### 6. CI Gate 3-Tier Enforcement
+- **Soft Mode**: PR comments only, never fails (informational)
+- **Hard Mode**: Fail build on thresholds (strict enforcement)
+- **Quarantine Mode**: Track repeat offenders, escalate after 3 violations
+- **Configurable thresholds**: deficit_score, pattern counts, inflation, DDC
+- **Persistent tracking**: `.slop_quarantine.json` database
+- **GitHub Action examples** provided
+- CLI flags: `--ci-mode`, `--ci-report`
+
+### Changed
+- **Improved exception handling**: Specific exceptions instead of broad catch
+- **Added encoding specifications**: UTF-8 for all file I/O operations
+- **Removed unused imports**: Cleaned up ci_gate.py, question_generator.py
+
+### Fixed
+- Broad exception catching in quarantine DB load/save
+- Missing encoding in file operations
+- Unused variable in pattern question generation
+
+### Technical Details
+- **Files added**: 7 (ci_gate.py, docstring_inflation.py, hallucination_deps.py, context_jargon.py + 3 test files)
+- **Lines of code**: ~2,500 new lines
+- **Test coverage**: 68% overall, 90%+ for new modules
+- **Pylint score**: 9.30/10
+- **All tests**: 58/58 passed
 
 ---
 

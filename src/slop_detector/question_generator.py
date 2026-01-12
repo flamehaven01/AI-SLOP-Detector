@@ -371,7 +371,6 @@ class QuestionGenerator:
         """Convert a pattern issue to a review question."""
         # Issue is a dataclass with attributes, not a dict
         pattern_id = issue.pattern_id
-        message = issue.message
 
         # Map patterns to questions
         question_map = {
