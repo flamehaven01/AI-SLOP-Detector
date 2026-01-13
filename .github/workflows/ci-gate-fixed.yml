@@ -1,0 +1,119 @@
+name: AI Code Quality Gate (Fixed)
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  # Basic Mode: Simple quality check without CI gate features
+  quality-check-basic:
+    name: Quality Check (Basic)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install AI SLOP Detector
+        run: |
+          pip install ai-slop-detector
+
+      - name: Run Quality Analysis
+        id: quality_check
+        run: |
+          slop-detector --project . --json > analysis_result.json
+          cat analysis_result.json
+        continue-on-error: true
+
+      - name: Generate Report
+        if: always()
+        run: |
+          slop-detector --project . -o report.md
+          cat report.md
+
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: quality-report
+          path: |
+            analysis_result.json
+            report.md
+
+  # Threshold Mode: Fail if score exceeds threshold (working alternative)
+  quality-gate-threshold:
+    name: Quality Gate (Threshold)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install AI SLOP Detector
+        run: |
+          pip install ai-slop-detector
+
+      - name: Run Quality Gate with Threshold
+        run: |
+          # Fail if deficit score > 70
+          slop-detector --project . --fail-threshold 70
+
+      - name: Upload Report on Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: quality-gate-failure-report
+          path: report.md
+
+  # PR Comment Mode: Add analysis results as PR comment
+  pr-comment:
+    name: PR Analysis Comment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install AI SLOP Detector
+        run: |
+          pip install ai-slop-detector
+
+      - name: Run Analysis
+        id: analysis
+        run: |
+          slop-detector --project . -o report.md
+          echo "REPORT<<EOF" >> $GITHUB_OUTPUT
+          cat report.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const report = `${{ steps.analysis.outputs.REPORT }}`;
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## AI Code Quality Analysis\n\n${report}`
+            });

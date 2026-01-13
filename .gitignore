@@ -54,12 +54,42 @@ target/
 PROJECT_MASTER_SUMMARY.md
 PROJECT_COMPLETION_*.md
 RELEASE_v*.md
-certification_report.md
-certification_report_*.md
+certification_report*.md
 SLOPPYLINT_COMPARISON.md
 tests/manual_test/*.md
 slop_report*.txt
+*_Verification_Report.md
+verification_report*.md
+
+# Blueprint & Analysis Files
+*_blueprint*.jsonl
+*_blueprint*.md
+*_blueprint*.manifest.json
+analysis_result*.json
+
+# CI/CD Gate Reports
+gate_report.md
+gate_report*.json
+.slop_quarantine.json
 
 # Development artifacts & Test files
 GITHUB_METADATA.md
 test_slop_example.py
+test_*.pyc
+
+# Temporary output files
+report.json
+report.md
+report.html
+output*.json
+output*.md
+
+# Claude Code temporary directories
+tmpclaude-*-cwd
+.claude/
+claude_*.tmp
+
+# Large assets (optional - can be hosted externally)
+# docs/assets/*.png
+# docs/assets/*.jpg
+# Uncomment above if assets are too large for git

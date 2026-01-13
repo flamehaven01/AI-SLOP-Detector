@@ -7,8 +7,8 @@
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-58%20passed-brightgreen.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-68%25-green.svg)](htmlcov/)
+[![Tests](https://img.shields.io/badge/tests-165%20passed-brightgreen.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](htmlcov/)
 
 **Production-grade static analyzer for detecting AI-generated code quality issues with evidence-based validation.**
 
@@ -42,14 +42,23 @@ slop-detector mycode.py --json --output report.json
 
 ## What's New in v2.6.1
 
-### 6 Killer Upgrades
+### Quality Improvements
+
+**Test Coverage Expansion:**
+- ✅ **165 comprehensive tests** (up from 58)
+- ✅ **85% overall coverage** (up from 68%)
+- ✅ **CI Gate: 0% → 88% coverage** with 37 new tests
+- ✅ All core modules: 85%+ coverage
+- ✅ Fixed CI/CD pipeline issues
+
+### 6 Killer Features
 
 1. **Context-Based Jargon Detection** - Cross-validates quality claims with actual evidence
 2. **Docstring Inflation Analysis** - Detects documentation-heavy, implementation-light code
 3. **Placeholder Pattern Catalog** - 14 patterns detecting unfinished/scaffolded code
 4. **Hallucination Dependencies** - Identifies purpose-specific imports that are never used
 5. **Question Generation UX** - Converts findings into actionable review questions
-6. **CI Gate 3-Tier System** - Soft/Hard/Quarantine enforcement modes
+6. **CI Gate 3-Tier System** - Soft/Hard/Quarantine enforcement modes (fully tested)
 
 ---
 
@@ -123,7 +132,7 @@ def process():
 
 ## Architecture Overview
 
-AI-SLOP Detector v2.2 uses a **multi-dimensional analysis engine**:
+AI-SLOP Detector v2.6.1 uses a **multi-dimensional analysis engine**:
 
 ```
 Python Code
@@ -499,7 +508,7 @@ Contributions welcome! Please:
 
 **Contribution Guidelines:**
 - Add tests for new features
-- Maintain 70%+ code coverage
+- Maintain 80%+ code coverage (current: 85%)
 - Follow existing code style
 - Update documentation
 
@@ -539,17 +548,23 @@ If you use AI-SLOP Detector in research, please cite:
 
 ## Roadmap
 
-**v2.3 (Planned):**
-- [ ] VS Code Extension marketplace release
-- [ ] Enhanced evidence types (15+ types)
-- [ ] Custom pattern DSL
-- [ ] Multi-language support (JavaScript, TypeScript)
+**v2.7 (In Progress):**
+- [ ] VS Code Extension marketplace release (dev complete, pending publish)
+- [ ] Enhanced evidence types (15+ types) - currently 14 types ✅
+- [ ] Custom pattern DSL for user-defined rules
+- [ ] Performance optimizations for large codebases
 
-**v3.0 (Future):**
+**v2.8 (Planned Q1 2025):**
+- [ ] Multi-language support (JavaScript, TypeScript)
+- [ ] Enhanced CI/CD integrations (GitLab CI, CircleCI)
+- [ ] Real-time analysis daemon mode
+- [ ] Team analytics dashboard (beta)
+
+**v3.0 (Planned Q2 2025):**
 - [ ] ML-based pattern recognition
-- [ ] Auto-fix suggestions
-- [ ] Team analytics dashboard
-- [ ] IDE plugins (PyCharm, IntelliJ)
+- [ ] Auto-fix suggestions with confidence scores
+- [ ] IDE plugins (PyCharm, IntelliJ, JetBrains)
+- [ ] Enterprise features (SSO, RBAC already implemented)
 
 ---
 

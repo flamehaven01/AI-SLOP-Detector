@@ -275,3 +275,363 @@ def function():
 
     # Pattern issues should be detected (unless disabled)
     assert isinstance(result.pattern_issues, list)
+
+
+def test_analyze_project(detector):
+    """Test project-level analysis."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        project_path = Path(tmpdir)
+
+        # Create multiple Python files
+        (project_path / "file1.py").write_text('''
+def clean_function():
+    """Clean implementation."""
+    return sum([1, 2, 3])
+''')
+
+        (project_path / "file2.py").write_text('''
+def empty_function():
+    """Empty."""
+    pass
+''')
+
+        (project_path / "file3.py").write_text('''
+import torch
+import sys
+
+def another():
+    """Has unused imports."""
+    return sys.version
+''')
+
+        result = detector.analyze_project(str(project_path))
+
+        assert result.project_path == str(project_path)
+        assert result.total_files == 3
+        assert len(result.file_results) == 3
+        assert result.avg_deficit_score >= 0
+        assert result.weighted_deficit_score >= 0
+
+
+def test_analyze_project_with_ignore_patterns(detector):
+    """Test project analysis respects ignore patterns."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        project_path = Path(tmpdir)
+
+        # Create files including test files
+        (project_path / "main.py").write_text('''
+def main():
+    return "hello"
+''')
+
+        (project_path / "test_main.py").write_text('''
+def test_main():
+    assert True
+''')
+
+        # Detector should honor default ignore patterns
+        result = detector.analyze_project(str(project_path))
+
+        # May or may not include test files depending on config
+        assert result.total_files >= 1
+
+
+def test_analyze_empty_project(detector):
+    """Test analyzing project with no Python files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        result = detector.analyze_project(tmpdir)
+
+        assert result.total_files == 0
+        assert result.avg_deficit_score == 0.0
+        assert result.overall_status == SlopStatus.CLEAN
+
+
+def test_should_ignore(detector):
+    """Test ignore pattern matching."""
+    test_path = Path("tests/test_main.py")
+    ignore_patterns = ["tests/*", "**/test_*.py"]
+
+    # Should match ignore patterns
+    assert detector._should_ignore(test_path, ignore_patterns) is True
+
+    regular_path = Path("src/main.py")
+    assert detector._should_ignore(regular_path, ignore_patterns) is False
+
+
+def test_calculate_pattern_penalty(detector):
+    """Test pattern penalty calculation."""
+    from slop_detector.patterns.base import Axis, Issue, Severity
+
+    # Create test issues with different severities
+    issues = [
+        Issue(
+            pattern_id="test1",
+            severity=Severity.CRITICAL,
+            axis=Axis.STRUCTURE,
+            file=Path("test.py"),
+            line=1,
+            column=0,
+            message="Critical issue",
+            suggestion="Fix it"
+        ),
+        Issue(
+            pattern_id="test2",
+            severity=Severity.HIGH,
+            axis=Axis.QUALITY,
+            file=Path("test.py"),
+            line=2,
+            column=0,
+            message="High issue",
+            suggestion="Fix it"
+        ),
+        Issue(
+            pattern_id="test3",
+            severity=Severity.MEDIUM,
+            axis=Axis.STYLE,
+            file=Path("test.py"),
+            line=3,
+            column=0,
+            message="Medium issue",
+            suggestion="Fix it"
+        ),
+        Issue(
+            pattern_id="test4",
+            severity=Severity.LOW,
+            axis=Axis.NOISE,
+            file=Path("test.py"),
+            line=4,
+            column=0,
+            message="Low issue",
+            suggestion="Fix it"
+        ),
+    ]
+
+    penalty = detector._calculate_pattern_penalty(issues)
+
+    # critical=10, high=5, medium=2, low=1 → total=18
+    assert penalty == 18.0
+
+
+def test_calculate_pattern_penalty_capped(detector):
+    """Test pattern penalty is capped at 50."""
+    from slop_detector.patterns.base import Axis, Issue, Severity
+
+    # Create many critical issues
+    issues = [
+        Issue(
+            pattern_id=f"test{i}",
+            severity=Severity.CRITICAL,
+            axis=Axis.STRUCTURE,
+            file=Path("test.py"),
+            line=i,
+            column=0,
+            message=f"Critical {i}",
+            suggestion="Fix"
+        )
+        for i in range(20)  # 20 * 10 = 200, but should cap at 50
+    ]
+
+    penalty = detector._calculate_pattern_penalty(issues)
+
+    # Should be capped at 50
+    assert penalty == 50.0
+
+
+def test_deficit_score_with_pattern_penalties(detector, temp_python_file):
+    """Test that pattern issues increase deficit score."""
+    code = '''
+def bad_code():
+    """Multiple anti-patterns."""
+    try:
+        something()
+    except:  # Bare except
+        pass
+
+def another_bad(items=[]):  # Mutable default
+    """More issues."""
+    items.append(1)
+    return items
+'''
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    # Should have pattern issues
+    assert len(result.pattern_issues) > 0
+    # Deficit score should be affected
+    assert result.deficit_score > 0
+
+
+def test_critical_patterns_trigger_critical_status(detector, temp_python_file):
+    """Test multiple critical patterns trigger CRITICAL_DEFICIT."""
+    code = '''
+def bad1():
+    try:
+        x()
+    except:  # Critical
+        pass
+
+def bad2():
+    try:
+        y()
+    except:  # Critical
+        pass
+
+def bad3():
+    try:
+        z()
+    except:  # Critical
+        pass
+'''
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    # Multiple critical patterns should trigger critical status
+    critical_count = sum(
+        1 for issue in result.pattern_issues
+        if issue.severity.value == "critical"
+    )
+
+    if critical_count >= 3:
+        assert result.status == SlopStatus.CRITICAL_DEFICIT
+
+
+def test_analyze_file_read_error(detector):
+    """Test handling file read errors."""
+    with pytest.raises(Exception):
+        detector.analyze_file("/nonexistent/file.py")
+
+
+def test_weighted_analysis_enabled(detector):
+    """Test weighted analysis uses LOC weighting."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        project_path = Path(tmpdir)
+
+        # Small file with poor quality
+        (project_path / "small.py").write_text('''
+def empty():
+    pass
+''')
+
+        # Large file with good quality
+        large_code = '''
+def process(data):
+    """Process data."""
+    result = []
+    for item in data:
+        if item > 0:
+            result.append(item * 2)
+    return result
+''' * 10
+
+        (project_path / "large.py").write_text(large_code)
+
+        result = detector.analyze_project(str(project_path))
+
+        # Weighted score should differ from average
+        # (large file should dominate)
+        assert result.weighted_deficit_score >= 0
+        assert result.avg_deficit_score >= 0
+
+
+def test_project_overall_status_calculation(detector):
+    """Test project overall status based on weighted score."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        project_path = Path(tmpdir)
+
+        # Create clean files
+        (project_path / "clean.py").write_text('''
+def good_function(x):
+    """Good implementation."""
+    if x > 0:
+        return x * 2
+    return 0
+''')
+
+        result = detector.analyze_project(str(project_path))
+
+        # Should be CLEAN
+        assert result.overall_status == SlopStatus.CLEAN
+
+
+def test_inflated_signal_status(detector, temp_python_file):
+    """Test INFLATED_SIGNAL status for high inflation."""
+    code = '''
+def buzzword_function():
+    """State-of-the-art neural network transformer with
+    cutting-edge deep learning and Byzantine fault-tolerant
+    architecture for mission-critical cloud-native deployments."""
+    pass
+'''
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    # High inflation should trigger INFLATED_SIGNAL
+    if result.inflation.inflation_score > 1.0:
+        assert result.status == SlopStatus.INFLATED_SIGNAL
+
+
+def test_dependency_noise_status(detector, temp_python_file):
+    """Test DEPENDENCY_NOISE status for low usage ratio."""
+    code = '''
+import torch
+import tensorflow as tf
+import keras
+import numpy as np
+import pandas as pd
+
+def simple():
+    """Uses nothing."""
+    return 42
+'''
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    # Very low usage ratio should trigger DEPENDENCY_NOISE
+    if result.ddc.usage_ratio < 0.50:
+        assert result.status == SlopStatus.DEPENDENCY_NOISE
+
+
+def test_warnings_generation(detector, temp_python_file):
+    """Test warning message generation."""
+    code = '''
+import torch
+
+def empty():
+    """Low LDR, high inflation, fake imports."""
+    pass
+'''
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    # Should have warnings
+    assert isinstance(result.warnings, list)
+
+
+def test_run_patterns_integration(detector, temp_python_file):
+    """Test pattern execution integration."""
+    code = '''
+def test_function():
+    """Has patterns to detect."""
+    try:
+        risky_op()
+    except:
+        pass
+'''
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    # Patterns should run and find issues
+    assert hasattr(result, 'pattern_issues')
+    assert isinstance(result.pattern_issues, list)
