@@ -39,7 +39,7 @@ jobs:
 
       - name: Upload Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quality-report
           path: |
@@ -50,7 +50,6 @@ jobs:
   quality-gate-threshold:
     name: Quality Gate (Threshold)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
@@ -71,7 +70,7 @@ jobs:
 
       - name: Upload Report on Failure
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quality-gate-failure-report
           path: report.md
@@ -80,7 +79,6 @@ jobs:
   pr-comment:
     name: PR Analysis Comment
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     permissions:
       pull-requests: write
 
