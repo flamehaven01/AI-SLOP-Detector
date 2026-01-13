@@ -1,6 +1,5 @@
 """Tests for CI/CD gate functionality."""
 
-import json
 import tempfile
 from pathlib import Path
 
@@ -15,7 +14,6 @@ from slop_detector.ci_gate import (
     QuarantineRecord,
 )
 from slop_detector.core import SlopDetector
-from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
 
 
 @pytest.fixture
@@ -49,13 +47,15 @@ def clean_file_analysis():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            '''
 def good_function(x):
     """Well-implemented function."""
     if x > 0:
         return x * 2
     return 0
-''')
+'''
+        )
         f.flush()
         temp_file = f.name
 
@@ -71,7 +71,8 @@ def failing_file_analysis():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 def empty1():
     pass
 
@@ -80,7 +81,8 @@ def empty2():
 
 def empty3():
     pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -119,11 +121,7 @@ def test_gate_thresholds_defaults():
 
 def test_gate_thresholds_custom():
     """Test custom threshold values."""
-    thresholds = GateThresholds(
-        deficit_fail=80.0,
-        deficit_warn=40.0,
-        critical_patterns_fail=5
-    )
+    thresholds = GateThresholds(deficit_fail=80.0, deficit_warn=40.0, critical_patterns_fail=5)
 
     assert thresholds.deficit_fail == 80.0
     assert thresholds.deficit_warn == 40.0
@@ -136,7 +134,7 @@ def test_quarantine_record_to_dict():
         file_path="test.py",
         offense_count=2,
         last_deficit_score=45.0,
-        violations=["high_deficit", "low_ldr"]
+        violations=["high_deficit", "low_ldr"],
     )
 
     result = record.to_dict()
@@ -157,7 +155,7 @@ def test_gate_result_to_dict():
         failed_files=[],
         warned_files=["test.py"],
         should_fail_build=False,
-        pr_comment="Quality check complete"
+        pr_comment="Quality check complete",
     )
 
     result_dict = result.to_dict()
@@ -232,17 +230,21 @@ def test_project_analysis_soft_mode(gate_soft):
         project_path = Path(tmpdir)
 
         # Create test files
-        (project_path / "good.py").write_text('''
+        (project_path / "good.py").write_text(
+            """
 def good():
     return sum([1, 2, 3])
-''')
+"""
+        )
 
-        (project_path / "bad.py").write_text('''
+        (project_path / "bad.py").write_text(
+            """
 def empty1():
     pass
 def empty2():
     pass
-''')
+"""
+        )
 
         project_result = detector.analyze_project(str(project_path))
         gate_result = gate_soft.evaluate(project_result)
@@ -259,12 +261,14 @@ def test_project_analysis_hard_mode(gate_hard):
         project_path = Path(tmpdir)
 
         # Create mostly good files
-        (project_path / "good1.py").write_text('''
+        (project_path / "good1.py").write_text(
+            """
 def process(x):
     if x > 0:
         return x * 2
     return 0
-''')
+"""
+        )
 
         project_result = detector.analyze_project(str(project_path))
         gate_result = gate_hard.evaluate(project_result)
@@ -274,10 +278,7 @@ def process(x):
 
 def test_custom_thresholds():
     """Test gate with custom thresholds."""
-    thresholds = GateThresholds(
-        deficit_fail=50.0,  # Lower threshold
-        deficit_warn=20.0
-    )
+    thresholds = GateThresholds(deficit_fail=50.0, deficit_warn=20.0)  # Lower threshold
 
     gate = CIGate(mode=GateMode.HARD, thresholds=thresholds)
 
@@ -301,10 +302,12 @@ def test_gate_result_pr_comment(gate_soft):
     with tempfile.TemporaryDirectory() as tmpdir:
         project_path = Path(tmpdir)
 
-        (project_path / "test.py").write_text('''
+        (project_path / "test.py").write_text(
+            """
 def func():
     return 42
-''')
+"""
+        )
 
         project_result = detector.analyze_project(str(project_path))
         gate_result = gate_soft.evaluate(project_result)
@@ -318,10 +321,12 @@ def test_quarantine_mode_tracking(gate_quarantine):
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 def empty():
     pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -340,10 +345,12 @@ def test_gate_handles_syntax_error():
     gate = CIGate(mode=GateMode.SOFT)
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 def broken(
     pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -366,14 +373,16 @@ def test_quarantine_mode_escalation():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 def empty1():
     pass
 def empty2():
     pass
 def empty3():
     pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -406,20 +415,16 @@ def test_quarantine_project_evaluation():
         temp_db = Path(tmpdir) / "quarantine.json"
 
         # Use very low thresholds to ensure files fail
-        thresholds = GateThresholds(
-            deficit_fail=20.0,  # Very low threshold
-            deficit_warn=10.0
-        )
+        thresholds = GateThresholds(deficit_fail=20.0, deficit_warn=10.0)  # Very low threshold
 
         gate = CIGate(
-            mode=GateMode.QUARANTINE,
-            quarantine_db_path=str(temp_db),
-            thresholds=thresholds
+            mode=GateMode.QUARANTINE, quarantine_db_path=str(temp_db), thresholds=thresholds
         )
         detector = SlopDetector()
 
         # Create multiple bad files with very high deficit
-        (project_path / "bad1.py").write_text('''
+        (project_path / "bad1.py").write_text(
+            """
 def empty1():
     pass
 def empty2():
@@ -430,21 +435,24 @@ def empty4():
     pass
 def empty5():
     pass
-''')
+"""
+        )
 
-        (project_path / "bad2.py").write_text('''
+        (project_path / "bad2.py").write_text(
+            """
 def empty6():
     pass
 def empty7():
     pass
 def empty8():
     pass
-''')
+"""
+        )
 
         # Analyze project multiple times
         for _ in range(3):
             project_result = detector.analyze_project(str(project_path))
-            gate_result = gate.evaluate(project_result)
+            gate.evaluate(project_result)
 
         # Check that quarantine records were created
         # (Only if files actually failed the low threshold)
@@ -458,7 +466,8 @@ def test_hard_mode_fails_on_critical_patterns():
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         # Create code with multiple bare except (critical patterns)
-        f.write('''
+        f.write(
+            """
 def bad1():
     try:
         x()
@@ -476,7 +485,8 @@ def bad3():
         z()
     except:
         pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -486,10 +496,7 @@ def bad3():
     Path(temp_file).unlink(missing_ok=True)
 
     # Should fail if critical patterns >= 3
-    critical_count = sum(
-        1 for issue in result.pattern_issues
-        if issue.severity.value == "critical"
-    )
+    critical_count = sum(1 for issue in result.pattern_issues if issue.severity.value == "critical")
 
     if critical_count >= 3:
         assert gate_result.should_fail_build is True
@@ -503,14 +510,16 @@ def test_hard_mode_fails_on_high_inflation():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            '''
 def buzzword():
     """State-of-the-art neural network transformer with
     cutting-edge deep learning Byzantine fault-tolerant
     cloud-native microservices architecture for enterprise-grade
     mission-critical deployments leveraging advanced algorithms."""
     pass
-''')
+'''
+        )
         f.flush()
         temp_file = f.name
 
@@ -531,7 +540,8 @@ def test_hard_mode_fails_on_low_ddc():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 import torch
 import tensorflow as tf
 import keras
@@ -539,7 +549,8 @@ import numpy as np
 
 def simple():
     return 42
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -581,10 +592,12 @@ def test_pr_comment_generation_file():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 def empty():
     pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -607,15 +620,19 @@ def test_pr_comment_generation_project():
     with tempfile.TemporaryDirectory() as tmpdir:
         project_path = Path(tmpdir)
 
-        (project_path / "good.py").write_text('''
+        (project_path / "good.py").write_text(
+            """
 def good():
     return sum([1, 2, 3])
-''')
+"""
+        )
 
-        (project_path / "bad.py").write_text('''
+        (project_path / "bad.py").write_text(
+            """
 def empty():
     pass
-''')
+"""
+        )
 
         project_result = detector.analyze_project(str(project_path))
 
@@ -644,10 +661,12 @@ def test_pr_comment_quarantine_files():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 def empty():
     pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -673,10 +692,7 @@ def test_quarantine_db_save_load():
     # Create gate and add records
     gate1 = CIGate(mode=GateMode.QUARANTINE, quarantine_db_path=temp_db)
     gate1.quarantine_records["test.py"] = QuarantineRecord(
-        file_path="test.py",
-        offense_count=2,
-        last_deficit_score=50.0,
-        violations=["test1", "test2"]
+        file_path="test.py", offense_count=2, last_deficit_score=50.0, violations=["test1", "test2"]
     )
     gate1._save_quarantine_db()
 
@@ -726,17 +742,11 @@ def test_should_escalate():
     assert gate._should_escalate("unknown.py") is False
 
     # Add record with < 3 offenses
-    gate.quarantine_records["test1.py"] = QuarantineRecord(
-        file_path="test1.py",
-        offense_count=2
-    )
+    gate.quarantine_records["test1.py"] = QuarantineRecord(file_path="test1.py", offense_count=2)
     assert gate._should_escalate("test1.py") is False
 
     # Add record with >= 3 offenses
-    gate.quarantine_records["test2.py"] = QuarantineRecord(
-        file_path="test2.py",
-        offense_count=3
-    )
+    gate.quarantine_records["test2.py"] = QuarantineRecord(file_path="test2.py", offense_count=3)
     assert gate._should_escalate("test2.py") is True
 
 
@@ -746,10 +756,12 @@ def test_update_quarantine_file_analysis():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            """
 def empty():
     pass
-''')
+"""
+        )
         f.flush()
         temp_file = f.name
 
@@ -775,10 +787,12 @@ def test_update_quarantine_project_analysis():
         project_path = Path(tmpdir)
         test_file = project_path / "test.py"
 
-        test_file.write_text('''
+        test_file.write_text(
+            """
 def empty():
     pass
-''')
+"""
+        )
 
         project_result = detector.analyze_project(str(project_path))
 
@@ -791,20 +805,19 @@ def empty():
 
 def test_check_file_thresholds_warn_conditions():
     """Test warning threshold checks."""
-    thresholds = GateThresholds(
-        deficit_warn=20.0,
-        high_patterns_warn=2
-    )
+    thresholds = GateThresholds(deficit_warn=20.0, high_patterns_warn=2)
     gate = CIGate(mode=GateMode.SOFT, thresholds=thresholds)
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write('''
+        f.write(
+            '''
 def somewhat_empty():
     """Has some content but not much."""
     x = 1
     pass
-''')
+'''
+        )
         f.flush()
         temp_file = f.name
 
@@ -827,10 +840,12 @@ def test_pr_comment_many_files():
 
         # Create many files
         for i in range(15):
-            (project_path / f"file{i}.py").write_text(f'''
+            (project_path / f"file{i}.py").write_text(
+                f"""
 def empty{i}():
     pass
-''')
+"""
+            )
 
         project_result = detector.analyze_project(str(project_path))
 
