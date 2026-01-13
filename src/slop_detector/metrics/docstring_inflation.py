@@ -2,9 +2,9 @@
 
 import ast
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
-DocstringNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
+DocstringNode = Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
 
 
 @dataclass
