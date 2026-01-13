@@ -1,6 +1,5 @@
 """Tests for CI/CD gate functionality."""
 
-import json
 import tempfile
 from pathlib import Path
 
@@ -15,7 +14,6 @@ from slop_detector.ci_gate import (
     QuarantineRecord,
 )
 from slop_detector.core import SlopDetector
-from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
 
 
 @pytest.fixture
@@ -454,7 +452,7 @@ def empty8():
         # Analyze project multiple times
         for _ in range(3):
             project_result = detector.analyze_project(str(project_path))
-            gate_result = gate.evaluate(project_result)
+            gate.evaluate(project_result)
 
         # Check that quarantine records were created
         # (Only if files actually failed the low threshold)
