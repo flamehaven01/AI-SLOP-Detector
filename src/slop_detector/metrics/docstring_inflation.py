@@ -210,7 +210,12 @@ class DocstringInflationDetector:
             # Count this as an implementation line
             # For multi-line statements, count end_lineno - lineno + 1
             if hasattr(item, "end_lineno") and hasattr(item, "lineno"):
-                impl_lines += item.end_lineno - item.lineno + 1
+                end_lineno = item.end_lineno
+                lineno = item.lineno
+                if end_lineno is not None and lineno is not None:
+                    impl_lines += end_lineno - lineno + 1
+                else:
+                    impl_lines += 1
             else:
                 impl_lines += 1
 
