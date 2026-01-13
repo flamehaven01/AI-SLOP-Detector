@@ -329,9 +329,7 @@ def implement_neurips_algorithm():
     result = bcr_calc.calculate("test.py", code, tree)
 
     # Should detect academic jargon
-    academic_jargon = [
-        d for d in result.jargon_details if d["category"] == "academic"
-    ]
+    academic_jargon = [d for d in result.jargon_details if d["category"] == "academic"]
     assert len(academic_jargon) > 0
 
 
