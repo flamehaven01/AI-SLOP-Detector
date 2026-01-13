@@ -7,7 +7,7 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from slop_detector.models import FileAnalysis, ProjectAnalysis
 
@@ -110,9 +110,8 @@ class CIGate:
         is_project = isinstance(result, ProjectAnalysis)
 
         if is_project:
-            return self._evaluate_project(result)
-        else:
-            return self._evaluate_file(result)
+            return self._evaluate_project(cast(ProjectAnalysis, result))
+        return self._evaluate_file(cast(FileAnalysis, result))
 
     def _evaluate_project(self, result: ProjectAnalysis) -> GateResult:
         """Evaluate project-level analysis."""
