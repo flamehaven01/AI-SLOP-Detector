@@ -2,7 +2,11 @@
 
 import ast
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
+
+from typing_extensions import TypeAlias
+
+DocstringNode: TypeAlias = Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
 
 
 @dataclass
@@ -82,10 +86,11 @@ class DocstringInflationDetector:
         total_implementation_lines = 0
 
         # Check module docstring
-        module_doc = ast.get_docstring(tree)
+        module = cast(ast.Module, tree)
+        module_doc = ast.get_docstring(module)
         if module_doc:
             module_doc_lines = len(module_doc.splitlines())
-            module_impl_lines = self._count_module_implementation_lines(tree, content)
+            module_impl_lines = self._count_module_implementation_lines(module, content)
             total_docstring_lines += module_doc_lines
             total_implementation_lines += module_impl_lines
 
@@ -146,7 +151,9 @@ class DocstringInflationDetector:
             details=sorted(details, key=lambda d: d.inflation_ratio, reverse=True)[:10],
         )
 
-    def _analyze_node(self, node: ast.AST, content: str) -> Optional[DocstringInflationDetail]:
+    def _analyze_node(
+        self, node: DocstringNode, content: str
+    ) -> Optional[DocstringInflationDetail]:
         """Analyze a function or class for docstring inflation."""
         docstring = ast.get_docstring(node)
         if not docstring:
@@ -181,7 +188,7 @@ class DocstringInflationDetector:
             docstring_preview=docstring[:100].replace("\n", " "),
         )
 
-    def _count_implementation_lines(self, node: ast.AST, docstring: str) -> int:
+    def _count_implementation_lines(self, node: DocstringNode, docstring: str) -> int:
         """Count actual implementation lines (excluding docstring and empty lines)."""
         # For functions/classes, count non-trivial body lines
         body = node.body if hasattr(node, "body") else []
@@ -219,7 +226,7 @@ class DocstringInflationDetector:
 
         return max(impl_lines, 1)  # At least 1 to avoid division by zero
 
-    def _count_module_implementation_lines(self, tree: ast.AST, content: str) -> int:
+    def _count_module_implementation_lines(self, tree: ast.Module, content: str) -> int:
         """Count module-level implementation lines."""
         lines = content.splitlines()
         total_lines = len(lines)

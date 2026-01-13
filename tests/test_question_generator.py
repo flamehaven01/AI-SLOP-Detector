@@ -11,7 +11,6 @@ from slop_detector.models import DDCResult, FileAnalysis, InflationResult, LDRRe
 from slop_detector.question_generator import Question, QuestionGenerator
 
 
-
 @pytest.fixture
 def generator():
     return QuestionGenerator()
