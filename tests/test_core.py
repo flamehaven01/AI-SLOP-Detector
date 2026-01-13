@@ -283,26 +283,32 @@ def test_analyze_project(detector):
         project_path = Path(tmpdir)
 
         # Create multiple Python files
-        (project_path / "file1.py").write_text('''
+        (project_path / "file1.py").write_text(
+            '''
 def clean_function():
     """Clean implementation."""
     return sum([1, 2, 3])
-''')
+'''
+        )
 
-        (project_path / "file2.py").write_text('''
+        (project_path / "file2.py").write_text(
+            '''
 def empty_function():
     """Empty."""
     pass
-''')
+'''
+        )
 
-        (project_path / "file3.py").write_text('''
+        (project_path / "file3.py").write_text(
+            '''
 import torch
 import sys
 
 def another():
     """Has unused imports."""
     return sys.version
-''')
+'''
+        )
 
         result = detector.analyze_project(str(project_path))
 
@@ -319,15 +325,19 @@ def test_analyze_project_with_ignore_patterns(detector):
         project_path = Path(tmpdir)
 
         # Create files including test files
-        (project_path / "main.py").write_text('''
+        (project_path / "main.py").write_text(
+            """
 def main():
     return "hello"
-''')
+"""
+        )
 
-        (project_path / "test_main.py").write_text('''
+        (project_path / "test_main.py").write_text(
+            """
 def test_main():
     assert True
-''')
+"""
+        )
 
         # Detector should honor default ignore patterns
         result = detector.analyze_project(str(project_path))
@@ -372,7 +382,7 @@ def test_calculate_pattern_penalty(detector):
             line=1,
             column=0,
             message="Critical issue",
-            suggestion="Fix it"
+            suggestion="Fix it",
         ),
         Issue(
             pattern_id="test2",
@@ -382,7 +392,7 @@ def test_calculate_pattern_penalty(detector):
             line=2,
             column=0,
             message="High issue",
-            suggestion="Fix it"
+            suggestion="Fix it",
         ),
         Issue(
             pattern_id="test3",
@@ -392,7 +402,7 @@ def test_calculate_pattern_penalty(detector):
             line=3,
             column=0,
             message="Medium issue",
-            suggestion="Fix it"
+            suggestion="Fix it",
         ),
         Issue(
             pattern_id="test4",
@@ -402,7 +412,7 @@ def test_calculate_pattern_penalty(detector):
             line=4,
             column=0,
             message="Low issue",
-            suggestion="Fix it"
+            suggestion="Fix it",
         ),
     ]
 
@@ -426,7 +436,7 @@ def test_calculate_pattern_penalty_capped(detector):
             line=i,
             column=0,
             message=f"Critical {i}",
-            suggestion="Fix"
+            suggestion="Fix",
         )
         for i in range(20)  # 20 * 10 = 200, but should cap at 50
     ]
@@ -465,7 +475,7 @@ def another_bad(items=[]):  # Mutable default
 
 def test_critical_patterns_trigger_critical_status(detector, temp_python_file):
     """Test multiple critical patterns trigger CRITICAL_DEFICIT."""
-    code = '''
+    code = """
 def bad1():
     try:
         x()
@@ -483,17 +493,14 @@ def bad3():
         z()
     except:  # Critical
         pass
-'''
+"""
     temp_python_file.write(code)
     temp_python_file.flush()
 
     result = detector.analyze_file(temp_python_file.name)
 
     # Multiple critical patterns should trigger critical status
-    critical_count = sum(
-        1 for issue in result.pattern_issues
-        if issue.severity.value == "critical"
-    )
+    critical_count = sum(1 for issue in result.pattern_issues if issue.severity.value == "critical")
 
     if critical_count >= 3:
         assert result.status == SlopStatus.CRITICAL_DEFICIT
@@ -511,13 +518,16 @@ def test_weighted_analysis_enabled(detector):
         project_path = Path(tmpdir)
 
         # Small file with poor quality
-        (project_path / "small.py").write_text('''
+        (project_path / "small.py").write_text(
+            """
 def empty():
     pass
-''')
+"""
+        )
 
         # Large file with good quality
-        large_code = '''
+        large_code = (
+            '''
 def process(data):
     """Process data."""
     result = []
@@ -525,7 +535,9 @@ def process(data):
         if item > 0:
             result.append(item * 2)
     return result
-''' * 10
+'''
+            * 10
+        )
 
         (project_path / "large.py").write_text(large_code)
 
@@ -543,13 +555,15 @@ def test_project_overall_status_calculation(detector):
         project_path = Path(tmpdir)
 
         # Create clean files
-        (project_path / "clean.py").write_text('''
+        (project_path / "clean.py").write_text(
+            '''
 def good_function(x):
     """Good implementation."""
     if x > 0:
         return x * 2
     return 0
-''')
+'''
+        )
 
         result = detector.analyze_project(str(project_path))
 
@@ -633,5 +647,5 @@ def test_function():
     result = detector.analyze_file(temp_python_file.name)
 
     # Patterns should run and find issues
-    assert hasattr(result, 'pattern_issues')
+    assert hasattr(result, "pattern_issues")
     assert isinstance(result.pattern_issues, list)
