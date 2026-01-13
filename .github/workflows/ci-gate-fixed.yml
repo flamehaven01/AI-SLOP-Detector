@@ -50,7 +50,6 @@ jobs:
   quality-gate-threshold:
     name: Quality Gate (Threshold)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
@@ -80,7 +79,6 @@ jobs:
   pr-comment:
     name: PR Analysis Comment
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     permissions:
       pull-requests: write
 
@@ -107,7 +105,6 @@ jobs:
 
       - name: Comment PR
         uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
         with:
           script: |
             const report = `${{ steps.analysis.outputs.REPORT }}`;
