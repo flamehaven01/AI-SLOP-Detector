@@ -325,6 +325,16 @@ def generate_markdown_report(result) -> str:
         lines.append(f"- **Deficit Score**: {f_res.deficit_score:.2f}")
         lines.append(f"- **Lines of Code**: {f_res.ldr.total_lines}")
 
+        # Empty file handling - add table to avoid confusion
+        if f_res.ldr.total_lines == 0:
+            lines.append("#### ⚠️ Anti-Patterns & Risk")
+            lines.append("| Line | Issue | Mitigation Strategy |")
+            lines.append("| :--- | :--- | :--- |")
+            lines.append("| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |")
+            lines.append("")
+            lines.append("---")
+            continue  # Skip jargon/pattern checks for empty files
+
         # Inflation / Jargon
         jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
         if jargon_issues:
