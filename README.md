@@ -1,4 +1,4 @@
-![AI-SLOP Detector Logo](https://raw.githubusercontent.com/flamehaven/ai-slop-detector/main/docs/assets/AI%20SLop%20DETECTOR.png)
+![AI-SLOP Detector Logo](https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/AI%20SLop%20DETECTOR.png)
 
 # AI-SLOP Detector v2.6.2
 
