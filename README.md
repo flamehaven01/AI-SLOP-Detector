@@ -16,6 +16,18 @@ Detects six critical categories of AI-generated code problems with actionable, c
 
 ---
 
+**Quick Navigation:**
+[🚀 Quick Start](#quick-start) •
+[✨ What's New](#whats-new-in-v262) •
+[🏗️ Architecture](#architecture-overview) •
+[📊 Core Features](#core-features) •
+[⚙️ Configuration](docs/CONFIGURATION.md) •
+[🔧 CLI Usage](docs/CLI_USAGE.md) •
+[🚦 CI/CD Integration](docs/CI_CD.md) •
+[👨‍💻 Development](docs/DEVELOPMENT.md)
+
+---
+
 ## Quick Start
 
 ```bash
@@ -137,37 +149,30 @@ def process():
 
 AI-SLOP Detector v2.6.2 uses a **multi-dimensional analysis engine**:
 
-```
-Python Code
-    ↓
-┌─────────────────────────────────────┐
-│  Core Metrics (v2.0)                │
-│  • LDR (Logic Density Ratio)        │
-│  • Inflation (Jargon Detection)     │
-│  • DDC (Dependency Check)           │
-└─────────────────────────────────────┘
-    ↓
-┌─────────────────────────────────────┐
-│  Pattern Detection (v2.1)           │
-│  • 14 Placeholder Patterns          │
-│  • 4 Structural Anti-patterns       │
-│  • 6 Cross-language Patterns        │
-└─────────────────────────────────────┘
-    ↓
-┌─────────────────────────────────────┐
-│  Evidence Validation (v2.2)         │
-│  • Context-Based Jargon             │
-│  • Docstring Inflation              │
-│  • Hallucination Dependencies       │
-└─────────────────────────────────────┘
-    ↓
-┌─────────────────────────────────────┐
-│  Question Generation (v2.2)         │
-│  • Critical/Warning/Info Questions  │
-│  • Actionable Review Guidance       │
-└─────────────────────────────────────┘
-    ↓
-Deficit Score (0-100) + Status + Questions
+```mermaid
+graph TD
+    A[Python Code] --> B[Core Metrics v2.0]
+    B --> C[Pattern Detection v2.1]
+    C --> D[Evidence Validation v2.2]
+    D --> E[Question Generation v2.2]
+    E --> F[Deficit Score + Report]
+
+    B1[LDR Logic Density Ratio<br/>Inflation Jargon Detection<br/>DDC Dependency Check]
+    C1[14 Placeholder Patterns<br/>4 Structural Anti-patterns<br/>6 Cross-language Patterns]
+    D1[Context-Based Jargon<br/>Docstring Inflation<br/>Hallucination Dependencies]
+    E1[Critical/Warning/Info Questions<br/>Actionable Review Guidance]
+
+    B -.-> B1
+    C -.-> C1
+    D -.-> D1
+    E -.-> E1
+
+    style A fill:#e1f5ff
+    style F fill:#ffe1e1
+    style B fill:#f0f0f0
+    style C fill:#f0f0f0
+    style D fill:#f0f0f0
+    style E fill:#f0f0f0
 ```
 
 ---
@@ -190,21 +195,24 @@ Validates quality claims against actual codebase evidence:
 ```
 
 **Evidence tracked (15 types):**
-- Error handling (try/except with non-empty handlers)
-- Logging (actual logger usage, not just imports)
-- Unit tests (test functions, test files, test directories)
-- Integration tests (tests/integration path, pytest markers, runtime signals like TestClient/testcontainers)
-- Input validation (isinstance, type checks, assertions)
-- Config management (settings, .env, yaml references)
-- Monitoring (prometheus, statsd, sentry)
-- Documentation (meaningful docstrings)
-- Security (auth, encryption, sanitization)
-- Caching (@cache, redis, memcache)
-- Async support (async/await usage)
-- Retry logic (@retry, backoff, circuit breaker)
-- Design patterns (Factory, Singleton, Observer)
-- Advanced algorithms (complexity >= 10)
-- Optimization (vectorization, memoization)
+
+| Category | Evidence Types | Detection Signals |
+|----------|----------------|-------------------|
+| **Testing** | Unit tests | test functions, test files, test directories |
+| | Integration tests | tests/integration path, pytest markers, TestClient/testcontainers |
+| **Quality Assurance** | Error handling | try/except with non-empty handlers |
+| | Logging | actual logger usage, not just imports |
+| | Input validation | isinstance, type checks, assertions |
+| | Documentation | meaningful docstrings |
+| **Configuration** | Config management | settings, .env, yaml references |
+| | Monitoring | prometheus, statsd, sentry |
+| **Security** | Security measures | auth, encryption, sanitization |
+| **Performance** | Caching | @cache, redis, memcache |
+| | Async support | async/await usage |
+| | Optimization | vectorization, memoization |
+| **Reliability** | Retry logic | @retry, backoff, circuit breaker |
+| **Architecture** | Design patterns | Factory, Singleton, Observer |
+| | Advanced algorithms | complexity >= 10 |
 
 ### 2. Docstring Inflation Analysis
 
@@ -320,8 +328,6 @@ slop-detector --project . --ci-mode quarantine --ci-report
 
 ## CLI Usage
 
-### Basic Analysis
-
 ```bash
 # Single file
 slop-detector mycode.py
@@ -329,79 +335,51 @@ slop-detector mycode.py
 # Project scan
 slop-detector --project ./src
 
-# With output file
-slop-detector --project ./src --output report.json
-
-# Markdown report
-slop-detector --project ./src --output report.md
-```
-
-### CI/CD Integration
-
-```bash
-# Soft mode (informational only)
-slop-detector --project . --ci-mode soft --ci-report
-
-# Hard mode (fail on threshold)
+# CI/CD Integration
 slop-detector --project . --ci-mode hard --ci-report
 
-# Quarantine mode (track repeat offenders)
-slop-detector --project . --ci-mode quarantine --ci-report
+# With custom config
+slop-detector --project ./src --config .slopconfig.yaml
 ```
 
-### Pattern Management
-
-```bash
-# List all patterns
-slop-detector --list-patterns
-
-# Disable specific patterns
-slop-detector mycode.py --disable empty_except --disable todo_comment
-
-# Use custom config
-slop-detector mycode.py --config .slopconfig.yaml
-```
+📖 **[Complete CLI Reference →](docs/CLI_USAGE.md)**
 
 ---
 
 ## Configuration
 
-Create `.slopconfig.yaml` in your project root:
+Create `.slopconfig.yaml` for custom thresholds:
 
 ```yaml
-# Metric weights
 weights:
   ldr: 0.40        # Logic Density Ratio
-  inflation: 0.35  # Jargon/Buzzword Inflation
+  inflation: 0.35  # Jargon Detection
   ddc: 0.25        # Dependency Check
 
-# Thresholds
 thresholds:
   ldr:
-    critical: 0.30    # Below this = critical
-    warning: 0.60     # Below this = warning
-
-  inflation:
-    critical: 1.0     # Above this = critical
-    warning: 0.5      # Above this = warning
-
-  ddc:
-    critical: 0.50    # Below this = critical
-    warning: 0.70     # Below this = warning
-
-# Pattern control
-patterns:
-  disabled:
-    - todo_comment      # Ignore TODO comments
-    - pass_placeholder  # Allow pass statements
-
-# File exclusions
-ignore:
-  - "tests/"
-  - "**/*_test.py"
-  - "venv/"
-  - ".venv/"
+    critical: 0.30
+    warning: 0.60
 ```
+
+⚙️ **[Full Configuration Guide →](docs/CONFIGURATION.md)**
+
+---
+
+## CI/CD Integration
+
+```bash
+# Soft mode - informational only
+slop-detector --project . --ci-mode soft --ci-report
+
+# Hard mode - fail build on issues
+slop-detector --project . --ci-mode hard --ci-report
+
+# Claim-based enforcement (v2.6.2)
+slop-detector --project . --ci-mode hard --ci-claims-strict
+```
+
+🚦 **[CI/CD Integration Guide →](docs/CI_CD.md)**
 
 ---
 
@@ -466,55 +444,20 @@ Current status: Local testing complete, marketplace publishing pending.
 
 ---
 
-## Development
+## Development & Contributing
 
-### Setup
+Contributions welcome! Quick setup:
 
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/ai-slop-detector.git
-cd ai-slop-detector
-
-# Install development dependencies
+git clone https://github.com/flamehaven01/AI-SLOP-Detector.git
+cd AI-SLOP-Detector
 pip install -e ".[dev]"
-
-# Run tests
 pytest tests/ -v --cov
-
-# Run linting
-pylint src/slop_detector
 ```
 
-### Running Tests
+**Guidelines:** 80%+ coverage • Tests required • Follow code style
 
-```bash
-# All tests
-pytest tests/ -v
-
-# With coverage
-pytest tests/ --cov=src/slop_detector --cov-report=html
-
-# Specific test file
-pytest tests/test_core.py -v
-```
-
----
-
-## Contributing
-
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-**Contribution Guidelines:**
-- Add tests for new features
-- Maintain 80%+ code coverage (current: 85%)
-- Follow existing code style
-- Update documentation
+👨‍💻 **[Development Guide →](docs/DEVELOPMENT.md)**
 
 ---
 
