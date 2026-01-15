@@ -1,10 +1,11 @@
 """Tests for integration test evidence detection."""
 
 import ast
+
 import pytest
 
-from slop_detector.metrics.context_jargon import ContextJargonDetector
 from slop_detector.config import Config
+from slop_detector.metrics.context_jargon import ContextJargonDetector
 
 
 @pytest.fixture
