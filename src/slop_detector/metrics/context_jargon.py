@@ -62,25 +62,40 @@ class ContextJargonDetector:
     """Cross-validate jargon claims with actual codebase evidence."""
 
     # Evidence requirements for each jargon category
+    # Integration test detection constants
+    INTEGRATION_PATH_PARTS = {"integration", "integration_tests", "e2e", "it"}
+    INTEGRATION_NAME_HINTS = ("integration_test", "test_integration", "it_")
+    INTEGRATION_MARKERS = ("@pytest.mark.integration", "@pytest.mark.e2e")
+    INTEGRATION_RUNTIME_SIGNALS = (
+        "testcontainers",
+        "docker-compose",
+        "TestClient",          # FastAPI/Starlette
+        "httpx.AsyncClient",
+        "requests.Session",
+    )
+
     EVIDENCE_REQUIREMENTS = {
         "production-ready": [
             "error_handling",
             "logging",
-            "tests",
+            "tests_unit",
+            "tests_integration",
             "input_validation",
             "config_management",
         ],
         "production ready": [
             "error_handling",
             "logging",
-            "tests",
+            "tests_unit",
+            "tests_integration",
             "input_validation",
             "config_management",
         ],
         "enterprise-grade": [
             "error_handling",
             "logging",
-            "tests",
+            "tests_unit",
+            "tests_integration",
             "monitoring",
             "documentation",
             "security",
@@ -88,19 +103,20 @@ class ContextJargonDetector:
         "enterprise grade": [
             "error_handling",
             "logging",
-            "tests",
+            "tests_unit",
+            "tests_integration",
             "monitoring",
             "documentation",
             "security",
         ],
-        "scalable": ["caching", "async_support", "connection_pooling", "rate_limiting"],
-        "fault-tolerant": ["error_handling", "retry_logic", "circuit_breaker", "fallback"],
-        "fault tolerant": ["error_handling", "retry_logic", "circuit_breaker", "fallback"],
-        "robust": ["error_handling", "input_validation", "tests"],
+        "scalable": ["caching", "async_support", "connection_pooling", "rate_limiting", "tests_integration"],
+        "fault-tolerant": ["error_handling", "retry_logic", "circuit_breaker", "fallback", "tests_integration"],
+        "fault tolerant": ["error_handling", "retry_logic", "circuit_breaker", "fallback", "tests_integration"],
+        "robust": ["error_handling", "input_validation", "tests_unit"],
         "resilient": ["error_handling", "retry_logic", "fallback"],
         "performant": ["caching", "async_support", "optimization", "profiling"],
         "optimized": ["caching", "memoization", "lazy_loading", "algorithmic_efficiency"],
-        "comprehensive": ["documentation", "tests", "error_messages"],
+        "comprehensive": ["documentation", "tests_unit", "error_messages"],
         "sophisticated": ["design_patterns", "abstraction", "modularity"],
         "advanced": ["design_patterns", "advanced_algorithms", "optimization"],
     }
@@ -198,8 +214,12 @@ class ContextJargonDetector:
         # Logging
         evidence["logging"] = self._has_logging(tree, content)
 
-        # Tests
+        # Tests (DEPRECATED - kept for backward compatibility)
         evidence["tests"] = self._has_tests(file_path, tree)
+
+        # NEW: Split tests into unit and integration
+        evidence["tests_unit"] = self._has_unit_tests(file_path, tree)
+        evidence["tests_integration"] = self._has_integration_tests(file_path, tree, content)
 
         # Input validation
         evidence["input_validation"] = self._has_input_validation(tree, content)
@@ -278,6 +298,54 @@ class ContextJargonDetector:
         if path.parent.name in ("tests", "test"):
             return True
 
+        return False
+
+    def _has_unit_tests(self, file_path: str, tree: ast.AST) -> bool:
+        """Detect unit tests (fast, isolated tests)."""
+        path = Path(str(file_path))
+
+        # Exclude integration/e2e directories from unit tests
+        if any(p in self.INTEGRATION_PATH_PARTS for p in path.parts):
+            return False
+
+        # Reuse existing tests detection logic
+        return self._has_tests(file_path, tree)
+
+    def _has_integration_tests(self, file_path: str, tree: ast.AST, content: str) -> bool:
+        """Detect integration tests (tests that hit real deps)."""
+        path = Path(str(file_path))
+
+        # 1) Path-based detection
+        if any(p in self.INTEGRATION_PATH_PARTS for p in path.parts):
+            return self._is_real_test_file(tree)
+
+        # 2) File name-based detection
+        if any(hint in path.name for hint in self.INTEGRATION_NAME_HINTS):
+            return self._is_real_test_file(tree)
+
+        # 3) Pytest marker-based detection
+        if any(m in content for m in self.INTEGRATION_MARKERS):
+            return self._is_real_test_file(tree)
+
+        # 4) Runtime signal-based detection
+        if self._has_integration_runtime_signals(content):
+            # Runtime signals + test file = integration test
+            return self._has_tests(file_path, tree) and self._is_real_test_file(tree)
+
+        return False
+
+    def _has_integration_runtime_signals(self, content: str) -> bool:
+        """Detect runtime signals of integration testing."""
+        return any(sig in content for sig in self.INTEGRATION_RUNTIME_SIGNALS)
+
+    def _is_real_test_file(self, tree: ast.AST) -> bool:
+        """
+        Check if file contains actual test functions.
+        Prevents false positives from helper files like integration_utils.py
+        """
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+                return True
         return False
 
     def _has_input_validation(self, tree: ast.AST, content: str) -> bool:

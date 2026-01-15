@@ -186,10 +186,11 @@ Validates quality claims against actual codebase evidence:
 # [CRITICAL] "production-ready" claim lacks 5/5 required evidence
 ```
 
-**Evidence tracked (14 types):**
+**Evidence tracked (15 types):**
 - Error handling (try/except with non-empty handlers)
 - Logging (actual logger usage, not just imports)
-- Tests (test functions, test files, test directories)
+- Unit tests (test functions, test files, test directories)
+- Integration tests (tests/integration path, pytest markers, runtime signals like TestClient/testcontainers)
 - Input validation (isinstance, type checks, assertions)
 - Config management (settings, .env, yaml references)
 - Monitoring (prometheus, statsd, sentry)
