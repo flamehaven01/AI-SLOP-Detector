@@ -297,6 +297,22 @@ class QuestionGenerator:
 
         return questions
 
+    def _format_evidence_name(self, evidence_name: str) -> str:
+        """Format evidence name for human-readable output."""
+        formatting = {
+            "tests_unit": "unit tests",
+            "tests_integration": "integration tests",
+            "error_handling": "error handling",
+            "input_validation": "input validation",
+            "config_management": "config management",
+            "async_support": "async support",
+            "retry_logic": "retry logic",
+            "circuit_breaker": "circuit breaker",
+            "connection_pooling": "connection pooling",
+            "rate_limiting": "rate limiting",
+        }
+        return formatting.get(evidence_name, evidence_name.replace("_", " "))
+
     def _generate_context_jargon_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about context-based jargon validation (v2.2)."""
         questions: list[Question] = []
@@ -332,11 +348,18 @@ class QuestionGenerator:
         # Individual unjustified jargon
         for evidence in ctx_jargon.evidence_details[:5]:  # Top 5
             if not evidence.is_justified and evidence.evidence_ratio < 0.3:
-                missing_str = ", ".join(evidence.missing_evidence[:3])
+                # Format evidence names for clarity
+                formatted_missing = [self._format_evidence_name(e) for e in evidence.missing_evidence[:3]]
+                missing_str = ", ".join(formatted_missing)
+
+                # Special handling for integration test warnings
+                has_integration_missing = "tests_integration" in evidence.missing_evidence
+                suffix = " (Note: Integration tests are critical for production claims.)" if has_integration_missing else ""
+
                 questions.append(
                     Question(
                         question=f"'{evidence.jargon}' claim at line {evidence.line} lacks: {missing_str}. "
-                        f"Only {evidence.evidence_ratio:.0%} of required evidence present.",
+                        f"Only {evidence.evidence_ratio:.0%} of required evidence present.{suffix}",
                         severity="warning",
                         line=evidence.line,
                         context=f"unjustified_{evidence.jargon}",

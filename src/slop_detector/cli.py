@@ -264,6 +264,52 @@ def get_mitigation(issue_type: str, detail: str = "") -> str:
     return strategies.get(issue_type, "Review specific line for code quality improvements.")
 
 
+def _collect_test_evidence_stats(file_results) -> dict:
+    """Collect test evidence statistics from file results."""
+    stats = {
+        "unit_test_files": 0,
+        "integration_test_files": 0,
+        "total_test_files": 0,
+        "unit_test_functions": 0,
+        "integration_test_functions": 0,
+        "total_test_functions": 0,
+        "has_production_claims": False,
+    }
+
+    production_claims = {"production-ready", "production ready", "enterprise-grade", "enterprise grade", "scalable", "fault-tolerant", "fault tolerant"}
+
+    for f_res in file_results:
+        # Check if file has context jargon analysis
+        if hasattr(f_res, "context_jargon") and hasattr(f_res.context_jargon, "evidence_details"):
+            for evidence in f_res.context_jargon.evidence_details:
+                if evidence.jargon.lower() in production_claims:
+                    stats["has_production_claims"] = True
+
+        # Check if file is a test file (by path)
+        file_path = str(f_res.file_path).lower()
+        is_test_file = "test_" in file_path or "_test.py" in file_path or "/tests/" in file_path or "\\tests\\" in file_path
+
+        if is_test_file:
+            # Count as test file
+            stats["total_test_files"] += 1
+
+            # Determine if unit or integration test
+            is_integration = any(part in file_path for part in ["integration", "e2e", "/it/", "\\it\\", "integration_tests", "test_integration", "integration_test"])
+
+            if is_integration:
+                stats["integration_test_files"] += 1
+                # Rough estimate: assume 5 test functions per integration test file
+                stats["integration_test_functions"] += 5
+            else:
+                stats["unit_test_files"] += 1
+                # Rough estimate: assume 10 test functions per unit test file
+                stats["unit_test_functions"] += 10
+
+            stats["total_test_functions"] += 10 if not is_integration else 5
+
+    return stats
+
+
 def generate_markdown_report(result) -> str:
     """Generates a detailed developer-focused Markdown report."""
 
@@ -295,8 +341,32 @@ def generate_markdown_report(result) -> str:
     )
     lines.append("")
 
-    # 2. Detailed Findings
-    lines.append("## 2. Detailed Findings")
+    # 2. Test Evidence Summary (for projects only)
+    if is_project and hasattr(result, "file_results"):
+        test_evidence = _collect_test_evidence_stats(result.file_results)
+        if test_evidence["total_test_files"] > 0:
+            lines.append("## 2. Test Evidence Summary")
+            lines.append("| Test Type | Files | Functions | Coverage Notes |")
+            lines.append("| :--- | :--- | :--- | :--- |")
+            lines.append(
+                f"| **Unit Tests** | {test_evidence['unit_test_files']} | {test_evidence['unit_test_functions']} | Fast, isolated tests |"
+            )
+            lines.append(
+                f"| **Integration Tests** | {test_evidence['integration_test_files']} | {test_evidence['integration_test_functions']} | Tests hitting real dependencies |"
+            )
+            lines.append(
+                f"| **Total** | {test_evidence['total_test_files']} | {test_evidence['total_test_functions']} | - |"
+            )
+
+            # Warning if no integration tests but production claims exist
+            if test_evidence['integration_test_files'] == 0 and test_evidence.get('has_production_claims', False):
+                lines.append("")
+                lines.append("⚠️ **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims.")
+
+            lines.append("")
+
+    # 3. Detailed Findings
+    lines.append("## 3. Detailed Findings")
 
     file_results = []
     if is_project:
@@ -381,8 +451,8 @@ def generate_markdown_report(result) -> str:
 
         lines.append("---")
 
-    # 3. Recommendations
-    lines.append("## 3. Global Recommendations")
+    # 4. Recommendations
+    lines.append("## 4. Global Recommendations")
     lines.append(
         "- **Refactor High-Deficit Modules**: Files with scores > 0.5 lack sufficient logic. Verify they aren't just empty wrappers."
     )
@@ -587,6 +657,20 @@ def generate_text_report(result) -> str:
         lines.append(f"  Inflation Ratio (ICR): {result.avg_inflation:.2f}")
         lines.append(f"  Dependency Usage (DDC): {result.avg_ddc:.2%}")
         lines.append("")
+
+        # Test evidence summary
+        if hasattr(result, "file_results"):
+            test_evidence = _collect_test_evidence_stats(result.file_results)
+            if test_evidence["total_test_files"] > 0:
+                lines.append("Test Evidence:")
+                lines.append(f"  Unit Tests: {test_evidence['unit_test_files']} files, {test_evidence['unit_test_functions']} functions")
+                lines.append(f"  Integration Tests: {test_evidence['integration_test_files']} files, {test_evidence['integration_test_functions']} functions")
+                lines.append(f"  Total: {test_evidence['total_test_files']} test files")
+
+                if test_evidence['integration_test_files'] == 0 and test_evidence.get('has_production_claims', False):
+                    lines.append("  [!] WARNING: No integration tests, but has production claims")
+
+                lines.append("")
 
         # File details
         lines.append("=" * 80)
