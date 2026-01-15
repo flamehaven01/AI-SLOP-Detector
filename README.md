@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="docs/assets/AI SLop DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
-</p>
+![AI-SLOP Detector Logo](https://raw.githubusercontent.com/flamehaven/ai-slop-detector/main/docs/assets/AI%20SLop%20DETECTOR.png)
 
 # AI-SLOP Detector v2.6.2
 
@@ -135,7 +133,7 @@ def process():
 
 ## Architecture Overview
 
-AI-SLOP Detector v2.6.1 uses a **multi-dimensional analysis engine**:
+AI-SLOP Detector v2.6.2 uses a **multi-dimensional analysis engine**:
 
 ```
 Python Code
@@ -533,7 +531,7 @@ If you use AI-SLOP Detector in research, please cite:
   title = {AI-SLOP Detector: Evidence-Based Static Analysis for AI-Generated Code},
   author = {Flamehaven},
   year = {2024},
-  version = {2.6.1},
+  version = {2.6.2},
   url = {https://github.com/yourusername/ai-slop-detector}
 }
 ```
