@@ -28,4 +28,4 @@ __all__ = [
     "AuditSeverity",
 ]
 
-__version__ = "2.6.1"  # Synced with main package version
+__version__ = "2.6.2"  # Synced with main package version

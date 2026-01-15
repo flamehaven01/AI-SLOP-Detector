@@ -69,7 +69,7 @@ class ContextJargonDetector:
     INTEGRATION_RUNTIME_SIGNALS = (
         "testcontainers",
         "docker-compose",
-        "TestClient",          # FastAPI/Starlette
+        "TestClient",  # FastAPI/Starlette
         "httpx.AsyncClient",
         "requests.Session",
     )
@@ -109,9 +109,27 @@ class ContextJargonDetector:
             "documentation",
             "security",
         ],
-        "scalable": ["caching", "async_support", "connection_pooling", "rate_limiting", "tests_integration"],
-        "fault-tolerant": ["error_handling", "retry_logic", "circuit_breaker", "fallback", "tests_integration"],
-        "fault tolerant": ["error_handling", "retry_logic", "circuit_breaker", "fallback", "tests_integration"],
+        "scalable": [
+            "caching",
+            "async_support",
+            "connection_pooling",
+            "rate_limiting",
+            "tests_integration",
+        ],
+        "fault-tolerant": [
+            "error_handling",
+            "retry_logic",
+            "circuit_breaker",
+            "fallback",
+            "tests_integration",
+        ],
+        "fault tolerant": [
+            "error_handling",
+            "retry_logic",
+            "circuit_breaker",
+            "fallback",
+            "tests_integration",
+        ],
         "robust": ["error_handling", "input_validation", "tests_unit"],
         "resilient": ["error_handling", "retry_logic", "fallback"],
         "performant": ["caching", "async_support", "optimization", "profiling"],

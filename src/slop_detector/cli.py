@@ -276,7 +276,15 @@ def _collect_test_evidence_stats(file_results) -> dict:
         "has_production_claims": False,
     }
 
-    production_claims = {"production-ready", "production ready", "enterprise-grade", "enterprise grade", "scalable", "fault-tolerant", "fault tolerant"}
+    production_claims = {
+        "production-ready",
+        "production ready",
+        "enterprise-grade",
+        "enterprise grade",
+        "scalable",
+        "fault-tolerant",
+        "fault tolerant",
+    }
 
     for f_res in file_results:
         # Check if file has context jargon analysis
@@ -287,14 +295,30 @@ def _collect_test_evidence_stats(file_results) -> dict:
 
         # Check if file is a test file (by path)
         file_path = str(f_res.file_path).lower()
-        is_test_file = "test_" in file_path or "_test.py" in file_path or "/tests/" in file_path or "\\tests\\" in file_path
+        is_test_file = (
+            "test_" in file_path
+            or "_test.py" in file_path
+            or "/tests/" in file_path
+            or "\\tests\\" in file_path
+        )
 
         if is_test_file:
             # Count as test file
             stats["total_test_files"] += 1
 
             # Determine if unit or integration test
-            is_integration = any(part in file_path for part in ["integration", "e2e", "/it/", "\\it\\", "integration_tests", "test_integration", "integration_test"])
+            is_integration = any(
+                part in file_path
+                for part in [
+                    "integration",
+                    "e2e",
+                    "/it/",
+                    "\\it\\",
+                    "integration_tests",
+                    "test_integration",
+                    "integration_test",
+                ]
+            )
 
             if is_integration:
                 stats["integration_test_files"] += 1
@@ -359,9 +383,13 @@ def generate_markdown_report(result) -> str:
             )
 
             # Warning if no integration tests but production claims exist
-            if test_evidence['integration_test_files'] == 0 and test_evidence.get('has_production_claims', False):
+            if test_evidence["integration_test_files"] == 0 and test_evidence.get(
+                "has_production_claims", False
+            ):
                 lines.append("")
-                lines.append("⚠️ **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims.")
+                lines.append(
+                    "⚠️ **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims."
+                )
 
             lines.append("")
 
@@ -400,7 +428,9 @@ def generate_markdown_report(result) -> str:
             lines.append("#### ⚠️ Anti-Patterns & Risk")
             lines.append("| Line | Issue | Mitigation Strategy |")
             lines.append("| :--- | :--- | :--- |")
-            lines.append("| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |")
+            lines.append(
+                "| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |"
+            )
             lines.append("")
             lines.append("---")
             continue  # Skip jargon/pattern checks for empty files
@@ -669,11 +699,17 @@ def generate_text_report(result) -> str:
             test_evidence = _collect_test_evidence_stats(result.file_results)
             if test_evidence["total_test_files"] > 0:
                 lines.append("Test Evidence:")
-                lines.append(f"  Unit Tests: {test_evidence['unit_test_files']} files, {test_evidence['unit_test_functions']} functions")
-                lines.append(f"  Integration Tests: {test_evidence['integration_test_files']} files, {test_evidence['integration_test_functions']} functions")
+                lines.append(
+                    f"  Unit Tests: {test_evidence['unit_test_files']} files, {test_evidence['unit_test_functions']} functions"
+                )
+                lines.append(
+                    f"  Integration Tests: {test_evidence['integration_test_files']} files, {test_evidence['integration_test_functions']} functions"
+                )
                 lines.append(f"  Total: {test_evidence['total_test_files']} test files")
 
-                if test_evidence['integration_test_files'] == 0 and test_evidence.get('has_production_claims', False):
+                if test_evidence["integration_test_files"] == 0 and test_evidence.get(
+                    "has_production_claims", False
+                ):
                     lines.append("  [!] WARNING: No integration tests, but has production claims")
 
                 lines.append("")

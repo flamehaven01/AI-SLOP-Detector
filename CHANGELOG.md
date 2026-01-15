@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added - Integration Test Evidence Detection
 
-**Thanks to [@OnlineProxy](https://github.com/onlineproxy) for the critical feedback:** *"CI is green, but 0 integration tests"* — This release addresses exactly that gap.
+**Thanks to [@OnlineProxy](https://onlineproxy.io/) for the critical feedback:** *"CI is green, but 0 integration tests"* — This release addresses exactly that gap.
 
 #### Phase 1 + 2: Core Detection (v2.6.2-alpha)
 - **Split test evidence**: `tests` → `tests_unit` + `tests_integration`

@@ -349,12 +349,18 @@ class QuestionGenerator:
         for evidence in ctx_jargon.evidence_details[:5]:  # Top 5
             if not evidence.is_justified and evidence.evidence_ratio < 0.3:
                 # Format evidence names for clarity
-                formatted_missing = [self._format_evidence_name(e) for e in evidence.missing_evidence[:3]]
+                formatted_missing = [
+                    self._format_evidence_name(e) for e in evidence.missing_evidence[:3]
+                ]
                 missing_str = ", ".join(formatted_missing)
 
                 # Special handling for integration test warnings
                 has_integration_missing = "tests_integration" in evidence.missing_evidence
-                suffix = " (Note: Integration tests are critical for production claims.)" if has_integration_missing else ""
+                suffix = (
+                    " (Note: Integration tests are critical for production claims.)"
+                    if has_integration_missing
+                    else ""
+                )
 
                 questions.append(
                     Question(
