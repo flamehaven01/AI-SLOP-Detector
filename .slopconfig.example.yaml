@@ -84,6 +84,79 @@ buzzwords:
     terms: ["optimized", "optimization", "performant", "efficient"]
     justify_with: ["numba", "cython", "vectorized", "cached"]
 
+# Evidence detection (v2.6.2)
+evidence:
+  tests:
+    # Integration test detection
+    integration:
+      enabled: true
+      # Directory path patterns
+      dir_patterns:
+        - "tests/integration/**"
+        - "integration_tests/**"
+        - "tests/e2e/**"
+        - "e2e/**"
+        - "tests/it/**"
+        - "it/**"
+      # File name patterns
+      file_patterns:
+        - "test_integration_*.py"
+        - "*_integration_test.py"
+        - "it_*.py"
+        - "test_e2e_*.py"
+        - "*_e2e_test.py"
+      # Pytest markers to detect
+      pytest_markers:
+        - "integration"
+        - "e2e"
+        - "slow"
+      # Runtime signals detection
+      runtime_signals:
+        enabled: true
+        keywords:
+          - "testcontainers"
+          - "docker-compose"
+          - "TestClient"
+          - "httpx.AsyncClient"
+          - "requests.Session"
+
+# Quality claims validation (v2.6.2)
+claims:
+  # Production-ready claim requirements
+  production_ready:
+    require_integration_tests: true
+    require_unit_tests: true
+    require_error_handling: true
+    require_logging: true
+    require_input_validation: true
+    require_config_management: true
+
+  # Enterprise-grade claim requirements
+  enterprise_grade:
+    require_integration_tests: true
+    require_unit_tests: true
+    require_error_handling: true
+    require_logging: true
+    require_monitoring: true
+    require_documentation: true
+    require_security: true
+
+  # Scalable claim requirements
+  scalable:
+    require_integration_tests: true
+    require_caching: true
+    require_async_support: true
+    require_connection_pooling: true
+    require_rate_limiting: true
+
+  # Fault-tolerant claim requirements
+  fault_tolerant:
+    require_integration_tests: true
+    require_error_handling: true
+    require_retry_logic: true
+    require_circuit_breaker: true
+    require_fallback: true
+
 # Reporting options
 reporting:
   # Output formats

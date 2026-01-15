@@ -1,100 +1,14 @@
 # AI Code Quality Audit Report
-**Target**: `.`
+**Target**: `D:\Sanctum\ai-slop-detector`
 **Status**: CLEAN
 
 ## 1. Executive Summary
 | Metric | Score | Status | Description |
 | :--- | :--- | :--- | :--- |
-| **Deficit Score** | 20.43 | CLEAN | Closer to 0.0 is better. High score indicates low logic density. |
-| **Inflation (Jargon)** | 0.12 | - | Density of non-functional 'marketing' terms. |
+| **Deficit Score** | 18.75 | CLEAN | Closer to 0.0 is better. High score indicates low logic density. |
+| **Inflation (Jargon)** | 0.07 | - | Density of non-functional 'marketing' terms. |
 
 ## 2. Detailed Findings
-### 📄 `test_context_jargon.py`
-- **Deficit Score**: 22.50
-- **Lines of Code**: 19
-#### 🔴 Inflation (Jargon) Detected
-| Line | Term | Category | Actionable Mitigation |
-| :--- | :--- | :--- | :--- |
-| 4 | `fault-tolerant` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 4 | `scalable` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 4 | `enterprise-grade` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 4 | `production-ready` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 5 | `robust` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 5 | `comprehensive` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 7 | `optimized` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 7 | `advanced algorithm` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 7 | `sophisticated` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 8 | `resilient` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 14 | `performant` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 14 | `comprehensive` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 16 | `scalable` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 16 | `enterprise-grade` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 22 | `production-ready` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-
----
-### 📄 `test_docstring_inflation.py`
-- **Deficit Score**: 24.15
-- **Lines of Code**: 75
-#### 🔴 Inflation (Jargon) Detected
-| Line | Term | Category | Actionable Mitigation |
-| :--- | :--- | :--- | :--- |
-| 12 | `comprehensive` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 16 | `sophisticated` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 51 | `comprehensive` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 54 | `robust` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 54 | `sophisticated` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 62 | `advanced algorithm` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 63 | `comprehensive` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 68 | `state-of-the-art` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 70 | `sophisticated` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-
-#### ⚠️ Anti-Patterns & Risk
-| Line | Issue | Mitigation Strategy |
-| :--- | :--- | :--- |
-| 108 | Empty function with only pass - placeholder not implemented | Implement the function's logic, mark it as abstract (if using ABC), or remove it if it's dead code. |
-| 66 | Empty function with only pass - placeholder not implemented | Implement the function's logic, mark it as abstract (if using ABC), or remove it if it's dead code. |
-
----
-### 📄 `test_hallucinated_deps.py`
-- **Deficit Score**: 0.00
-- **Lines of Code**: 44
----
-### 📄 `test_placeholder_patterns.py`
-- **Deficit Score**: 71.11
-- **Lines of Code**: 36
-#### ⚠️ Anti-Patterns & Risk
-| Line | Issue | Mitigation Strategy |
-| :--- | :--- | :--- |
-| 44 | Bare except catches everything including SystemExit and KeyboardInterrupt | Catch specific exceptions (e.g., `ValueError`, `KeyError`) instead of a bare `except:`. A bare except can hide system interrupts and syntax errors. |
-| 44 | Empty exception handler for all exceptions - errors silently ignored | Review specific line for code quality improvements. |
-| 14 | Function raises NotImplementedError - placeholder not implemented | Review specific line for code quality improvements. |
-| 57 | Function raises NotImplementedError - placeholder not implemented | Review specific line for code quality improvements. |
-| 4 | Empty function with only pass - placeholder not implemented | Implement the function's logic, mark it as abstract (if using ABC), or remove it if it's dead code. |
-| 51 | Empty function with only pass - placeholder not implemented | Implement the function's logic, mark it as abstract (if using ABC), or remove it if it's dead code. |
-| 9 | Empty function with only ... - placeholder not implemented | Implement the function's logic, mark it as abstract (if using ABC), or remove it if it's dead code. |
-| 54 | Empty function with only ... - placeholder not implemented | Implement the function's logic, mark it as abstract (if using ABC), or remove it if it's dead code. |
-| 36 | HACK comment - technical debt indicator | Review specific line for code quality improvements. |
-| 19 | Function only returns None - likely placeholder | Review specific line for code quality improvements. |
-| 60 | Function only returns None - likely placeholder | Review specific line for code quality improvements. |
-| 25 | TODO comment - incomplete implementation | Review specific line for code quality improvements. |
-| 30 | FIXME comment - known issue not addressed | Review specific line for code quality improvements. |
-| 48 | Class has 4/4 placeholder methods | Review specific line for code quality improvements. |
-
----
-### 📄 `test_slop_example.py`
-- **Deficit Score**: 36.00
-- **Lines of Code**: 25
-#### 🔴 Inflation (Jargon) Detected
-| Line | Term | Category | Actionable Mitigation |
-| :--- | :--- | :--- | :--- |
-| 7 | `enterprise-grade` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 7 | `production-ready` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 7 | `comprehensive` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 8 | `cutting-edge` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 15 | `scalable` | architecture | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-| 15 | `robust` | quality | Replace vague marketing terminology with precise technical descriptions. Focus on *how* it works, not just *that* it works. |
-
----
 ### 📄 `flatted.py`
 - **Deficit Score**: 10.00
 - **Lines of Code**: 103
@@ -210,8 +124,8 @@
 
 ---
 ### 📄 `ci_gate.py`
-- **Deficit Score**: 7.50
-- **Lines of Code**: 342
+- **Deficit Score**: 3.75
+- **Lines of Code**: 348
 ---
 ### 📄 `cli.py`
 - **Deficit Score**: 3.85
@@ -244,7 +158,7 @@
 ---
 ### 📄 `question_generator.py`
 - **Deficit Score**: 30.00
-- **Lines of Code**: 347
+- **Lines of Code**: 357
 ---
 ### 📄 `models.py`
 - **Deficit Score**: 10.00
@@ -310,7 +224,7 @@
 ---
 ### 📄 `context_jargon.py`
 - **Deficit Score**: 14.71
-- **Lines of Code**: 301
+- **Lines of Code**: 303
 #### 🔴 Inflation (Jargon) Detected
 | Line | Term | Category | Actionable Mitigation |
 | :--- | :--- | :--- | :--- |
@@ -327,17 +241,13 @@
 - **Deficit Score**: 15.00
 - **Lines of Code**: 140
 ---
-### 📄 `docstring_inflation.py`
-- **Deficit Score**: 10.00
-- **Lines of Code**: 204
----
 ### 📄 `hallucination_deps.py`
 - **Deficit Score**: 20.50
 - **Lines of Code**: 159
 #### ⚠️ Anti-Patterns & Risk
 | Line | Issue | Mitigation Strategy |
 | :--- | :--- | :--- |
-| 107 | Empty exception handler for Exception - errors silently ignored | Review specific line for code quality improvements. |
+| 108 | Empty exception handler for Exception - errors silently ignored | Review specific line for code quality improvements. |
 
 ---
 ### 📄 `inflation.py`
@@ -411,7 +321,7 @@
 ---
 ### 📄 `placeholder.py`
 - **Deficit Score**: 15.00
-- **Lines of Code**: 227
+- **Lines of Code**: 234
 ---
 ### 📄 `registry.py`
 - **Deficit Score**: 39.53

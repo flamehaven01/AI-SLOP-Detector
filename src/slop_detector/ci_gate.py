@@ -95,11 +95,20 @@ class CIGate:
         mode: GateMode = GateMode.SOFT,
         thresholds: Optional[GateThresholds] = None,
         quarantine_db_path: Optional[str] = None,
+        claims_strict: bool = False,
     ):
-        """Initialize CI gate."""
+        """Initialize CI gate.
+
+        Args:
+            mode: Gate enforcement mode (soft/hard/quarantine)
+            thresholds: Configurable thresholds for gate decisions
+            quarantine_db_path: Path to quarantine database
+            claims_strict: Enable claim-based enforcement (v2.6.2)
+        """
         self.mode = mode
         self.thresholds = thresholds or GateThresholds()
         self.quarantine_db_path = quarantine_db_path or ".slop_quarantine.json"
+        self.claims_strict = claims_strict
         self.quarantine_records: Dict[str, QuarantineRecord] = {}
 
         if self.mode == GateMode.QUARANTINE:
@@ -259,8 +268,58 @@ class CIGate:
             pr_comment=pr_comment,
         )
 
+    def _check_claims_evidence(self, file_result: FileAnalysis) -> Optional[GateVerdict]:
+        """Check if production claims have required integration test evidence (v2.6.2).
+
+        Returns:
+            GateVerdict.FAIL if claims lack integration tests, None otherwise
+        """
+        if not self.claims_strict:
+            return None
+
+        if not hasattr(file_result, "context_jargon") or not file_result.context_jargon:
+            return None
+
+        ctx_jargon = file_result.context_jargon
+
+        # Production claims that require integration tests
+        production_claims = {
+            "production-ready",
+            "production ready",
+            "enterprise-grade",
+            "enterprise grade",
+            "scalable",
+            "fault-tolerant",
+            "fault tolerant",
+        }
+
+        # Check if file has production claims without integration test evidence
+        has_production_claims = False
+        missing_integration_tests = False
+
+        if hasattr(ctx_jargon, "evidence_details"):
+            for evidence in ctx_jargon.evidence_details:
+                jargon_lower = evidence.jargon.lower()
+                if jargon_lower in production_claims:
+                    has_production_claims = True
+                    # Check if integration tests are missing
+                    if "tests_integration" in evidence.missing_evidence:
+                        missing_integration_tests = True
+                        break
+
+        # FAIL if production claims exist without integration tests
+        if has_production_claims and missing_integration_tests:
+            return GateVerdict.FAIL
+
+        return None
+
     def _check_file_thresholds(self, file_result: FileAnalysis) -> GateVerdict:
         """Check if file exceeds thresholds."""
+        # Check claim-based enforcement first (v2.6.2)
+        claims_verdict = self._check_claims_evidence(file_result)
+        if claims_verdict == GateVerdict.FAIL:
+            return GateVerdict.FAIL
+
         # Count critical and high patterns
         critical_count = sum(
             1 for issue in file_result.pattern_issues if issue.severity.value == "critical"

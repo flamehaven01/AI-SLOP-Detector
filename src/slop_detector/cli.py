@@ -530,6 +530,11 @@ Examples:
         action="store_true",
         help="Output CI gate report and exit with appropriate code",
     )
+    parser.add_argument(
+        "--ci-claims-strict",
+        action="store_true",
+        help="Enable claim-based enforcement: fail if production/enterprise/scalable/fault-tolerant claims lack integration tests (v2.6.2)",
+    )
 
     args = parser.parse_args()
 
@@ -569,11 +574,12 @@ Examples:
         return 1
 
     # CI Gate evaluation (v2.2)
-    if args.ci_mode or args.ci_report:
+    claims_strict = getattr(args, "ci_claims_strict", False)
+    if args.ci_mode or args.ci_report or claims_strict:
         from slop_detector.ci_gate import CIGate, GateMode
 
         gate_mode = GateMode(args.ci_mode) if args.ci_mode else GateMode.SOFT
-        ci_gate = CIGate(mode=gate_mode)
+        ci_gate = CIGate(mode=gate_mode, claims_strict=claims_strict)
         gate_result = ci_gate.evaluate(result)
 
         if args.ci_report:
