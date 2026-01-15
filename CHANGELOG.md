@@ -36,6 +36,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests_integration` → "integration tests"
   - Special note: "Integration tests are critical for production claims"
 
+#### Phase 4: Configuration & CI Gate (v2.6.2-rc)
+- **Configuration Extension**: `.slopconfig.yaml` support for integration test detection
+  - Customizable dir/file patterns, pytest markers, runtime signals
+  - Quality claims validation requirements (production_ready, enterprise_grade, scalable, fault_tolerant)
+- **CI Gate Claim-Based Mode**: `--ci-claims-strict` flag
+  - Fails build if production/enterprise/scalable/fault-tolerant claims lack integration tests
+  - Integrates with existing soft/hard/quarantine modes
+
 ### Changed
 - **Evidence tracking**: 14 types → 15 types (split tests into unit/integration)
 - **Context-jargon coverage**: 74% → 95% (+21%)
@@ -43,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Technical Details
 - **Tests**: 170/170 passed (165 existing + 5 new)
-- **Coverage**: 83-84% overall
+- **Coverage**: 85% overall
 - **New files**:
   - `tests/test_integration_evidence.py` (5 tests)
 - **Modified files**:
