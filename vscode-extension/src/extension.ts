@@ -186,19 +186,26 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
     }
 
     // Add pattern-specific diagnostics
-    if (result.patterns) {
-        for (const pattern of result.patterns) {
-            if (pattern.severity === 'critical' || pattern.severity === 'high') {
-                const patternDiag = new vscode.Diagnostic(
-                    new vscode.Range(0, 0, 0, 0),
-                    `[${pattern.category}] ${pattern.message}`,
-                    pattern.severity === 'critical' 
-                        ? vscode.DiagnosticSeverity.Error 
-                        : vscode.DiagnosticSeverity.Warning
-                );
-                patternDiag.source = 'SLOP Detector - Patterns';
-                diagnostics.push(patternDiag);
+    if (result.pattern_issues && Array.isArray(result.pattern_issues)) {
+        for (const issue of result.pattern_issues) {
+            const line = Math.max(0, (issue.line || 1) - 1);
+            const severity = issue.severity?.toLowerCase() || 'medium';
+
+            let diagSeverity = vscode.DiagnosticSeverity.Information;
+            if (severity === 'critical') {
+                diagSeverity = vscode.DiagnosticSeverity.Error;
+            } else if (severity === 'high') {
+                diagSeverity = vscode.DiagnosticSeverity.Warning;
             }
+
+            const patternDiag = new vscode.Diagnostic(
+                new vscode.Range(line, issue.column || 0, line, 1000),
+                issue.message || 'Pattern issue detected',
+                diagSeverity
+            );
+            patternDiag.source = 'SLOP Detector - Patterns';
+            patternDiag.code = issue.pattern_id;
+            diagnostics.push(patternDiag);
         }
     }
 
@@ -290,8 +297,8 @@ async function showFileHistory() {
 
         const items = history.map((entry: any) => ({
             label: `${entry.timestamp}`,
-            description: `Score: ${entry.slop_score.toFixed(1)} (${entry.grade})`,
-            detail: `LDR: ${entry.ldr_score.toFixed(3)}, BCR: ${entry.bcr_score.toFixed(3)}, DDC: ${entry.ddc_usage_ratio.toFixed(3)}`
+            description: `Deficit: ${entry.deficit_score?.toFixed(1) || entry.slop_score?.toFixed(1) || 'N/A'} (${entry.grade || entry.status || 'N/A'})`,
+            detail: `LDR: ${entry.ldr_score?.toFixed(3) || 'N/A'}, Inflation: ${entry.inflation_score?.toFixed(3) || 'N/A'}, DDC: ${entry.ddc_usage_ratio?.toFixed(3) || 'N/A'}`
         }));
 
         vscode.window.showQuickPick(items, {
