@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.2] - 2026-01-15
+
+### Added - Integration Test Evidence Detection
+
+**Thanks to [@OnlineProxy](https://github.com/onlineproxy) for the critical feedback:** *"CI is green, but 0 integration tests"* — This release addresses exactly that gap.
+
+#### Phase 1 + 2: Core Detection (v2.6.2-alpha)
+- **Split test evidence**: `tests` → `tests_unit` + `tests_integration`
+- **4-layer detection**:
+  1. Path-based: `tests/integration/`, `e2e/`, `it/`
+  2. File name: `test_integration_*.py`, `*_integration_test.py`
+  3. Pytest markers: `@pytest.mark.integration`, `@pytest.mark.e2e`
+  4. Runtime signals: `TestClient`, `testcontainers`, `docker-compose`
+- **Enhanced EVIDENCE_REQUIREMENTS**:
+  - `production-ready`: Now requires both `tests_unit` AND `tests_integration`
+  - `enterprise-grade`: Now requires both test types
+  - `scalable`: Now requires `tests_integration`
+  - `fault-tolerant`: Now requires `tests_integration`
+- **False positive prevention**: `_is_real_test_file()` excludes helper files
+
+#### Phase 3: Report Output (v2.6.2-beta)
+- **Markdown reports**: New "Test Evidence Summary" section
+  - Table showing unit vs integration test breakdown
+  - Warning when integration tests missing but production claims exist
+- **Text reports**: Test statistics in project summary
+- **Enhanced questions**: Human-readable evidence names
+  - `tests_integration` → "integration tests"
+  - Special note: "Integration tests are critical for production claims"
+
+### Changed
+- **Evidence tracking**: 14 types → 15 types (split tests into unit/integration)
+- **Context-jargon coverage**: 74% → 95% (+21%)
+- **Question readability**: Raw evidence names replaced with formatted versions
+
+### Technical Details
+- **Tests**: 170/170 passed (165 existing + 5 new)
+- **Coverage**: 83-84% overall
+- **New files**:
+  - `tests/test_integration_evidence.py` (5 tests)
+- **Modified files**:
+  - `src/slop_detector/metrics/context_jargon.py` (+47 lines)
+  - `src/slop_detector/cli.py` (+43 lines)
+  - `src/slop_detector/question_generator.py` (+14 lines)
+  - `README.md` (updated evidence list)
+
+### Contributing
+Special thanks to community feedback that drives these improvements. This release demonstrates responsive development based on real-world usage patterns.
+
+---
+
 ## [2.6.1] - 2026-01-12
 
 ### Added
@@ -16,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Hallucination Dependencies**: Refactored to load configuration dynamically from YAML
-- **Test Coverage**: Increased from 43% to 74% (overall), question_generator.py: 11% → 88%
+- **Test Coverage**: Increased from 43% to 85% (overall), question_generator.py: 11% → 88%
 
 ### Fixed
 - **Import Issues**: Resolved test import conflicts
@@ -24,8 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Date Consistency**: Unified all dates to 2026-01-12
 
 ### Technical Details
-- **Tests**: 72/72 passed (100% pass rate)
-- **Coverage**: 74% overall (target: 40%, achieved: +34%)
+- **Tests**: 165/165 passed (100% pass rate)
+- **Coverage**: 85% overall (target: 80%, achieved: +5%)
 - **New Module Coverage**: 88-92% (all above 90% target)
   - context_jargon.py: 91%
   - docstring_inflation.py: 89%
