@@ -2,12 +2,12 @@
   <img src="docs/assets/AI SLop DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
 </p>
 
-# AI-SLOP Detector v2.6.1
+# AI-SLOP Detector v2.6.2
 
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-165%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-170%20passed-brightgreen.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](htmlcov/)
 
 **Production-grade static analyzer for detecting AI-generated code quality issues with evidence-based validation.**
@@ -40,18 +40,21 @@ slop-detector mycode.py --json --output report.json
 
 ---
 
-## What's New in v2.6.1
+## What's New in v2.6.2
+
+### Evidence-Based Validation
+
+**"Trust, but Verify" - Now Enforced:**
+- ✅ **Integration Test Requirement**: Claims like `production-ready`, `scalable`, or `enterprise-grade` now **FAIL** if no integration tests are detected.
+- ✅ **4-Layer Evidence Detection**: Scans paths (`tests/integration`), filenames (`*_integration_test.py`), markers (`@pytest.mark.e2e`), and runtime usage (`TestClient`).
+- ✅ **Enhanced Reporting**: Reports now explicitly break down `tests_unit` vs `tests_integration`.
 
 ### Quality Improvements
+- **Tests**: 170 comprehensive tests (up from 165)
+- **Coverage**: 95% Context-Jargon coverage
+- **Zero-False-Positive Tuning**: Helper files excluded from test counts
 
-**Test Coverage Expansion:**
-- ✅ **165 comprehensive tests** (up from 58)
-- ✅ **85% overall coverage** (up from 68%)
-- ✅ **CI Gate: 0% → 88% coverage** with 37 new tests
-- ✅ All core modules: 85%+ coverage
-- ✅ Fixed CI/CD pipeline issues
-
-### 6 Killer Features
+### Core Features (v2.x)
 
 1. **Context-Based Jargon Detection** - Cross-validates quality claims with actual evidence
 2. **Docstring Inflation Analysis** - Detects documentation-heavy, implementation-light code
