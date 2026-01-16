@@ -21,7 +21,7 @@ npm run compile
 npm run package
 
 # Install in VS Code
-code --install-extension vscode-slop-detector-2.6.1.vsix
+code --install-extension vscode-slop-detector-2.6.3.vsix
 ```
 
 ### From Marketplace

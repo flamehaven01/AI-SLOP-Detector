@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-slop-detector"
-version = "2.6.2"
+version = "2.6.3"
 description = "Evidence-based static analyzer for detecting AI-generated code quality issues with context-aware validation"
 authors = [
     {name = "Flamehaven Labs", email = "info@flamehaven.space"}

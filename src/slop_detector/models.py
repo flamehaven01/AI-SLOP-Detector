@@ -90,6 +90,24 @@ class DDCResult:
 
 
 @dataclass
+class IgnoredFunction:
+    """Function marked with @slop.ignore decorator (v2.6.3)."""
+
+    name: str
+    reason: str
+    rules: List[str] = field(default_factory=list)
+    lineno: int = 0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "reason": self.reason,
+            "rules": self.rules,
+            "lineno": self.lineno,
+        }
+
+
+@dataclass
 class FileAnalysis:
     """Complete file analysis result."""
 
@@ -104,6 +122,7 @@ class FileAnalysis:
     docstring_inflation: Any = None  # v2.2: Docstring inflation analysis
     hallucination_deps: Any = None  # v2.2: Hallucinated dependencies
     context_jargon: Any = None  # v2.2: Context-based jargon validation
+    ignored_functions: List[IgnoredFunction] = field(default_factory=list)  # v2.6.3
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -137,6 +156,8 @@ class FileAnalysis:
                 if hasattr(self.context_jargon, "to_dict")
                 else self.context_jargon
             )
+        if self.ignored_functions:
+            result["ignored_functions"] = [f.to_dict() for f in self.ignored_functions]
         return result
 
 

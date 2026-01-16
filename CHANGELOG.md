@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.3] - 2026-01-16
+
+### Added - Consent-Based Complexity (Phase 1)
+
+**Core Feature**: Allow developers to explicitly whitelist intentional complexity, shifting responsibility from the tool to the sovereign developer.
+
+#### @slop.ignore Decorator
+- **New decorator**: `@slop.ignore(reason="...", rules=[...])` to mark functions as intentionally complex
+- **Reason required**: All ignored functions must provide explanation
+- **Selective rules**: Optionally ignore specific rules only (LDR, INFLATION, DDC, PLACEHOLDER)
+- **AST detection**: Decorator detected at analysis time, not runtime
+- **Filtered issues**: Pattern issues inside ignored functions are excluded from reports
+
+#### Innovation Zone Exemptions
+- **Playground directories**: `playground/`, `labs/`, `experiments/`, `prototypes/`, `sandbox/` now exempt from strict analysis
+- **Configuration**: New `consent_complexity` section in `.slopconfig.yaml`
+- **Report tracking**: Ignored functions logged in "Whitelisted Complexity" section
+
+#### Usage Examples
+```python
+import slop
+
+@slop.ignore(reason="Bitwise optimization for O(1) performance")
+def fast_inverse_sqrt(number):
+    # Complex but intentional implementation
+    i = 0x5f3759df - (number >> 1)
+    return i
+
+@slop.ignore(reason="Domain algorithm", rules=["LDR"])
+def complex_calculation():
+    # Only LDR check ignored, other rules still apply
+    ...
+```
+
+### Changed
+- **Version alignment**: Unified version to 2.6.3 (was incorrectly showing 3.0.0)
+- **FileAnalysis model**: Added `ignored_functions` field
+- **Pattern detection**: Now filters issues from ignored function ranges
+
+### Technical Details
+- **New files**:
+  - `src/slop_detector/decorators.py` (decorator implementation)
+  - `tests/test_ignore_pattern.py` (10 test cases)
+- **Modified files**:
+  - `src/slop_detector/core.py` (+100 lines: AST detection, filtering)
+  - `src/slop_detector/models.py` (+15 lines: IgnoredFunction dataclass)
+  - `src/slop_detector/__init__.py` (exports)
+  - `.slopconfig.example.yaml` (new sections)
+
+### Philosophy
+> "Rules should be the soil for the dream to grow, not the cage that kills it."
+
+This release implements the "Dream-Saver Protocol" from SIDRCE_SLOP_EVOLUTION_PLAN.md, ensuring that innovation is not killed by overly strict enforcement.
+
+---
+
 ## [2.6.2] - 2026-01-15
 
 ### Added - Integration Test Evidence Detection

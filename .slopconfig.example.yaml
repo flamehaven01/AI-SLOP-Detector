@@ -44,6 +44,27 @@ ignore:
   - "build/**"
   - "dist/**"
   - "**/.git/**"
+  # Innovation zones (v2.6.3) - exempt from strict analysis
+  - "playground/**"
+  - "labs/**"
+  - "experiments/**"
+  - "prototypes/**"
+  - "sandbox/**"
+
+# Consent-based complexity (v2.6.3)
+# Allows developers to whitelist intentional complexity
+consent_complexity:
+  enabled: true
+  # Require reason for all @slop.ignore decorators
+  require_reason: true
+  # Log ignored functions in reports
+  report_ignored: true
+  # Valid rules that can be selectively ignored
+  valid_rules:
+    - "LDR"
+    - "INFLATION"
+    - "DDC"
+    - "PLACEHOLDER"
 
 # Exception handling
 exceptions:
