@@ -184,9 +184,9 @@ def normal_placeholder():
             # Any issues in lines 4-6 should be filtered out
             for issue in result.pattern_issues:
                 # Issues should NOT be from the ignored function's line range
-                assert issue.line < 4 or issue.line > 6, (
-                    f"Issue at line {issue.line} should have been filtered"
-                )
+                assert (
+                    issue.line < 4 or issue.line > 6
+                ), f"Issue at line {issue.line} should have been filtered"
         finally:
             Path(f.name).unlink(missing_ok=True)
 
