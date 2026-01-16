@@ -22,12 +22,14 @@ class TestSlopIgnoreDecorator:
     def test_decorator_requires_reason(self):
         """Decorator should raise ValueError if reason is empty."""
         with pytest.raises(ValueError, match="non-empty 'reason'"):
+
             @slop.ignore(reason="")
             def func():
                 pass
 
     def test_decorator_with_reason_only(self):
         """Decorator with just reason should work."""
+
         @slop.ignore(reason="Performance critical algorithm")
         def fast_func():
             pass
@@ -38,6 +40,7 @@ class TestSlopIgnoreDecorator:
 
     def test_decorator_with_specific_rules(self):
         """Decorator with specific rules should work."""
+
         @slop.ignore(reason="Domain algorithm", rules=["LDR", "INFLATION"])
         def complex_func():
             pass
@@ -48,6 +51,7 @@ class TestSlopIgnoreDecorator:
 
     def test_decorator_preserves_function_behavior(self):
         """Decorated function should still work correctly."""
+
         @slop.ignore(reason="Test function")
         def add(a, b):
             return a + b
@@ -56,6 +60,7 @@ class TestSlopIgnoreDecorator:
 
     def test_ignore_function_shorthand(self):
         """Test direct import of ignore function."""
+
         @ignore(reason="Test shorthand")
         def shorthand_func():
             pass
@@ -64,6 +69,7 @@ class TestSlopIgnoreDecorator:
 
     def test_registry_tracks_ignored_functions(self):
         """Global registry should track ignored functions."""
+
         @slop.ignore(reason="Registry test")
         def registry_test_func():
             pass
@@ -79,7 +85,7 @@ class TestASTIgnoreDetection:
 
     def test_detect_slop_ignore_in_code(self):
         """Detector should find @slop.ignore decorated functions via AST."""
-        code = '''
+        code = """
 import slop
 
 @slop.ignore(reason="Bitwise optimization for performance")
@@ -89,7 +95,7 @@ def fast_inverse_sqrt(number):
 
 def normal_function():
     pass
-'''
+"""
         tree = ast.parse(code)
         detector = SlopDetector()
         ignored = detector._collect_ignored_functions(tree)
@@ -100,13 +106,13 @@ def normal_function():
 
     def test_detect_ignore_with_rules(self):
         """Detector should extract specific rules from decorator."""
-        code = '''
+        code = """
 import slop
 
 @slop.ignore(reason="Domain logic", rules=["LDR", "DDC"])
 def domain_function():
     pass
-'''
+"""
         tree = ast.parse(code)
         detector = SlopDetector()
         ignored = detector._collect_ignored_functions(tree)
@@ -116,13 +122,13 @@ def domain_function():
 
     def test_no_detection_without_reason(self):
         """Decorator without reason should not be detected."""
-        code = '''
+        code = """
 import slop
 
 @slop.ignore()
 def no_reason_func():
     pass
-'''
+"""
         tree = ast.parse(code)
         detector = SlopDetector()
         ignored = detector._collect_ignored_functions(tree)
@@ -131,13 +137,13 @@ def no_reason_func():
 
     def test_detect_async_function(self):
         """Detector should work with async functions."""
-        code = '''
+        code = """
 import slop
 
 @slop.ignore(reason="Async optimization")
 async def async_func():
     await something()
-'''
+"""
         tree = ast.parse(code)
         detector = SlopDetector()
         ignored = detector._collect_ignored_functions(tree)
@@ -151,7 +157,7 @@ class TestIgnoredFunctionFiltering:
 
     def test_issues_filtered_from_ignored_functions(self):
         """Pattern issues inside ignored functions should be filtered."""
-        code = '''
+        code = """
 import slop
 
 @slop.ignore(reason="Known placeholder for testing")
@@ -160,7 +166,7 @@ def ignored_placeholder():
 
 def normal_placeholder():
     pass  # This should trigger placeholder pattern
-'''
+"""
         f = tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False)
         try:
             f.write(code)
@@ -207,14 +213,14 @@ class TestFileAnalysisWithIgnored:
 
     def test_file_analysis_includes_ignored(self):
         """FileAnalysis result should include ignored_functions."""
-        code = '''
+        code = """
 import slop
 
 @slop.ignore(reason="Performance critical")
 def optimized_func():
     # Complex but intentional
     pass
-'''
+"""
         f = tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False)
         try:
             f.write(code)

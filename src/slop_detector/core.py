@@ -283,9 +283,7 @@ class SlopDetector:
                         reason = str(keyword.value.value)
                     elif keyword.arg == "rules" and isinstance(keyword.value, ast.List):
                         rules = [
-                            elt.value
-                            for elt in keyword.value.elts
-                            if isinstance(elt, ast.Constant)
+                            elt.value for elt in keyword.value.elts if isinstance(elt, ast.Constant)
                         ]
 
                 if reason:  # reason is required

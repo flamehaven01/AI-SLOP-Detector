@@ -147,6 +147,7 @@ def get_ignore_rules(func: Callable) -> List[str]:
 # Namespace for clean imports: import slop; @slop.ignore(...)
 class _SlopNamespace:
     """Namespace class for slop.ignore syntax."""
+
     ignore = staticmethod(ignore)
 
 

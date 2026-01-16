@@ -61,6 +61,12 @@ slop_report*.txt
 *_Verification_Report.md
 verification_report*.md
 
+# Internal Design & Strategy Documents (not for public repo)
+SIDRCE_SLOP_*.md
+DESIGN_CONSENT_*.md
+ROADMAP_v*.md
+SENTINEL_CERT.md
+
 # Blueprint & Analysis Files
 *_blueprint*.jsonl
 *_blueprint*.md
