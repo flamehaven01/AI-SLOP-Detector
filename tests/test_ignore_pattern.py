@@ -6,13 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from slop_detector import SlopDetector, slop, ignore, IgnoredFunction
+from slop_detector import IgnoredFunction, SlopDetector, ignore, slop
 from slop_detector.decorators import (
-    SlopIgnore,
-    get_ignored_functions,
-    is_function_ignored,
     get_ignore_reason,
     get_ignore_rules,
+    get_ignored_functions,
+    is_function_ignored,
 )
 
 
@@ -181,10 +180,13 @@ def normal_placeholder():
             assert result.ignored_functions[0].name == "ignored_placeholder"
 
             # Check that issues from ignored function are NOT in pattern_issues
-            # Normal placeholder should still be detected
-            issue_lines = [issue.line for issue in result.pattern_issues]
-            # Line 5 is inside ignored function, should not have issues
-            # Line 9 is normal function, may have issues
+            # Ignored function starts at line 4, normal function at line 8
+            # Any issues in lines 4-6 should be filtered out
+            for issue in result.pattern_issues:
+                # Issues should NOT be from the ignored function's line range
+                assert issue.line < 4 or issue.line > 6, (
+                    f"Issue at line {issue.line} should have been filtered"
+                )
         finally:
             Path(f.name).unlink(missing_ok=True)
 
