@@ -1,0 +1,24 @@
+{
+  "name": "ai-slop-detector-screenshots",
+  "version": "1.0.0",
+  "description": "Remotion screenshots for AI-SLOP Detector README",
+  "scripts": {
+    "start": "npx remotion studio",
+    "build": "npx remotion render Root",
+    "render:cli": "npx remotion still Root CLIOutput out/cli-output.png",
+    "render:arch": "npx remotion still Root ArchitectureDiagram out/architecture.png",
+    "render:detection": "npx remotion still Root DetectionCategories out/detection-categories.png",
+    "render:score": "npx remotion still Root QualityScore out/quality-score.png",
+    "render:all": "npm run render:cli && npm run render:arch && npm run render:detection && npm run render:score"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}

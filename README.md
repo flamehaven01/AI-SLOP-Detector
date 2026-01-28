@@ -50,6 +50,10 @@ slop-detector --project ./src --ci-mode hard --ci-report
 slop-detector mycode.py --json --output report.json
 ```
 
+<p align="center">
+  <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
+</p>
+
 ---
 
 ## What's New in v2.6.2
@@ -80,6 +84,10 @@ slop-detector mycode.py --json --output report.json
 ## What is AI Slop?
 
 **AI Slop** refers to code patterns commonly produced by AI code generators that lack substance:
+
+<p align="center">
+  <img src="docs/assets/detection-categories.png" alt="6 Detection Categories" width="900"/>
+</p>
 
 ### Pattern 1: Placeholder Code
 ```python
@@ -174,6 +182,10 @@ graph TD
     style D fill:#f0f0f0
     style E fill:#f0f0f0
 ```
+
+<p align="center">
+  <img src="docs/assets/architecture.png" alt="Architecture Diagram" width="900"/>
+</p>
 
 ---
 
@@ -384,6 +396,10 @@ slop-detector --project . --ci-mode hard --ci-claims-strict
 ---
 
 ## Output Examples
+
+<p align="center">
+  <img src="docs/assets/quality-score.png" alt="Quality Score Dashboard" width="800"/>
+</p>
 
 ### Console Output (Rich)
 

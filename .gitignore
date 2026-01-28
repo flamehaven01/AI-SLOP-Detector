@@ -99,3 +99,8 @@ claude_*.tmp
 # docs/assets/*.png
 # docs/assets/*.jpg
 # Uncomment above if assets are too large for git
+
+# Remotion (screenshot generator)
+remotion/node_modules/
+remotion/out/
+remotion/.remotion/
