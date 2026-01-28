@@ -2,7 +2,6 @@ import { Still, Folder } from "remotion";
 import { CLIOutput } from "./components/CLIOutput";
 import { ArchitectureDiagram } from "./components/ArchitectureDiagram";
 import { DetectionCategories } from "./components/DetectionCategories";
-import { QualityScore } from "./components/QualityScore";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -24,12 +23,6 @@ export const RemotionRoot: React.FC = () => {
         component={DetectionCategories}
         width={1200}
         height={900}
-      />
-      <Still
-        id="QualityScore"
-        component={QualityScore}
-        width={1000}
-        height={600}
       />
     </Folder>
   );
