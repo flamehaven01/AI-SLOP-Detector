@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.4] - 2026-02-08
+
+### Fixed
+- **run_scan ignore handling**: `run_scan.py` now applies configured ignore patterns before file analysis.
+- **Fixture exclusion consistency**: Paths matched by config ignore rules (for example `tests/**`) are excluded from scanner input.
+- **Scan/report alignment**: `run_scan.py` behavior now aligns with `SlopDetector.analyze_project()` path filtering.
+
+### Changed
+- **Pattern matching implementation**: Added normalized path matching with `fnmatch`, including compatibility handling for `**/` prefixes.
+
+---
+
 ## [2.6.3] - 2026-01-16
 
 ### Added - Consent-Based Complexity (Phase 1)

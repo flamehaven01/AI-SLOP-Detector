@@ -1,16 +1,42 @@
 import glob
+import fnmatch
 import os
 import sys
+from pathlib import Path
 
 from slop_detector import SlopDetector
+
+
+def _matches_ignore(rel_path: str, patterns):
+    rel = rel_path.replace("\\", "/").lstrip("./")
+    for pattern in patterns:
+        pat = str(pattern).replace("\\", "/").lstrip("./")
+        if fnmatch.fnmatch(rel, pat):
+            return True
+        # Handle common "**/" prefix pattern for root-level files.
+        if pat.startswith("**/") and fnmatch.fnmatch(rel, pat[3:]):
+            return True
+        # Fallback to pathlib semantics for compatibility.
+        if Path(rel).match(pat):
+            return True
+    return False
 
 
 def scan_project(root_dir):
     print(f"[*] Starting Slop Scan for: {root_dir}")
     detector = SlopDetector()
+    ignore_patterns = detector.config.get_ignore_patterns()
 
     python_files = glob.glob(os.path.join(root_dir, "**", "*.py"), recursive=True)
-    python_files = [f for f in python_files if "venv" not in f and "site-packages" not in f]
+    filtered_files = []
+    for file_path in python_files:
+        rel_path = os.path.relpath(file_path, root_dir)
+        if _matches_ignore(rel_path, ignore_patterns):
+            continue
+        if "venv" in file_path or "site-packages" in file_path:
+            continue
+        filtered_files.append(file_path)
+    python_files = filtered_files
 
     print(f"[*] Found {len(python_files)} Python files.")
 

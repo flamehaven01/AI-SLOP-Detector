@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/AI%20SLop%20DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
 </p>
 
-# AI-SLOP Detector v2.6.2
+# AI-SLOP Detector v2.6.4
 
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -18,7 +18,7 @@ Detects six critical categories of AI-generated code problems with actionable, c
 
 **Quick Navigation:**
 [🚀 Quick Start](#quick-start) •
-[✨ What's New](#whats-new-in-v262) •
+[✨ What's New](#whats-new-in-v264) •
 [🏗️ Architecture](#architecture-overview) •
 [📊 Core Features](#core-features) •
 [⚙️ Configuration](docs/CONFIGURATION.md) •
@@ -56,7 +56,13 @@ slop-detector mycode.py --json --output report.json
 
 ---
 
-## What's New in v2.6.2
+## What's New in v2.6.4
+
+### Scanner Reliability Update
+
+- `run_scan.py` now applies configured ignore patterns before analysis.
+- Corpus and manual test fixtures are no longer treated as production targets when ignored by config.
+- Project scan output is now consistent with `Config.ignore` and `SlopDetector` project filtering behavior.
 
 ### Evidence-Based Validation
 
