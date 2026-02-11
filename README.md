@@ -408,9 +408,9 @@ slop-detector --project . --ci-mode hard --ci-claims-strict
 
 ## VS Code Extension
 
-**Coming Soon:** Real-time analysis in VS Code with inline diagnostics.
+Real-time analysis in VS Code with inline diagnostics, debounced lint-on-type, and full CLI output surface.
 
-Current status: Local testing complete, marketplace publishing pending.
+Install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector) or locally via `code --install-extension vscode-slop-detector-2.7.0.vsix`.
 
 ---
 
@@ -465,9 +465,10 @@ If you use AI-SLOP Detector in research, please cite:
 
 ## Roadmap
 
-**v2.7 (In Progress):**
-- [ ] VS Code Extension marketplace release (dev complete, pending publish)
-- [ ] Enhanced evidence types (15+ types) - currently 14 types ✅
+**v2.7 (Current):**
+- [x] VS Code Extension v2.7.0 - full diagnostic surface, debounce, suggestions
+- [x] VS Code Marketplace published
+- [ ] Enhanced evidence types (15+ types) - currently 14 types
 - [ ] Custom pattern DSL for user-defined rules
 - [ ] Performance optimizations for large codebases
 
