@@ -8,6 +8,7 @@ const execAsync = promisify(exec);
 let diagnosticCollection: vscode.DiagnosticCollection;
 let statusBarItem: vscode.StatusBarItem;
 let outputChannel: vscode.OutputChannel;
+let lintOnTypeTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel('SLOP Detector');
@@ -48,12 +49,18 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Auto-lint on type (if enabled)
+    // Auto-lint on type with 1500ms debounce
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(event => {
             const config = vscode.workspace.getConfiguration('slopDetector');
             if (config.get('lintOnType')) {
-                analyzeDocument(event.document);
+                if (lintOnTypeTimer !== undefined) {
+                    clearTimeout(lintOnTypeTimer);
+                }
+                lintOnTypeTimer = setTimeout(() => {
+                    lintOnTypeTimer = undefined;
+                    analyzeDocument(event.document);
+                }, 1500);
             }
         })
     );
@@ -170,6 +177,53 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
         }
     }
 
+    // Add docstring inflation diagnostics
+    if (result.docstring_inflation && result.docstring_inflation.details) {
+        for (const detail of result.docstring_inflation.details) {
+            const line = Math.max(0, (detail.line || 1) - 1);
+            const severity = (detail.severity || '').toLowerCase();
+
+            let diagSeverity = vscode.DiagnosticSeverity.Warning;
+            if (severity === 'critical') {
+                diagSeverity = vscode.DiagnosticSeverity.Error;
+            }
+
+            const ratio = detail.ratio != null ? detail.ratio.toFixed(1) : '?';
+            const message = `Docstring inflation: ${detail.name} (${detail.docstring_lines} doc / ${detail.implementation_lines} impl = ${ratio}x)`;
+
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(line, 0, line, 1000),
+                message,
+                diagSeverity
+            );
+            diagnostic.source = 'SLOP Detector - Docstring';
+            diagnostic.code = 'docstring-inflation';
+            diagnostics.push(diagnostic);
+        }
+    }
+
+    // Add context jargon evidence diagnostics
+    if (result.context_jargon && result.context_jargon.evidence_details) {
+        for (const evidence of result.context_jargon.evidence_details) {
+            if (evidence.is_justified === false) {
+                const line = Math.max(0, (evidence.line || 1) - 1);
+                const missing = Array.isArray(evidence.missing_evidence)
+                    ? evidence.missing_evidence.join(', ')
+                    : String(evidence.missing_evidence || 'unknown');
+                const message = `"${evidence.jargon}" claim lacks evidence: ${missing}`;
+
+                const diagnostic = new vscode.Diagnostic(
+                    new vscode.Range(line, 0, line, 1000),
+                    message,
+                    vscode.DiagnosticSeverity.Warning
+                );
+                diagnostic.source = 'SLOP Detector - Evidence';
+                diagnostic.code = 'unjustified-claim';
+                diagnostics.push(diagnostic);
+            }
+        }
+    }
+
     // Add unused import diagnostics
     if (result.ddc && result.ddc.unused && result.ddc.unused.length > 0) {
         const unusedImports = result.ddc.unused;
@@ -185,7 +239,25 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
         diagnostics.push(diagnostic);
     }
 
-    // Add pattern-specific diagnostics
+    // Add hallucinated dependency diagnostics
+    if (result.hallucination_deps &&
+        result.hallucination_deps.hallucinated_deps &&
+        result.hallucination_deps.hallucinated_deps.length > 0) {
+        for (const dep of result.hallucination_deps.hallucinated_deps) {
+            const message = `Hallucinated dependency: "${dep.name || dep}" - imported but serves no verified purpose`;
+
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(0, 0, 0, 1000),
+                message,
+                vscode.DiagnosticSeverity.Information
+            );
+            diagnostic.source = 'SLOP Detector - Hallucination';
+            diagnostic.code = 'hallucinated-dep';
+            diagnostics.push(diagnostic);
+        }
+    }
+
+    // Add pattern-specific diagnostics (with suggestions)
     if (result.pattern_issues && Array.isArray(result.pattern_issues)) {
         for (const issue of result.pattern_issues) {
             const line = Math.max(0, (issue.line || 1) - 1);
@@ -198,9 +270,14 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
                 diagSeverity = vscode.DiagnosticSeverity.Warning;
             }
 
+            let message = issue.message || 'Pattern issue detected';
+            if (issue.suggestion) {
+                message += `\nSuggestion: ${issue.suggestion}`;
+            }
+
             const patternDiag = new vscode.Diagnostic(
                 new vscode.Range(line, issue.column || 0, line, 1000),
-                issue.message || 'Pattern issue detected',
+                message,
                 diagSeverity
             );
             patternDiag.source = 'SLOP Detector - Patterns';
@@ -228,13 +305,16 @@ function updateStatusBar(result: any) {
 
     // Show severity level first, score in parentheses
     statusBarItem.text = `${icon} ${severityLabel} (${deficitScore.toFixed(1)})`;
+
+    const ldrGrade = result.ldr?.grade || 'N/A';
     statusBarItem.tooltip = `Code Quality: ${severityLabel}\n` +
                            `Deficit Score: ${deficitScore.toFixed(1)}\n` +
-                           `Status: ${status}\n\n` +
+                           `Status: ${status}\n` +
+                           `LDR Grade: ${ldrGrade}\n\n` +
                            `Metrics:\n` +
-                           `• LDR: ${result.ldr.ldr_score.toFixed(3)}\n` +
-                           `• Inflation: ${result.inflation.inflation_score.toFixed(3)}\n` +
-                           `• DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
+                           `- LDR: ${result.ldr.ldr_score.toFixed(3)}\n` +
+                           `- Inflation: ${result.inflation.inflation_score.toFixed(3)}\n` +
+                           `- DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
 }
 
 async function analyzeWorkspace() {
@@ -332,6 +412,9 @@ async function installGitHook() {
 }
 
 export function deactivate() {
+    if (lintOnTypeTimer !== undefined) {
+        clearTimeout(lintOnTypeTimer);
+    }
     if (diagnosticCollection) {
         diagnosticCollection.dispose();
     }

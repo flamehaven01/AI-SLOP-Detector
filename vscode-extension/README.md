@@ -4,9 +4,13 @@ Real-time code quality analysis directly in VS Code.
 
 ## Features
 
-- **Real-time Linting**: Analyze code on save or while typing
+- **Real-time Linting**: Analyze code on save or while typing (with 1.5s debounce)
 - **Inline Warnings**: See slop scores and issues directly in editor
-- **Status Bar**: Quick overview of current file's quality
+- **Status Bar**: Quick overview of current file's quality with LDR grade
+- **Docstring Inflation**: Line-level detection of over-documented functions
+- **Evidence-Based Claims**: Flags unjustified jargon lacking supporting evidence
+- **Hallucination Detection**: Surfaces dependencies imported without verified purpose
+- **Pattern Suggestions**: Actionable fix suggestions for detected pattern issues
 - **History Tracking**: View analysis trends over time
 - **Git Integration**: One-click pre-commit hook installation
 - **Workspace Analysis**: Analyze entire project at once
@@ -21,7 +25,7 @@ npm run compile
 npm run package
 
 # Install in VS Code
-code --install-extension vscode-slop-detector-2.6.3.vsix
+code --install-extension vscode-slop-detector-2.7.0.vsix
 ```
 
 ### From Marketplace
