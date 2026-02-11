@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/AI%20SLop%20DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
 </p>
 
-# AI-SLOP Detector v2.6.4
+# AI-SLOP Detector v2.7.0
 
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -56,20 +56,21 @@ slop-detector mycode.py --json --output report.json
 
 ---
 
-## What's New in v2.6.4
+## What's New in v2.7.0
 
-### Scanner Reliability Update
+### VS Code Extension Upgrade
 
-- `run_scan.py` now applies configured ignore patterns before analysis.
-- Corpus and manual test fixtures are no longer treated as production targets when ignored by config.
-- Project scan output is now consistent with `Config.ignore` and `SlopDetector` project filtering behavior.
+- **Docstring Inflation Diagnostics**: Line-level detection of over-documented functions with severity mapping (critical/warning)
+- **Evidence-Based Claim Validation**: Flags unjustified jargon claims lacking supporting evidence in the Problems panel
+- **Hallucination Dependency Detection**: Surfaces imports that serve no verified purpose
+- **Pattern Fix Suggestions**: Actionable suggestions appended to pattern issue diagnostics
+- **Debounced Lint-on-Type**: 1500ms debounce prevents excessive analysis during typing
+- **LDR Grade in Status Bar**: Tooltip now displays the LDR letter grade
 
-### Evidence-Based Validation
+### Previous: v2.6.4 - Scanner Reliability
 
-**"Trust, but Verify" - Now Enforced:**
-- ✅ **Integration Test Requirement**: Claims like `production-ready`, `scalable`, or `enterprise-grade` now **FAIL** if no integration tests are detected.
-- ✅ **4-Layer Evidence Detection**: Scans paths (`tests/integration`), filenames (`*_integration_test.py`), markers (`@pytest.mark.e2e`), and runtime usage (`TestClient`).
-- ✅ **Enhanced Reporting**: Reports now explicitly break down `tests_unit` vs `tests_integration`.
+- `run_scan.py` now applies configured ignore patterns before analysis
+- Project scan output consistent with `Config.ignore` and `SlopDetector` project filtering
 
 ### Quality Improvements
 - **Tests**: 183 comprehensive tests (up from 165)
@@ -161,7 +162,7 @@ def process():
 
 ## Architecture Overview
 
-AI-SLOP Detector v2.6.4 uses a **multi-dimensional analysis engine**:
+AI-SLOP Detector v2.7.0 uses a **multi-dimensional analysis engine**:
 
 ```mermaid
 graph TD
@@ -445,7 +446,7 @@ If you use AI-SLOP Detector in research, please cite:
   title = {AI-SLOP Detector: Evidence-Based Static Analysis for AI-Generated Code},
   author = {Flamehaven},
   year = {2024},
-  version = {2.6.4},
+  version = {2.7.0},
   url = {https://github.com/flamehaven01/AI-SLOP-Detector}
 }
 ```

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.0] - 2026-02-12
+
+### Added - VS Code Extension v2.7.0
+- **Docstring inflation diagnostics**: Line-level detection from `docstring_inflation.details[]` with severity mapping (critical -> Error, warning -> Warning)
+- **Context jargon evidence diagnostics**: Flags unjustified claims from `context_jargon.evidence_details[]` where `is_justified === false`
+- **Hallucinated dependency diagnostics**: Surfaces `hallucination_deps.hallucinated_deps[]` as Info-level diagnostics
+- **Pattern fix suggestions**: Appends `suggestion` field to pattern issue messages when present
+- **Lint-on-type debounce**: 1500ms debounce timer prevents excessive analysis during typing
+- **LDR grade in status bar**: Tooltip now displays `LDR Grade: {grade}`
+
+### Changed
+- VS Code extension surfaces ~95% of CLI JSON output (up from ~40%)
+- Version alignment: `pyproject.toml`, `__init__.py`, `package.json` all at 2.7.0
+
+---
+
 ## [2.6.4] - 2026-02-08
 
 ### Fixed
@@ -573,7 +589,8 @@ Special thanks to community feedback that drives these improvements. This releas
 
 | Version | Date | Focus | Status |
 |---------|------|-------|--------|
-| **2.6.4** | 2026-02-08 | Scanner reliability, ignore patterns | [+] Current |
+| **2.7.0** | 2026-02-12 | VS Code extension full diagnostic surface | [+] Current |
+| **2.6.4** | 2026-02-08 | Scanner reliability, ignore patterns | [+] Released |
 | **2.6.3** | 2026-01-16 | Consent-based complexity | [+] Released |
 | **2.6.2** | 2026-01-15 | Integration test evidence | [+] Released |
 | **2.6.1** | 2026-01-12 | Config sovereignty, question tests | [+] Released |
@@ -625,5 +642,5 @@ Special thanks to community feedback that drives these improvements. This releas
 ---
 
 **Last Updated**: 2026-02-11
-**Current Version**: 2.6.4
+**Current Version**: 2.7.0
 **Status**: Production Ready
