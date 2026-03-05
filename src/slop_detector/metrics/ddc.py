@@ -7,6 +7,17 @@ from typing import Set
 
 from slop_detector.models import DDCResult
 
+# Modules that exist purely for type annotations and are never referenced at
+# runtime (with PEP-563 `from __future__ import annotations` in effect all
+# annotations are lazily evaluated strings, so their imports are invisible to
+# a runtime usage scan).  Treating these like TYPE_CHECKING-guarded imports
+# eliminates a systematic false-positive in the DDC usage ratio.
+_ANNOTATION_ONLY_MODULES: frozenset[str] = frozenset({
+    "__future__",        # from __future__ import annotations
+    "typing",            # Optional, Dict, List, Tuple, Any, Union, ...
+    "typing_extensions", # Annotated, Protocol, TypeAlias, ...
+})
+
 
 class DDCCalculator:
     """Calculate DDC with improved usage detection."""
@@ -100,6 +111,9 @@ class DDCCalculator:
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     lib = alias.name.split(".")[0]
+                    if lib in _ANNOTATION_ONLY_MODULES:
+                        type_checking_imports.add(lib)
+                        continue
                     name_to_use = alias.asname or alias.name.split(".")[0]
 
                     if lib not in type_checking_imports:
@@ -108,10 +122,13 @@ class DDCCalculator:
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
                     lib = node.module.split(".")[0]
-                    for alias in node.names:
-                        name_to_use = alias.asname or alias.name
-                        if lib not in type_checking_imports:
-                            imports_map[name_to_use] = lib
+                    if lib in _ANNOTATION_ONLY_MODULES:
+                        type_checking_imports.add(lib)
+                    else:
+                        for alias in node.names:
+                            name_to_use = alias.asname or alias.name
+                            if lib not in type_checking_imports:
+                                imports_map[name_to_use] = lib
 
         return imports_map, type_checking_imports
 

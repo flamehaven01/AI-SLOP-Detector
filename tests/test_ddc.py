@@ -348,5 +348,106 @@ def expensive_function(n):
     assert "functools" in result.actually_used
 
 
+# ---------------------------------------------------------------------------
+# _ANNOTATION_ONLY_MODULES false-positive regression tests
+# ---------------------------------------------------------------------------
+
+def test_future_annotations_not_unused(ddc_calc):
+    """from __future__ import annotations must never appear in unused."""
+    code = """
+from __future__ import annotations
+from pathlib import Path
+
+def get(p: Path) -> Path:
+    return p
+"""
+    tree = ast.parse(code)
+    result = ddc_calc.calculate("test.py", code, tree)
+
+    assert "__future__" not in result.unused, (
+        "__future__ falsely flagged as unused (PEP-563 false positive)"
+    )
+    assert "__future__" in result.type_checking_imports
+
+
+def test_typing_only_in_annotations_not_unused(ddc_calc):
+    """from typing import ... used only in type hints must not appear in unused."""
+    code = """
+from __future__ import annotations
+from typing import Optional, Dict, List, Any, Tuple
+
+def process(data: Dict[str, Any]) -> Optional[List[Tuple[str, int]]]:
+    return None
+"""
+    tree = ast.parse(code)
+    result = ddc_calc.calculate("test.py", code, tree)
+
+    assert "typing" not in result.unused, (
+        "typing falsely flagged as unused when used only in annotations"
+    )
+    assert "typing" in result.type_checking_imports
+
+
+def test_typing_extensions_not_unused(ddc_calc):
+    """typing_extensions imports must not appear in unused."""
+    code = """
+from __future__ import annotations
+from typing_extensions import Protocol, TypeAlias
+
+MyType: TypeAlias = str
+
+class Runnable(Protocol):
+    def run(self) -> None: ...
+"""
+    tree = ast.parse(code)
+    result = ddc_calc.calculate("test.py", code, tree)
+
+    assert "typing_extensions" not in result.unused, (
+        "typing_extensions falsely flagged as unused"
+    )
+
+
+def test_real_unused_still_detected_after_patch(ddc_calc):
+    """Patching annotation modules must not suppress detection of genuinely unused imports."""
+    code = """
+from __future__ import annotations
+from typing import Optional
+import torch
+import numpy as np
+
+def run(x: Optional[int]) -> int:
+    return x or 0
+"""
+    tree = ast.parse(code)
+    result = ddc_calc.calculate("test.py", code, tree)
+
+    # torch and numpy are genuinely unused
+    assert "torch" in result.unused
+    assert "numpy" in result.unused
+    # annotation-only modules are excluded
+    assert "__future__" not in result.unused
+    assert "typing" not in result.unused
+
+
+def test_usage_ratio_excludes_annotation_modules(ddc_calc):
+    """usage_ratio denominator must not count annotation-only modules."""
+    code = """
+from __future__ import annotations
+from typing import Optional, Dict
+import os
+
+def env(key: str) -> Optional[str]:
+    return os.environ.get(key)
+"""
+    tree = ast.parse(code)
+    result = ddc_calc.calculate("test.py", code, tree)
+
+    # Only 'os' is a real import; it is used -> ratio = 1.0
+    assert result.usage_ratio == 1.0, (
+        f"Expected 1.0 but got {result.usage_ratio} — annotation modules may be inflating denominator"
+    )
+    assert result.grade == "EXCELLENT"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
