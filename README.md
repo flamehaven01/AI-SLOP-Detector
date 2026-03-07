@@ -4,6 +4,7 @@
 
 # AI-SLOP Detector v2.9.0
 
+
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -24,14 +25,15 @@ It doesn't care whether the author is human, Claude, Cursor, or a custom agent.
 
 **Quick Navigation:**
 [Quick Start](#quick-start) •
-[What's New](#whats-new-in-v280) •
+[What's New v2.9.0](#whats-new-in-v290) •
 [Architecture](#architecture-overview) •
 [Math Models](docs/MATH_MODELS.md) •
-[Core Features](#core-features) •
+[Patterns](docs/PATTERNS.md) •
+[Phantom Import](docs/PHANTOM_IMPORT.md) •
+[History Tracking](docs/HISTORY_TRACKING.md) •
 [Configuration](docs/CONFIGURATION.md) •
 [CLI Usage](docs/CLI_USAGE.md) •
-[CI/CD Integration](docs/CI_CD.md) •
-[Development](docs/DEVELOPMENT.md)
+[CI/CD Integration](docs/CI_CD.md)
 
 ---
 
@@ -76,6 +78,64 @@ slop-detector --export-history history.jsonl  # export for ML training
 <p align="center">
   <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
 </p>
+
+---
+
+## What's New in v2.9.0
+
+### PhantomImportPattern — Hallucinated Package Detection
+
+AI models sometimes generate plausible-sounding but non-existent package names.
+`phantom_import` catches them at analysis time — before they cause a runtime `ModuleNotFoundError`.
+
+```python
+# These would be flagged CRITICAL:
+import tensorflow_utils        # does not exist
+from requests_async_v2 import get  # does not exist
+import numpy_extended          # does not exist
+
+# These pass:
+import numpy                   # installed
+from os.path import join        # stdlib
+from . import utils             # relative — excluded by design
+```
+
+Resolution checks (in order):
+1. `sys.builtin_module_names` — C extensions
+2. `sys.stdlib_module_names` — standard library (Python 3.10+)
+3. `importlib.metadata.packages_distributions()` — pip-installed
+4. `importlib.util.find_spec` — namespace packages, editable installs
+
+**ID:** `phantom_import` | **Severity:** CRITICAL | **Axis:** QUALITY
+
+---
+
+### History Auto-Tracking
+
+Every run is automatically recorded to `~/.slop-detector/history.db`.
+Run it 10 times a day and watch the trends emerge.
+
+```bash
+slop-detector mycode.py --show-history    # per-file trend
+slop-detector --history-trends            # 7-day project aggregate
+slop-detector --export-history data.jsonl # ML training export
+slop-detector mycode.py --no-history      # opt-out
+```
+
+```
+History: src/mymodule.py
+----------------------------------------------------------------------
+  Timestamp                Deficit    LDR Patterns  Grade
+----------------------------------------------------------------------
+  2026-03-06T09:12:43         42.0  0.631        7  suspicious
+  2026-03-07T11:03:21         18.0  0.812        3  clean
+  2026-03-08T14:55:09          0.0  1.000        0  clean
+----------------------------------------------------------------------
+  Trend (3 runs): improved  delta=-42.0
+```
+
+The accumulated history is the project's quality memory — and the foundation
+for ML model training independent of the rule-based scoring system.
 
 ---
 

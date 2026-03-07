@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.9.0] - 2026-03-08
+
+### Added
+
+#### PhantomImportPattern — Hallucinated Package Detection (CRITICAL)
+- New pattern `phantom_import` detects imports referencing packages that do not exist
+  in the current environment: not in stdlib, built-in C extensions, or installed distributions.
+- Resolution index built once per process from three sources:
+  1. `sys.builtin_module_names` — C extension modules
+  2. `sys.stdlib_module_names` — standard library (Python 3.10+)
+  3. `importlib.metadata.packages_distributions()` — pip-installed packages
+- `importlib.util.find_spec` fallback covers namespace packages and editable installs.
+- Relative imports (`from . import X`) excluded — local project structure is environment-dependent.
+- Severity: **CRITICAL**, Axis: **QUALITY**, ID: `phantom_import`
+- Errs toward False Negative on resolution errors to avoid false positives.
+
+#### History Auto-Tracking (v2.9.0)
+- Every CLI run automatically records results to `~/.slop-detector/history.db` (SQLite).
+- Schema: `deficit_score`, `ldr_score`, `inflation_score`, `ddc_usage_ratio`,
+  `pattern_count`, `grade`, `git_commit`, `git_branch`, `file_hash` (SHA256 prefix).
+- Auto-migration on first run — safe `ALTER TABLE` for schema evolution.
+- New CLI flags:
+  - `--show-history` — per-file trend table (timestamp, deficit, LDR, patterns, grade)
+  - `--history-trends` — project-wide daily aggregates for last 7 days
+  - `--export-history <path>` — full JSONL export for ML training pipeline
+  - `--no-history` — opt-out from recording this run
+- Trend analysis: direction indicator (improved / degraded / stable) + delta across N runs.
+- `export_jsonl()` produces training-ready JSONL for `DatasetLoader.load_jsonl()`.
+
+#### Real Training Data Pipeline (`[ml-data]` extra)
+- `MLPipeline.run_on_real_data()`: loads CodeSearchNet / the-stack / custom JSONL,
+  applies self-supervised labelling (`deficit_score >= 30 → slop`), trains classifier.
+- `DatasetLoader`: `load_codesearchnet()`, `load_stack()`, `load_jsonl()`.
+- New extra: `pip install "ai-slop-detector[ml-data]"` (scikit-learn + numpy + datasets>=2.9.0).
+- `datasets` added to `full` extra and mypy ignore list.
+
+#### Core Identity Reframe
+- README primary statement updated to reflect the project's ontology:
+  *"Catches the slop that AI produces — before it reaches production."*
+  Authorship (human / Claude / Cursor / custom agent) is irrelevant; the code speaks for itself.
+
+### Changed
+- `history.py` fully rewritten: `bcr_score` → `inflation_score` (v2.8.0 alignment),
+  `pattern_count` added, global DB path `~/.slop-detector/history.db`,
+  `export_jsonl()` replaces `export_history()`.
+- `RandomForestClassifier` now trained with `class_weight="balanced"` to handle
+  real-data class imbalance (~4% slop rate in public datasets).
+- `load_codesearchnet()`: removed deprecated `trust_remote_code=True` (datasets>=4.x).
+- `pyproject.toml` version: `2.8.0` → `2.9.0`.
+
+### Fixed
+- `--show-history` resolves relative paths to absolute before DB lookup.
+
+---
+
 ## [2.8.0] - 2026-03-07
 
 ### Added
