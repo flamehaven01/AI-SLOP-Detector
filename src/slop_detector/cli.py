@@ -232,27 +232,20 @@ def print_rich_report(result) -> None:
                 line = getattr(p, "line", "-")
                 msg = getattr(p, "message", str(p))
                 sev_style = (
-                    "bold red" if sev == "critical"
-                    else "yellow" if sev == "high"
-                    else "dim"
+                    "bold red" if sev == "critical" else "yellow" if sev == "high" else "dim"
                 )
                 content.append(f"  L{line} [{sev.upper()}] {msg}\n", style=sev_style)
             if len(result.pattern_issues) > 10:
-                content.append(
-                    f"  ... and {len(result.pattern_issues) - 10} more\n", style="dim"
-                )
+                content.append(f"  ... and {len(result.pattern_issues) - 10} more\n", style="dim")
             # Advanced pattern summary
             god_fn = sum(
-                1 for p in result.pattern_issues
-                if getattr(p, "pattern_id", "") == "god_function"
+                1 for p in result.pattern_issues if getattr(p, "pattern_id", "") == "god_function"
             )
             dead = sum(
-                1 for p in result.pattern_issues
-                if getattr(p, "pattern_id", "") == "dead_code"
+                1 for p in result.pattern_issues if getattr(p, "pattern_id", "") == "dead_code"
             )
             nesting = sum(
-                1 for p in result.pattern_issues
-                if getattr(p, "pattern_id", "") == "deep_nesting"
+                1 for p in result.pattern_issues if getattr(p, "pattern_id", "") == "deep_nesting"
             )
             adv_parts = []
             if god_fn:
@@ -268,9 +261,9 @@ def print_rich_report(result) -> None:
         ml = getattr(result, "ml_score", None)
         if ml is not None:
             ml_color = (
-                "red" if ml.slop_probability >= 0.70
-                else "yellow" if ml.slop_probability >= 0.40
-                else "green"
+                "red"
+                if ml.slop_probability >= 0.70
+                else "yellow" if ml.slop_probability >= 0.40 else "green"
             )
             content.append("\nML Score:\n", style="bold cyan")
             content.append(
@@ -844,8 +837,7 @@ def _run_autofix(result, dry_run: bool = True) -> None:
 
     if hasattr(result, "file_results"):
         file_analyses = [
-            (fa.file_path, getattr(fa, "pattern_issues", []))
-            for fa in result.file_results
+            (fa.file_path, getattr(fa, "pattern_issues", [])) for fa in result.file_results
         ]
     else:
         file_analyses = [(result.file_path, getattr(result, "pattern_issues", []))]
@@ -932,7 +924,9 @@ def _run_cross_file(result) -> None:
     if report.hotspots:
         print(f"\n  Slop Hotspots ({len(report.hotspots)}) - heavily imported + sloppy:")
         for h in report.hotspots:
-            print(f"    {Path(h.file_path).name}  score={h.slop_score:.1f}  imported_by={h.import_count}")
+            print(
+                f"    {Path(h.file_path).name}  score={h.slop_score:.1f}  imported_by={h.import_count}"
+            )
 
     if not report.import_cycles and not report.duplicates and not report.hotspots:
         print("  [+] No cross-file issues detected.")
@@ -951,11 +945,10 @@ def _run_governance(path: str, result) -> None:
     if hasattr(result, "file_results"):
         planned = [fa.file_path for fa in result.file_results]
         actual = planned
-        total_issues = sum(
-            len(getattr(fa, "pattern_issues", [])) for fa in result.file_results
-        )
+        total_issues = sum(len(getattr(fa, "pattern_issues", [])) for fa in result.file_results)
         halt_count = sum(
-            1 for fa in result.file_results
+            1
+            for fa in result.file_results
             if getattr(fa, "status", "") in {"critical_deficit", "suspicious"}
         )
         for fa in result.file_results:

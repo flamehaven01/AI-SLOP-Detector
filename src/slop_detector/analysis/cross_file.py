@@ -19,19 +19,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
-
 # ------------------------------------------------------------------
 # Data classes
 # ------------------------------------------------------------------
 
+
 @dataclass
 class DuplicateBlock:
     """Two code blocks that are near-identical."""
+
     file_a: str
     file_b: str
     func_a: str
     func_b: str
-    similarity: float   # 0.0-1.0
+    similarity: float  # 0.0-1.0
     line_a: int
     line_b: int
 
@@ -39,7 +40,8 @@ class DuplicateBlock:
 @dataclass
 class ImportCycle:
     """A detected circular import chain."""
-    cycle: Tuple[str, ...]   # ordered file paths forming the cycle
+
+    cycle: Tuple[str, ...]  # ordered file paths forming the cycle
 
     def __str__(self) -> str:
         return " -> ".join(Path(p).name for p in self.cycle) + f" -> {Path(self.cycle[0]).name}"
@@ -48,9 +50,10 @@ class ImportCycle:
 @dataclass
 class SlopHotspot:
     """A file with high slop score that is heavily imported."""
+
     file_path: str
     slop_score: float
-    import_count: int       # how many files import this
+    import_count: int  # how many files import this
     contaminated_files: List[str]
 
 
@@ -83,8 +86,12 @@ class CrossFileReport:
             ],
             "duplicates": [
                 {
-                    "file_a": d.file_a, "func_a": d.func_a, "line_a": d.line_a,
-                    "file_b": d.file_b, "func_b": d.func_b, "line_b": d.line_b,
+                    "file_a": d.file_a,
+                    "func_a": d.func_a,
+                    "line_a": d.line_a,
+                    "file_b": d.file_b,
+                    "func_b": d.func_b,
+                    "line_b": d.line_b,
                     "similarity": d.similarity,
                 }
                 for d in self.duplicates
@@ -105,6 +112,7 @@ class CrossFileReport:
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _extract_imports(tree: ast.AST, file_path: Path, root: Path) -> Set[str]:
     """
@@ -163,9 +171,7 @@ def _levenshtein_ratio(a: str, b: str) -> float:
     for i, ca in enumerate(a, 1):
         new_dp = [i]
         for j, cb in enumerate(b, 1):
-            new_dp.append(
-                min(dp[j] + 1, new_dp[-1] + 1, dp[j - 1] + (0 if ca == cb else 1))
-            )
+            new_dp.append(min(dp[j] + 1, new_dp[-1] + 1, dp[j - 1] + (0 if ca == cb else 1)))
         dp = new_dp
     dist = dp[lb]
     return round(1.0 - dist / max(la, lb), 4)
@@ -174,6 +180,7 @@ def _levenshtein_ratio(a: str, b: str) -> float:
 # ------------------------------------------------------------------
 # Analyzer
 # ------------------------------------------------------------------
+
 
 class CrossFileAnalyzer:
     """
@@ -184,14 +191,14 @@ class CrossFileAnalyzer:
         report = analyzer.analyze(project_path, file_analyses)
     """
 
-    DUPLICATE_THRESHOLD = 0.85    # similarity >= this -> duplicate
-    HOTSPOT_SLOP_THRESHOLD = 40.0 # slop_score >= this -> hotspot candidate
-    HOTSPOT_IMPORT_MIN = 2        # imported by >= this many files
+    DUPLICATE_THRESHOLD = 0.85  # similarity >= this -> duplicate
+    HOTSPOT_SLOP_THRESHOLD = 40.0  # slop_score >= this -> hotspot candidate
+    HOTSPOT_IMPORT_MIN = 2  # imported by >= this many files
 
     def analyze(
         self,
         project_path: str,
-        file_analyses: List,        # List[FileAnalysis] from core.py
+        file_analyses: List,  # List[FileAnalysis] from core.py
         slop_threshold: float = HOTSPOT_SLOP_THRESHOLD,
     ) -> CrossFileReport:
         """
@@ -242,9 +249,7 @@ class CrossFileAnalyzer:
 
         return report
 
-    def _detect_cycles(
-        self, graph: Dict[str, Set[str]]
-    ) -> List[ImportCycle]:
+    def _detect_cycles(self, graph: Dict[str, Set[str]]) -> List[ImportCycle]:
         """DFS-based cycle detection in import graph."""
         visited: Set[str] = set()
         rec_stack: Set[str] = set()
@@ -314,11 +319,17 @@ class CrossFileAnalyzer:
                     if pair in seen_pairs:
                         continue
                     seen_pairs.add(pair)
-                    duplicates.append(DuplicateBlock(
-                        file_a=fa, func_a=na, line_a=la,
-                        file_b=fb, func_b=nb, line_b=lb,
-                        similarity=1.0,
-                    ))
+                    duplicates.append(
+                        DuplicateBlock(
+                            file_a=fa,
+                            func_a=na,
+                            line_a=la,
+                            file_b=fb,
+                            func_b=nb,
+                            line_b=lb,
+                            similarity=1.0,
+                        )
+                    )
                     if len(duplicates) >= 50:
                         return duplicates
 
@@ -346,12 +357,14 @@ class CrossFileAnalyzer:
         for fpath, score in score_map.items():
             importers = reverse.get(fpath, [])
             if score >= slop_threshold and len(importers) >= self.HOTSPOT_IMPORT_MIN:
-                hotspots.append(SlopHotspot(
-                    file_path=fpath,
-                    slop_score=score,
-                    import_count=len(importers),
-                    contaminated_files=importers,
-                ))
+                hotspots.append(
+                    SlopHotspot(
+                        file_path=fpath,
+                        slop_score=score,
+                        import_count=len(importers),
+                        contaminated_files=importers,
+                    )
+                )
             if score >= slop_threshold and importers:
                 propagation[fpath] = importers
 

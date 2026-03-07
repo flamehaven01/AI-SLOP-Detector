@@ -30,12 +30,31 @@ from typing import List
 # ------------------------------------------------------------------
 
 _JARGON_POOL = [
-    "neural", "transformer", "deep learning", "embedding", "semantic reasoning",
-    "Byzantine", "fault-tolerant", "enterprise-grade", "production-ready",
-    "mission-critical", "cloud-native", "microservices", "serverless",
-    "robust", "resilient", "performant", "optimized", "sophisticated",
-    "comprehensive", "holistic", "state-of-the-art", "cutting-edge",
-    "advanced algorithm", "scalable", "distributed",
+    "neural",
+    "transformer",
+    "deep learning",
+    "embedding",
+    "semantic reasoning",
+    "Byzantine",
+    "fault-tolerant",
+    "enterprise-grade",
+    "production-ready",
+    "mission-critical",
+    "cloud-native",
+    "microservices",
+    "serverless",
+    "robust",
+    "resilient",
+    "performant",
+    "optimized",
+    "sophisticated",
+    "comprehensive",
+    "holistic",
+    "state-of-the-art",
+    "cutting-edge",
+    "advanced algorithm",
+    "scalable",
+    "distributed",
 ]
 
 # ------------------------------------------------------------------
@@ -56,15 +75,15 @@ _CROSS_LANG_MISTAKES = [
 
 _CLEAN_FUNCTIONS = [
     # Simple math utility
-    '''def clamp(value: float, lo: float, hi: float) -> float:
+    """def clamp(value: float, lo: float, hi: float) -> float:
     if value < lo:
         return lo
     if value > hi:
         return hi
     return value
-''',
+""",
     # List processing
-    '''def deduplicate(items: list) -> list:
+    """def deduplicate(items: list) -> list:
     seen = set()
     result = []
     for item in items:
@@ -72,15 +91,15 @@ _CLEAN_FUNCTIONS = [
             seen.add(item)
             result.append(item)
     return result
-''',
+""",
     # String utility
-    '''def truncate(text: str, max_len: int, suffix: str = "...") -> str:
+    """def truncate(text: str, max_len: int, suffix: str = "...") -> str:
     if len(text) <= max_len:
         return text
     return text[: max_len - len(suffix)] + suffix
-''',
+""",
     # Dict merge
-    '''def merge_dicts(base: dict, override: dict) -> dict:
+    """def merge_dicts(base: dict, override: dict) -> dict:
     result = dict(base)
     for key, value in override.items():
         if key in result and isinstance(result[key], dict) and isinstance(value, dict):
@@ -88,18 +107,18 @@ _CLEAN_FUNCTIONS = [
         else:
             result[key] = value
     return result
-''',
+""",
     # File reading
-    '''def read_lines(path: str) -> list:
+    """def read_lines(path: str) -> list:
     with open(path, "r", encoding="utf-8") as f:
         return [line.rstrip("\\n") for line in f]
-''',
+""",
     # Chunking
-    '''def chunk(items: list, size: int) -> list:
+    """def chunk(items: list, size: int) -> list:
     return [items[i : i + size] for i in range(0, len(items), size)]
-''',
+""",
     # Retry logic
-    '''def retry(fn, attempts: int = 3, default=None):
+    """def retry(fn, attempts: int = 3, default=None):
     for i in range(attempts):
         try:
             return fn()
@@ -107,9 +126,9 @@ _CLEAN_FUNCTIONS = [
             if i == attempts - 1:
                 return default
     return default
-''',
+""",
     # Flatten nested list
-    '''def flatten(nested: list) -> list:
+    """def flatten(nested: list) -> list:
     result = []
     for item in nested:
         if isinstance(item, list):
@@ -117,9 +136,9 @@ _CLEAN_FUNCTIONS = [
         else:
             result.append(item)
     return result
-''',
+""",
     # Safe dict get
-    '''def deep_get(d: dict, *keys, default=None):
+    """def deep_get(d: dict, *keys, default=None):
     current = d
     for key in keys:
         if not isinstance(current, dict):
@@ -128,17 +147,17 @@ _CLEAN_FUNCTIONS = [
         if current is default:
             return default
     return current
-''',
+""",
     # Simple counter
-    '''def count_by(items: list, key_fn) -> dict:
+    """def count_by(items: list, key_fn) -> dict:
     counts = {}
     for item in items:
         k = key_fn(item)
         counts[k] = counts.get(k, 0) + 1
     return counts
-''',
+""",
     # Moving average
-    '''def moving_average(values: list, window: int) -> list:
+    """def moving_average(values: list, window: int) -> list:
     if window < 1 or not values:
         return []
     result = []
@@ -147,9 +166,9 @@ _CLEAN_FUNCTIONS = [
         window_vals = values[start : i + 1]
         result.append(sum(window_vals) / len(window_vals))
     return result
-''',
+""",
     # Normalize scores
-    '''def normalize(values: list) -> list:
+    """def normalize(values: list) -> list:
     if not values:
         return []
     lo = min(values)
@@ -158,7 +177,7 @@ _CLEAN_FUNCTIONS = [
     if span == 0:
         return [0.5] * len(values)
     return [(v - lo) / span for v in values]
-''',
+""",
 ]
 
 # ------------------------------------------------------------------
@@ -253,7 +272,7 @@ class SyntheticGenerator:
         jargon = self._rng.sample(_JARGON_POOL, 5)
         parts.append(
             f'"""\n{jargon[0].capitalize()} {jargon[1]} system.\n'
-            f'Implements {jargon[2]} {jargon[3]} architecture\n'
+            f"Implements {jargon[2]} {jargon[3]} architecture\n"
             f'with {jargon[4]} processing.\n"""\n'
         )
 
@@ -286,9 +305,11 @@ class SyntheticGenerator:
         # 4. God function (always present in slop)
         suffix = self._rng.randint(1000, 9999)
         j = self._rng.sample(_JARGON_POOL, 4)
-        parts.append(_SLOP_GOD_FN_TEMPLATE.format(
-            suffix=suffix, jargon1=j[0], jargon2=j[1], jargon3=j[2], jargon4=j[3]
-        ))
+        parts.append(
+            _SLOP_GOD_FN_TEMPLATE.format(
+                suffix=suffix, jargon1=j[0], jargon2=j[1], jargon3=j[2], jargon4=j[3]
+            )
+        )
 
         # 5. Bare except (50% chance)
         if self._rng.random() < 0.6:
@@ -305,7 +326,7 @@ class SyntheticGenerator:
         # 8. Cross-language mistake (40% chance)
         if self._rng.random() < 0.4:
             mistake = self._rng.choice(_CROSS_LANG_MISTAKES)
-            parts.append(f'\ndef cross_lang_{suffix}():\n    items = []\n    {mistake}\n')
+            parts.append(f"\ndef cross_lang_{suffix}():\n    items = []\n    {mistake}\n")
 
         return "\n".join(parts)
 
@@ -317,8 +338,14 @@ class SyntheticGenerator:
         parts: List[str] = []
 
         # 1. Minimal module docstring (no jargon)
-        topics = ["string utilities", "list helpers", "math utilities",
-                  "file helpers", "dict utilities", "data processing"]
+        topics = [
+            "string utilities",
+            "list helpers",
+            "math utilities",
+            "file helpers",
+            "dict utilities",
+            "data processing",
+        ]
         parts.append(f'"""Utility functions for {self._rng.choice(topics)}."""\n')
 
         # 2. Only imports that will actually be used
@@ -338,11 +365,14 @@ class SyntheticGenerator:
 
         # 4. Add os/re usage if those were imported
         if use_os:
-            parts.append('def get_env(key: str, default: str = "") -> str:\n'
-                         '    return os.environ.get(key, default)\n')
+            parts.append(
+                'def get_env(key: str, default: str = "") -> str:\n'
+                "    return os.environ.get(key, default)\n"
+            )
         if use_re:
-            parts.append('def extract_digits(text: str) -> list:\n'
-                         '    return re.findall(r"\\d+", text)\n')
+            parts.append(
+                "def extract_digits(text: str) -> list:\n" '    return re.findall(r"\\d+", text)\n'
+            )
 
         return "\n".join(parts)
 

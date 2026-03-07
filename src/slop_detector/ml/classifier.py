@@ -77,7 +77,7 @@ class SlopClassifier:
     FEATURE_NAMES = [
         # Core metrics (v2.8.0 formula)
         "ldr_score",
-        "inflation_score",       # renamed from bcr_score; density-based v2.8.0
+        "inflation_score",  # renamed from bcr_score; density-based v2.8.0
         "ddc_score",
         # Pattern severity counts
         "pattern_count_critical",

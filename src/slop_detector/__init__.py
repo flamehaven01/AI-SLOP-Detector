@@ -34,6 +34,6 @@ __all__ = [
     "SlopGateDecision",
     "FixEngine",
     "FixResult",
-    "MLScore",       # v2.8.0
-    "MLScorer",      # v2.8.0
+    "MLScore",  # v2.8.0
+    "MLScorer",  # v2.8.0
 ]

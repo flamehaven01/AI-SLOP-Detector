@@ -17,7 +17,6 @@ import math
 from dataclasses import dataclass, field
 from typing import List, Mapping, Optional, Tuple
 
-
 HALT_THRESHOLD_LDR = 0.60
 HALT_THRESHOLD_DDC = 0.50
 HALT_THRESHOLD_INFLATION = 1.5
@@ -35,11 +34,11 @@ class SlopGateDecision:
     """
 
     allowed: bool
-    status: str                          # "PASS" | "HALT"
+    status: str  # "PASS" | "HALT"
     halt_reason: Optional[str]
     failed_conditions: Tuple[str, ...]
     metrics_snapshot: Mapping[str, float]  # sr9, di2, jsd, ove required
-    audit_hash: str                       # sha256 of metrics payload
+    audit_hash: str  # sha256 of metrics payload
     recommendation: Optional[str] = None
     contract_version: str = "1.0"
 
@@ -144,9 +143,7 @@ class SlopGate:
         if ddc_ratio < self.ddc_threshold:
             failed.append(f"ddc={ddc_ratio:.3f} < threshold={self.ddc_threshold}")
         if math.isfinite(inflation_score) and inflation_score > self.inflation_threshold:
-            failed.append(
-                f"inflation={inflation_score:.3f} > threshold={self.inflation_threshold}"
-            )
+            failed.append(f"inflation={inflation_score:.3f} > threshold={self.inflation_threshold}")
         if pattern_penalty > self.pattern_threshold:
             failed.append(
                 f"pattern_penalty={pattern_penalty:.1f} > threshold={self.pattern_threshold}"

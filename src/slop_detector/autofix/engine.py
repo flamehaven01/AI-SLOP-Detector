@@ -31,10 +31,10 @@ class FixChange:
     """A single line-level fix applied to source."""
 
     pattern_id: str
-    line: int               # 1-based
+    line: int  # 1-based
     original: str
     replacement: str
-    confidence: float       # 0.0-1.0
+    confidence: float  # 0.0-1.0
 
 
 @dataclass
@@ -59,7 +59,9 @@ class FixResult:
         lines = [f"File: {self.file_path}"]
         lines.append(f"  Fixed: {self.change_count} issues")
         for ch in self.changes:
-            lines.append(f"  [L{ch.line}] {ch.pattern_id}: {ch.original.strip()!r} -> {ch.replacement.strip()!r}")
+            lines.append(
+                f"  [L{ch.line}] {ch.pattern_id}: {ch.original.strip()!r} -> {ch.replacement.strip()!r}"
+            )
         if self.unfixable:
             lines.append(f"  Unfixable (manual): {', '.join(self.unfixable)}")
         return "\n".join(lines)
@@ -79,6 +81,7 @@ def _register(pattern_id: str):
     def decorator(fn: Patcher) -> Patcher:
         _PATCHERS[pattern_id] = fn
         return fn
+
     return decorator
 
 
@@ -230,6 +233,7 @@ def _fix_csharp_to_upper(lines: List[str], idx: int, issue) -> Optional[FixChang
 # Engine
 # ------------------------------------------------------------------
 
+
 class FixEngine:
     """
     Applies auto-fixes to a file based on detected pattern Issues.
@@ -333,8 +337,7 @@ class FixEngine:
         results = []
         for file_path, issues in file_analyses:
             fixable = [
-                i for i in issues
-                if getattr(i, "pattern_id", "") not in self.UNFIXABLE_PATTERNS
+                i for i in issues if getattr(i, "pattern_id", "") not in self.UNFIXABLE_PATTERNS
             ]
             if not fixable:
                 continue
