@@ -2,77 +2,62 @@
   <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/AI%20SLop%20DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
 </p>
 
-# AI-SLOP Detector v2.9.0
+<h1 align="center">AI-SLOP Detector</h1>
 
+<p align="center">
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/dm/ai-slop-detector.svg" alt="PyPI downloads"/></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
+  <br/>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-188%20passed-brightgreen.svg" alt="Tests"/></a>
+  <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-82%25-brightgreen.svg" alt="Coverage"/></a>
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
+</p>
 
-[![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-183%20passed-brightgreen.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](htmlcov/)
+<p align="center"><b>Catches the slop that AI produces — before it reaches production.</b></p>
 
-**Catches the slop that AI produces — before it reaches production.**
-
-The problem isn't that AI writes code. The problem is the specific class of defects
-AI reliably introduces: unimplemented stubs, disconnected pipelines, unreachable
-structures, and buzzword-heavy noise that looks like substance.
-
-AI-SLOP Detector surfaces these patterns through evidence-based static analysis.
-It doesn't care whether the author is human, Claude, Cursor, or a custom agent.
-**The code speaks for itself.**
+<p align="center">
+The problem isn't that AI writes code.<br/>
+The problem is the specific class of defects AI reliably introduces:<br/>
+unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy noise.<br/>
+<br/>
+<b>The code speaks for itself.</b>
+</p>
 
 ---
 
-**Quick Navigation:**
+**Navigation:**
 [Quick Start](#quick-start) •
 [What's New v2.9.0](#whats-new-in-v290) •
-[Architecture](#architecture-overview) •
-[Math Models](docs/MATH_MODELS.md) •
-[Patterns](docs/PATTERNS.md) •
-[Phantom Import](docs/PHANTOM_IMPORT.md) •
-[History Tracking](docs/HISTORY_TRACKING.md) •
-[Configuration](docs/CONFIGURATION.md) •
-[CLI Usage](docs/CLI_USAGE.md) •
-[CI/CD Integration](docs/CI_CD.md)
+[What It Detects](#what-it-detects) •
+[Scoring Model](#scoring-model) •
+[History Tracking](#history-tracking) •
+[CI/CD](#cicd-integration) •
+[Docs](docs/) •
+[Changelog](CHANGELOG.md)
 
 ---
 
 ## Quick Start
 
 ```bash
-# Install from PyPI
 pip install ai-slop-detector
 
-# Analyze a single file
-slop-detector mycode.py
+slop-detector mycode.py               # single file
+slop-detector --project ./src         # entire project
+slop-detector mycode.py --json        # machine-readable output
+slop-detector --project . --ci-mode hard --ci-report  # CI gate
 
-# Scan entire project
-slop-detector --project ./src
+# Optional extras
+pip install "ai-slop-detector[js]"     # JS/TS tree-sitter analysis
+pip install "ai-slop-detector[ml]"     # ML secondary signal
+pip install "ai-slop-detector[ml-data]"  # real training data pipeline
 
-# With JS/TS support
-pip install "ai-slop-detector[js]"
-slop-detector --project ./src --js
-
-# With ML secondary signal
-pip install "ai-slop-detector[ml]"
-slop-detector mycode.py --json   # ml_score included in output when model present
-
-# CI/CD Integration (Soft mode - PR comments only)
-slop-detector --project ./src --ci-mode soft --ci-report
-
-# CI/CD Integration (Hard mode - fail build on issues)
-slop-detector --project ./src --ci-mode hard --ci-report
-
-# Generate JSON report
-slop-detector mycode.py --json --output report.json
-
-# List all available patterns (includes Python Advanced in v2.8)
-slop-detector mycode.py --list-patterns
-
-# History tracking (v2.9.0) - auto-recorded on every run
-slop-detector mycode.py --show-history    # file trend over time
-slop-detector --history-trends            # project-wide daily trends
-slop-detector --export-history history.jsonl  # export for ML training
+# uvx (no install required)
+uvx ai-slop-detector mycode.py
 ```
 
 <p align="center">
@@ -83,43 +68,36 @@ slop-detector --export-history history.jsonl  # export for ML training
 
 ## What's New in v2.9.0
 
-### PhantomImportPattern — Hallucinated Package Detection
+### `phantom_import` — Hallucinated Package Detection (CRITICAL)
 
 AI models sometimes generate plausible-sounding but non-existent package names.
-`phantom_import` catches them at analysis time — before they cause a runtime `ModuleNotFoundError`.
+This catches them before they become a runtime `ModuleNotFoundError`.
 
 ```python
-# These would be flagged CRITICAL:
-import tensorflow_utils        # does not exist
-from requests_async_v2 import get  # does not exist
-import numpy_extended          # does not exist
+import tensorflow_magic         # CRITICAL — does not exist
+from requests_async_v2 import get  # CRITICAL — does not exist
 
-# These pass:
-import numpy                   # installed
-from os.path import join        # stdlib
-from . import utils             # relative — excluded by design
+import numpy                    # OK — installed
+from os.path import join         # OK — stdlib
+from . import utils              # OK — relative, excluded by design
 ```
 
-Resolution checks (in order):
-1. `sys.builtin_module_names` — C extensions
-2. `sys.stdlib_module_names` — standard library (Python 3.10+)
-3. `importlib.metadata.packages_distributions()` — pip-installed
-4. `importlib.util.find_spec` — namespace packages, editable installs
+Resolution order: `sys.builtin_module_names` → `sys.stdlib_module_names` →
+`importlib.metadata.packages_distributions()` → `importlib.util.find_spec`
 
-**ID:** `phantom_import` | **Severity:** CRITICAL | **Axis:** QUALITY
+Full spec: [docs/PHANTOM_IMPORT.md](docs/PHANTOM_IMPORT.md)
 
 ---
 
 ### History Auto-Tracking
 
-Every run is automatically recorded to `~/.slop-detector/history.db`.
-Run it 10 times a day and watch the trends emerge.
+Every run is recorded to `~/.slop-detector/history.db` automatically.
 
 ```bash
-slop-detector mycode.py --show-history    # per-file trend
-slop-detector --history-trends            # 7-day project aggregate
-slop-detector --export-history data.jsonl # ML training export
-slop-detector mycode.py --no-history      # opt-out
+slop-detector mycode.py --show-history     # per-file trend
+slop-detector --history-trends             # 7-day project aggregate
+slop-detector --export-history data.jsonl  # ML training export
+slop-detector mycode.py --no-history       # opt-out
 ```
 
 ```
@@ -134,534 +112,151 @@ History: src/mymodule.py
   Trend (3 runs): improved  delta=-42.0
 ```
 
-The accumulated history is the project's quality memory — and the foundation
-for ML model training independent of the rule-based scoring system.
+Full spec: [docs/HISTORY_TRACKING.md](docs/HISTORY_TRACKING.md)
 
 ---
 
-## What's New in v2.8.0
+## What It Detects
 
-### Rebuilt Mathematical Foundations
+**25 patterns across 5 categories.** Full catalog: [docs/PATTERNS.md](docs/PATTERNS.md)
 
-The three core scoring formulas have been redesigned from first principles.
-Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+| Category | Patterns | Signal |
+|---|---|---|
+| **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
+| **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement` | Anti-patterns |
+| **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_print`, `csharp_length`, `php_strlen` | Wrong-language syntax |
+| **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `lint_escape` | Structural complexity |
+| **Phantom** | `phantom_import` | Hallucinated packages |
 
-#### Inflation Score (ICR) — Complexity as Amplifier
+Beyond patterns, three metric axes are computed per file:
 
-Prior to v2.8.0, complexity *divided* the jargon penalty — a god function
-could hide its jargon behind its own complexity. Now complexity multiplies it:
-
-```
-density   = unjustified_jargon / max(logic_lines, 1)
-modifier  = max(1.0, 1.0 + (avg_complexity - 3.0) / 10.0)
-inflation = min(density * modifier * 10.0, 10.0)
-```
-
-A function with cyclomatic complexity 13 receives **2x** the density penalty
-vs. a simple function with the same jargon count. Complexity >= 3 amplifies;
-complexity never reduces the penalty.
-
-#### Status — Single Monotonic Axis
-
-Status is now determined entirely by `deficit_score`:
-
-```
-deficit_score >= 70  -->  CRITICAL_DEFICIT
-deficit_score >= 50  -->  INFLATED_SIGNAL
-deficit_score >= 30  -->  SUSPICIOUS
-else                 -->  CLEAN
-```
-
-Two supplementary overrides apply after: critical pattern count (>= 5 on
-CLEAN files → SUSPICIOUS) and DDC ratio (< 0.20 → DEPENDENCY_NOISE).
-Overrides can only raise status, never lower it.
-
-#### Project LDR — SR9 Conservative Aggregation
-
-```
-project_ldr = 0.6 * min(file_ldrs) + 0.4 * mean(file_ldrs)
-```
-
-Worst-file weighted 60% (SR9 principle) prevents one clean majority from
-masking a severely degraded file.
-
-#### Function-Scoped Jargon Justification
-
-Jargon justification scope changed from **file-level** to **function-level**.
-A single `import torch` at the top of a file no longer justifies AI jargon
-across every function — each function must contain its own justifier within
-its scope (including decorator lines).
+| Metric | What it measures |
+|---|---|
+| **LDR** (Logic Density Ratio) | `logic_lines / total_lines` — code vs. whitespace/comments |
+| **ICR** (Inflation) | `jargon_density × complexity_modifier` — buzzword weight |
+| **DDC** (Dependency Check) | `used_imports / total_imports` — import utilization |
 
 ---
 
-### Python Advanced Patterns (AST)
+## Scoring Model
 
-Three new structural patterns using Python `ast` module:
-
-| Pattern       | Trigger                                       | Severity |
-|---------------|-----------------------------------------------|----------|
-| `god_function`| logic_lines > 50 OR cyclomatic complexity > 10 | HIGH    |
-| `dead_code`   | statements after return/raise/break/continue  | MEDIUM   |
-| `deep_nesting`| control-flow depth > 4                        | HIGH     |
-
-Cyclomatic complexity: `1 + count(If, For, While, ExceptHandler, With, BoolOp)`
-
-Nesting depth is computed recursively over `If/For/While/With/Try` bodies.
-Dead code detection recurses into `orelse`, `finalbody`, and handler bodies.
-
-### JS/TS Tree-Sitter Analysis
-
-```bash
-pip install "ai-slop-detector[js]"
-slop-detector src/ --js
+```
+deficit_score = w_ldr×(1−ldr) + w_icr×icr_norm + w_ddc×(1−ddc) + pattern_penalty
 ```
 
-Full AST-based analysis: god functions, dead code, callback hell, cyclomatic
-complexity, `var` usage, `any` type annotations. Graceful fallback to regex
-when tree-sitter is not installed.
+| Score | Status |
+|---|---|
+| >= 70 | `CRITICAL_DEFICIT` |
+| >= 50 | `INFLATED_SIGNAL` |
+| >= 30 | `SUSPICIOUS` |
+| < 30 | `CLEAN` |
 
-### ML Secondary Signal (Optional)
+Project aggregation uses SR9 conservative weighting:
+`project_ldr = 0.6 × min(file_ldrs) + 0.4 × mean(file_ldrs)`
 
-```bash
-pip install "ai-slop-detector[ml]"
-```
+Full mathematical specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+
+---
+
+## History Tracking
+
+The history database is the foundation for longitudinal quality analysis.
+Files that improve from `deficit=42` to `deficit=0` over multiple runs
+provide an independent training signal for the ML pipeline.
 
 ```python
-detector = SlopDetector(model_path=Path("models/slop_classifier.pkl"))
-result = detector.analyze_file("mycode.py")
-# result.ml_score.slop_probability, .confidence, .label, .agreement
+from slop_detector.history import HistoryTracker
+
+tracker = HistoryTracker()
+regression = tracker.detect_regression("src/api.py", current_score=55.0)
+trends = tracker.get_project_trends(days=7)
+count = tracker.export_jsonl("training.jsonl")  # → DatasetLoader.load_jsonl()
 ```
 
-16-feature RandomForest/XGBoost classifier. Returns `None` silently when no
-model file is present — zero cost for users who don't need ML.
-
-Agreement: `(deficit_score >= 30) == (slop_probability >= 0.40)`
-
----
-
-### Previous: v2.7.0 — VS Code Extension Upgrade
-
-- Docstring inflation diagnostics, evidence claim validation, hallucination
-  dependency detection, pattern fix suggestions, lint-on-type debounce
-
----
-
-## What is AI Slop?
-
-**AI Slop** refers to code patterns commonly produced by AI code generators that lack substance:
-
-<p align="center">
-  <img src="docs/assets/detection-categories.png" alt="6 Detection Categories" width="900"/>
-</p>
-
-### Pattern 1: Placeholder Code
-```python
-def quantum_encode(self, data):
-    """Apply quantum encoding with advanced algorithms."""
-    pass  # [CRITICAL] Empty implementation
-
-def process_data(self):
-    """Process data comprehensively."""
-    raise NotImplementedError  # [HIGH] Unimplemented
-```
-
-**Detection:** 14 placeholder patterns (empty except, NotImplementedError, pass, ellipsis, return None, etc.)
-
-### Pattern 2: Buzzword Inflation
-```python
-class EnterpriseProcessor:
-    """
-    Production-ready, enterprise-grade, highly scalable processor
-    with fault-tolerant architecture and comprehensive error handling.
-    """
-    def process(self, data):
-        return data + 1  # [CRITICAL] Claims without evidence
-```
-
-**Detection:** Cross-validates claims like "production-ready" against actual evidence (error handling, logging, tests, etc.)
-
-### Pattern 3: Docstring Inflation
-```python
-def add(a, b):
-    """
-    Sophisticated addition algorithm with advanced optimization.
-
-    This function implements a state-of-the-art arithmetic operation
-    using enterprise-grade validation and comprehensive error handling
-    with production-ready reliability guarantees.
-
-    Args:
-        a: First operand with advanced type validation
-        b: Second operand with enterprise-grade checking
-
-    Returns:
-        Optimized sum with comprehensive quality assurance
-    """
-    return a + b  # [WARNING] 12 lines of docs, 1 line of code
-```
-
-**Detection:** Ratio analysis (docstring lines / implementation lines)
-
-### Pattern 4: Hallucinated Dependencies
-```python
-# [CRITICAL] 10 unused purpose-specific imports detected
-import torch  # ML: never used
-import tensorflow as tf  # ML: never used
-import requests  # HTTP: never used
-import sqlalchemy  # Database: never used
-
-def process():
-    return "hello"  # None of the imports are actually used
-```
-
-**Detection:** Categorizes imports by purpose (ML, HTTP, database) and validates usage
-
----
-
-## Architecture Overview
-
-AI-SLOP Detector v2.8.0 uses a **multi-dimensional analysis engine** with an
-optional ML secondary signal:
-
-```mermaid
-graph TD
-    A[Python / JS / TS Code] --> B[Core Metrics v2.8]
-    B --> C[Pattern Detection v2.8]
-    C --> D[Evidence Validation v2.2]
-    D --> E[Deficit Score Composition]
-    E --> F[Status: Monotonic Axis]
-    F --> G[Report + Questions]
-    E --> H[ML Secondary Signal v2.8]
-    H --> G
-
-    B1[LDR: logic_lines / total_lines<br/>ICR: density x complexity_modifier<br/>DDC: used / imported]
-    C1[Placeholder 14 patterns<br/>Structural 4 patterns<br/>Cross-language 6 patterns<br/>Python Advanced 3 patterns NEW]
-    D1[Function-Scoped Jargon v2.8<br/>Docstring Inflation<br/>Hallucination Dependencies]
-    E1[w_ldr x 1-ldr + w_icr x icr_norm<br/>+ w_ddc x 1-ddc + pattern_penalty<br/>x 100 = deficit_score 0-100]
-    F1[>=70 CRITICAL_DEFICIT<br/>>=50 INFLATED_SIGNAL<br/>>=30 SUSPICIOUS<br/>else CLEAN]
-    H1[16-feature RF/XGBoost<br/>slop_probability in 0-1<br/>agreement vs rule-based<br/>optional - zero cost if absent]
-
-    B -.-> B1
-    C -.-> C1
-    D -.-> D1
-    E -.-> E1
-    F -.-> F1
-    H -.-> H1
-
-    style A fill:#e1f5ff,color:#000
-    style G fill:#ffe1e1,color:#000
-    style B fill:#f0f0f0,color:#000
-    style C fill:#f0f0f0,color:#000
-    style D fill:#f0f0f0,color:#000
-    style E fill:#f0f0f0,color:#000
-    style F fill:#f0f0f0,color:#000
-    style H fill:#e8f5e9,color:#000
-```
-
-For the complete mathematical specification of each formula, see
-[docs/MATH_MODELS.md](docs/MATH_MODELS.md).
-
-<p align="center">
-  <img src="docs/assets/architecture.png" alt="Architecture Diagram" width="900"/>
-</p>
-
----
-
-## Core Features
-
-### 1. Context-Based Jargon Detection
-
-Validates quality claims against actual codebase evidence:
-
-```python
-# Claims "production-ready" but missing:
-# - error_handling
-# - logging
-# - tests
-# - input_validation
-# - config_management
-
-# [CRITICAL] "production-ready" claim lacks 5/5 required evidence
-```
-
-**Evidence tracked (15 types):**
-
-| Category | Evidence Types | Detection Signals |
-|----------|----------------|-------------------|
-| **Testing** | Unit tests | test functions, test files, test directories |
-| | Integration tests | tests/integration path, pytest markers, TestClient/testcontainers |
-| **Quality Assurance** | Error handling | try/except with non-empty handlers |
-| | Logging | actual logger usage, not just imports |
-| | Input validation | isinstance, type checks, assertions |
-| | Documentation | meaningful docstrings |
-| **Configuration** | Config management | settings, .env, yaml references |
-| | Monitoring | prometheus, statsd, sentry |
-| **Security** | Security measures | auth, encryption, sanitization |
-| **Performance** | Caching | @cache, redis, memcache |
-| | Async support | async/await usage |
-| | Optimization | vectorization, memoization |
-| **Reliability** | Retry logic | @retry, backoff, circuit breaker |
-| **Architecture** | Design patterns | Factory, Singleton, Observer |
-| | Advanced algorithms | complexity >= 10 |
-
-### 2. Docstring Inflation Analysis
-
-Detects documentation-heavy, implementation-light functions:
-
-```python
-Ratio = docstring_lines / implementation_lines
-
-CRITICAL: ratio >= 2.0  (2x more docs than code)
-WARNING:  ratio >= 1.0  (more docs than code)
-INFO:     ratio >= 0.5  (substantial docs)
-PASS:     ratio <  0.5  (balanced or code-heavy)
-```
-
-### 3. Placeholder Pattern Catalog
-
-14 patterns detecting unfinished/scaffolded code:
-
-**Critical Severity:**
-- Empty exception handlers (`except: pass`)
-- Bare except blocks
-
-**High Severity:**
-- `raise NotImplementedError`
-- Ellipsis placeholders (`...`)
-- HACK comments
-
-**Medium Severity:**
-- `return None` placeholders
-- Interface-only classes (75%+ placeholder methods)
-
-**Low Severity:**
-- `pass` statements
-- TODO/FIXME comments
-
-### 4. Hallucination Dependencies
-
-Categorizes imports by purpose and validates usage:
-
-**12 Categories tracked:**
-- ML: torch, tensorflow, keras, transformers
-- Vision: cv2, PIL, imageio
-- HTTP: requests, httpx, aiohttp, flask
-- Database: sqlalchemy, pymongo, redis
-- Async: asyncio, trio, anyio
-- Data: pandas, polars, dask
-- Serialization: json, yaml, toml
-- Testing: pytest, unittest, mock
-- Logging: logging, loguru, structlog
-- CLI: argparse, click, typer, rich
-- Cloud: boto3, google-cloud, azure
-- Security: cryptography, jwt, passlib
-
-### 5. Question Generation UX
-
-Converts findings into actionable review questions:
-
-```
-CRITICAL QUESTIONS:
-1. Only 14% of quality claims are backed by evidence.
-   Are these marketing buzzwords without substance?
-
-2. Claims like "fault-tolerant", "scalable" have ZERO supporting evidence.
-   Where are the tests, error handling, and other indicators?
-
-WARNING QUESTIONS:
-3. (Line 4) "production-ready" claim lacks: error_handling, logging, tests.
-   Only 20% of required evidence present.
-
-4. Function "process" has 15 lines of docstring but only 2 lines of implementation.
-   Is this AI-generated documentation without substance?
-
-5. Why import "torch" for machine learning but never use it?
-   Was this AI-generated boilerplate?
-```
-
-### 6. CI Gate 3-Tier System
-
-Progressive enforcement for CI/CD pipelines:
-
-**Soft Mode (Informational):**
-```bash
-slop-detector --project . --ci-mode soft --ci-report
-# Posts PR comment, never fails build
-# Use for: visibility, onboarding
-```
-
-**Hard Mode (Strict):**
-```bash
-slop-detector --project . --ci-mode hard --ci-report
-# Fails build if deficit_score >= 70 or critical_patterns >= 3
-# Exit code 1 on failure
-# Use for: production branches
-```
-
-**Quarantine Mode (Gradual):**
-```bash
-slop-detector --project . --ci-mode quarantine --ci-report
-# Tracks repeat offenders in .slop_quarantine.json
-# Escalates to FAIL after 3 violations
-# Use for: gradual rollout
-```
-
-**GitHub Action Example:**
-```yaml
-- name: Quality Gate
-  run: |
-    pip install ai-slop-detector
-    slop-detector --project . --ci-mode quarantine --ci-report
-```
-
----
-
-## CLI Usage
-
-```bash
-# Single file
-slop-detector mycode.py
-
-# Project scan
-slop-detector --project ./src
-
-# CI/CD Integration
-slop-detector --project . --ci-mode hard --ci-report
-
-# With custom config
-slop-detector --project ./src --config .slopconfig.yaml
-```
-
-📖 **[Complete CLI Reference →](docs/CLI_USAGE.md)**
-
----
-
-## Configuration
-
-Create `.slopconfig.yaml` for custom thresholds:
-
-```yaml
-weights:
-  ldr: 0.40        # Logic Density Ratio
-  inflation: 0.35  # Jargon Detection
-  ddc: 0.25        # Dependency Check
-
-thresholds:
-  ldr:
-    critical: 0.30
-    warning: 0.60
-```
-
-⚙️ **[Full Configuration Guide →](docs/CONFIGURATION.md)**
+[Full documentation →](docs/HISTORY_TRACKING.md)
 
 ---
 
 ## CI/CD Integration
 
 ```bash
-# Soft mode - informational only
+# Soft — informational, never fails build
 slop-detector --project . --ci-mode soft --ci-report
 
-# Hard mode - fail build on issues
+# Hard — fails build at deficit_score >= 70 or critical_patterns >= 3
 slop-detector --project . --ci-mode hard --ci-report
 
-# Claim-based enforcement (v2.6.2)
-slop-detector --project . --ci-mode hard --ci-claims-strict
+# Quarantine — escalates repeat offenders after 3 violations
+slop-detector --project . --ci-mode quarantine --ci-report
 ```
 
-🚦 **[CI/CD Integration Guide →](docs/CI_CD.md)**
+**GitHub Actions:**
+```yaml
+- name: Slop Gate
+  run: |
+    pip install ai-slop-detector
+    slop-detector --project . --ci-mode hard --ci-report
+```
+
+[CI/CD Integration Guide →](docs/CI_CD.md)
+
+---
+
+## Configuration
+
+```yaml
+# .slopconfig.yaml
+weights:
+  ldr: 0.40
+  inflation: 0.35
+  ddc: 0.25
+
+thresholds:
+  ldr:
+    critical: 0.30
+    warning: 0.60
+
+disabled_patterns:
+  - lint_escape  # opt-out specific patterns
+```
+
+[Full Configuration Guide →](docs/CONFIGURATION.md)
 
 ---
 
 ## VS Code Extension
 
-Real-time analysis in VS Code with inline diagnostics, debounced lint-on-type, and full CLI output surface.
+Real-time inline diagnostics, debounced lint-on-type, ML score in status bar.
 
-Install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector) or locally via `code --install-extension vscode-slop-detector-2.7.0.vsix`.
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector)
+or build locally: `cd vscode-extension && vsce package`
 
 ---
 
-## Development & Contributing
-
-Contributions welcome! Quick setup:
+## Development
 
 ```bash
 git clone https://github.com/flamehaven01/AI-SLOP-Detector.git
 cd AI-SLOP-Detector
 pip install -e ".[dev]"
 pytest tests/ -v --cov
+black src/ tests/
+ruff check src/ tests/
 ```
 
-**Guidelines:** 80%+ coverage • Tests required • Follow code style
-
-👨‍💻 **[Development Guide →](docs/DEVELOPMENT.md)**
+[Development Guide →](docs/DEVELOPMENT.md)
 
 ---
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE).
 
 ---
 
-## Citation
-
-If you use AI-SLOP Detector in research, please cite:
-
-```bibtex
-@software{ai_slop_detector,
-  title = {AI-SLOP Detector: Evidence-Based Static Analysis for AI-Generated Code},
-  author = {Flamehaven},
-  year = {2024},
-  version = {2.7.0},
-  url = {https://github.com/flamehaven01/AI-SLOP-Detector}
-}
-```
-
----
-
-## Acknowledgments
-
-- Built with Python 3.8+
-- AST analysis powered by Python's `ast` module
-- Pattern detection inspired by traditional linters
-- Evidence validation methodology developed in-house
-- Thanks to the open-source community
-
----
-
-## Roadmap
-
-**v2.8 (Current):**
-- [x] Inflation formula redesign — complexity as amplifier
-- [x] Monotonic status axis (single deficit_score threshold)
-- [x] SR9 conservative project LDR aggregation
-- [x] Function-scoped jargon justification
-- [x] Python Advanced patterns: god_function, dead_code, deep_nesting
-- [x] JS/TS tree-sitter AST analysis (`[js]` extra)
-- [x] ML secondary signal — RandomForest/XGBoost (`[ml]`, `[ml-full]` extras)
-- [x] docs/MATH_MODELS.md — formal mathematical specification
-
-**v2.9 (Planned Q2 2026):**
-- [ ] Real training data pipeline (GitHub corpus sampling)
-- [ ] Enhanced CI/CD integrations (GitLab CI, CircleCI)
-- [ ] Custom pattern DSL for user-defined rules
-- [ ] Real-time analysis daemon mode
-
-**v3.0 (Planned Q3 2026):**
-- [ ] Auto-fix suggestions with confidence scores
-- [ ] IDE plugins (PyCharm, IntelliJ)
-- [ ] Team analytics dashboard
-- [ ] Enterprise features (SSO, RBAC)
-
----
-
-## Support
-
-- **Documentation:** [docs/](docs/)
-- **Issues:** [GitHub Issues](https://github.com/flamehaven01/AI-SLOP-Detector/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/flamehaven01/AI-SLOP-Detector/discussions)
-
----
-
-**Made with ❤️ by Flamehaven | Detecting AI slop since 2024**
+<p align="center">
+  <b>Flamehaven Labs</b> •
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues">Issues</a> •
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/discussions">Discussions</a> •
+  <a href="docs/">Docs</a>
+</p>
