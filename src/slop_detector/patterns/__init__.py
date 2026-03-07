@@ -37,10 +37,11 @@ def get_all_patterns() -> list[BasePattern]:
         TodoCommentPattern,
         XXXCommentPattern,
     )
-    from slop_detector.patterns.python_advanced import (  # v2.8.0
+    from slop_detector.patterns.python_advanced import (  # v2.8.0+
         DeadCodePattern,
         DeepNestingPattern,
         GodFunctionPattern,
+        LintEscapePattern,
     )
     from slop_detector.patterns.structural import (
         BareExceptPattern,
@@ -73,8 +74,9 @@ def get_all_patterns() -> list[BasePattern]:
         GoPrintPattern(),
         CSharpLengthPattern(),
         PHPStrlenPattern(),
-        # Python Advanced (v2.8.0)
+        # Python Advanced (v2.8.0+)
         GodFunctionPattern(),
         DeadCodePattern(),
         DeepNestingPattern(),
+        LintEscapePattern(),
     ]

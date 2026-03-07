@@ -193,7 +193,7 @@ class MLPipeline:
             PipelineReport with metrics and feature importance.
         """
         try:
-            from slop_detector.ml.classifier import SlopClassifier  # noqa: F401
+            from slop_detector.ml.classifier import SlopClassifier
         except ImportError as e:
             raise RuntimeError(f"Pipeline dependencies missing: {e}") from e
 
