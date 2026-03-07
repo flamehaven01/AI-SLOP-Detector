@@ -51,6 +51,12 @@ ml-full = [
     "numpy>=1.24.0",
     "xgboost>=2.0.0",
 ]
+# Real training data from HuggingFace public datasets
+ml-data = [
+    "scikit-learn>=1.3.0",
+    "numpy>=1.24.0",
+    "datasets>=2.9.0",
+]
 api = [
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
@@ -64,6 +70,7 @@ full = [
     "scikit-learn>=1.3.0",
     "numpy>=1.24.0",
     "xgboost>=2.0.0",
+    "datasets>=2.9.0",
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.5.0",
@@ -141,6 +148,6 @@ ignore_errors = true
 module = [
     "yaml", "radon.*", "jwt",
     "tree_sitter", "tree_sitter_javascript", "tree_sitter_typescript",
-    "xgboost", "sklearn.*", "numpy",
+    "xgboost", "sklearn.*", "numpy", "datasets",
 ]
 ignore_missing_imports = true
