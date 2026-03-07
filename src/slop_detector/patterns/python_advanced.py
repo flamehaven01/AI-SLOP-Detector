@@ -1,18 +1,20 @@
 """
-Python Advanced Structural Patterns (v2.8.0)
+Python Advanced Structural Patterns (v2.8.0 / v2.9.0)
 
-God function, dead code, and deep nesting detection.
-Uses AST for precise analysis — no regex approximation.
+God function, dead code, deep nesting, and lint escape detection.
+Uses AST for structural analysis; line scanning for comment-based patterns.
 
 Thresholds:
   GOD_FUNCTION_LINES       = 50  (lines in a single function)
   GOD_FUNCTION_COMPLEXITY  = 10  (cyclomatic complexity)
   DEEP_NESTING_THRESHOLD   = 4   (control flow nesting depth)
+  LINT_ESCAPE_BARE_LIMIT   = 1   (bare # noqa before HIGH; 0 = first occurrence)
 """
 
 from __future__ import annotations
 
 import ast
+import re
 from pathlib import Path
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
@@ -24,6 +26,12 @@ from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 GOD_FUNCTION_LINES = 50
 GOD_FUNCTION_COMPLEXITY = 10
 DEEP_NESTING_THRESHOLD = 4
+
+# Regex patterns for lint-escape detection (comment-based, not AST)
+_NOQA_BARE = re.compile(r"#\s*noqa\s*$", re.IGNORECASE)
+_NOQA_SPECIFIC = re.compile(r"#\s*noqa\s*:\s*[\w,\s]+", re.IGNORECASE)
+_TYPE_IGNORE = re.compile(r"#\s*type\s*:\s*ignore", re.IGNORECASE)
+_PYLINT_DISABLE = re.compile(r"#\s*pylint\s*:\s*disable\s*=", re.IGNORECASE)
 
 # AST node types that contribute to cyclomatic complexity (+1 each)
 _BRANCH_NODES = (
@@ -263,6 +271,111 @@ class DeepNestingPattern(BasePattern):
                             "Extract nested blocks into helper functions. "
                             "Use early-return / guard clauses to reduce nesting."
                         ),
+                    )
+                )
+
+        return issues
+
+
+class LintEscapePattern(BasePattern):
+    """Detect lint and type suppression comments used to silence tooling.
+
+    AI-generated code frequently uses suppression comments to pass CI
+    without actually fixing the underlying issue.  Three distinct signals:
+
+    1. Bare ``# noqa`` (no rule code)  — HIGH
+       The most egregious form: silences ALL warnings on the line with no
+       indication of what was suppressed or why.
+
+    2. Specific ``# noqa: CODE`` — LOW
+       Targeted suppression.  Legitimate in some cases (long URLs, re-exports),
+       but suspicious in large quantities or on logic-heavy lines.
+
+    3. ``# type: ignore`` / ``# pylint: disable=`` — MEDIUM
+       Type and style tool suppression.  Occasionally valid, often used to
+       hide real type errors that the model could not resolve.
+
+    Scoring rationale: bare noqa is significantly worse than specific noqa
+    because it provides no documentation of *what* was wrong or *why* the
+    suppression is intentional.
+    """
+
+    id = "lint_escape"
+    severity = Severity.HIGH  # overridden per occurrence below
+    axis = Axis.QUALITY
+    message = "Lint suppression comment hides potential issue"
+
+    def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
+        issues: list[Issue] = []
+        lines = content.splitlines()
+
+        for lineno, raw in enumerate(lines, start=1):
+            # Skip comment-only lines and blank lines — focus on code lines
+            stripped = raw.lstrip()
+            if not stripped or stripped.startswith("#"):
+                continue
+
+            if _NOQA_BARE.search(raw):
+                # Bare # noqa — highest severity
+                issues.append(
+                    self.create_issue(
+                        file=file,
+                        line=lineno,
+                        column=raw.find("#"),
+                        message="Bare '# noqa' suppresses ALL linter warnings on this line",
+                        suggestion=(
+                            "Fix the underlying lint error instead of suppressing it. "
+                            "If suppression is truly necessary, specify the rule: "
+                            "# noqa: E501"
+                        ),
+                        severity_override=Severity.HIGH,
+                    )
+                )
+            elif _NOQA_SPECIFIC.search(raw):
+                # Specific # noqa: CODE — lower severity, targeted
+                code_match = _NOQA_SPECIFIC.search(raw)
+                code = code_match.group(0).split(":", 1)[-1].strip() if code_match else "?"
+                issues.append(
+                    self.create_issue(
+                        file=file,
+                        line=lineno,
+                        column=raw.find("#"),
+                        message=f"Lint suppression: # noqa: {code}",
+                        suggestion=(
+                            "Verify this suppression is intentional and document why "
+                            "the underlying issue cannot be fixed."
+                        ),
+                        severity_override=Severity.LOW,
+                    )
+                )
+
+            if _TYPE_IGNORE.search(raw):
+                issues.append(
+                    self.create_issue(
+                        file=file,
+                        line=lineno,
+                        column=raw.find("#"),
+                        message="Type error suppressed with '# type: ignore'",
+                        suggestion=(
+                            "Resolve the type error with a proper annotation or cast. "
+                            "# type: ignore hides real bugs from static analysis."
+                        ),
+                        severity_override=Severity.MEDIUM,
+                    )
+                )
+
+            if _PYLINT_DISABLE.search(raw):
+                issues.append(
+                    self.create_issue(
+                        file=file,
+                        line=lineno,
+                        column=raw.find("#"),
+                        message="Pylint check disabled inline",
+                        suggestion=(
+                            "Fix the pylint warning rather than disabling it. "
+                            "Inline disables are harder to audit than .pylintrc entries."
+                        ),
+                        severity_override=Severity.MEDIUM,
                     )
                 )
 

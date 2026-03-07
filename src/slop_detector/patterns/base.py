@@ -74,11 +74,12 @@ class BasePattern(ABC):
         code: Optional[str] = None,
         message: Optional[str] = None,
         suggestion: Optional[str] = None,
+        severity_override: Optional[Severity] = None,
     ) -> Issue:
         """Create an issue from this pattern."""
         return Issue(
             pattern_id=self.id,
-            severity=self.severity,
+            severity=severity_override if severity_override is not None else self.severity,
             axis=self.axis,
             file=file,
             line=line,
