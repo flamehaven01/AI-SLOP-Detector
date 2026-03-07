@@ -40,7 +40,8 @@ class HistoryTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
@@ -55,17 +56,22 @@ class HistoryTracker:
                 git_branch TEXT,
                 UNIQUE(timestamp, file_path)
             )
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_file_path
             ON history(file_path)
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_timestamp
             ON history(timestamp DESC)
-        """)
+        """
+        )
 
         conn.commit()
         conn.close()
@@ -237,13 +243,15 @@ class HistoryTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT timestamp, file_path, file_hash, slop_score,
                    ldr_score, bcr_score, ddc_usage_ratio, grade,
                    git_commit, git_branch
             FROM history
             ORDER BY timestamp DESC
-        """)
+        """
+        )
 
         rows = cursor.fetchall()
         conn.close()
