@@ -1,0 +1,27 @@
+# Force LF line endings for all text files
+* text=auto eol=lf
+
+# Python source — always LF (prevents black CRLF failures on Windows CI)
+*.py text eol=lf
+
+# Docs / config
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+
+# Shell
+*.sh text eol=lf
+
+# Binaries — no conversion
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.vsix binary
+*.pkl binary
+*.db binary
