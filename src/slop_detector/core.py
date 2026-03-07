@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import fnmatch
 import logging
 from pathlib import Path
 from typing import List, Optional
@@ -18,13 +19,21 @@ from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
 
 logger = logging.getLogger(__name__)
+DEFAULT_EXCLUDE_PARTS = {".venv", "venv", "site-packages", "node_modules", "__pycache__", ".git"}
 
 
 class SlopDetector:
     """Main SLOP detection engine with v2.1 pattern support."""
 
-    def __init__(self, config_path: Optional[str] = None):
-        """Initialize detector with config."""
+    def __init__(self, config_path: Optional[str] = None, model_path: Optional[str] = None):
+        """Initialize detector with config.
+
+        Args:
+            config_path: Path to .slopconfig.yaml (optional).
+            model_path:  Path to trained ML model .pkl (optional).
+                         Defaults to "models/slop_classifier.pkl" if not specified.
+                         ML scoring is silently disabled when the file is absent.
+        """
         self.config = Config(config_path)
         self.ldr_calc = LDRCalculator(self.config)
         self.inflation_calc = InflationCalculator(self.config)
@@ -41,6 +50,12 @@ class SlopDetector:
         disabled = self.config.get("patterns.disabled", [])
         for pattern_id in disabled:
             self.pattern_registry.disable(pattern_id)
+
+        # v2.8.0: Optional ML scorer — loads silently, fails silently
+        from pathlib import Path as _Path
+        from slop_detector.ml.scorer import MLScorer as _MLScorer
+        _mp = _Path(model_path) if model_path else _Path("models/slop_classifier.pkl")
+        self._ml_scorer = _MLScorer.from_model(_mp)
 
     def analyze_file(self, file_path: str) -> FileAnalysis:
         """
@@ -94,7 +109,7 @@ class SlopDetector:
             ldr, inflation, ddc, pattern_issues
         )
 
-        return FileAnalysis(
+        result = FileAnalysis(
             file_path=file_path,
             ldr=ldr,
             inflation=inflation,
@@ -108,6 +123,12 @@ class SlopDetector:
             context_jargon=context_jargon,  # v2.2
             ignored_functions=ignored_functions,  # v2.6.3
         )
+
+        # v2.8.0: Attach ML secondary score if model is loaded
+        if self._ml_scorer is not None:
+            result.ml_score = self._ml_scorer.score(result)
+
+        return result
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """
@@ -149,9 +170,14 @@ class SlopDetector:
         slop_files = sum(1 for r in results if r.status != SlopStatus.CLEAN)
         clean_files = total_files - slop_files
 
-        # Simple average
+        # Simple average for deficit score
         avg_deficit_score = sum(r.deficit_score for r in results) / total_files
-        avg_ldr = sum(r.ldr.ldr_score for r in results) / total_files
+
+        # v2.8.0: SR9-inspired conservative LDR aggregation
+        # SR9 = 0.6*min + 0.4*mean — gives more weight to worst-case file
+        # Prevents bad files from being diluted by the average
+        ldr_scores = [r.ldr.ldr_score for r in results]
+        avg_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / total_files)
         avg_inflation = sum(
             r.inflation.inflation_score
             for r in results
@@ -383,19 +409,27 @@ class SlopDetector:
         if high_patterns:
             warnings.append(f"PATTERNS: {len(high_patterns)} high-severity issues found")
 
-        # Determine status
+        # v2.8.0: Monotonic single-axis status determination (TOE gate principle)
+        # Primary axis: deficit_score is the authoritative measure.
+        # Supplementary overrides are explicit, documented, and threshold-gated.
         if deficit_score >= 70:
             status = SlopStatus.CRITICAL_DEFICIT
-        elif len(critical_patterns) >= 3:  # v2.1: Multiple critical patterns
-            status = SlopStatus.CRITICAL_DEFICIT
-        elif inflation.inflation_score > 1.0:
+        elif deficit_score >= 50:
             status = SlopStatus.INFLATED_SIGNAL
-        elif ddc.usage_ratio < 0.50:
-            status = SlopStatus.DEPENDENCY_NOISE
         elif deficit_score >= 30:
             status = SlopStatus.SUSPICIOUS
         else:
             status = SlopStatus.CLEAN
+
+        # Supplementary override 1: extreme critical pattern density
+        # 5+ critical patterns is unambiguous slop regardless of score
+        if len(critical_patterns) >= 5 and status == SlopStatus.CLEAN:
+            status = SlopStatus.SUSPICIOUS
+
+        # Supplementary override 2: near-zero import usage (structural issue)
+        # Below 20% is a signal that cannot be masked by clean metric scores
+        if ddc.usage_ratio < 0.20 and status in (SlopStatus.CLEAN, SlopStatus.SUSPICIOUS):
+            status = SlopStatus.DEPENDENCY_NOISE
 
         return deficit_score, status, warnings
 
@@ -422,8 +456,18 @@ class SlopDetector:
 
     def _should_ignore(self, file_path: Path, patterns: List[str]) -> bool:
         """Check if file matches any ignore pattern."""
+        lowered_parts = {part.lower() for part in file_path.parts}
+        if lowered_parts & DEFAULT_EXCLUDE_PARTS:
+            return True
+
+        normalized = str(file_path).replace("\\", "/")
         for pattern in patterns:
-            if file_path.match(pattern):
+            pat = str(pattern).replace("\\", "/")
+            if file_path.match(pat):
+                return True
+            if fnmatch.fnmatch(normalized, pat):
+                return True
+            if pat.startswith("**/") and fnmatch.fnmatch(normalized, pat[3:]):
                 return True
         return False
 

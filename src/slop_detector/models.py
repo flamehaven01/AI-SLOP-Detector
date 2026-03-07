@@ -123,6 +123,7 @@ class FileAnalysis:
     hallucination_deps: Any = None  # v2.2: Hallucinated dependencies
     context_jargon: Any = None  # v2.2: Context-based jargon validation
     ignored_functions: List[IgnoredFunction] = field(default_factory=list)  # v2.6.3
+    ml_score: Any = None  # v2.8.0: Optional ML secondary signal (MLScore | None)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -158,6 +159,12 @@ class FileAnalysis:
             )
         if self.ignored_functions:
             result["ignored_functions"] = [f.to_dict() for f in self.ignored_functions]
+        if self.ml_score is not None:
+            result["ml_score"] = (
+                self.ml_score.to_dict()
+                if hasattr(self.ml_score, "to_dict")
+                else self.ml_score
+            )
         return result
 
 

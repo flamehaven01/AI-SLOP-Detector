@@ -7,6 +7,102 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.0] - 2026-03-07
+
+### Added
+
+#### Python Advanced Pattern Detectors (AST-based)
+- **`god_function`** (HIGH): flags functions where `logic_lines > 50` OR
+  `cyclomatic_complexity > 10`. Complexity computed as
+  `1 + count(If, For, While, ExceptHandler, With, BoolOp)`.
+- **`dead_code`** (MEDIUM): detects statements after terminal nodes
+  (`return`, `raise`, `break`, `continue`) in any block, including `orelse`,
+  `finalbody`, and exception handler bodies.
+- **`deep_nesting`** (HIGH): detects control-flow nesting depth > 4.
+  Depth is computed recursively over `If/For/While/With/Try` bodies.
+- New file: `src/slop_detector/patterns/python_advanced.py`
+- `patterns/__init__.py` registers all three via `get_all_patterns()`
+
+#### JS/TS Tree-Sitter Analysis (`[js]` extra)
+- Full AST-based analysis: cyclomatic complexity, god function, dead code,
+  callback hell detection — replaces regex-based heuristics when tree-sitter
+  is available
+- `FunctionMetrics` dataclass: per-function complexity, max depth, is_god_function
+- `JSFileAnalysis` extended with: `function_metrics`, `max_complexity`,
+  `god_function_count`, `dead_code_count`, `ast_mode`
+- Graceful fallback to regex when `tree-sitter` is not installed
+
+#### ML Secondary Signal (`[ml]` extra)
+- `MLScore` dataclass: `slop_probability`, `confidence`, `model_type`,
+  `agreement`, `features_used`
+- `MLScorer.from_model(path)` — returns `None` silently on missing model
+  or missing scikit-learn; zero import overhead without the extra installed
+- `FileAnalysis.ml_score` field (v2.8.0, `Any = None`)
+- `SlopDetector.__init__` accepts optional `model_path: Path` parameter
+- `MLScore.label` property: `"slop"` (>= 0.70), `"uncertain"` (>= 0.40),
+  `"clean"` (< 0.40)
+- Agreement: `(deficit_score >= 30) == (slop_probability >= 0.40)`
+- New file: `src/slop_detector/ml/scorer.py`
+- `MLScore`, `MLScorer` exported from `slop_detector.__init__`
+
+#### CLI Improvements
+- `print_rich_report()` single-file panel: Pattern Issues section (severity-
+  sorted, top 10 + overflow count), Advanced summary (`N god-fn, N dead-code,
+  N deep-nest`), ML Score section (probability, confidence, model_type,
+  agreement) — shown only when model is present
+- `list_patterns()` now includes "Python Advanced" category
+
+#### VS Code Extension
+- Summary diagnostic message includes ML score when `result.ml_score` present
+- Status bar tooltip includes ML confidence and label
+- New pattern IDs (`god_function`, `dead_code`, `deep_nesting`) automatically
+  appear as diagnostics via existing generic `pattern_id` code handler
+
+#### Documentation
+- `docs/MATH_MODELS.md` — comprehensive mathematical specification of all
+  scoring formulas, thresholds, SR9 aggregation, AST models, ML feature
+  vector, and formula change history
+
+#### Packaging
+- New extras: `js`, `ml-full`, `full`
+- `ml` extra no longer includes xgboost (moved to `ml-full`)
+- `requires-python` raised from `>=3.8` to `>=3.9`
+
+### Changed
+
+#### Inflation Score Formula (ICR) — Breaking
+- Complexity now **amplifies** jargon penalty (`max(1.0, 1+(cc-3)/10)`)
+  instead of dividing it
+- Formula: `min((jargon/logic_lines) * complexity_modifier * 10, 10.0)`
+- A function with complexity=13 receives 2x penalty vs. complexity=3
+
+#### Status Determination — Breaking
+- Single monotonic axis on `deficit_score` replaces multi-branch logic
+- `INFLATED_SIGNAL` threshold: `deficit_score >= 50`
+- `SUSPICIOUS` threshold: `deficit_score >= 30`
+- `CRITICAL_DEFICIT` threshold: `deficit_score >= 70`
+- Two supplementary overrides: critical-pattern count and DDC ratio
+
+#### Project LDR — SR9 Conservative Aggregation
+- `project_ldr = 0.6 * min(file_ldrs) + 0.4 * mean(file_ldrs)`
+- Worst file weighted 60% to prevent masking by majority of clean files
+
+#### Jargon Justification — Function-Scoped
+- Justification scope changed from file-level to per-function scope
+- Scope includes decorator lines (`scope_start = min(decorator.lineno)`)
+- One import no longer justifies jargon across the entire file
+
+#### ML Feature Vector
+- `bcr_score` renamed to `inflation_score`
+- 3 new features added: `god_function_count`, `dead_code_count`,
+  `deep_nesting_count`
+- Total: 16 features (was 13)
+
+#### `MLScore.to_dict()` — Python 3.14 Compatibility
+- Explicit `bool()`, `float()`, `int()` casts for JSON serialization
+
+---
+
 ## [2.7.0] - 2026-02-12
 
 ### Added - VS Code Extension v2.7.0
