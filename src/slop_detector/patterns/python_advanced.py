@@ -417,7 +417,7 @@ def _get_resolvable_modules() -> FrozenSet[str]:
 
     # 3. Installed distributions — maps top-level import names to dist names
     try:
-        from importlib.metadata import packages_distributions
+        from importlib.metadata import packages_distributions  # type: ignore[attr-defined]
 
         for top_level_names in packages_distributions().values():
             for name in top_level_names:
