@@ -352,6 +352,7 @@ def expensive_function(n):
 # _ANNOTATION_ONLY_MODULES false-positive regression tests
 # ---------------------------------------------------------------------------
 
+
 def test_future_annotations_not_unused(ddc_calc):
     """from __future__ import annotations must never appear in unused."""
     code = """
@@ -364,9 +365,9 @@ def get(p: Path) -> Path:
     tree = ast.parse(code)
     result = ddc_calc.calculate("test.py", code, tree)
 
-    assert "__future__" not in result.unused, (
-        "__future__ falsely flagged as unused (PEP-563 false positive)"
-    )
+    assert (
+        "__future__" not in result.unused
+    ), "__future__ falsely flagged as unused (PEP-563 false positive)"
     assert "__future__" in result.type_checking_imports
 
 
@@ -382,9 +383,9 @@ def process(data: Dict[str, Any]) -> Optional[List[Tuple[str, int]]]:
     tree = ast.parse(code)
     result = ddc_calc.calculate("test.py", code, tree)
 
-    assert "typing" not in result.unused, (
-        "typing falsely flagged as unused when used only in annotations"
-    )
+    assert (
+        "typing" not in result.unused
+    ), "typing falsely flagged as unused when used only in annotations"
     assert "typing" in result.type_checking_imports
 
 
@@ -402,9 +403,7 @@ class Runnable(Protocol):
     tree = ast.parse(code)
     result = ddc_calc.calculate("test.py", code, tree)
 
-    assert "typing_extensions" not in result.unused, (
-        "typing_extensions falsely flagged as unused"
-    )
+    assert "typing_extensions" not in result.unused, "typing_extensions falsely flagged as unused"
 
 
 def test_real_unused_still_detected_after_patch(ddc_calc):
@@ -443,9 +442,9 @@ def env(key: str) -> Optional[str]:
     result = ddc_calc.calculate("test.py", code, tree)
 
     # Only 'os' is a real import; it is used -> ratio = 1.0
-    assert result.usage_ratio == 1.0, (
-        f"Expected 1.0 but got {result.usage_ratio} — annotation modules may be inflating denominator"
-    )
+    assert (
+        result.usage_ratio == 1.0
+    ), f"Expected 1.0 but got {result.usage_ratio} — annotation modules may be inflating denominator"
     assert result.grade == "EXCELLENT"
 
 

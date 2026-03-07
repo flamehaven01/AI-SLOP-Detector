@@ -104,9 +104,7 @@ class InflationCalculator:
         lines = content.splitlines()
 
         # Count logic lines (non-empty, non-comment) for density denominator
-        logic_lines = sum(
-            1 for ln in lines if ln.strip() and not ln.strip().startswith("#")
-        )
+        logic_lines = sum(1 for ln in lines if ln.strip() and not ln.strip().startswith("#"))
 
         # Build function scope map for justification (line -> enclosing function node)
         func_scopes = self._build_function_scopes(tree, lines)
@@ -210,9 +208,7 @@ class InflationCalculator:
 
         return total_complexity / function_count if function_count > 0 else 1.0
 
-    def _build_function_scopes(
-        self, tree: ast.AST, lines: list
-    ) -> dict:
+    def _build_function_scopes(self, tree: ast.AST, lines: list) -> dict:
         """Build mapping of line_number -> (func_start, func_end) for each line.
 
         v2.8.0: Enables function-scoped justification check.

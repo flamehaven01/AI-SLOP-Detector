@@ -11,7 +11,7 @@ authors = [
 ]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 keywords = ["ai", "code-quality", "static-analysis", "slop-detection", "code-review"]
 classifiers = [
     "Development Status :: 4 - Beta",

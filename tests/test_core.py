@@ -207,8 +207,7 @@ def test_calculate_slop_status_thresholds(detector):
 
 def test_weighted_analysis(detector, temp_python_file):
     """Test weighted analysis considers file size."""
-    code = (
-        '''
+    code = '''
 def function_one():
     """First function."""
     return 1
@@ -216,9 +215,7 @@ def function_one():
 def function_two():
     """Second function."""
     return 2
-'''
-        * 10
-    )  # Repeat to make larger file
+''' * 10  # Repeat to make larger file
 
     temp_python_file.write(code)
     temp_python_file.flush()
@@ -288,32 +285,26 @@ def test_analyze_project(detector):
         project_path = Path(tmpdir)
 
         # Create multiple Python files
-        (project_path / "file1.py").write_text(
-            '''
+        (project_path / "file1.py").write_text('''
 def clean_function():
     """Clean implementation."""
     return sum([1, 2, 3])
-'''
-        )
+''')
 
-        (project_path / "file2.py").write_text(
-            '''
+        (project_path / "file2.py").write_text('''
 def empty_function():
     """Empty."""
     pass
-'''
-        )
+''')
 
-        (project_path / "file3.py").write_text(
-            '''
+        (project_path / "file3.py").write_text('''
 import torch
 import sys
 
 def another():
     """Has unused imports."""
     return sys.version
-'''
-        )
+''')
 
         result = detector.analyze_project(str(project_path))
 
@@ -330,19 +321,15 @@ def test_analyze_project_with_ignore_patterns(detector):
         project_path = Path(tmpdir)
 
         # Create files including test files
-        (project_path / "main.py").write_text(
-            """
+        (project_path / "main.py").write_text("""
 def main():
     return "hello"
-"""
-        )
+""")
 
-        (project_path / "test_main.py").write_text(
-            """
+        (project_path / "test_main.py").write_text("""
 def test_main():
     assert True
-"""
-        )
+""")
 
         # Detector should honor default ignore patterns
         result = detector.analyze_project(str(project_path))
@@ -527,16 +514,13 @@ def test_weighted_analysis_enabled(detector):
         project_path = Path(tmpdir)
 
         # Small file with poor quality
-        (project_path / "small.py").write_text(
-            """
+        (project_path / "small.py").write_text("""
 def empty():
     pass
-"""
-        )
+""")
 
         # Large file with good quality
-        large_code = (
-            '''
+        large_code = '''
 def process(data):
     """Process data."""
     result = []
@@ -544,9 +528,7 @@ def process(data):
         if item > 0:
             result.append(item * 2)
     return result
-'''
-            * 10
-        )
+''' * 10
 
         (project_path / "large.py").write_text(large_code)
 
@@ -564,15 +546,13 @@ def test_project_overall_status_calculation(detector):
         project_path = Path(tmpdir)
 
         # Create clean files
-        (project_path / "clean.py").write_text(
-            '''
+        (project_path / "clean.py").write_text('''
 def good_function(x):
     """Good implementation."""
     if x > 0:
         return x * 2
     return 0
-'''
-        )
+''')
 
         result = detector.analyze_project(str(project_path))
 

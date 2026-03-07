@@ -18,7 +18,6 @@ from typing import List, Optional
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
-
 # ------------------------------------------------------------------
 # Configuration
 # ------------------------------------------------------------------
@@ -46,8 +45,15 @@ _TERMINAL_STMTS = (ast.Return, ast.Raise, ast.Break, ast.Continue)
 
 # Compound statement types (have a nested body)
 _COMPOUND_STMTS = (
-    ast.If, ast.For, ast.While, ast.With, ast.AsyncWith,
-    ast.AsyncFor, ast.Try, ast.FunctionDef, ast.AsyncFunctionDef,
+    ast.If,
+    ast.For,
+    ast.While,
+    ast.With,
+    ast.AsyncWith,
+    ast.AsyncFor,
+    ast.Try,
+    ast.FunctionDef,
+    ast.AsyncFunctionDef,
     ast.ClassDef,
 )
 
@@ -55,6 +61,7 @@ _COMPOUND_STMTS = (
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _cyclomatic_complexity(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     """Compute McCabe cyclomatic complexity of a function.
@@ -79,8 +86,9 @@ def _max_nesting_depth(node: ast.AST, depth: int = 0) -> int:
     Depth increases for: if, for, while, with, try, except.
     """
     max_d = depth
-    if isinstance(node, (ast.If, ast.For, ast.While, ast.With,
-                         ast.AsyncWith, ast.AsyncFor, ast.Try)):
+    if isinstance(
+        node, (ast.If, ast.For, ast.While, ast.With, ast.AsyncWith, ast.AsyncFor, ast.Try)
+    ):
         depth += 1
         max_d = depth
 
@@ -126,6 +134,7 @@ def _find_dead_code_in_tree(root: ast.AST) -> list[ast.stmt]:
 # Patterns
 # ------------------------------------------------------------------
 
+
 class GodFunctionPattern(BasePattern):
     """Detect functions that are too large or too complex.
 
@@ -156,8 +165,7 @@ class GodFunctionPattern(BasePattern):
 
             # Count non-blank logic lines within the function
             logic_lines = sum(
-                1 for ln in lines[start - 1 : end]
-                if ln.strip() and not ln.strip().startswith("#")
+                1 for ln in lines[start - 1 : end] if ln.strip() and not ln.strip().startswith("#")
             )
 
             complexity = _cyclomatic_complexity(node)
@@ -172,18 +180,18 @@ class GodFunctionPattern(BasePattern):
                 if is_too_complex:
                     reasons.append(f"complexity={complexity} (limit {GOD_FUNCTION_COMPLEXITY})")
 
-                issues.append(self.create_issue(
-                    file=file,
-                    line=start,
-                    column=node.col_offset,
-                    message=(
-                        f"God function '{node.name}': {', '.join(reasons)}"
-                    ),
-                    suggestion=(
-                        "Break into smaller single-responsibility functions. "
-                        "Each function should do one thing and fit on one screen."
-                    ),
-                ))
+                issues.append(
+                    self.create_issue(
+                        file=file,
+                        line=start,
+                        column=node.col_offset,
+                        message=(f"God function '{node.name}': {', '.join(reasons)}"),
+                        suggestion=(
+                            "Break into smaller single-responsibility functions. "
+                            "Each function should do one thing and fit on one screen."
+                        ),
+                    )
+                )
 
         return issues
 
@@ -209,13 +217,15 @@ class DeadCodePattern(BasePattern):
         for stmt in dead_stmts:
             line = getattr(stmt, "lineno", 0)
             col = getattr(stmt, "col_offset", 0)
-            issues.append(self.create_issue(
-                file=file,
-                line=line,
-                column=col,
-                message=self.message,
-                suggestion="Remove dead code. It is never executed and confuses readers.",
-            ))
+            issues.append(
+                self.create_issue(
+                    file=file,
+                    line=line,
+                    column=col,
+                    message=self.message,
+                    suggestion="Remove dead code. It is never executed and confuses readers.",
+                )
+            )
 
         return issues
 
@@ -242,18 +252,20 @@ class DeepNestingPattern(BasePattern):
 
             depth = _max_nesting_depth(node)
             if depth > DEEP_NESTING_THRESHOLD:
-                issues.append(self.create_issue(
-                    file=file,
-                    line=node.lineno,
-                    column=node.col_offset,
-                    message=(
-                        f"Function '{node.name}' has nesting depth {depth} "
-                        f"(limit {DEEP_NESTING_THRESHOLD})"
-                    ),
-                    suggestion=(
-                        "Extract nested blocks into helper functions. "
-                        "Use early-return / guard clauses to reduce nesting."
-                    ),
-                ))
+                issues.append(
+                    self.create_issue(
+                        file=file,
+                        line=node.lineno,
+                        column=node.col_offset,
+                        message=(
+                            f"Function '{node.name}' has nesting depth {depth} "
+                            f"(limit {DEEP_NESTING_THRESHOLD})"
+                        ),
+                        suggestion=(
+                            "Extract nested blocks into helper functions. "
+                            "Use early-return / guard clauses to reduce nesting."
+                        ),
+                    )
+                )
 
         return issues

@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
 CR_EP_VERSION = "2.7.2"
 _SEVERITY_RISK = {"critical": 0.9, "high": 0.6, "medium": 0.3, "low": 0.1}
 
@@ -30,8 +29,8 @@ class AnalysisSession:
     """
 
     project_path: Path
-    mode: str = "standard"             # nano | lite | standard | full
-    trust_tier: str = "PEER"           # HUMAN | PEER | UNTRUSTED
+    mode: str = "standard"  # nano | lite | standard | full
+    trust_tier: str = "PEER"  # HUMAN | PEER | UNTRUSTED
     declared_why: str = "Detect AI-generated code quality issues"
 
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -69,9 +68,7 @@ class AnalysisSession:
         }
         self._events.append(event)
         if gate_decision:
-            self._gate_decisions.append(
-                {"file": file_path, "gate": gate_decision}
-            )
+            self._gate_decisions.append({"file": file_path, "gate": gate_decision})
 
     def record_fix_applied(self, file_path: str, pattern_id: str, line: int) -> None:
         """Record an auto-fix event."""
@@ -85,9 +82,7 @@ class AnalysisSession:
             }
         )
 
-    def record_enforcement(
-        self, rule: str, result: str, detail: str = ""
-    ) -> None:
+    def record_enforcement(self, rule: str, result: str, detail: str = "") -> None:
         """Record a governance enforcement action."""
         self._enforcement_log.append(
             {
@@ -148,14 +143,10 @@ class AnalysisSession:
         }
         self._write_json("why_gate.json", data)
 
-    def _write_scope_declaration(
-        self, planned: List[str], actual: List[str]
-    ) -> None:
+    def _write_scope_declaration(self, planned: List[str], actual: List[str]) -> None:
         planned_count = len(planned)
         actual_count = len(actual)
-        overshoot = (
-            (actual_count - planned_count) / max(planned_count, 1)
-        )
+        overshoot = (actual_count - planned_count) / max(planned_count, 1)
         data = {
             "depends_on_why_gate": True,
             "why_gate_snapshot_wq1": "Detect AI-generated code quality deficits",
@@ -193,8 +184,7 @@ class AnalysisSession:
             "risk_score": round(risk, 4),
             "scope_variance": len(self._events),
             "drift_events": [
-                e for e in self._events if e.get("status") in
-                {"suspicious", "critical_deficit"}
+                e for e in self._events if e.get("status") in {"suspicious", "critical_deficit"}
             ],
             "hard_line_conflicts": halt_count,
             "required_revalidation": halt_count > 0,

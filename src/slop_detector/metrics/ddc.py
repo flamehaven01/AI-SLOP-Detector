@@ -12,11 +12,13 @@ from slop_detector.models import DDCResult
 # annotations are lazily evaluated strings, so their imports are invisible to
 # a runtime usage scan).  Treating these like TYPE_CHECKING-guarded imports
 # eliminates a systematic false-positive in the DDC usage ratio.
-_ANNOTATION_ONLY_MODULES: frozenset[str] = frozenset({
-    "__future__",        # from __future__ import annotations
-    "typing",            # Optional, Dict, List, Tuple, Any, Union, ...
-    "typing_extensions", # Annotated, Protocol, TypeAlias, ...
-})
+_ANNOTATION_ONLY_MODULES: frozenset[str] = frozenset(
+    {
+        "__future__",  # from __future__ import annotations
+        "typing",  # Optional, Dict, List, Tuple, Any, Union, ...
+        "typing_extensions",  # Annotated, Protocol, TypeAlias, ...
+    }
+)
 
 
 class DDCCalculator:

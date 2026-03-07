@@ -33,9 +33,9 @@ logger = logging.getLogger(__name__)
 class TrainingSample:
     """A single labeled training example."""
 
-    label: int              # 0 = clean, 1 = slop
+    label: int  # 0 = clean, 1 = slop
     features: Dict[str, float]
-    source: str             # "synthetic_slop" | "synthetic_clean" | "real"
+    source: str  # "synthetic_slop" | "synthetic_clean" | "real"
 
 
 @dataclass
@@ -79,9 +79,16 @@ class PipelineReport:
             "n_test": self.n_test,
             "model_type": self.model_type,
             "metrics": {
-                k: {"accuracy": v.accuracy, "precision": v.precision,
-                    "recall": v.recall, "f1_score": v.f1_score}
-                if hasattr(v, "accuracy") else v
+                k: (
+                    {
+                        "accuracy": v.accuracy,
+                        "precision": v.precision,
+                        "recall": v.recall,
+                        "f1_score": v.f1_score,
+                    }
+                    if hasattr(v, "accuracy")
+                    else v
+                )
                 for k, v in self.metrics.items()
             },
             "model_path": self.model_path,
@@ -128,9 +135,7 @@ def _extract_features(file_analysis) -> Dict[str, float]:
 
     raw_inflation = getattr(inflation, "inflation_score", 0.0) if inflation else 0.0
     # Normalize inflation to [0, 1]
-    inflation_score = (
-        0.0 if not math.isfinite(raw_inflation) else min(raw_inflation / 2.0, 1.0)
-    )
+    inflation_score = 0.0 if not math.isfinite(raw_inflation) else min(raw_inflation / 2.0, 1.0)
     avg_complexity = getattr(inflation, "avg_complexity", 1.0) if inflation else 1.0
 
     ddc_score = getattr(ddc, "usage_ratio", 1.0) if ddc else 1.0
@@ -200,7 +205,9 @@ class MLPipeline:
 
         logger.info("[Pipeline] Extracting features via SlopDetector...")
         dataset = self._build_dataset(samples)
-        logger.info(f"[Pipeline] Feature dataset ready: {len(dataset['good'])} clean, {len(dataset['bad'])} slop")
+        logger.info(
+            f"[Pipeline] Feature dataset ready: {len(dataset['good'])} clean, {len(dataset['bad'])} slop"
+        )
 
         # Write dataset to temp file
         dataset_path = self.output_dir / "training_data.json"
@@ -248,9 +255,7 @@ class MLPipeline:
         logger.info(f"[Pipeline] Complete. Report: {report_path}")
         return report
 
-    def _generate_samples(
-        self, n_slop: int, n_clean: int
-    ) -> List[TrainingSample]:
+    def _generate_samples(self, n_slop: int, n_clean: int) -> List[TrainingSample]:
         from slop_detector.ml.synthetic_generator import SyntheticGenerator
 
         gen = SyntheticGenerator()
@@ -268,9 +273,7 @@ class MLPipeline:
 
         return samples
 
-    def _build_dataset(
-        self, samples: List[TrainingSample]
-    ) -> Dict[str, List[Dict[str, float]]]:
+    def _build_dataset(self, samples: List[TrainingSample]) -> Dict[str, List[Dict[str, float]]]:
         """
         Analyze each synthetic sample and extract feature vectors.
         Returns {"good": [...], "bad": [...]} format for SlopClassifier.load_dataset.

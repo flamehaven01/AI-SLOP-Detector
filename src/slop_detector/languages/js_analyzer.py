@@ -70,53 +70,60 @@ except Exception:  # pragma: no cover
 # Thresholds
 # ------------------------------------------------------------------
 
-GOD_FUNCTION_LINES = 50        # lines in a single function
-GOD_FUNCTION_COMPLEXITY = 10   # cyclomatic complexity
-GOD_DEPTH_THRESHOLD = 4        # nesting depth for callback hell
+GOD_FUNCTION_LINES = 50  # lines in a single function
+GOD_FUNCTION_COMPLEXITY = 10  # cyclomatic complexity
+GOD_DEPTH_THRESHOLD = 4  # nesting depth for callback hell
 
 # AST node types that contribute +1 to cyclomatic complexity
-_COMPLEXITY_BRANCH_TYPES = frozenset({
-    "if_statement",
-    "while_statement",
-    "do_statement",
-    "for_statement",
-    "for_in_statement",
-    "catch_clause",
-    "switch_case",
-    "ternary_expression",
-})
+_COMPLEXITY_BRANCH_TYPES = frozenset(
+    {
+        "if_statement",
+        "while_statement",
+        "do_statement",
+        "for_statement",
+        "for_in_statement",
+        "catch_clause",
+        "switch_case",
+        "ternary_expression",
+    }
+)
 
 # Logical operators also add branches
 _LOGICAL_OPS = frozenset({"&&", "||", "??"})
 
 # Function node types in tree-sitter JS/TS grammar
-_FUNCTION_NODE_TYPES = frozenset({
-    "function_declaration",
-    "function_expression",
-    "arrow_function",
-    "method_definition",
-    "generator_function_declaration",
-    "generator_function",
-})
+_FUNCTION_NODE_TYPES = frozenset(
+    {
+        "function_declaration",
+        "function_expression",
+        "arrow_function",
+        "method_definition",
+        "generator_function_declaration",
+        "generator_function",
+    }
+)
 
 # Statement types that make subsequent code unreachable
-_TERMINAL_STATEMENTS = frozenset({
-    "return_statement",
-    "throw_statement",
-    "break_statement",
-    "continue_statement",
-})
+_TERMINAL_STATEMENTS = frozenset(
+    {
+        "return_statement",
+        "throw_statement",
+        "break_statement",
+        "continue_statement",
+    }
+)
 
 # ------------------------------------------------------------------
 # Data classes
 # ------------------------------------------------------------------
+
 
 @dataclass
 class JSIssue:
     """A detected issue in a JS/TS file."""
 
     pattern_id: str
-    severity: str          # critical | high | medium | low
+    severity: str  # critical | high | medium | low
     line: int
     column: int
     message: str
@@ -136,6 +143,7 @@ class JSIssue:
 @dataclass
 class FunctionMetrics:
     """Per-function AST metrics."""
+
     name: str
     start_line: int
     end_line: int
@@ -150,7 +158,7 @@ class JSFileAnalysis:
     """Analysis result for a JS/TS file."""
 
     file_path: str
-    language: str           # "javascript" | "typescript"
+    language: str  # "javascript" | "typescript"
     total_lines: int
     code_lines: int
     comment_lines: int
@@ -171,7 +179,7 @@ class JSFileAnalysis:
     max_complexity: int = 0
     god_function_count: int = 0
     dead_code_count: int = 0
-    ast_mode: bool = False      # True if tree-sitter AST was used
+    ast_mode: bool = False  # True if tree-sitter AST was used
 
     # Slop score (0-100, lower is better)
     slop_score: float = 0.0
@@ -230,6 +238,7 @@ _RE_DOUBLE_EQUALS = re.compile(r"(?<![=!<>])==(?!=)")
 # ------------------------------------------------------------------
 # AST helpers
 # ------------------------------------------------------------------
+
 
 def _node_complexity(node: Any) -> int:
     """Recursively compute cyclomatic complexity additions within a node."""
@@ -290,6 +299,7 @@ def _collect_functions(node: Any, depth: int = 0) -> List[Any]:
 # ------------------------------------------------------------------
 # Main analyzer
 # ------------------------------------------------------------------
+
 
 class JSAnalyzer:
     """
@@ -354,8 +364,7 @@ class JSAnalyzer:
         collect_comments(root)
 
         code_lines = sum(
-            1 for i in range(total)
-            if i not in blank_lines_set and i not in comment_lines_set
+            1 for i in range(total) if i not in blank_lines_set and i not in comment_lines_set
         )
 
         issues: List[JSIssue] = []
@@ -377,14 +386,16 @@ class JSAnalyzer:
                 text = (node.text or b"").decode("utf-8", errors="replace")
                 if text.startswith("var "):
                     var_count += 1
-                    issues.append(JSIssue(
-                        pattern_id="js_var_usage",
-                        severity="medium",
-                        line=row,
-                        column=col,
-                        message="var declaration — use let or const",
-                        suggestion="Replace var with let (mutable) or const (immutable)",
-                    ))
+                    issues.append(
+                        JSIssue(
+                            pattern_id="js_var_usage",
+                            severity="medium",
+                            line=row,
+                            column=col,
+                            message="var declaration — use let or const",
+                            suggestion="Replace var with let (mutable) or const (immutable)",
+                        )
+                    )
 
             # console.log / warn / error / info
             elif node.type == "call_expression":
@@ -392,32 +403,40 @@ class JSAnalyzer:
                 if fn and fn.type == "member_expression":
                     obj = fn.child_by_field_name("object")
                     prop = fn.child_by_field_name("property")
-                    if (obj and obj.text == b"console" and prop
-                            and prop.text in (b"log", b"warn", b"error", b"info")):
+                    if (
+                        obj
+                        and obj.text == b"console"
+                        and prop
+                        and prop.text in (b"log", b"warn", b"error", b"info")
+                    ):
                         console_count += 1
                         method = prop.text.decode()
-                        issues.append(JSIssue(
-                            pattern_id="js_console_log",
-                            severity="low",
-                            line=row,
-                            column=col,
-                            message=f"console.{method} in production code",
-                            suggestion="Remove debug logs or use a proper logging library",
-                        ))
+                        issues.append(
+                            JSIssue(
+                                pattern_id="js_console_log",
+                                severity="low",
+                                line=row,
+                                column=col,
+                                message=f"console.{method} in production code",
+                                suggestion="Remove debug logs or use a proper logging library",
+                            )
+                        )
 
             # TypeScript 'any' type
             elif is_ts and node.type == "type_annotation":
                 text = (node.text or b"").decode("utf-8", errors="replace")
                 if ": any" in text or ":any" in text:
                     any_count += 1
-                    issues.append(JSIssue(
-                        pattern_id="js_any_type",
-                        severity="high",
-                        line=row,
-                        column=col,
-                        message="TypeScript 'any' type disables type safety",
-                        suggestion="Use a specific type or 'unknown' with type guards",
-                    ))
+                    issues.append(
+                        JSIssue(
+                            pattern_id="js_any_type",
+                            severity="high",
+                            line=row,
+                            column=col,
+                            message="TypeScript 'any' type disables type safety",
+                            suggestion="Use a specific type or 'unknown' with type guards",
+                        )
+                    )
 
             # Empty arrow function
             elif node.type == "arrow_function":
@@ -426,28 +445,32 @@ class JSAnalyzer:
                     named_children = [c for c in body.children if c.is_named]
                     if not named_children:
                         empty_arrow_count += 1
-                        issues.append(JSIssue(
-                            pattern_id="js_empty_arrow",
-                            severity="medium",
-                            line=row,
-                            column=col,
-                            message="Empty arrow function — placeholder not implemented",
-                            suggestion="Implement the function body or remove it",
-                        ))
+                        issues.append(
+                            JSIssue(
+                                pattern_id="js_empty_arrow",
+                                severity="medium",
+                                line=row,
+                                column=col,
+                                message="Empty arrow function — placeholder not implemented",
+                                suggestion="Implement the function body or remove it",
+                            )
+                        )
 
             # Loose equality (==)
             elif node.type == "binary_expression":
                 op = node.child_by_field_name("operator")
                 if op and op.type == "==":
                     double_eq_count += 1
-                    issues.append(JSIssue(
-                        pattern_id="js_double_equals",
-                        severity="medium",
-                        line=row,
-                        column=op.start_point[1],
-                        message="Loose equality (==) — use strict === instead",
-                        suggestion="Replace == with ===",
-                    ))
+                    issues.append(
+                        JSIssue(
+                            pattern_id="js_double_equals",
+                            severity="medium",
+                            line=row,
+                            column=op.start_point[1],
+                            message="Loose equality (==) — use strict === instead",
+                            suggestion="Replace == with ===",
+                        )
+                    )
 
             for child in node.children:
                 walk(child)
@@ -476,54 +499,62 @@ class JSAnalyzer:
             is_god = fn_lines > GOD_FUNCTION_LINES or complexity > GOD_FUNCTION_COMPLEXITY
             if is_god:
                 god_function_count += 1
-                issues.append(JSIssue(
-                    pattern_id="js_god_function",
-                    severity="high",
-                    line=fn_start,
-                    column=fn_node.start_point[1],
-                    message=(
-                        f"God function '{fn_name}': "
-                        f"{fn_lines} lines, complexity={complexity}"
-                    ),
-                    suggestion="Break into smaller single-responsibility functions",
-                ))
+                issues.append(
+                    JSIssue(
+                        pattern_id="js_god_function",
+                        severity="high",
+                        line=fn_start,
+                        column=fn_node.start_point[1],
+                        message=(
+                            f"God function '{fn_name}': "
+                            f"{fn_lines} lines, complexity={complexity}"
+                        ),
+                        suggestion="Break into smaller single-responsibility functions",
+                    )
+                )
 
             max_complexity = max(max_complexity, complexity)
             max_depth_global = max(max_depth_global, depth)
 
-            function_metrics.append(FunctionMetrics(
-                name=fn_name,
-                start_line=fn_start,
-                end_line=fn_end,
-                line_count=fn_lines,
-                complexity=complexity,
-                max_depth=depth,
-                is_god_function=is_god,
-            ))
+            function_metrics.append(
+                FunctionMetrics(
+                    name=fn_name,
+                    start_line=fn_start,
+                    end_line=fn_end,
+                    line_count=fn_lines,
+                    complexity=complexity,
+                    max_depth=depth,
+                    is_god_function=is_god,
+                )
+            )
 
         # Callback hell: max depth exceeds threshold
         if max_depth_global > GOD_DEPTH_THRESHOLD:
-            issues.append(JSIssue(
-                pattern_id="js_callback_hell",
-                severity="high",
-                line=1,
-                column=0,
-                message=f"Max nesting depth {max_depth_global} — callback hell risk",
-                suggestion="Refactor to async/await or flatten promise chains",
-            ))
+            issues.append(
+                JSIssue(
+                    pattern_id="js_callback_hell",
+                    severity="high",
+                    line=1,
+                    column=0,
+                    message=f"Max nesting depth {max_depth_global} — callback hell risk",
+                    suggestion="Refactor to async/await or flatten promise chains",
+                )
+            )
 
         # Dead code detection
         dead_positions = _find_dead_code(root)
         dead_code_count = len(dead_positions)
         for dead_row, dead_col in dead_positions:
-            issues.append(JSIssue(
-                pattern_id="js_dead_code",
-                severity="medium",
-                line=dead_row,
-                column=dead_col,
-                message="Unreachable code after return/throw/break",
-                suggestion="Remove dead code",
-            ))
+            issues.append(
+                JSIssue(
+                    pattern_id="js_dead_code",
+                    severity="medium",
+                    line=dead_row,
+                    column=dead_col,
+                    message="Unreachable code after return/throw/break",
+                    suggestion="Remove dead code",
+                )
+            )
 
         ldr_equiv = round(code_lines / max(total, 1), 4)
 
@@ -536,9 +567,9 @@ class JSAnalyzer:
         slop_score = round(min(ldr_deficit + pattern_penalty, 100.0), 2)
 
         status = (
-            "critical_deficit" if slop_score >= 50
-            else "suspicious" if slop_score >= 20
-            else "clean"
+            "critical_deficit"
+            if slop_score >= 50
+            else "suspicious" if slop_score >= 20 else "clean"
         )
 
         return JSFileAnalysis(
@@ -611,44 +642,78 @@ class JSAnalyzer:
 
             if _RE_VAR.search(line):
                 var_count += 1
-                issues.append(JSIssue("js_var_usage", "medium", i, line.index("var"),
-                                      "var declaration — use let or const"))
+                issues.append(
+                    JSIssue(
+                        "js_var_usage",
+                        "medium",
+                        i,
+                        line.index("var"),
+                        "var declaration — use let or const",
+                    )
+                )
             m = _RE_CONSOLE_LOG.search(line)
             if m:
                 console_count += 1
-                issues.append(JSIssue("js_console_log", "low", i, m.start(),
-                                      f"console.{m.group(1)} in production code"))
+                issues.append(
+                    JSIssue(
+                        "js_console_log",
+                        "low",
+                        i,
+                        m.start(),
+                        f"console.{m.group(1)} in production code",
+                    )
+                )
             if is_ts:
                 m2 = _RE_ANY_TYPE.search(line)
                 if m2:
                     any_count += 1
-                    issues.append(JSIssue("js_any_type", "high", i, m2.start(),
-                                          "TypeScript 'any' type disables type safety"))
+                    issues.append(
+                        JSIssue(
+                            "js_any_type",
+                            "high",
+                            i,
+                            m2.start(),
+                            "TypeScript 'any' type disables type safety",
+                        )
+                    )
             m3 = _RE_EMPTY_ARROW.search(line)
             if m3:
                 empty_arrow_count += 1
-                issues.append(JSIssue("js_empty_arrow", "medium", i, m3.start(),
-                                      "Empty arrow function — placeholder"))
+                issues.append(
+                    JSIssue(
+                        "js_empty_arrow",
+                        "medium",
+                        i,
+                        m3.start(),
+                        "Empty arrow function — placeholder",
+                    )
+                )
             m4 = _RE_DOUBLE_EQUALS.search(line)
             if m4:
                 double_eq_count += 1
-                issues.append(JSIssue("js_double_equals", "medium", i, m4.start(),
-                                      "Loose equality (==)"))
+                issues.append(
+                    JSIssue("js_double_equals", "medium", i, m4.start(), "Loose equality (==)")
+                )
 
         if max_depth > GOD_DEPTH_THRESHOLD:
-            issues.append(JSIssue("js_callback_hell", "high", 1, 0,
-                                  f"Max nesting depth {max_depth} — callback hell risk"))
+            issues.append(
+                JSIssue(
+                    "js_callback_hell",
+                    "high",
+                    1,
+                    0,
+                    f"Max nesting depth {max_depth} — callback hell risk",
+                )
+            )
 
         ldr_equiv = round(code / max(total, 1), 4)
-        pattern_penalty = min(
-            sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues), 50.0
-        )
+        pattern_penalty = min(sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues), 50.0)
         ldr_deficit = max(0.0, (0.70 - ldr_equiv) * 50)
         slop_score = round(min(ldr_deficit + pattern_penalty, 100.0), 2)
         status = (
-            "critical_deficit" if slop_score >= 50
-            else "suspicious" if slop_score >= 20
-            else "clean"
+            "critical_deficit"
+            if slop_score >= 50
+            else "suspicious" if slop_score >= 20 else "clean"
         )
 
         return JSFileAnalysis(

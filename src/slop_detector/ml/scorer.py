@@ -33,11 +33,11 @@ logger = logging.getLogger(__name__)
 class MLScore:
     """ML-based slop probability for a single file."""
 
-    slop_probability: float   # [0, 1]: probability of being slop
-    confidence: float         # [0, 1]: model confidence (max class probability)
-    model_type: str           # "random_forest" | "xgboost" | "ensemble"
-    agreement: bool           # True if ML and rule-based scores agree
-    features_used: int        # number of features the model was fed
+    slop_probability: float  # [0, 1]: probability of being slop
+    confidence: float  # [0, 1]: model confidence (max class probability)
+    model_type: str  # "random_forest" | "xgboost" | "ensemble"
+    agreement: bool  # True if ML and rule-based scores agree
+    features_used: int  # number of features the model was fed
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -88,9 +88,7 @@ def _extract_features_from_analysis(file_analysis: Any) -> Dict[str, float]:
     empty_lines = float(getattr(ldr, "empty_lines", 0) if ldr else 0)
 
     raw_inflation = getattr(inflation, "inflation_score", 0.0) if inflation else 0.0
-    inflation_score = (
-        0.0 if not math.isfinite(raw_inflation) else min(raw_inflation / 2.0, 1.0)
-    )
+    inflation_score = 0.0 if not math.isfinite(raw_inflation) else min(raw_inflation / 2.0, 1.0)
     avg_complexity = getattr(inflation, "avg_complexity", 1.0) if inflation else 1.0
     ddc_score = getattr(ddc, "usage_ratio", 1.0) if ddc else 1.0
 
@@ -142,6 +140,7 @@ class MLScorer:
 
         try:
             from slop_detector.ml.classifier import SlopClassifier
+
             clf = SlopClassifier.__new__(SlopClassifier)
             clf.load(model_path)
             logger.info("[MLScorer] Loaded model from %s", model_path)

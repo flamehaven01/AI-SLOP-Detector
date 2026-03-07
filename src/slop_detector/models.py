@@ -161,9 +161,7 @@ class FileAnalysis:
             result["ignored_functions"] = [f.to_dict() for f in self.ignored_functions]
         if self.ml_score is not None:
             result["ml_score"] = (
-                self.ml_score.to_dict()
-                if hasattr(self.ml_score, "to_dict")
-                else self.ml_score
+                self.ml_score.to_dict() if hasattr(self.ml_score, "to_dict") else self.ml_score
             )
         return result
 

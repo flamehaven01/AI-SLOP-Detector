@@ -47,15 +47,13 @@ def clean_file_analysis():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            '''
+        f.write('''
 def good_function(x):
     """Well-implemented function."""
     if x > 0:
         return x * 2
     return 0
-'''
-        )
+''')
         f.flush()
         temp_file = f.name
 
@@ -71,8 +69,7 @@ def failing_file_analysis():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 def empty1():
     pass
 
@@ -81,8 +78,7 @@ def empty2():
 
 def empty3():
     pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -230,21 +226,17 @@ def test_project_analysis_soft_mode(gate_soft):
         project_path = Path(tmpdir)
 
         # Create test files
-        (project_path / "good.py").write_text(
-            """
+        (project_path / "good.py").write_text("""
 def good():
     return sum([1, 2, 3])
-"""
-        )
+""")
 
-        (project_path / "bad.py").write_text(
-            """
+        (project_path / "bad.py").write_text("""
 def empty1():
     pass
 def empty2():
     pass
-"""
-        )
+""")
 
         project_result = detector.analyze_project(str(project_path))
         gate_result = gate_soft.evaluate(project_result)
@@ -261,14 +253,12 @@ def test_project_analysis_hard_mode(gate_hard):
         project_path = Path(tmpdir)
 
         # Create mostly good files
-        (project_path / "good1.py").write_text(
-            """
+        (project_path / "good1.py").write_text("""
 def process(x):
     if x > 0:
         return x * 2
     return 0
-"""
-        )
+""")
 
         project_result = detector.analyze_project(str(project_path))
         gate_result = gate_hard.evaluate(project_result)
@@ -302,12 +292,10 @@ def test_gate_result_pr_comment(gate_soft):
     with tempfile.TemporaryDirectory() as tmpdir:
         project_path = Path(tmpdir)
 
-        (project_path / "test.py").write_text(
-            """
+        (project_path / "test.py").write_text("""
 def func():
     return 42
-"""
-        )
+""")
 
         project_result = detector.analyze_project(str(project_path))
         gate_result = gate_soft.evaluate(project_result)
@@ -321,12 +309,10 @@ def test_quarantine_mode_tracking(gate_quarantine):
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 def empty():
     pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -345,12 +331,10 @@ def test_gate_handles_syntax_error():
     gate = CIGate(mode=GateMode.SOFT)
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 def broken(
     pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -373,16 +357,14 @@ def test_quarantine_mode_escalation():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 def empty1():
     pass
 def empty2():
     pass
 def empty3():
     pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -423,8 +405,7 @@ def test_quarantine_project_evaluation():
         detector = SlopDetector()
 
         # Create multiple bad files with very high deficit
-        (project_path / "bad1.py").write_text(
-            """
+        (project_path / "bad1.py").write_text("""
 def empty1():
     pass
 def empty2():
@@ -435,19 +416,16 @@ def empty4():
     pass
 def empty5():
     pass
-"""
-        )
+""")
 
-        (project_path / "bad2.py").write_text(
-            """
+        (project_path / "bad2.py").write_text("""
 def empty6():
     pass
 def empty7():
     pass
 def empty8():
     pass
-"""
-        )
+""")
 
         # Analyze project multiple times
         for _ in range(3):
@@ -466,8 +444,7 @@ def test_hard_mode_fails_on_critical_patterns():
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         # Create code with multiple bare except (critical patterns)
-        f.write(
-            """
+        f.write("""
 def bad1():
     try:
         x()
@@ -485,8 +462,7 @@ def bad3():
         z()
     except:
         pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -510,16 +486,14 @@ def test_hard_mode_fails_on_high_inflation():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            '''
+        f.write('''
 def buzzword():
     """State-of-the-art neural network transformer with
     cutting-edge deep learning Byzantine fault-tolerant
     cloud-native microservices architecture for enterprise-grade
     mission-critical deployments leveraging advanced algorithms."""
     pass
-'''
-        )
+''')
         f.flush()
         temp_file = f.name
 
@@ -540,8 +514,7 @@ def test_hard_mode_fails_on_low_ddc():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 import torch
 import tensorflow as tf
 import keras
@@ -549,8 +522,7 @@ import numpy as np
 
 def simple():
     return 42
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -592,12 +564,10 @@ def test_pr_comment_generation_file():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 def empty():
     pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -620,19 +590,15 @@ def test_pr_comment_generation_project():
     with tempfile.TemporaryDirectory() as tmpdir:
         project_path = Path(tmpdir)
 
-        (project_path / "good.py").write_text(
-            """
+        (project_path / "good.py").write_text("""
 def good():
     return sum([1, 2, 3])
-"""
-        )
+""")
 
-        (project_path / "bad.py").write_text(
-            """
+        (project_path / "bad.py").write_text("""
 def empty():
     pass
-"""
-        )
+""")
 
         project_result = detector.analyze_project(str(project_path))
 
@@ -661,12 +627,10 @@ def test_pr_comment_quarantine_files():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 def empty():
     pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -756,12 +720,10 @@ def test_update_quarantine_file_analysis():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            """
+        f.write("""
 def empty():
     pass
-"""
-        )
+""")
         f.flush()
         temp_file = f.name
 
@@ -787,12 +749,10 @@ def test_update_quarantine_project_analysis():
         project_path = Path(tmpdir)
         test_file = project_path / "test.py"
 
-        test_file.write_text(
-            """
+        test_file.write_text("""
 def empty():
     pass
-"""
-        )
+""")
 
         project_result = detector.analyze_project(str(project_path))
 
@@ -810,14 +770,12 @@ def test_check_file_thresholds_warn_conditions():
     detector = SlopDetector()
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(
-            '''
+        f.write('''
 def somewhat_empty():
     """Has some content but not much."""
     x = 1
     pass
-'''
-        )
+''')
         f.flush()
         temp_file = f.name
 
@@ -840,12 +798,10 @@ def test_pr_comment_many_files():
 
         # Create many files
         for i in range(15):
-            (project_path / f"file{i}.py").write_text(
-                f"""
+            (project_path / f"file{i}.py").write_text(f"""
 def empty{i}():
     pass
-"""
-            )
+""")
 
         project_result = detector.analyze_project(str(project_path))
 
