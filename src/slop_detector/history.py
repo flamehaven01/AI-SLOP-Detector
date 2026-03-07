@@ -79,10 +79,10 @@ class HistoryTracker:
         existing = {row[1] for row in conn.execute("PRAGMA table_info(history)")}
         migrations = {
             "inflation_score": "ALTER TABLE history ADD COLUMN inflation_score REAL NOT NULL DEFAULT 0.0",
-            "pattern_count":   "ALTER TABLE history ADD COLUMN pattern_count INTEGER NOT NULL DEFAULT 0",
-            "ldr_score":       "ALTER TABLE history ADD COLUMN ldr_score REAL NOT NULL DEFAULT 0.0",
+            "pattern_count": "ALTER TABLE history ADD COLUMN pattern_count INTEGER NOT NULL DEFAULT 0",
+            "ldr_score": "ALTER TABLE history ADD COLUMN ldr_score REAL NOT NULL DEFAULT 0.0",
             "ddc_usage_ratio": "ALTER TABLE history ADD COLUMN ddc_usage_ratio REAL NOT NULL DEFAULT 1.0",
-            "grade":           "ALTER TABLE history ADD COLUMN grade TEXT NOT NULL DEFAULT ''",
+            "grade": "ALTER TABLE history ADD COLUMN grade TEXT NOT NULL DEFAULT ''",
         }
         for col, ddl in migrations.items():
             if col not in existing:
@@ -138,11 +138,22 @@ class HistoryTracker:
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._conn() as conn:
-            conn.execute(sql, (
-                e.timestamp, e.file_path, e.file_hash, e.deficit_score,
-                e.ldr_score, e.inflation_score, e.ddc_usage_ratio,
-                e.pattern_count, e.grade, e.git_commit, e.git_branch,
-            ))
+            conn.execute(
+                sql,
+                (
+                    e.timestamp,
+                    e.file_path,
+                    e.file_hash,
+                    e.deficit_score,
+                    e.ldr_score,
+                    e.inflation_score,
+                    e.ddc_usage_ratio,
+                    e.pattern_count,
+                    e.grade,
+                    e.git_commit,
+                    e.git_branch,
+                ),
+            )
 
     # ------------------------------------------------------------------
     # Read
@@ -163,14 +174,14 @@ class HistoryTracker:
 
         return [
             {
-                "timestamp":       r[0],
-                "file_hash":       r[1],
-                "deficit_score":   r[2],
-                "ldr_score":       r[3],
+                "timestamp": r[0],
+                "file_hash": r[1],
+                "deficit_score": r[2],
+                "ldr_score": r[3],
                 "inflation_score": r[4],
                 "ddc_usage_ratio": r[5],
-                "pattern_count":   r[6],
-                "grade":           r[7],
+                "pattern_count": r[6],
+                "grade": r[7],
             }
             for r in rows
         ]
@@ -185,11 +196,11 @@ class HistoryTracker:
         delta = current_score - recent_avg
 
         return {
-            "is_regression":   delta >= 10.0,
-            "current_score":   current_score,
-            "recent_average":  round(recent_avg, 2),
-            "delta":           round(delta, 2),
-            "history_count":   len(history),
+            "is_regression": delta >= 10.0,
+            "current_score": current_score,
+            "recent_average": round(recent_avg, 2),
+            "delta": round(delta, 2),
+            "history_count": len(history),
         }
 
     def get_project_trends(self, days: int = 7) -> Dict[str, Any]:
@@ -216,13 +227,13 @@ class HistoryTracker:
             "data_points": len(rows),
             "daily_trends": [
                 {
-                    "date":            r[0],
-                    "avg_deficit":     round(r[1], 2),
-                    "avg_ldr":         round(r[2], 3),
-                    "avg_inflation":   round(r[3], 3),
-                    "avg_ddc":         round(r[4], 3),
-                    "total_patterns":  r[5],
-                    "files_analyzed":  r[6],
+                    "date": r[0],
+                    "avg_deficit": round(r[1], 2),
+                    "avg_ldr": round(r[2], 3),
+                    "avg_inflation": round(r[3], 3),
+                    "avg_ddc": round(r[4], 3),
+                    "total_patterns": r[5],
+                    "files_analyzed": r[6],
                 }
                 for r in rows
             ],
@@ -242,17 +253,17 @@ class HistoryTracker:
         with open(output_path, "w", encoding="utf-8") as f:
             for r in rows:
                 rec = {
-                    "timestamp":       r[0],
-                    "file_path":       r[1],
-                    "file_hash":       r[2],
-                    "deficit_score":   r[3],
-                    "ldr_score":       r[4],
+                    "timestamp": r[0],
+                    "file_path": r[1],
+                    "file_hash": r[2],
+                    "deficit_score": r[3],
+                    "ldr_score": r[4],
                     "inflation_score": r[5],
                     "ddc_usage_ratio": r[6],
-                    "pattern_count":   r[7],
-                    "grade":           r[8],
-                    "git_commit":      r[9],
-                    "git_branch":      r[10],
+                    "pattern_count": r[7],
+                    "grade": r[8],
+                    "git_commit": r[9],
+                    "git_branch": r[10],
                 }
                 f.write(json.dumps(rec) + "\n")
 
@@ -262,6 +273,7 @@ class HistoryTracker:
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _sha256(file_path: str) -> str:
     try:

@@ -602,15 +602,22 @@ def buzzword_function():
 
 def test_dependency_noise_status(detector, temp_python_file):
     """Test DEPENDENCY_NOISE status for low usage ratio."""
+    # Use stdlib-only imports so PhantomImportPattern (v2.9.0) does not fire.
+    # The test validates DDC usage_ratio behaviour, not phantom detection.
     code = '''
-import torch
-import tensorflow as tf
-import keras
-import numpy as np
-import pandas as pd
+import os
+import sys
+import json
+import pathlib
+import hashlib
+import textwrap
+import functools
+import itertools
+import contextlib
+import collections
 
 def simple():
-    """Uses nothing."""
+    """Uses nothing from the imports above."""
     return 42
 '''
     temp_python_file.write(code)
