@@ -659,6 +659,28 @@ Examples:
         "--no-color", action="store_true", help="Disable rich output (force plain text)"
     )
 
+    # History tracking (v2.9.0)
+    parser.add_argument(
+        "--no-history",
+        action="store_true",
+        help="Skip recording this run to history (~/.slop-detector/history.db)",
+    )
+    parser.add_argument(
+        "--show-history",
+        action="store_true",
+        help="Show trend history for the given file and exit",
+    )
+    parser.add_argument(
+        "--history-trends",
+        action="store_true",
+        help="Show project-wide daily trends (last 7 days) and exit",
+    )
+    parser.add_argument(
+        "--export-history",
+        metavar="PATH",
+        help="Export full history to JSONL file and exit",
+    )
+
     # CI/CD Gate options (v2.2)
     parser.add_argument(
         "--ci-mode",
@@ -680,6 +702,19 @@ Examples:
 
     # Setup logging
     setup_logging(args.verbose)
+
+    # History-only commands (no analysis needed)
+    if getattr(args, "history_trends", False):
+        _show_trends()
+        return 0
+
+    if getattr(args, "export_history", None):
+        _export_history(args.export_history)
+        return 0
+
+    if getattr(args, "show_history", False):
+        _show_file_history(args.path)
+        return 0
 
     # Auto-detect project mode for directories
     if Path(args.path).is_dir() and not args.project:
@@ -797,6 +832,10 @@ Examples:
     # v4.0: CR-EP Governance
     if getattr(args, "governance", False):
         _run_governance(args.path, result)
+
+    # v2.9.0: Auto-record to history (opt-out with --no-history)
+    if not getattr(args, "no_history", False):
+        _record_history(result)
 
     return 0
 
@@ -975,6 +1014,89 @@ def _run_governance(path: str, result) -> None:
     print(f"\n[Governance] CR-EP v2.7.2 artifacts written to: {cr_ep_dir}")
     print("  session.json, why_gate.json, scope_declaration.json")
     print("  enforcement_log.jsonl, change_events.jsonl, review_contract.json")
+
+
+def _record_history(result) -> None:
+    """Auto-record analysis result(s) to history DB."""
+    try:
+        from slop_detector.history import HistoryTracker
+
+        tracker = HistoryTracker()
+        if hasattr(result, "file_results"):
+            for fa in result.file_results:
+                tracker.record(fa)
+        else:
+            tracker.record(result)
+    except Exception:
+        pass  # History is best-effort; never block the main flow
+
+
+def _show_file_history(file_path: str) -> None:
+    """Print trend history for a single file."""
+    from slop_detector.history import HistoryTracker
+
+    tracker = HistoryTracker()
+    resolved = str(Path(file_path).resolve())
+    history = tracker.get_file_history(resolved, limit=20)
+    file_path = resolved
+
+    if not history:
+        print(f"No history found for: {file_path}")
+        print(f"  DB: {tracker.db_path}")
+        return
+
+    print(f"History: {file_path}")
+    print(f"  DB: {tracker.db_path}")
+    print("-" * 70)
+    print(f"  {'Timestamp':<24} {'Deficit':>7} {'LDR':>6} {'Patterns':>8}  Grade")
+    print("-" * 70)
+    for h in history:
+        ts = h["timestamp"][:19]
+        print(
+            f"  {ts:<24} {h['deficit_score']:>7.1f} {h['ldr_score']:>6.3f}"
+            f" {h['pattern_count']:>8}  {h['grade']}"
+        )
+
+    if len(history) >= 2:
+        first = history[-1]["deficit_score"]
+        last = history[0]["deficit_score"]
+        delta = last - first
+        direction = "improved" if delta < 0 else "degraded" if delta > 0 else "stable"
+        print("-" * 70)
+        print(f"  Trend ({len(history)} runs): {direction}  delta={delta:+.1f}")
+
+
+def _show_trends() -> None:
+    """Print project-wide daily trend table."""
+    from slop_detector.history import HistoryTracker
+
+    tracker = HistoryTracker()
+    trends = tracker.get_project_trends(days=7)
+
+    if not trends["data_points"]:
+        print("No history found.")
+        print(f"  DB: {tracker.db_path}")
+        return
+
+    print("Project Trends (last 7 days)")
+    print(f"  DB: {tracker.db_path}")
+    print("-" * 65)
+    print(f"  {'Date':<12} {'Avg Deficit':>11} {'Avg LDR':>8} {'Patterns':>9} {'Files':>6}")
+    print("-" * 65)
+    for d in trends["daily_trends"]:
+        print(
+            f"  {d['date']:<12} {d['avg_deficit']:>11.1f} {d['avg_ldr']:>8.3f}"
+            f" {d['total_patterns']:>9} {d['files_analyzed']:>6}"
+        )
+
+
+def _export_history(output_path: str) -> None:
+    """Export history to JSONL."""
+    from slop_detector.history import HistoryTracker
+
+    tracker = HistoryTracker()
+    count = tracker.export_jsonl(output_path)
+    print(f"[+] Exported {count} records to {output_path}")
 
 
 def generate_text_report(result) -> str:

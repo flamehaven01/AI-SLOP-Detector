@@ -2,17 +2,23 @@
   <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/AI%20SLop%20DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
 </p>
 
-# AI-SLOP Detector v2.8.0
+# AI-SLOP Detector v2.9.0
 
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-183%20passed-brightgreen.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](htmlcov/)
 
-**Production-grade static analyzer for detecting AI-generated code quality issues with evidence-based validation.**
+**Catches the slop that AI produces — before it reaches production.**
 
-Detects six critical categories of AI-generated code problems with actionable, context-aware questions.
+The problem isn't that AI writes code. The problem is the specific class of defects
+AI reliably introduces: unimplemented stubs, disconnected pipelines, unreachable
+structures, and buzzword-heavy noise that looks like substance.
+
+AI-SLOP Detector surfaces these patterns through evidence-based static analysis.
+It doesn't care whether the author is human, Claude, Cursor, or a custom agent.
+**The code speaks for itself.**
 
 ---
 
@@ -60,6 +66,11 @@ slop-detector mycode.py --json --output report.json
 
 # List all available patterns (includes Python Advanced in v2.8)
 slop-detector mycode.py --list-patterns
+
+# History tracking (v2.9.0) - auto-recorded on every run
+slop-detector mycode.py --show-history    # file trend over time
+slop-detector --history-trends            # project-wide daily trends
+slop-detector --export-history history.jsonl  # export for ML training
 ```
 
 <p align="center">
