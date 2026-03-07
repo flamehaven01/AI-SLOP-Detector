@@ -171,6 +171,76 @@ class MLPipeline:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
+    def run_on_real_data(
+        self,
+        dataset: str = "code_search_net",
+        max_samples: int = 10_000,
+        model_type: str = "ensemble",
+        test_size: float = 0.2,
+        save_model: bool = True,
+        jsonl_path: Optional[str] = None,
+    ) -> PipelineReport:
+        """Train on real public code instead of synthetic samples.
+
+        Args:
+            dataset:     "code_search_net" | "the-stack" | "jsonl"
+            max_samples: Cap per dataset (streaming-safe).
+            model_type:  "random_forest" | "xgboost" | "ensemble"
+            test_size:   Fraction held out for evaluation.
+            save_model:  Write model to output_dir/slop_classifier_real.pkl
+            jsonl_path:  Required when dataset="jsonl".
+
+        Returns:
+            PipelineReport with accuracy, feature importance, sample counts.
+        """
+        from slop_detector.ml.dataset_loader import DatasetLoader
+
+        loader = DatasetLoader(max_samples=max_samples)
+
+        logger.info("[Pipeline] Loading real data from: %s", dataset)
+        if dataset == "code_search_net":
+            real_samples = loader.load_codesearchnet()
+        elif dataset == "the-stack":
+            real_samples = loader.load_stack(max_samples=max_samples)
+        elif dataset == "jsonl":
+            if not jsonl_path:
+                raise ValueError("jsonl_path required when dataset='jsonl'")
+            real_samples = loader.load_jsonl(jsonl_path)
+        else:
+            raise ValueError(f"Unknown dataset: {dataset!r}")
+
+        slop_count = sum(1 for s in real_samples if s.label == 1)
+        clean_count = sum(1 for s in real_samples if s.label == 0)
+        logger.info(
+            "[Pipeline] Real data: %d total (%d slop, %d clean)",
+            len(real_samples),
+            slop_count,
+            clean_count,
+        )
+
+        # Convert RealSample -> TrainingSample via feature extraction
+        from slop_detector.core import SlopDetector
+
+        detector = SlopDetector()
+        samples: List[TrainingSample] = []
+        for rs in real_samples:
+            try:
+                result = detector.analyze_code_string(rs.code, filename=f"<{rs.source}>")
+                features = _extract_features(result)
+                samples.append(
+                    TrainingSample(
+                        label=rs.label,
+                        features=features,
+                        source=rs.source,
+                    )
+                )
+            except Exception as exc:
+                logger.debug("[Pipeline] Skipping sample: %s", exc)
+                continue
+
+        logger.info("[Pipeline] Feature extraction complete: %d usable samples", len(samples))
+        return self._train_from_samples(samples, model_type, test_size, save_model, suffix="_real")
+
     def run(
         self,
         n_slop: int = 500,
@@ -251,6 +321,65 @@ class MLPipeline:
             json.dump(report.to_dict(), f, indent=2)
 
         logger.info(f"[Pipeline] Complete. Report: {report_path}")
+        return report
+
+    def _train_from_samples(
+        self,
+        samples: List[TrainingSample],
+        model_type: str,
+        test_size: float,
+        save_model: bool,
+        suffix: str = "",
+    ) -> PipelineReport:
+        """Shared training logic for both synthetic and real-data pipelines."""
+        from slop_detector.ml.classifier import SlopClassifier
+
+        good = [s.features for s in samples if s.label == 0 and s.features]
+        bad = [s.features for s in samples if s.label == 1 and s.features]
+        dataset = {"good": good, "bad": bad}
+
+        dataset_path = self.output_dir / f"training_data{suffix}.json"
+        with open(dataset_path, "w", encoding="utf-8") as f:
+            json.dump(dataset, f)
+
+        logger.info(
+            "[Pipeline] Training %s classifier (%d clean, %d slop)...",
+            model_type,
+            len(good),
+            len(bad),
+        )
+        classifier = SlopClassifier(model_type=model_type)
+        metrics = classifier.train(dataset_path, test_size=test_size)
+
+        model_path = None
+        if save_model:
+            model_path = str(self.output_dir / f"slop_classifier{suffix}.pkl")
+            classifier.save(Path(model_path))
+            logger.info("[Pipeline] Model saved: %s", model_path)
+
+        feature_importance: List[Tuple[str, float]] = []
+        if classifier.rf_model is not None:
+            feature_importance = sorted(
+                zip(classifier.FEATURE_NAMES, classifier.rf_model.feature_importances_),
+                key=lambda x: x[1],
+                reverse=True,
+            )
+
+        n_total = len(samples)
+        n_test = int(n_total * test_size)
+        report = PipelineReport(
+            n_samples=n_total,
+            n_train=n_total - n_test,
+            n_test=n_test,
+            model_type=model_type,
+            metrics=metrics,
+            model_path=model_path,
+            feature_importance=list(feature_importance),
+        )
+        report_path = self.output_dir / f"pipeline_report{suffix}.json"
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report.to_dict(), f, indent=2)
+        logger.info("[Pipeline] Complete. Report: %s", report_path)
         return report
 
     def _generate_samples(self, n_slop: int, n_clean: int) -> List[TrainingSample]:

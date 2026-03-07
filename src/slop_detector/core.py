@@ -132,6 +132,57 @@ class SlopDetector:
 
         return result
 
+    def analyze_code_string(self, content: str, filename: str = "<string>") -> FileAnalysis:
+        """Analyze Python source code provided as a string (no file I/O).
+
+        Identical to analyze_file() but accepts raw source instead of a path.
+        Useful for dataset pipelines, REPL usage, and API endpoints.
+
+        Args:
+            content:  Python source code as a string.
+            filename: Virtual filename shown in results (default: "<string>").
+
+        Returns:
+            FileAnalysis — same structure as analyze_file().
+        """
+        try:
+            tree = ast.parse(content, filename=filename)
+        except SyntaxError as e:
+            return self._create_error_analysis(filename, str(e))
+
+        ldr = self.ldr_calc.calculate(filename, content, tree)
+        inflation = self.inflation_calc.calculate(filename, content, tree)
+        ddc = self.ddc_calc.calculate(filename, content, tree)
+        docstring_inflation = self.docstring_inflation_detector.analyze(filename, content, tree)
+        hallucination_deps = self.hallucination_deps_detector.analyze(filename, content, tree, ddc)
+        context_jargon = self.context_jargon_detector.analyze(filename, content, tree, inflation)
+        ignored_functions = self._collect_ignored_functions(tree)
+        pattern_issues = self._run_patterns(tree, Path(filename), content, ignored_functions)
+
+        slop_score, slop_status, warnings = self._calculate_slop_status(
+            ldr, inflation, ddc, pattern_issues
+        )
+
+        result = FileAnalysis(
+            file_path=filename,
+            ldr=ldr,
+            inflation=inflation,
+            ddc=ddc,
+            deficit_score=slop_score,
+            status=slop_status,
+            warnings=warnings,
+            pattern_issues=pattern_issues,
+            docstring_inflation=docstring_inflation,
+            hallucination_deps=hallucination_deps,
+            context_jargon=context_jargon,
+            ignored_functions=ignored_functions,
+        )
+
+        if self._ml_scorer is not None:
+            result.ml_score = self._ml_scorer.score(result)
+
+        return result
+
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """
         Analyze entire project with weighted scoring.
