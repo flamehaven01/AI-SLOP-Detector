@@ -2,10 +2,10 @@
   <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/AI%20SLop%20DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
 </p>
 
-# AI-SLOP Detector v2.7.0
+# AI-SLOP Detector v2.8.0
 
 [![PyPI version](https://img.shields.io/pypi/v/ai-slop-detector.svg)](https://pypi.org/project/ai-slop-detector/)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-183%20passed-brightgreen.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](htmlcov/)
@@ -17,14 +17,15 @@ Detects six critical categories of AI-generated code problems with actionable, c
 ---
 
 **Quick Navigation:**
-[🚀 Quick Start](#quick-start) •
-[✨ What's New](#whats-new-in-v264) •
-[🏗️ Architecture](#architecture-overview) •
-[📊 Core Features](#core-features) •
-[⚙️ Configuration](docs/CONFIGURATION.md) •
-[🔧 CLI Usage](docs/CLI_USAGE.md) •
-[🚦 CI/CD Integration](docs/CI_CD.md) •
-[👨‍💻 Development](docs/DEVELOPMENT.md)
+[Quick Start](#quick-start) •
+[What's New](#whats-new-in-v280) •
+[Architecture](#architecture-overview) •
+[Math Models](docs/MATH_MODELS.md) •
+[Core Features](#core-features) •
+[Configuration](docs/CONFIGURATION.md) •
+[CLI Usage](docs/CLI_USAGE.md) •
+[CI/CD Integration](docs/CI_CD.md) •
+[Development](docs/DEVELOPMENT.md)
 
 ---
 
@@ -40,6 +41,14 @@ slop-detector mycode.py
 # Scan entire project
 slop-detector --project ./src
 
+# With JS/TS support
+pip install "ai-slop-detector[js]"
+slop-detector --project ./src --js
+
+# With ML secondary signal
+pip install "ai-slop-detector[ml]"
+slop-detector mycode.py --json   # ml_score included in output when model present
+
 # CI/CD Integration (Soft mode - PR comments only)
 slop-detector --project ./src --ci-mode soft --ci-report
 
@@ -48,6 +57,9 @@ slop-detector --project ./src --ci-mode hard --ci-report
 
 # Generate JSON report
 slop-detector mycode.py --json --output report.json
+
+# List all available patterns (includes Python Advanced in v2.8)
+slop-detector mycode.py --list-patterns
 ```
 
 <p align="center">
@@ -56,35 +68,110 @@ slop-detector mycode.py --json --output report.json
 
 ---
 
-## What's New in v2.7.0
+## What's New in v2.8.0
 
-### VS Code Extension Upgrade
+### Rebuilt Mathematical Foundations
 
-- **Docstring Inflation Diagnostics**: Line-level detection of over-documented functions with severity mapping (critical/warning)
-- **Evidence-Based Claim Validation**: Flags unjustified jargon claims lacking supporting evidence in the Problems panel
-- **Hallucination Dependency Detection**: Surfaces imports that serve no verified purpose
-- **Pattern Fix Suggestions**: Actionable suggestions appended to pattern issue diagnostics
-- **Debounced Lint-on-Type**: 1500ms debounce prevents excessive analysis during typing
-- **LDR Grade in Status Bar**: Tooltip now displays the LDR letter grade
+The three core scoring formulas have been redesigned from first principles.
+Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
-### Previous: v2.6.4 - Scanner Reliability
+#### Inflation Score (ICR) — Complexity as Amplifier
 
-- `run_scan.py` now applies configured ignore patterns before analysis
-- Project scan output consistent with `Config.ignore` and `SlopDetector` project filtering
+Prior to v2.8.0, complexity *divided* the jargon penalty — a god function
+could hide its jargon behind its own complexity. Now complexity multiplies it:
 
-### Quality Improvements
-- **Tests**: 183 comprehensive tests (up from 165)
-- **Coverage**: 95% Context-Jargon coverage
-- **Zero-False-Positive Tuning**: Helper files excluded from test counts
+```
+density   = unjustified_jargon / max(logic_lines, 1)
+modifier  = max(1.0, 1.0 + (avg_complexity - 3.0) / 10.0)
+inflation = min(density * modifier * 10.0, 10.0)
+```
 
-### Core Features (v2.x)
+A function with cyclomatic complexity 13 receives **2x** the density penalty
+vs. a simple function with the same jargon count. Complexity >= 3 amplifies;
+complexity never reduces the penalty.
 
-1. **Context-Based Jargon Detection** - Cross-validates quality claims with actual evidence
-2. **Docstring Inflation Analysis** - Detects documentation-heavy, implementation-light code
-3. **Placeholder Pattern Catalog** - 14 patterns detecting unfinished/scaffolded code
-4. **Hallucination Dependencies** - Identifies purpose-specific imports that are never used
-5. **Question Generation UX** - Converts findings into actionable review questions
-6. **CI Gate 3-Tier System** - Soft/Hard/Quarantine enforcement modes (fully tested)
+#### Status — Single Monotonic Axis
+
+Status is now determined entirely by `deficit_score`:
+
+```
+deficit_score >= 70  -->  CRITICAL_DEFICIT
+deficit_score >= 50  -->  INFLATED_SIGNAL
+deficit_score >= 30  -->  SUSPICIOUS
+else                 -->  CLEAN
+```
+
+Two supplementary overrides apply after: critical pattern count (>= 5 on
+CLEAN files → SUSPICIOUS) and DDC ratio (< 0.20 → DEPENDENCY_NOISE).
+Overrides can only raise status, never lower it.
+
+#### Project LDR — SR9 Conservative Aggregation
+
+```
+project_ldr = 0.6 * min(file_ldrs) + 0.4 * mean(file_ldrs)
+```
+
+Worst-file weighted 60% (SR9 principle) prevents one clean majority from
+masking a severely degraded file.
+
+#### Function-Scoped Jargon Justification
+
+Jargon justification scope changed from **file-level** to **function-level**.
+A single `import torch` at the top of a file no longer justifies AI jargon
+across every function — each function must contain its own justifier within
+its scope (including decorator lines).
+
+---
+
+### Python Advanced Patterns (AST)
+
+Three new structural patterns using Python `ast` module:
+
+| Pattern       | Trigger                                       | Severity |
+|---------------|-----------------------------------------------|----------|
+| `god_function`| logic_lines > 50 OR cyclomatic complexity > 10 | HIGH    |
+| `dead_code`   | statements after return/raise/break/continue  | MEDIUM   |
+| `deep_nesting`| control-flow depth > 4                        | HIGH     |
+
+Cyclomatic complexity: `1 + count(If, For, While, ExceptHandler, With, BoolOp)`
+
+Nesting depth is computed recursively over `If/For/While/With/Try` bodies.
+Dead code detection recurses into `orelse`, `finalbody`, and handler bodies.
+
+### JS/TS Tree-Sitter Analysis
+
+```bash
+pip install "ai-slop-detector[js]"
+slop-detector src/ --js
+```
+
+Full AST-based analysis: god functions, dead code, callback hell, cyclomatic
+complexity, `var` usage, `any` type annotations. Graceful fallback to regex
+when tree-sitter is not installed.
+
+### ML Secondary Signal (Optional)
+
+```bash
+pip install "ai-slop-detector[ml]"
+```
+
+```python
+detector = SlopDetector(model_path=Path("models/slop_classifier.pkl"))
+result = detector.analyze_file("mycode.py")
+# result.ml_score.slop_probability, .confidence, .label, .agreement
+```
+
+16-feature RandomForest/XGBoost classifier. Returns `None` silently when no
+model file is present — zero cost for users who don't need ML.
+
+Agreement: `(deficit_score >= 30) == (slop_probability >= 0.40)`
+
+---
+
+### Previous: v2.7.0 — VS Code Extension Upgrade
+
+- Docstring inflation diagnostics, evidence claim validation, hallucination
+  dependency detection, pattern fix suggestions, lint-on-type debounce
 
 ---
 
@@ -162,37 +249,46 @@ def process():
 
 ## Architecture Overview
 
-AI-SLOP Detector v2.7.0 uses a **multi-dimensional analysis engine**:
+AI-SLOP Detector v2.8.0 uses a **multi-dimensional analysis engine** with an
+optional ML secondary signal:
 
 ```mermaid
 graph TD
-    A[Python Code] --> B[Core Metrics v2.0]
-    B --> C[Pattern Detection v2.1]
+    A[Python / JS / TS Code] --> B[Core Metrics v2.8]
+    B --> C[Pattern Detection v2.8]
     C --> D[Evidence Validation v2.2]
-    D --> E[Question Generation v2.2]
-    E --> F[Deficit Score + Report]
+    D --> E[Deficit Score Composition]
+    E --> F[Status: Monotonic Axis]
+    F --> G[Report + Questions]
+    E --> H[ML Secondary Signal v2.8]
+    H --> G
 
-    B1[LDR Logic Density Ratio<br/>Inflation Jargon Detection<br/>DDC Dependency Check]
-    C1[14 Placeholder Patterns<br/>4 Structural Anti-patterns<br/>6 Cross-language Patterns]
-    D1[Context-Based Jargon<br/>Docstring Inflation<br/>Hallucination Dependencies]
-    E1[Critical/Warning/Info Questions<br/>Actionable Review Guidance]
+    B1[LDR: logic_lines / total_lines<br/>ICR: density x complexity_modifier<br/>DDC: used / imported]
+    C1[Placeholder 14 patterns<br/>Structural 4 patterns<br/>Cross-language 6 patterns<br/>Python Advanced 3 patterns NEW]
+    D1[Function-Scoped Jargon v2.8<br/>Docstring Inflation<br/>Hallucination Dependencies]
+    E1[w_ldr x 1-ldr + w_icr x icr_norm<br/>+ w_ddc x 1-ddc + pattern_penalty<br/>x 100 = deficit_score 0-100]
+    F1[>=70 CRITICAL_DEFICIT<br/>>=50 INFLATED_SIGNAL<br/>>=30 SUSPICIOUS<br/>else CLEAN]
+    H1[16-feature RF/XGBoost<br/>slop_probability in 0-1<br/>agreement vs rule-based<br/>optional - zero cost if absent]
 
     B -.-> B1
     C -.-> C1
     D -.-> D1
     E -.-> E1
+    F -.-> F1
+    H -.-> H1
 
     style A fill:#e1f5ff,color:#000
-    style F fill:#ffe1e1,color:#000
+    style G fill:#ffe1e1,color:#000
     style B fill:#f0f0f0,color:#000
     style C fill:#f0f0f0,color:#000
     style D fill:#f0f0f0,color:#000
     style E fill:#f0f0f0,color:#000
-    style B1 color:#000
-    style C1 color:#000
-    style D1 color:#000
-    style E1 color:#000
+    style F fill:#f0f0f0,color:#000
+    style H fill:#e8f5e9,color:#000
 ```
+
+For the complete mathematical specification of each formula, see
+[docs/MATH_MODELS.md](docs/MATH_MODELS.md).
 
 <p align="center">
   <img src="docs/assets/architecture.png" alt="Architecture Diagram" width="900"/>
@@ -465,24 +561,27 @@ If you use AI-SLOP Detector in research, please cite:
 
 ## Roadmap
 
-**v2.7 (Current):**
-- [x] VS Code Extension v2.7.0 - full diagnostic surface, debounce, suggestions
-- [x] VS Code Marketplace published
-- [ ] Enhanced evidence types (15+ types) - currently 14 types
-- [ ] Custom pattern DSL for user-defined rules
-- [ ] Performance optimizations for large codebases
+**v2.8 (Current):**
+- [x] Inflation formula redesign — complexity as amplifier
+- [x] Monotonic status axis (single deficit_score threshold)
+- [x] SR9 conservative project LDR aggregation
+- [x] Function-scoped jargon justification
+- [x] Python Advanced patterns: god_function, dead_code, deep_nesting
+- [x] JS/TS tree-sitter AST analysis (`[js]` extra)
+- [x] ML secondary signal — RandomForest/XGBoost (`[ml]`, `[ml-full]` extras)
+- [x] docs/MATH_MODELS.md — formal mathematical specification
 
-**v2.8 (Planned Q2 2026):**
-- [ ] Multi-language support (JavaScript, TypeScript)
+**v2.9 (Planned Q2 2026):**
+- [ ] Real training data pipeline (GitHub corpus sampling)
 - [ ] Enhanced CI/CD integrations (GitLab CI, CircleCI)
+- [ ] Custom pattern DSL for user-defined rules
 - [ ] Real-time analysis daemon mode
-- [ ] Team analytics dashboard (beta)
 
 **v3.0 (Planned Q3 2026):**
-- [ ] ML-based pattern recognition
 - [ ] Auto-fix suggestions with confidence scores
-- [ ] IDE plugins (PyCharm, IntelliJ, JetBrains)
-- [ ] Enterprise features (SSO, RBAC - currently experimental)
+- [ ] IDE plugins (PyCharm, IntelliJ)
+- [ ] Team analytics dashboard
+- [ ] Enterprise features (SSO, RBAC)
 
 ---
 

@@ -73,7 +73,12 @@ def yet_another():
     result = detector.analyze_file(temp_python_file.name)
 
     assert result.ldr.ldr_score < 0.3  # Low logic density
-    assert result.status in [SlopStatus.CRITICAL_DEFICIT, SlopStatus.SUSPICIOUS]
+    # v2.8.0: status now uses monotonic thresholds (INFLATED_SIGNAL = 50-70 range)
+    assert result.status in [
+        SlopStatus.CRITICAL_DEFICIT,
+        SlopStatus.INFLATED_SIGNAL,
+        SlopStatus.SUSPICIOUS,
+    ]
     assert result.deficit_score > 30
 
 
@@ -367,6 +372,9 @@ def test_should_ignore(detector):
     regular_path = Path("src/main.py")
     assert detector._should_ignore(regular_path, ignore_patterns) is False
 
+    venv_path = Path("project/.venv/Lib/site-packages/pkg/module.py")
+    assert detector._should_ignore(venv_path, ignore_patterns) is True
+
 
 def test_calculate_pattern_penalty(detector):
     """Test pattern penalty calculation."""
@@ -499,11 +507,12 @@ def bad3():
 
     result = detector.analyze_file(temp_python_file.name)
 
-    # Multiple critical patterns should trigger critical status
+    # Multiple critical patterns should indicate a non-clean file
+    # v2.8.0: status is score-driven; 3 bare_except = 30pts penalty -> SUSPICIOUS or higher
     critical_count = sum(1 for issue in result.pattern_issues if issue.severity.value == "critical")
 
     if critical_count >= 3:
-        assert result.status == SlopStatus.CRITICAL_DEFICIT
+        assert result.status != SlopStatus.CLEAN
 
 
 def test_analyze_file_read_error(detector):
@@ -585,9 +594,10 @@ def buzzword_function():
 
     result = detector.analyze_file(temp_python_file.name)
 
-    # High inflation should trigger INFLATED_SIGNAL
+    # v2.8.0: pure-jargon empty function has zero LDR (40pts) + max inflation (35pts) = 75
+    # -> CRITICAL_DEFICIT. INFLATED_SIGNAL is 50-70 range; this case exceeds it.
     if result.inflation.inflation_score > 1.0:
-        assert result.status == SlopStatus.INFLATED_SIGNAL
+        assert result.status in (SlopStatus.INFLATED_SIGNAL, SlopStatus.CRITICAL_DEFICIT)
 
 
 def test_dependency_noise_status(detector, temp_python_file):

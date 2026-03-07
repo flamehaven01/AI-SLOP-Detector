@@ -38,6 +38,16 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('slop-detector.installGitHook', installGitHook)
     );
+    // v4.0 commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('slop-detector.autoFix', autoFixCurrentFile)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('slop-detector.showGate', showGateDecision)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('slop-detector.crossFileAnalysis', runCrossFileAnalysis)
+    );
 
     // Auto-lint on save
     context.subscriptions.push(
@@ -146,8 +156,11 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
     }
 
     // Overall summary diagnostic
+    const mlPart = result.ml_score
+        ? `, ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}]`
+        : '';
     const summaryMessage = `Code Quality Summary (Score: ${deficitScore.toFixed(1)})\n` +
-                          `Status: ${result.status}\n` +
+                          `Status: ${result.status}${mlPart}\n` +
                           `LDR: ${result.ldr.ldr_score.toFixed(3)}, ` +
                           `Inflation: ${result.inflation.inflation_score.toFixed(3)}, ` +
                           `DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
@@ -307,6 +320,9 @@ function updateStatusBar(result: any) {
     statusBarItem.text = `${icon} ${severityLabel} (${deficitScore.toFixed(1)})`;
 
     const ldrGrade = result.ldr?.grade || 'N/A';
+    const mlTooltip = result.ml_score
+        ? `- ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}] (conf ${(result.ml_score.confidence * 100).toFixed(0)}%)\n`
+        : '';
     statusBarItem.tooltip = `Code Quality: ${severityLabel}\n` +
                            `Deficit Score: ${deficitScore.toFixed(1)}\n` +
                            `Status: ${status}\n` +
@@ -314,7 +330,8 @@ function updateStatusBar(result: any) {
                            `Metrics:\n` +
                            `- LDR: ${result.ldr.ldr_score.toFixed(3)}\n` +
                            `- Inflation: ${result.inflation.inflation_score.toFixed(3)}\n` +
-                           `- DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
+                           `- DDC: ${result.ddc.usage_ratio.toFixed(3)}\n` +
+                           mlTooltip;
 }
 
 async function analyzeWorkspace() {
@@ -408,6 +425,131 @@ async function installGitHook() {
         vscode.window.showInformationMessage('[+] Git pre-commit hook installed successfully!');
     } catch (error) {
         vscode.window.showErrorMessage(`[-] Failed to install hook: ${error}`);
+    }
+}
+
+// v4.0: Auto-Fix
+async function autoFixCurrentFile() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showWarningMessage('[!] No active file');
+        return;
+    }
+
+    const filePath = editor.document.uri.fsPath;
+    if (!filePath.endsWith('.py')) {
+        vscode.window.showWarningMessage('[!] Auto-fix is currently supported for Python files only');
+        return;
+    }
+
+    const config = vscode.workspace.getConfiguration('slopDetector');
+    const pythonPath = config.get('pythonPath', 'python');
+
+    const choice = await vscode.window.showInformationMessage(
+        'Auto-Fix: Apply fixes to detected slop patterns?',
+        'Preview (dry-run)',
+        'Apply Fixes',
+        'Cancel'
+    );
+
+    if (!choice || choice === 'Cancel') {
+        return;
+    }
+
+    const dryRunFlag = choice === 'Preview (dry-run)' ? '--dry-run' : '';
+    const command = `${pythonPath} -m slop_detector.cli "${filePath}" --fix ${dryRunFlag}`;
+
+    outputChannel.appendLine(`[*] Auto-Fix: ${command}`);
+    statusBarItem.text = "$(sync~spin) SLOP: Fixing...";
+
+    try {
+        const { stdout, stderr } = await execAsync(command, { maxBuffer: 10 * 1024 * 1024 });
+        outputChannel.appendLine(stdout);
+        if (stderr) {
+            outputChannel.appendLine(stderr);
+        }
+
+        const label = choice === 'Preview (dry-run)' ? 'Preview complete' : 'Fixes applied';
+        vscode.window.showInformationMessage(`[+] ${label} - see Output panel for details`);
+        outputChannel.show(false);
+
+        if (choice !== 'Preview (dry-run)') {
+            await analyzeDocument(editor.document);
+        }
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`[-] Auto-Fix failed: ${msg}`);
+        statusBarItem.text = "$(error) SLOP: Error";
+    }
+}
+
+// v4.0: Gate Decision
+async function showGateDecision() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showWarningMessage('[!] No active file');
+        return;
+    }
+
+    const filePath = editor.document.uri.fsPath;
+    const config = vscode.workspace.getConfiguration('slopDetector');
+    const pythonPath = config.get('pythonPath', 'python');
+    const command = `${pythonPath} -m slop_detector.cli "${filePath}" --gate --json`;
+
+    try {
+        const { stdout } = await execAsync(command, { maxBuffer: 5 * 1024 * 1024 });
+        const result = JSON.parse(stdout);
+        const gate = result.gate_decision;
+
+        if (gate) {
+            const status = gate.allowed ? '[PASS]' : '[HALT]';
+            const msg = `Gate ${status}: sr9=${gate.metrics_snapshot.sr9?.toFixed(3)} ` +
+                        `di2=${gate.metrics_snapshot.di2?.toFixed(3)} ` +
+                        `jsd=${gate.metrics_snapshot.jsd?.toFixed(3)} ` +
+                        `ove=${gate.metrics_snapshot.ove?.toFixed(3)}`;
+            if (gate.allowed) {
+                vscode.window.showInformationMessage(msg);
+            } else {
+                vscode.window.showWarningMessage(`${msg}\n${gate.halt_reason || ''}`);
+            }
+        } else {
+            outputChannel.appendLine(stdout);
+            outputChannel.show(false);
+        }
+    } catch (error) {
+        vscode.window.showErrorMessage(`[-] Gate check failed: ${error}`);
+    }
+}
+
+// v4.0: Cross-File Analysis
+async function runCrossFileAnalysis() {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showWarningMessage('[!] No workspace folder open');
+        return;
+    }
+
+    const rootPath = workspaceFolders[0].uri.fsPath;
+    const config = vscode.workspace.getConfiguration('slopDetector');
+    const pythonPath = config.get('pythonPath', 'python');
+
+    statusBarItem.text = "$(sync~spin) SLOP: Cross-file analysis...";
+
+    const command = `${pythonPath} -m slop_detector.cli "${rootPath}" --project --cross-file`;
+
+    try {
+        const { stdout } = await execAsync(command, {
+            maxBuffer: 20 * 1024 * 1024,
+            cwd: rootPath
+        });
+        outputChannel.appendLine('[Cross-File Analysis]');
+        outputChannel.appendLine(stdout);
+        outputChannel.show(false);
+        vscode.window.showInformationMessage('[+] Cross-file analysis complete - see Output panel');
+        statusBarItem.text = "$(check) SLOP: Ready";
+    } catch (error) {
+        vscode.window.showErrorMessage(`[-] Cross-file analysis failed: ${error}`);
+        statusBarItem.text = "$(error) SLOP: Error";
     }
 }
 

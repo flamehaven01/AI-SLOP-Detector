@@ -89,26 +89,41 @@ class InflationCalculator:
         self.use_radon = config.use_radon() and RADON_AVAILABLE
 
     def calculate(self, file_path: str, content: str, tree: ast.AST) -> InflationResult:
-        """Calculate Inflation with context awareness."""
+        """Calculate Inflation with context awareness.
+
+        v2.8.0: Formula redesigned based on TOE mathematical principles.
+        - Denominator: logic_lines (not avg_complexity) — density-based measurement
+        - Complexity modifier: INCREASES penalty for complex code with jargon
+          (TOE: effective_e02 = e02 * (1 + u02), uncertainty inflates penalty)
+        - Justification: function-scoped, not file-scoped
+        """
         jargon_found = []
         justified_jargon = []
         jargon_details = []
 
         lines = content.splitlines()
 
+        # Count logic lines (non-empty, non-comment) for density denominator
+        logic_lines = sum(
+            1 for ln in lines if ln.strip() and not ln.strip().startswith("#")
+        )
+
+        # Build function scope map for justification (line -> enclosing function node)
+        func_scopes = self._build_function_scopes(tree, lines)
+
         for line_idx, line in enumerate(lines, 1):
             line_lower = line.lower()
 
             for category, words in self.JARGON.items():
                 for word in words:
-                    # Simple check: word must be present
                     if word.lower() in line_lower:
-                        # Count occurrences in this line
                         count = line_lower.count(word.lower())
                         for _ in range(count):
                             jargon_found.append(word)
 
-                            is_justified = self._is_jargon_justified(category, word, content)
+                            is_justified = self._is_jargon_justified_scoped(
+                                category, word, content, lines, line_idx, func_scopes
+                            )
                             if is_justified:
                                 justified_jargon.append(word)
 
@@ -123,25 +138,29 @@ class InflationCalculator:
 
         jargon_count = len(jargon_found)
         justified_count = len(justified_jargon)
-
-        # Adjust jargon count (reduce if justified)
         effective_jargon_count = max(0, jargon_count - justified_count)
 
-        # Calculate average complexity
+        # Average complexity (used as modifier, not denominator)
         avg_complexity = self._calculate_avg_complexity(content, tree)
 
         # Check if it's a config file
         is_config_file = self._is_config_file(file_path, tree)
 
-        # Calculate Inflation Score
-        if avg_complexity == 0:
-            if is_config_file and self.config.is_config_file_exception_enabled():
-                inflation_score = 0.0
-            else:
-                inflation_score = float("inf") if effective_jargon_count > 0 else 0.0
+        # v2.8.0: Redesigned Inflation Score
+        # Base: jargon density per logic line (density-based, not complexity-diluted)
+        # Modifier: complexity INCREASES penalty (TOE uncertainty principle)
+        #   - avg_complexity <= 3: modifier = 1.0 (baseline, simple code)
+        #   - avg_complexity > 3: modifier increases gradually (complex code pays premium)
+        if is_config_file and self.config.is_config_file_exception_enabled():
+            inflation_score = 0.0
+        elif logic_lines == 0:
+            inflation_score = float("inf") if effective_jargon_count > 0 else 0.0
         else:
-            inflation_raw = effective_jargon_count / (avg_complexity * 10)
-            inflation_score = min(inflation_raw, 10.0)
+            jargon_density = effective_jargon_count / logic_lines
+            # complexity_modifier: 1.0 at baseline (complexity=3), grows beyond
+            complexity_modifier = max(1.0, 1.0 + (avg_complexity - 3.0) / 10.0)
+            # Scale: density=0.1 (1 jargon per 10 logic lines) with modifier=1.0 -> score=1.0
+            inflation_score = min(jargon_density * complexity_modifier * 10.0, 10.0)
 
         # Determine status
         if inflation_score > 1.0:
@@ -191,17 +210,78 @@ class InflationCalculator:
 
         return total_complexity / function_count if function_count > 0 else 1.0
 
-    def _is_jargon_justified(self, category: str, word: str, content: str) -> bool:
-        """Check if jargon is justified by actual implementation."""
+    def _build_function_scopes(
+        self, tree: ast.AST, lines: list
+    ) -> dict:
+        """Build mapping of line_number -> (func_start, func_end) for each line.
+
+        v2.8.0: Enables function-scoped justification check.
+        Returns dict: line_idx (1-based) -> (start_line, end_line) or None.
+        """
+        # Collect all function ranges (include decorator lines in scope start)
+        func_ranges = []
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                end = getattr(node, "end_lineno", node.lineno + 1)
+                # Extend start to first decorator so @lru_cache etc. are in scope
+                if node.decorator_list:
+                    true_start = min(d.lineno for d in node.decorator_list)
+                else:
+                    true_start = node.lineno
+                func_ranges.append((true_start, end))
+
+        # Sort by start so inner functions are found after outer
+        func_ranges.sort()
+
+        # For each line, find the innermost enclosing function
+        n_lines = len(lines)
+        scope_map = {}
+        for line_idx in range(1, n_lines + 1):
+            enclosing = None
+            for start, end in func_ranges:
+                if start <= line_idx <= end:
+                    # Prefer innermost (latest start that still contains the line)
+                    if enclosing is None or start > enclosing[0]:
+                        enclosing = (start, end)
+            scope_map[line_idx] = enclosing
+        return scope_map
+
+    def _is_jargon_justified_scoped(
+        self,
+        category: str,
+        word: str,
+        content: str,
+        lines: list,
+        line_idx: int,
+        func_scopes: dict,
+    ) -> bool:
+        """Check if jargon is justified within its local function scope.
+
+        v2.8.0: Function-scoped justification (TOE: measure at minimum relevant scope).
+        - If jargon is inside a function: justifier must appear in that function body
+        - If jargon is module-level: justifier may appear anywhere in file
+        """
         if category not in self.JUSTIFICATIONS:
             return False
 
         justifiers = self.JUSTIFICATIONS[category]
-        for justifier in justifiers:
-            if justifier in content:
-                return True
+        scope = func_scopes.get(line_idx)
 
-        return False
+        if scope is None:
+            # Module-level: check full file (conservative — module-level jargon is rare)
+            scope_text = content
+        else:
+            start, end = scope
+            scope_text = "\n".join(lines[start - 1 : end])
+
+        return any(j in scope_text for j in justifiers)
+
+    def _is_jargon_justified(self, category: str, word: str, content: str) -> bool:
+        """Legacy file-scoped justification (kept for external callers)."""
+        if category not in self.JUSTIFICATIONS:
+            return False
+        justifiers = self.JUSTIFICATIONS[category]
+        return any(j in content for j in justifiers)
 
     def _is_config_file(self, file_path: str, tree: ast.AST) -> bool:
         """Check if file is a configuration file."""

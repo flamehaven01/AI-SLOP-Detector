@@ -2,7 +2,7 @@
   "name": "vscode-slop-detector",
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "publisher": "Flamehaven",
   "engines": {
     "vscode": "^1.80.0"
@@ -44,6 +44,21 @@
       {
         "command": "slop-detector.installGitHook",
         "title": "Install Git Pre-Commit Hook",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.autoFix",
+        "title": "Auto-Fix Detected Issues",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.showGate",
+        "title": "Show Gate Decision (SNP)",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.crossFileAnalysis",
+        "title": "Run Cross-File Analysis",
         "category": "SLOP Detector"
       }
     ],

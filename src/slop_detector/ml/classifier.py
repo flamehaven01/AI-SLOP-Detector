@@ -75,21 +75,26 @@ class SlopClassifier:
     """ML-based slop classifier with ensemble support."""
 
     FEATURE_NAMES = [
+        # Core metrics (v2.8.0 formula)
         "ldr_score",
-        "bcr_score",
+        "inflation_score",       # renamed from bcr_score; density-based v2.8.0
         "ddc_score",
+        # Pattern severity counts
         "pattern_count_critical",
         "pattern_count_high",
         "pattern_count_medium",
         "pattern_count_low",
-        "avg_function_length",
-        "comment_ratio",
+        # v2.8.0: structural patterns
+        "god_function_count",
+        "dead_code_count",
+        "deep_nesting_count",
+        # Code structure
+        "avg_complexity",
         "cross_language_patterns",
         "hallucination_count",
         "total_lines",
         "logic_lines",
         "empty_lines",
-        "avg_complexity",
     ]
 
     def __init__(self, model_type: str = "ensemble"):

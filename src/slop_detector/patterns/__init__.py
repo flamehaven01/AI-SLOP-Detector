@@ -43,6 +43,11 @@ def get_all_patterns() -> list[BasePattern]:
         MutableDefaultArgPattern,
         StarImportPattern,
     )
+    from slop_detector.patterns.python_advanced import (  # v2.8.0
+        DeadCodePattern,
+        DeepNestingPattern,
+        GodFunctionPattern,
+    )
 
     return [
         # Structural (Critical/High)
@@ -51,16 +56,16 @@ def get_all_patterns() -> list[BasePattern]:
         StarImportPattern(),
         GlobalStatementPattern(),
         # Placeholder (Critical/High/Medium)
-        EmptyExceptPattern(),  # CRITICAL - NEW
-        NotImplementedPattern(),  # HIGH - NEW
+        EmptyExceptPattern(),
+        NotImplementedPattern(),
         PassPlaceholderPattern(),
-        EllipsisPlaceholderPattern(),  # HIGH - NEW
-        HackCommentPattern(),  # HIGH
-        ReturnNonePlaceholderPattern(),  # MEDIUM - NEW
+        EllipsisPlaceholderPattern(),
+        HackCommentPattern(),
+        ReturnNonePlaceholderPattern(),
         TodoCommentPattern(),
         FixmeCommentPattern(),
-        InterfaceOnlyClassPattern(),  # MEDIUM - NEW
-        XXXCommentPattern(),  # LOW
+        InterfaceOnlyClassPattern(),
+        XXXCommentPattern(),
         # Cross-language (High)
         JavaScriptPushPattern(),
         JavaEqualsPattern(),
@@ -68,4 +73,8 @@ def get_all_patterns() -> list[BasePattern]:
         GoPrintPattern(),
         CSharpLengthPattern(),
         PHPStrlenPattern(),
+        # Python Advanced (v2.8.0)
+        GodFunctionPattern(),
+        DeadCodePattern(),
+        DeepNestingPattern(),
     ]
