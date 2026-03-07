@@ -14,10 +14,10 @@ from __future__ import annotations
 
 import ast
 import hashlib
-from collections import defaultdict, deque
+from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, FrozenSet, List, Optional, Set, Tuple
+from typing import Dict, FrozenSet, List, Set, Tuple
 
 # ------------------------------------------------------------------
 # Data classes
@@ -296,7 +296,6 @@ class CrossFileAnalyzer:
     ) -> List[DuplicateBlock]:
         """Detect near-identical functions across files."""
         duplicates: List[DuplicateBlock] = []
-        file_list = [str(p) for p in py_files]
 
         # Index by hash for exact duplicates first
         hash_index: Dict[str, List[Tuple[str, str, int]]] = defaultdict(list)

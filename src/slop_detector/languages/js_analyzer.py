@@ -57,7 +57,7 @@ _TSX_LANG = None
 try:
     import tree_sitter_javascript as _tsjs
     import tree_sitter_typescript as _tsts
-    from tree_sitter import Language, Parser as _TSParser
+    from tree_sitter import Language
 
     _JS_LANG = Language(_tsjs.language())
     _TS_LANG = Language(_tsts.language_typescript())
@@ -336,10 +336,10 @@ class JSAnalyzer:
         self, file_path: str, content: str, language: str, is_ts: bool, is_tsx: bool
     ) -> JSFileAnalysis:
         """Full AST analysis using tree-sitter."""
-        from tree_sitter import Parser as _P
+        from tree_sitter import Parser as TSParser
 
         lang = _TSX_LANG if is_tsx else (_TS_LANG if is_ts else _JS_LANG)
-        parser = _P(lang)
+        parser = TSParser(lang)
         source = content.encode("utf-8", errors="replace")
         tree = parser.parse(source)
         root = tree.root_node

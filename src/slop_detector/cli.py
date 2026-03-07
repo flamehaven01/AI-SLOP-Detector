@@ -906,7 +906,7 @@ def _run_cross_file(result) -> None:
         result.file_results,
     )
 
-    print(f"\n[Cross-File Analysis]")
+    print("\n[Cross-File Analysis]")
     print(f"  Files: {report.total_files}  Risk Score: {report.risk_score:.2f}")
 
     if report.import_cycles:
@@ -973,8 +973,8 @@ def _run_governance(path: str, result) -> None:
     session.record_enforcement("SD-0", "CONFIRMED", f"Analyzing {len(planned)} files")
     cr_ep_dir = session.finalize(planned, actual, total_issues, halt_count)
     print(f"\n[Governance] CR-EP v2.7.2 artifacts written to: {cr_ep_dir}")
-    print(f"  session.json, why_gate.json, scope_declaration.json")
-    print(f"  enforcement_log.jsonl, change_events.jsonl, review_contract.json")
+    print("  session.json, why_gate.json, scope_declaration.json")
+    print("  enforcement_log.jsonl, change_events.jsonl, review_contract.json")
 
 
 def generate_text_report(result) -> str:

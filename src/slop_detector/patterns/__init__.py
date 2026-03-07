@@ -37,16 +37,16 @@ def get_all_patterns() -> list[BasePattern]:
         TodoCommentPattern,
         XXXCommentPattern,
     )
+    from slop_detector.patterns.python_advanced import (  # v2.8.0
+        DeadCodePattern,
+        DeepNestingPattern,
+        GodFunctionPattern,
+    )
     from slop_detector.patterns.structural import (
         BareExceptPattern,
         GlobalStatementPattern,
         MutableDefaultArgPattern,
         StarImportPattern,
-    )
-    from slop_detector.patterns.python_advanced import (  # v2.8.0
-        DeadCodePattern,
-        DeepNestingPattern,
-        GodFunctionPattern,
     )
 
     return [

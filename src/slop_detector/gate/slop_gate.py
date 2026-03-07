@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Mapping, Optional, Tuple
 
 HALT_THRESHOLD_LDR = 0.60

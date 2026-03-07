@@ -52,7 +52,7 @@ class PipelineReport:
 
     def summary(self) -> str:
         lines = [
-            f"[ML Pipeline Report]",
+            "[ML Pipeline Report]",
             f"  Samples: {self.n_samples} (train={self.n_train}, test={self.n_test})",
             f"  Model: {self.model_type}",
         ]
@@ -193,9 +193,7 @@ class MLPipeline:
             PipelineReport with metrics and feature importance.
         """
         try:
-            from slop_detector.ml.synthetic_generator import SyntheticGenerator
-            from slop_detector.ml.classifier import SlopClassifier
-            from slop_detector.core import SlopDetector
+            from slop_detector.ml.classifier import SlopClassifier  # noqa: F401
         except ImportError as e:
             raise RuntimeError(f"Pipeline dependencies missing: {e}") from e
 
@@ -263,12 +261,12 @@ class MLPipeline:
 
         # Generate slop samples
         for _ in range(n_slop):
-            code = gen.generate_slop_file()
+            gen.generate_slop_file()
             samples.append(TrainingSample(label=1, features={}, source="synthetic_slop"))
 
         # Generate clean samples
         for _ in range(n_clean):
-            code = gen.generate_clean_file()
+            gen.generate_clean_file()
             samples.append(TrainingSample(label=0, features={}, source="synthetic_clean"))
 
         return samples
@@ -278,8 +276,8 @@ class MLPipeline:
         Analyze each synthetic sample and extract feature vectors.
         Returns {"good": [...], "bad": [...]} format for SlopClassifier.load_dataset.
         """
-        from slop_detector.ml.synthetic_generator import SyntheticGenerator
         from slop_detector.core import SlopDetector
+        from slop_detector.ml.synthetic_generator import SyntheticGenerator
 
         gen = SyntheticGenerator()
         detector = SlopDetector()

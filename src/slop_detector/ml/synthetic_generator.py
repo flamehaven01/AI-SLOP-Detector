@@ -21,7 +21,6 @@ Clean characteristics:
 """
 
 import random
-import textwrap
 from pathlib import Path
 from typing import List
 

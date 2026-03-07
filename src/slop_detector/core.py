@@ -53,6 +53,7 @@ class SlopDetector:
 
         # v2.8.0: Optional ML scorer — loads silently, fails silently
         from pathlib import Path as _Path
+
         from slop_detector.ml.scorer import MLScorer as _MLScorer
 
         _mp = _Path(model_path) if model_path else _Path("models/slop_classifier.pkl")
