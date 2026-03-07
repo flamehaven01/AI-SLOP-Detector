@@ -78,7 +78,6 @@ class DatasetLoader:
             "code_search_net",
             "python",
             split=split,
-            trust_remote_code=True,
         )
 
         return list(
