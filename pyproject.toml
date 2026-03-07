@@ -78,6 +78,7 @@ dev = [
 
 [project.scripts]
 slop-detector = "slop_detector.cli:main"
+ai-slop-detector = "slop_detector.cli:main"
 slop-api = "slop_detector.api.server:run_server"
 
 [project.urls]
