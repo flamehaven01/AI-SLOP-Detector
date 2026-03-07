@@ -17,7 +17,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
 _SCHEMA_V2 = """
 CREATE TABLE IF NOT EXISTS history (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,

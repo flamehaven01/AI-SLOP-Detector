@@ -335,7 +335,7 @@ class LintEscapePattern(BasePattern):
                     )
                 )
             elif _NOQA_SPECIFIC.search(raw):
-                # Specific # noqa: CODE — lower severity, targeted
+                # Specific targeted noqa with rule code — lower severity
                 code_match = _NOQA_SPECIFIC.search(raw)
                 code = code_match.group(0).split(":", 1)[-1].strip() if code_match else "?"
                 issues.append(
