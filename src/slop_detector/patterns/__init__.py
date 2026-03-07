@@ -42,6 +42,7 @@ def get_all_patterns() -> list[BasePattern]:
         DeepNestingPattern,
         GodFunctionPattern,
         LintEscapePattern,
+        PhantomImportPattern,
     )
     from slop_detector.patterns.structural import (
         BareExceptPattern,
@@ -79,4 +80,6 @@ def get_all_patterns() -> list[BasePattern]:
         DeadCodePattern(),
         DeepNestingPattern(),
         LintEscapePattern(),
+        # v2.9.0
+        PhantomImportPattern(),
     ]

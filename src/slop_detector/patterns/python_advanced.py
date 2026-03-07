@@ -1,7 +1,7 @@
 """
 Python Advanced Structural Patterns (v2.8.0 / v2.9.0)
 
-God function, dead code, deep nesting, and lint escape detection.
+God function, dead code, deep nesting, lint escape, and phantom import detection.
 Uses AST for structural analysis; line scanning for comment-based patterns.
 
 Thresholds:
@@ -14,8 +14,11 @@ Thresholds:
 from __future__ import annotations
 
 import ast
+import importlib.util
 import re
+import sys
 from pathlib import Path
+from typing import FrozenSet, Optional
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -378,5 +381,151 @@ class LintEscapePattern(BasePattern):
                         severity_override=Severity.MEDIUM,
                     )
                 )
+
+        return issues
+
+
+# ------------------------------------------------------------------
+# Module resolution index (built once per process, shared across files)
+# ------------------------------------------------------------------
+
+_RESOLVABLE_MODULES: Optional[FrozenSet[str]] = None
+
+
+def _get_resolvable_modules() -> FrozenSet[str]:
+    """Build the set of all top-level module names resolvable in this environment.
+
+    Three sources, combined:
+      1. Built-in C extension modules  (sys.builtin_module_names)
+      2. Standard library              (sys.stdlib_module_names, Python 3.10+)
+      3. Installed distributions       (importlib.metadata.packages_distributions)
+
+    The result is cached for the lifetime of the process.
+    """
+    global _RESOLVABLE_MODULES
+    if _RESOLVABLE_MODULES is not None:
+        return _RESOLVABLE_MODULES
+
+    known: set[str] = set()
+
+    # 1. Built-in C modules (always available)
+    known.update(sys.builtin_module_names)
+
+    # 2. Standard library (Python 3.10+)
+    if hasattr(sys, "stdlib_module_names"):
+        known.update(sys.stdlib_module_names)  # type: ignore[attr-defined]
+
+    # 3. Installed distributions — maps top-level import names to dist names
+    try:
+        from importlib.metadata import packages_distributions
+
+        for top_level_names in packages_distributions().values():
+            for name in top_level_names:
+                known.add(name)
+                known.add(name.replace("-", "_"))
+    except Exception:
+        pass
+
+    _RESOLVABLE_MODULES = frozenset(known)
+    return _RESOLVABLE_MODULES
+
+
+def _module_exists(name: str) -> bool:
+    """Return True if *name* is a resolvable top-level module.
+
+    Falls back to importlib.util.find_spec for edge cases
+    (namespace packages, local editable installs) not captured by the index.
+    Errs on the side of False Negative (returns True on error) to avoid
+    false positives on unusual but legitimate setups.
+    """
+    if name in _get_resolvable_modules():
+        return True
+    try:
+        return importlib.util.find_spec(name) is not None
+    except Exception:
+        return True  # unknown environment — assume resolvable
+
+
+class PhantomImportPattern(BasePattern):
+    """Detect imports that reference non-existent packages (phantom/hallucinated imports).
+
+    AI code generators occasionally produce import statements for packages that
+    do not exist in the Python ecosystem — either because the model invented a
+    plausible-sounding name, conflated two real package names, or referenced a
+    package from a different language.
+
+    Examples of phantom imports produced by AI:
+        import tensorflow_utils          # does not exist
+        from requests_async_v2 import get # does not exist
+        import numpy_extended            # does not exist
+
+    Detection strategy:
+      Cross-reference the top-level module name from every import statement
+      against the union of:
+        - Python built-in C modules      (sys.builtin_module_names)
+        - Standard library modules       (sys.stdlib_module_names, 3.10+)
+        - Installed distributions        (importlib.metadata.packages_distributions)
+        - importlib.util.find_spec       (fallback for namespace / editable installs)
+
+      Relative imports (from . import X) are excluded — they reference local
+      project structure which is environment-dependent and not resolvable globally.
+
+    Severity: CRITICAL — a phantom import is a hard runtime error waiting to happen
+    and is a direct signal of hallucinated code.
+    """
+
+    id = "phantom_import"
+    severity = Severity.CRITICAL
+    axis = Axis.QUALITY
+    message = "Import references a package that cannot be resolved in this environment"
+
+    def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
+        issues: list[Issue] = []
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    top = alias.name.split(".")[0]
+                    if not _module_exists(top):
+                        issues.append(
+                            self.create_issue(
+                                file=file,
+                                line=getattr(node, "lineno", 0),
+                                column=getattr(node, "col_offset", 0),
+                                message=(
+                                    f"Phantom import: '{alias.name}' cannot be resolved "
+                                    f"(not in stdlib, built-ins, or installed packages)"
+                                ),
+                                suggestion=(
+                                    f"Verify '{alias.name}' exists on PyPI and is listed "
+                                    f"in your project dependencies. AI models sometimes "
+                                    f"generate plausible-looking but non-existent package names."
+                                ),
+                            )
+                        )
+
+            elif isinstance(node, ast.ImportFrom):
+                # Skip relative imports (level > 0) — local project structure
+                if node.level and node.level > 0:
+                    continue
+                if not node.module:
+                    continue
+                top = node.module.split(".")[0]
+                if not _module_exists(top):
+                    issues.append(
+                        self.create_issue(
+                            file=file,
+                            line=getattr(node, "lineno", 0),
+                            column=getattr(node, "col_offset", 0),
+                            message=(
+                                f"Phantom import: '{node.module}' cannot be resolved "
+                                f"(not in stdlib, built-ins, or installed packages)"
+                            ),
+                            suggestion=(
+                                f"Verify '{node.module}' exists on PyPI and is listed "
+                                f"in your project dependencies."
+                            ),
+                        )
+                    )
 
         return issues
