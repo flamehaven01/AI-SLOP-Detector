@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 2.6.1
-**Last Updated:** 2026-01-12
+**Version:** 2.9.0
+**Last Updated:** 2026-03-08
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -12,6 +12,40 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 1. [Structural Issues](#structural-issues)
 2. [Placeholder Indicators](#placeholder-indicators)
 3. [Cross-Language Mistakes](#cross-language-mistakes)
+4. [Python Advanced (v2.8.0+)](#python-advanced)
+5. [Phantom Import (v2.9.0)](#phantom-import)
+
+---
+
+## Quick Reference
+
+| ID | Severity | Category | Description |
+|---|---|---|---|
+| `bare_except` | CRITICAL | Structural | Catches all exceptions including SystemExit |
+| `mutable_default_arg` | HIGH | Structural | Mutable default argument (list/dict) |
+| `star_import` | MEDIUM | Structural | `from module import *` |
+| `global_statement` | MEDIUM | Structural | `global` keyword usage |
+| `empty_except` | CRITICAL | Placeholder | Exception handler with only `pass` |
+| `not_implemented` | HIGH | Placeholder | `raise NotImplementedError` stub |
+| `pass_placeholder` | HIGH | Placeholder | Function/class body is only `pass` |
+| `ellipsis_placeholder` | HIGH | Placeholder | Function body is only `...` |
+| `hack_comment` | HIGH | Placeholder | `# HACK` comment |
+| `return_none_placeholder` | MEDIUM | Placeholder | `return None` as only statement |
+| `todo_comment` | MEDIUM | Placeholder | `# TODO` comment |
+| `fixme_comment` | MEDIUM | Placeholder | `# FIXME` comment |
+| `interface_only_class` | HIGH | Placeholder | Class with only `pass`/`...` bodies |
+| `xxx_comment` | LOW | Placeholder | `# XXX` comment |
+| `js_push` | HIGH | Cross-Language | `.push()` (JavaScript Array method) |
+| `java_equals` | HIGH | Cross-Language | `.equals()` (Java String method) |
+| `ruby_each` | HIGH | Cross-Language | `.each {}` (Ruby iterator) |
+| `go_print` | MEDIUM | Cross-Language | `fmt.Println()` (Go print) |
+| `csharp_length` | MEDIUM | Cross-Language | `.Length` (C# property) |
+| `php_strlen` | MEDIUM | Cross-Language | `strlen()` (PHP function) |
+| `god_function` | HIGH | Python Advanced | Function > 50 logic lines or complexity > 10 |
+| `dead_code` | MEDIUM | Python Advanced | Unreachable statements after return/raise |
+| `deep_nesting` | HIGH | Python Advanced | Control-flow depth > 4 |
+| `lint_escape` | HIGH/MED/LOW | Python Advanced | `# noqa`, `# type: ignore`, `# pylint: disable` |
+| `phantom_import` | **CRITICAL** | **v2.9.0** | Import targets a non-existent package |
 
 ---
 
@@ -748,5 +782,113 @@ detector.pattern_registry.register(GlobalVariablePattern())
 
 ---
 
-**Maintained by:** Flamehaven Labs  
+## Python Advanced
+
+Patterns added in v2.8.0, using Python `ast` module for structural analysis.
+
+### god_function
+
+**Severity:** HIGH | **Axis:** STYLE
+
+Function exceeds `logic_lines > 50` OR `cyclomatic_complexity > 10`.
+Cyclomatic complexity = `1 + count(If, For, While, ExceptHandler, With, BoolOp)`.
+God functions are primary carriers of slop: they combine unrelated responsibilities
+and resist meaningful testing.
+
+```python
+# Flagged:
+def do_everything(data, config, user, db, cache, logger):  # 200 lines, complexity 15
+    ...
+
+# Fix: break into single-responsibility functions
+```
+
+---
+
+### dead_code
+
+**Severity:** MEDIUM | **Axis:** QUALITY
+
+Statements following a terminal node (`return`, `raise`, `break`, `continue`) in any
+block — including `orelse`, `finalbody`, and exception handler bodies.
+
+```python
+# Flagged:
+def process(x):
+    return x * 2
+    print("done")  # never reached
+```
+
+---
+
+### deep_nesting
+
+**Severity:** HIGH | **Axis:** STYLE
+
+Control-flow nesting depth > 4 within a single function.
+Depth computed recursively over `If/For/While/With/Try` bodies.
+
+```python
+# Flagged (depth 5):
+for item in data:
+    if item:
+        for sub in item:
+            if sub:
+                try:
+                    if sub.valid:  # depth 5
+                        ...
+```
+
+---
+
+### lint_escape
+
+**Severity:** HIGH / MEDIUM / LOW | **Axis:** QUALITY
+
+Detects lint and type suppression comments. Three sub-signals:
+
+| Comment | Severity | Rationale |
+|---|---|---|
+| `# noqa` (bare) | HIGH | Silences ALL warnings — no documentation of what or why |
+| `# noqa: CODE` | LOW | Targeted — legitimate in some cases |
+| `# type: ignore` | MEDIUM | Hides real type errors from static analysis |
+| `# pylint: disable=` | MEDIUM | Inline disables harder to audit than config entries |
+
+---
+
+## Phantom Import
+
+*Full documentation: [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md)*
+
+### phantom_import
+
+**Severity:** CRITICAL | **Axis:** QUALITY | **Added:** v2.9.0
+
+Detects imports referencing packages that cannot be resolved in the current
+environment — a direct signal of AI-hallucinated code.
+
+**Resolution index** (built once per process):
+1. `sys.builtin_module_names` — C extensions
+2. `sys.stdlib_module_names` — stdlib (Python 3.10+)
+3. `importlib.metadata.packages_distributions()` — pip-installed packages
+4. `importlib.util.find_spec` — namespace packages, editable installs
+
+Relative imports are excluded by design.
+
+```python
+# CRITICAL:
+import tensorflow_magic        # does not exist
+from requests_async_v2 import get  # does not exist
+
+# OK:
+import numpy                   # installed
+from os import path            # stdlib
+from . import utils            # relative — excluded
+```
+
+See [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) for full specification.
+
+---
+
+**Maintained by:** Flamehaven Labs
 **Contact:** info@flamehaven.space
