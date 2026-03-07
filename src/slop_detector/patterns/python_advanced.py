@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
-from typing import List, Optional
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -161,7 +160,6 @@ class GodFunctionPattern(BasePattern):
 
             start = node.lineno
             end = getattr(node, "end_lineno", node.lineno)
-            fn_lines = end - start + 1
 
             # Count non-blank logic lines within the function
             logic_lines = sum(
