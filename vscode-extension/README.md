@@ -1,4 +1,4 @@
-# AI SLOP Detector — VS Code Extension v2.8.0
+# AI SLOP Detector — VS Code Extension v2.9.0
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, and actionable
@@ -6,16 +6,17 @@ diagnostics without leaving your editor.
 
 ---
 
-## What's New in v2.8.0
+## What's New in v2.9.0
 
-- **Python Advanced Patterns**: `god_function` (>50 lines or complexity >10),
-  `dead_code` (unreachable statements), `deep_nesting` (control-flow depth >4)
-  appear as inline diagnostics with precise line numbers
-- **ML Secondary Signal**: when a trained model is present, the summary
-  diagnostic and status bar tooltip include slop probability and confidence
-- **Rebuilt scoring formulas**: ICR uses density x complexity amplifier,
-  status follows a single monotonic axis (CLEAN / SUSPICIOUS / INFLATED_SIGNAL
-  / CRITICAL_DEFICIT), project LDR uses SR9 conservative aggregation
+- **Phantom Import Detection**: `phantom_import` (CRITICAL) fires inline when
+  an import references a package that cannot be resolved in the current
+  environment — catches hallucinated dependencies from AI-generated code
+- **History Trends command**: `SLOP Detector: Show History Trends` displays
+  per-file regression and improvement data from the SQLite history database
+- **Export History command**: `SLOP Detector: Export History to JSONL` saves
+  the full history database to a `.jsonl` file for ML training or auditing
+- **History auto-record**: every analysis run is silently written to
+  `~/.slop-detector/history.db`; disable per-file with `slopDetector.recordHistory: false`
 
 ---
 

@@ -42,6 +42,13 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('slop-detector.autoFix', autoFixCurrentFile)
     );
+    // v2.9.0 commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('slop-detector.showHistoryTrends', showHistoryTrends)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('slop-detector.exportHistory', exportHistory)
+    );
     context.subscriptions.push(
         vscode.commands.registerCommand('slop-detector.showGate', showGateDecision)
     );
@@ -549,6 +556,66 @@ async function runCrossFileAnalysis() {
         statusBarItem.text = "$(check) SLOP: Ready";
     } catch (error) {
         vscode.window.showErrorMessage(`[-] Cross-file analysis failed: ${error}`);
+        statusBarItem.text = "$(error) SLOP: Error";
+    }
+}
+
+// v2.9.0: History Trends
+async function showHistoryTrends() {
+    const config = vscode.workspace.getConfiguration('slopDetector');
+    const pythonPath = config.get('pythonPath', 'python');
+
+    statusBarItem.text = "$(sync~spin) SLOP: Loading trends...";
+
+    try {
+        const command = `${pythonPath} -m slop_detector.cli --history-trends --json`;
+        const { stdout } = await execAsync(command, { maxBuffer: 5 * 1024 * 1024 });
+
+        const trends = JSON.parse(stdout);
+
+        outputChannel.appendLine('[History Trends]');
+        outputChannel.appendLine(JSON.stringify(trends, null, 2));
+        outputChannel.show(false);
+
+        const totalFiles = trends.total_files ?? Object.keys(trends).length;
+        vscode.window.showInformationMessage(
+            `[+] History Trends loaded — ${totalFiles} file(s). See Output panel.`
+        );
+        statusBarItem.text = "$(check) SLOP: Ready";
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`[-] History Trends failed: ${msg}`);
+        statusBarItem.text = "$(error) SLOP: Error";
+    }
+}
+
+// v2.9.0: Export History
+async function exportHistory() {
+    const saveUri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file('slop_history.jsonl'),
+        filters: { 'JSONL': ['jsonl'], 'All Files': ['*'] },
+        saveLabel: 'Export History'
+    });
+
+    if (!saveUri) {
+        return;
+    }
+
+    const config = vscode.workspace.getConfiguration('slopDetector');
+    const pythonPath = config.get('pythonPath', 'python');
+    const outputPath = saveUri.fsPath;
+
+    statusBarItem.text = "$(sync~spin) SLOP: Exporting...";
+
+    try {
+        const command = `${pythonPath} -m slop_detector.cli --export-history "${outputPath}"`;
+        await execAsync(command, { maxBuffer: 50 * 1024 * 1024 });
+
+        vscode.window.showInformationMessage(`[+] History exported to ${outputPath}`);
+        statusBarItem.text = "$(check) SLOP: Ready";
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`[-] Export History failed: ${msg}`);
         statusBarItem.text = "$(error) SLOP: Error";
     }
 }

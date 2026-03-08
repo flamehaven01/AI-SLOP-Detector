@@ -2,7 +2,7 @@
   "name": "vscode-slop-detector",
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "publisher": "Flamehaven",
   "engines": {
     "vscode": "^1.80.0"
@@ -59,6 +59,16 @@
       {
         "command": "slop-detector.crossFileAnalysis",
         "title": "Run Cross-File Analysis",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.showHistoryTrends",
+        "title": "Show History Trends",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.exportHistory",
+        "title": "Export History to JSONL",
         "category": "SLOP Detector"
       }
     ],
