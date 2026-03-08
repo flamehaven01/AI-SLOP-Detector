@@ -12,7 +12,11 @@ class Question:
     """A review question about code quality."""
 
     def __init__(
-        self, question: str, severity: str, line: Optional[int] = None, context: Optional[str] = None
+        self,
+        question: str,
+        severity: str,
+        line: Optional[int] = None,
+        context: Optional[str] = None,
     ):
         self.question = question
         self.severity = severity  # "critical", "warning", "info"

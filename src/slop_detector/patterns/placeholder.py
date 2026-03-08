@@ -20,8 +20,11 @@ class PassPlaceholderPattern(ASTPattern):
         if isinstance(node, ast.FunctionDef):
             # Skip @abstractmethod stubs — intentional ABC pattern
             decorators = [
-                (d.id if isinstance(d, ast.Name) else
-                 d.attr if isinstance(d, ast.Attribute) else "")
+                (
+                    d.id
+                    if isinstance(d, ast.Name)
+                    else d.attr if isinstance(d, ast.Attribute) else ""
+                )
                 for d in node.decorator_list
             ]
             if "abstractmethod" in decorators:
