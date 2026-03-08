@@ -83,7 +83,11 @@ def _build_rich_summary_tables(result):
     summary_table.add_row("Clean Files", str(result.clean_files))
     summary_table.add_row(
         "Deficit Files",
-        f"[red]{result.deficit_files}[/red]" if result.deficit_files > 0 else str(result.deficit_files),
+        (
+            f"[red]{result.deficit_files}[/red]"
+            if result.deficit_files > 0
+            else str(result.deficit_files)
+        ),
     )
     sc = "red" if result.overall_status != "clean" else "green"
     summary_table.add_row("Overall Status", f"[{sc}]{result.overall_status.upper()}[/{sc}]")
@@ -102,27 +106,39 @@ def _build_rich_summary_tables(result):
 def _build_rich_files_table(result):
     """Build and return the Rich Table for file-level analysis."""
     files_table = Table(title="File Analysis", box=box.MINIMAL_DOUBLE_HEAD)
-    for col, kw in [("File", {"style": "bold"}), ("Status", {}), ("Score", {"justify": "right"}),
-                    ("LDR", {"justify": "right"}), ("ICR", {"justify": "right"}),
-                    ("DDC", {"justify": "right"}), ("Notes", {})]:
+    for col, kw in [
+        ("File", {"style": "bold"}),
+        ("Status", {}),
+        ("Score", {"justify": "right"}),
+        ("LDR", {"justify": "right"}),
+        ("ICR", {"justify": "right"}),
+        ("DDC", {"justify": "right"}),
+        ("Notes", {}),
+    ]:
         files_table.add_column(col, **kw)
     for fr in result.file_results:
         if fr.status == "clean":
             continue
         ss = "red" if fr.status == "critical" else "yellow"
-        notes = ([f"{len(fr.warnings)} Warnings"] if fr.warnings else [])
+        notes = [f"{len(fr.warnings)} Warnings"] if fr.warnings else []
         jc = sum(1 for d in fr.inflation.jargon_details if not d.get("justified"))
         if jc > 0:
             notes.append(f"{jc} Jargon Terms")
         files_table.add_row(
             Path(fr.file_path).name,
             f"[{ss}]{fr.status.upper()}[/{ss}]",
-            f"{fr.deficit_score:.1f}", f"{fr.ldr.ldr_score:.0%}",
-            f"{fr.inflation.inflation_score:.2f}", f"{fr.ddc.usage_ratio:.0%}",
+            f"{fr.deficit_score:.1f}",
+            f"{fr.ldr.ldr_score:.0%}",
+            f"{fr.inflation.inflation_score:.2f}",
+            f"{fr.ddc.usage_ratio:.0%}",
             ", ".join(notes),
         )
         if jc > 0:
-            jt = ", ".join(f"{d['word']}(L{d['line']})" for d in fr.inflation.jargon_details if not d.get("justified"))
+            jt = ", ".join(
+                f"{d['word']}(L{d['line']})"
+                for d in fr.inflation.jargon_details
+                if not d.get("justified")
+            )
             files_table.add_row("", "", "", "", "", "", f"[dim]Jargon: {jt}[/dim]")
     return files_table
 
@@ -146,17 +162,27 @@ def _append_pattern_issues_rich(content, result) -> None:
     if not issues:
         return
     sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-    sorted_issues = sorted(issues, key=lambda p: sev_order.get(getattr(getattr(p, "severity", None), "value", "low"), 3))
+    sorted_issues = sorted(
+        issues,
+        key=lambda p: sev_order.get(getattr(getattr(p, "severity", None), "value", "low"), 3),
+    )
     content.append("\nPattern Issues:\n", style="bold red")
     for p in sorted_issues[:10]:
         sev = getattr(getattr(p, "severity", None), "value", "low")
         sev_style = "bold red" if sev == "critical" else "yellow" if sev == "high" else "dim"
-        content.append(f"  L{getattr(p, 'line', '-')} [{sev.upper()}] {getattr(p, 'message', str(p))}\n", style=sev_style)
+        content.append(
+            f"  L{getattr(p, 'line', '-')} [{sev.upper()}] {getattr(p, 'message', str(p))}\n",
+            style=sev_style,
+        )
     if len(issues) > 10:
         content.append(f"  ... and {len(issues) - 10} more\n", style="dim")
     adv_parts = [
         f"{sum(1 for p in issues if getattr(p, 'pattern_id', '') == pid)} {label}"
-        for pid, label in [("god_function", "god-fn"), ("dead_code", "dead-code"), ("deep_nesting", "deep-nest")]
+        for pid, label in [
+            ("god_function", "god-fn"),
+            ("dead_code", "dead-code"),
+            ("deep_nesting", "deep-nest"),
+        ]
         if any(getattr(p, "pattern_id", "") == pid for p in issues)
     ]
     if adv_parts:
@@ -185,18 +211,31 @@ def _build_single_file_content(result) -> "Text":
     if result.docstring_inflation and result.docstring_inflation.details:
         di = result.docstring_inflation
         content.append("\nDocstring Inflation:\n", style="bold yellow")
-        content.append(f"Overall: {di.total_docstring_lines} doc lines / {di.total_implementation_lines} impl lines (ratio: {di.overall_ratio:.2f})\n")
+        content.append(
+            f"Overall: {di.total_docstring_lines} doc lines / {di.total_implementation_lines} impl lines (ratio: {di.overall_ratio:.2f})\n"
+        )
         if di.inflated_count > 0:
             content.append(f"{di.inflated_count} inflated functions/classes:\n")
             for det in di.details[:3]:
-                content.append(f"- Line {det.line}: {det.name} ({det.docstring_lines}doc/{det.implementation_lines}impl = {det.inflation_ratio:.1f}x)\n")
+                content.append(
+                    f"- Line {det.line}: {det.name} ({det.docstring_lines}doc/{det.implementation_lines}impl = {det.inflation_ratio:.1f}x)\n"
+                )
     _append_pattern_issues_rich(content, result)
     ml = getattr(result, "ml_score", None)
     if ml is not None:
-        ml_color = "red" if ml.slop_probability >= 0.70 else "yellow" if ml.slop_probability >= 0.40 else "green"
+        ml_color = (
+            "red"
+            if ml.slop_probability >= 0.70
+            else "yellow" if ml.slop_probability >= 0.40 else "green"
+        )
         content.append("\nML Score:\n", style="bold cyan")
-        content.append(f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n", style=ml_color)
-        content.append(f"  Confidence: {ml.confidence:.1%}  Model: {ml.model_type}  Agreement: {'yes' if ml.agreement else 'no'}\n", style="dim")
+        content.append(
+            f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n", style=ml_color
+        )
+        content.append(
+            f"  Confidence: {ml.confidence:.1%}  Model: {ml.model_type}  Agreement: {'yes' if ml.agreement else 'no'}\n",
+            style="dim",
+        )
     return content
 
 
@@ -326,12 +365,14 @@ def _collect_test_evidence_stats(file_results) -> dict:
 
 def _md_summary_section(avg_deficit: float, avg_inflation: float, status) -> list:
     """Return markdown lines for the Executive Summary section."""
-    lines = ["## 1. Executive Summary",
-             "| Metric | Score | Status | Description |",
-             "| :--- | :--- | :--- | :--- |",
-             f"| **Deficit Score** | {avg_deficit:.2f} | {status.value.upper()} | Closer to 0.0 is better. High score indicates low logic density. |",
-             f"| **Inflation (Jargon)** | {avg_inflation:.2f} | - | Density of non-functional 'marketing' terms. |",
-             ""]
+    lines = [
+        "## 1. Executive Summary",
+        "| Metric | Score | Status | Description |",
+        "| :--- | :--- | :--- | :--- |",
+        f"| **Deficit Score** | {avg_deficit:.2f} | {status.value.upper()} | Closer to 0.0 is better. High score indicates low logic density. |",
+        f"| **Inflation (Jargon)** | {avg_inflation:.2f} | - | Density of non-functional 'marketing' terms. |",
+        "",
+    ]
     return lines
 
 
@@ -351,7 +392,10 @@ def _md_test_evidence_section(result) -> list:
         f"| **Total** | {test_evidence['total_test_files']} | {test_evidence['total_test_functions']} | - |",
     ]
     if test_evidence["integration_test_files"] == 0 and test_evidence.get("has_production_claims"):
-        lines += ["", "[!] **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims."]
+        lines += [
+            "",
+            "[!] **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims.",
+        ]
     lines.append("")
     return lines
 
@@ -363,42 +407,67 @@ def _md_findings_section(file_results) -> list:
         return lines + ["_No files analyzed._"]
 
     for file_path, f_res in file_results:
-        if f_res.deficit_score < 0.3 and not f_res.pattern_issues and not f_res.inflation.jargon_details:
+        if (
+            f_res.deficit_score < 0.3
+            and not f_res.pattern_issues
+            and not f_res.inflation.jargon_details
+        ):
             continue
-        lines += [f"### [L] `{Path(str(file_path)).name}`",
-                  f"- **Deficit Score**: {f_res.deficit_score:.2f}",
-                  f"- **Lines of Code**: {f_res.ldr.total_lines}"]
+        lines += [
+            f"### [L] `{Path(str(file_path)).name}`",
+            f"- **Deficit Score**: {f_res.deficit_score:.2f}",
+            f"- **Lines of Code**: {f_res.ldr.total_lines}",
+        ]
         if f_res.ldr.total_lines == 0:
-            lines += ["#### [!] Anti-Patterns & Risk",
-                      "| Line | Issue | Mitigation Strategy |",
-                      "| :--- | :--- | :--- |",
-                      "| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |",
-                      "", "---"]
+            lines += [
+                "#### [!] Anti-Patterns & Risk",
+                "| Line | Issue | Mitigation Strategy |",
+                "| :--- | :--- | :--- |",
+                "| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |",
+                "",
+                "---",
+            ]
             continue
 
         jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
         if jargon_issues:
-            lines += ["#### [-] Inflation (Jargon) Detected",
-                      "| Line | Term | Category | Actionable Mitigation |",
-                      "| :--- | :--- | :--- | :--- |"]
+            lines += [
+                "#### [-] Inflation (Jargon) Detected",
+                "| Line | Term | Category | Actionable Mitigation |",
+                "| :--- | :--- | :--- | :--- |",
+            ]
             for det in jargon_issues:
-                lines.append(f"| {det['line']} | `{det['word']}` | {det['category']} | {get_mitigation('jargon')} |")
+                lines.append(
+                    f"| {det['line']} | `{det['word']}` | {det['category']} | {get_mitigation('jargon')} |"
+                )
             lines.append("")
 
         if hasattr(f_res, "pattern_issues") and f_res.pattern_issues:
-            lines += ["#### [!] Anti-Patterns & Risk",
-                      "| Line | Issue | Mitigation Strategy |",
-                      "| :--- | :--- | :--- |"]
+            lines += [
+                "#### [!] Anti-Patterns & Risk",
+                "| Line | Issue | Mitigation Strategy |",
+                "| :--- | :--- | :--- |",
+            ]
             for p in f_res.pattern_issues:
                 desc = p.message if hasattr(p, "message") else str(p)
                 line_val = p.line if hasattr(p, "line") else "-"
                 desc_lower = desc.lower()
                 issue_key = (
-                    "mutable_default" if "mutable default" in desc_lower else
-                    "bare_except" if "bare except" in desc_lower else
-                    "broad_except" if "broad exception" in desc_lower else
-                    "empty_function" if "empty function" in desc_lower else
-                    "unused_import" if "unused import" in desc_lower else "unknown"
+                    "mutable_default"
+                    if "mutable default" in desc_lower
+                    else (
+                        "bare_except"
+                        if "bare except" in desc_lower
+                        else (
+                            "broad_except"
+                            if "broad exception" in desc_lower
+                            else (
+                                "empty_function"
+                                if "empty function" in desc_lower
+                                else "unused_import" if "unused import" in desc_lower else "unknown"
+                            )
+                        )
+                    )
                 )
                 lines.append(f"| {line_val} | {desc} | {get_mitigation(issue_key, desc)} |")
             lines.append("")
@@ -472,28 +541,94 @@ Examples:
     parser.add_argument("--output", "-o", help="Output file (txt, json, or html)")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
-    parser.add_argument("--fix", action="store_true", help="Apply auto-fixes for detected patterns (use --dry-run to preview)")
-    parser.add_argument("--dry-run", action="store_true", help="Preview fixes without writing to disk (use with --fix)")
-    parser.add_argument("--gate", action="store_true", help="Show SNP-compatible gate decision (PASS/HALT) with sr9/di2/jsd/ove metrics")
-    parser.add_argument("--js", action="store_true", help="Analyze JavaScript/TypeScript files in addition to Python")
-    parser.add_argument("--cross-file", action="store_true", help="Run cross-file analysis (cycles, duplicates, hotspots)")
-    parser.add_argument("--governance", action="store_true", help="Emit CR-EP v2.7.2 session artifacts to .cr-ep/ directory")
-    parser.add_argument("--disable", "-d", action="append", default=[], metavar="PATTERN_ID", help="Disable specific pattern by ID (can be repeated)")
-    parser.add_argument("--patterns-only", action="store_true", help="Only run pattern detection (skip metrics)")
-    parser.add_argument("--list-patterns", action="store_true", help="List all available patterns and exit")
-    parser.add_argument("--fail-threshold", type=float, default=None, help="Exit with code 1 if slop score exceeds threshold")
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="Apply auto-fixes for detected patterns (use --dry-run to preview)",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview fixes without writing to disk (use with --fix)",
+    )
+    parser.add_argument(
+        "--gate",
+        action="store_true",
+        help="Show SNP-compatible gate decision (PASS/HALT) with sr9/di2/jsd/ove metrics",
+    )
+    parser.add_argument(
+        "--js",
+        action="store_true",
+        help="Analyze JavaScript/TypeScript files in addition to Python",
+    )
+    parser.add_argument(
+        "--cross-file",
+        action="store_true",
+        help="Run cross-file analysis (cycles, duplicates, hotspots)",
+    )
+    parser.add_argument(
+        "--governance",
+        action="store_true",
+        help="Emit CR-EP v2.7.2 session artifacts to .cr-ep/ directory",
+    )
+    parser.add_argument(
+        "--disable",
+        "-d",
+        action="append",
+        default=[],
+        metavar="PATTERN_ID",
+        help="Disable specific pattern by ID (can be repeated)",
+    )
+    parser.add_argument(
+        "--patterns-only", action="store_true", help="Only run pattern detection (skip metrics)"
+    )
+    parser.add_argument(
+        "--list-patterns", action="store_true", help="List all available patterns and exit"
+    )
+    parser.add_argument(
+        "--fail-threshold",
+        type=float,
+        default=None,
+        help="Exit with code 1 if slop score exceeds threshold",
+    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     parser.add_argument("--version", action="version", version=f"ai-slop-detector {__version__}")
-    parser.add_argument("--no-color", action="store_true", help="Disable rich output (force plain text)")
+    parser.add_argument(
+        "--no-color", action="store_true", help="Disable rich output (force plain text)"
+    )
     # History tracking (v2.9.0)
-    parser.add_argument("--no-history", action="store_true", help="Skip recording this run to history (~/.slop-detector/history.db)")
-    parser.add_argument("--show-history", action="store_true", help="Show trend history for the given file and exit")
-    parser.add_argument("--history-trends", action="store_true", help="Show project-wide daily trends (last 7 days) and exit")
-    parser.add_argument("--export-history", metavar="PATH", help="Export full history to JSONL file and exit")
+    parser.add_argument(
+        "--no-history",
+        action="store_true",
+        help="Skip recording this run to history (~/.slop-detector/history.db)",
+    )
+    parser.add_argument(
+        "--show-history", action="store_true", help="Show trend history for the given file and exit"
+    )
+    parser.add_argument(
+        "--history-trends",
+        action="store_true",
+        help="Show project-wide daily trends (last 7 days) and exit",
+    )
+    parser.add_argument(
+        "--export-history", metavar="PATH", help="Export full history to JSONL file and exit"
+    )
     # CI/CD Gate options (v2.2)
-    parser.add_argument("--ci-mode", choices=["soft", "hard", "quarantine"], help="CI gate mode: soft (PR comments only), hard (fail build), quarantine (track repeat offenders)")
-    parser.add_argument("--ci-report", action="store_true", help="Output CI gate report and exit with appropriate code")
-    parser.add_argument("--ci-claims-strict", action="store_true", help="Enable claim-based enforcement: fail if production/enterprise/scalable/fault-tolerant claims lack integration tests (v2.6.2)")
+    parser.add_argument(
+        "--ci-mode",
+        choices=["soft", "hard", "quarantine"],
+        help="CI gate mode: soft (PR comments only), hard (fail build), quarantine (track repeat offenders)",
+    )
+    parser.add_argument(
+        "--ci-report",
+        action="store_true",
+        help="Output CI gate report and exit with appropriate code",
+    )
+    parser.add_argument(
+        "--ci-claims-strict",
+        action="store_true",
+        help="Enable claim-based enforcement: fail if production/enterprise/scalable/fault-tolerant claims lack integration tests (v2.6.2)",
+    )
     return parser
 
 
@@ -534,6 +669,7 @@ def _evaluate_ci_gate(args, result):
     if not (args.ci_mode or args.ci_report or claims_strict):
         return None
     from slop_detector.ci_gate import CIGate, GateMode
+
     gate_mode = GateMode(args.ci_mode) if args.ci_mode else GateMode.SOFT
     gate_result = CIGate(mode=gate_mode, claims_strict=claims_strict).evaluate(result)
     if args.ci_report:
@@ -590,6 +726,7 @@ def main() -> int:
 
     try:
         from typing import Union
+
         result: Union[ProjectAnalysis, FileAnalysis]
         if args.project:
             result = detector.analyze_project(args.path)
@@ -608,7 +745,10 @@ def main() -> int:
     _handle_output(args, result)
 
     if args.fail_threshold is not None and score > args.fail_threshold:
-        print(f"\n[!] FAIL: Deficit score {score:.1f} exceeds threshold {args.fail_threshold}", file=sys.stderr)
+        print(
+            f"\n[!] FAIL: Deficit score {score:.1f} exceeds threshold {args.fail_threshold}",
+            file=sys.stderr,
+        )
         return 1
 
     _run_optional_features(args, result)
@@ -808,6 +948,7 @@ def _record_history(result) -> None:
             tracker.record(result)
     except Exception as exc:  # noqa: BLE001 — history is best-effort; never block main flow
         import logging as _logging
+
         _logging.getLogger(__name__).debug("history record skipped: %s", exc)
 
 

@@ -98,14 +98,14 @@ class InflationCalculator:
         avg_complexity = self._calculate_avg_complexity(content, tree)
         is_config_file = self._is_config_file(file_path, tree)
 
-        jargon_found, justified_jargon, jargon_details = self._scan_jargon(
-            content, lines, tree
-        )
+        jargon_found, justified_jargon, jargon_details = self._scan_jargon(content, lines, tree)
         effective_jargon = max(0, len(jargon_found) - len(justified_jargon))
         inflation_score = self._compute_inflation_score(
             effective_jargon, logic_lines, avg_complexity, is_config_file
         )
-        status = "FAIL" if inflation_score > 1.0 else ("WARNING" if inflation_score > 0.5 else "PASS")
+        status = (
+            "FAIL" if inflation_score > 1.0 else ("WARNING" if inflation_score > 0.5 else "PASS")
+        )
 
         return InflationResult(
             jargon_count=len(jargon_found),
@@ -138,8 +138,12 @@ class InflationCalculator:
                             if is_justified:
                                 justified_jargon.append(word)
                             jargon_details.append(
-                                {"word": word, "line": line_idx, "category": category,
-                                 "justified": is_justified}
+                                {
+                                    "word": word,
+                                    "line": line_idx,
+                                    "category": category,
+                                    "justified": is_justified,
+                                }
                             )
         return jargon_found, justified_jargon, jargon_details
 
