@@ -73,11 +73,160 @@ except ImportError:
     RICH_AVAILABLE = False
 
 
+def _build_rich_summary_tables(result):
+    """Build and return (summary_table, metrics_table) Rich Table objects."""
+    summary_table = Table(title="Project Summary", box=box.ROUNDED)
+    summary_table.add_column("Metric", style="cyan")
+    summary_table.add_column("Value", style="green")
+    summary_table.add_row("Project", str(result.project_path))
+    summary_table.add_row("Total Files", str(result.total_files))
+    summary_table.add_row("Clean Files", str(result.clean_files))
+    summary_table.add_row(
+        "Deficit Files",
+        f"[red]{result.deficit_files}[/red]" if result.deficit_files > 0 else str(result.deficit_files),
+    )
+    sc = "red" if result.overall_status != "clean" else "green"
+    summary_table.add_row("Overall Status", f"[{sc}]{result.overall_status.upper()}[/{sc}]")
+
+    metrics_table = Table(title="Average Metrics", box=box.SIMPLE)
+    metrics_table.add_column("Metric")
+    metrics_table.add_column("Score")
+    metrics_table.add_row("Deficit Score", f"{result.avg_deficit_score:.1f}/100")
+    metrics_table.add_row("Weighted Score", f"{result.weighted_deficit_score:.1f}/100")
+    metrics_table.add_row("LDR (Logic)", f"{result.avg_ldr:.2%}")
+    metrics_table.add_row("ICR (Inflation)", f"{result.avg_inflation:.2f}")
+    metrics_table.add_row("DDC (Deps)", f"{result.avg_ddc:.2%}")
+    return summary_table, metrics_table
+
+
+def _build_rich_files_table(result):
+    """Build and return the Rich Table for file-level analysis."""
+    files_table = Table(title="File Analysis", box=box.MINIMAL_DOUBLE_HEAD)
+    for col, kw in [("File", {"style": "bold"}), ("Status", {}), ("Score", {"justify": "right"}),
+                    ("LDR", {"justify": "right"}), ("ICR", {"justify": "right"}),
+                    ("DDC", {"justify": "right"}), ("Notes", {})]:
+        files_table.add_column(col, **kw)
+    for fr in result.file_results:
+        if fr.status == "clean":
+            continue
+        ss = "red" if fr.status == "critical" else "yellow"
+        notes = ([f"{len(fr.warnings)} Warnings"] if fr.warnings else [])
+        jc = sum(1 for d in fr.inflation.jargon_details if not d.get("justified"))
+        if jc > 0:
+            notes.append(f"{jc} Jargon Terms")
+        files_table.add_row(
+            Path(fr.file_path).name,
+            f"[{ss}]{fr.status.upper()}[/{ss}]",
+            f"{fr.deficit_score:.1f}", f"{fr.ldr.ldr_score:.0%}",
+            f"{fr.inflation.inflation_score:.2f}", f"{fr.ddc.usage_ratio:.0%}",
+            ", ".join(notes),
+        )
+        if jc > 0:
+            jt = ", ".join(f"{d['word']}(L{d['line']})" for d in fr.inflation.jargon_details if not d.get("justified"))
+            files_table.add_row("", "", "", "", "", "", f"[dim]Jargon: {jt}[/dim]")
+    return files_table
+
+
+def _render_rich_project(console, result) -> None:
+    """Render project summary, metrics, and file tables via Rich."""
+    summary_table, metrics_table = _build_rich_summary_tables(result)
+    console.print(summary_table)
+    console.print()
+    console.print(metrics_table)
+    console.print()
+    if result.deficit_files > 0:
+        console.print(_build_rich_files_table(result))
+    else:
+        console.print(Panel("No deficit detected in project files.", style="green"))
+
+
+def _append_pattern_issues_rich(content, result) -> None:
+    """Append pattern issues block to a Rich Text object."""
+    issues = getattr(result, "pattern_issues", None)
+    if not issues:
+        return
+    sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    sorted_issues = sorted(issues, key=lambda p: sev_order.get(getattr(getattr(p, "severity", None), "value", "low"), 3))
+    content.append("\nPattern Issues:\n", style="bold red")
+    for p in sorted_issues[:10]:
+        sev = getattr(getattr(p, "severity", None), "value", "low")
+        sev_style = "bold red" if sev == "critical" else "yellow" if sev == "high" else "dim"
+        content.append(f"  L{getattr(p, 'line', '-')} [{sev.upper()}] {getattr(p, 'message', str(p))}\n", style=sev_style)
+    if len(issues) > 10:
+        content.append(f"  ... and {len(issues) - 10} more\n", style="dim")
+    adv_parts = [
+        f"{sum(1 for p in issues if getattr(p, 'pattern_id', '') == pid)} {label}"
+        for pid, label in [("god_function", "god-fn"), ("dead_code", "dead-code"), ("deep_nesting", "deep-nest")]
+        if any(getattr(p, "pattern_id", "") == pid for p in issues)
+    ]
+    if adv_parts:
+        content.append(f"  Advanced: {', '.join(adv_parts)}\n", style="dim cyan")
+
+
+def _build_single_file_content(result) -> "Text":
+    """Build the Rich Text content for a single-file panel."""
+    color = "red" if result.status != "clean" else "green"
+    content = Text()
+    content.append(f"File: {result.file_path}\n")
+    content.append(f"Status: {result.status.upper()}\n", style="bold " + color)
+    content.append(f"Score: {result.deficit_score:.1f}/100\n\n")
+    content.append(f"LDR: {result.ldr.ldr_score:.2%} ({result.ldr.grade})\n")
+    content.append(f"ICR: {result.inflation.inflation_score:.2f} ({result.inflation.status})\n")
+    content.append(f"DDC: {result.ddc.usage_ratio:.2%} ({result.ddc.grade})\n")
+    if result.warnings:
+        content.append("\nWarnings:\n", style="bold yellow")
+        for w in result.warnings:
+            content.append(f"- {w}\n")
+    jargon = [d for d in result.inflation.jargon_details if not d.get("justified")]
+    if jargon:
+        content.append("\nJargon Detected:\n", style="bold red")
+        for d in jargon:
+            content.append(f"- Line {d['line']}: {d['word']}\n")
+    if result.docstring_inflation and result.docstring_inflation.details:
+        di = result.docstring_inflation
+        content.append("\nDocstring Inflation:\n", style="bold yellow")
+        content.append(f"Overall: {di.total_docstring_lines} doc lines / {di.total_implementation_lines} impl lines (ratio: {di.overall_ratio:.2f})\n")
+        if di.inflated_count > 0:
+            content.append(f"{di.inflated_count} inflated functions/classes:\n")
+            for det in di.details[:3]:
+                content.append(f"- Line {det.line}: {det.name} ({det.docstring_lines}doc/{det.implementation_lines}impl = {det.inflation_ratio:.1f}x)\n")
+    _append_pattern_issues_rich(content, result)
+    ml = getattr(result, "ml_score", None)
+    if ml is not None:
+        ml_color = "red" if ml.slop_probability >= 0.70 else "yellow" if ml.slop_probability >= 0.40 else "green"
+        content.append("\nML Score:\n", style="bold cyan")
+        content.append(f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n", style=ml_color)
+        content.append(f"  Confidence: {ml.confidence:.1%}  Model: {ml.model_type}  Agreement: {'yes' if ml.agreement else 'no'}\n", style="dim")
+    return content
+
+
+def _render_rich_single_file(console, result) -> None:
+    """Render single-file panel with metrics, patterns, ML score, and review questions."""
+    color = "red" if result.status != "clean" else "green"
+    content = _build_single_file_content(result)
+    console.print(Panel(content, title="Single File Analysis", border_style=color))
+
+    questions = QuestionGenerator().generate_questions(result)
+    if not questions:
+        return
+    console.print()
+    console.print(Panel.fit(Text("REVIEW QUESTIONS", style="bold yellow"), style="yellow"))
+    for label, style, group in [
+        ("CRITICAL QUESTIONS", "bold red", [q for q in questions if q.severity == "critical"]),
+        ("WARNING QUESTIONS", "bold yellow", [q for q in questions if q.severity == "warning"]),
+        ("INFO QUESTIONS", "bold cyan", [q for q in questions if q.severity == "info"]),
+    ]:
+        if group:
+            console.print(f"\n[{style}]{label}:[/{style}]")
+            for i, q in enumerate(group, 1):
+                loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
+                console.print(f"{i}.{loc} {q.question}")
+    console.print()
+
+
 def print_rich_report(result) -> None:
     """Print report using Rich."""
     console = Console()
-
-    # Title
     console.print()
     console.print(
         Panel.fit(Text("AI CODE QUALITY REPORT", style="bold cyan"), style="blue", box=box.DOUBLE)
@@ -85,232 +234,9 @@ def print_rich_report(result) -> None:
     console.print()
 
     if hasattr(result, "project_path"):
-        # Project Summary Table
-        summary_table = Table(title="Project Summary", box=box.ROUNDED)
-        summary_table.add_column("Metric", style="cyan")
-        summary_table.add_column("Value", style="green")
-
-        summary_table.add_row("Project", str(result.project_path))
-        summary_table.add_row("Total Files", str(result.total_files))
-        summary_table.add_row("Clean Files", str(result.clean_files))
-        summary_table.add_row(
-            "Deficit Files",
-            (
-                f"[red]{result.deficit_files}[/red]"
-                if result.deficit_files > 0
-                else str(result.deficit_files)
-            ),
-        )
-
-        status_color = "red" if result.overall_status != "clean" else "green"
-        summary_table.add_row(
-            "Overall Status", f"[{status_color}]{result.overall_status.upper()}[/{status_color}]"
-        )
-
-        console.print(summary_table)
-        console.print()
-
-        # Metrics Table
-        metrics_table = Table(title="Average Metrics", box=box.SIMPLE)
-        metrics_table.add_column("Metric")
-        metrics_table.add_column("Score")
-
-        metrics_table.add_row("Deficit Score", f"{result.avg_deficit_score:.1f}/100")
-        metrics_table.add_row("Weighted Score", f"{result.weighted_deficit_score:.1f}/100")
-        metrics_table.add_row("LDR (Logic)", f"{result.avg_ldr:.2%}")
-        metrics_table.add_row("ICR (Inflation)", f"{result.avg_inflation:.2f}")
-        metrics_table.add_row("DDC (Deps)", f"{result.avg_ddc:.2%}")
-
-        console.print(metrics_table)
-        console.print()
-
-        # Files Table
-        files_table = Table(title="File Analysis", box=box.MINIMAL_DOUBLE_HEAD)
-        files_table.add_column("File", style="bold")
-        files_table.add_column("Status")
-        files_table.add_column("Score", justify="right")
-        files_table.add_column("LDR", justify="right")
-        files_table.add_column("ICR", justify="right")
-        files_table.add_column("DDC", justify="right")
-        files_table.add_column("Notes")
-
-        for file_result in result.file_results:
-            if file_result.status == "clean":
-                continue
-
-            status_style = "red" if file_result.status == "critical" else "yellow"
-
-            # Notes (Warnings + Jargon)
-            notes = []
-            if file_result.warnings:
-                notes.append(f"{len(file_result.warnings)} Warnings")
-
-            jargon_count = sum(
-                1 for d in file_result.inflation.jargon_details if not d.get("justified")
-            )
-            if jargon_count > 0:
-                notes.append(f"{jargon_count} Jargon Terms")
-
-            files_table.add_row(
-                Path(file_result.file_path).name,
-                f"[{status_style}]{file_result.status.upper()}[/{status_style}]",
-                f"{file_result.deficit_score:.1f}",
-                f"{file_result.ldr.ldr_score:.0%}",
-                f"{file_result.inflation.inflation_score:.2f}",
-                f"{file_result.ddc.usage_ratio:.0%}",
-                ", ".join(notes),
-            )
-
-            # Detailed Jargon row (if relevant)
-            if jargon_count > 0:
-                jargon_text = ", ".join(
-                    [
-                        f"{d['word']}(L{d['line']})"
-                        for d in file_result.inflation.jargon_details
-                        if not d.get("justified")
-                    ]
-                )
-                files_table.add_row("", "", "", "", "", "", f"[dim]Jargon: {jargon_text}[/dim]")
-
-        if result.deficit_files > 0:
-            console.print(files_table)
-        else:
-            console.print(Panel("No deficit detected in project files.", style="green"))
-
+        _render_rich_project(console, result)
     else:
-        # Single File (Simple Panel)
-        color = "red" if result.status != "clean" else "green"
-        content = Text()
-        content.append(f"File: {result.file_path}\n")
-        content.append(f"Status: {result.status.upper()}\n", style="bold " + color)
-        content.append(f"Score: {result.deficit_score:.1f}/100\n\n")
-        content.append(f"LDR: {result.ldr.ldr_score:.2%} ({result.ldr.grade})\n")
-        content.append(f"ICR: {result.inflation.inflation_score:.2f} ({result.inflation.status})\n")
-        content.append(f"DDC: {result.ddc.usage_ratio:.2%} ({result.ddc.grade})\n")
-
-        if result.warnings:
-            content.append("\nWarnings:\n", style="bold yellow")
-            for w in result.warnings:
-                content.append(f"- {w}\n")
-
-        # Jargon
-        jargon = [d for d in result.inflation.jargon_details if not d.get("justified")]
-        if jargon:
-            content.append("\nJargon Detected:\n", style="bold red")
-            for d in jargon:
-                content.append(f"- Line {d['line']}: {d['word']}\n")
-
-        # Docstring Inflation (v2.2)
-        if result.docstring_inflation and result.docstring_inflation.details:
-            doc_inflation = result.docstring_inflation
-            content.append("\nDocstring Inflation:\n", style="bold yellow")
-            content.append(
-                f"Overall: {doc_inflation.total_docstring_lines} doc lines / "
-                f"{doc_inflation.total_implementation_lines} impl lines "
-                f"(ratio: {doc_inflation.overall_ratio:.2f})\n"
-            )
-            if doc_inflation.inflated_count > 0:
-                content.append(f"{doc_inflation.inflated_count} inflated functions/classes:\n")
-                for detail in doc_inflation.details[:3]:  # Show top 3
-                    content.append(
-                        f"- Line {detail.line}: {detail.name} "
-                        f"({detail.docstring_lines}doc/{detail.implementation_lines}impl = {detail.inflation_ratio:.1f}x)\n"
-                    )
-
-        # Pattern Issues (v2.8.0)
-        if getattr(result, "pattern_issues", None):
-            sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-            sorted_issues = sorted(
-                result.pattern_issues,
-                key=lambda p: sev_order.get(
-                    getattr(getattr(p, "severity", None), "value", "low"), 3
-                ),
-            )
-            content.append("\nPattern Issues:\n", style="bold red")
-            for p in sorted_issues[:10]:
-                sev = getattr(getattr(p, "severity", None), "value", "low")
-                line = getattr(p, "line", "-")
-                msg = getattr(p, "message", str(p))
-                sev_style = (
-                    "bold red" if sev == "critical" else "yellow" if sev == "high" else "dim"
-                )
-                content.append(f"  L{line} [{sev.upper()}] {msg}\n", style=sev_style)
-            if len(result.pattern_issues) > 10:
-                content.append(f"  ... and {len(result.pattern_issues) - 10} more\n", style="dim")
-            # Advanced pattern summary
-            god_fn = sum(
-                1 for p in result.pattern_issues if getattr(p, "pattern_id", "") == "god_function"
-            )
-            dead = sum(
-                1 for p in result.pattern_issues if getattr(p, "pattern_id", "") == "dead_code"
-            )
-            nesting = sum(
-                1 for p in result.pattern_issues if getattr(p, "pattern_id", "") == "deep_nesting"
-            )
-            adv_parts = []
-            if god_fn:
-                adv_parts.append(f"{god_fn} god-fn")
-            if dead:
-                adv_parts.append(f"{dead} dead-code")
-            if nesting:
-                adv_parts.append(f"{nesting} deep-nest")
-            if adv_parts:
-                content.append(f"  Advanced: {', '.join(adv_parts)}\n", style="dim cyan")
-
-        # ML Score (v2.8.0)
-        ml = getattr(result, "ml_score", None)
-        if ml is not None:
-            ml_color = (
-                "red"
-                if ml.slop_probability >= 0.70
-                else "yellow" if ml.slop_probability >= 0.40 else "green"
-            )
-            content.append("\nML Score:\n", style="bold cyan")
-            content.append(
-                f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n",
-                style=ml_color,
-            )
-            agreement_str = "yes" if ml.agreement else "no"
-            content.append(
-                f"  Confidence: {ml.confidence:.1%}  "
-                f"Model: {ml.model_type}  "
-                f"Agreement: {agreement_str}\n",
-                style="dim",
-            )
-
-        console.print(Panel(content, title="Single File Analysis", border_style=color))
-
-        # Generate review questions
-        question_gen = QuestionGenerator()
-        questions = question_gen.generate_questions(result)
-
-        if questions:
-            console.print()
-            console.print(Panel.fit(Text("REVIEW QUESTIONS", style="bold yellow"), style="yellow"))
-
-            critical = [q for q in questions if q.severity == "critical"]
-            warnings = [q for q in questions if q.severity == "warning"]
-            info = [q for q in questions if q.severity == "info"]
-
-            if critical:
-                console.print("\n[bold red]CRITICAL QUESTIONS:[/bold red]")
-                for i, q in enumerate(critical, 1):
-                    loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
-                    console.print(f"{i}.{loc} {q.question}")
-
-            if warnings:
-                console.print("\n[bold yellow]WARNING QUESTIONS:[/bold yellow]")
-                for i, q in enumerate(warnings, 1):
-                    loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
-                    console.print(f"{i}.{loc} {q.question}")
-
-            if info:
-                console.print("\n[bold cyan]INFO QUESTIONS:[/bold cyan]")
-                for i, q in enumerate(info, 1):
-                    loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
-                    console.print(f"{i}.{loc} {q.question}")
-
-            console.print()
+        _render_rich_single_file(console, result)
 
 
 def get_mitigation(issue_type: str, detail: str = "") -> str:
@@ -398,10 +324,91 @@ def _collect_test_evidence_stats(file_results) -> dict:
     return stats
 
 
+def _md_summary_section(avg_deficit: float, avg_inflation: float, status) -> list:
+    """Return markdown lines for the Executive Summary section."""
+    lines = ["## 1. Executive Summary",
+             "| Metric | Score | Status | Description |",
+             "| :--- | :--- | :--- | :--- |",
+             f"| **Deficit Score** | {avg_deficit:.2f} | {status.value.upper()} | Closer to 0.0 is better. High score indicates low logic density. |",
+             f"| **Inflation (Jargon)** | {avg_inflation:.2f} | - | Density of non-functional 'marketing' terms. |",
+             ""]
+    return lines
+
+
+def _md_test_evidence_section(result) -> list:
+    """Return markdown lines for the Test Evidence section (projects only)."""
+    if not hasattr(result, "file_results"):
+        return []
+    test_evidence = _collect_test_evidence_stats(result.file_results)
+    if test_evidence["total_test_files"] == 0:
+        return []
+    lines = [
+        "## 2. Test Evidence Summary",
+        "| Test Type | Files | Functions | Coverage Notes |",
+        "| :--- | :--- | :--- | :--- |",
+        f"| **Unit Tests** | {test_evidence['unit_test_files']} | {test_evidence['unit_test_functions']} | Fast, isolated tests |",
+        f"| **Integration Tests** | {test_evidence['integration_test_files']} | {test_evidence['integration_test_functions']} | Tests hitting real dependencies |",
+        f"| **Total** | {test_evidence['total_test_files']} | {test_evidence['total_test_functions']} | - |",
+    ]
+    if test_evidence["integration_test_files"] == 0 and test_evidence.get("has_production_claims"):
+        lines += ["", "[!] **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims."]
+    lines.append("")
+    return lines
+
+
+def _md_findings_section(file_results) -> list:
+    """Return markdown lines for the Detailed Findings section."""
+    lines = ["## 3. Detailed Findings"]
+    if not file_results:
+        return lines + ["_No files analyzed._"]
+
+    for file_path, f_res in file_results:
+        if f_res.deficit_score < 0.3 and not f_res.pattern_issues and not f_res.inflation.jargon_details:
+            continue
+        lines += [f"### [L] `{Path(str(file_path)).name}`",
+                  f"- **Deficit Score**: {f_res.deficit_score:.2f}",
+                  f"- **Lines of Code**: {f_res.ldr.total_lines}"]
+        if f_res.ldr.total_lines == 0:
+            lines += ["#### [!] Anti-Patterns & Risk",
+                      "| Line | Issue | Mitigation Strategy |",
+                      "| :--- | :--- | :--- |",
+                      "| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |",
+                      "", "---"]
+            continue
+
+        jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
+        if jargon_issues:
+            lines += ["#### [-] Inflation (Jargon) Detected",
+                      "| Line | Term | Category | Actionable Mitigation |",
+                      "| :--- | :--- | :--- | :--- |"]
+            for det in jargon_issues:
+                lines.append(f"| {det['line']} | `{det['word']}` | {det['category']} | {get_mitigation('jargon')} |")
+            lines.append("")
+
+        if hasattr(f_res, "pattern_issues") and f_res.pattern_issues:
+            lines += ["#### [!] Anti-Patterns & Risk",
+                      "| Line | Issue | Mitigation Strategy |",
+                      "| :--- | :--- | :--- |"]
+            for p in f_res.pattern_issues:
+                desc = p.message if hasattr(p, "message") else str(p)
+                line_val = p.line if hasattr(p, "line") else "-"
+                desc_lower = desc.lower()
+                issue_key = (
+                    "mutable_default" if "mutable default" in desc_lower else
+                    "bare_except" if "bare except" in desc_lower else
+                    "broad_except" if "broad exception" in desc_lower else
+                    "empty_function" if "empty function" in desc_lower else
+                    "unused_import" if "unused import" in desc_lower else "unknown"
+                )
+                lines.append(f"| {line_val} | {desc} | {get_mitigation(issue_key, desc)} |")
+            lines.append("")
+
+        lines.append("---")
+    return lines
+
+
 def generate_markdown_report(result) -> str:
     """Generates a detailed developer-focused Markdown report."""
-
-    # Handle both ProjectAnalysis and single FileAnalysis
     is_project = hasattr(result, "project_path")
     root_dir = result.project_path if is_project else str(Path(result.file_path).parent)
     status = result.overall_status if is_project else result.status
@@ -409,159 +416,39 @@ def generate_markdown_report(result) -> str:
     avg_inflation = result.avg_inflation if is_project else result.inflation.inflation_score
     timestamp = getattr(result, "timestamp", None)
 
-    lines = []
-    lines.append("# AI Code Quality Audit Report")
+    lines = ["# AI Code Quality Audit Report"]
     if timestamp:
         lines.append(f"**Date**: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-    lines.append(f"**Target**: `{root_dir}`")
-    lines.append(f"**Status**: {status.value.upper()}")
-    lines.append("")
+    lines += [f"**Target**: `{root_dir}`", f"**Status**: {status.value.upper()}", ""]
 
-    # 1. Executive Summary
-    lines.append("## 1. Executive Summary")
-    lines.append("| Metric | Score | Status | Description |")
-    lines.append("| :--- | :--- | :--- | :--- |")
-    lines.append(
-        f"| **Deficit Score** | {avg_deficit:.2f} | {status.value.upper()} | Closer to 0.0 is better. High score indicates low logic density. |"
-    )
-    lines.append(
-        f"| **Inflation (Jargon)** | {avg_inflation:.2f} | - | Density of non-functional 'marketing' terms. |"
-    )
-    lines.append("")
+    lines += _md_summary_section(avg_deficit, avg_inflation, status)
 
-    # 2. Test Evidence Summary (for projects only)
-    if is_project and hasattr(result, "file_results"):
-        test_evidence = _collect_test_evidence_stats(result.file_results)
-        if test_evidence["total_test_files"] > 0:
-            lines.append("## 2. Test Evidence Summary")
-            lines.append("| Test Type | Files | Functions | Coverage Notes |")
-            lines.append("| :--- | :--- | :--- | :--- |")
-            lines.append(
-                f"| **Unit Tests** | {test_evidence['unit_test_files']} | {test_evidence['unit_test_functions']} | Fast, isolated tests |"
-            )
-            lines.append(
-                f"| **Integration Tests** | {test_evidence['integration_test_files']} | {test_evidence['integration_test_functions']} | Tests hitting real dependencies |"
-            )
-            lines.append(
-                f"| **Total** | {test_evidence['total_test_files']} | {test_evidence['total_test_functions']} | - |"
-            )
+    if is_project:
+        lines += _md_test_evidence_section(result)
 
-            # Warning if no integration tests but production claims exist
-            if test_evidence["integration_test_files"] == 0 and test_evidence.get(
-                "has_production_claims", False
-            ):
-                lines.append("")
-                lines.append(
-                    "[!] **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims."
-                )
-
-            lines.append("")
-
-    # 3. Detailed Findings
-    lines.append("## 3. Detailed Findings")
-
-    file_results = []
     if is_project:
         if hasattr(result, "files") and result.files:
-            # If result.files is a dict (path -> FileAnalysis)
-            file_results = result.files.items()
+            file_results = list(result.files.items())
         elif hasattr(result, "file_results"):
-            # If result.file_results is a list [FileAnalysis]
             file_results = [(r.file_path, r) for r in result.file_results]
+        else:
+            file_results = []
     else:
         file_results = [(result.file_path, result)]
 
-    if not file_results:
-        lines.append("_No files analyzed._")
+    lines += _md_findings_section(file_results)
 
-    for file_path, f_res in file_results:
-        # Only report files with issues
-        if (
-            f_res.deficit_score < 0.3
-            and not f_res.pattern_issues
-            and not f_res.inflation.jargon_details
-        ):
-            continue
-
-        lines.append(f"### [L] `{Path(str(file_path)).name}`")
-        lines.append(f"- **Deficit Score**: {f_res.deficit_score:.2f}")
-        lines.append(f"- **Lines of Code**: {f_res.ldr.total_lines}")
-
-        # Empty file handling - add table to avoid confusion
-        if f_res.ldr.total_lines == 0:
-            lines.append("#### [!] Anti-Patterns & Risk")
-            lines.append("| Line | Issue | Mitigation Strategy |")
-            lines.append("| :--- | :--- | :--- |")
-            lines.append(
-                "| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |"
-            )
-            lines.append("")
-            lines.append("---")
-            continue  # Skip jargon/pattern checks for empty files
-
-        # Inflation / Jargon
-        jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
-        if jargon_issues:
-            lines.append("#### [-] Inflation (Jargon) Detected")
-            lines.append("| Line | Term | Category | Actionable Mitigation |")
-            lines.append("| :--- | :--- | :--- | :--- |")
-            for det in jargon_issues:
-                mitigation = get_mitigation("jargon")
-                lines.append(
-                    f"| {det['line']} | `{det['word']}` | {det['category']} | {mitigation} |"
-                )
-            lines.append("")
-
-        # Patterns (Static Analysis)
-        if hasattr(f_res, "pattern_issues") and f_res.pattern_issues:
-            lines.append("#### [!] Anti-Patterns & Risk")
-            lines.append("| Line | Issue | Mitigation Strategy |")
-            lines.append("| :--- | :--- | :--- |")
-            for p in f_res.pattern_issues:
-                # Handle both object and string representation (just in case)
-                if hasattr(p, "message"):
-                    desc = p.message
-                    line_val = p.line
-                else:
-                    desc = str(p)
-                    line_val = "-"
-
-                issue_key = "unknown"
-                desc_lower = desc.lower()
-                if "mutable default" in desc_lower:
-                    issue_key = "mutable_default"
-                elif "bare except" in desc_lower:
-                    issue_key = "bare_except"
-                elif "broad exception" in desc_lower:
-                    issue_key = "broad_except"
-                elif "empty function" in desc_lower:
-                    issue_key = "empty_function"
-                elif "unused import" in desc_lower:
-                    issue_key = "unused_import"
-
-                mitigation = get_mitigation(issue_key, desc)
-                lines.append(f"| {line_val} | {desc} | {mitigation} |")
-            lines.append("")
-
-        lines.append("---")
-
-    # 4. Recommendations
-    lines.append("## 4. Global Recommendations")
-    lines.append(
-        "- **Refactor High-Deficit Modules**: Files with scores > 0.5 lack sufficient logic. Verify they aren't just empty wrappers."
-    )
-    lines.append(
-        "- **Purify Terminology**: Replace abstract 'hype' terms with concrete engineering definitions."
-    )
-    lines.append(
-        "- **Harden Error Handling**: Eliminate bare except clauses to ensure system stability and debuggability."
-    )
-
+    lines += [
+        "## 4. Global Recommendations",
+        "- **Refactor High-Deficit Modules**: Files with scores > 0.5 lack sufficient logic. Verify they aren't just empty wrappers.",
+        "- **Purify Terminology**: Replace abstract 'hype' terms with concrete engineering definitions.",
+        "- **Harden Error Handling**: Eliminate bare except clauses to ensure system stability and debuggability.",
+    ]
     return "\n".join(lines)
 
 
-def main() -> int:
-    """CLI entry point."""
+def _build_arg_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser."""
     parser = argparse.ArgumentParser(
         description="AI SLOP Detector v4.0 - Sovereign Gate Edition",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -580,163 +467,129 @@ Examples:
   slop-detector --version                  # Show version
         """,
     )
-
     parser.add_argument("path", help="Path to Python file or project directory")
     parser.add_argument("--project", action="store_true", help="Analyze entire project")
     parser.add_argument("--output", "-o", help="Output file (txt, json, or html)")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
-
-    # v4.0: Auto-Fix
-    parser.add_argument(
-        "--fix",
-        action="store_true",
-        help="Apply auto-fixes for detected patterns (use --dry-run to preview)",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview fixes without writing to disk (use with --fix)",
-    )
-
-    # v4.0: SNP Gate
-    parser.add_argument(
-        "--gate",
-        action="store_true",
-        help="Show SNP-compatible gate decision (PASS/HALT) with sr9/di2/jsd/ove metrics",
-    )
-
-    # v4.0: JS/TS Analysis
-    parser.add_argument(
-        "--js",
-        action="store_true",
-        help="Analyze JavaScript/TypeScript files in addition to Python",
-    )
-
-    # v4.0: Cross-File Analysis
-    parser.add_argument(
-        "--cross-file",
-        action="store_true",
-        help="Run cross-file analysis (cycles, duplicates, hotspots)",
-    )
-
-    # v4.0: CR-EP Governance
-    parser.add_argument(
-        "--governance",
-        action="store_true",
-        help="Emit CR-EP v2.7.2 session artifacts to .cr-ep/ directory",
-    )
-    parser.add_argument(
-        "--disable",
-        "-d",
-        action="append",
-        default=[],
-        metavar="PATTERN_ID",
-        help="Disable specific pattern by ID (can be repeated)",
-    )
-
-    parser.add_argument(
-        "--patterns-only",
-        action="store_true",
-        help="Only run pattern detection (skip metrics)",
-    )
-
-    parser.add_argument(
-        "--list-patterns",
-        action="store_true",
-        help="List all available patterns and exit",
-    )
-
-    parser.add_argument(
-        "--fail-threshold",
-        type=float,
-        default=None,
-        help="Exit with code 1 if slop score exceeds threshold",
-    )
+    parser.add_argument("--fix", action="store_true", help="Apply auto-fixes for detected patterns (use --dry-run to preview)")
+    parser.add_argument("--dry-run", action="store_true", help="Preview fixes without writing to disk (use with --fix)")
+    parser.add_argument("--gate", action="store_true", help="Show SNP-compatible gate decision (PASS/HALT) with sr9/di2/jsd/ove metrics")
+    parser.add_argument("--js", action="store_true", help="Analyze JavaScript/TypeScript files in addition to Python")
+    parser.add_argument("--cross-file", action="store_true", help="Run cross-file analysis (cycles, duplicates, hotspots)")
+    parser.add_argument("--governance", action="store_true", help="Emit CR-EP v2.7.2 session artifacts to .cr-ep/ directory")
+    parser.add_argument("--disable", "-d", action="append", default=[], metavar="PATTERN_ID", help="Disable specific pattern by ID (can be repeated)")
+    parser.add_argument("--patterns-only", action="store_true", help="Only run pattern detection (skip metrics)")
+    parser.add_argument("--list-patterns", action="store_true", help="List all available patterns and exit")
+    parser.add_argument("--fail-threshold", type=float, default=None, help="Exit with code 1 if slop score exceeds threshold")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     parser.add_argument("--version", action="version", version=f"ai-slop-detector {__version__}")
-    parser.add_argument(
-        "--no-color", action="store_true", help="Disable rich output (force plain text)"
-    )
-
+    parser.add_argument("--no-color", action="store_true", help="Disable rich output (force plain text)")
     # History tracking (v2.9.0)
-    parser.add_argument(
-        "--no-history",
-        action="store_true",
-        help="Skip recording this run to history (~/.slop-detector/history.db)",
-    )
-    parser.add_argument(
-        "--show-history",
-        action="store_true",
-        help="Show trend history for the given file and exit",
-    )
-    parser.add_argument(
-        "--history-trends",
-        action="store_true",
-        help="Show project-wide daily trends (last 7 days) and exit",
-    )
-    parser.add_argument(
-        "--export-history",
-        metavar="PATH",
-        help="Export full history to JSONL file and exit",
-    )
-
+    parser.add_argument("--no-history", action="store_true", help="Skip recording this run to history (~/.slop-detector/history.db)")
+    parser.add_argument("--show-history", action="store_true", help="Show trend history for the given file and exit")
+    parser.add_argument("--history-trends", action="store_true", help="Show project-wide daily trends (last 7 days) and exit")
+    parser.add_argument("--export-history", metavar="PATH", help="Export full history to JSONL file and exit")
     # CI/CD Gate options (v2.2)
-    parser.add_argument(
-        "--ci-mode",
-        choices=["soft", "hard", "quarantine"],
-        help="CI gate mode: soft (PR comments only), hard (fail build), quarantine (track repeat offenders)",
-    )
-    parser.add_argument(
-        "--ci-report",
-        action="store_true",
-        help="Output CI gate report and exit with appropriate code",
-    )
-    parser.add_argument(
-        "--ci-claims-strict",
-        action="store_true",
-        help="Enable claim-based enforcement: fail if production/enterprise/scalable/fault-tolerant claims lack integration tests (v2.6.2)",
-    )
+    parser.add_argument("--ci-mode", choices=["soft", "hard", "quarantine"], help="CI gate mode: soft (PR comments only), hard (fail build), quarantine (track repeat offenders)")
+    parser.add_argument("--ci-report", action="store_true", help="Output CI gate report and exit with appropriate code")
+    parser.add_argument("--ci-claims-strict", action="store_true", help="Enable claim-based enforcement: fail if production/enterprise/scalable/fault-tolerant claims lack integration tests (v2.6.2)")
+    return parser
 
-    args = parser.parse_args()
 
-    # Setup logging
+def _write_file(path: str, content: str, label: str = "") -> None:
+    """Write content to a file, with optional console confirmation."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+    if label:
+        print(f"[+] {label} saved to {path}")
+
+
+def _handle_output(args, result) -> None:
+    """Route analysis result to the appropriate output format."""
+    if args.json:
+        output = json.dumps(result.to_dict(), indent=2)
+        if args.output:
+            _write_file(args.output, output)
+        else:
+            print(output)
+        return
+
+    out = str(args.output) if args.output else ""
+    if out.endswith(".html"):
+        _write_file(out, generate_html_report(result), "HTML report")
+    elif out.endswith(".md"):
+        _write_file(out, generate_markdown_report(result), "Markdown report")
+    elif out:
+        _write_file(out, generate_text_report(result))
+    elif RICH_AVAILABLE and not args.no_color:
+        print_rich_report(result)
+    else:
+        print(generate_text_report(result))
+
+
+def _evaluate_ci_gate(args, result):
+    """Run CI gate evaluation; return exit code or None to continue."""
+    claims_strict = getattr(args, "ci_claims_strict", False)
+    if not (args.ci_mode or args.ci_report or claims_strict):
+        return None
+    from slop_detector.ci_gate import CIGate, GateMode
+    gate_mode = GateMode(args.ci_mode) if args.ci_mode else GateMode.SOFT
+    gate_result = CIGate(mode=gate_mode, claims_strict=claims_strict).evaluate(result)
+    if args.ci_report:
+        if args.json:
+            print(json.dumps(gate_result.to_dict(), indent=2))
+        else:
+            print(gate_result.pr_comment or gate_result.message)
+        return 1 if gate_result.should_fail_build else 0
+    return None
+
+
+def _run_optional_features(args, result) -> None:
+    """Run optional post-output features (gate, fix, js, cross-file, governance)."""
+    if getattr(args, "gate", False):
+        _run_gate(result)
+    if getattr(args, "fix", False):
+        _run_autofix(result, dry_run=getattr(args, "dry_run", True))
+    if getattr(args, "js", False):
+        _run_js_analysis(args.path)
+    if getattr(args, "cross_file", False) and hasattr(result, "project_path"):
+        _run_cross_file(result)
+    if getattr(args, "governance", False):
+        _run_governance(args.path, result)
+
+
+def main() -> int:
+    """CLI entry point."""
+    args = _build_arg_parser().parse_args()
     setup_logging(args.verbose)
 
-    # History-only commands (no analysis needed)
     if getattr(args, "history_trends", False):
         _show_trends()
         return 0
-
     if getattr(args, "export_history", None):
         _export_history(args.export_history)
         return 0
-
     if getattr(args, "show_history", False):
         _show_file_history(args.path)
         return 0
 
-    # Auto-detect project mode for directories
     if Path(args.path).is_dir() and not args.project:
         args.project = True
         logging.info("Directory detected, enabling --project mode")
 
-    # v2.1: List patterns if requested
     if args.list_patterns:
         list_patterns()
         return 0
 
-    # Initialize detector
     try:
         detector = SlopDetector(config_path=args.config)
     except Exception as e:
         print(f"[!] Failed to initialize detector: {e}", file=sys.stderr)
         return 1
 
-    # Analyze
     try:
         from typing import Union
-
         result: Union[ProjectAnalysis, FileAnalysis]
         if args.project:
             result = detector.analyze_project(args.path)
@@ -748,92 +601,18 @@ Examples:
         print(f"[!] Analysis failed: {e}", file=sys.stderr)
         return 1
 
-    # CI Gate evaluation (v2.2)
-    claims_strict = getattr(args, "ci_claims_strict", False)
-    if args.ci_mode or args.ci_report or claims_strict:
-        from slop_detector.ci_gate import CIGate, GateMode
+    ci_exit = _evaluate_ci_gate(args, result)
+    if ci_exit is not None:
+        return ci_exit
 
-        gate_mode = GateMode(args.ci_mode) if args.ci_mode else GateMode.SOFT
-        ci_gate = CIGate(mode=gate_mode, claims_strict=claims_strict)
-        gate_result = ci_gate.evaluate(result)
+    _handle_output(args, result)
 
-        if args.ci_report:
-            # Output CI gate report and exit
-            if args.json:
-                print(json.dumps(gate_result.to_dict(), indent=2))
-            else:
-                print(gate_result.pr_comment or gate_result.message)
+    if args.fail_threshold is not None and score > args.fail_threshold:
+        print(f"\n[!] FAIL: Deficit score {score:.1f} exceeds threshold {args.fail_threshold}", file=sys.stderr)
+        return 1
 
-            # Exit with appropriate code
-            return 1 if gate_result.should_fail_build else 0
+    _run_optional_features(args, result)
 
-    # Output
-    if args.json:
-        output = json.dumps(result.to_dict(), indent=2)
-        if args.output:
-            with open(args.output, "w", encoding="utf-8") as f:
-                f.write(output)
-        else:
-            print(output)
-    elif args.output and str(args.output).endswith(".html"):
-        # HTML report
-        html = generate_html_report(result)
-        with open(args.output, "w", encoding="utf-8") as f:
-            f.write(html)
-        print(f"[+] HTML report saved to {args.output}")
-    elif args.output and str(args.output).endswith(".md"):
-        # Markdown report
-        md_report = generate_markdown_report(result)
-        with open(args.output, "w", encoding="utf-8") as f:
-            f.write(md_report)
-        print(f"[+] Markdown report saved to {args.output}")
-    else:
-        # Console / Text Report
-        if args.output:
-            # If writing to file (and not json/html/md), use plain text or markdown?
-            # Let's default to markdown if extension unknown, or just text.
-            # For now, text fallback.
-            report = generate_text_report(result)
-            with open(args.output, "w", encoding="utf-8") as f:
-                f.write(report)
-        else:
-            # If printing to stdout, check Rich availability
-            if RICH_AVAILABLE and not args.no_color:
-                print_rich_report(result)
-            else:
-                print(generate_text_report(result))
-
-    # Check threshold
-    if args.fail_threshold is not None:
-        if score > args.fail_threshold:
-            print(
-                f"\n[!] FAIL: Deficit score {score:.1f} exceeds threshold {args.fail_threshold}",
-                file=sys.stderr,
-            )
-            return 1
-
-    # v4.0: SNP Gate Decision
-    if getattr(args, "gate", False):
-        _run_gate(result)
-
-    # v4.0: Auto-Fix
-    if getattr(args, "fix", False):
-        dry_run = getattr(args, "dry_run", True)
-        _run_autofix(result, dry_run=dry_run)
-
-    # v4.0: JS/TS Analysis
-    if getattr(args, "js", False):
-        _run_js_analysis(args.path)
-
-    # v4.0: Cross-File Analysis
-    if getattr(args, "cross_file", False) and hasattr(result, "project_path"):
-        _run_cross_file(result)
-
-    # v4.0: CR-EP Governance
-    if getattr(args, "governance", False):
-        _run_governance(args.path, result)
-
-    # v2.9.0: Auto-record to history (opt-out with --no-history)
     if not getattr(args, "no_history", False):
         _record_history(result)
 
@@ -1100,97 +879,84 @@ def _export_history(output_path: str) -> None:
     print(f"[+] Exported {count} records to {output_path}")
 
 
+def _text_project_section(result) -> list:
+    """Return text lines for the project-level portion of the text report."""
+    lines = [
+        f"Project: {result.project_path}",
+        f"Total Files: {result.total_files}",
+        f"Clean Files: {result.clean_files}",
+        f"Deficit Files: {result.deficit_files}",
+        f"Overall Status: {result.overall_status.upper()}",
+        "",
+        "Average Metrics:",
+        f"  Deficit Score: {result.avg_deficit_score:.1f}/100",
+        f"  Weighted Deficit Score: {result.weighted_deficit_score:.1f}/100",
+        f"  Logic Density (LDR): {result.avg_ldr:.2%}",
+        f"  Inflation Ratio (ICR): {result.avg_inflation:.2f}",
+        f"  Dependency Usage (DDC): {result.avg_ddc:.2%}",
+        "",
+    ]
+    if hasattr(result, "file_results"):
+        te = _collect_test_evidence_stats(result.file_results)
+        if te["total_test_files"] > 0:
+            lines += [
+                "Test Evidence:",
+                f"  Unit Tests: {te['unit_test_files']} files, {te['unit_test_functions']} functions",
+                f"  Integration Tests: {te['integration_test_files']} files, {te['integration_test_functions']} functions",
+                f"  Total: {te['total_test_files']} test files",
+            ]
+            if te["integration_test_files"] == 0 and te.get("has_production_claims"):
+                lines.append("  [!] WARNING: No integration tests, but has production claims")
+            lines.append("")
+
+    lines += ["=" * 80, "FILE-LEVEL ANALYSIS", "=" * 80, ""]
+    for fr in result.file_results:
+        if fr.status == "clean":
+            continue
+        lines += [
+            f"[!] {Path(fr.file_path).name}",
+            f"    Status: {fr.status.upper()}",
+            f"    Deficit Score: {fr.deficit_score:.1f}/100",
+            f"    LDR: {fr.ldr.ldr_score:.2%} ({fr.ldr.grade})",
+            f"    ICR: {fr.inflation.inflation_score:.2f} ({fr.inflation.status})",
+        ]
+        if fr.inflation.jargon_details:
+            lines.append("    Jargon Locations:")
+            for det in fr.inflation.jargon_details:
+                if not det.get("justified"):
+                    lines.append(f"      - Line {det['line']}: \"{det['word']}\"")
+        lines.append(f"    DDC: {fr.ddc.usage_ratio:.2%} ({fr.ddc.grade})")
+        if fr.warnings:
+            lines.append("    Warnings:")
+            for w in fr.warnings:
+                lines.append(f"      - {w}")
+        lines.append("")
+    return lines
+
+
+def _text_single_file_section(result) -> list:
+    """Return text lines for a single-file text report."""
+    lines = [
+        f"File: {result.file_path}",
+        f"Status: {result.status.upper()}",
+        f"Deficit Score: {result.deficit_score:.1f}/100",
+        "",
+        f"LDR: {result.ldr.ldr_score:.2%} ({result.ldr.grade})",
+        f"ICR: {result.inflation.inflation_score:.2f} ({result.inflation.status})",
+        f"DDC: {result.ddc.usage_ratio:.2%} ({result.ddc.grade})",
+    ]
+    if result.warnings:
+        lines += ["", "Warnings:"] + [f"  - {w}" for w in result.warnings]
+    return lines
+
+
 def generate_text_report(result) -> str:
     """Generate text report."""
-    lines = []
-    lines.append("=" * 80)
-    lines.append("AI CODE QUALITY REPORT")
-    lines.append("=" * 80)
-    lines.append("")
-
+    lines = ["=" * 80, "AI CODE QUALITY REPORT", "=" * 80, ""]
     if hasattr(result, "project_path"):
-        # Project analysis
-        lines.append(f"Project: {result.project_path}")
-        lines.append(f"Total Files: {result.total_files}")
-        lines.append(f"Clean Files: {result.clean_files}")
-        lines.append(f"Deficit Files: {result.deficit_files}")
-        lines.append(f"Overall Status: {result.overall_status.upper()}")
-        lines.append("")
-        lines.append("Average Metrics:")
-        lines.append(f"  Deficit Score: {result.avg_deficit_score:.1f}/100")
-        lines.append(f"  Weighted Deficit Score: {result.weighted_deficit_score:.1f}/100")
-        lines.append(f"  Logic Density (LDR): {result.avg_ldr:.2%}")
-        lines.append(f"  Inflation Ratio (ICR): {result.avg_inflation:.2f}")
-        lines.append(f"  Dependency Usage (DDC): {result.avg_ddc:.2%}")
-        lines.append("")
-
-        # Test evidence summary
-        if hasattr(result, "file_results"):
-            test_evidence = _collect_test_evidence_stats(result.file_results)
-            if test_evidence["total_test_files"] > 0:
-                lines.append("Test Evidence:")
-                lines.append(
-                    f"  Unit Tests: {test_evidence['unit_test_files']} files, {test_evidence['unit_test_functions']} functions"
-                )
-                lines.append(
-                    f"  Integration Tests: {test_evidence['integration_test_files']} files, {test_evidence['integration_test_functions']} functions"
-                )
-                lines.append(f"  Total: {test_evidence['total_test_files']} test files")
-
-                if test_evidence["integration_test_files"] == 0 and test_evidence.get(
-                    "has_production_claims", False
-                ):
-                    lines.append("  [!] WARNING: No integration tests, but has production claims")
-
-                lines.append("")
-
-        # File details
-        lines.append("=" * 80)
-        lines.append("FILE-LEVEL ANALYSIS")
-        lines.append("=" * 80)
-        lines.append("")
-
-        for file_result in result.file_results:
-            if file_result.status != "clean":
-                lines.append(f"[!] {Path(file_result.file_path).name}")
-                lines.append(f"    Status: {file_result.status.upper()}")
-                lines.append(f"    Deficit Score: {file_result.deficit_score:.1f}/100")
-                lines.append(f"    LDR: {file_result.ldr.ldr_score:.2%} ({file_result.ldr.grade})")
-                lines.append(
-                    f"    ICR: {file_result.inflation.inflation_score:.2f} ({file_result.inflation.status})"
-                )
-
-                # Show jargon locations
-                if file_result.inflation.jargon_details:
-                    lines.append("    Jargon Locations:")
-                    for detail in file_result.inflation.jargon_details:
-                        if not detail.get("justified"):
-                            lines.append(f"      - Line {detail['line']}: \"{detail['word']}\"")
-
-                lines.append(
-                    f"    DDC: {file_result.ddc.usage_ratio:.2%} ({file_result.ddc.grade})"
-                )
-                if file_result.warnings:
-                    lines.append("    Warnings:")
-                    for warning in file_result.warnings:
-                        lines.append(f"      - {warning}")
-                lines.append("")
+        lines += _text_project_section(result)
     else:
-        # Single file analysis
-        lines.append(f"File: {result.file_path}")
-        lines.append(f"Status: {result.status.upper()}")
-        lines.append(f"Deficit Score: {result.deficit_score:.1f}/100")
-        lines.append("")
-        lines.append(f"LDR: {result.ldr.ldr_score:.2%} ({result.ldr.grade})")
-        lines.append(f"ICR: {result.inflation.inflation_score:.2f} ({result.inflation.status})")
-        lines.append(f"DDC: {result.ddc.usage_ratio:.2%} ({result.ddc.grade})")
-
-        if result.warnings:
-            lines.append("")
-            lines.append("Warnings:")
-            for warning in result.warnings:
-                lines.append(f"  - {warning}")
-
+        lines += _text_single_file_section(result)
     return "\n".join(lines)
 
 

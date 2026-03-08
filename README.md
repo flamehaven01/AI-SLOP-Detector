@@ -31,7 +31,7 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 
 **Navigation:**
 [Quick Start](#quick-start) •
-[What's New v2.9.0](#whats-new-in-v290) •
+[What's New v2.9.1](#whats-new-in-v291) •
 [What It Detects](#what-it-detects) •
 [Scoring Model](#scoring-model) •
 [History Tracking](#history-tracking) •
@@ -63,6 +63,43 @@ uvx ai-slop-detector mycode.py
 <p align="center">
   <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
 </p>
+
+---
+
+## What's New in v2.9.1
+
+### Self-Inspection Patch — Zero Deficit Files
+
+v2.9.1 applies the tool to itself and patches what it finds.
+Running `slop-detector --project src/` on its own codebase produced three
+deficit files. All three are resolved.
+
+**Before → After:**
+
+| Metric | v2.9.0 | v2.9.1 |
+| :--- | ---: | ---: |
+| Deficit files | 3 | **0** |
+| Avg deficit score | 11.65 | **9.57** |
+| Weighted deficit score | 15.88 | **12.42** |
+
+**What was fixed:**
+
+**`cli.py` (53.5 → 29.1)** — god function decomposition.
+`print_rich_report`, `main`, `generate_markdown_report`, `generate_text_report`,
+and `_handle_output` each exceeded the 50-line / complexity-10 threshold.
+Extracted 9 focused helpers; every function now fits within limits.
+
+**`registry.py` (39.5 → clean)** — DDC false positive + `global` statement.
+`BasePattern` was imported only for type annotations.
+`UsageCollector` (by design) skips annotations, so DDC scored it as 0% used.
+Fix: move annotation-only imports under `if TYPE_CHECKING:`.
+Also replaced lazy `global _global_registry` singleton with eager module-level
+initialization, removing the `global` statement the pattern detector flagged.
+
+**`question_generator.py` (30.0 → clean)** — same DDC false positive.
+`FileAnalysis` was annotation-only. Same `TYPE_CHECKING` guard fix.
+Converted Python 3.10+ union syntax (`int | None`, `str | None`) to
+`Optional[int]`, `Optional[str]` for Python 3.8 compatibility.
 
 ---
 
