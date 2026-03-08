@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from slop_detector.models import FileAnalysis
+if TYPE_CHECKING:
+    from slop_detector.models import FileAnalysis
 
 
 class Question:
     """A review question about code quality."""
 
     def __init__(
-        self, question: str, severity: str, line: int | None = None, context: str | None = None
+        self, question: str, severity: str, line: Optional[int] = None, context: Optional[str] = None
     ):
         self.question = question
         self.severity = severity  # "critical", "warning", "info"
@@ -28,7 +29,7 @@ class QuestionGenerator:
 
     def generate_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate review questions based on analysis result."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         # DDC questions (unused imports)
         questions.extend(self._generate_ddc_questions(result))
@@ -55,7 +56,7 @@ class QuestionGenerator:
 
     def _generate_ddc_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about dependencies."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         if not result.ddc.unused:
             return questions
@@ -103,13 +104,13 @@ class QuestionGenerator:
 
     def _generate_inflation_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about jargon/buzzwords."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         if not result.inflation.jargon_details:
             return questions
 
         # Group jargon by line
-        jargon_by_line: dict[int, list[dict[str, Any]]] = {}
+        jargon_by_line: Dict[int, List[Dict[str, Any]]] = {}
         for jargon in result.inflation.jargon_details:
             line = jargon.get("line", 0)
             if line not in jargon_by_line:
@@ -159,7 +160,7 @@ class QuestionGenerator:
 
     def _generate_ldr_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about logic density."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         if result.ldr.ldr_score < 0.3:
             empty_ratio = (
@@ -193,7 +194,7 @@ class QuestionGenerator:
 
     def _generate_docstring_inflation_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about docstring inflation (v2.2)."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         if not result.docstring_inflation:
             return questions
@@ -251,7 +252,7 @@ class QuestionGenerator:
 
     def _generate_hallucination_deps_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about hallucinated dependencies (v2.2)."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         if not result.hallucination_deps:
             return questions
@@ -315,7 +316,7 @@ class QuestionGenerator:
 
     def _generate_context_jargon_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about context-based jargon validation (v2.2)."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         if not result.context_jargon:
             return questions
@@ -376,7 +377,7 @@ class QuestionGenerator:
 
     def _generate_pattern_questions(self, result: FileAnalysis) -> List[Question]:
         """Generate questions about detected patterns."""
-        questions: list[Question] = []
+        questions: List[Question] = []
 
         for issue in result.pattern_issues[:10]:  # Limit to 10 patterns
             severity_map = {
@@ -406,7 +407,7 @@ class QuestionGenerator:
 
         return questions
 
-    def _pattern_to_question(self, issue) -> str | None:
+    def _pattern_to_question(self, issue) -> Optional[str]:
         """Convert a pattern issue to a review question."""
         # Issue is a dataclass with attributes, not a dict
         pattern_id = issue.pattern_id

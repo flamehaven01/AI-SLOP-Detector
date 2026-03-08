@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.9.1] - 2026-03-08
+
+### Changed
+
+#### Self-Inspection Patch — cli.py God Function Decomposition
+- `print_rich_report()` split into six focused helpers:
+  `_build_rich_summary_tables`, `_build_rich_files_table`,
+  `_render_rich_project`, `_build_single_file_content`,
+  `_append_pattern_issues_rich`, `_render_rich_single_file`.
+  Each is now ≤ 40 logic lines.
+- `main()` extracted to `_build_arg_parser()`, `_evaluate_ci_gate()`,
+  `_run_optional_features()`. Complexity reduced from 25 → 14.
+- `_handle_output()` refactored with `_write_file()` helper; nesting depth
+  reduced from 5 → 3.
+- `generate_markdown_report()` split into `_md_summary_section()`,
+  `_md_test_evidence_section()`, `_md_findings_section()`.
+- `generate_text_report()` split into `_text_project_section()` and
+  `_text_single_file_section()`.
+
+#### DDC False-Positive Fix — registry.py and question_generator.py
+- Both files had `DDC = 0.00` because `BasePattern` / `FileAnalysis` were
+  imported only for type annotations, which `UsageCollector` correctly skips.
+- Fix: annotation-only project imports moved under `if TYPE_CHECKING:` guard.
+  DDC now correctly classifies them as type-checking imports (excluded from
+  usage ratio), resolving the false positive without changing runtime behavior.
+- `registry.py`: added `from __future__ import annotations`, replaced eager
+  `global _global_registry` lazy-init pattern with module-level eager
+  initialization (eliminates `global` statement, DDC HIGH flag).
+- `question_generator.py`: restored `from __future__ import annotations`,
+  converted Python 3.10+ union syntax (`int | None`, `str | None`,
+  `list[Q]`, `dict[...]`) to `Optional[int]`, `Optional[str]`,
+  `List[Q]`, `Dict[...]` for Python 3.8 compatibility.
+
+### Fixed
+- Self-inspection result (dogfooding on own `src/`):
+  - `deficit_files`: 3 → **0** (cli.py 53.5→29.1, registry.py 39.5→clean,
+    question_generator.py 30.0→clean)
+  - `avg_deficit_score`: 11.65 → **9.57**
+  - `weighted_deficit_score`: 15.88 → **12.42**
+  - `overall_status`: clean (unchanged)
+- 188 tests pass; ruff + mypy clean.
+
+---
+
 ## [2.9.0] - 2026-03-08
 
 ### Added

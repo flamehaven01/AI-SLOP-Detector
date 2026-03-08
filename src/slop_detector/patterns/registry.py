@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Set
 
-from slop_detector.patterns.base import BasePattern
+if TYPE_CHECKING:
+    from slop_detector.patterns.base import BasePattern
 
 
 class PatternRegistry:
     """Registry for managing detection patterns."""
 
     def __init__(self):
-        self._patterns: dict[str, BasePattern] = {}
-        self._disabled: set[str] = set()
+        self._patterns: Dict[str, BasePattern] = {}
+        self._disabled: Set[str] = set()
 
     def register(self, pattern: BasePattern) -> None:
         """Register a pattern."""
@@ -24,7 +25,7 @@ class PatternRegistry:
 
         self._patterns[pattern.id] = pattern
 
-    def register_all(self, patterns: list[BasePattern]) -> None:
+    def register_all(self, patterns: List[BasePattern]) -> None:
         """Register multiple patterns."""
         for pattern in patterns:
             self.register(pattern)
@@ -41,7 +42,7 @@ class PatternRegistry:
         """Get a pattern by ID."""
         return self._patterns.get(pattern_id)
 
-    def get_all(self) -> list[BasePattern]:
+    def get_all(self) -> List[BasePattern]:
         """Get all enabled patterns."""
         return [
             pattern
@@ -49,11 +50,11 @@ class PatternRegistry:
             if pattern_id not in self._disabled
         ]
 
-    def get_by_severity(self, severity: str) -> list[BasePattern]:
+    def get_by_severity(self, severity: str) -> List[BasePattern]:
         """Get patterns by severity level."""
         return [pattern for pattern in self.get_all() if pattern.severity.value == severity]
 
-    def get_by_axis(self, axis: str) -> list[BasePattern]:
+    def get_by_axis(self, axis: str) -> List[BasePattern]:
         """Get patterns by axis."""
         return [pattern for pattern in self.get_all() if pattern.axis.value == axis]
 
@@ -64,13 +65,10 @@ class PatternRegistry:
         return f"PatternRegistry({len(self)} patterns, {len(self._disabled)} disabled)"
 
 
-# Global registry instance
-_global_registry: Optional[PatternRegistry] = None
+# Global registry instance — eagerly initialized at module load
+_global_registry: PatternRegistry = PatternRegistry()
 
 
 def get_global_registry() -> PatternRegistry:
     """Get the global pattern registry."""
-    global _global_registry
-    if _global_registry is None:
-        _global_registry = PatternRegistry()
     return _global_registry
