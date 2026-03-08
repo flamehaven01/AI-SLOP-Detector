@@ -1,10 +1,21 @@
-# AI SLOP Detector — VS Code Extension v2.9.0
+# AI SLOP Detector — VS Code Extension v2.9.1
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, and actionable
 diagnostics without leaving your editor.
 
 ---
+
+## What's New in v2.9.1
+
+- **Self-inspection patch**: the Python backend (v2.9.1) now scores zero
+  deficit files against its own codebase — avg deficit 11.65 → 9.57,
+  weighted 15.88 → 12.42
+- **God function decomposition**: `cli.py` refactored from 5 oversized
+  functions into 14 focused helpers; complexity and nesting depth reduced
+- **DDC false-positive fix**: `registry.py` and `question_generator.py`
+  annotation-only imports now correctly classified via `TYPE_CHECKING` guard;
+  `global` statement eliminated from registry singleton
 
 ## What's New in v2.9.0
 
