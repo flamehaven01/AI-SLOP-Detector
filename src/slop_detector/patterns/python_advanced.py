@@ -15,12 +15,15 @@ from __future__ import annotations
 
 import ast
 import importlib.util
+import logging
 import re
 import sys
 from pathlib import Path
 from typing import FrozenSet, Optional
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
+
+logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------
 # Configuration
@@ -423,8 +426,10 @@ def _get_resolvable_modules() -> FrozenSet[str]:
             for name in top_level_names:
                 known.add(name)
                 known.add(name.replace("-", "_"))
-    except Exception:
-        pass
+    except (AttributeError, ImportError) as exc:
+        # packages_distributions() unavailable on Python < 3.11; resolution index will be
+        # incomplete but functional — falls through to find_spec on unknown names
+        logger.debug("packages_distributions unavailable, skipping layer 3: %s", exc)
 
     _RESOLVABLE_MODULES = frozenset(known)
     return _RESOLVABLE_MODULES

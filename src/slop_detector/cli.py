@@ -1027,8 +1027,9 @@ def _record_history(result) -> None:
                 tracker.record(fa)
         else:
             tracker.record(result)
-    except Exception:
-        pass  # History is best-effort; never block the main flow
+    except Exception as exc:  # noqa: BLE001 — history is best-effort; never block main flow
+        import logging as _logging
+        _logging.getLogger(__name__).debug("history record skipped: %s", exc)
 
 
 def _show_file_history(file_path: str) -> None:

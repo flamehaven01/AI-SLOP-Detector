@@ -1,9 +1,12 @@
 """Buzzword-to-Code Ratio (BCR) calculator with context awareness."""
 
 import ast
+import logging
 from pathlib import Path
 
 from slop_detector.models import InflationResult
+
+logger = logging.getLogger(__name__)
 
 try:
     from radon.complexity import cc_visit
@@ -89,87 +92,23 @@ class InflationCalculator:
         self.use_radon = config.use_radon() and RADON_AVAILABLE
 
     def calculate(self, file_path: str, content: str, tree: ast.AST) -> InflationResult:
-        """Calculate Inflation with context awareness.
-
-        v2.8.0: Formula redesigned based on TOE mathematical principles.
-        - Denominator: logic_lines (not avg_complexity) — density-based measurement
-        - Complexity modifier: INCREASES penalty for complex code with jargon
-          (TOE: effective_e02 = e02 * (1 + u02), uncertainty inflates penalty)
-        - Justification: function-scoped, not file-scoped
-        """
-        jargon_found = []
-        justified_jargon = []
-        jargon_details = []
-
+        """Calculate Inflation with context awareness (v2.8.0 TOE formula)."""
         lines = content.splitlines()
-
-        # Count logic lines (non-empty, non-comment) for density denominator
         logic_lines = sum(1 for ln in lines if ln.strip() and not ln.strip().startswith("#"))
-
-        # Build function scope map for justification (line -> enclosing function node)
-        func_scopes = self._build_function_scopes(tree, lines)
-
-        for line_idx, line in enumerate(lines, 1):
-            line_lower = line.lower()
-
-            for category, words in self.JARGON.items():
-                for word in words:
-                    if word.lower() in line_lower:
-                        count = line_lower.count(word.lower())
-                        for _ in range(count):
-                            jargon_found.append(word)
-
-                            is_justified = self._is_jargon_justified_scoped(
-                                category, word, content, lines, line_idx, func_scopes
-                            )
-                            if is_justified:
-                                justified_jargon.append(word)
-
-                            jargon_details.append(
-                                {
-                                    "word": word,
-                                    "line": line_idx,
-                                    "category": category,
-                                    "justified": is_justified,
-                                }
-                            )
-
-        jargon_count = len(jargon_found)
-        justified_count = len(justified_jargon)
-        effective_jargon_count = max(0, jargon_count - justified_count)
-
-        # Average complexity (used as modifier, not denominator)
         avg_complexity = self._calculate_avg_complexity(content, tree)
-
-        # Check if it's a config file
         is_config_file = self._is_config_file(file_path, tree)
 
-        # v2.8.0: Redesigned Inflation Score
-        # Base: jargon density per logic line (density-based, not complexity-diluted)
-        # Modifier: complexity INCREASES penalty (TOE uncertainty principle)
-        #   - avg_complexity <= 3: modifier = 1.0 (baseline, simple code)
-        #   - avg_complexity > 3: modifier increases gradually (complex code pays premium)
-        if is_config_file and self.config.is_config_file_exception_enabled():
-            inflation_score = 0.0
-        elif logic_lines == 0:
-            inflation_score = float("inf") if effective_jargon_count > 0 else 0.0
-        else:
-            jargon_density = effective_jargon_count / logic_lines
-            # complexity_modifier: 1.0 at baseline (complexity=3), grows beyond
-            complexity_modifier = max(1.0, 1.0 + (avg_complexity - 3.0) / 10.0)
-            # Scale: density=0.1 (1 jargon per 10 logic lines) with modifier=1.0 -> score=1.0
-            inflation_score = min(jargon_density * complexity_modifier * 10.0, 10.0)
-
-        # Determine status
-        if inflation_score > 1.0:
-            status = "FAIL"
-        elif inflation_score > 0.5:
-            status = "WARNING"
-        else:
-            status = "PASS"
+        jargon_found, justified_jargon, jargon_details = self._scan_jargon(
+            content, lines, tree
+        )
+        effective_jargon = max(0, len(jargon_found) - len(justified_jargon))
+        inflation_score = self._compute_inflation_score(
+            effective_jargon, logic_lines, avg_complexity, is_config_file
+        )
+        status = "FAIL" if inflation_score > 1.0 else ("WARNING" if inflation_score > 0.5 else "PASS")
 
         return InflationResult(
-            jargon_count=jargon_count,
+            jargon_count=len(jargon_found),
             avg_complexity=avg_complexity,
             inflation_score=inflation_score,
             status=status,
@@ -179,17 +118,55 @@ class InflationCalculator:
             is_config_file=is_config_file,
         )
 
+    def _scan_jargon(self, content: str, lines: list, tree: ast.AST):
+        """Scan all lines for jargon hits, returning (found, justified, details)."""
+        jargon_found = []
+        justified_jargon = []
+        jargon_details = []
+        func_scopes = self._build_function_scopes(tree, lines)
+
+        for line_idx, line in enumerate(lines, 1):
+            line_lower = line.lower()
+            for category, words in self.JARGON.items():
+                for word in words:
+                    if word.lower() in line_lower:
+                        for _ in range(line_lower.count(word.lower())):
+                            jargon_found.append(word)
+                            is_justified = self._is_jargon_justified_scoped(
+                                category, word, content, lines, line_idx, func_scopes
+                            )
+                            if is_justified:
+                                justified_jargon.append(word)
+                            jargon_details.append(
+                                {"word": word, "line": line_idx, "category": category,
+                                 "justified": is_justified}
+                            )
+        return jargon_found, justified_jargon, jargon_details
+
+    def _compute_inflation_score(
+        self, effective_jargon: int, logic_lines: int, avg_complexity: float, is_config_file: bool
+    ) -> float:
+        """Compute final inflation score using v2.8.0 density × complexity formula."""
+        if is_config_file and self.config.is_config_file_exception_enabled():
+            return 0.0
+        if logic_lines == 0:
+            return float("inf") if effective_jargon > 0 else 0.0
+        jargon_density = effective_jargon / logic_lines
+        # complexity_modifier >= 1.0: complex code pays premium for jargon
+        complexity_modifier = max(1.0, 1.0 + (avg_complexity - 3.0) / 10.0)
+        return min(jargon_density * complexity_modifier * 10.0, 10.0)
+
     def _calculate_avg_complexity(self, content: str, tree: ast.AST) -> float:
         """Calculate average cyclomatic complexity using radon if available."""
         if self.use_radon:
+            avg: float = 1.0  # safe default if radon fails
             try:
                 results = cc_visit(content)
-                if not results:
-                    return 1.0
-                total = sum(r.complexity for r in results)
-                return total / len(results)
-            except Exception:
-                pass
+                if results:
+                    avg = sum(r.complexity for r in results) / len(results)
+            except Exception as exc:  # noqa: BLE001 — radon parse errors are unpredictable
+                logger.debug("radon cc_visit failed, using default complexity=1.0: %s", exc)
+            return avg
 
         # Fallback: simple AST-based complexity
         function_count = 0

@@ -63,8 +63,11 @@ try:
     _TS_LANG = Language(_tsts.language_typescript())
     _TSX_LANG = Language(_tsts.language_tsx())
     _TS_AVAILABLE = True
-except Exception:  # pragma: no cover
-    pass
+except ImportError:  # pragma: no cover
+    import logging as _logging
+    _logging.getLogger(__name__).debug(
+        "tree-sitter unavailable — JavaScript analysis will use regex fallback"
+    )
 
 # ------------------------------------------------------------------
 # Thresholds
@@ -339,262 +342,148 @@ class JSAnalyzer:
         from tree_sitter import Parser as TSParser
 
         lang = _TSX_LANG if is_tsx else (_TS_LANG if is_ts else _JS_LANG)
-        parser = TSParser(lang)
-        source = content.encode("utf-8", errors="replace")
-        tree = parser.parse(source)
-        root = tree.root_node
+        root = TSParser(lang).parse(content.encode("utf-8", errors="replace")).root_node
 
         lines = content.splitlines()
         total = len(lines)
-
-        # Line classification via AST comment nodes
-        comment_lines_set: set = set()
-        blank_lines_set: set = set()
-        for i, ln in enumerate(lines):
-            if not ln.strip():
-                blank_lines_set.add(i)
-
-        def collect_comments(node: Any) -> None:
-            if node.type in ("comment", "block_comment"):
-                for row in range(node.start_point[0], node.end_point[0] + 1):
-                    comment_lines_set.add(row)
-            for child in node.children:
-                collect_comments(child)
-
-        collect_comments(root)
-
+        blank_lines_set, comment_lines_set = self._classify_lines(root, lines)
         code_lines = sum(
             1 for i in range(total) if i not in blank_lines_set and i not in comment_lines_set
         )
 
         issues: List[JSIssue] = []
-        console_count = 0
-        var_count = 0
-        any_count = 0
-        double_eq_count = 0
-        empty_arrow_count = 0
+        counts = self._walk_inline_patterns(root, is_ts, issues)
+        fn_metrics, fn_issues, god_count, max_complexity, max_depth = (
+            self._collect_function_metrics(root)
+        )
+        issues.extend(fn_issues)
+        issues.extend(self._detect_dead_code_issues(root))
 
-        # Walk AST for pattern detection
-        def walk(node: Any) -> None:
-            nonlocal console_count, var_count, any_count, double_eq_count, empty_arrow_count
+        ldr_equiv = round(code_lines / max(total, 1), 4)
+        pattern_penalty = min(sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues), 50.0)
+        slop_score = round(min(max(0.0, (0.70 - ldr_equiv) * 50) + pattern_penalty, 100.0), 2)
+        status = "critical_deficit" if slop_score >= 50 else ("suspicious" if slop_score >= 20 else "clean")
 
-            row = node.start_point[0] + 1  # 1-based
-            col = node.start_point[1]
+        return JSFileAnalysis(
+            file_path=file_path, language=language,
+            total_lines=total, code_lines=code_lines,
+            comment_lines=len(comment_lines_set), blank_lines=len(blank_lines_set),
+            ldr_equivalent=ldr_equiv, issues=issues,
+            console_log_count=counts["console"], var_usage_count=counts["var"],
+            any_type_count=counts["any"], double_equals_count=counts["double_eq"],
+            empty_arrow_count=counts["empty_arrow"],
+            max_nesting_depth=max_depth, function_metrics=fn_metrics,
+            max_complexity=max_complexity, god_function_count=god_count,
+            dead_code_count=len([i for i in issues if i.pattern_id == "js_dead_code"]),
+            ast_mode=True, slop_score=slop_score, status=status,
+        )
 
-            # var declaration
+    def _classify_lines(self, root: Any, lines: list) -> tuple:
+        """Return (blank_lines_set, comment_lines_set) from AST."""
+        blank_lines_set: set = {i for i, ln in enumerate(lines) if not ln.strip()}
+        comment_lines_set: set = set()
+
+        def _collect(node: Any) -> None:
+            if node.type in ("comment", "block_comment"):
+                for row in range(node.start_point[0], node.end_point[0] + 1):
+                    comment_lines_set.add(row)
+            for child in node.children:
+                _collect(child)
+
+        _collect(root)
+        return blank_lines_set, comment_lines_set
+
+    def _walk_inline_patterns(self, root: Any, is_ts: bool, issues: List[JSIssue]) -> dict:
+        """Walk AST and collect inline pattern issues (var, console, any, ==, empty arrow)."""
+        counts = {"console": 0, "var": 0, "any": 0, "double_eq": 0, "empty_arrow": 0}
+
+        def _walk(node: Any) -> None:
+            row, col = node.start_point[0] + 1, node.start_point[1]
             if node.type == "variable_declaration":
                 text = (node.text or b"").decode("utf-8", errors="replace")
                 if text.startswith("var "):
-                    var_count += 1
-                    issues.append(
-                        JSIssue(
-                            pattern_id="js_var_usage",
-                            severity="medium",
-                            line=row,
-                            column=col,
-                            message="var declaration — use let or const",
-                            suggestion="Replace var with let (mutable) or const (immutable)",
-                        )
-                    )
-
-            # console.log / warn / error / info
+                    counts["var"] += 1
+                    issues.append(JSIssue("js_var_usage", "medium", row, col,
+                                          "var declaration — use let or const",
+                                          "Replace var with let (mutable) or const (immutable)"))
             elif node.type == "call_expression":
                 fn = node.child_by_field_name("function")
                 if fn and fn.type == "member_expression":
-                    obj = fn.child_by_field_name("object")
-                    prop = fn.child_by_field_name("property")
-                    if (
-                        obj
-                        and obj.text == b"console"
-                        and prop
-                        and prop.text in (b"log", b"warn", b"error", b"info")
-                    ):
-                        console_count += 1
-                        method = prop.text.decode()
-                        issues.append(
-                            JSIssue(
-                                pattern_id="js_console_log",
-                                severity="low",
-                                line=row,
-                                column=col,
-                                message=f"console.{method} in production code",
-                                suggestion="Remove debug logs or use a proper logging library",
-                            )
-                        )
-
-            # TypeScript 'any' type
+                    obj, prop = fn.child_by_field_name("object"), fn.child_by_field_name("property")
+                    if obj and obj.text == b"console" and prop and prop.text in (b"log", b"warn", b"error", b"info"):
+                        counts["console"] += 1
+                        issues.append(JSIssue("js_console_log", "low", row, col,
+                                              f"console.{prop.text.decode()} in production code",
+                                              "Remove debug logs or use a proper logging library"))
             elif is_ts and node.type == "type_annotation":
                 text = (node.text or b"").decode("utf-8", errors="replace")
                 if ": any" in text or ":any" in text:
-                    any_count += 1
-                    issues.append(
-                        JSIssue(
-                            pattern_id="js_any_type",
-                            severity="high",
-                            line=row,
-                            column=col,
-                            message="TypeScript 'any' type disables type safety",
-                            suggestion="Use a specific type or 'unknown' with type guards",
-                        )
-                    )
-
-            # Empty arrow function
+                    counts["any"] += 1
+                    issues.append(JSIssue("js_any_type", "high", row, col,
+                                          "TypeScript 'any' type disables type safety",
+                                          "Use a specific type or 'unknown' with type guards"))
             elif node.type == "arrow_function":
                 body = node.child_by_field_name("body")
-                if body and body.type == "statement_block":
-                    named_children = [c for c in body.children if c.is_named]
-                    if not named_children:
-                        empty_arrow_count += 1
-                        issues.append(
-                            JSIssue(
-                                pattern_id="js_empty_arrow",
-                                severity="medium",
-                                line=row,
-                                column=col,
-                                message="Empty arrow function — placeholder not implemented",
-                                suggestion="Implement the function body or remove it",
-                            )
-                        )
-
-            # Loose equality (==)
+                if body and body.type == "statement_block" and not [c for c in body.children if c.is_named]:
+                    counts["empty_arrow"] += 1
+                    issues.append(JSIssue("js_empty_arrow", "medium", row, col,
+                                          "Empty arrow function — placeholder not implemented",
+                                          "Implement the function body or remove it"))
             elif node.type == "binary_expression":
                 op = node.child_by_field_name("operator")
                 if op and op.type == "==":
-                    double_eq_count += 1
-                    issues.append(
-                        JSIssue(
-                            pattern_id="js_double_equals",
-                            severity="medium",
-                            line=row,
-                            column=op.start_point[1],
-                            message="Loose equality (==) — use strict === instead",
-                            suggestion="Replace == with ===",
-                        )
-                    )
-
+                    counts["double_eq"] += 1
+                    issues.append(JSIssue("js_double_equals", "medium", row, op.start_point[1],
+                                          "Loose equality (==) — use strict === instead",
+                                          "Replace == with ==="))
             for child in node.children:
-                walk(child)
+                _walk(child)
 
-        walk(root)
+        _walk(root)
+        return counts
 
-        # Function-level metrics (god functions, complexity, depth)
-        function_metrics: List[FunctionMetrics] = []
-        god_function_count = 0
+    def _collect_function_metrics(self, root: Any) -> tuple:
+        """Return (metrics, god_issues, god_count, max_complexity, max_depth)."""
+        metrics: List[FunctionMetrics] = []
+        god_issues: List[JSIssue] = []
+        god_count = 0
         max_complexity = 0
-        max_depth_global = 0
+        max_depth = 0
 
         for fn_node in _collect_functions(root):
             name_node = fn_node.child_by_field_name("name")
-            if name_node:
-                fn_name = name_node.text.decode("utf-8", errors="replace")
-            else:
-                fn_name = "(anonymous)"
-
+            fn_name = name_node.text.decode("utf-8", errors="replace") if name_node else "(anonymous)"
             fn_start = fn_node.start_point[0] + 1
             fn_end = fn_node.end_point[0] + 1
             fn_lines = fn_end - fn_start + 1
             complexity = 1 + _node_complexity(fn_node)
             depth = _node_max_depth(fn_node)
-
             is_god = fn_lines > GOD_FUNCTION_LINES or complexity > GOD_FUNCTION_COMPLEXITY
+
             if is_god:
-                god_function_count += 1
-                issues.append(
-                    JSIssue(
-                        pattern_id="js_god_function",
-                        severity="high",
-                        line=fn_start,
-                        column=fn_node.start_point[1],
-                        message=(
-                            f"God function '{fn_name}': "
-                            f"{fn_lines} lines, complexity={complexity}"
-                        ),
-                        suggestion="Break into smaller single-responsibility functions",
-                    )
-                )
-
+                god_count += 1
+                god_issues.append(JSIssue(
+                    "js_god_function", "high", fn_start, fn_node.start_point[1],
+                    f"God function '{fn_name}': {fn_lines} lines, complexity={complexity}",
+                    "Break into smaller single-responsibility functions",
+                ))
             max_complexity = max(max_complexity, complexity)
-            max_depth_global = max(max_depth_global, depth)
+            max_depth = max(max_depth, depth)
+            metrics.append(FunctionMetrics(fn_name, fn_start, fn_end, fn_lines, complexity, depth, is_god))
 
-            function_metrics.append(
-                FunctionMetrics(
-                    name=fn_name,
-                    start_line=fn_start,
-                    end_line=fn_end,
-                    line_count=fn_lines,
-                    complexity=complexity,
-                    max_depth=depth,
-                    is_god_function=is_god,
-                )
-            )
+        if max_depth > GOD_DEPTH_THRESHOLD:
+            god_issues.append(JSIssue("js_callback_hell", "high", 1, 0,
+                                      f"Max nesting depth {max_depth} — callback hell risk",
+                                      "Refactor to async/await or flatten promise chains"))
+        return metrics, god_issues, god_count, max_complexity, max_depth
 
-        # Callback hell: max depth exceeds threshold
-        if max_depth_global > GOD_DEPTH_THRESHOLD:
-            issues.append(
-                JSIssue(
-                    pattern_id="js_callback_hell",
-                    severity="high",
-                    line=1,
-                    column=0,
-                    message=f"Max nesting depth {max_depth_global} — callback hell risk",
-                    suggestion="Refactor to async/await or flatten promise chains",
-                )
-            )
-
-        # Dead code detection
-        dead_positions = _find_dead_code(root)
-        dead_code_count = len(dead_positions)
-        for dead_row, dead_col in dead_positions:
-            issues.append(
-                JSIssue(
-                    pattern_id="js_dead_code",
-                    severity="medium",
-                    line=dead_row,
-                    column=dead_col,
-                    message="Unreachable code after return/throw/break",
-                    suggestion="Remove dead code",
-                )
-            )
-
-        ldr_equiv = round(code_lines / max(total, 1), 4)
-
-        # Slop score: LDR deficit + pattern penalty
-        pattern_penalty = min(
-            sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues),
-            50.0,
-        )
-        ldr_deficit = max(0.0, (0.70 - ldr_equiv) * 50)
-        slop_score = round(min(ldr_deficit + pattern_penalty, 100.0), 2)
-
-        status = (
-            "critical_deficit"
-            if slop_score >= 50
-            else "suspicious" if slop_score >= 20 else "clean"
-        )
-
-        return JSFileAnalysis(
-            file_path=file_path,
-            language=language,
-            total_lines=total,
-            code_lines=code_lines,
-            comment_lines=len(comment_lines_set),
-            blank_lines=len(blank_lines_set),
-            ldr_equivalent=ldr_equiv,
-            issues=issues,
-            console_log_count=console_count,
-            var_usage_count=var_count,
-            any_type_count=any_count,
-            double_equals_count=double_eq_count,
-            empty_arrow_count=empty_arrow_count,
-            max_nesting_depth=max_depth_global,
-            function_metrics=function_metrics,
-            max_complexity=max_complexity,
-            god_function_count=god_function_count,
-            dead_code_count=dead_code_count,
-            ast_mode=True,
-            slop_score=slop_score,
-            status=status,
-        )
+    def _detect_dead_code_issues(self, root: Any) -> List[JSIssue]:
+        """Return dead code issues from AST."""
+        return [
+            JSIssue("js_dead_code", "medium", row, col,
+                    "Unreachable code after return/throw/break", "Remove dead code")
+            for row, col in _find_dead_code(root)
+        ]
 
     # ------------------------------------------------------------------
     # Regex fallback mode

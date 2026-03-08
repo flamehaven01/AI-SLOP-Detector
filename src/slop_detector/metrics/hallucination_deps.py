@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import ast
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Set
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -105,9 +108,8 @@ class HallucinationDepsDetector:
                 # If file not found, we could warn, but for now we'll just use empty or raise
                 # In a real app we might want hardcoded fallbacks here just in case
                 pass
-        except Exception:
-            # Fallback or empty if error
-            pass
+        except Exception as exc:
+            logger.debug("hallucination_deps: config load failed, using defaults: %s", exc)
 
     def analyze(
         self, file_path: str, content: str, tree: ast.AST, ddc_result: Any
