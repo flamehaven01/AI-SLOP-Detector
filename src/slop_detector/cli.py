@@ -673,6 +673,26 @@ Examples:
     parser.add_argument(
         "--export-history", metavar="PATH", help="Export full history to JSONL file and exit"
     )
+    # Self-Calibration (v2.9.2)
+    parser.add_argument(
+        "--self-calibrate",
+        action="store_true",
+        help="Analyze usage history to find optimal ldr/inflation/ddc weights for this codebase",
+    )
+    parser.add_argument(
+        "--apply-calibration",
+        metavar="CONFIG",
+        nargs="?",
+        const=".slopconfig.yaml",
+        help="Write calibrated weights to .slopconfig.yaml (or specified path). Use with --self-calibrate",
+    )
+    parser.add_argument(
+        "--min-history",
+        type=int,
+        default=10,
+        metavar="N",
+        help="Minimum labeled events required before calibration runs (default: 10)",
+    )
     # CI/CD Gate options (v2.2)
     parser.add_argument(
         "--ci-mode",
@@ -769,6 +789,8 @@ def main() -> int:
     if getattr(args, "show_history", False):
         _show_file_history(args.path)
         return 0
+    if getattr(args, "self_calibrate", False):
+        return _run_self_calibration(args)
 
     if Path(args.path).is_dir() and not args.project:
         args.project = True
@@ -1078,6 +1100,102 @@ def _export_history(output_path: str) -> None:
     tracker = HistoryTracker()
     count = tracker.export_jsonl(output_path)
     print(f"[+] Exported {count} records to {output_path}")
+
+
+def _run_self_calibration(args: argparse.Namespace) -> int:
+    """Run self-calibration and optionally apply results to .slopconfig.yaml."""
+    from slop_detector.config import Config
+    from slop_detector.ml.self_calibrator import SelfCalibrator
+
+    try:
+        from rich.console import Console
+        from rich.table import Table
+        from rich import box
+
+        console = Console()
+        _rich = True
+    except ImportError:
+        console = None  # type: ignore[assignment]
+        _rich = False
+
+    config = Config(config_path=getattr(args, "config", None))
+    current_weights = config.get_weights()
+    min_events = getattr(args, "min_history", 10)
+
+    calibrator = SelfCalibrator()
+    result = calibrator.calibrate(current_weights=current_weights, min_events=min_events)
+
+    # --- Print summary ---
+    if _rich and console:
+        from rich.panel import Panel
+        from rich.text import Text
+
+        status_color = {"ok": "green", "no_change": "yellow", "insufficient_data": "red"}.get(
+            result.status, "white"
+        )
+        header = Text(f"Self-Calibration — {result.status.upper()}", style=f"bold {status_color}")
+        console.print(Panel(header, box=box.ROUNDED))
+
+        t = Table(box=box.ROUNDED, show_header=True, header_style="bold cyan")
+        t.add_column("Metric", style="cyan")
+        t.add_column("Value", justify="right")
+        t.add_row("Unique files in history", str(result.unique_files))
+        t.add_row("Improvement events (true positives)", str(result.improvement_events))
+        t.add_row("FP candidates (flagged, never fixed)", str(result.fp_candidates))
+        t.add_row("Confidence gap", f"{result.confidence_gap:.4f}")
+        console.print(t)
+
+        wt = Table(box=box.ROUNDED, show_header=True, header_style="bold cyan")
+        wt.add_column("Dimension", style="cyan")
+        wt.add_column("Current", justify="right")
+        wt.add_column("Optimal", justify="right")
+        wt.add_column("Delta", justify="right")
+        for dim in ("ldr", "inflation", "ddc"):
+            cur = current_weights.get(dim, 0.0)
+            opt = result.optimal_weights.get(dim, cur)
+            delta = opt - cur
+            delta_str = f"{delta:+.2f}" if abs(delta) > 0.001 else "—"
+            color = "green" if delta < -0.001 else ("red" if delta > 0.001 else "white")
+            wt.add_row(dim, f"{cur:.2f}", f"{opt:.2f}", f"[{color}]{delta_str}[/{color}]")
+        console.print(wt)
+
+        if result.status == "ok":
+            err_before = result.fn_rate_before + result.fp_rate_before
+            err_after = result.fn_rate_after + result.fp_rate_after
+            console.print(
+                f"\nCombined error: [yellow]{err_before:.4f}[/yellow] -> [green]{err_after:.4f}[/green]"
+                f"  (FN {result.fn_rate_before:.4f}->{result.fn_rate_after:.4f},"
+                f"  FP {result.fp_rate_before:.4f}->{result.fp_rate_after:.4f})"
+            )
+
+        console.print(f"\n[dim]{result.message}[/dim]")
+    else:
+        print(f"[Self-Calibration] status={result.status}")
+        print(f"  unique_files={result.unique_files}")
+        print(f"  improvement_events={result.improvement_events}")
+        print(f"  fp_candidates={result.fp_candidates}")
+        print(f"  confidence_gap={result.confidence_gap:.4f}")
+        print(f"  current_weights={current_weights}")
+        print(f"  optimal_weights={result.optimal_weights}")
+        print(f"  {result.message}")
+
+    # --- Apply if requested ---
+    apply_path = getattr(args, "apply_calibration", None)
+    if apply_path and result.status == "ok":
+        written = SelfCalibrator.apply_to_config(result.optimal_weights, config_path=apply_path)
+        msg = f"[+] Calibrated weights written to {written}"
+        if _rich and console:
+            console.print(f"\n[green]{msg}[/green]")
+        else:
+            print(msg)
+    elif apply_path and result.status != "ok":
+        msg = "[-] --apply-calibration skipped: calibration did not produce a confident result."
+        if _rich and console:
+            console.print(f"\n[yellow]{msg}[/yellow]")
+        else:
+            print(msg)
+
+    return 0 if result.status in ("ok", "no_change") else 1
 
 
 def _text_project_section(result) -> list:
