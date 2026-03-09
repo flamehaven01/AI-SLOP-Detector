@@ -189,8 +189,72 @@ def _append_pattern_issues_rich(content, result) -> None:
         content.append(f"  Advanced: {', '.join(adv_parts)}\n", style="dim cyan")
 
 
+def _build_header_table(result) -> "Table":
+    """Build Panel 1: File / Status / Deficit Score with right-aligned values."""
+    color = "red" if result.status != "clean" else "green"
+    t = Table(box=None, show_header=False, padding=(0, 2), expand=True)
+    t.add_column("key", style="cyan", no_wrap=True)
+    t.add_column("val", justify="right", no_wrap=True)
+    t.add_row("File:", Path(result.file_path).name)
+    t.add_row("Status:", f"[bold {color}]{result.status.upper()}[/bold {color}]")
+    t.add_row("Deficit Score:", f"[bold]{result.deficit_score:.1f}/100[/bold]")
+    return t
+
+
+def _build_metrics_table(result) -> "Table":
+    """Build Panel 2: LDR / ICR / DDC / Justification Ratio with right-aligned values."""
+    t = Table(box=None, show_header=False, padding=(0, 2), expand=True)
+    t.add_column("key", style="cyan", no_wrap=True)
+    t.add_column("val", justify="right", no_wrap=True)
+
+    ldr = result.ldr.ldr_score
+    ldr_color = "green" if ldr >= 0.7 else "yellow" if ldr >= 0.4 else "red"
+    t.add_row("LDR (Logic Density):", f"[{ldr_color}]{ldr:.2%} ({result.ldr.grade})[/{ldr_color}]")
+
+    icr = result.inflation.inflation_score
+    icr_color = "red" if icr >= 1.0 else "yellow" if icr >= 0.5 else "green"
+    t.add_row("ICR (Inflation Check):", f"[{icr_color}]{icr:.2f} ({result.inflation.status})[/{icr_color}]")
+
+    ddc = result.ddc.usage_ratio
+    ddc_color = "red" if ddc < 0.3 else "yellow" if ddc < 0.7 else "green"
+    t.add_row("DDC (Dependency Check):", f"[{ddc_color}]{ddc:.2%} ({result.ddc.grade})[/{ddc_color}]")
+
+    total_j = len(result.inflation.jargon_details)
+    if total_j > 0:
+        justified = sum(1 for d in result.inflation.jargon_details if d.get("justified"))
+        ratio = justified / total_j
+        jr_color = "green" if ratio >= 0.7 else "yellow" if ratio >= 0.3 else "red"
+        t.add_row("Justification Ratio:", f"[{jr_color}]{ratio:.0%} evidence[/{jr_color}]")
+
+    ml = getattr(result, "ml_score", None)
+    if ml is not None:
+        ml_color = "red" if ml.slop_probability >= 0.70 else "yellow" if ml.slop_probability >= 0.40 else "green"
+        t.add_row(
+            "ML Slop Probability:",
+            f"[{ml_color}]{ml.slop_probability:.1%} [{ml.label.upper()}][/{ml_color}]",
+        )
+
+    return t
+
+
+def _build_questions_panel(questions) -> "Panel":
+    """Build Panel 3: inline [CRITICAL]/[WARNING]/[INFO] badge per question."""
+    content = Text()
+    for q in questions:
+        if q.severity == "critical":
+            content.append("[CRITICAL] ", style="bold red")
+        elif q.severity == "warning":
+            content.append("[WARNING] ", style="bold yellow")
+        else:
+            content.append("[INFO] ", style="bold cyan")
+        if q.line:
+            content.append(f"(Line {q.line}) ", style="dim")
+        content.append(q.question + "\n")
+    return Panel(content, title="[bold]Review Questions[/bold]", border_style="blue", box=box.ROUNDED)
+
+
 def _build_single_file_content(result) -> "Text":
-    """Build the Rich Text content for a single-file panel."""
+    """Build single-file Rich Text (used by text-report fallback path)."""
     color = "red" if result.status != "clean" else "green"
     content = Text()
     content.append(f"File: {result.file_path}\n")
@@ -223,15 +287,9 @@ def _build_single_file_content(result) -> "Text":
     _append_pattern_issues_rich(content, result)
     ml = getattr(result, "ml_score", None)
     if ml is not None:
-        ml_color = (
-            "red"
-            if ml.slop_probability >= 0.70
-            else "yellow" if ml.slop_probability >= 0.40 else "green"
-        )
+        ml_color = "red" if ml.slop_probability >= 0.70 else "yellow" if ml.slop_probability >= 0.40 else "green"
         content.append("\nML Score:\n", style="bold cyan")
-        content.append(
-            f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n", style=ml_color
-        )
+        content.append(f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n", style=ml_color)
         content.append(
             f"  Confidence: {ml.confidence:.1%}  Model: {ml.model_type}  Agreement: {'yes' if ml.agreement else 'no'}\n",
             style="dim",
@@ -240,27 +298,29 @@ def _build_single_file_content(result) -> "Text":
 
 
 def _render_rich_single_file(console, result) -> None:
-    """Render single-file panel with metrics, patterns, ML score, and review questions."""
+    """Render single-file analysis as 3 rounded panels matching the README screenshot."""
     color = "red" if result.status != "clean" else "green"
-    content = _build_single_file_content(result)
-    console.print(Panel(content, title="Single File Analysis", border_style=color))
 
+    # Panel 1: File / Status / Deficit Score
+    console.print(Panel(_build_header_table(result), border_style=color, box=box.ROUNDED))
+    console.print()
+
+    # Panel 2: Core Metrics
+    console.print(
+        Panel(
+            _build_metrics_table(result),
+            title="[bold cyan]Core Metrics[/bold cyan]",
+            border_style="blue",
+            box=box.ROUNDED,
+        )
+    )
+    console.print()
+
+    # Panel 3: Review Questions
     questions = QuestionGenerator().generate_questions(result)
-    if not questions:
-        return
-    console.print()
-    console.print(Panel.fit(Text("REVIEW QUESTIONS", style="bold yellow"), style="yellow"))
-    for label, style, group in [
-        ("CRITICAL QUESTIONS", "bold red", [q for q in questions if q.severity == "critical"]),
-        ("WARNING QUESTIONS", "bold yellow", [q for q in questions if q.severity == "warning"]),
-        ("INFO QUESTIONS", "bold cyan", [q for q in questions if q.severity == "info"]),
-    ]:
-        if group:
-            console.print(f"\n[{style}]{label}:[/{style}]")
-            for i, q in enumerate(group, 1):
-                loc = f" [dim](Line {q.line})[/dim]" if q.line else ""
-                console.print(f"{i}.{loc} {q.question}")
-    console.print()
+    if questions:
+        console.print(_build_questions_panel(questions))
+        console.print()
 
 
 def print_rich_report(result) -> None:
@@ -268,7 +328,7 @@ def print_rich_report(result) -> None:
     console = Console()
     console.print()
     console.print(
-        Panel.fit(Text("AI CODE QUALITY REPORT", style="bold cyan"), style="blue", box=box.DOUBLE)
+        Panel.fit(Text("AI CODE QUALITY REPORT", style="bold cyan"), style="blue", box=box.ROUNDED)
     )
     console.print()
 

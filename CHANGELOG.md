@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.9.2] - 2026-03-09
+
+### Fixed
+
+#### Rich 3-Panel Single-File UI — Reconnected Missing Feature
+- `_render_rich_single_file` was rendering a single `box.DOUBLE` panel containing
+  raw key-value text — inconsistent with the documented 3-panel layout described
+  in README and shown in interface screenshots.
+- Reconnected the intended design:
+  - **Panel 1** (`box.ROUNDED`): File path, status badge, deficit score — right-aligned.
+  - **Panel 2** (`box.ROUNDED`): LDR / ICR / DDC / Justification Ratio / ML Prediction
+    with per-row color coding (red/yellow/green).
+  - **Panel 3** (`box.ROUNDED`): Review questions with inline severity badges
+    (`[CRITICAL]` red, `[WARNING]` yellow, `[INFO]` blue).
+- Header banner unified to `box.ROUNDED` to match panel chrome.
+- Helpers added: `_build_header_table`, `_build_metrics_table`, `_build_questions_panel`.
+- Single-file text-report path (`_build_single_file_content`) preserved unchanged.
+
+---
+
 ## [2.9.1] - 2026-03-08
 
 ### Changed
