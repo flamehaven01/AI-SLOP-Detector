@@ -1,0 +1,35 @@
+# .slopconfig.yaml — ai-slop-detector project self-scan configuration
+# Used by: slop-detector CLI, SIDRCE SaaS inspect, CI gate
+
+patterns:
+  disabled: []
+
+weights:
+  ldr: 0.40
+  inflation: 0.30
+  ddc: 0.30
+
+ignore:
+  # Python boilerplate
+  - "**/__init__.py"
+  # Test suite — includes tests/corpus/ which contains intentional slop fixtures
+  # designed to be caught by the tool; scanning them produces expected false positives
+  - "tests/**"
+  - "**/*_test.py"
+  - "**/test_*.py"
+  # Type stubs
+  - "**/*.pyi"
+  # Virtual environments
+  - "**/.venv/**"
+  - ".venv/**"
+  - "**/venv/**"
+  - "venv/**"
+  - "**/site-packages/**"
+  # Build artifacts
+  - "**/node_modules/**"
+  - "**/__pycache__/**"
+  - "build/**"
+  - "dist/**"
+  - "htmlcov/**"
+  # VS Code extension (TypeScript/Node, not Python)
+  - "vscode-extension/**"
