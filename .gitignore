@@ -47,7 +47,6 @@ Thumbs.db
 # Project specific
 reports/
 *.log
-.slopconfig.yaml
 target/
 
 # Internal Documentation & Reports
