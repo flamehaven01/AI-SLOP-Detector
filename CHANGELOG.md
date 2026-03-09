@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.9.3] - 2026-03-09
+
+### Added
+
+#### Self-Calibration Engine — `--self-calibrate`
+- New `src/slop_detector/ml/self_calibrator.py` — adaptive weight optimizer.
+- Labels derived from **user behaviour**, not formula outputs (breaks tautology):
+  - `improvement_event`: deficit > 25 in run[i], dropped > 10 in run[i+1] → user fixed it
+  - `fp_candidate`: deficit > 25, same file_hash in next run, no change → user ignored it
+- Grid search over weight simplex `{w_ldr + w_inflation + w_ddc = 1.0, wi ∈ [0.10, 0.65]}`
+  at 0.05 resolution (no new dependencies — pure stdlib + yaml).
+- Continuous tiebreaker (LEDA MetaLearning pattern): when candidates tie on binary FN+FP rate,
+  secondary sort by `avg_fp_deficit − avg_tp_margin` breaks the tie.
+- Copilot Guardian-style confidence gap: if gap between #1 and #2 < 0.10, reports
+  `insufficient_data` rather than applying a weakly-supported calibration.
+- `--apply-calibration [CONFIG]`: writes optimal weights to `.slopconfig.yaml` (default)
+  only when `status == ok`.
+- `--min-history N`: override minimum event threshold (default: 10).
+- CLI output: 3-panel Rich layout (status, event counts, weight delta table with ± colors).
+
+**First live run on Flamehaven history.db (180 unique files, 62 improvements, 176 FP candidates):**
+| | Current | Optimal |
+|---|---|---|
+| ldr | 0.40 | 0.10 |
+| inflation | 0.30 | 0.25 |
+| ddc | 0.30 | 0.65 |
+| combined error | 1.1069 | 0.9985 |
+| confidence gap | — | **0.1088** |
+
+Interpretation: high FN rate (91.9%) against metric-only recomputed deficits indicates
+pattern penalties dominate this codebase's scoring. Weight calibration operates on the
+metric component only; pattern-driven deficits are orthogonal and unaffected.
+
+---
+
 ## [2.9.2] - 2026-03-09
 
 ### Fixed
