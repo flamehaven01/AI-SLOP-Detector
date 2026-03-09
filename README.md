@@ -31,9 +31,10 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 
 **Navigation:**
 [Quick Start](#quick-start) •
-[What's New v2.9.1](#whats-new-in-v291) •
+[What's New v2.9.3](#whats-new-in-v293) •
 [What It Detects](#what-it-detects) •
 [Scoring Model](#scoring-model) •
+[Self-Calibration](#self-calibration) •
 [History Tracking](#history-tracking) •
 [CI/CD](#cicd-integration) •
 [Docs](docs/) •
@@ -63,6 +64,48 @@ uvx ai-slop-detector mycode.py
 <p align="center">
   <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
 </p>
+
+---
+
+## What's New in v2.9.3
+
+### Self-Calibration — The Tool Learns Your Codebase
+
+The default weights (`ldr: 0.40, inflation: 0.30, ddc: 0.30`) were tuned against
+one codebase. They may not fit yours. A Django project has more structural boilerplate
+than a data pipeline. A heavily documented library has a different logic density
+profile than a microservice.
+
+Starting in v2.9.3, the tool calibrates its own weights from your usage history.
+
+```bash
+slop-detector . --self-calibrate              # see what your history suggests
+slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yaml
+```
+
+**How it works in one sentence:**
+Files you edited after a bad score are confirmed real slop. Files you ignored
+despite a bad score are likely false positives. The engine searches for weights
+that maximize the first and minimize the second — using only your own history,
+no external data required.
+
+**First live run result (Flamehaven codebase, 180 files, 62 confirmed fixes):**
+
+| Dimension | Default | Calibrated |
+|---|---:|---:|
+| ldr | 0.40 | 0.10 |
+| inflation | 0.30 | 0.25 |
+| ddc | 0.30 | **0.65** |
+| Combined error | 1.1069 | **0.9985** |
+| Confidence gap | — | 0.1088 |
+
+Interpretation: this codebase's style leans documentation-heavy with meaningful
+dependency usage — DDC is the stronger quality signal here than logic density.
+The tool adapted to that. Yours will adapt to your style.
+
+More data = better calibration. The tool gets more accurate the more you use it.
+
+[Full documentation: Self-Calibration →](docs/SELF_CALIBRATION.md)
 
 ---
 
@@ -192,6 +235,45 @@ Project aggregation uses SR9 conservative weighting:
 `project_ldr = 0.6 × min(file_ldrs) + 0.4 × mean(file_ldrs)`
 
 Full mathematical specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+
+---
+
+## Self-Calibration
+
+The default weights work. Calibrated weights work better — for you.
+
+```bash
+# Check what your history recommends
+slop-detector . --self-calibrate
+
+# Apply automatically to .slopconfig.yaml
+slop-detector . --self-calibrate --apply-calibration
+
+# Require more data before trusting the result
+slop-detector . --self-calibrate --min-history 50
+```
+
+The engine extracts two signals from your history database:
+
+| Event | Definition | Label |
+|---|---|---|
+| **Improvement** | Deficit was high → you edited the file → score dropped | True positive |
+| **FP candidate** | Deficit was high → same file, no change, next run still bad | Likely false positive |
+
+It then grid-searches 200+ weight combinations and finds the set that minimizes
+missed real slops and unnecessary alerts — for your specific codebase.
+
+Requires at least 10 labeled events (accumulated automatically as you use the tool).
+Result is only written when the confidence gap between the top two candidates
+exceeds 0.10 — the same pattern used in Copilot Guardian's multi-hypothesis selection.
+
+| Status | Meaning |
+|---|---|
+| `ok` | Confident winner found — `--apply-calibration` writes to config |
+| `no_change` | Current weights already near-optimal |
+| `insufficient_data` | Need more history, or candidates too close to call |
+
+[Full documentation: Self-Calibration →](docs/SELF_CALIBRATION.md)
 
 ---
 
