@@ -602,10 +602,14 @@ def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) 
     try:
         toml_mod: Any = None
         try:
-            import tomllib as toml_mod  # Python 3.11+  # type: ignore[import-not-found,no-redef]
+            import tomllib  # type: ignore[import-not-found]
+
+            toml_mod = tomllib  # Python 3.11+
         except ImportError:
             try:
-                import tomli as toml_mod  # type: ignore[import,no-redef]
+                import tomli  # type: ignore[import-not-found,import]
+
+                toml_mod = tomli
             except ImportError:
                 pass
         if toml_mod is None:
