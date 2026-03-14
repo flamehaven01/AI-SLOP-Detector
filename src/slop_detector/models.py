@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 
 class SlopStatus(str, Enum):
@@ -26,6 +26,7 @@ class LDRResult:
     grade: str
     is_abc_interface: bool = False
     is_type_stub: bool = False
+    is_packaging_init: bool = False  # empty __init__.py — Python packaging convention
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -36,6 +37,7 @@ class LDRResult:
             "grade": self.grade,
             "is_abc_interface": self.is_abc_interface,
             "is_type_stub": self.is_type_stub,
+            "is_packaging_init": self.is_packaging_init,
         }
 
 
@@ -124,6 +126,9 @@ class FileAnalysis:
     context_jargon: Any = None  # v2.2: Context-based jargon validation
     ignored_functions: List[IgnoredFunction] = field(default_factory=list)  # v2.6.3
     ml_score: Any = None  # v2.8.0: Optional ML secondary signal (MLScore | None)
+    # v3.0: Distributional Code Fingerprint — P(node_type | file) over AST node types.
+    # Genuine probability distribution. Used for information-theoretic slop distance (CQMS Level 2).
+    dcf: Dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -163,6 +168,8 @@ class FileAnalysis:
             result["ml_score"] = (
                 self.ml_score.to_dict() if hasattr(self.ml_score, "to_dict") else self.ml_score
             )
+        if self.dcf:
+            result["dcf"] = self.dcf
         return result
 
 
@@ -181,6 +188,10 @@ class ProjectAnalysis:
     avg_ddc: float
     overall_status: SlopStatus
     file_results: List[FileAnalysis] = field(default_factory=list)
+    # v3.0: CQMS structural coherence — max H0 persistence (MST-based) over file DCFs.
+    # 1.0 = all files structurally uniform. Low = distinct structural clusters (AI/human mix signal).
+    structural_coherence: float = 1.0
+    coherence_level: str = "none"  # "vr_structural" | "none"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -194,5 +205,7 @@ class ProjectAnalysis:
             "avg_inflation": self.avg_inflation,
             "avg_ddc": self.avg_ddc,
             "overall_status": self.overall_status.value,
+            "structural_coherence": round(self.structural_coherence, 4),
+            "coherence_level": self.coherence_level,
             "file_results": [r.to_dict() for r in self.file_results],
         }

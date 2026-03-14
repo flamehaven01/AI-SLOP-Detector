@@ -1,5 +1,5 @@
 """
-Python Advanced Structural Patterns (v2.8.0 / v2.9.0)
+Python Advanced Structural Patterns (v2.8.0 / v2.9.0 / v3.0.1)
 
 God function, dead code, deep nesting, lint escape, and phantom import detection.
 Uses AST for structural analysis; line scanning for comment-based patterns.
@@ -9,17 +9,23 @@ Thresholds:
   GOD_FUNCTION_COMPLEXITY  = 10  (cyclomatic complexity)
   DEEP_NESTING_THRESHOLD   = 4   (control flow nesting depth)
   LINT_ESCAPE_BARE_LIMIT   = 1   (bare # noqa before HIGH; 0 = first occurrence)
+
+D2 (v3.0.1): god_function thresholds are configurable via .slopconfig.yaml.
+  domain_overrides allow per-function-name threshold exemptions for domain-complex
+  safety systems where high complexity is inherent to the problem (e.g., clinical
+  decision engines, rule interpreters). See docs/CONFIGURATION.md for examples.
 """
 
 from __future__ import annotations
 
 import ast
+import fnmatch
 import importlib.util
 import logging
 import re
 import sys
 from pathlib import Path
-from typing import FrozenSet, Optional
+from typing import Any, Dict, FrozenSet, List, Optional
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -152,8 +158,24 @@ class GodFunctionPattern(BasePattern):
     """Detect functions that are too large or too complex.
 
     A function is a 'god function' if:
-      - It has more than GOD_FUNCTION_LINES non-blank lines, OR
-      - Its cyclomatic complexity exceeds GOD_FUNCTION_COMPLEXITY.
+      - It has more than lines_threshold non-blank lines, OR
+      - Its cyclomatic complexity exceeds complexity_threshold.
+
+    Thresholds default to GOD_FUNCTION_LINES / GOD_FUNCTION_COMPLEXITY but
+    can be overridden via .slopconfig.yaml:
+
+      patterns:
+        god_function:
+          complexity_threshold: 10    # global default
+          lines_threshold: 50         # global default
+          domain_overrides:
+            - function_pattern: "evaluate"    # fnmatch; exact name or wildcard
+              complexity_threshold: 80
+              lines_threshold: 300
+
+    domain_overrides allow safety-critical engines with inherent domain
+    complexity (clinical decision trees, rule interpreters) to declare their
+    own thresholds rather than generate false-positive god_function hits.
 
     God functions are the primary carrier of slop in AI-generated code:
     they combine unrelated responsibilities and resist meaningful testing.
@@ -163,6 +185,31 @@ class GodFunctionPattern(BasePattern):
     severity = Severity.HIGH
     axis = Axis.STYLE
     message = "God function detected"
+
+    def __init__(
+        self,
+        complexity_threshold: int = GOD_FUNCTION_COMPLEXITY,
+        lines_threshold: int = GOD_FUNCTION_LINES,
+        domain_overrides: Optional[List[Dict[str, Any]]] = None,
+    ) -> None:
+        super().__init__()
+        self.complexity_threshold = complexity_threshold
+        self.lines_threshold = lines_threshold
+        self.domain_overrides: List[Dict[str, Any]] = domain_overrides or []
+
+    def _thresholds_for(self, func_name: str) -> tuple[int, int]:
+        """Return (complexity_threshold, lines_threshold) for a given function name.
+
+        Checks domain_overrides in order; first match wins.
+        Falls back to instance defaults if no override matches.
+        """
+        for override in self.domain_overrides:
+            pattern = override.get("function_pattern", "")
+            if pattern and fnmatch.fnmatch(func_name, pattern):
+                cc = int(override.get("complexity_threshold", self.complexity_threshold))
+                ln = int(override.get("lines_threshold", self.lines_threshold))
+                return cc, ln
+        return self.complexity_threshold, self.lines_threshold
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
@@ -181,16 +228,29 @@ class GodFunctionPattern(BasePattern):
             )
 
             complexity = _cyclomatic_complexity(node)
+            cc_limit, ln_limit = self._thresholds_for(node.name)
 
-            is_too_long = logic_lines > GOD_FUNCTION_LINES
-            is_too_complex = complexity > GOD_FUNCTION_COMPLEXITY
+            is_too_long = logic_lines > ln_limit
+            is_too_complex = complexity > cc_limit
 
             if is_too_long or is_too_complex:
                 reasons = []
                 if is_too_long:
-                    reasons.append(f"{logic_lines} logic lines (limit {GOD_FUNCTION_LINES})")
+                    reasons.append(f"{logic_lines} logic lines (limit {ln_limit})")
                 if is_too_complex:
-                    reasons.append(f"complexity={complexity} (limit {GOD_FUNCTION_COMPLEXITY})")
+                    reasons.append(f"complexity={complexity} (limit {cc_limit})")
+
+                # P2: Split severity — long-but-simple is a different problem than complex.
+                # Physics pipelines / orchestrators are legitimately long with low branching.
+                # Only flag HIGH when complexity is genuinely elevated.
+                if is_too_complex:
+                    # High complexity is always a structural problem
+                    sev = Severity.HIGH
+                elif is_too_long and complexity <= 5:
+                    # Long but sequential — pipeline/orchestrator pattern; informational only
+                    sev = Severity.LOW
+                else:
+                    sev = Severity.MEDIUM
 
                 issues.append(
                     self.create_issue(
@@ -202,6 +262,7 @@ class GodFunctionPattern(BasePattern):
                             "Break into smaller single-responsibility functions. "
                             "Each function should do one thing and fit on one screen."
                         ),
+                        severity_override=sev,
                     )
                 )
 
@@ -280,6 +341,52 @@ class DeepNestingPattern(BasePattern):
                     )
                 )
 
+        return issues
+
+
+# Composite thresholds for nested_complexity pattern
+_NESTED_CC_THRESHOLD = 5     # min cyclomatic complexity (moderate)
+_NESTED_DEPTH_THRESHOLD = 4  # same as DEEP_NESTING_THRESHOLD
+
+
+class NestedComplexityPattern(BasePattern):
+    """Detect functions that combine deep nesting with moderate cyclomatic complexity.
+
+    Either metric alone can have legitimate explanations. Both together
+    signal structural slop: a function that is simultaneously hard to read
+    (deep nesting) and hard to test (high branch count) without domain justification.
+
+    Severity: CRITICAL — composite structural issue, harder to refactor away
+    than a single nesting violation.
+    """
+
+    id = "nested_complexity"
+    severity = Severity.CRITICAL
+    axis = Axis.QUALITY
+
+    def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
+        issues: list[Issue] = []
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            depth = _max_nesting_depth(node)
+            cc = _cyclomatic_complexity(node)
+            if depth >= _NESTED_DEPTH_THRESHOLD and cc >= _NESTED_CC_THRESHOLD:
+                issues.append(
+                    self.create_issue(
+                        file=file,
+                        line=node.lineno,
+                        column=node.col_offset,
+                        message=(
+                            f"Function '{node.name}' has both deep nesting (depth={depth}) "
+                            f"and high cyclomatic complexity (cc={cc}) — structural complexity composite"
+                        ),
+                        suggestion=(
+                            "Extract nested blocks into named helper functions. "
+                            "Use early-return / guard clauses and reduce branch count."
+                        ),
+                    )
+                )
         return issues
 
 
@@ -394,6 +501,132 @@ class LintEscapePattern(BasePattern):
 
 _RESOLVABLE_MODULES: Optional[FrozenSet[str]] = None
 
+# ------------------------------------------------------------------
+# Project-local package discovery (P0 fix)
+# ------------------------------------------------------------------
+
+_PROJECT_PACKAGES_CACHE: Dict[str, FrozenSet[str]] = {}
+
+_SKIP_LAYOUT_DIRS: FrozenSet[str] = frozenset({
+    "tests", "test", "docs", "doc", "examples", "scripts", "tools",
+    ".venv", "venv", "env", "build", "dist", ".git", "__pycache__",
+    "node_modules", "site-packages", ".mypy_cache", ".ruff_cache",
+    ".pytest_cache", ".tox", "htmlcov",
+})
+
+
+def _find_project_root(file_path: Path) -> Optional[Path]:
+    """Walk up directory tree to find project root by standard markers."""
+    markers = {"pyproject.toml", "setup.py", "setup.cfg", ".git"}
+    current = file_path.parent
+    for _ in range(12):
+        if any((current / m).exists() for m in markers):
+            return current
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    return None
+
+
+def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
+    """Discover internal Python package names via filesystem scan.
+
+    Checks three layouts:
+    1. src/ layout  : src/<name>/__init__.py
+    2. Flat layout  : <name>/__init__.py at project root
+    3. pyproject.toml: [tool.setuptools.packages.find] where = [...]
+
+    Result is cached per project_root for the lifetime of the process.
+    """
+    root_key = str(project_root)
+    if root_key in _PROJECT_PACKAGES_CACHE:
+        return _PROJECT_PACKAGES_CACHE[root_key]
+
+    packages: set[str] = set()
+
+    def _scan_dir(search: Path) -> None:
+        try:
+            for item in search.iterdir():
+                if (
+                    item.is_dir()
+                    and item.name not in _SKIP_LAYOUT_DIRS
+                    and not item.name.startswith(".")
+                    and (item / "__init__.py").exists()
+                ):
+                    packages.add(item.name)
+        except OSError:
+            pass
+
+    # 1. src/ layout
+    src_dir = project_root / "src"
+    if src_dir.is_dir():
+        _scan_dir(src_dir)
+
+    # 2. Flat layout
+    _scan_dir(project_root)
+
+    # 3. pyproject.toml — package discovery + declared dependencies
+    pyproject = project_root / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            _toml: Any = None
+            try:
+                import tomllib as _toml  # Python 3.11+
+            except ImportError:
+                try:
+                    import tomli as _toml  # type: ignore[no-redef]
+                except ImportError:
+                    pass
+            if _toml is not None:
+                with open(pyproject, "rb") as _f:
+                    _data = _toml.load(_f)
+
+                # 3a. Filesystem scan via [tool.setuptools.packages.find] where = [...]
+                _find_cfg = (
+                    _data.get("tool", {})
+                    .get("setuptools", {})
+                    .get("packages", {})
+                    .get("find", {})
+                )
+                for _where in _find_cfg.get("where", []):
+                    _scan_dir(project_root / _where)
+
+                # 3b. Declared dependencies → top-level import names whitelist.
+                # Prevents false positives for packages listed in pyproject.toml that
+                # are not installed in the detector's virtual environment.
+                _dep_lists: list[list[str]] = [
+                    _data.get("project", {}).get("dependencies", []),
+                ]
+                for _extras in (
+                    _data.get("project", {}).get("optional-dependencies", {}).values()
+                ):
+                    _dep_lists.append(_extras)
+
+                for _dep_list in _dep_lists:
+                    for _dep in _dep_list:
+                        # Strip version specifier: numpy>=1.0 -> numpy
+                        import re as _re
+                        _name = _re.split(r"[>=<!~;\[\s]", _dep.strip())[0].strip()
+                        if not _name:
+                            continue
+                        # canonical form: hyphens -> underscores
+                        _canon = _name.replace("-", "_").lower()
+                        packages.add(_canon)
+                        # also try without common vendor prefixes
+                        # e.g. flamehaven-logos -> logos, flamehaven_logos -> logos
+                        for _prefix in ("flamehaven_", "flame_", "py", "python_"):
+                            if _canon.startswith(_prefix) and len(_canon) > len(_prefix) + 1:
+                                packages.add(_canon[len(_prefix):])
+        except Exception:
+            pass
+
+    result = frozenset(packages)
+    _PROJECT_PACKAGES_CACHE[root_key] = result
+    if result:
+        logger.debug("Internal packages at %s: %s", project_root, result)
+    return result
+
 
 def _get_resolvable_modules() -> FrozenSet[str]:
     """Build the set of all top-level module names resolvable in this environment.
@@ -451,6 +684,64 @@ def _module_exists(name: str) -> bool:
         return True  # unknown environment — assume resolvable
 
 
+# Exception names that indicate an optional-dependency guard pattern.
+# Exception / BaseException are superclasses of ImportError and therefore
+# also guard against import failures (e.g. `except Exception as e: raise HTTPException`).
+_IMPORT_GUARD_EXC_NAMES: FrozenSet[str] = frozenset({
+    "ImportError", "ModuleNotFoundError", "Exception", "BaseException",
+})
+
+
+def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
+    """Return line numbers of import statements inside try/except ImportError blocks.
+
+    Detects intentional optional-dependency guard patterns:
+
+        try:
+            import heavy_library          # <- this line's lineno is returned
+        except (ImportError, ModuleNotFoundError):
+            heavy_library = None
+
+    These imports are NOT phantom (the package exists) but are undeclared
+    optional dependencies.  They deserve MEDIUM severity and a different
+    suggestion ("add to optional-dependencies") rather than CRITICAL
+    ("potential AI hallucination").
+
+    Bare except handlers are also treated as import guards — they suppress
+    ImportError along with everything else.
+    """
+    guarded: set[int] = set()
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Try):
+            continue
+
+        # Check whether any handler catches ImportError / ModuleNotFoundError
+        has_import_guard = False
+        for handler in node.handlers:
+            if handler.type is None:
+                # bare except — guards ImportError among everything else
+                has_import_guard = True
+                break
+            exc_names: set[str] = set()
+            if isinstance(handler.type, ast.Name):
+                exc_names.add(handler.type.id)
+            elif isinstance(handler.type, ast.Tuple):
+                for elt in handler.type.elts:
+                    if isinstance(elt, ast.Name):
+                        exc_names.add(elt.id)
+            if exc_names & _IMPORT_GUARD_EXC_NAMES:
+                has_import_guard = True
+                break
+
+        if has_import_guard:
+            for stmt in node.body:
+                if isinstance(stmt, (ast.Import, ast.ImportFrom)):
+                    guarded.add(stmt.lineno)
+
+    return frozenset(guarded)
+
+
 class PhantomImportPattern(BasePattern):
     """Detect imports that reference non-existent packages (phantom/hallucinated imports).
 
@@ -459,24 +750,23 @@ class PhantomImportPattern(BasePattern):
     plausible-sounding name, conflated two real package names, or referenced a
     package from a different language.
 
-    Examples of phantom imports produced by AI:
-        import tensorflow_utils          # does not exist
-        from requests_async_v2 import get # does not exist
-        import numpy_extended            # does not exist
-
     Detection strategy:
       Cross-reference the top-level module name from every import statement
       against the union of:
         - Python built-in C modules      (sys.builtin_module_names)
         - Standard library modules       (sys.stdlib_module_names, 3.10+)
         - Installed distributions        (importlib.metadata.packages_distributions)
+        - Project-local packages         (src-layout filesystem scan + pyproject.toml)
         - importlib.util.find_spec       (fallback for namespace / editable installs)
 
       Relative imports (from . import X) are excluded — they reference local
       project structure which is environment-dependent and not resolvable globally.
 
-    Severity: CRITICAL — a phantom import is a hard runtime error waiting to happen
-    and is a direct signal of hallucinated code.
+    Three-tier classification:
+      CRITICAL  Unguarded unresolvable import — hard runtime crash, likely AI hallucination.
+      MEDIUM    Guarded with try/except ImportError — real package, but not declared in
+                [project.optional-dependencies].  Correct fix: add to optional extras.
+      (skip)    Internal project package or resolvable in current environment.
     """
 
     id = "phantom_import"
@@ -487,50 +777,82 @@ class PhantomImportPattern(BasePattern):
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
 
+        # Build project-local whitelist (cached per project root).
+        project_root = _find_project_root(file)
+        internal_packages = (
+            _discover_project_packages(project_root) if project_root else frozenset()
+        )
+
+        # Build ImportError-guard line index for this file.
+        guarded_lines = _collect_import_guard_lines(tree)
+
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     top = alias.name.split(".")[0]
-                    if not _module_exists(top):
-                        issues.append(
-                            self.create_issue(
-                                file=file,
-                                line=getattr(node, "lineno", 0),
-                                column=getattr(node, "col_offset", 0),
-                                message=(
-                                    f"Phantom import: '{alias.name}' cannot be resolved "
-                                    f"(not in stdlib, built-ins, or installed packages)"
-                                ),
-                                suggestion=(
-                                    f"Verify '{alias.name}' exists on PyPI and is listed "
-                                    f"in your project dependencies. AI models sometimes "
-                                    f"generate plausible-looking but non-existent package names."
-                                ),
-                            )
-                        )
+                    if top in internal_packages or _module_exists(top):
+                        continue
+                    lineno = getattr(node, "lineno", 0)
+                    issues.append(
+                        self._make_issue(file, lineno,
+                                        getattr(node, "col_offset", 0),
+                                        alias.name, lineno in guarded_lines)
+                    )
 
             elif isinstance(node, ast.ImportFrom):
-                # Skip relative imports (level > 0) — local project structure
                 if node.level and node.level > 0:
                     continue
                 if not node.module:
                     continue
                 top = node.module.split(".")[0]
-                if not _module_exists(top):
-                    issues.append(
-                        self.create_issue(
-                            file=file,
-                            line=getattr(node, "lineno", 0),
-                            column=getattr(node, "col_offset", 0),
-                            message=(
-                                f"Phantom import: '{node.module}' cannot be resolved "
-                                f"(not in stdlib, built-ins, or installed packages)"
-                            ),
-                            suggestion=(
-                                f"Verify '{node.module}' exists on PyPI and is listed "
-                                f"in your project dependencies."
-                            ),
-                        )
-                    )
+                if top in internal_packages or _module_exists(top):
+                    continue
+                lineno = getattr(node, "lineno", 0)
+                issues.append(
+                    self._make_issue(file, lineno,
+                                     getattr(node, "col_offset", 0),
+                                     node.module, lineno in guarded_lines)
+                )
 
         return issues
+
+    def _make_issue(
+        self, file: Path, line: int, column: int, module_name: str, is_guarded: bool
+    ) -> "Issue":
+        """Build a phantom-import Issue with severity tuned to guard context.
+
+        is_guarded=True  → MEDIUM: undeclared optional dependency
+        is_guarded=False → CRITICAL: potential AI hallucination / hard crash
+        """
+        if is_guarded:
+            return self.create_issue(
+                file=file,
+                line=line,
+                column=column,
+                message=(
+                    f"Undeclared optional dependency: '{module_name}' is guarded with "
+                    f"ImportError but not listed in [project.optional-dependencies]"
+                ),
+                suggestion=(
+                    f"Add '{module_name}' to the appropriate "
+                    f"[project.optional-dependencies.<group>] in pyproject.toml so "
+                    f"users know this feature requires an extra install."
+                ),
+                severity_override=Severity.MEDIUM,
+            )
+        return self.create_issue(
+            file=file,
+            line=line,
+            column=column,
+            message=(
+                f"Phantom import: '{module_name}' cannot be resolved "
+                f"(not in stdlib, built-ins, or installed packages)"
+            ),
+            suggestion=(
+                f"Verify '{module_name}' exists on PyPI and add it to "
+                f"[project.dependencies] in pyproject.toml. "
+                f"AI models sometimes generate plausible-looking but non-existent "
+                f"package names."
+            ),
+            severity_override=Severity.CRITICAL,
+        )

@@ -7,6 +7,180 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.2] - 2026-03-15
+
+### Fixed
+
+#### P0 — PhantomImportPattern: context-aware 3-tier import classification
+
+**Project package auto-discovery** (`_find_project_root`, `_discover_project_packages`)
+- Walks up to 12 directory levels to locate `pyproject.toml`, `setup.py`, `setup.cfg`, or `.git`.
+- Scans the found root for internal project packages: `src/` layout, flat layout, and
+  `[tool.setuptools.packages.find] where` directive.
+- Parses `[project.dependencies]` and `[project.optional-dependencies]` to extract declared
+  package names, stripping vendor prefixes (e.g. `flamehaven_nnsl` → `nnsl`).
+- Results cached per-process (`_PROJECT_PACKAGES_CACHE`) — zero repeated I/O within a run.
+
+**Import guard detection** (`_collect_import_guard_lines`, `_IMPORT_GUARD_EXC_NAMES`)
+- AST walk of every `ast.Try` node in the file; collects line numbers of `import`/`from`
+  statements inside `try` bodies whose `except` handlers catch any of:
+  `ImportError`, `ModuleNotFoundError`, `Exception`, `BaseException`.
+- Prevents false positives on broad-guard patterns (`except Exception:`) used in API adapter
+  modules and framework bridges.
+
+**3-tier classification** (`_make_issue`)
+
+| Tier | Condition | Severity | Message |
+|---|---|---|---|
+| Internal | Module is part of current project | (skip) | — |
+| Guarded | Import inside `try/except ImportError` block | MEDIUM | "Undeclared optional dependency" |
+| Hard | Unresolvable, no guard | CRITICAL | "Phantom import" |
+
+Result: eliminates the cascade where 252 project-internal phantom hits drove `DDC → 0`,
+`GQG → ln(1e-4)`, and `deficit_score → 100` for every file in a src-layout project.
+
+---
+
+#### P1 — LDR: packaging `__init__.py` no longer collapses GQG
+
+- `ldr.calculate()` now detects empty (content-free) `__init__.py` files before computing the
+  ratio. Empty packaging init → `ldr_score=1.0`, `grade="N/A"`, `is_packaging_init=True`.
+- Prevents `total_lines=0` → `ldr_score=0.0` → `GQG → ln(1e-4)` cascade on standard
+  `src/<pkg>/__init__.py` files.
+- `LDRResult` model: new `is_packaging_init: bool = False` field, serialized via `to_dict()`.
+
+---
+
+#### P2 — GodFunctionPattern: length-only paths demoted to LOW
+
+Previously any function exceeding `lines_threshold` OR `complexity_threshold` was flagged HIGH.
+This produced false positives on verbose-but-simple domain code: physics constant tables,
+routing dispatch blocks, and rule interpreters with low cyclomatic complexity.
+
+New severity routing:
+
+| Condition | Severity |
+|---|---|
+| `cc > complexity_threshold` (regardless of length) | HIGH |
+| `lines > lines_threshold` AND `cc > complexity_threshold` | HIGH |
+| `lines > lines_threshold` AND `cc <= 5` | LOW |
+
+---
+
+#### P3 — Placeholder pattern precision
+
+**`NotImplementedPattern`** — skip `@abstractmethod`
+- `raise NotImplementedError` inside an `@abstractmethod`-decorated method is the correct
+  Python ABC pattern, not a placeholder. Added the same decorator check already present in
+  `PassPlaceholderPattern`.
+
+**`EmptyExceptPattern`** — rewritten as 3-tier
+
+| Handler | Severity | Message |
+|---|---|---|
+| Bare `except: pass` | CRITICAL | "Bare 'except: pass' swallows all exceptions including SystemExit" |
+| `except (ImportError\|ModuleNotFoundError): pass` | LOW | "optional dependency guard; verify this is intentional" |
+| `except SomeType: pass` | MEDIUM | "silently discards the exception" |
+
+**`InterfaceOnlyClassPattern`** — `return self`/`return cls` counted as placeholder
+- Method-chaining stubs (`return self`) provide no meaningful domain value in an otherwise
+  unimplemented class. Now counted toward the placeholder threshold.
+
+---
+
+### Validation
+
+- Applied to Flamehaven-TOE v4.5.0 (83 files, src-layout, 11 optional deps):
+  - Before: 252 CRITICAL phantom imports, deficit_score=100 on all files, status=`critical_deficit`
+  - After: 0 CRITICAL phantom imports, 11 MEDIUM (correctly classified optional deps),
+    deficit_score avg ~18.1, status=`clean`
+- 188 tests pass; ruff + mypy clean.
+
+---
+
+## [3.0.1] - 2026-03-10
+
+### Added
+
+**D4 — ReturnConstantStubPattern** (`return_constant_stub`, HIGH)
+- New pattern detecting functions whose entire body (excluding docstring) is a single
+  `return <constant>` statement (`return 42`, `return True`, `return "ok"`, etc.).
+- Targets the `ldr_gaming` / `stub_with_real_structure` adversarial evasion:
+  dense one-liner stubs score high on LDR but carry zero semantic value.
+- Excluded: dunder methods (`__len__`, `__bool__`, `__hash__`, ...) which legitimately
+  return constants; `@abstractmethod` decorated functions; `return None` (already covered
+  by `ReturnNonePlaceholderPattern`).
+- `InterfaceOnlyClassPattern` updated to also count `return <constant>` methods as placeholders.
+
+**D2 — Configurable god_function thresholds with domain_overrides**
+- `GodFunctionPattern` now accepts `complexity_threshold`, `lines_threshold`, and
+  `domain_overrides` constructor arguments.
+- Thresholds configurable per-project via `.slopconfig.yaml`:
+  ```yaml
+  patterns:
+    god_function:
+      complexity_threshold: 10    # default
+      lines_threshold: 50         # default
+      domain_overrides:
+        - function_pattern: "evaluate"    # fnmatch wildcard supported
+          complexity_threshold: 80
+          lines_threshold: 300
+  ```
+- `function_pattern` uses `fnmatch` — supports `evaluate`, `validate_*`, `check_?`, etc.
+  First matching override wins. Falls back to global thresholds if no match.
+- `Config.get_god_function_config()` added; `core.py` passes it to `get_all_patterns()`.
+- Rationale: clinical governance engines, rule interpreters, and safety systems have
+  inherent domain complexity that is not accidental. A single config entry suppresses
+  false positives without disabling the pattern globally.
+
+### Fixed
+
+- `get_all_patterns()` now accepts optional `god_function_config` dict — no breaking change,
+  default behavior (cc=10, lines=50, no overrides) is identical to v3.0.0.
+
+---
+
+## [3.0.0] - 2026-03-09
+
+### Added
+
+#### CQMS Level 2 — Code Quality Metric Space (Mathematical Foundation)
+
+**DCF (Distributional Code Fingerprint)**
+- `_compute_dcf(tree)` module-level function: `P(node_type | file) = count(node_type) / total_nodes`.
+  Genuine probability distribution over AST node types; values in [0,1], sum to 1.
+- `FileAnalysis.dcf: Dict[str, float]` — stores the DCF for each analyzed file.
+- `analyze_file()` and `analyze_code_string()` now compute and attach DCF (reuses already-parsed AST).
+
+**GQG (Geometric Quality Gate)**
+- `_calculate_slop_status` now uses weighted geometric mean (GQG) instead of arithmetic mean.
+- Formula: `Omega = exp(sum(w_i * ln(max(1e-4, v_i))) / sum(w_i))`
+- AND-gate property: any dimension collapsing to 0 drives Omega to 0; no compensation.
+- Dimensions: ldr (w=config), inflation_q (w=config), ddc (w=config), purity (w=0.10 fixed).
+- Purity: `exp(-0.5 * n_critical_patterns)` — exponential penalty for CRITICAL-severity patterns.
+
+**MST H0 VR Structural Coherence**
+- `_js_divergence(p, q)` — Jensen-Shannon divergence in [0,1] (log-base-e, normalized).
+- `_compute_coherence_vr(file_dcfs)` — MST H0 persistence coherence over file DCFs.
+  `coherence = 1 - max_mst_edge` where max_mst_edge = longest edge in Prim's MST of
+  pairwise sqrt-JSD distances. Epsilon-free; equivalent to max H0 persistence in
+  the Vietoris-Rips filtration.
+- `analyze_project()` now collects `file_dcfs` and computes structural coherence when >= 2 files.
+- `ProjectAnalysis.structural_coherence: float` — 1.0 = all files structurally uniform.
+- `ProjectAnalysis.coherence_level: str` — "vr_structural" when computed, "none" otherwise.
+
+**Gate comment fix**
+- `gate/slop_gate.py`: `_normalize_jsd()` now documents that the `jsd` key is not
+  information-theoretic JSD. Key name preserved for SNP contract backward compatibility.
+  True DCF-JSD is available via `FileAnalysis.dcf` (v3.0+).
+
+### Changed
+- `_calculate_slop_status`: arithmetic mean replaced with GQG (breaking: scoring values change).
+- `DEPENDENCY_NOISE` override now guarded by `not critical_patterns and inflation <= 1.0`
+  to prevent mislabeling multi-cause failures as dependency noise under GQG.
+
+---
+
 ## [2.9.3] - 2026-03-09
 
 ### Added
@@ -839,15 +1013,17 @@ Special thanks to community feedback that drives these improvements. This releas
 
 | Version | Date | Focus | Status |
 |---------|------|-------|--------|
-| **2.7.0** | 2026-02-12 | VS Code extension full diagnostic surface | [+] Current |
-| **2.6.4** | 2026-02-08 | Scanner reliability, ignore patterns | [+] Released |
-| **2.6.3** | 2026-01-16 | Consent-based complexity | [+] Released |
-| **2.6.2** | 2026-01-15 | Integration test evidence | [+] Released |
-| **2.6.1** | 2026-01-12 | Config sovereignty, question tests | [+] Released |
-| **2.6.0** | 2026-01-12 | 6 killer upgrades (Phase 2) | [+] Released |
-| **2.5.x** | 2026-01-09 | Polyglot + terminology | [+] Released |
+| **3.0.2** | 2026-03-15 | Phantom import 3-tier classification, LDR packaging init fix, god_function LOW path, placeholder precision | [+] Current |
+| **3.0.1** | 2026-03-10 | ReturnConstantStubPattern, configurable god_function thresholds + domain_overrides | [+] Released |
+| **3.0.0** | 2026-03-09 | GQG scoring, DCF fingerprint, MST H0 VR coherence | [+] Released |
+| **2.9.3** | 2026-03-09 | Self-calibration engine | [+] Released |
+| **2.9.2** | 2026-03-09 | Rich 3-panel single-file UI reconnected | [+] Released |
+| **2.9.1** | 2026-03-08 | Self-inspection patch, DDC false positive fix | [+] Released |
+| **2.9.0** | 2026-03-08 | PhantomImportPattern, history auto-tracking | [+] Released |
+| **2.8.0** | 2026-03-07 | Python advanced patterns, JS tree-sitter, ML secondary signal | [+] Released |
+| **2.7.0** | 2026-02-12 | VS Code extension full diagnostic surface | [+] Released |
+| **2.6.x** | 2026-01-12 | Consent-based complexity, integration test evidence, config sovereignty | [+] Released |
 | **2.0.0** | 2026-01-08 | Initial production release | [+] Released |
-| **3.0.0** | TBD | Enterprise edition | [ ] Planned |
 
 ---
 
@@ -891,6 +1067,6 @@ Special thanks to community feedback that drives these improvements. This releas
 
 ---
 
-**Last Updated**: 2026-02-11
-**Current Version**: 2.7.0
+**Last Updated**: 2026-03-15
+**Current Version**: 3.0.2
 **Status**: Production Ready
