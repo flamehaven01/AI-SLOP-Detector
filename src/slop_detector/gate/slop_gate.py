@@ -72,7 +72,16 @@ def _build_audit_hash(metrics: Mapping[str, float]) -> str:
 
 
 def _normalize_jsd(inflation_score: float) -> float:
-    """Inflation score -> jsd (lower inflation = higher jsd = better)."""
+    """Inflation score -> jsd key (lower inflation = higher value = better).
+
+    NOTE: Despite the key name "jsd" (required by SNP contract interface),
+    this is NOT information-theoretic Jensen-Shannon Divergence.
+    It is a linear rescaling of the inflation score:
+        jsd = 1 - min(inflation_score / 2.0, 1.0)
+    The key name is preserved for backward compatibility with the SNP contract.
+    True DCF-JSD (sqrt-JSD over AST node type distributions) is computed at
+    the FileAnalysis level (v3.0+) and available via FileAnalysis.dcf.
+    """
     if not math.isfinite(inflation_score):
         return 0.0
     normalized = min(inflation_score / 2.0, 1.0)
