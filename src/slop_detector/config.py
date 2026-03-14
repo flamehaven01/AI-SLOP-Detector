@@ -167,3 +167,14 @@ class Config:
                 "domain_overrides": [],
             },
         )
+
+    def get_nested_complexity_config(self) -> Dict[str, Any]:
+        """Get nested_complexity pattern configuration including domain_overrides."""
+        return self.get(
+            "patterns.nested_complexity",
+            {
+                "depth_threshold": 4,
+                "cc_threshold": 5,
+                "domain_overrides": [],
+            },
+        )

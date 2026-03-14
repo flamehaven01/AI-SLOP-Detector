@@ -24,8 +24,10 @@ import importlib.util
 import logging
 import re
 import sys
-from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -358,11 +360,39 @@ class NestedComplexityPattern(BasePattern):
 
     Severity: CRITICAL — composite structural issue, harder to refactor away
     than a single nesting violation.
+
+    D2 (v3.0.2): thresholds configurable via .slopconfig.yaml nested_complexity section.
+    domain_overrides allow per-function-name exemptions for inherently complex domains.
     """
 
     id = "nested_complexity"
     severity = Severity.CRITICAL
     axis = Axis.QUALITY
+
+    def __init__(
+        self,
+        depth_threshold: int = _NESTED_DEPTH_THRESHOLD,
+        cc_threshold: int = _NESTED_CC_THRESHOLD,
+        domain_overrides: Optional[List[Dict[str, Any]]] = None,
+    ) -> None:
+        super().__init__()
+        self.depth_threshold = depth_threshold
+        self.cc_threshold = cc_threshold
+        self.domain_overrides: List[Dict[str, Any]] = domain_overrides or []
+
+    def _thresholds_for(self, func_name: str) -> tuple[int, int]:
+        """Return (depth_threshold, cc_threshold) for a given function name.
+
+        Checks domain_overrides in order; first match wins.
+        Falls back to instance defaults if no override matches.
+        """
+        for override in self.domain_overrides:
+            pattern = override.get("function_pattern", "")
+            if pattern and fnmatch.fnmatch(func_name, pattern):
+                depth = int(override.get("depth_threshold", self.depth_threshold))
+                cc = int(override.get("cc_threshold", self.cc_threshold))
+                return depth, cc
+        return self.depth_threshold, self.cc_threshold
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
@@ -371,7 +401,8 @@ class NestedComplexityPattern(BasePattern):
                 continue
             depth = _max_nesting_depth(node)
             cc = _cyclomatic_complexity(node)
-            if depth >= _NESTED_DEPTH_THRESHOLD and cc >= _NESTED_CC_THRESHOLD:
+            depth_limit, cc_limit = self._thresholds_for(node.name)
+            if depth >= depth_limit and cc >= cc_limit:
                 issues.append(
                     self.create_issue(
                         file=file,
@@ -499,7 +530,9 @@ class LintEscapePattern(BasePattern):
 # Module resolution index (built once per process, shared across files)
 # ------------------------------------------------------------------
 
-_RESOLVABLE_MODULES: Optional[FrozenSet[str]] = None
+# Single-entry cache: {"v": frozenset(...)} when populated.
+# Dict mutation avoids a global statement.
+_RESOLVABLE_MODULES_STORE: Dict[str, FrozenSet[str]] = {}
 
 # ------------------------------------------------------------------
 # Project-local package discovery (P0 fix)
@@ -548,6 +581,51 @@ def _find_project_root(file_path: Path) -> Optional[Path]:
     return None
 
 
+def _add_dep_names(dep_list: List[str], packages: set) -> None:
+    """Parse a list of PEP-508 dependency strings and add canonical names."""
+    for dep in dep_list:
+        name = re.split(r"[>=<!~;\[\s]", dep.strip())[0].strip()
+        if not name:
+            continue
+        canon = name.replace("-", "_").lower()
+        packages.add(canon)
+        for prefix in ("flamehaven_", "flame_", "py", "python_"):
+            if canon.startswith(prefix) and len(canon) > len(prefix) + 1:
+                packages.add(canon[len(prefix) :])
+
+
+def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) -> None:
+    """Read pyproject.toml and augment packages with layout dirs + dep names."""
+    pyproject = project_root / "pyproject.toml"
+    if not pyproject.exists():
+        return
+    try:
+        toml_mod: Any = None
+        try:
+            import tomllib as toml_mod  # Python 3.11+  # type: ignore[import]
+        except ImportError:
+            try:
+                import tomli as toml_mod  # type: ignore[import,no-redef]
+            except ImportError:
+                pass
+        if toml_mod is None:
+            return
+        with open(pyproject, "rb") as fh:
+            data = toml_mod.load(fh)
+        # 3a. Filesystem scan via [tool.setuptools.packages.find] where = [...]
+        find_cfg = data.get("tool", {}).get("setuptools", {}).get("packages", {}).get("find", {})
+        for where in find_cfg.get("where", []):
+            scan_dir_fn(project_root / where)
+        # 3b. Declared dependencies → top-level import name whitelist
+        dep_lists: List[List[str]] = [data.get("project", {}).get("dependencies", [])]
+        for extras in data.get("project", {}).get("optional-dependencies", {}).values():
+            dep_lists.append(extras)
+        for dep_list in dep_lists:
+            _add_dep_names(dep_list, packages)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
     """Discover internal Python package names via filesystem scan.
 
@@ -586,55 +664,7 @@ def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
     _scan_dir(project_root)
 
     # 3. pyproject.toml — package discovery + declared dependencies
-    pyproject = project_root / "pyproject.toml"
-    if pyproject.exists():
-        try:
-            _toml: Any = None
-            try:
-                import tomllib as _toml  # Python 3.11+
-            except ImportError:
-                try:
-                    import tomli as _toml  # type: ignore[no-redef]
-                except ImportError:
-                    pass
-            if _toml is not None:
-                with open(pyproject, "rb") as _f:
-                    _data = _toml.load(_f)
-
-                # 3a. Filesystem scan via [tool.setuptools.packages.find] where = [...]
-                _find_cfg = (
-                    _data.get("tool", {}).get("setuptools", {}).get("packages", {}).get("find", {})
-                )
-                for _where in _find_cfg.get("where", []):
-                    _scan_dir(project_root / _where)
-
-                # 3b. Declared dependencies → top-level import names whitelist.
-                # Prevents false positives for packages listed in pyproject.toml that
-                # are not installed in the detector's virtual environment.
-                _dep_lists: list[list[str]] = [
-                    _data.get("project", {}).get("dependencies", []),
-                ]
-                for _extras in _data.get("project", {}).get("optional-dependencies", {}).values():
-                    _dep_lists.append(_extras)
-
-                for _dep_list in _dep_lists:
-                    for _dep in _dep_list:
-                        # Strip version specifier: numpy>=1.0 -> numpy
-                        import re as _re
-
-                        _name = _re.split(r"[>=<!~;\[\s]", _dep.strip())[0].strip()
-                        if not _name:
-                            continue
-                        # canonical form: hyphens -> underscores
-                        _canon = _name.replace("-", "_").lower()
-                        packages.add(_canon)
-                        # also try without common vendor prefixes
-                        # e.g. flamehaven-logos -> logos, flamehaven_logos -> logos
-                        for _prefix in ("flamehaven_", "flame_", "py", "python_"):
-                            if _canon.startswith(_prefix) and len(_canon) > len(_prefix) + 1:
-                                packages.add(_canon[len(_prefix) :])
-        except Exception:
-            pass
+    _augment_from_pyproject(project_root, packages, _scan_dir)
 
     result = frozenset(packages)
     _PROJECT_PACKAGES_CACHE[root_key] = result
@@ -653,9 +683,8 @@ def _get_resolvable_modules() -> FrozenSet[str]:
 
     The result is cached for the lifetime of the process.
     """
-    global _RESOLVABLE_MODULES
-    if _RESOLVABLE_MODULES is not None:
-        return _RESOLVABLE_MODULES
+    if "v" in _RESOLVABLE_MODULES_STORE:
+        return _RESOLVABLE_MODULES_STORE["v"]
 
     known: set[str] = set()
 
@@ -679,8 +708,8 @@ def _get_resolvable_modules() -> FrozenSet[str]:
         # incomplete but functional — falls through to find_spec on unknown names
         logger.debug("packages_distributions unavailable, skipping layer 3: %s", exc)
 
-    _RESOLVABLE_MODULES = frozenset(known)
-    return _RESOLVABLE_MODULES
+    _RESOLVABLE_MODULES_STORE["v"] = frozenset(known)
+    return _RESOLVABLE_MODULES_STORE["v"]
 
 
 def _module_exists(name: str) -> bool:
@@ -712,6 +741,20 @@ _IMPORT_GUARD_EXC_NAMES: FrozenSet[str] = frozenset(
 )
 
 
+def _handler_is_import_guard(handler: ast.ExceptHandler) -> bool:
+    """Return True if this except handler would catch an ImportError."""
+    if handler.type is None:
+        return True  # bare except — guards ImportError among everything else
+    exc_names: set[str] = set()
+    if isinstance(handler.type, ast.Name):
+        exc_names.add(handler.type.id)
+    elif isinstance(handler.type, ast.Tuple):
+        for elt in handler.type.elts:
+            if isinstance(elt, ast.Name):
+                exc_names.add(elt.id)
+    return bool(exc_names & _IMPORT_GUARD_EXC_NAMES)
+
+
 def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
     """Return line numbers of import statements inside try/except ImportError blocks.
 
@@ -735,26 +778,7 @@ def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
     for node in ast.walk(tree):
         if not isinstance(node, ast.Try):
             continue
-
-        # Check whether any handler catches ImportError / ModuleNotFoundError
-        has_import_guard = False
-        for handler in node.handlers:
-            if handler.type is None:
-                # bare except — guards ImportError among everything else
-                has_import_guard = True
-                break
-            exc_names: set[str] = set()
-            if isinstance(handler.type, ast.Name):
-                exc_names.add(handler.type.id)
-            elif isinstance(handler.type, ast.Tuple):
-                for elt in handler.type.elts:
-                    if isinstance(elt, ast.Name):
-                        exc_names.add(elt.id)
-            if exc_names & _IMPORT_GUARD_EXC_NAMES:
-                has_import_guard = True
-                break
-
-        if has_import_guard:
+        if any(_handler_is_import_guard(h) for h in node.handlers):
             for stmt in node.body:
                 if isinstance(stmt, (ast.Import, ast.ImportFrom)):
                     guarded.add(stmt.lineno)
