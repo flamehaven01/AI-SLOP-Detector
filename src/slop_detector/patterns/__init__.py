@@ -15,13 +15,19 @@ __all__ = [
 ]
 
 
-def get_all_patterns(god_function_config: dict | None = None) -> list[BasePattern]:
+def get_all_patterns(
+    god_function_config: dict | None = None,
+    nested_complexity_config: dict | None = None,
+) -> list[BasePattern]:
     """Get all registered patterns.
 
     Args:
         god_function_config: Optional dict from Config.get_god_function_config().
             Allows caller to pass per-project god_function thresholds and
             domain_overrides without coupling the pattern module to Config.
+        nested_complexity_config: Optional dict from Config.get_nested_complexity_config().
+            Allows per-function-name depth/cc threshold overrides for inherently
+            complex domain functions (e.g., AST pattern matchers, metric calculators).
     """
     from slop_detector.patterns.cross_language import (
         CSharpLengthPattern,
@@ -92,7 +98,11 @@ def get_all_patterns(god_function_config: dict | None = None) -> list[BasePatter
         ),
         DeadCodePattern(),
         DeepNestingPattern(),
-        NestedComplexityPattern(),
+        NestedComplexityPattern(
+            depth_threshold=int((nested_complexity_config or {}).get("depth_threshold", 4)),
+            cc_threshold=int((nested_complexity_config or {}).get("cc_threshold", 5)),
+            domain_overrides=(nested_complexity_config or {}).get("domain_overrides", []),
+        ),
         LintEscapePattern(),
         # v2.9.0
         PhantomImportPattern(),

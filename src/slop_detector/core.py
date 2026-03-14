@@ -8,7 +8,7 @@ import logging
 from collections import Counter
 from math import exp, log, sqrt
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from slop_detector.config import Config
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
@@ -59,7 +59,10 @@ class SlopDetector:
         # v2.1: Initialize pattern registry
         self.pattern_registry = PatternRegistry()
         self.pattern_registry.register_all(
-            get_all_patterns(god_function_config=self.config.get_god_function_config())
+            get_all_patterns(
+                god_function_config=self.config.get_god_function_config(),
+                nested_complexity_config=self.config.get_nested_complexity_config(),
+            )
         )
 
         # Disable patterns from config
