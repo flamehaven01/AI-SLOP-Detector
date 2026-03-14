@@ -80,11 +80,11 @@ jobs:
         
       - name: Run SLOP detector on itself
         run: |
-          slop-detector --project src/ --output slop_report.txt
-          
+          slop-detector --project src/ --config .slopconfig.yaml --output slop_report.txt
+
       - name: Check SLOP score
         run: |
-          SCORE=$(slop-detector --project src/ --json | jq '.weighted_deficit_score')
+          SCORE=$(slop-detector --project src/ --config .slopconfig.yaml --json | jq '.weighted_deficit_score')
           echo "Weighted Deficit Score: $SCORE"
           if (( $(echo "$SCORE > 30" | bc -l) )); then
             echo "Deficit score too high: $SCORE"
