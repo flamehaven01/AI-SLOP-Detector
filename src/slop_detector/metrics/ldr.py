@@ -28,6 +28,24 @@ class LDRCalculator:
 
     def calculate(self, file_path: str, content: str, tree: ast.AST) -> LDRResult:
         """Calculate LDR with improved empty function detection."""
+        # P1: Empty __init__.py is a Python packaging convention, not slop.
+        # Return perfect LDR so GQG is not penalised by ln(0).
+        from pathlib import Path as _Path
+        if _Path(file_path).name == "__init__.py":
+            non_empty = [
+                ln for ln in content.splitlines()
+                if ln.strip() and not ln.strip().startswith("#")
+            ]
+            if len(non_empty) == 0:
+                return LDRResult(
+                    total_lines=0,
+                    logic_lines=0,
+                    empty_lines=0,
+                    ldr_score=1.0,
+                    grade="N/A",
+                    is_packaging_init=True,
+                )
+
         # Check for special file types
         is_abc_interface = self._is_abc_interface(content, tree)
         is_type_stub = file_path.endswith(".pyi")

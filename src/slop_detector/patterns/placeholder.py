@@ -145,7 +145,11 @@ class EllipsisPlaceholderPattern(ASTPattern):
 
 
 class NotImplementedPattern(ASTPattern):
-    """Detect functions that raise NotImplementedError."""
+    """Detect functions that raise NotImplementedError.
+
+    Skips @abstractmethod decorated methods — raise NotImplementedError in an
+    ABC interface is the correct Python pattern, not a placeholder.
+    """
 
     id = "not_implemented"
     severity = Severity.HIGH
@@ -154,6 +158,18 @@ class NotImplementedPattern(ASTPattern):
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
         if isinstance(node, ast.FunctionDef):
+            # P3b: Skip @abstractmethod — raise NotImplementedError is intentional in ABCs
+            decorators = [
+                (
+                    d.id
+                    if isinstance(d, ast.Name)
+                    else d.attr if isinstance(d, ast.Attribute) else ""
+                )
+                for d in node.decorator_list
+            ]
+            if "abstractmethod" in decorators:
+                return None
+
             # Check if function body only raises NotImplementedError
             body = [
                 n
@@ -182,25 +198,83 @@ class NotImplementedPattern(ASTPattern):
 
 
 class EmptyExceptPattern(ASTPattern):
-    """Detect empty exception handlers (except: pass)."""
+    """Detect empty exception handlers (except: pass).
+
+    Severity depends on the exception type caught:
+    - Bare 'except: pass'           -> CRITICAL (swallows SystemExit, KeyboardInterrupt)
+    - 'except ImportError: pass'    -> LOW      (optional dependency guard pattern)
+    - 'except SomeTypedExc: pass'   -> MEDIUM   (intentional but undocumented)
+    """
 
     id = "empty_except"
     severity = Severity.CRITICAL
     axis = Axis.QUALITY
     message = "Empty exception handler - errors silently ignored"
 
+    # Exception types that indicate optional-dependency guard pattern
+    _IMPORT_GUARD_NAMES: frozenset = frozenset({"ImportError", "ModuleNotFoundError"})
+
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.ExceptHandler):
-            # Check if except body is only pass
-            if len(node.body) == 1 and isinstance(node.body[0], ast.Pass):
-                exc_type = "all exceptions" if node.type is None else ast.unparse(node.type)
-                return self.create_issue_from_node(
-                    node,
-                    file,
-                    message=f"Empty exception handler for {exc_type} - errors silently ignored",
-                    suggestion="Log the exception or handle it properly",
-                )
-        return None
+        if not isinstance(node, ast.ExceptHandler):
+            return None
+        if not (len(node.body) == 1 and isinstance(node.body[0], ast.Pass)):
+            return None
+
+        exc_node = node.type
+
+        if exc_node is None:
+            # Bare except: pass — catches everything, including SystemExit
+            return self.create_issue(
+                file=file,
+                line=getattr(node, "lineno", 0),
+                column=getattr(node, "col_offset", 0),
+                message="Bare 'except: pass' swallows all exceptions including SystemExit",
+                suggestion="Catch specific exception types and log or handle them properly",
+                severity_override=Severity.CRITICAL,
+            )
+
+        # Check for optional dependency guard: except ImportError / ModuleNotFoundError
+        exc_names: set[str] = set()
+        if isinstance(exc_node, ast.Name):
+            exc_names.add(exc_node.id)
+        elif isinstance(exc_node, ast.Tuple):
+            for elt in exc_node.elts:
+                if isinstance(elt, ast.Name):
+                    exc_names.add(elt.id)
+
+        exc_type_str = ast.unparse(exc_node)
+
+        if exc_names and exc_names.issubset(self._IMPORT_GUARD_NAMES):
+            # Optional dependency guard — common and legitimate pattern
+            return self.create_issue(
+                file=file,
+                line=getattr(node, "lineno", 0),
+                column=getattr(node, "col_offset", 0),
+                message=(
+                    f"'except {exc_type_str}: pass' — optional dependency guard; "
+                    f"verify this is intentional"
+                ),
+                suggestion=(
+                    "Add a comment explaining which optional package is guarded "
+                    "and what fallback behaviour is active."
+                ),
+                severity_override=Severity.LOW,
+            )
+
+        # Typed except with pass — intentional but undocumented silence
+        return self.create_issue(
+            file=file,
+            line=getattr(node, "lineno", 0),
+            column=getattr(node, "col_offset", 0),
+            message=(
+                f"Empty handler for '{exc_type_str}' silently discards the exception"
+            ),
+            suggestion=(
+                "Add logging (logger.debug/warning) or a comment explaining "
+                "why silence is correct here."
+            ),
+            severity_override=Severity.MEDIUM,
+        )
 
 
 class ReturnNonePlaceholderPattern(ASTPattern):
@@ -238,12 +312,88 @@ class ReturnNonePlaceholderPattern(ASTPattern):
         return None
 
 
+class ReturnConstantStubPattern(ASTPattern):
+    """Detect functions whose entire body is a single return <constant> statement.
+
+    Targets the adversarial ldr_gaming/stub_with_real_structure evasion:
+    20 one-liner functions each returning a literal constant score high on LDR
+    but carry zero semantic value.
+
+    Excluded:
+    - Dunder methods (__len__, __bool__, __hash__ etc. legitimately return constants)
+    - @abstractmethod decorated functions
+    - return None (covered by ReturnNonePlaceholderPattern)
+    """
+
+    id = "return_constant_stub"
+    severity = Severity.HIGH
+    axis = Axis.QUALITY
+    message = "Function body is a single return <constant> - likely stub"
+
+    _DUNDER_CONSTANT_OK = frozenset({
+        "__len__", "__bool__", "__hash__", "__sizeof__", "__index__",
+        "__int__", "__float__", "__complex__", "__str__", "__repr__",
+        "__bytes__", "__format__",
+    })
+
+    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
+        if not isinstance(node, ast.FunctionDef):
+            return None
+
+        # Skip dunder methods that legitimately return constants
+        if node.name in self._DUNDER_CONSTANT_OK:
+            return None
+
+        # Skip @abstractmethod
+        decorators = [
+            (d.id if isinstance(d, ast.Name) else d.attr if isinstance(d, ast.Attribute) else "")
+            for d in node.decorator_list
+        ]
+        if "abstractmethod" in decorators:
+            return None
+
+        # Strip leading docstring
+        body = [
+            n for n in node.body
+            if not (
+                isinstance(n, ast.Expr)
+                and isinstance(n.value, ast.Constant)
+                and isinstance(n.value.value, str)
+            )
+        ]
+
+        if len(body) != 1:
+            return None
+
+        stmt = body[0]
+        if not isinstance(stmt, ast.Return):
+            return None
+
+        # return None is handled by ReturnNonePlaceholderPattern — skip
+        if stmt.value is None:
+            return None
+        if isinstance(stmt.value, ast.Constant) and stmt.value.value is None:
+            return None
+
+        # Flag: return <non-None constant>  (int, str, bool, float, bytes, ...)
+        if isinstance(stmt.value, ast.Constant):
+            val_repr = repr(stmt.value.value)[:40]
+            return self.create_issue_from_node(
+                node,
+                file,
+                message=f"Function '{node.name}' returns constant {val_repr} - likely stub",
+                suggestion="Implement meaningful logic or remove the function",
+            )
+
+        return None
+
+
 class InterfaceOnlyClassPattern(ASTPattern):
     """Detect classes with only abstract methods or pass."""
 
     id = "interface_only_class"
-    severity = Severity.MEDIUM
-    axis = Axis.STYLE
+    severity = Severity.HIGH
+    axis = Axis.QUALITY
     message = "Class contains only abstract methods or placeholders"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
@@ -276,7 +426,13 @@ class InterfaceOnlyClassPattern(ASTPattern):
 
                 if len(body) == 1:
                     stmt = body[0]
-                    # pass, ..., return None, raise NotImplementedError
+                    # pass, ..., return None, return <constant>, raise NotImplementedError
+                    # Also: return self / return cls (method-chaining stub)
+                    _is_return_self = (
+                        isinstance(stmt, ast.Return)
+                        and isinstance(stmt.value, ast.Name)
+                        and stmt.value.id in ("self", "cls")
+                    )
                     is_placeholder = (
                         isinstance(stmt, ast.Pass)
                         or (
@@ -288,19 +444,17 @@ class InterfaceOnlyClassPattern(ASTPattern):
                             isinstance(stmt, ast.Return)
                             and (
                                 stmt.value is None
-                                or (
-                                    isinstance(stmt.value, ast.Constant)
-                                    and stmt.value.value is None
-                                )
+                                or isinstance(stmt.value, ast.Constant)
                             )
                         )
                         or isinstance(stmt, ast.Raise)
+                        or _is_return_self
                     )
                     if is_placeholder:
                         placeholder_methods += 1
 
-            # If most methods (>75%) are placeholders, flag the class
-            if placeholder_methods >= len(methods) * 0.75 and placeholder_methods > 0:
+            # If >=50% of non-dunder methods are placeholders, flag the class
+            if placeholder_methods >= len(methods) * 0.50 and placeholder_methods > 0:
                 return self.create_issue_from_node(
                     node,
                     file,
