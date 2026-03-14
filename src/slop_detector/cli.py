@@ -1125,9 +1125,9 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
     from slop_detector.ml.self_calibrator import SelfCalibrator
 
     try:
+        from rich import box
         from rich.console import Console
         from rich.table import Table
-        from rich import box
 
         console = Console()
         _rich = True
