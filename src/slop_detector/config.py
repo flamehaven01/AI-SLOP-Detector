@@ -68,6 +68,15 @@ class Config:
             "enabled": True,
             "disabled": [],  # List of pattern IDs to disable
             "severity_threshold": "low",  # minimum severity to report
+            "god_function": {
+                # Default thresholds (applied to all functions not matched by domain_overrides)
+                "complexity_threshold": 10,
+                "lines_threshold": 50,
+                # Per-function-name overrides for domain-complex safety systems.
+                # Each entry: {function_pattern: str, complexity_threshold: int, lines_threshold: int}
+                # function_pattern supports fnmatch wildcards (e.g. "evaluate", "validate_*")
+                "domain_overrides": [],
+            },
         },
     }
 
@@ -147,3 +156,14 @@ class Config:
     def use_weighted_analysis(self) -> bool:
         """Check if weighted project analysis is enabled."""
         return self.get("advanced.weighted_analysis", True)
+
+    def get_god_function_config(self) -> Dict[str, Any]:
+        """Get god_function pattern configuration including domain_overrides."""
+        return self.get(
+            "patterns.god_function",
+            {
+                "complexity_threshold": 10,
+                "lines_threshold": 50,
+                "domain_overrides": [],
+            },
+        )
