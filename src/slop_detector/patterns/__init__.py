@@ -15,8 +15,14 @@ __all__ = [
 ]
 
 
-def get_all_patterns() -> list[BasePattern]:
-    """Get all registered patterns."""
+def get_all_patterns(god_function_config: dict | None = None) -> list[BasePattern]:
+    """Get all registered patterns.
+
+    Args:
+        god_function_config: Optional dict from Config.get_god_function_config().
+            Allows caller to pass per-project god_function thresholds and
+            domain_overrides without coupling the pattern module to Config.
+    """
     from slop_detector.patterns.cross_language import (
         CSharpLengthPattern,
         GoPrintPattern,
@@ -33,6 +39,7 @@ def get_all_patterns() -> list[BasePattern]:
         InterfaceOnlyClassPattern,
         NotImplementedPattern,
         PassPlaceholderPattern,
+        ReturnConstantStubPattern,
         ReturnNonePlaceholderPattern,
         TodoCommentPattern,
         XXXCommentPattern,
@@ -42,6 +49,7 @@ def get_all_patterns() -> list[BasePattern]:
         DeepNestingPattern,
         GodFunctionPattern,
         LintEscapePattern,
+        NestedComplexityPattern,
         PhantomImportPattern,
     )
     from slop_detector.patterns.structural import (
@@ -64,6 +72,7 @@ def get_all_patterns() -> list[BasePattern]:
         EllipsisPlaceholderPattern(),
         HackCommentPattern(),
         ReturnNonePlaceholderPattern(),
+        ReturnConstantStubPattern(),
         TodoCommentPattern(),
         FixmeCommentPattern(),
         InterfaceOnlyClassPattern(),
@@ -76,9 +85,14 @@ def get_all_patterns() -> list[BasePattern]:
         CSharpLengthPattern(),
         PHPStrlenPattern(),
         # Python Advanced (v2.8.0+)
-        GodFunctionPattern(),
+        GodFunctionPattern(
+            complexity_threshold=int((god_function_config or {}).get("complexity_threshold", 10)),
+            lines_threshold=int((god_function_config or {}).get("lines_threshold", 50)),
+            domain_overrides=(god_function_config or {}).get("domain_overrides", []),
+        ),
         DeadCodePattern(),
         DeepNestingPattern(),
+        NestedComplexityPattern(),
         LintEscapePattern(),
         # v2.9.0
         PhantomImportPattern(),

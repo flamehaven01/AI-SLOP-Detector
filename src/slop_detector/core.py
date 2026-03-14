@@ -5,8 +5,10 @@ from __future__ import annotations
 import ast
 import fnmatch
 import logging
+from collections import Counter
+from math import exp, log, sqrt
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from slop_detector.config import Config
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
@@ -20,6 +22,18 @@ from slop_detector.patterns.registry import PatternRegistry
 
 logger = logging.getLogger(__name__)
 DEFAULT_EXCLUDE_PARTS = {".venv", "venv", "site-packages", "node_modules", "__pycache__", ".git"}
+
+
+def _compute_dcf(tree: ast.AST) -> Dict[str, float]:
+    """Compute DCF (Distributional Code Fingerprint) from a parsed AST.
+
+    Returns P(node_type | file) = count(node_type) / total_nodes.
+    Genuine probability distribution: values in [0,1], sum to 1.
+    Used for information-theoretic slop distance (CQMS Level 2).
+    """
+    counts = Counter(type(node).__name__ for node in ast.walk(tree))
+    total = sum(counts.values()) or 1
+    return {k: v / total for k, v in counts.items()}
 
 
 class SlopDetector:
@@ -44,7 +58,9 @@ class SlopDetector:
 
         # v2.1: Initialize pattern registry
         self.pattern_registry = PatternRegistry()
-        self.pattern_registry.register_all(get_all_patterns())
+        self.pattern_registry.register_all(
+            get_all_patterns(god_function_config=self.config.get_god_function_config())
+        )
 
         # Disable patterns from config
         disabled = self.config.get("patterns.disabled", [])
@@ -91,6 +107,9 @@ class SlopDetector:
         inflation = self.inflation_calc.calculate(file_path, content, tree)
         ddc = self.ddc_calc.calculate(file_path, content, tree)
 
+        # v3.0: Compute DCF before other analyses (reuses already-parsed tree)
+        dcf = _compute_dcf(tree)
+
         # v2.2: Analyze docstring inflation
         docstring_inflation = self.docstring_inflation_detector.analyze(file_path, content, tree)
 
@@ -124,6 +143,7 @@ class SlopDetector:
             hallucination_deps=hallucination_deps,  # v2.2
             context_jargon=context_jargon,  # v2.2
             ignored_functions=ignored_functions,  # v2.6.3
+            dcf=dcf,  # v3.0
         )
 
         # v2.8.0: Attach ML secondary score if model is loaded
@@ -153,6 +173,7 @@ class SlopDetector:
         ldr = self.ldr_calc.calculate(filename, content, tree)
         inflation = self.inflation_calc.calculate(filename, content, tree)
         ddc = self.ddc_calc.calculate(filename, content, tree)
+        dcf = _compute_dcf(tree)  # v3.0
         docstring_inflation = self.docstring_inflation_detector.analyze(filename, content, tree)
         hallucination_deps = self.hallucination_deps_detector.analyze(filename, content, tree, ddc)
         context_jargon = self.context_jargon_detector.analyze(filename, content, tree, inflation)
@@ -176,6 +197,7 @@ class SlopDetector:
             hallucination_deps=hallucination_deps,
             context_jargon=context_jargon,
             ignored_functions=ignored_functions,
+            dcf=dcf,  # v3.0
         )
 
         if self._ml_scorer is not None:
@@ -257,6 +279,15 @@ class SlopDetector:
         else:
             overall_status = SlopStatus.CLEAN
 
+        # v3.0: VR structural coherence — MST H0 persistence over file DCFs
+        file_dcfs = [r.dcf for r in results if r.dcf]
+        if len(file_dcfs) >= 2:
+            structural_coherence = self._compute_coherence_vr(file_dcfs)
+            coherence_level = "vr_structural"
+        else:
+            structural_coherence = 1.0
+            coherence_level = "none"
+
         return ProjectAnalysis(
             project_path=str(project_path),
             total_files=total_files,
@@ -269,6 +300,8 @@ class SlopDetector:
             avg_ddc=avg_ddc,
             overall_status=overall_status,
             file_results=results,
+            structural_coherence=structural_coherence,
+            coherence_level=coherence_level,
         )
 
     def _run_patterns(
@@ -418,12 +451,30 @@ class SlopDetector:
             else 1.0
         )
 
-        # Calculate base quality factor (0.0 = bad, 1.0 = good)
-        base_quality = (
-            ldr.ldr_score * weights["ldr"]
-            + (1 - inflation_normalized) * weights["inflation"]
-            + ddc.usage_ratio * weights["ddc"]
+        # v3.0: GQG (Geometric Quality Gate) — AND-gate aggregation.
+        # Any dimension collapsing to 0 drives Omega to 0.
+        # Formula: exp(sum(w_i * ln(max(1e-4, v_i))) / sum(w_i))
+        # Dimensions: ldr (logic density), inflation_q (1-normalized),
+        #             ddc (import usage), purity (exp(-lambda * n_critical))
+        n_critical = len([i for i in pattern_issues if i.severity.value == "critical"])
+        purity = exp(-0.5 * n_critical)
+
+        w_ldr = weights.get("ldr", 0.40)
+        w_inf = weights.get("inflation", 0.30)
+        w_ddc = weights.get("ddc", 0.20)
+        w_pur = 0.10  # purity: fixed weight, not configurable per file
+
+        total_w = w_ldr + w_inf + w_ddc + w_pur
+        gqg = exp(
+            (
+                w_ldr * log(max(1e-4, ldr.ldr_score))
+                + w_inf * log(max(1e-4, 1.0 - inflation_normalized))
+                + w_ddc * log(max(1e-4, ddc.usage_ratio))
+                + w_pur * log(max(1e-4, purity))
+            )
+            / total_w
         )
+        base_quality = gqg
 
         # Base deficit score from metrics
         base_deficit_score = 100 * (1 - base_quality)
@@ -480,11 +531,74 @@ class SlopDetector:
             status = SlopStatus.SUSPICIOUS
 
         # Supplementary override 2: near-zero import usage (structural issue)
-        # Below 20% is a signal that cannot be masked by clean metric scores
-        if ddc.usage_ratio < 0.20 and status in (SlopStatus.CLEAN, SlopStatus.SUSPICIOUS):
+        # DEPENDENCY_NOISE applies when DDC < 20% is the *primary* failure mode.
+        # GQG collapses on near-zero DDC, but the label should reflect root cause.
+        # Guard: skip if critical patterns or high inflation indicate a worse cause.
+        if ddc.usage_ratio < 0.20 and not critical_patterns and inflation.inflation_score <= 1.0:
             status = SlopStatus.DEPENDENCY_NOISE
 
         return deficit_score, status, warnings
+
+    def _js_divergence(self, p: List[float], q: List[float]) -> float:
+        """Jensen-Shannon divergence between two probability vectors.
+
+        Returns JSD in [0, 1] (log base 2 convention, then normalized to [0,1]).
+        Both p and q must have equal length and sum to ~1.
+        """
+        m = [(pi + qi) / 2.0 for pi, qi in zip(p, q)]
+        eps = 1e-12
+
+        def kl(a: List[float], b: List[float]) -> float:
+            return sum(ai * log(ai / bi) for ai, bi in zip(a, b) if ai > eps and bi > eps)
+
+        jsd = 0.5 * kl(p, m) + 0.5 * kl(q, m)
+        return max(0.0, min(1.0, jsd))
+
+    def _compute_coherence_vr(self, file_dcfs: List[Dict[str, float]]) -> float:
+        """MST H0 persistent homology coherence over file DCFs.
+
+        coherence = 1 - max_mst_edge
+        where max_mst_edge is the longest edge in the minimum spanning tree
+        of pairwise sqrt-JSD distances between file DCFs.
+
+        Properties:
+        - epsilon-free (no threshold parameter)
+        - 1.0: all files structurally uniform
+        - 0.0: maximally distinct structural clusters
+        - Equivalent to maximum H0 persistence in the Vietoris-Rips filtration
+        """
+        n = len(file_dcfs)
+        if n <= 1:
+            return 1.0
+
+        # Build pairwise sqrt-JSD distance matrix
+        dist = [[0.0] * n for _ in range(n)]
+        for i in range(n):
+            for j in range(i + 1, n):
+                all_keys = sorted(set(file_dcfs[i]) | set(file_dcfs[j]))
+                p = [file_dcfs[i].get(k, 0.0) for k in all_keys]
+                q = [file_dcfs[j].get(k, 0.0) for k in all_keys]
+                jsd = self._js_divergence(p, q)
+                d = sqrt(jsd)
+                dist[i][j] = dist[j][i] = d
+
+        # Prim's MST — O(n^2), ε-free
+        in_mst = [False] * n
+        min_edge = [float("inf")] * n
+        min_edge[0] = 0.0
+        mst_edge_weights: List[float] = []
+
+        for _ in range(n):
+            u = min((v for v in range(n) if not in_mst[v]), key=lambda v: min_edge[v])
+            in_mst[u] = True
+            if min_edge[u] > 0.0:
+                mst_edge_weights.append(min_edge[u])
+            for v in range(n):
+                if not in_mst[v] and dist[u][v] < min_edge[v]:
+                    min_edge[v] = dist[u][v]
+
+        max_persistence = max(mst_edge_weights) if mst_edge_weights else 0.0
+        return max(0.0, 1.0 - max_persistence)
 
     def _calculate_pattern_penalty(self, issues: List[Issue]) -> float:
         """

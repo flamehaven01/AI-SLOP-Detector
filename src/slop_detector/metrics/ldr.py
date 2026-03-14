@@ -31,10 +31,10 @@ class LDRCalculator:
         # P1: Empty __init__.py is a Python packaging convention, not slop.
         # Return perfect LDR so GQG is not penalised by ln(0).
         from pathlib import Path as _Path
+
         if _Path(file_path).name == "__init__.py":
             non_empty = [
-                ln for ln in content.splitlines()
-                if ln.strip() and not ln.strip().startswith("#")
+                ln for ln in content.splitlines() if ln.strip() and not ln.strip().startswith("#")
             ]
             if len(non_empty) == 0:
                 return LDRResult(

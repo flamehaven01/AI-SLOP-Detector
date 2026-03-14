@@ -266,9 +266,7 @@ class EmptyExceptPattern(ASTPattern):
             file=file,
             line=getattr(node, "lineno", 0),
             column=getattr(node, "col_offset", 0),
-            message=(
-                f"Empty handler for '{exc_type_str}' silently discards the exception"
-            ),
+            message=(f"Empty handler for '{exc_type_str}' silently discards the exception"),
             suggestion=(
                 "Add logging (logger.debug/warning) or a comment explaining "
                 "why silence is correct here."
@@ -330,11 +328,22 @@ class ReturnConstantStubPattern(ASTPattern):
     axis = Axis.QUALITY
     message = "Function body is a single return <constant> - likely stub"
 
-    _DUNDER_CONSTANT_OK = frozenset({
-        "__len__", "__bool__", "__hash__", "__sizeof__", "__index__",
-        "__int__", "__float__", "__complex__", "__str__", "__repr__",
-        "__bytes__", "__format__",
-    })
+    _DUNDER_CONSTANT_OK = frozenset(
+        {
+            "__len__",
+            "__bool__",
+            "__hash__",
+            "__sizeof__",
+            "__index__",
+            "__int__",
+            "__float__",
+            "__complex__",
+            "__str__",
+            "__repr__",
+            "__bytes__",
+            "__format__",
+        }
+    )
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
         if not isinstance(node, ast.FunctionDef):
@@ -354,7 +363,8 @@ class ReturnConstantStubPattern(ASTPattern):
 
         # Strip leading docstring
         body = [
-            n for n in node.body
+            n
+            for n in node.body
             if not (
                 isinstance(n, ast.Expr)
                 and isinstance(n.value, ast.Constant)
@@ -442,10 +452,7 @@ class InterfaceOnlyClassPattern(ASTPattern):
                         )
                         or (
                             isinstance(stmt, ast.Return)
-                            and (
-                                stmt.value is None
-                                or isinstance(stmt.value, ast.Constant)
-                            )
+                            and (stmt.value is None or isinstance(stmt.value, ast.Constant))
                         )
                         or isinstance(stmt, ast.Raise)
                         or _is_return_self

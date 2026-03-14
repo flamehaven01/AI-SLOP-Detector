@@ -345,7 +345,7 @@ class DeepNestingPattern(BasePattern):
 
 
 # Composite thresholds for nested_complexity pattern
-_NESTED_CC_THRESHOLD = 5     # min cyclomatic complexity (moderate)
+_NESTED_CC_THRESHOLD = 5  # min cyclomatic complexity (moderate)
 _NESTED_DEPTH_THRESHOLD = 4  # same as DEEP_NESTING_THRESHOLD
 
 
@@ -507,12 +507,31 @@ _RESOLVABLE_MODULES: Optional[FrozenSet[str]] = None
 
 _PROJECT_PACKAGES_CACHE: Dict[str, FrozenSet[str]] = {}
 
-_SKIP_LAYOUT_DIRS: FrozenSet[str] = frozenset({
-    "tests", "test", "docs", "doc", "examples", "scripts", "tools",
-    ".venv", "venv", "env", "build", "dist", ".git", "__pycache__",
-    "node_modules", "site-packages", ".mypy_cache", ".ruff_cache",
-    ".pytest_cache", ".tox", "htmlcov",
-})
+_SKIP_LAYOUT_DIRS: FrozenSet[str] = frozenset(
+    {
+        "tests",
+        "test",
+        "docs",
+        "doc",
+        "examples",
+        "scripts",
+        "tools",
+        ".venv",
+        "venv",
+        "env",
+        "build",
+        "dist",
+        ".git",
+        "__pycache__",
+        "node_modules",
+        "site-packages",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pytest_cache",
+        ".tox",
+        "htmlcov",
+    }
+)
 
 
 def _find_project_root(file_path: Path) -> Optional[Path]:
@@ -584,10 +603,7 @@ def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
 
                 # 3a. Filesystem scan via [tool.setuptools.packages.find] where = [...]
                 _find_cfg = (
-                    _data.get("tool", {})
-                    .get("setuptools", {})
-                    .get("packages", {})
-                    .get("find", {})
+                    _data.get("tool", {}).get("setuptools", {}).get("packages", {}).get("find", {})
                 )
                 for _where in _find_cfg.get("where", []):
                     _scan_dir(project_root / _where)
@@ -598,15 +614,14 @@ def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
                 _dep_lists: list[list[str]] = [
                     _data.get("project", {}).get("dependencies", []),
                 ]
-                for _extras in (
-                    _data.get("project", {}).get("optional-dependencies", {}).values()
-                ):
+                for _extras in _data.get("project", {}).get("optional-dependencies", {}).values():
                     _dep_lists.append(_extras)
 
                 for _dep_list in _dep_lists:
                     for _dep in _dep_list:
                         # Strip version specifier: numpy>=1.0 -> numpy
                         import re as _re
+
                         _name = _re.split(r"[>=<!~;\[\s]", _dep.strip())[0].strip()
                         if not _name:
                             continue
@@ -617,7 +632,7 @@ def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
                         # e.g. flamehaven-logos -> logos, flamehaven_logos -> logos
                         for _prefix in ("flamehaven_", "flame_", "py", "python_"):
                             if _canon.startswith(_prefix) and len(_canon) > len(_prefix) + 1:
-                                packages.add(_canon[len(_prefix):])
+                                packages.add(_canon[len(_prefix) :])
         except Exception:
             pass
 
@@ -687,9 +702,14 @@ def _module_exists(name: str) -> bool:
 # Exception names that indicate an optional-dependency guard pattern.
 # Exception / BaseException are superclasses of ImportError and therefore
 # also guard against import failures (e.g. `except Exception as e: raise HTTPException`).
-_IMPORT_GUARD_EXC_NAMES: FrozenSet[str] = frozenset({
-    "ImportError", "ModuleNotFoundError", "Exception", "BaseException",
-})
+_IMPORT_GUARD_EXC_NAMES: FrozenSet[str] = frozenset(
+    {
+        "ImportError",
+        "ModuleNotFoundError",
+        "Exception",
+        "BaseException",
+    }
+)
 
 
 def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
@@ -794,9 +814,13 @@ class PhantomImportPattern(BasePattern):
                         continue
                     lineno = getattr(node, "lineno", 0)
                     issues.append(
-                        self._make_issue(file, lineno,
-                                        getattr(node, "col_offset", 0),
-                                        alias.name, lineno in guarded_lines)
+                        self._make_issue(
+                            file,
+                            lineno,
+                            getattr(node, "col_offset", 0),
+                            alias.name,
+                            lineno in guarded_lines,
+                        )
                     )
 
             elif isinstance(node, ast.ImportFrom):
@@ -809,9 +833,13 @@ class PhantomImportPattern(BasePattern):
                     continue
                 lineno = getattr(node, "lineno", 0)
                 issues.append(
-                    self._make_issue(file, lineno,
-                                     getattr(node, "col_offset", 0),
-                                     node.module, lineno in guarded_lines)
+                    self._make_issue(
+                        file,
+                        lineno,
+                        getattr(node, "col_offset", 0),
+                        node.module,
+                        lineno in guarded_lines,
+                    )
                 )
 
         return issues
