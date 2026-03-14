@@ -9,7 +9,7 @@ description = "Evidence-based static analyzer for detecting AI-generated code qu
 authors = [
     {name = "Flamehaven Labs", email = "info@flamehaven.space"}
 ]
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 license = {text = "MIT"}
 requires-python = ">=3.8"
 keywords = ["ai", "code-quality", "static-analysis", "slop-detection", "code-review"]

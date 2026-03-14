@@ -213,11 +213,16 @@ def _build_metrics_table(result) -> "Table":
 
     icr = result.inflation.inflation_score
     icr_color = "red" if icr >= 1.0 else "yellow" if icr >= 0.5 else "green"
-    t.add_row("ICR (Inflation Check):", f"[{icr_color}]{icr:.2f} ({result.inflation.status})[/{icr_color}]")
+    t.add_row(
+        "ICR (Inflation Check):",
+        f"[{icr_color}]{icr:.2f} ({result.inflation.status})[/{icr_color}]",
+    )
 
     ddc = result.ddc.usage_ratio
     ddc_color = "red" if ddc < 0.3 else "yellow" if ddc < 0.7 else "green"
-    t.add_row("DDC (Dependency Check):", f"[{ddc_color}]{ddc:.2%} ({result.ddc.grade})[/{ddc_color}]")
+    t.add_row(
+        "DDC (Dependency Check):", f"[{ddc_color}]{ddc:.2%} ({result.ddc.grade})[/{ddc_color}]"
+    )
 
     total_j = len(result.inflation.jargon_details)
     if total_j > 0:
@@ -228,7 +233,11 @@ def _build_metrics_table(result) -> "Table":
 
     ml = getattr(result, "ml_score", None)
     if ml is not None:
-        ml_color = "red" if ml.slop_probability >= 0.70 else "yellow" if ml.slop_probability >= 0.40 else "green"
+        ml_color = (
+            "red"
+            if ml.slop_probability >= 0.70
+            else "yellow" if ml.slop_probability >= 0.40 else "green"
+        )
         t.add_row(
             "ML Slop Probability:",
             f"[{ml_color}]{ml.slop_probability:.1%} [{ml.label.upper()}][/{ml_color}]",
@@ -250,7 +259,9 @@ def _build_questions_panel(questions) -> "Panel":
         if q.line:
             content.append(f"(Line {q.line}) ", style="dim")
         content.append(q.question + "\n")
-    return Panel(content, title="[bold]Review Questions[/bold]", border_style="blue", box=box.ROUNDED)
+    return Panel(
+        content, title="[bold]Review Questions[/bold]", border_style="blue", box=box.ROUNDED
+    )
 
 
 def _build_single_file_content(result) -> "Text":
@@ -287,9 +298,15 @@ def _build_single_file_content(result) -> "Text":
     _append_pattern_issues_rich(content, result)
     ml = getattr(result, "ml_score", None)
     if ml is not None:
-        ml_color = "red" if ml.slop_probability >= 0.70 else "yellow" if ml.slop_probability >= 0.40 else "green"
+        ml_color = (
+            "red"
+            if ml.slop_probability >= 0.70
+            else "yellow" if ml.slop_probability >= 0.40 else "green"
+        )
         content.append("\nML Score:\n", style="bold cyan")
-        content.append(f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n", style=ml_color)
+        content.append(
+            f"  Slop Probability: {ml.slop_probability:.1%} [{ml.label.upper()}]\n", style=ml_color
+        )
         content.append(
             f"  Confidence: {ml.confidence:.1%}  Model: {ml.model_type}  Agreement: {'yes' if ml.agreement else 'no'}\n",
             style="dim",

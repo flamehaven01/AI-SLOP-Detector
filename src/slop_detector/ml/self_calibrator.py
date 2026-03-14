@@ -30,46 +30,50 @@ from typing import Dict, List, Optional, Tuple
 # Constants
 # ------------------------------------------------------------------
 
-SLOP_FLOOR: float = 25.0        # min deficit to be considered "slop-flagged"
-FIX_DELTA: float = 10.0         # score drop required to count as "user fixed it"
-FP_STABLE_DELTA: float = 5.0    # max score change between runs to call it "stable / unfixed"
-MIN_W: float = 0.10             # minimum allowed weight per dimension
-MAX_W: float = 0.65             # maximum allowed weight per dimension
-GRID_STEP: int = 20             # 1/GRID_STEP resolution -> 0.05 increments
-CONFIDENCE_GAP: float = 0.10    # min score gap between #1 and #2 candidate (Guardian pattern)
-MIN_EVENTS: int = 10            # minimum labeled events before calibration is meaningful
+SLOP_FLOOR: float = 25.0  # min deficit to be considered "slop-flagged"
+FIX_DELTA: float = 10.0  # score drop required to count as "user fixed it"
+FP_STABLE_DELTA: float = 5.0  # max score change between runs to call it "stable / unfixed"
+MIN_W: float = 0.10  # minimum allowed weight per dimension
+MAX_W: float = 0.65  # maximum allowed weight per dimension
+GRID_STEP: int = 20  # 1/GRID_STEP resolution -> 0.05 increments
+CONFIDENCE_GAP: float = 0.10  # min score gap between #1 and #2 candidate (Guardian pattern)
+MIN_EVENTS: int = 10  # minimum labeled events before calibration is meaningful
 
 
 # ------------------------------------------------------------------
 # Data structures
 # ------------------------------------------------------------------
 
+
 @dataclass
 class CalibrationEvent:
     """A single labeled training event derived from history."""
+
     file_path: str
     ldr: float
-    inflation: float   # raw inflation_score (not normalized)
-    ddc: float         # usage_ratio
-    label: str         # "improvement" | "fp_candidate"
+    inflation: float  # raw inflation_score (not normalized)
+    ddc: float  # usage_ratio
+    label: str  # "improvement" | "fp_candidate"
 
 
 @dataclass
 class WeightCandidate:
     """One weight hypothesis with its scored performance."""
+
     w_ldr: float
     w_inflation: float
     w_ddc: float
-    fn_rate: float = 0.0           # missed real slops (binary)
-    fp_rate: float = 0.0           # unnecessary alerts (binary)
-    combined_score: float = 0.0    # fn_rate + fp_rate (lower = better)
-    tiebreak_score: float = 0.0    # continuous secondary: avg deficit gap (lower = better)
+    fn_rate: float = 0.0  # missed real slops (binary)
+    fp_rate: float = 0.0  # unnecessary alerts (binary)
+    combined_score: float = 0.0  # fn_rate + fp_rate (lower = better)
+    tiebreak_score: float = 0.0  # continuous secondary: avg deficit gap (lower = better)
 
 
 @dataclass
 class CalibrationResult:
     """Output of the self-calibration run."""
-    status: str                          # "ok" | "insufficient_data" | "no_change"
+
+    status: str  # "ok" | "insufficient_data" | "no_change"
     unique_files: int = 0
     improvement_events: int = 0
     fp_candidates: int = 0
@@ -87,6 +91,7 @@ class CalibrationResult:
 # ------------------------------------------------------------------
 # Core engine
 # ------------------------------------------------------------------
+
 
 class SelfCalibrator:
     """
@@ -162,7 +167,9 @@ class SelfCalibrator:
             if abs(primary_gap) < 0.0001:
                 # Tied on binary rate — use continuous tiebreak gap
                 tiebreak_gap = runner_up.tiebreak_score - winner.tiebreak_score
-                result.confidence_gap = round(tiebreak_gap / max(1.0, abs(winner.tiebreak_score)), 4)
+                result.confidence_gap = round(
+                    tiebreak_gap / max(1.0, abs(winner.tiebreak_score)), 4
+                )
             else:
                 result.confidence_gap = round(primary_gap, 4)
         else:
@@ -243,25 +250,26 @@ class SelfCalibrator:
 
                 if drop >= FIX_DELTA:
                     # Score improved significantly -> user likely edited it
-                    events.append(CalibrationEvent(
-                        file_path=file_path,
-                        ldr=r_now["ldr_score"],
-                        inflation=r_now["inflation_score"],
-                        ddc=r_now["ddc_usage_ratio"],
-                        label="improvement",
-                    ))
-                elif (
-                    r_now["file_hash"] == r_next["file_hash"]
-                    and abs(drop) < FP_STABLE_DELTA
-                ):
+                    events.append(
+                        CalibrationEvent(
+                            file_path=file_path,
+                            ldr=r_now["ldr_score"],
+                            inflation=r_now["inflation_score"],
+                            ddc=r_now["ddc_usage_ratio"],
+                            label="improvement",
+                        )
+                    )
+                elif r_now["file_hash"] == r_next["file_hash"] and abs(drop) < FP_STABLE_DELTA:
                     # Same content, same bad score, user did nothing
-                    events.append(CalibrationEvent(
-                        file_path=file_path,
-                        ldr=r_now["ldr_score"],
-                        inflation=r_now["inflation_score"],
-                        ddc=r_now["ddc_usage_ratio"],
-                        label="fp_candidate",
-                    ))
+                    events.append(
+                        CalibrationEvent(
+                            file_path=file_path,
+                            ldr=r_now["ldr_score"],
+                            inflation=r_now["inflation_score"],
+                            ddc=r_now["ddc_usage_ratio"],
+                            label="fp_candidate",
+                        )
+                    )
 
         return events, unique_files
 
@@ -271,22 +279,20 @@ class SelfCalibrator:
 
     @staticmethod
     def _recompute_deficit(
-        ldr: float, inflation: float, ddc: float,
-        w_ldr: float, w_inflation: float, w_ddc: float,
+        ldr: float,
+        inflation: float,
+        ddc: float,
+        w_ldr: float,
+        w_inflation: float,
+        w_ddc: float,
     ) -> float:
         """
         Recompute base deficit score with candidate weights.
         Mirrors core.py _calculate_slop_score (metric component only).
         Pattern penalties are orthogonal to weight calibration and excluded.
         """
-        inflation_normalized = (
-            min(inflation, 2.0) / 2.0 if inflation != float("inf") else 1.0
-        )
-        base_quality = (
-            ldr * w_ldr
-            + (1.0 - inflation_normalized) * w_inflation
-            + ddc * w_ddc
-        )
+        inflation_normalized = min(inflation, 2.0) / 2.0 if inflation != float("inf") else 1.0
+        base_quality = ldr * w_ldr + (1.0 - inflation_normalized) * w_inflation + ddc * w_ddc
         return min(100.0, 100.0 * (1.0 - base_quality))
 
     # ------------------------------------------------------------------
@@ -295,7 +301,9 @@ class SelfCalibrator:
 
     def _score_weights(
         self,
-        w_ldr: float, w_inflation: float, w_ddc: float,
+        w_ldr: float,
+        w_inflation: float,
+        w_ddc: float,
         improvements: List[CalibrationEvent],
         fp_candidates: List[CalibrationEvent],
     ) -> Tuple[float, float, float]:
@@ -375,15 +383,17 @@ class SelfCalibrator:
                 )
                 combined = round(fn_rate + fp_rate, 4)
 
-                candidates.append(WeightCandidate(
-                    w_ldr=w_ldr,
-                    w_inflation=w_inf,
-                    w_ddc=w_ddc,
-                    fn_rate=fn_rate,
-                    fp_rate=fp_rate,
-                    combined_score=combined,
-                    tiebreak_score=tiebreak,
-                ))
+                candidates.append(
+                    WeightCandidate(
+                        w_ldr=w_ldr,
+                        w_inflation=w_inf,
+                        w_ddc=w_ddc,
+                        fn_rate=fn_rate,
+                        fp_rate=fp_rate,
+                        combined_score=combined,
+                        tiebreak_score=tiebreak,
+                    )
+                )
 
         return candidates
 
