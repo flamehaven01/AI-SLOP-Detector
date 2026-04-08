@@ -106,6 +106,10 @@ report.html
 output*.json
 output*.md
 
+# uv
+.python-version
+uv.lock
+
 # Claude Code temporary directories
 tmpclaude-*-cwd
 .claude/
