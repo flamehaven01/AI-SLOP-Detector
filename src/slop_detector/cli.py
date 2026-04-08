@@ -13,6 +13,33 @@ from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
 
 
+_PATTERN_MODULE_CATEGORIES = {
+    "structural": "Structural Issues",
+    "placeholder": "Placeholder Code",
+    "cross_language": "Cross-Language Patterns",
+    "python_advanced": "Python Advanced",
+}
+
+
+def _categorize_pattern(pattern) -> str:
+    """Return the display category for a pattern based on its module path."""
+    mod = pattern.__class__.__module__
+    for key, label in _PATTERN_MODULE_CATEGORIES.items():
+        if key in mod:
+            return label
+    return ""
+
+
+def _print_pattern_category(category: str, category_patterns: list) -> None:
+    """Print a single pattern category to stdout."""
+    if not category_patterns:
+        return
+    print(f"\n{category}:")
+    print("-" * 80)
+    for pattern in category_patterns:
+        print(f"  {pattern.id:30s} [{pattern.severity.value:8s}] {pattern.message}")
+
+
 def list_patterns() -> None:
     """List all available patterns."""
     from typing import Dict, List
@@ -20,33 +47,20 @@ def list_patterns() -> None:
     from slop_detector.patterns.base import BasePattern
 
     patterns = get_all_patterns()
-
     print("Available Patterns:")
     print("=" * 80)
 
     by_category: Dict[str, List[BasePattern]] = {
-        "Structural Issues": [],
-        "Placeholder Code": [],
-        "Cross-Language Patterns": [],
-        "Python Advanced": [],
+        "Structural Issues": [], "Placeholder Code": [],
+        "Cross-Language Patterns": [], "Python Advanced": [],
     }
-
     for pattern in patterns:
-        if "structural" in pattern.__class__.__module__:
-            by_category["Structural Issues"].append(pattern)
-        elif "placeholder" in pattern.__class__.__module__:
-            by_category["Placeholder Code"].append(pattern)
-        elif "cross_language" in pattern.__class__.__module__:
-            by_category["Cross-Language Patterns"].append(pattern)
-        elif "python_advanced" in pattern.__class__.__module__:
-            by_category["Python Advanced"].append(pattern)
+        cat = _categorize_pattern(pattern)
+        if cat:
+            by_category[cat].append(pattern)
 
     for category, category_patterns in by_category.items():
-        if category_patterns:
-            print(f"\n{category}:")
-            print("-" * 80)
-            for pattern in category_patterns:
-                print(f"  {pattern.id:30s} [{pattern.severity.value:8s}] {pattern.message}")
+        _print_pattern_category(category, category_patterns)
 
     print("\n" + "=" * 80)
     print(f"Total: {len(patterns)} patterns")
@@ -370,73 +384,51 @@ def get_mitigation(issue_type: str, detail: str = "") -> str:
     return strategies.get(issue_type, "Review specific line for code quality improvements.")
 
 
+_PRODUCTION_CLAIMS_CLI: frozenset = frozenset({
+    "production-ready", "production ready",
+    "enterprise-grade", "enterprise grade",
+    "scalable", "fault-tolerant", "fault tolerant",
+})
+
+_INTEGRATION_MARKERS = ("integration", "e2e", "/it/", "\\it\\",
+                         "integration_tests", "test_integration", "integration_test")
+
+
+def _file_has_production_claims(f_res) -> bool:
+    """Return True if the file contains any production-tier jargon claims."""
+    ctx = getattr(f_res, "context_jargon", None)
+    if not ctx or not hasattr(ctx, "evidence_details"):
+        return False
+    return any(e.jargon.lower() in _PRODUCTION_CLAIMS_CLI for e in ctx.evidence_details)
+
+
 def _collect_test_evidence_stats(file_results) -> dict:
     """Collect test evidence statistics from file results."""
     stats = {
-        "unit_test_files": 0,
-        "integration_test_files": 0,
-        "total_test_files": 0,
-        "unit_test_functions": 0,
-        "integration_test_functions": 0,
-        "total_test_functions": 0,
+        "unit_test_files": 0, "integration_test_files": 0, "total_test_files": 0,
+        "unit_test_functions": 0, "integration_test_functions": 0, "total_test_functions": 0,
         "has_production_claims": False,
     }
-
-    production_claims = {
-        "production-ready",
-        "production ready",
-        "enterprise-grade",
-        "enterprise grade",
-        "scalable",
-        "fault-tolerant",
-        "fault tolerant",
-    }
-
     for f_res in file_results:
-        # Check if file has context jargon analysis
-        if hasattr(f_res, "context_jargon") and hasattr(f_res.context_jargon, "evidence_details"):
-            for evidence in f_res.context_jargon.evidence_details:
-                if evidence.jargon.lower() in production_claims:
-                    stats["has_production_claims"] = True
-
-        # Check if file is a test file (by path)
+        if _file_has_production_claims(f_res):
+            stats["has_production_claims"] = True
         file_path = str(f_res.file_path).lower()
         is_test_file = (
-            "test_" in file_path
-            or "_test.py" in file_path
-            or "/tests/" in file_path
-            or "\\tests\\" in file_path
+            "test_" in file_path or "_test.py" in file_path
+            or "/tests/" in file_path or "\\tests\\" in file_path
         )
-
-        if is_test_file:
-            # Count as test file
-            stats["total_test_files"] += 1
-
-            # Determine if unit or integration test
-            is_integration = any(
-                part in file_path
-                for part in [
-                    "integration",
-                    "e2e",
-                    "/it/",
-                    "\\it\\",
-                    "integration_tests",
-                    "test_integration",
-                    "integration_test",
-                ]
-            )
-
-            if is_integration:
-                stats["integration_test_files"] += 1
-                # Rough estimate: assume 5 test functions per integration test file
-                stats["integration_test_functions"] += 5
-            else:
-                stats["unit_test_files"] += 1
-                # Rough estimate: assume 10 test functions per unit test file
-                stats["unit_test_functions"] += 10
-
-            stats["total_test_functions"] += 10 if not is_integration else 5
-
+        if not is_test_file:
+            continue
+        stats["total_test_files"] += 1
+        is_integration = any(m in file_path for m in _INTEGRATION_MARKERS)
+        if is_integration:
+            stats["integration_test_files"] += 1
+            stats["integration_test_functions"] += 5
+            stats["total_test_functions"] += 5
+        else:
+            stats["unit_test_files"] += 1
+            stats["unit_test_functions"] += 10
+            stats["total_test_functions"] += 10
     return stats
 
 
@@ -737,27 +729,39 @@ def _write_file(path: str, content: str, label: str = "") -> None:
         print(f"[+] {label} saved to {path}")
 
 
+def _write_json_output(args, result) -> None:
+    """Serialize result to JSON and write to file or stdout."""
+    output = json.dumps(result.to_dict(), indent=2)
+    if args.output:
+        _write_file(args.output, output)
+    else:
+        print(output)
+
+
+def _route_file_output(out: str, result, rich_ok: bool) -> None:
+    """Write result to file or console based on output extension and flags."""
+    if out.endswith(".html"):
+        _write_file(out, generate_html_report(result), "HTML report")
+        return
+    if out.endswith(".md"):
+        _write_file(out, generate_markdown_report(result), "Markdown report")
+        return
+    if out:
+        _write_file(out, generate_text_report(result))
+        return
+    if rich_ok:
+        print_rich_report(result)
+        return
+    print(generate_text_report(result))
+
+
 def _handle_output(args, result) -> None:
     """Route analysis result to the appropriate output format."""
     if args.json:
-        output = json.dumps(result.to_dict(), indent=2)
-        if args.output:
-            _write_file(args.output, output)
-        else:
-            print(output)
+        _write_json_output(args, result)
         return
-
     out = str(args.output) if args.output else ""
-    if out.endswith(".html"):
-        _write_file(out, generate_html_report(result), "HTML report")
-    elif out.endswith(".md"):
-        _write_file(out, generate_markdown_report(result), "Markdown report")
-    elif out:
-        _write_file(out, generate_text_report(result))
-    elif RICH_AVAILABLE and not args.no_color:
-        print_rich_report(result)
-    else:
-        print(generate_text_report(result))
+    _route_file_output(out, result, RICH_AVAILABLE and not args.no_color)
 
 
 def _evaluate_ci_gate(args, result):
@@ -792,6 +796,17 @@ def _run_optional_features(args, result) -> None:
         _run_governance(args.path, result)
 
 
+def _run_analysis_phase(args, detector):
+    """Run file or project analysis. Returns (result, score)."""
+    from typing import Union
+    result: Union[ProjectAnalysis, FileAnalysis]
+    if args.project:
+        result = detector.analyze_project(args.path)
+        return result, result.weighted_deficit_score
+    result = detector.analyze_file(args.path)
+    return result, result.deficit_score
+
+
 def main() -> int:
     """CLI entry point."""
     args = _build_arg_parser().parse_args()
@@ -824,15 +839,7 @@ def main() -> int:
         return 1
 
     try:
-        from typing import Union
-
-        result: Union[ProjectAnalysis, FileAnalysis]
-        if args.project:
-            result = detector.analyze_project(args.path)
-            score = result.weighted_deficit_score
-        else:
-            result = detector.analyze_file(args.path)
-            score = result.deficit_score
+        result, score = _run_analysis_phase(args, detector)
     except Exception as e:
         print(f"[!] Analysis failed: {e}", file=sys.stderr)
         return 1
@@ -1215,6 +1222,30 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
     return 0 if result.status in ("ok", "no_change") else 1
 
 
+def _text_file_lines(fr) -> list:
+    """Return text lines describing a single deficit file."""
+    lines = [
+        f"[!] {Path(fr.file_path).name}",
+        f"    Status: {fr.status.upper()}",
+        f"    Deficit Score: {fr.deficit_score:.1f}/100",
+        f"    LDR: {fr.ldr.ldr_score:.2%} ({fr.ldr.grade})",
+        f"    ICR: {fr.inflation.inflation_score:.2f} ({fr.inflation.status})",
+    ]
+    if fr.inflation.jargon_details:
+        lines.append("    Jargon Locations:")
+        lines += [
+            f"      - Line {det['line']}: \"{det['word']}\""
+            for det in fr.inflation.jargon_details
+            if not det.get("justified")
+        ]
+    lines.append(f"    DDC: {fr.ddc.usage_ratio:.2%} ({fr.ddc.grade})")
+    if fr.warnings:
+        lines.append("    Warnings:")
+        lines += [f"      - {w}" for w in fr.warnings]
+    lines.append("")
+    return lines
+
+
 def _text_project_section(result) -> list:
     """Return text lines for the project-level portion of the text report."""
     lines = [
@@ -1244,29 +1275,10 @@ def _text_project_section(result) -> list:
             if te["integration_test_files"] == 0 and te.get("has_production_claims"):
                 lines.append("  [!] WARNING: No integration tests, but has production claims")
             lines.append("")
-
     lines += ["=" * 80, "FILE-LEVEL ANALYSIS", "=" * 80, ""]
     for fr in result.file_results:
-        if fr.status == "clean":
-            continue
-        lines += [
-            f"[!] {Path(fr.file_path).name}",
-            f"    Status: {fr.status.upper()}",
-            f"    Deficit Score: {fr.deficit_score:.1f}/100",
-            f"    LDR: {fr.ldr.ldr_score:.2%} ({fr.ldr.grade})",
-            f"    ICR: {fr.inflation.inflation_score:.2f} ({fr.inflation.status})",
-        ]
-        if fr.inflation.jargon_details:
-            lines.append("    Jargon Locations:")
-            for det in fr.inflation.jargon_details:
-                if not det.get("justified"):
-                    lines.append(f"      - Line {det['line']}: \"{det['word']}\"")
-        lines.append(f"    DDC: {fr.ddc.usage_ratio:.2%} ({fr.ddc.grade})")
-        if fr.warnings:
-            lines.append("    Warnings:")
-            for w in fr.warnings:
-                lines.append(f"      - {w}")
-        lines.append("")
+        if fr.status != "clean":
+            lines += _text_file_lines(fr)
     return lines
 
 

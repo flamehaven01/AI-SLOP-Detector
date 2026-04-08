@@ -69,10 +69,20 @@ weights:
   ddc: 0.30
 
 ignore:
-  # Python boilerplate
+  # -----------------------------------------------------------------------
+  # RULE-0 NOTE (SIDRCE SaaS / AI-Slop-Detector):
+  #   This project ships intentional slop fixtures in tests/corpus/ and
+  #   standard Python packaging __init__.py files. Both are FALSE POSITIVES
+  #   under Rule-0 (Anti-Slop Scan). Always pass --config .slopconfig.yaml
+  #   when invoking SIDRCE or slop-detector on this project root.
+  #   Command: python -m app.cli inspect . --config .slopconfig.yaml
+  #            slop-detector --project src/ --config .slopconfig.yaml
+  # -----------------------------------------------------------------------
+
+  # Python boilerplate (LDR=1.00 by design — empty packaging init files)
   - "**/__init__.py"
-  # Test suite — includes tests/corpus/ which contains intentional slop fixtures
-  # designed to be caught by the tool; scanning them produces expected false positives
+  # Test suite — tests/corpus/ contains intentional high-deficit fixtures
+  # designed to be caught by the tool; Rule-0 would false-positive on them
   - "tests/**"
   - "**/*_test.py"
   - "**/test_*.py"
