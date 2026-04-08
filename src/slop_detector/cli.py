@@ -12,7 +12,6 @@ from slop_detector.models import FileAnalysis, ProjectAnalysis
 from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
 
-
 _PATTERN_MODULE_CATEGORIES = {
     "structural": "Structural Issues",
     "placeholder": "Placeholder Code",
