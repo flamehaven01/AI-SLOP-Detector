@@ -3,9 +3,69 @@
 from __future__ import annotations
 
 import ast
-from typing import Optional
+from typing import List, Optional
 
 from slop_detector.patterns.base import ASTPattern, Axis, Issue, RegexPattern, Severity
+
+# ---------------------------------------------------------------------------
+# Module-level helpers — shared by multiple pattern classes
+# ---------------------------------------------------------------------------
+
+
+def _strip_docstring(body: List[ast.stmt]) -> List[ast.stmt]:
+    """Return body with leading docstring node removed."""
+    return [
+        n
+        for n in body
+        if not (
+            isinstance(n, ast.Expr)
+            and isinstance(n.value, ast.Constant)
+            and isinstance(n.value.value, str)
+        )
+    ]
+
+
+def _has_abstractmethod(node: ast.FunctionDef) -> bool:
+    """Return True if the function has an @abstractmethod decorator."""
+    return any(
+        (d.id if isinstance(d, ast.Name) else d.attr if isinstance(d, ast.Attribute) else "")
+        == "abstractmethod"
+        for d in node.decorator_list
+    )
+
+
+def _empty_container_repr(value: ast.expr) -> Optional[str]:
+    """Return display string if value is an empty container literal, else None."""
+    if isinstance(value, ast.List) and not value.elts:
+        return "[]"
+    if isinstance(value, ast.Dict) and not value.keys:
+        return "{}"
+    if isinstance(value, ast.Tuple) and not value.elts:
+        return "()"
+    if isinstance(value, ast.Set) and not value.elts:
+        return "set()"
+    return None
+
+
+def _is_placeholder_stmt(stmt: ast.stmt) -> bool:
+    """Return True if a single statement is a recognised placeholder body."""
+    if isinstance(stmt, ast.Pass):
+        return True
+    if isinstance(stmt, ast.Raise):
+        return True
+    if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
+        return stmt.value.value is ...
+    if isinstance(stmt, ast.Return):
+        # return None / return <constant>
+        if stmt.value is None or isinstance(stmt.value, ast.Constant):
+            return True
+        # return self / return cls  (method-chaining stub)
+        if isinstance(stmt.value, ast.Name) and stmt.value.id in ("self", "cls"):
+            return True
+        # return empty container
+        if _empty_container_repr(stmt.value) is not None:
+            return True
+    return False
 
 
 class PassPlaceholderPattern(ASTPattern):
@@ -17,30 +77,15 @@ class PassPlaceholderPattern(ASTPattern):
     message = "Empty function with only pass - placeholder not implemented"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.FunctionDef):
-            # Skip @abstractmethod stubs — intentional ABC pattern
-            decorators = [
-                (
-                    d.id
-                    if isinstance(d, ast.Name)
-                    else d.attr if isinstance(d, ast.Attribute) else ""
-                )
-                for d in node.decorator_list
-            ]
-            if "abstractmethod" in decorators:
-                return None
-
-            # Check if function body is only pass or docstring + pass
-            body = [
-                n
-                for n in node.body
-                if not isinstance(n, ast.Expr) or not isinstance(n.value, ast.Constant)
-            ]
-
-            if len(body) == 1 and isinstance(body[0], ast.Pass):
-                return self.create_issue_from_node(
-                    node, file, suggestion="Implement the function or remove it"
-                )
+        if not isinstance(node, ast.FunctionDef):
+            return None
+        if _has_abstractmethod(node):
+            return None
+        body = _strip_docstring(node.body)
+        if len(body) == 1 and isinstance(body[0], ast.Pass):
+            return self.create_issue_from_node(
+                node, file, suggestion="Implement the function or remove it"
+            )
         return None
 
 
@@ -123,24 +168,16 @@ class EllipsisPlaceholderPattern(ASTPattern):
     message = "Empty function with only ... - placeholder not implemented"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.FunctionDef):
-            # Check if function body is only ellipsis or docstring + ellipsis
-            body = [
-                n
-                for n in node.body
-                if not (
-                    isinstance(n, ast.Expr)
-                    and isinstance(n.value, ast.Constant)
-                    and isinstance(n.value.value, str)
-                )
-            ]
-
-            if len(body) == 1:
-                if isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
-                    if body[0].value.value is ...:
-                        return self.create_issue_from_node(
-                            node, file, suggestion="Implement the function or remove it"
-                        )
+        if not isinstance(node, ast.FunctionDef):
+            return None
+        body = _strip_docstring(node.body)
+        if len(body) == 1:
+            stmt = body[0]
+            if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
+                if stmt.value.value is ...:
+                    return self.create_issue_from_node(
+                        node, file, suggestion="Implement the function or remove it"
+                    )
         return None
 
 
@@ -157,43 +194,23 @@ class NotImplementedPattern(ASTPattern):
     message = "Function raises NotImplementedError - placeholder not implemented"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.FunctionDef):
-            # P3b: Skip @abstractmethod — raise NotImplementedError is intentional in ABCs
-            decorators = [
-                (
-                    d.id
-                    if isinstance(d, ast.Name)
-                    else d.attr if isinstance(d, ast.Attribute) else ""
-                )
-                for d in node.decorator_list
-            ]
-            if "abstractmethod" in decorators:
-                return None
-
-            # Check if function body only raises NotImplementedError
-            body = [
-                n
-                for n in node.body
-                if not (
-                    isinstance(n, ast.Expr)
-                    and isinstance(n.value, ast.Constant)
-                    and isinstance(n.value.value, str)
-                )
-            ]
-
-            if len(body) == 1 and isinstance(body[0], ast.Raise):
-                exc = body[0].exc
-                if isinstance(exc, ast.Call):
-                    if isinstance(exc.func, ast.Name) and exc.func.id == "NotImplementedError":
-                        return self.create_issue_from_node(
-                            node,
-                            file,
-                            suggestion="Implement the function or use ABC if intentional",
-                        )
-                elif isinstance(exc, ast.Name) and exc.id == "NotImplementedError":
-                    return self.create_issue_from_node(
-                        node, file, suggestion="Implement the function or use ABC if intentional"
-                    )
+        if not isinstance(node, ast.FunctionDef):
+            return None
+        if _has_abstractmethod(node):
+            return None
+        body = _strip_docstring(node.body)
+        if len(body) != 1 or not isinstance(body[0], ast.Raise):
+            return None
+        exc = body[0].exc
+        is_not_impl = (
+            isinstance(exc, ast.Call)
+            and isinstance(exc.func, ast.Name)
+            and exc.func.id == "NotImplementedError"
+        ) or (isinstance(exc, ast.Name) and exc.id == "NotImplementedError")
+        if is_not_impl:
+            return self.create_issue_from_node(
+                node, file, suggestion="Implement the function or use ABC if intentional"
+            )
         return None
 
 
@@ -284,29 +301,19 @@ class ReturnNonePlaceholderPattern(ASTPattern):
     message = "Function only returns None - likely placeholder"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.FunctionDef):
-            # Skip __init__ and other dunder methods
-            if node.name.startswith("__") and node.name.endswith("__"):
-                return None
-
-            # Check if function body is only return None (or docstring + return None)
-            body = [
-                n
-                for n in node.body
-                if not (
-                    isinstance(n, ast.Expr)
-                    and isinstance(n.value, ast.Constant)
-                    and isinstance(n.value.value, str)
+        if not isinstance(node, ast.FunctionDef):
+            return None
+        if node.name.startswith("__") and node.name.endswith("__"):
+            return None
+        body = _strip_docstring(node.body)
+        if len(body) == 1 and isinstance(body[0], ast.Return):
+            ret = body[0]
+            if ret.value is None or (
+                isinstance(ret.value, ast.Constant) and ret.value.value is None
+            ):
+                return self.create_issue_from_node(
+                    node, file, suggestion="Implement the function or clarify intent"
                 )
-            ]
-
-            if len(body) == 1 and isinstance(body[0], ast.Return):
-                if body[0].value is None or (
-                    isinstance(body[0].value, ast.Constant) and body[0].value.value is None
-                ):
-                    return self.create_issue_from_node(
-                        node, file, suggestion="Implement the function or clarify intent"
-                    )
         return None
 
 
@@ -361,33 +368,21 @@ class ReturnConstantStubPattern(ASTPattern):
         if "abstractmethod" in decorators:
             return None
 
-        # Strip leading docstring
-        body = [
-            n
-            for n in node.body
-            if not (
-                isinstance(n, ast.Expr)
-                and isinstance(n.value, ast.Constant)
-                and isinstance(n.value.value, str)
-            )
-        ]
-
-        if len(body) != 1:
+        body = _strip_docstring(node.body)
+        if len(body) != 1 or not isinstance(body[0], ast.Return):
             return None
 
-        stmt = body[0]
-        if not isinstance(stmt, ast.Return):
-            return None
+        ret_val = body[0].value
 
         # return None is handled by ReturnNonePlaceholderPattern — skip
-        if stmt.value is None:
+        if ret_val is None:
             return None
-        if isinstance(stmt.value, ast.Constant) and stmt.value.value is None:
+        if isinstance(ret_val, ast.Constant) and ret_val.value is None:
             return None
 
-        # Flag: return <non-None constant>  (int, str, bool, float, bytes, ...)
-        if isinstance(stmt.value, ast.Constant):
-            val_repr = repr(stmt.value.value)[:40]
+        # return <non-None constant>  (int, str, bool, float, bytes, ...)
+        if isinstance(ret_val, ast.Constant):
+            val_repr = repr(ret_val.value)[:40]
             return self.create_issue_from_node(
                 node,
                 file,
@@ -395,21 +390,13 @@ class ReturnConstantStubPattern(ASTPattern):
                 suggestion="Implement meaningful logic or remove the function",
             )
 
-        # Flag: return <empty container>  ([], {}, (), set())
-        _is_empty_list = isinstance(stmt.value, ast.List) and not stmt.value.elts
-        _is_empty_dict = isinstance(stmt.value, ast.Dict) and not stmt.value.keys
-        _is_empty_tuple = isinstance(stmt.value, ast.Tuple) and not stmt.value.elts
-        _is_empty_set = isinstance(stmt.value, ast.Set) and not stmt.value.elts
-        if _is_empty_list or _is_empty_dict or _is_empty_tuple or _is_empty_set:
-            container_type = (
-                "[]"
-                if _is_empty_list
-                else "{}" if _is_empty_dict else "()" if _is_empty_tuple else "set()"
-            )
+        # return <empty container>  ([], {}, (), set())
+        container = _empty_container_repr(ret_val)
+        if container is not None:
             return self.create_issue_from_node(
                 node,
                 file,
-                message=f"Function '{node.name}' returns empty {container_type} - likely stub",
+                message=f"Function '{node.name}' returns empty {container} - likely stub",
                 suggestion="Implement meaningful logic or remove the function",
             )
 
@@ -424,74 +411,29 @@ class InterfaceOnlyClassPattern(ASTPattern):
     axis = Axis.QUALITY
     message = "Class contains only abstract methods or placeholders"
 
+    def _count_placeholder_methods(self, methods: List[ast.FunctionDef]) -> int:
+        """Count non-dunder methods whose body is a single placeholder statement."""
+        count = 0
+        for method in methods:
+            if method.name.startswith("__") and method.name.endswith("__"):
+                continue
+            body = _strip_docstring(method.body)
+            if len(body) == 1 and _is_placeholder_stmt(body[0]):
+                count += 1
+        return count
+
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.ClassDef):
-            # Get all methods
-            methods = [
-                n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-            ]
-
-            if not methods:
-                return None
-
-            # Check if all methods are placeholders
-            placeholder_methods = 0
-            for method in methods:
-                # Skip __init__ and other special methods
-                if method.name.startswith("__") and method.name.endswith("__"):
-                    continue
-
-                # Check if method body is placeholder
-                body = [
-                    n
-                    for n in method.body
-                    if not (
-                        isinstance(n, ast.Expr)
-                        and isinstance(n.value, ast.Constant)
-                        and isinstance(n.value.value, str)
-                    )
-                ]
-
-                if len(body) == 1:
-                    stmt = body[0]
-                    # pass, ..., return None, return <constant>, raise NotImplementedError
-                    # Also: return self / return cls (method-chaining stub)
-                    _is_return_self = (
-                        isinstance(stmt, ast.Return)
-                        and isinstance(stmt.value, ast.Name)
-                        and stmt.value.id in ("self", "cls")
-                    )
-                    _is_return_empty_container = isinstance(stmt, ast.Return) and (
-                        (isinstance(stmt.value, ast.List) and not stmt.value.elts)
-                        or (isinstance(stmt.value, ast.Dict) and not stmt.value.keys)
-                        or (isinstance(stmt.value, ast.Tuple) and not stmt.value.elts)
-                        or (isinstance(stmt.value, ast.Set) and not stmt.value.elts)
-                    )
-                    is_placeholder = (
-                        isinstance(stmt, ast.Pass)
-                        or (
-                            isinstance(stmt, ast.Expr)
-                            and isinstance(stmt.value, ast.Constant)
-                            and stmt.value.value is ...
-                        )
-                        or (
-                            isinstance(stmt, ast.Return)
-                            and (stmt.value is None or isinstance(stmt.value, ast.Constant))
-                        )
-                        or isinstance(stmt, ast.Raise)
-                        or _is_return_self
-                        or _is_return_empty_container
-                    )
-                    if is_placeholder:
-                        placeholder_methods += 1
-
-            # If >=50% of non-dunder methods are placeholders, flag the class
-            if placeholder_methods >= len(methods) * 0.50 and placeholder_methods > 0:
-                return self.create_issue_from_node(
-                    node,
-                    file,
-                    message=f"Class has {placeholder_methods}/{len(methods)} placeholder methods",
-                    suggestion="Use ABC (Abstract Base Class) if this is intentional, or implement methods",
-                )
-
+        if not isinstance(node, ast.ClassDef):
+            return None
+        methods = [n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+        if not methods:
+            return None
+        placeholder_count = self._count_placeholder_methods(methods)
+        if placeholder_count >= len(methods) * 0.50 and placeholder_count > 0:
+            return self.create_issue_from_node(
+                node,
+                file,
+                message=f"Class has {placeholder_count}/{len(methods)} placeholder methods",
+                suggestion="Use ABC (Abstract Base Class) if this is intentional, or implement methods",
+            )
         return None
