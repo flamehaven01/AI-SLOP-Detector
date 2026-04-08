@@ -11,21 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-**Clone Detection visibility (hotfix for #issue)**
-- `function_clone_cluster` pattern results were only visible in the Issues section;
-  Core Metrics table showed no duplication signal.
-- Fix: added "Clone Detection:" row to the Core Metrics table in CLI output.
-  - Fires only when `function_clone_cluster` issue is present; CRITICAL/HIGH severity shown.
-  - Shows `PASS` (green) when no structural clone cluster is detected.
-  - No model changes; reads from existing `pattern_issues` list.
+**Clone Detection visibility**
+- `function_clone_cluster` results were only visible in the Issues section;
+  Core Metrics table showed no duplication signal (reported via community issue).
+- Fix: added "Clone Detection:" row to the Core Metrics table.
+  CRITICAL/HIGH severity shown when `function_clone_cluster` fires; `PASS` otherwise.
+  No model changes — reads from existing `pattern_issues` list.
 
-**Table style unification (UX)**
-- Project-level output used three inconsistent table box styles
+**Table style unification (CLI UX)**
+- Project-level output mixed three Rich table box styles
   (`SIMPLE`, `MINIMAL_DOUBLE_HEAD`, `ROUNDED`). All tables now use
-  `box.ROUNDED` with `header_style="bold cyan"` for visual consistency.
-- Jargon entries in File Analysis Notes column now show first 3 terms
-  + "+N more" instead of the full list, preventing column overflow.
-- File Analysis Status severity color now covers `critical_deficit` variant.
+  `box.ROUNDED` with `header_style="bold cyan"`.
+- Jargon entries in File Analysis Notes column trimmed to first 3 terms
+  + "+N more" — prevents column overflow on heavily-flagged files.
+- File Analysis Status severity color extended to `critical_deficit` variant.
+
+**VS Code extension (v3.1.1)**
+- `extractJson()`: strips `[INFO]` log lines before `JSON.parse` — prevents
+  parse failures when CLI emits log output alongside JSON.
+- `recordHistory` setting now correctly passes `--no-history` to the CLI.
+- Summary diagnostic message includes Clone Detection signal from `pattern_issues`.
+- Status bar tooltip uses null-safe metric access and shows Clone PASS/CRITICAL.
+- Workspace analysis: replaced single-line notification with a QuickPick list
+  of deficit files sorted by score; clicking a file opens it in the editor.
+- History Trends: formatted column table (Runs/Latest/Best/Worst/Trend)
+  replaces raw JSON dump in Output panel.
 
 **uv tooling**
 - Added `.python-version` and `uv.lock` to `.gitignore`.
