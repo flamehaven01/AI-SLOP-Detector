@@ -402,10 +402,9 @@ class ReturnConstantStubPattern(ASTPattern):
         _is_empty_set = isinstance(stmt.value, ast.Set) and not stmt.value.elts
         if _is_empty_list or _is_empty_dict or _is_empty_tuple or _is_empty_set:
             container_type = (
-                "[]" if _is_empty_list
-                else "{}" if _is_empty_dict
-                else "()" if _is_empty_tuple
-                else "set()"
+                "[]"
+                if _is_empty_list
+                else "{}" if _is_empty_dict else "()" if _is_empty_tuple else "set()"
             )
             return self.create_issue_from_node(
                 node,

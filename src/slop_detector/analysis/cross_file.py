@@ -268,7 +268,7 @@ class CrossFileAnalyzer:
             if neighbor not in visited:
                 self._dfs(neighbor, graph, visited, rec_stack, path, cycles)
             elif neighbor in rec_stack:
-                cycle_nodes = tuple(path[path.index(neighbor):])
+                cycle_nodes = tuple(path[path.index(neighbor) :])
                 if len(cycle_nodes) >= 2:
                     cycles.append(ImportCycle(cycle=cycle_nodes))
         path.pop()
@@ -313,9 +313,15 @@ class CrossFileAnalyzer:
                         continue
                     seen_pairs.add(pair)
                     duplicates.append(
-                        DuplicateBlock(file_a=fa, func_a=na, line_a=la,
-                                       file_b=fb, func_b=nb, line_b=lb,
-                                       similarity=1.0)
+                        DuplicateBlock(
+                            file_a=fa,
+                            func_a=na,
+                            line_a=la,
+                            file_b=fb,
+                            func_b=nb,
+                            line_b=lb,
+                            similarity=1.0,
+                        )
                     )
                     if len(duplicates) >= 50:
                         return duplicates
