@@ -24,7 +24,8 @@ import importlib.util
 import logging
 import re
 import sys
-from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Union
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -981,7 +982,7 @@ class FunctionClonePattern(BasePattern):
                 pattern_id=self.id,
                 severity=sev,
                 axis=self.axis,
-                file=str(file) if file else "",
+                file=Path(str(file)) if file else Path(),
                 line=1,
                 column=0,
                 message=msg,
@@ -1053,7 +1054,9 @@ class PlaceholderVariableNamingPattern(BasePattern):
                 issues.extend(self._check_function(node, file))
         return issues
 
-    def _check_function(self, node: ast.FunctionDef, file: Any) -> List[Issue]:
+    def _check_function(
+        self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef], file: Any
+    ) -> List[Issue]:
         found: List[Issue] = []
 
         # --- Check 1: single-letter parameter count ---
