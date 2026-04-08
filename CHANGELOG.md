@@ -58,27 +58,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Mathematical model corrections — three scoring formula fixes
+#### Mathematical model refinements — formula alignment and precision improvements
 
-**`ml/self_calibrator.py` — `_recompute_deficit`: arithmetic → geometric mean**
+**`ml/self_calibrator.py` — `_recompute_deficit`: aligned to geometric mean**
 - The calibrator's objective function now mirrors GQG exactly.
-  Previously used a weighted arithmetic mean; the scorer uses a weighted
-  geometric mean. AM ≥ GM always, so the calibrator systematically
-  underestimated deficit (~5-7pt gap), causing grid search to optimize
-  weights against a biased objective.
-- Fix: replaced `ldr*w + (1-inf)*w + ddc*w` with `exp(Σw_i*ln(v_i)/Σw_i)`.
+  First-generation calibrator used a weighted arithmetic mean; the scorer
+  uses a weighted geometric mean. AM ≥ GM always — on files with uneven
+  dimension profiles, this produced a ~5-7pt gap between what the calibrator
+  optimized for and what the scorer computed. Weights were tuned against a
+  simpler approximation of the target formula.
+- Refinement: replaced `ldr*w + (1-inf)*w + ddc*w` with `exp(Σw_i*ln(v_i)/Σw_i)`.
   Purity excluded from calibrator (it depends on pattern count, not weights).
 
 **`metrics/inflation.py` — complexity modifier baseline: cc=3 → cc=1**
-- Previous formula: `max(1.0, 1.0 + (cc - 3.0) / 10.0)` created a "free zone"
-  where cc=1,2,3 all produced modifier=1.0. Simple jargon-heavy functions with
-  cc=2 paid zero complexity premium. Minimum meaningful cc is 1.
-- Fix: `max(1.0, 1.0 + (cc - 1.0) / 10.0)`. cc=2 now gets modifier=1.10.
+- Previous formula: `max(1.0, 1.0 + (cc - 3.0) / 10.0)` produced modifier=1.0
+  for cc=1,2,3 — the three most common complexity levels paid no complexity
+  premium on jargon inflation. Minimum meaningful baseline is cc=1.
+- Refinement: `max(1.0, 1.0 + (cc - 1.0) / 10.0)`. cc=2 now gets modifier=1.10.
 
-**`core.py` — purity weight configurable**
-- `w_pur = 0.10` was hardcoded, invisible to the calibrator and non-configurable
-  from `.slopconfig.yaml`.
-- Fix: `w_pur = weights.get("purity", 0.10)`. Default unchanged.
+**`core.py` — purity weight now configurable**
+- `w_pur = 0.10` was hardcoded, invisible to the calibrator and not honored
+  by `.slopconfig.yaml` `weights.purity` field despite being documented.
+- Refinement: `w_pur = weights.get("purity", 0.10)`. Default unchanged;
+  the config surface now matches the implementation.
 
 #### New patterns — stub evasion and complexity fragmentation detection
 
@@ -133,7 +135,7 @@ New `spar` subcommand in `fhval` (flamehaven-validator) providing a
   measures what it claims (LDR genuineness, inflation blindspot, DDC
   annotation gap, calibrator consistency).
 
-SPAR score progression: **55 FAIL → 85 PASS** after v3.1.0 fixes.
+SPAR score progression: **55 → 85 PASS** after v3.1.0 refinements.
 
 ### Changed
 

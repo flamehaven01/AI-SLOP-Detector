@@ -73,7 +73,7 @@ uvx ai-slop-detector mycode.py
 
 ## What's New in v3.1.1
 
-Hotfix release addressing two issues reported after v3.1.0.
+Patch release with visibility improvements and UX refinements reported after v3.1.0.
 
 **Clone Detection now visible in Core Metrics**
 
@@ -115,15 +115,16 @@ Analysis are trimmed to the first 3 terms + "+N more" to prevent overflow.
 
 ## What's New in v3.1.0
 
-### Mathematical model corrections
+### Mathematical model refinements
 
-Three scoring formula fixes that improve calibrator-scorer consistency and
-close known evasion blind spots:
+Three formula refinements that align the calibrator and scorer to the same
+objective and close known detection gaps:
 
 **Calibrator geometric mean** (`ml/self_calibrator.py`): The self-calibration
 engine now uses the same weighted geometric mean (GQG) as the scorer. The
-previous arithmetic mean caused the calibrator to underestimate deficit by
-~5-7pt, biasing weight grid search.
+first-generation calibrator used an arithmetic mean — a simpler approximation
+that produced a ~5-7pt gap on files with uneven dimension profiles, where
+weights were being optimized against a different formula than the scorer used.
 
 **Complexity modifier baseline** (`metrics/inflation.py`): The jargon density
 penalty multiplier now activates from cc=1 (simplest function) instead of cc=3.
