@@ -114,7 +114,7 @@ class StubDensityResult:
 # ---------------------------------------------------------------------------
 
 
-def _node_histogram(func_node: ast.FunctionDef) -> List[float]:
+def _node_histogram(func_node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> List[float]:
     """Normalized 30-dim AST node-type histogram for a single function body."""
     counts = [0.0] * _NDIM
     for node in ast.walk(func_node):
@@ -144,7 +144,7 @@ def _jsd(p: List[float], q: List[float]) -> float:
 # ---------------------------------------------------------------------------
 
 
-def _is_stub_body(func: ast.FunctionDef) -> bool:
+def _is_stub_body(func: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
     """True if function body is a placeholder with no real computation.
 
     A stub is a function whose body (excluding docstring) is exactly one of:
@@ -195,7 +195,7 @@ def _is_stub_body(func: ast.FunctionDef) -> bool:
 
 
 def _find_largest_clone_group(
-    funcs: List[ast.FunctionDef],
+    funcs: List[Union[ast.FunctionDef, ast.AsyncFunctionDef]],
 ) -> Tuple[int, List[str]]:
     """Find the largest group of near-identical functions by AST JSD.
 
@@ -278,7 +278,7 @@ def calculate_stub_density(source: str) -> Optional[StubDensityResult]:
 
     # Clone detection only meaningful for files with >= MIN_FUNCTIONS_FOR_CLONE
     if total >= _MIN_FUNCTIONS_FOR_CLONE:
-        clone_size, clone_names = _find_largest_clone_group(list(all_funcs))  # type: ignore[arg-type]
+        clone_size, clone_names = _find_largest_clone_group(list(all_funcs))
     else:
         clone_size, clone_names = 0, []
 
