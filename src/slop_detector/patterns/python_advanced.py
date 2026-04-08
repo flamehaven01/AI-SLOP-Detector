@@ -214,6 +214,41 @@ class GodFunctionPattern(BasePattern):
                 return cc, ln
         return self.complexity_threshold, self.lines_threshold
 
+    def _make_god_issue(
+        self,
+        file: Path,
+        node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
+        start: int,
+        logic_lines: int,
+        complexity: int,
+        ln_limit: int,
+        cc_limit: int,
+        is_too_long: bool,
+        is_too_complex: bool,
+    ) -> Issue:
+        reasons = []
+        if is_too_long:
+            reasons.append(f"{logic_lines} logic lines (limit {ln_limit})")
+        if is_too_complex:
+            reasons.append(f"complexity={complexity} (limit {cc_limit})")
+        if is_too_complex:
+            sev = Severity.HIGH
+        elif is_too_long and complexity <= 5:
+            sev = Severity.LOW
+        else:
+            sev = Severity.MEDIUM
+        return self.create_issue(
+            file=file,
+            line=start,
+            column=node.col_offset,
+            message=f"God function '{node.name}': {', '.join(reasons)}",
+            suggestion=(
+                "Break into smaller single-responsibility functions. "
+                "Each function should do one thing and fit on one screen."
+            ),
+            severity_override=sev,
+        )
+
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
         lines = content.splitlines()
@@ -237,35 +272,17 @@ class GodFunctionPattern(BasePattern):
             is_too_complex = complexity > cc_limit
 
             if is_too_long or is_too_complex:
-                reasons = []
-                if is_too_long:
-                    reasons.append(f"{logic_lines} logic lines (limit {ln_limit})")
-                if is_too_complex:
-                    reasons.append(f"complexity={complexity} (limit {cc_limit})")
-
-                # P2: Split severity — long-but-simple is a different problem than complex.
-                # Physics pipelines / orchestrators are legitimately long with low branching.
-                # Only flag HIGH when complexity is genuinely elevated.
-                if is_too_complex:
-                    # High complexity is always a structural problem
-                    sev = Severity.HIGH
-                elif is_too_long and complexity <= 5:
-                    # Long but sequential — pipeline/orchestrator pattern; informational only
-                    sev = Severity.LOW
-                else:
-                    sev = Severity.MEDIUM
-
                 issues.append(
-                    self.create_issue(
-                        file=file,
-                        line=start,
-                        column=node.col_offset,
-                        message=(f"God function '{node.name}': {', '.join(reasons)}"),
-                        suggestion=(
-                            "Break into smaller single-responsibility functions. "
-                            "Each function should do one thing and fit on one screen."
-                        ),
-                        severity_override=sev,
+                    self._make_god_issue(
+                        file,
+                        node,
+                        start,
+                        logic_lines,
+                        complexity,
+                        ln_limit,
+                        cc_limit,
+                        is_too_long,
+                        is_too_complex,
                     )
                 )
 
@@ -1004,6 +1021,24 @@ _NUMBERED_SEQ_HIGH = 8  # >= N sequential numbered vars -> HIGH
 _NUMBERED_SEQ_MED = 4  # >= N sequential numbered vars -> MEDIUM
 
 
+def _collect_numbered_vars(
+    node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
+) -> dict:
+    """Return {prefix: [nums]} for all numbered assignment targets in node."""
+    numbered: dict = {}
+    for stmt in ast.walk(node):
+        if not isinstance(stmt, ast.Assign):
+            continue
+        for target in stmt.targets:
+            if not isinstance(target, ast.Name):
+                continue
+            m = re.match(r"^([a-zA-Z_][a-zA-Z_]*)(\d+)$", target.id)
+            if m:
+                prefix, num = m.group(1), int(m.group(2))
+                numbered.setdefault(prefix, []).append(num)
+    return numbered
+
+
 def _max_consecutive_run(nums: list) -> int:
     """Length of the longest consecutive integer run in a sorted list."""
     if not nums:
@@ -1086,15 +1121,7 @@ class PlaceholderVariableNamingPattern(BasePattern):
             )
 
         # --- Check 2: sequential numbered variable pattern ---
-        numbered: dict = {}
-        for stmt in ast.walk(node):
-            if isinstance(stmt, ast.Assign):
-                for target in stmt.targets:
-                    if isinstance(target, ast.Name):
-                        m = re.match(r"^([a-zA-Z_][a-zA-Z_]*)(\d+)$", target.id)
-                        if m:
-                            prefix, num = m.group(1), int(m.group(2))
-                            numbered.setdefault(prefix, []).append(num)
+        numbered = _collect_numbered_vars(node)
 
         for prefix, nums in numbered.items():
             run = _max_consecutive_run(sorted(set(nums)))
