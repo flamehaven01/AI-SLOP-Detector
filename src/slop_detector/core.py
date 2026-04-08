@@ -465,7 +465,7 @@ class SlopDetector:
         w_ldr = weights.get("ldr", 0.40)
         w_inf = weights.get("inflation", 0.30)
         w_ddc = weights.get("ddc", 0.20)
-        w_pur = 0.10  # purity: fixed weight, not configurable per file
+        w_pur = weights.get("purity", 0.10)  # configurable; default 0.10
 
         total_w = w_ldr + w_inf + w_ddc + w_pur
         gqg = exp(

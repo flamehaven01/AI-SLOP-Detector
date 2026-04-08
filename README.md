@@ -11,7 +11,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-188%20passed-brightgreen.svg?v=3.0.3" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-188%20passed-brightgreen.svg?v=3.1.0" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-82%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
@@ -31,6 +31,7 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 
 **Navigation:**
 [Quick Start](#quick-start) •
+[What's New v3.1.0](#whats-new-in-v310) •
 [What's New v3.0.2](#whats-new-in-v302) •
 [What's New v3.0.0](#whats-new-in-v300) •
 [What It Detects](#what-it-detects) •
@@ -66,6 +67,99 @@ uvx ai-slop-detector mycode.py
 <p align="center">
   <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
 </p>
+
+---
+
+## What's New in v3.1.0
+
+### Mathematical model corrections
+
+Three scoring formula fixes that improve calibrator-scorer consistency and
+close known evasion blind spots:
+
+**Calibrator geometric mean** (`ml/self_calibrator.py`): The self-calibration
+engine now uses the same weighted geometric mean (GQG) as the scorer. The
+previous arithmetic mean caused the calibrator to underestimate deficit by
+~5-7pt, biasing weight grid search.
+
+**Complexity modifier baseline** (`metrics/inflation.py`): The jargon density
+penalty multiplier now activates from cc=1 (simplest function) instead of cc=3.
+Functions with cc=2 now correctly receive a 1.10× complexity premium for jargon.
+
+**Purity weight configurable** (`core.py`): `w_pur` is now readable from
+`.slopconfig.yaml` via `weights.purity` (default: 0.10 unchanged).
+
+### Three new adversarial patterns
+
+These patterns close specific evasion cases validated by fhval SPAR-Code:
+
+| Pattern | Targets | Severity |
+|---|---|---|
+| `return_constant_stub` (extended) | `return {}`, `return []`, `return ()` | HIGH |
+| `function_clone_cluster` | N structurally identical helpers (fragmented god function) | CRITICAL/HIGH |
+| `placeholder_variable_naming` | ≥5 single-letter params; r1,r2...rN sequences | HIGH/MEDIUM |
+
+**SPAR-Code score: 55 (FAIL) → 85 (PASS)** — all three previously-evading
+adversarial cases are now detected.
+
+#### `function_clone_cluster` — DI2/AST clone detection
+
+A god function split into N one-liner helpers evades `god_function` and
+`nested_complexity` entirely (no single function exceeds thresholds).
+v3.1.0 detects this at the file level:
+
+```
+For each function: compute 30-dim AST node-type histogram
+Pairwise JSD between all function pairs
+BFS connected components on (JSD < 0.05) graph
+Largest component >= 6 -> CRITICAL
+```
+
+```
+# Before v3.1.0: deficit = 0.0 (completely evaded)
+def _h1(x): return x + 1
+def _h2(x): return x + 2
+...
+def _h12(x): return x + 12
+def process(x): return _h12(_h11(_h10(..._h1(x)...)))
+
+# After v3.1.0: CRITICAL function_clone_cluster (deficit = 14.4)
+# "12 structurally near-identical functions detected (AST JSD < 0.05)"
+```
+
+#### `placeholder_variable_naming` — naming pattern detection (v1.0)
+
+```
+# Before v3.1.0: deficit = 0.0 (inflation=0, no buzzwords)
+def process(a, b, c, d, e, f, g):
+    r1 = a + b
+    r2 = c - d
+    ...r12 = r11 + r6
+    return r12
+
+# After v3.1.0: 2x HIGH (deficit = 10.0)
+# "7 single-letter parameters" + "12 sequential numbered variables (r1..r12)"
+```
+
+**Scope note:** v1.0 detects naming *style*, not semantic quality. Math/science
+libraries using single-letter conventions should configure `domain_overrides`
+or add to `.slopconfig.yaml` ignore list.
+
+### fhval SPAR-Code feedback loop
+
+`fhval spar` — new subcommand providing 3-layer adversarial validation:
+
+```bash
+cd your-project
+fhval spar                    # full report
+fhval spar --layer a          # ground truth anchors only
+fhval spar --layer c          # existence probes only
+fhval spar --json             # machine-readable output
+```
+
+Layer A checks that known code patterns produce expected deficit ranges.
+Regression: if a future change makes `clean_trivial` score > 15, SPAR fails.
+Layer C probes whether each metric is measuring what it claims.
 
 ---
 

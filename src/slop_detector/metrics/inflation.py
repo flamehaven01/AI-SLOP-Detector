@@ -156,8 +156,10 @@ class InflationCalculator:
         if logic_lines == 0:
             return float("inf") if effective_jargon > 0 else 0.0
         jargon_density = effective_jargon / logic_lines
-        # complexity_modifier >= 1.0: complex code pays premium for jargon
-        complexity_modifier = max(1.0, 1.0 + (avg_complexity - 3.0) / 10.0)
+        # complexity_modifier >= 1.0: complex code pays premium for jargon.
+        # Baseline cc=1.0 (simplest possible function); cc=3 was a free zone where
+        # jargon carried no complexity penalty — corrected to cc=1 minimum.
+        complexity_modifier = max(1.0, 1.0 + (avg_complexity - 1.0) / 10.0)
         return min(jargon_density * complexity_modifier * 10.0, 10.0)
 
     def _calculate_avg_complexity(self, content: str, tree: ast.AST) -> float:

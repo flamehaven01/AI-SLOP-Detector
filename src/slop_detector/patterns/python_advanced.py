@@ -912,3 +912,205 @@ class PhantomImportPattern(BasePattern):
             ),
             severity_override=Severity.CRITICAL,
         )
+
+
+# ------------------------------------------------------------------
+# v3.1.0: Function Clone Detection
+# ------------------------------------------------------------------
+
+
+class FunctionClonePattern(BasePattern):
+    """Detect files where many functions have near-identical AST structure.
+
+    Addresses the complexity_hidden_in_helpers evasion (SPAR A4):
+    A god function split into N structurally identical helpers evades all
+    per-function pattern gates, but produces a measurable signal at the
+    file level: a large cluster of near-identical function AST distributions.
+
+    Algorithm: pairwise Jensen-Shannon Divergence on 30-dim AST node-type
+    histograms. Functions with JSD < 0.05 form clone groups (BFS components).
+    Ported and adapted from Protocol-ReGenesis-Engine src/core/math_models.py
+    (which itself ports Flamehaven-TOE v4.5.0 toe/math/di2.py).
+
+    Thresholds (calibrated against SPAR A4 ground truth):
+      >= 6 clones: HIGH   (complexity_hidden_in_helpers fires at 12 helpers)
+      >= 4 clones: MEDIUM (borderline — document but don't over-penalize)
+    """
+
+    id = "function_clone_cluster"
+    severity = Severity.HIGH
+    axis = Axis.STRUCTURE
+
+    def check(self, tree: ast.AST, file: Any, content: str) -> List[Issue]:
+        from slop_detector.metrics.stub_density import (
+            _CLONE_HIGH_THRESHOLD,
+            _CLONE_MED_THRESHOLD,
+            _MIN_FUNCTIONS_FOR_CLONE,
+            calculate_stub_density,
+        )
+
+        result = calculate_stub_density(content)
+        if result is None or result.total_functions < _MIN_FUNCTIONS_FOR_CLONE:
+            return []
+
+        if result.max_clone_group < _CLONE_MED_THRESHOLD:
+            return []
+
+        clone_size = result.max_clone_group
+        names_preview = ", ".join(result.clone_group_names[:6])
+        if len(result.clone_group_names) > 6:
+            names_preview += f", ... (+{len(result.clone_group_names) - 6} more)"
+
+        if clone_size >= _CLONE_HIGH_THRESHOLD:
+            sev = Severity.CRITICAL
+            msg = (
+                f"{clone_size} structurally near-identical functions detected "
+                f"(AST JSD < 0.05): {names_preview}. "
+                f"Possible god function fragmented into helpers to evade per-function gates."
+            )
+        else:
+            sev = Severity.HIGH
+            msg = (
+                f"{clone_size} structurally similar functions detected "
+                f"(AST JSD < 0.05): {names_preview}. "
+                f"Review for unnecessary decomposition."
+            )
+
+        return [
+            Issue(
+                pattern_id=self.id,
+                severity=sev,
+                axis=self.axis,
+                file=str(file) if file else "",
+                line=1,
+                column=0,
+                message=msg,
+                suggestion=(
+                    "If these functions represent a fragmented complex operation, "
+                    "consider consolidating or using a data-driven dispatch table."
+                ),
+            )
+        ]
+
+
+# ------------------------------------------------------------------
+# v3.1.0: Placeholder Variable Naming Detection
+# ------------------------------------------------------------------
+
+# Thresholds (v1.0 — first version, built to improve over time)
+_PLACEHOLDER_PARAM_THRESHOLD = 5    # >= N single-letter params -> HIGH
+_NUMBERED_SEQ_HIGH = 8              # >= N sequential numbered vars -> HIGH
+_NUMBERED_SEQ_MED = 4               # >= N sequential numbered vars -> MEDIUM
+
+
+def _max_consecutive_run(nums: list) -> int:
+    """Length of the longest consecutive integer run in a sorted list."""
+    if not nums:
+        return 0
+    best = cur = 1
+    for i in range(1, len(nums)):
+        if nums[i] == nums[i - 1] + 1:
+            cur += 1
+            best = max(best, cur)
+        else:
+            cur = 1
+    return best
+
+
+class PlaceholderVariableNamingPattern(BasePattern):
+    """Detect systematic placeholder variable naming in function bodies.
+
+    Two sub-checks:
+
+    1. High single-letter parameter count.
+       Real functions name parameters after what they represent.
+       Having >= 5 single-letter params (a,b,c,d,e,f,g...) is a strong
+       indicator of AI-generated placeholder code.
+
+       Exclusions: self, cls, _ (underscore).
+       Known false positive zones: matrix/tensor ops (configure with
+       domain_overrides or --config ignore to suppress).
+
+    2. Sequential numbered variable pattern.
+       Variables named r1,r2,r3... / x1,x2,x3... / temp1,temp2... indicate
+       code generated without semantic naming. >= 4 in sequence -> MEDIUM,
+       >= 8 in sequence -> HIGH.
+
+    v1.0 design note: This is a first version intentionally.
+    The tool detects naming STYLE, not semantic quality.
+    The signal is strong enough to flag obvious cases.
+    Future versions can refine with context-aware heuristics.
+    """
+
+    id = "placeholder_variable_naming"
+    severity = Severity.HIGH
+    axis = Axis.QUALITY
+
+    def check(self, tree: ast.AST, file: Any, content: str) -> List[Issue]:
+        issues: List[Issue] = []
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                issues.extend(self._check_function(node, file))
+        return issues
+
+    def _check_function(self, node: ast.FunctionDef, file: Any) -> List[Issue]:
+        found: List[Issue] = []
+
+        # --- Check 1: single-letter parameter count ---
+        all_args = (
+            [a.arg for a in node.args.args]
+            + [a.arg for a in node.args.posonlyargs]
+            + [a.arg for a in node.args.kwonlyargs]
+        )
+        semantic_args = [a for a in all_args if a not in ("self", "cls", "_")]
+        single_letter = [a for a in semantic_args if len(a) == 1]
+
+        if len(single_letter) >= _PLACEHOLDER_PARAM_THRESHOLD:
+            preview = ", ".join(single_letter[:8])
+            found.append(self.create_issue_from_node(
+                node,
+                file,
+                message=(
+                    f"Function '{node.name}' has {len(single_letter)} single-letter "
+                    f"parameters ({preview}) -- placeholder naming pattern"
+                ),
+                suggestion=(
+                    "Use semantic parameter names that describe the data they represent. "
+                    "For math/science code, suppress with domain_overrides in .slopconfig.yaml."
+                ),
+            ))
+
+        # --- Check 2: sequential numbered variable pattern ---
+        numbered: dict = {}
+        for stmt in ast.walk(node):
+            if isinstance(stmt, ast.Assign):
+                for target in stmt.targets:
+                    if isinstance(target, ast.Name):
+                        m = re.match(r"^([a-zA-Z_][a-zA-Z_]*)(\d+)$", target.id)
+                        if m:
+                            prefix, num = m.group(1), int(m.group(2))
+                            numbered.setdefault(prefix, []).append(num)
+
+        for prefix, nums in numbered.items():
+            run = _max_consecutive_run(sorted(set(nums)))
+            if run < _NUMBERED_SEQ_MED:
+                continue
+            sev = Severity.HIGH if run >= _NUMBERED_SEQ_HIGH else Severity.MEDIUM
+            found.append(self.create_issue(
+                file=file,
+                line=getattr(node, "lineno", 0),
+                column=getattr(node, "col_offset", 0),
+                message=(
+                    f"Function '{node.name}' uses {run} sequential numbered variables "
+                    f"({prefix}1..{prefix}{run}) -- placeholder naming pattern"
+                ),
+                suggestion=(
+                    "Use semantic variable names that describe the computation. "
+                    "Sequential numbered variables (r1, r2, r3...) indicate "
+                    "generated or draft code."
+                ),
+                severity_override=sev,
+            ))
+            break  # one numbered-var issue per function is enough
+
+        return found

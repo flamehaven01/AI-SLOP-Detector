@@ -395,6 +395,25 @@ class ReturnConstantStubPattern(ASTPattern):
                 suggestion="Implement meaningful logic or remove the function",
             )
 
+        # Flag: return <empty container>  ([], {}, (), set())
+        _is_empty_list = isinstance(stmt.value, ast.List) and not stmt.value.elts
+        _is_empty_dict = isinstance(stmt.value, ast.Dict) and not stmt.value.keys
+        _is_empty_tuple = isinstance(stmt.value, ast.Tuple) and not stmt.value.elts
+        _is_empty_set = isinstance(stmt.value, ast.Set) and not stmt.value.elts
+        if _is_empty_list or _is_empty_dict or _is_empty_tuple or _is_empty_set:
+            container_type = (
+                "[]" if _is_empty_list
+                else "{}" if _is_empty_dict
+                else "()" if _is_empty_tuple
+                else "set()"
+            )
+            return self.create_issue_from_node(
+                node,
+                file,
+                message=f"Function '{node.name}' returns empty {container_type} - likely stub",
+                suggestion="Implement meaningful logic or remove the function",
+            )
+
         return None
 
 
@@ -443,6 +462,12 @@ class InterfaceOnlyClassPattern(ASTPattern):
                         and isinstance(stmt.value, ast.Name)
                         and stmt.value.id in ("self", "cls")
                     )
+                    _is_return_empty_container = isinstance(stmt, ast.Return) and (
+                        (isinstance(stmt.value, ast.List) and not stmt.value.elts)
+                        or (isinstance(stmt.value, ast.Dict) and not stmt.value.keys)
+                        or (isinstance(stmt.value, ast.Tuple) and not stmt.value.elts)
+                        or (isinstance(stmt.value, ast.Set) and not stmt.value.elts)
+                    )
                     is_placeholder = (
                         isinstance(stmt, ast.Pass)
                         or (
@@ -456,6 +481,7 @@ class InterfaceOnlyClassPattern(ASTPattern):
                         )
                         or isinstance(stmt, ast.Raise)
                         or _is_return_self
+                        or _is_return_empty_container
                     )
                     if is_placeholder:
                         placeholder_methods += 1

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass, field
+from math import exp, log
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -288,12 +289,21 @@ class SelfCalibrator:
     ) -> float:
         """
         Recompute base deficit score with candidate weights.
-        Mirrors core.py _calculate_slop_score (metric component only).
+        Mirrors core.py _calculate_slop_score (metric component only, GQG geometric mean).
         Pattern penalties are orthogonal to weight calibration and excluded.
+        Purity is excluded: it depends on pattern count, not on ldr/inflation/ddc weights.
         """
         inflation_normalized = min(inflation, 2.0) / 2.0 if inflation != float("inf") else 1.0
-        base_quality = ldr * w_ldr + (1.0 - inflation_normalized) * w_inflation + ddc * w_ddc
-        return min(100.0, 100.0 * (1.0 - base_quality))
+        total_w = w_ldr + w_inflation + w_ddc
+        gqg = exp(
+            (
+                w_ldr * log(max(1e-4, ldr))
+                + w_inflation * log(max(1e-4, 1.0 - inflation_normalized))
+                + w_ddc * log(max(1e-4, ddc))
+            )
+            / total_w
+        )
+        return min(100.0, 100.0 * (1.0 - gqg))
 
     # ------------------------------------------------------------------
     # Scoring
