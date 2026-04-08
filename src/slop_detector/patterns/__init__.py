@@ -53,10 +53,12 @@ def get_all_patterns(
     from slop_detector.patterns.python_advanced import (  # v2.8.0+
         DeadCodePattern,
         DeepNestingPattern,
+        FunctionClonePattern,
         GodFunctionPattern,
         LintEscapePattern,
         NestedComplexityPattern,
         PhantomImportPattern,
+        PlaceholderVariableNamingPattern,
     )
     from slop_detector.patterns.structural import (
         BareExceptPattern,
@@ -106,4 +108,7 @@ def get_all_patterns(
         LintEscapePattern(),
         # v2.9.0
         PhantomImportPattern(),
+        # v3.1.0
+        FunctionClonePattern(),
+        PlaceholderVariableNamingPattern(),
     ]

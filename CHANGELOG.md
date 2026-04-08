@@ -7,6 +7,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.0] - 2026-04-08
+
+### Added
+
+#### Mathematical model corrections — three scoring formula fixes
+
+**`ml/self_calibrator.py` — `_recompute_deficit`: arithmetic → geometric mean**
+- The calibrator's objective function now mirrors GQG exactly.
+  Previously used a weighted arithmetic mean; the scorer uses a weighted
+  geometric mean. AM ≥ GM always, so the calibrator systematically
+  underestimated deficit (~5-7pt gap), causing grid search to optimize
+  weights against a biased objective.
+- Fix: replaced `ldr*w + (1-inf)*w + ddc*w` with `exp(Σw_i*ln(v_i)/Σw_i)`.
+  Purity excluded from calibrator (it depends on pattern count, not weights).
+
+**`metrics/inflation.py` — complexity modifier baseline: cc=3 → cc=1**
+- Previous formula: `max(1.0, 1.0 + (cc - 3.0) / 10.0)` created a "free zone"
+  where cc=1,2,3 all produced modifier=1.0. Simple jargon-heavy functions with
+  cc=2 paid zero complexity premium. Minimum meaningful cc is 1.
+- Fix: `max(1.0, 1.0 + (cc - 1.0) / 10.0)`. cc=2 now gets modifier=1.10.
+
+**`core.py` — purity weight configurable**
+- `w_pur = 0.10` was hardcoded, invisible to the calibrator and non-configurable
+  from `.slopconfig.yaml`.
+- Fix: `w_pur = weights.get("purity", 0.10)`. Default unchanged.
+
+#### New patterns — stub evasion and complexity fragmentation detection
+
+**`return_constant_stub` (extended) — empty container stubs**
+- `return {}`, `return []`, `return ()`, `return set()` now trigger
+  `return_constant_stub` alongside existing `return True/False/"string"/0` detection.
+- Same applies to `interface_only_class` placeholder check.
+
+**`function_clone_cluster` (new) — DI2-based AST clone detection**
+- Detects files where a large cluster of functions have near-identical AST
+  node-type distributions (pairwise JSD < 0.05).
+- Addresses the `complexity_hidden_in_helpers` adversarial evasion pattern:
+  a god function split into N structurally identical one-liners evades all
+  per-function gates (god_function, nested_complexity) but produces a measurable
+  file-level signal.
+- Thresholds: ≥ 6 clones → CRITICAL; ≥ 4 clones → HIGH.
+- Algorithm: 30-dim AST histogram per function → pairwise JSD →
+  BFS connected components. Ported and adapted from
+  Protocol-ReGenesis-Engine `src/core/math_models.py` (itself a Python port
+  of Flamehaven-TOE v4.5.0 `toe/math/di2.py`).
+- New module: `metrics/stub_density.py` — `_jsd()`, `_node_histogram()`,
+  `_find_largest_clone_group()`, `calculate_stub_density()`.
+
+**`placeholder_variable_naming` (new, v1.0) — naming pattern detection**
+- Two sub-checks:
+  1. High single-letter parameter count: ≥ 5 single-letter params (excluding
+     `self`, `cls`, `_`) → HIGH. E.g. `def process(a, b, c, d, e, f, g)`.
+  2. Sequential numbered variable pattern: ≥ 8 in sequence → HIGH;
+     ≥ 4 → MEDIUM. E.g. `r1, r2, r3 ... r12`.
+- Addresses `vocab_clean_meaningless` adversarial evasion: meaningful-vocabulary
+  code with zero semantic content evades all existing pattern gates, but
+  placeholder naming is structurally detectable.
+- v1.0 design note: detects naming **style**, not semantic quality. Known false
+  positive zone: math/science libraries using single-letter variable conventions.
+  Configure with `domain_overrides` or `--config ignore` to suppress.
+
+#### fhval — SPAR-Code subcommand (`fhval spar`)
+
+New `spar` subcommand in `fhval` (flamehaven-validator) providing a
+3-layer adversarial regression loop for the scoring model:
+
+- **Layer A** (ground truth anchors): 5 known code patterns with expected
+  deficit ranges. Any deviation = scoring model regression.
+  - `clean_trivial`: deficit ≤ 15 (regression guard)
+  - `extreme_jargon`: deficit ≥ 40 (regression guard)
+  - `stub_class_8_methods`: deficit ≥ 30 (was ANOMALY in v3.0.x)
+  - `fragmented_god_function`: deficit ≥ 10 (was ANOMALY in v3.0.x)
+  - `vocab_clean_meaningless`: deficit ≥ 8 (was ANOMALY in v3.0.x)
+- **Layer B** (peer challenges): 4 documented architectural limitations
+  with severity classification.
+- **Layer C** (existence probes): 4 probes testing whether each metric
+  measures what it claims (LDR genuineness, inflation blindspot, DDC
+  annotation gap, calibrator consistency).
+
+SPAR score progression: **55 FAIL → 85 PASS** after v3.1.0 fixes.
+
+### Changed
+
+- `patterns/__init__.py`: registered `FunctionClonePattern`,
+  `PlaceholderVariableNamingPattern`.
+
+### Notes
+
+- All 188 tests pass. No public API changes.
+- `vocab_clean_meaningless` SPAR check remains CONSISTENT via naming pattern
+  detection (v1.0). The deeper semantic gap (arithmetic with no meaning) is
+  documented in SPAR Layer C as a known scope limitation of static analysis.
+
+---
+
 ## [3.0.3] - 2026-04-08
 
 ### Changed
