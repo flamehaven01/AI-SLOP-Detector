@@ -11,7 +11,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-188%20passed-brightgreen.svg?v=3.1.0" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-188%20passed-brightgreen.svg?v=3.1.1" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-82%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
@@ -31,6 +31,7 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 
 **Navigation:**
 [Quick Start](#quick-start) •
+[What's New v3.1.1](#whats-new-in-v311) •
 [What's New v3.1.0](#whats-new-in-v310) •
 [What's New v3.0.2](#whats-new-in-v302) •
 [What's New v3.0.0](#whats-new-in-v300) •
@@ -67,6 +68,48 @@ uvx ai-slop-detector mycode.py
 <p align="center">
   <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
 </p>
+
+---
+
+## What's New in v3.1.1
+
+Hotfix release addressing two issues reported after v3.1.0.
+
+**Clone Detection now visible in Core Metrics**
+
+`function_clone_cluster` (added in v3.1.0) only fired in the Issues section.
+The Core Metrics table now includes a dedicated **Clone Detection** row:
+
+```
+┌─────────────────────────────── Core Metrics ────────────────────────────────┐
+│   LDR (Logic Density):                                      100.00% (S++)   │
+│   ICR (Inflation Check):                                      0.00 (PASS)   │
+│   DDC (Dependency Check):                             100.00% (EXCELLENT)   │
+│   Clone Detection:                                                   PASS   │  ← new
+└─────────────────────────────────────────────────────────────────────────────┘
+
+# When structural clones are detected:
+│   Clone Detection:              CRITICAL — structural duplicates detected   │
+```
+
+**Consistent table style across all project output**
+
+Project-level output previously mixed three Rich table box styles
+(`SIMPLE`, `MINIMAL_DOUBLE_HEAD`, `ROUNDED`). All tables now use
+`box.ROUNDED` with `header_style="bold cyan"`. Jargon entries in File
+Analysis are trimmed to the first 3 terms + "+N more" to prevent overflow.
+
+**VS Code extension (v3.1.1)**
+
+- `extractJson()`: strips `[INFO]` log lines before `JSON.parse` — prevents
+  parse failures when the CLI emits log output to stdout alongside JSON.
+- `recordHistory` setting now correctly passes `--no-history` to the CLI.
+- Summary diagnostic message includes Clone Detection signal.
+- Status bar tooltip uses null-safe metric access (`?.`) and shows Clone status.
+- **Workspace analysis**: replaced single-line notification with a scrollable
+  QuickPick list of deficit files sorted by score. Clicking a file opens it.
+- **History Trends**: replaced raw JSON dump with a formatted column table
+  (Runs / Latest / Best / Worst / Trend per file).
 
 ---
 
@@ -244,7 +287,7 @@ than add flat points on top of the metric score.
 | `ldr` | Logic Density Ratio | config (default 0.40) |
 | `inflation_q` | `1 - normalized_inflation` | config (default 0.30) |
 | `ddc` | Import usage ratio | config (default 0.20) |
-| `purity` | `exp(-0.5 * n_critical_patterns)` | fixed 0.10 |
+| `purity` | `exp(-0.5 * n_critical_patterns)` | configurable (default 0.10) |
 
 ---
 
@@ -424,14 +467,14 @@ Full spec: [docs/HISTORY_TRACKING.md](docs/HISTORY_TRACKING.md)
 
 ## What It Detects
 
-**25 patterns across 5 categories.** Full catalog: [docs/PATTERNS.md](docs/PATTERNS.md)
+**27 patterns across 5 categories.** Full catalog: [docs/PATTERNS.md](docs/PATTERNS.md)
 
 | Category | Patterns | Signal |
 |---|---|---|
-| **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
+| **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `return_constant_stub`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
 | **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement` | Anti-patterns |
 | **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_print`, `csharp_length`, `php_strlen` | Wrong-language syntax |
-| **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `lint_escape` | Structural complexity |
+| **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `lint_escape`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion patterns |
 | **Phantom** | `phantom_import` | Hallucinated packages |
 
 Beyond patterns, three metric axes are computed per file:
@@ -594,10 +637,21 @@ disabled_patterns:
 
 ## VS Code Extension
 
-Real-time inline diagnostics, debounced lint-on-type, ML score in status bar.
+Real-time inline diagnostics, debounced lint-on-type, ML score and Clone Detection in status bar.
+
+**Commands:** Analyze File · Analyze Workspace · Auto-Fix · Show Gate Decision · Cross-File Analysis · History Trends · Export History
+
+**Workspace Analysis** opens a scrollable QuickPick list of deficit files sorted by score. Click any file to open it directly. **History Trends** renders a formatted table (Runs / Latest / Best / Worst / Trend) in the Output panel instead of a raw JSON dump.
 
 Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector)
-or build locally: `cd vscode-extension && vsce package`
+or build locally:
+
+```bash
+cd vscode-extension
+npm install
+npx vsce package
+# → vscode-slop-detector-3.1.1.vsix
+```
 
 ---
 
