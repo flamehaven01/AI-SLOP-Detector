@@ -51,8 +51,10 @@ def list_patterns() -> None:
     print("=" * 80)
 
     by_category: Dict[str, List[BasePattern]] = {
-        "Structural Issues": [], "Placeholder Code": [],
-        "Cross-Language Patterns": [], "Python Advanced": [],
+        "Structural Issues": [],
+        "Placeholder Code": [],
+        "Cross-Language Patterns": [],
+        "Python Advanced": [],
     }
     for pattern in patterns:
         cat = _categorize_pattern(pattern)
@@ -384,14 +386,27 @@ def get_mitigation(issue_type: str, detail: str = "") -> str:
     return strategies.get(issue_type, "Review specific line for code quality improvements.")
 
 
-_PRODUCTION_CLAIMS_CLI: frozenset = frozenset({
-    "production-ready", "production ready",
-    "enterprise-grade", "enterprise grade",
-    "scalable", "fault-tolerant", "fault tolerant",
-})
+_PRODUCTION_CLAIMS_CLI: frozenset = frozenset(
+    {
+        "production-ready",
+        "production ready",
+        "enterprise-grade",
+        "enterprise grade",
+        "scalable",
+        "fault-tolerant",
+        "fault tolerant",
+    }
+)
 
-_INTEGRATION_MARKERS = ("integration", "e2e", "/it/", "\\it\\",
-                         "integration_tests", "test_integration", "integration_test")
+_INTEGRATION_MARKERS = (
+    "integration",
+    "e2e",
+    "/it/",
+    "\\it\\",
+    "integration_tests",
+    "test_integration",
+    "integration_test",
+)
 
 
 def _file_has_production_claims(f_res) -> bool:
@@ -405,8 +420,12 @@ def _file_has_production_claims(f_res) -> bool:
 def _collect_test_evidence_stats(file_results) -> dict:
     """Collect test evidence statistics from file results."""
     stats = {
-        "unit_test_files": 0, "integration_test_files": 0, "total_test_files": 0,
-        "unit_test_functions": 0, "integration_test_functions": 0, "total_test_functions": 0,
+        "unit_test_files": 0,
+        "integration_test_files": 0,
+        "total_test_files": 0,
+        "unit_test_functions": 0,
+        "integration_test_functions": 0,
+        "total_test_functions": 0,
         "has_production_claims": False,
     }
     for f_res in file_results:
@@ -414,8 +433,10 @@ def _collect_test_evidence_stats(file_results) -> dict:
             stats["has_production_claims"] = True
         file_path = str(f_res.file_path).lower()
         is_test_file = (
-            "test_" in file_path or "_test.py" in file_path
-            or "/tests/" in file_path or "\\tests\\" in file_path
+            "test_" in file_path
+            or "_test.py" in file_path
+            or "/tests/" in file_path
+            or "\\tests\\" in file_path
         )
         if not is_test_file:
             continue
@@ -799,6 +820,7 @@ def _run_optional_features(args, result) -> None:
 def _run_analysis_phase(args, detector):
     """Run file or project analysis. Returns (result, score)."""
     from typing import Union
+
     result: Union[ProjectAnalysis, FileAnalysis]
     if args.project:
         result = detector.analyze_project(args.path)

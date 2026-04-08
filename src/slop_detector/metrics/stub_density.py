@@ -42,8 +42,8 @@ _MIN_FUNCTIONS_FOR_CLONE = 5
 _CLONE_JSD_THRESHOLD = 0.05
 
 # Clone group size thresholds
-_CLONE_HIGH_THRESHOLD = 6   # >= 6 clones -> HIGH
-_CLONE_MED_THRESHOLD = 4    # >= 4 clones -> MEDIUM
+_CLONE_HIGH_THRESHOLD = 6  # >= 6 clones -> HIGH
+_CLONE_MED_THRESHOLD = 4  # >= 4 clones -> MEDIUM
 
 _EPS = 1e-12
 
@@ -51,22 +51,45 @@ _EPS = 1e-12
 # Selected for discriminating power between stub and computational code.
 _NODE_TYPES: List[str] = [
     # Definitions (structural)
-    "FunctionDef", "AsyncFunctionDef", "ClassDef",
+    "FunctionDef",
+    "AsyncFunctionDef",
+    "ClassDef",
     # Control flow (computational)
-    "For", "AsyncFor", "While", "If", "With", "AsyncWith",
-    "Break", "Continue", "Try", "ExceptHandler", "Assert",
+    "For",
+    "AsyncFor",
+    "While",
+    "If",
+    "With",
+    "AsyncWith",
+    "Break",
+    "Continue",
+    "Try",
+    "ExceptHandler",
+    "Assert",
     # Exceptions / generators
-    "Raise", "Yield", "YieldFrom",
+    "Raise",
+    "Yield",
+    "YieldFrom",
     # Assignments (computational)
-    "Assign", "AugAssign", "AnnAssign",
+    "Assign",
+    "AugAssign",
+    "AnnAssign",
     # Imports
-    "Import", "ImportFrom",
+    "Import",
+    "ImportFrom",
     # Expressions (computational)
-    "Call", "Attribute", "Subscript",
+    "Call",
+    "Attribute",
+    "Subscript",
     # Operators (computational)
-    "BoolOp", "BinOp", "UnaryOp", "Compare",
+    "BoolOp",
+    "BinOp",
+    "UnaryOp",
+    "Compare",
     # Terminal / stub indicators
-    "Return", "Pass", "Constant",
+    "Return",
+    "Pass",
+    "Constant",
 ]
 _NODE_INDEX: Dict[str, int] = {t: i for i, t in enumerate(_NODE_TYPES)}
 _NDIM = len(_NODE_TYPES)
@@ -81,8 +104,8 @@ _NDIM = len(_NODE_TYPES)
 class StubDensityResult:
     total_functions: int
     stub_functions: int
-    stub_ratio: float          # [0, 1]
-    max_clone_group: int       # largest cluster of near-identical functions
+    stub_ratio: float  # [0, 1]
+    max_clone_group: int  # largest cluster of near-identical functions
     clone_group_names: List[str]  # names in the largest clone cluster
 
 
@@ -130,7 +153,8 @@ def _is_stub_body(func: ast.FunctionDef) -> bool:
     - raise <anything>
     """
     body = [
-        s for s in func.body
+        s
+        for s in func.body
         if not (
             isinstance(s, ast.Expr)
             and isinstance(s.value, ast.Constant)
@@ -237,8 +261,7 @@ def calculate_stub_density(source: str) -> Optional[StubDensityResult]:
         return None
 
     all_funcs: List[ast.FunctionDef] = [
-        n for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+        n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
     ]
     total = len(all_funcs)
     if total == 0:

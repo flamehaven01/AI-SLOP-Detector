@@ -998,9 +998,9 @@ class FunctionClonePattern(BasePattern):
 # ------------------------------------------------------------------
 
 # Thresholds (v1.0 — first version, built to improve over time)
-_PLACEHOLDER_PARAM_THRESHOLD = 5    # >= N single-letter params -> HIGH
-_NUMBERED_SEQ_HIGH = 8              # >= N sequential numbered vars -> HIGH
-_NUMBERED_SEQ_MED = 4               # >= N sequential numbered vars -> MEDIUM
+_PLACEHOLDER_PARAM_THRESHOLD = 5  # >= N single-letter params -> HIGH
+_NUMBERED_SEQ_HIGH = 8  # >= N sequential numbered vars -> HIGH
+_NUMBERED_SEQ_MED = 4  # >= N sequential numbered vars -> MEDIUM
 
 
 def _max_consecutive_run(nums: list) -> int:
@@ -1067,18 +1067,20 @@ class PlaceholderVariableNamingPattern(BasePattern):
 
         if len(single_letter) >= _PLACEHOLDER_PARAM_THRESHOLD:
             preview = ", ".join(single_letter[:8])
-            found.append(self.create_issue_from_node(
-                node,
-                file,
-                message=(
-                    f"Function '{node.name}' has {len(single_letter)} single-letter "
-                    f"parameters ({preview}) -- placeholder naming pattern"
-                ),
-                suggestion=(
-                    "Use semantic parameter names that describe the data they represent. "
-                    "For math/science code, suppress with domain_overrides in .slopconfig.yaml."
-                ),
-            ))
+            found.append(
+                self.create_issue_from_node(
+                    node,
+                    file,
+                    message=(
+                        f"Function '{node.name}' has {len(single_letter)} single-letter "
+                        f"parameters ({preview}) -- placeholder naming pattern"
+                    ),
+                    suggestion=(
+                        "Use semantic parameter names that describe the data they represent. "
+                        "For math/science code, suppress with domain_overrides in .slopconfig.yaml."
+                    ),
+                )
+            )
 
         # --- Check 2: sequential numbered variable pattern ---
         numbered: dict = {}
@@ -1096,21 +1098,23 @@ class PlaceholderVariableNamingPattern(BasePattern):
             if run < _NUMBERED_SEQ_MED:
                 continue
             sev = Severity.HIGH if run >= _NUMBERED_SEQ_HIGH else Severity.MEDIUM
-            found.append(self.create_issue(
-                file=file,
-                line=getattr(node, "lineno", 0),
-                column=getattr(node, "col_offset", 0),
-                message=(
-                    f"Function '{node.name}' uses {run} sequential numbered variables "
-                    f"({prefix}1..{prefix}{run}) -- placeholder naming pattern"
-                ),
-                suggestion=(
-                    "Use semantic variable names that describe the computation. "
-                    "Sequential numbered variables (r1, r2, r3...) indicate "
-                    "generated or draft code."
-                ),
-                severity_override=sev,
-            ))
+            found.append(
+                self.create_issue(
+                    file=file,
+                    line=getattr(node, "lineno", 0),
+                    column=getattr(node, "col_offset", 0),
+                    message=(
+                        f"Function '{node.name}' uses {run} sequential numbered variables "
+                        f"({prefix}1..{prefix}{run}) -- placeholder naming pattern"
+                    ),
+                    suggestion=(
+                        "Use semantic variable names that describe the computation. "
+                        "Sequential numbered variables (r1, r2, r3...) indicate "
+                        "generated or draft code."
+                    ),
+                    severity_override=sev,
+                )
+            )
             break  # one numbered-var issue per function is enough
 
         return found
