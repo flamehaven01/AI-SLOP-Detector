@@ -107,9 +107,9 @@ def _build_rich_summary_tables(result):
     sc = "red" if result.overall_status != "clean" else "green"
     summary_table.add_row("Overall Status", f"[{sc}]{result.overall_status.upper()}[/{sc}]")
 
-    metrics_table = Table(title="Average Metrics", box=box.SIMPLE)
-    metrics_table.add_column("Metric")
-    metrics_table.add_column("Score")
+    metrics_table = Table(title="Average Metrics", box=box.ROUNDED, header_style="bold cyan")
+    metrics_table.add_column("Metric", style="cyan")
+    metrics_table.add_column("Score", justify="right")
     metrics_table.add_row("Deficit Score", f"{result.avg_deficit_score:.1f}/100")
     metrics_table.add_row("Weighted Score", f"{result.weighted_deficit_score:.1f}/100")
     metrics_table.add_row("LDR (Logic)", f"{result.avg_ldr:.2%}")
@@ -120,7 +120,9 @@ def _build_rich_summary_tables(result):
 
 def _build_rich_files_table(result):
     """Build and return the Rich Table for file-level analysis."""
-    files_table = Table(title="File Analysis", box=box.MINIMAL_DOUBLE_HEAD)
+    files_table = Table(
+        title="File Analysis", box=box.ROUNDED, header_style="bold cyan", show_lines=False
+    )
     for col, kw in [
         ("File", {"style": "bold"}),
         ("Status", {}),
@@ -128,17 +130,19 @@ def _build_rich_files_table(result):
         ("LDR", {"justify": "right"}),
         ("ICR", {"justify": "right"}),
         ("DDC", {"justify": "right"}),
-        ("Notes", {}),
+        ("Notes", {"style": "dim"}),
     ]:
         files_table.add_column(col, **kw)
     for fr in result.file_results:
         if fr.status == "clean":
             continue
-        ss = "red" if fr.status == "critical" else "yellow"
-        notes = [f"{len(fr.warnings)} Warnings"] if fr.warnings else []
+        ss = "red" if fr.status in ("critical", "critical_deficit") else "yellow"
+        notes = [f"{len(fr.warnings)} warnings"] if fr.warnings else []
         jc = sum(1 for d in fr.inflation.jargon_details if not d.get("justified"))
         if jc > 0:
-            notes.append(f"{jc} Jargon Terms")
+            preview = [d["word"] for d in fr.inflation.jargon_details if not d.get("justified")][:3]
+            suffix = f" +{jc - 3} more" if jc > 3 else ""
+            notes.append(f"{jc} jargon ({', '.join(preview)}{suffix})")
         files_table.add_row(
             Path(fr.file_path).name,
             f"[{ss}]{fr.status.upper()}[/{ss}]",
@@ -146,15 +150,8 @@ def _build_rich_files_table(result):
             f"{fr.ldr.ldr_score:.0%}",
             f"{fr.inflation.inflation_score:.2f}",
             f"{fr.ddc.usage_ratio:.0%}",
-            ", ".join(notes),
+            "\n".join(notes),
         )
-        if jc > 0:
-            jt = ", ".join(
-                f"{d['word']}(L{d['line']})"
-                for d in fr.inflation.jargon_details
-                if not d.get("justified")
-            )
-            files_table.add_row("", "", "", "", "", "", f"[dim]Jargon: {jt}[/dim]")
     return files_table
 
 
