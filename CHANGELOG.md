@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.1] - 2026-04-08
+
+### Fixed
+
+**Clone Detection visibility (hotfix for #issue)**
+- `function_clone_cluster` pattern results were only visible in the Issues section;
+  Core Metrics table showed no duplication signal.
+- Fix: added "Clone Detection:" row to the Core Metrics table in CLI output.
+  - Fires only when `function_clone_cluster` issue is present; CRITICAL/HIGH severity shown.
+  - Shows `PASS` (green) when no structural clone cluster is detected.
+  - No model changes; reads from existing `pattern_issues` list.
+
+**uv tooling**
+- Added `.python-version` and `uv.lock` to `.gitignore`.
+
+---
+
 ## [3.1.0] - 2026-04-08
 
 ### Added

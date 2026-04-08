@@ -258,6 +258,24 @@ def _build_metrics_table(result) -> "Table":
             f"[{ml_color}]{ml.slop_probability:.1%} [{ml.label.upper()}][/{ml_color}]",
         )
 
+    # Clone / structural duplication signal — surfaced from pattern_issues
+    clone_issues = [
+        i
+        for i in getattr(result, "pattern_issues", [])
+        if getattr(i, "pattern_id", None) == "function_clone_cluster"
+    ]
+    if clone_issues:
+        top = clone_issues[0]
+        sev = getattr(top, "severity", None)
+        sev_val = sev.value if sev is not None else ""
+        clone_color = "red" if sev_val == "critical" else "yellow"
+        t.add_row(
+            "Clone Detection:",
+            f"[{clone_color}]{sev_val.upper()} — structural duplicates detected[/{clone_color}]",
+        )
+    else:
+        t.add_row("Clone Detection:", "[green]PASS[/green]")
+
     return t
 
 
