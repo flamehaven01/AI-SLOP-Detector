@@ -40,6 +40,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **uv tooling**
 - Added `.python-version` and `uv.lock` to `.gitignore`.
 
+### Internal
+
+**Pattern refactoring (self-inspection driven)**
+- `placeholder.py`: extracted `_strip_docstring`, `_has_abstractmethod`,
+  `_empty_container_repr`, `_is_placeholder_stmt` as module-level helpers.
+  All `check_node` methods now delegate to helpers (8–15 lines each vs. 20–70).
+  Self-scan deficit score: 70.3 → 43.7.
+- `python_advanced.py`: added `_make_god_issue()` to `GodFunctionPattern`;
+  added `_collect_numbered_vars()` to reduce nesting depth in
+  `PlaceholderVariableNamingPattern`. Self-scan deficit score: 74.0 → 66.7.
+- No behavior changes; all 188 tests pass.
+
 ---
 
 ## [3.1.0] - 2026-04-08
