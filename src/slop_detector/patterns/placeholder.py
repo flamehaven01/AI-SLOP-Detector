@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ast
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from slop_detector.patterns.base import ASTPattern, Axis, Issue, RegexPattern, Severity
 
@@ -411,7 +411,9 @@ class InterfaceOnlyClassPattern(ASTPattern):
     axis = Axis.QUALITY
     message = "Class contains only abstract methods or placeholders"
 
-    def _count_placeholder_methods(self, methods: List[ast.FunctionDef]) -> int:
+    def _count_placeholder_methods(
+        self, methods: List[Union[ast.FunctionDef, ast.AsyncFunctionDef]]
+    ) -> int:
         """Count non-dunder methods whose body is a single placeholder statement."""
         count = 0
         for method in methods:
