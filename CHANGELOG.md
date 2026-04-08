@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shows `PASS` (green) when no structural clone cluster is detected.
   - No model changes; reads from existing `pattern_issues` list.
 
+**Table style unification (UX)**
+- Project-level output used three inconsistent table box styles
+  (`SIMPLE`, `MINIMAL_DOUBLE_HEAD`, `ROUNDED`). All tables now use
+  `box.ROUNDED` with `header_style="bold cyan"` for visual consistency.
+- Jargon entries in File Analysis Notes column now show first 3 terms
+  + "+N more" instead of the full list, preventing column overflow.
+- File Analysis Status severity color now covers `critical_deficit` variant.
+
 **uv tooling**
 - Added `.python-version` and `uv.lock` to `.gitignore`.
 
