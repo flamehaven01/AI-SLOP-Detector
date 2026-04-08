@@ -121,17 +121,27 @@ def _extract_imports(tree: ast.AST, file_path: Path, root: Path) -> Set[str]:
     """
     imported: Set[str] = set()
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module:
-            parts = node.module.split(".")
-            candidate = root / Path(*parts)
-            for ext in (".py",):
-                p = candidate.with_suffix(ext)
-                if p.exists():
-                    imported.add(str(p.resolve()))
-                p2 = candidate / "__init__.py"
-                if p2.exists():
-                    imported.add(str(p2.resolve()))
+        if not (isinstance(node, ast.ImportFrom) and node.module):
+            continue
+        candidate = root / Path(*node.module.split("."))
+        py_path = candidate.with_suffix(".py")
+        if py_path.exists():
+            imported.add(str(py_path.resolve()))
+        init_path = candidate / "__init__.py"
+        if init_path.exists():
+            imported.add(str(init_path.resolve()))
     return imported
+
+
+def _hash_function_body(func_node: ast.AST) -> str:
+    """SHA-256 of normalized function body (docstrings excluded)."""
+    body_lines = [
+        ast.dump(child)
+        for child in ast.walk(func_node)
+        if not (isinstance(child, ast.Expr) and isinstance(child.value, ast.Constant))
+        and hasattr(child, "lineno")
+    ]
+    return hashlib.sha256("\n".join(body_lines).encode()).hexdigest()
 
 
 def _extract_functions(tree: ast.AST) -> List[Tuple[str, int, str]]:
@@ -139,19 +149,11 @@ def _extract_functions(tree: ast.AST) -> List[Tuple[str, int, str]]:
     Extract (func_name, line_no, body_hash) from AST.
     Body hash: sha256 of normalized function body lines.
     """
-    funcs = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            body_lines = []
-            for child in ast.walk(node):
-                if isinstance(child, ast.Expr) and isinstance(child.value, ast.Constant):
-                    continue  # skip docstrings
-                if hasattr(child, "lineno"):
-                    body_lines.append(ast.dump(child))
-            body_str = "\n".join(body_lines)
-            body_hash = hashlib.sha256(body_str.encode()).hexdigest()
-            funcs.append((node.name, node.lineno, body_hash))
-    return funcs
+    return [
+        (node.name, node.lineno, _hash_function_body(node))
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    ]
 
 
 def _levenshtein_ratio(a: str, b: str) -> float:
@@ -249,36 +251,38 @@ class CrossFileAnalyzer:
 
         return report
 
+    def _dfs(
+        self,
+        node: str,
+        graph: Dict[str, Set[str]],
+        visited: Set[str],
+        rec_stack: Set[str],
+        path: List[str],
+        cycles: List[ImportCycle],
+    ) -> None:
+        """Single DFS step for import cycle detection."""
+        visited.add(node)
+        rec_stack.add(node)
+        path.append(node)
+        for neighbor in graph.get(node, set()):
+            if neighbor not in visited:
+                self._dfs(neighbor, graph, visited, rec_stack, path, cycles)
+            elif neighbor in rec_stack:
+                cycle_nodes = tuple(path[path.index(neighbor):])
+                if len(cycle_nodes) >= 2:
+                    cycles.append(ImportCycle(cycle=cycle_nodes))
+        path.pop()
+        rec_stack.discard(node)
+
     def _detect_cycles(self, graph: Dict[str, Set[str]]) -> List[ImportCycle]:
         """DFS-based cycle detection in import graph."""
         visited: Set[str] = set()
         rec_stack: Set[str] = set()
         cycles: List[ImportCycle] = []
         path: List[str] = []
-
-        def dfs(node: str) -> None:
-            visited.add(node)
-            rec_stack.add(node)
-            path.append(node)
-
-            for neighbor in graph.get(node, set()):
-                if neighbor not in visited:
-                    dfs(neighbor)
-                elif neighbor in rec_stack:
-                    # Found cycle: extract from path
-                    idx = path.index(neighbor)
-                    cycle_nodes = tuple(path[idx:])
-                    if len(cycle_nodes) >= 2:
-                        cycles.append(ImportCycle(cycle=cycle_nodes))
-
-            path.pop()
-            rec_stack.discard(node)
-
         for node in list(graph.keys()):
             if node not in visited:
-                dfs(node)
-
-        # Deduplicate cycles by frozenset of nodes
+                self._dfs(node, graph, visited, rec_stack, path, cycles)
         seen: Set[FrozenSet[str]] = set()
         unique: List[ImportCycle] = []
         for c in cycles:
@@ -286,26 +290,16 @@ class CrossFileAnalyzer:
             if key not in seen:
                 seen.add(key)
                 unique.append(c)
+        return unique[:20]
 
-        return unique[:20]  # cap at 20
-
-    def _detect_duplicates(
+    def _build_exact_duplicate_pairs(
         self,
-        func_cache: Dict[str, List[Tuple[str, int, str]]],
-        py_files: List[Path],
+        hash_index: Dict[str, List[Tuple[str, str, int]]],
     ) -> List[DuplicateBlock]:
-        """Detect near-identical functions across files."""
+        """Build DuplicateBlock list from exact-match hash groups (cap 50)."""
         duplicates: List[DuplicateBlock] = []
-
-        # Index by hash for exact duplicates first
-        hash_index: Dict[str, List[Tuple[str, str, int]]] = defaultdict(list)
-        for fpath, funcs in func_cache.items():
-            for fname, lineno, bhash in funcs:
-                if len(bhash) > 0:
-                    hash_index[bhash].append((fpath, fname, lineno))
-
         seen_pairs: Set[FrozenSet] = set()
-        for bhash, entries in hash_index.items():
+        for entries in hash_index.values():
             if len(entries) < 2:
                 continue
             for i in range(len(entries)):
@@ -319,20 +313,26 @@ class CrossFileAnalyzer:
                         continue
                     seen_pairs.add(pair)
                     duplicates.append(
-                        DuplicateBlock(
-                            file_a=fa,
-                            func_a=na,
-                            line_a=la,
-                            file_b=fb,
-                            func_b=nb,
-                            line_b=lb,
-                            similarity=1.0,
-                        )
+                        DuplicateBlock(file_a=fa, func_a=na, line_a=la,
+                                       file_b=fb, func_b=nb, line_b=lb,
+                                       similarity=1.0)
                     )
                     if len(duplicates) >= 50:
                         return duplicates
-
         return duplicates
+
+    def _detect_duplicates(
+        self,
+        func_cache: Dict[str, List[Tuple[str, int, str]]],
+        py_files: List[Path],
+    ) -> List[DuplicateBlock]:
+        """Detect near-identical functions across files."""
+        hash_index: Dict[str, List[Tuple[str, str, int]]] = defaultdict(list)
+        for fpath, funcs in func_cache.items():
+            for fname, lineno, bhash in funcs:
+                if bhash:
+                    hash_index[bhash].append((fpath, fname, lineno))
+        return self._build_exact_duplicate_pairs(hash_index)
 
     def _detect_hotspots(
         self,

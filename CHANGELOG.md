@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.3] - 2026-04-08
+
+### Changed
+
+#### Structural debt reduction — top-3 deficit files refactored (self-eating-own-dog-food)
+
+Self-scan before: avg_deficit=23.57, 15 deficit files, status=suspicious
+Self-scan after:  avg_deficit=20.33, 12 deficit files, status=**clean**
+
+**`analysis/cross_file.py`** — deficit 70.3 → 28.7 (critical_deficit → clean)
+- Extracted `_hash_function_body(func_node)` from `_extract_functions` — removes 4-deep nesting
+- Rewrote `_extract_imports` using early-continue; removed single-value `for ext in (".py",)` loop
+- Promoted nested `dfs()` closure to `_dfs(self, ...)` private method (was triggering nested_complexity as a closure inside `_detect_cycles`)
+- Extracted `_build_exact_duplicate_pairs(hash_index)` from `_detect_duplicates` — separates hash indexing from pair enumeration
+
+**`ci_gate.py`** — deficit 69.3 → 22.3 (inflated_signal → clean)
+- Extracted `_classify_files(result)` — removes file-classification loop from `_evaluate_project`
+- Added `_verdict_soft/hard/quarantine()` helpers — replaces 87-line if/elif/else mode dispatch with a dict-dispatch pattern; reduces `_evaluate_project` to ~20 lines
+- Extracted `_evaluate_file_quarantine(result, verdict)` — removes nested QUARANTINE branch from `_evaluate_file`
+- Extracted `_has_uncovered_production_claims(ctx_jargon)` — flattens the 4-deep loop in `_check_claims_evidence`
+- Replaced `for file_result in result.file_results: if ...: break` with `next()` in `_update_quarantine`
+- Moved production-claim strings to `_PRODUCTION_CLAIMS` class constant (was re-declared inline)
+
+**`cli.py`** — deficit 68.4 → 20.9 (inflated_signal → clean)
+- Extracted `_categorize_pattern(pattern) → str` — removes 4-branch if/elif from `list_patterns`
+- Extracted `_print_pattern_category(category, patterns)` — removes triple-nested print loop
+- Extracted `_file_has_production_claims(f_res)` — removes 4-deep evidence-detail loop from `_collect_test_evidence_stats`; moved shared production-claim set to `_PRODUCTION_CLAIMS_CLI` module constant
+- Extracted `_write_json_output(args, result)` — removes `if args.output:` nesting inside `if args.json:`
+- Extracted `_route_file_output(out, result, rich_ok)` — separates format routing from `_handle_output` dispatcher
+- Extracted `_run_analysis_phase(args, detector)` — removes inner `if args.project:` branch from `main`'s try block
+- Extracted `_text_file_lines(fr)` — removes 4-deep jargon-detail loop from `_text_project_section`; converts inner for-with-if to list comprehension
+
+**`.slopconfig.yaml`** — Rule-0 false-positive prevention
+- Added explicit `# RULE-0 NOTE` block documenting that `tests/corpus/` and `__init__.py` are intentional slop fixtures and packaging boilerplate respectively
+- Documents correct invocation: `--config .slopconfig.yaml` is required when running SIDRCE or slop-detector from project root
+
+All 188 tests pass. No public API changes.
+
+---
+
 ## [3.0.2] - 2026-03-15
 
 ### Fixed

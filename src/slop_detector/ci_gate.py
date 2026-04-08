@@ -122,82 +122,68 @@ class CIGate:
             return self._evaluate_project(cast(ProjectAnalysis, result))
         return self._evaluate_file(cast(FileAnalysis, result))
 
+    def _classify_files(
+        self, result: ProjectAnalysis
+    ) -> tuple[List[str], List[str], List[str]]:
+        """Classify file results into (failed, warned, quarantined) lists."""
+        failed, warned, quarantined = [], [], []
+        for file_result in result.file_results:
+            v = self._check_file_thresholds(file_result)
+            if v == GateVerdict.FAIL:
+                failed.append(file_result.file_path)
+            elif v == GateVerdict.WARN:
+                warned.append(file_result.file_path)
+            elif v == GateVerdict.QUARANTINE:
+                quarantined.append(file_result.file_path)
+        return failed, warned, quarantined
+
+    def _verdict_soft(
+        self, failed_files: List[str], warned_files: List[str]
+    ) -> tuple[GateVerdict, bool, str]:
+        verdict = GateVerdict.WARN if (failed_files or warned_files) else GateVerdict.PASS
+        return verdict, False, self._generate_soft_message(failed_files, warned_files)
+
+    def _verdict_hard(
+        self, failed_files: List[str], warned_files: List[str]
+    ) -> tuple[GateVerdict, bool, str]:
+        if failed_files:
+            return GateVerdict.FAIL, True, f"Build FAILED: {len(failed_files)} files exceed quality thresholds"
+        if warned_files:
+            return GateVerdict.WARN, False, f"Build WARNING: {len(warned_files)} files have quality issues"
+        return GateVerdict.PASS, False, "Build PASSED: All files meet quality standards"
+
+    def _verdict_quarantine(
+        self, result: ProjectAnalysis, failed_files: List[str], warned_files: List[str]
+    ) -> tuple[GateVerdict, bool, str]:
+        for file_path in failed_files:
+            self._update_quarantine(file_path, result)
+        escalated = [f for f in failed_files if self._should_escalate(f)]
+        if escalated:
+            return GateVerdict.FAIL, True, f"Build FAILED: {len(escalated)} repeat offenders exceeded thresholds"
+        if failed_files:
+            return GateVerdict.QUARANTINE, False, f"Build QUARANTINE: {len(failed_files)} files flagged, tracking violations"
+        if warned_files:
+            return GateVerdict.WARN, False, f"Build WARNING: {len(warned_files)} files have quality issues"
+        return GateVerdict.PASS, False, "Build PASSED: All files meet quality standards"
+
     def _evaluate_project(self, result: ProjectAnalysis) -> GateResult:
         """Evaluate project-level analysis."""
-        failed_files = []
-        warned_files = []
-        quarantined_files = []
-
-        # Check each file
-        for file_result in result.file_results:
-            file_verdict = self._check_file_thresholds(file_result)
-
-            if file_verdict == GateVerdict.FAIL:
-                failed_files.append(file_result.file_path)
-            elif file_verdict == GateVerdict.WARN:
-                warned_files.append(file_result.file_path)
-            elif file_verdict == GateVerdict.QUARANTINE:
-                quarantined_files.append(file_result.file_path)
-
-        # Determine overall verdict
-        if self.mode == GateMode.SOFT:
-            verdict = GateVerdict.WARN if (failed_files or warned_files) else GateVerdict.PASS
-            should_fail = False
-            message = self._generate_soft_message(failed_files, warned_files)
-
-        elif self.mode == GateMode.HARD:
-            if failed_files:
-                verdict = GateVerdict.FAIL
-                should_fail = True
-                message = f"Build FAILED: {len(failed_files)} files exceed quality thresholds"
-            elif warned_files:
-                verdict = GateVerdict.WARN
-                should_fail = False
-                message = f"Build WARNING: {len(warned_files)} files have quality issues"
-            else:
-                verdict = GateVerdict.PASS
-                should_fail = False
-                message = "Build PASSED: All files meet quality standards"
-
-        elif self.mode == GateMode.QUARANTINE:
-            # Update quarantine records
-            for file_path in failed_files:
-                self._update_quarantine(file_path, result)
-
-            # Check if any files should escalate to FAIL
-            escalated = [f for f in failed_files if self._should_escalate(f)]
-
-            if escalated:
-                verdict = GateVerdict.FAIL
-                should_fail = True
-                message = f"Build FAILED: {len(escalated)} repeat offenders exceeded thresholds"
-            elif failed_files:
-                verdict = GateVerdict.QUARANTINE
-                should_fail = False
-                message = (
-                    f"Build QUARANTINE: {len(failed_files)} files flagged, tracking violations"
-                )
-            elif warned_files:
-                verdict = GateVerdict.WARN
-                should_fail = False
-                message = f"Build WARNING: {len(warned_files)} files have quality issues"
-            else:
-                verdict = GateVerdict.PASS
-                should_fail = False
-                message = "Build PASSED: All files meet quality standards"
-
-            self._save_quarantine_db()
-
+        failed_files, warned_files, quarantined_files = self._classify_files(result)
+        mode_dispatch = {
+            GateMode.SOFT: lambda: self._verdict_soft(failed_files, warned_files),
+            GateMode.HARD: lambda: self._verdict_hard(failed_files, warned_files),
+            GateMode.QUARANTINE: lambda: self._verdict_quarantine(result, failed_files, warned_files),
+        }
+        dispatch_fn = mode_dispatch.get(self.mode)
+        if dispatch_fn:
+            verdict, should_fail, message = dispatch_fn()
         else:
-            verdict = GateVerdict.PASS
-            should_fail = False
-            message = "Unknown mode"
-
-        # Generate PR comment
+            verdict, should_fail, message = GateVerdict.PASS, False, "Unknown mode"
+        if self.mode == GateMode.QUARANTINE:
+            self._save_quarantine_db()
         pr_comment = self._generate_pr_comment(
             result, failed_files, warned_files, quarantined_files
         )
-
         return GateResult(
             verdict=verdict,
             mode=self.mode,
@@ -210,40 +196,30 @@ class CIGate:
             pr_comment=pr_comment,
         )
 
+    def _evaluate_file_quarantine(
+        self, result: FileAnalysis, verdict: GateVerdict
+    ) -> tuple[bool, str]:
+        """Handle quarantine-mode evaluation for a single file."""
+        if verdict != GateVerdict.FAIL:
+            return False, f"File quality: {verdict.value.upper()}"
+        self._update_quarantine(result.file_path, result)
+        should_fail = self._should_escalate(result.file_path)
+        self._save_quarantine_db()
+        message = "File FAILED (repeat offender)" if should_fail else "File QUARANTINE (violation tracked)"
+        return should_fail, message
+
     def _evaluate_file(self, result: FileAnalysis) -> GateResult:
         """Evaluate single file analysis."""
         verdict = self._check_file_thresholds(result)
-
         if self.mode == GateMode.SOFT:
-            should_fail = False
-            message = f"File quality: {verdict.value.upper()}"
-
+            should_fail, message = False, f"File quality: {verdict.value.upper()}"
         elif self.mode == GateMode.HARD:
             should_fail = verdict == GateVerdict.FAIL
-            message = (
-                "File FAILED quality gate"
-                if should_fail
-                else f"File quality: {verdict.value.upper()}"
-            )
-
+            message = "File FAILED quality gate" if should_fail else f"File quality: {verdict.value.upper()}"
         elif self.mode == GateMode.QUARANTINE:
-            if verdict == GateVerdict.FAIL:
-                self._update_quarantine(result.file_path, result)
-                should_fail = self._should_escalate(result.file_path)
-                message = (
-                    "File FAILED (repeat offender)"
-                    if should_fail
-                    else "File QUARANTINE (violation tracked)"
-                )
-                self._save_quarantine_db()
-            else:
-                should_fail = False
-                message = f"File quality: {verdict.value.upper()}"
-
+            should_fail, message = self._evaluate_file_quarantine(result, verdict)
         else:
-            should_fail = False
-            message = "Unknown mode"
-
+            should_fail, message = False, "Unknown mode"
         failed_files = [result.file_path] if verdict == GateVerdict.FAIL else []
         warned_files = [result.file_path] if verdict == GateVerdict.WARN else []
         quarantined_files = (
@@ -251,11 +227,9 @@ class CIGate:
             if self.mode == GateMode.QUARANTINE and verdict == GateVerdict.FAIL
             else []
         )
-
         pr_comment = self._generate_pr_comment(
             result, failed_files, warned_files, quarantined_files
         )
-
         return GateResult(
             verdict=verdict,
             mode=self.mode,
@@ -268,49 +242,31 @@ class CIGate:
             pr_comment=pr_comment,
         )
 
-    def _check_claims_evidence(self, file_result: FileAnalysis) -> Optional[GateVerdict]:
-        """Check if production claims have required integration test evidence (v2.6.2).
+    _PRODUCTION_CLAIMS: frozenset = frozenset({
+        "production-ready", "production ready",
+        "enterprise-grade", "enterprise grade",
+        "scalable", "fault-tolerant", "fault tolerant",
+    })
 
-        Returns:
-            GateVerdict.FAIL if claims lack integration tests, None otherwise
-        """
+    def _has_uncovered_production_claims(self, ctx_jargon: Any) -> bool:
+        """Return True if any production claim lacks integration test evidence."""
+        if not hasattr(ctx_jargon, "evidence_details"):
+            return False
+        for evidence in ctx_jargon.evidence_details:
+            if evidence.jargon.lower() in self._PRODUCTION_CLAIMS:
+                if "tests_integration" in evidence.missing_evidence:
+                    return True
+        return False
+
+    def _check_claims_evidence(self, file_result: FileAnalysis) -> Optional[GateVerdict]:
+        """Check if production claims have required integration test evidence (v2.6.2)."""
         if not self.claims_strict:
             return None
-
-        if not hasattr(file_result, "context_jargon") or not file_result.context_jargon:
+        ctx_jargon = getattr(file_result, "context_jargon", None)
+        if not ctx_jargon:
             return None
-
-        ctx_jargon = file_result.context_jargon
-
-        # Production claims that require integration tests
-        production_claims = {
-            "production-ready",
-            "production ready",
-            "enterprise-grade",
-            "enterprise grade",
-            "scalable",
-            "fault-tolerant",
-            "fault tolerant",
-        }
-
-        # Check if file has production claims without integration test evidence
-        has_production_claims = False
-        missing_integration_tests = False
-
-        if hasattr(ctx_jargon, "evidence_details"):
-            for evidence in ctx_jargon.evidence_details:
-                jargon_lower = evidence.jargon.lower()
-                if jargon_lower in production_claims:
-                    has_production_claims = True
-                    # Check if integration tests are missing
-                    if "tests_integration" in evidence.missing_evidence:
-                        missing_integration_tests = True
-                        break
-
-        # FAIL if production claims exist without integration tests
-        if has_production_claims and missing_integration_tests:
+        if self._has_uncovered_production_claims(ctx_jargon):
             return GateVerdict.FAIL
-
         return None
 
     def _check_file_thresholds(self, file_result: FileAnalysis) -> GateVerdict:
@@ -354,25 +310,23 @@ class CIGate:
         """Update quarantine record for a file."""
         if file_path not in self.quarantine_records:
             self.quarantine_records[file_path] = QuarantineRecord(file_path=file_path)
-
         record = self.quarantine_records[file_path]
         record.offense_count += 1
-
         if isinstance(result, FileAnalysis):
             record.last_deficit_score = result.deficit_score
             record.violations.append(
-                f"Deficit: {result.deficit_score:.1f}, " f"Patterns: {len(result.pattern_issues)}"
+                f"Deficit: {result.deficit_score:.1f}, Patterns: {len(result.pattern_issues)}"
             )
         elif isinstance(result, ProjectAnalysis):
-            # Find the specific file result
-            for file_result in result.file_results:
-                if file_result.file_path == file_path:
-                    record.last_deficit_score = file_result.deficit_score
-                    record.violations.append(
-                        f"Deficit: {file_result.deficit_score:.1f}, "
-                        f"Patterns: {len(file_result.pattern_issues)}"
-                    )
-                    break
+            file_result = next(
+                (fr for fr in result.file_results if fr.file_path == file_path), None
+            )
+            if file_result:
+                record.last_deficit_score = file_result.deficit_score
+                record.violations.append(
+                    f"Deficit: {file_result.deficit_score:.1f}, "
+                    f"Patterns: {len(file_result.pattern_issues)}"
+                )
 
     def _should_escalate(self, file_path: str) -> bool:
         """Check if file should escalate from quarantine to fail."""
