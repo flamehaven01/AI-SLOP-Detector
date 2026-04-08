@@ -124,17 +124,30 @@ async function analyzeDocument(document: vscode.TextDocument) {
     }
 }
 
+/** Extract the first valid JSON object/array from stdout, ignoring [INFO] log lines. */
+function extractJson(stdout: string): any {
+    const idx = stdout.search(/^\s*[{[]/m);
+    if (idx >= 0) {
+        return JSON.parse(stdout.slice(idx));
+    }
+    return JSON.parse(stdout);
+}
+
 async function runSlopDetector(filePath: string, config: vscode.WorkspaceConfiguration): Promise<any> {
     const pythonPath = config.get('pythonPath', 'python');
     const configPath = config.get('configPath', '');
+    const recordHistory = config.get('recordHistory', true);
 
     let command = `${pythonPath} -m slop_detector.cli "${filePath}" --json`;
 
     if (configPath) {
         command += ` --config "${configPath}"`;
     }
+    if (!recordHistory) {
+        command += ' --no-history';
+    }
 
-    outputChannel.appendLine(`[*] Running command: ${command}`);
+    outputChannel.appendLine(`[*] Running: ${command}`);
 
     const { stdout, stderr } = await execAsync(command, { maxBuffer: 10 * 1024 * 1024 });
 
@@ -142,9 +155,7 @@ async function runSlopDetector(filePath: string, config: vscode.WorkspaceConfigu
         outputChannel.appendLine(`[!] stderr: ${stderr}`);
     }
 
-    outputChannel.appendLine(`[*] stdout length: ${stdout.length} bytes`);
-
-    return JSON.parse(stdout);
+    return extractJson(stdout);
 }
 
 function updateDiagnostics(uri: vscode.Uri, result: any) {
@@ -162,15 +173,22 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
         overallSeverity = vscode.DiagnosticSeverity.Warning;
     }
 
+    // Clone Detection signal from pattern_issues
+    const cloneIssues = (result.pattern_issues || []).filter(
+        (i: any) => i.pattern_id === 'function_clone_cluster'
+    );
+    const clonePart = cloneIssues.length > 0
+        ? `, Clone: ${cloneIssues[0].severity?.toUpperCase() ?? 'DETECTED'}`
+        : '';
+
     // Overall summary diagnostic
     const mlPart = result.ml_score
         ? `, ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}]`
         : '';
-    const summaryMessage = `Code Quality Summary (Score: ${deficitScore.toFixed(1)})\n` +
-                          `Status: ${result.status}${mlPart}\n` +
-                          `LDR: ${result.ldr.ldr_score.toFixed(3)}, ` +
-                          `Inflation: ${result.inflation.inflation_score.toFixed(3)}, ` +
-                          `DDC: ${result.ddc.usage_ratio.toFixed(3)}`;
+    const summaryMessage = `Code Quality Score: ${deficitScore.toFixed(1)}/100 — ${(result.status ?? 'unknown').toUpperCase()}${mlPart}${clonePart}\n` +
+                          `LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}  ` +
+                          `Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}  ` +
+                          `DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}`;
 
     const summaryDiagnostic = new vscode.Diagnostic(
         new vscode.Range(0, 0, 0, 0),
@@ -326,18 +344,24 @@ function updateStatusBar(result: any) {
     // Show severity level first, score in parentheses
     statusBarItem.text = `${icon} ${severityLabel} (${deficitScore.toFixed(1)})`;
 
-    const ldrGrade = result.ldr?.grade || 'N/A';
+    const ldrGrade = result.ldr?.grade ?? 'N/A';
     const mlTooltip = result.ml_score
-        ? `- ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}] (conf ${(result.ml_score.confidence * 100).toFixed(0)}%)\n`
+        ? `- ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}]\n`
         : '';
-    statusBarItem.tooltip = `Code Quality: ${severityLabel}\n` +
-                           `Deficit Score: ${deficitScore.toFixed(1)}\n` +
-                           `Status: ${status}\n` +
+    const cloneIssues = (result.pattern_issues ?? []).filter(
+        (i: any) => i.pattern_id === 'function_clone_cluster'
+    );
+    const cloneTooltip = cloneIssues.length > 0
+        ? `- Clone: ${cloneIssues[0].severity?.toUpperCase() ?? 'DETECTED'}\n`
+        : '- Clone: PASS\n';
+    statusBarItem.tooltip = `SLOP Detector — ${severityLabel}\n` +
+                           `Score: ${deficitScore.toFixed(1)}/100  Status: ${status}\n` +
                            `LDR Grade: ${ldrGrade}\n\n` +
                            `Metrics:\n` +
-                           `- LDR: ${result.ldr.ldr_score.toFixed(3)}\n` +
-                           `- Inflation: ${result.inflation.inflation_score.toFixed(3)}\n` +
-                           `- DDC: ${result.ddc.usage_ratio.toFixed(3)}\n` +
+                           `- LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}\n` +
+                           `- Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}\n` +
+                           `- DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}\n` +
+                           cloneTooltip +
                            mlTooltip;
 }
 
@@ -361,16 +385,56 @@ async function analyzeWorkspace() {
             cwd: rootPath 
         });
 
-        const result = JSON.parse(stdout);
+        const result = extractJson(stdout);
 
-        vscode.window.showInformationMessage(
-            `[+] Workspace Analysis Complete\n` +
-            `Files: ${result.total_files}\n` +
-            `Avg Deficit: ${result.avg_deficit_score.toFixed(1)}\n` +
-            `Status: ${result.overall_status}`
-        );
+        const statusIcon = result.overall_status === 'clean' ? '$(check)' : '$(warning)';
+        statusBarItem.text = `${statusIcon} SLOP: ${result.avg_deficit_score.toFixed(1)} avg (${result.total_files} files)`;
 
-        statusBarItem.text = `$(check) SLOP: ${result.avg_deficit_score.toFixed(1)} (Workspace)`;
+        // Build QuickPick items — deficit files first, then summary
+        const items: vscode.QuickPickItem[] = [];
+
+        // Summary header (separator style)
+        items.push({
+            label: `$(graph) ${result.overall_status.toUpperCase()} — ${result.total_files} files, avg deficit ${result.avg_deficit_score.toFixed(1)}`,
+            kind: vscode.QuickPickItemKind.Separator
+        });
+
+        // Deficit files, sorted by score descending
+        const deficitFiles = (result.file_results ?? [])
+            .filter((f: any) => f.status !== 'clean')
+            .sort((a: any, b: any) => b.deficit_score - a.deficit_score);
+
+        for (const f of deficitFiles) {
+            const icon = f.deficit_score >= 50 ? '$(error)' : '$(warning)';
+            const fileName = path.basename(f.file_path);
+            items.push({
+                label: `${icon} ${fileName}`,
+                description: `${f.deficit_score.toFixed(1)}/100 — ${f.status.toUpperCase()}`,
+                detail: `LDR: ${(f.ldr?.ldr_score ?? 0).toFixed(2)}  Inflation: ${(f.inflation?.inflation_score ?? 0).toFixed(2)}  DDC: ${(f.ddc?.usage_ratio ?? 0).toFixed(2)}`,
+            });
+        }
+
+        if (deficitFiles.length === 0) {
+            items.push({ label: '$(check) All files clean', description: 'No issues detected' });
+        }
+
+        const selected = await vscode.window.showQuickPick(items, {
+            placeHolder: `Workspace: ${result.project_path} — click a file to open`,
+            matchOnDescription: true,
+            matchOnDetail: true,
+        });
+
+        // Navigate to selected file
+        if (selected && selected.label && !selected.label.includes('All files')) {
+            const fileName = selected.label.replace(/^\$\([^)]+\)\s*/, '');
+            const matched = (result.file_results ?? []).find(
+                (f: any) => path.basename(f.file_path) === fileName
+            );
+            if (matched) {
+                const doc = await vscode.workspace.openTextDocument(matched.file_path);
+                await vscode.window.showTextDocument(doc);
+            }
+        }
     } catch (error) {
         vscode.window.showErrorMessage(`[-] Workspace analysis failed: ${error}`);
         statusBarItem.text = "$(error) SLOP: Error";
@@ -571,16 +635,41 @@ async function showHistoryTrends() {
         const command = `${pythonPath} -m slop_detector.cli --history-trends --json`;
         const { stdout } = await execAsync(command, { maxBuffer: 5 * 1024 * 1024 });
 
-        const trends = JSON.parse(stdout);
+        const trends = extractJson(stdout);
 
-        outputChannel.appendLine('[History Trends]');
-        outputChannel.appendLine(JSON.stringify(trends, null, 2));
+        outputChannel.appendLine('');
+        outputChannel.appendLine('=== SLOP Detector — History Trends ===');
+        outputChannel.appendLine('');
+
+        // trends may be an object keyed by file path, or {files: [...]}
+        const files: any[] = Array.isArray(trends)
+            ? trends
+            : trends.files ?? Object.values(trends);
+
+        if (files.length === 0) {
+            outputChannel.appendLine('  No history data found. Run analysis on files to build history.');
+        } else {
+            const colW = 40;
+            const header = `${'File'.padEnd(colW)}  ${'Runs'.padStart(4)}  ${'Latest'.padStart(7)}  ${'Best'.padStart(7)}  ${'Worst'.padStart(7)}  Trend`;
+            outputChannel.appendLine(header);
+            outputChannel.appendLine('-'.repeat(header.length));
+
+            for (const entry of files) {
+                const name = path.basename(entry.file_path ?? entry.path ?? 'unknown').padEnd(colW).slice(0, colW);
+                const runs  = String(entry.run_count ?? entry.total_runs ?? '?').padStart(4);
+                const latest = (entry.latest_deficit ?? entry.last_score ?? 0).toFixed(1).padStart(7);
+                const best   = (entry.best_deficit  ?? entry.min_score  ?? 0).toFixed(1).padStart(7);
+                const worst  = (entry.worst_deficit ?? entry.max_score  ?? 0).toFixed(1).padStart(7);
+                const latestNum = parseFloat(latest);
+                const prevNum   = entry.previous_deficit ?? entry.prev_score ?? latestNum;
+                const trend = latestNum < prevNum - 1 ? 'improving' : latestNum > prevNum + 1 ? 'degrading' : 'stable';
+                outputChannel.appendLine(`${name}  ${runs}  ${latest}  ${best}  ${worst}  ${trend}`);
+            }
+        }
+
+        outputChannel.appendLine('');
         outputChannel.show(false);
-
-        const totalFiles = trends.total_files ?? Object.keys(trends).length;
-        vscode.window.showInformationMessage(
-            `[+] History Trends loaded — ${totalFiles} file(s). See Output panel.`
-        );
+        vscode.window.showInformationMessage(`[+] History Trends — ${files.length} file(s). See Output panel.`);
         statusBarItem.text = "$(check) SLOP: Ready";
     } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
