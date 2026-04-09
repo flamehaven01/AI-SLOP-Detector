@@ -433,42 +433,21 @@ class SlopDetector:
                 return True
         return False
 
-    def _calculate_slop_status(
-        self, ldr, inflation, ddc, pattern_issues: Optional[List[Issue]] = None
-    ) -> tuple[float, SlopStatus, List[str]]:
-        """
-        Calculate slop score using weighted formula + pattern penalties.
+    def _compute_gqg(
+        self, ldr, inflation_normalized: float, ddc, purity: float
+    ) -> float:
+        """Geometric quality gate — weighted geometric mean of four dimensions.
 
-        v2.1: Includes pattern-based scoring.
+        Formula: exp(sum(w_i * ln(max(1e-4, v_i))) / sum(w_i))
+        Dimensions: ldr_score, 1-inflation_normalized, ddc.usage_ratio, purity.
         """
-        warnings = []
-        pattern_issues = pattern_issues or []
-
-        # Get weights from config
         weights = self.config.get_weights()
-
-        # Normalize Inflation (cap at 2.0, treat inf as 2.0)
-        inflation_normalized = (
-            min(inflation.inflation_score, 2.0) / 2.0
-            if inflation.inflation_score != float("inf")
-            else 1.0
-        )
-
-        # v3.0: GQG (Geometric Quality Gate) — AND-gate aggregation.
-        # Any dimension collapsing to 0 drives Omega to 0.
-        # Formula: exp(sum(w_i * ln(max(1e-4, v_i))) / sum(w_i))
-        # Dimensions: ldr (logic density), inflation_q (1-normalized),
-        #             ddc (import usage), purity (exp(-lambda * n_critical))
-        n_critical = len([i for i in pattern_issues if i.severity.value == "critical"])
-        purity = exp(-0.5 * n_critical)
-
         w_ldr = weights.get("ldr", 0.40)
         w_inf = weights.get("inflation", 0.30)
         w_ddc = weights.get("ddc", 0.20)
-        w_pur = weights.get("purity", 0.10)  # configurable; default 0.10
-
+        w_pur = weights.get("purity", 0.10)
         total_w = w_ldr + w_inf + w_ddc + w_pur
-        gqg = exp(
+        return exp(
             (
                 w_ldr * log(max(1e-4, ldr.ldr_score))
                 + w_inf * log(max(1e-4, 1.0 - inflation_normalized))
@@ -477,35 +456,54 @@ class SlopDetector:
             )
             / total_w
         )
-        base_quality = gqg
 
-        # Base deficit score from metrics
-        base_deficit_score = 100 * (1 - base_quality)
-
-        # v2.1: Add pattern penalties
-        pattern_penalty = self._calculate_pattern_penalty(pattern_issues)
-
-        # Final deficit score (capped at 100)
-        deficit_score = min(base_deficit_score + pattern_penalty, 100.0)
-
-        # Generate warnings
+    @staticmethod
+    def _build_metric_warnings(ldr, inflation, ddc) -> List[str]:
+        """Generate per-metric threshold warnings for ldr, inflation, and ddc."""
+        warnings: List[str] = []
         if ldr.ldr_score < 0.30:
             warnings.append(f"CRITICAL: Logic density only {ldr.ldr_score:.2%}")
         elif ldr.ldr_score < 0.60:
             warnings.append(f"WARNING: Low logic density {ldr.ldr_score:.2%}")
-
         if inflation.inflation_score > 1.0:
             warnings.append(f"CRITICAL: Inflation ratio {inflation.inflation_score:.2f}")
         elif inflation.inflation_score > 0.5:
             warnings.append(f"WARNING: High inflation ratio {inflation.inflation_score:.2f}")
-
         if ddc.usage_ratio < 0.50:
             warnings.append(f"CRITICAL: Only {ddc.usage_ratio:.2%} of imports used")
         elif ddc.usage_ratio < 0.70:
             warnings.append(f"WARNING: Low import usage {ddc.usage_ratio:.2%}")
-
         if ddc.fake_imports:
             warnings.append(f"FAKE IMPORTS: {', '.join(ddc.fake_imports)}")
+        return warnings
+
+    def _calculate_slop_status(
+        self, ldr, inflation, ddc, pattern_issues: Optional[List[Issue]] = None
+    ) -> tuple[float, SlopStatus, List[str]]:
+        """
+        Calculate slop score using weighted formula + pattern penalties.
+
+        v2.1: Includes pattern-based scoring.
+        """
+        pattern_issues = pattern_issues or []
+
+        # Normalize Inflation (cap at 2.0, treat inf as 2.0)
+        inflation_normalized = (
+            min(inflation.inflation_score, 2.0) / 2.0
+            if inflation.inflation_score != float("inf")
+            else 1.0
+        )
+
+        # purity = exp(-0.5 * n_critical): GQG AND-gate dimension for pattern severity
+        n_critical = len([i for i in pattern_issues if i.severity.value == "critical"])
+        purity = exp(-0.5 * n_critical)
+
+        gqg = self._compute_gqg(ldr, inflation_normalized, ddc, purity)
+        base_deficit_score = 100 * (1 - gqg)
+        pattern_penalty = self._calculate_pattern_penalty(pattern_issues)
+        deficit_score = min(base_deficit_score + pattern_penalty, 100.0)
+
+        warnings = self._build_metric_warnings(ldr, inflation, ddc)
 
         # v2.1: Add pattern warnings
         critical_patterns = [i for i in pattern_issues if i.severity.value == "critical"]

@@ -2,7 +2,11 @@
 # Used by: slop-detector CLI, SIDRCE SaaS inspect, CI gate
 
 patterns:
-  disabled: []
+  disabled:
+    # function_clone_cluster: all BasePattern subclasses share an identical
+    # check() / check_node() signature by design (visitor/strategy pattern).
+    # AST JSD < 0.05 similarity is architectural, not fragmentation slop.
+    - function_clone_cluster
   god_function:
     complexity_threshold: 10
     lines_threshold: 50
@@ -62,6 +66,55 @@ patterns:
       - function_pattern: "_classify_*"
         depth_threshold: 6
         cc_threshold: 12
+      # Import guard helpers — scan AST for try/except ImportError guards;
+      # handler classification requires nested AST inspection by design.
+      - function_pattern: "_handler_is_import_guard"
+        depth_threshold: 6
+        cc_threshold: 12
+      - function_pattern: "_collect_import_guard_lines"
+        depth_threshold: 6
+        cc_threshold: 12
+      # Pattern runner + ignore-decorator parser — orchestration over
+      # multi-pattern dispatch and decorator-tree traversal.
+      - function_pattern: "_run_patterns"
+        depth_threshold: 6
+        cc_threshold: 15
+      - function_pattern: "_collect_ignored_functions"
+        depth_threshold: 6
+        cc_threshold: 12
+      - function_pattern: "_parse_slop_ignore_decorator"
+        depth_threshold: 6
+        cc_threshold: 12
+      # Jargon/complexity scanners — walk AST call trees and scope trees;
+      # depth is inherent to walking nested call/scope hierarchies.
+      - function_pattern: "_scan_jargon"
+        depth_threshold: 8
+        cc_threshold: 20
+      - function_pattern: "_calculate_avg_complexity"
+        depth_threshold: 6
+        cc_threshold: 12
+      - function_pattern: "_build_function_scopes"
+        depth_threshold: 6
+        cc_threshold: 12
+      # Presence-check helpers (error handling / logging detection) —
+      # walk AST to classify handler blocks; nesting is structural.
+      - function_pattern: "_has_error_handling"
+        depth_threshold: 6
+        cc_threshold: 12
+      - function_pattern: "_has_logging"
+        depth_threshold: 6
+        cc_threshold: 12
+      # JS/TS AST walkers — recursive traversal over heterogeneous node types.
+      - function_pattern: "_walk_inline_patterns"
+        depth_threshold: 8
+        cc_threshold: 20
+      - function_pattern: "_walk"
+        depth_threshold: 8
+        cc_threshold: 20
+      # Grade assignment — multi-threshold classifier is branch-heavy by design.
+      - function_pattern: "_assign_grade"
+        depth_threshold: 8
+        cc_threshold: 20
 
 weights:
   ldr: 0.40
