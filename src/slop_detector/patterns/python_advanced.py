@@ -644,8 +644,8 @@ def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) 
             dep_lists.append(extras)
         for dep_list in dep_lists:
             _add_dep_names(dep_list, packages)
-    except Exception:  # noqa: BLE001
-        pass
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("Failed to parse pyproject.toml for package augmentation: %s", exc)
 
 
 def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
@@ -674,8 +674,8 @@ def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
                     and (item / "__init__.py").exists()
                 ):
                     packages.add(item.name)
-        except OSError:
-            pass
+        except OSError as exc:
+            logger.debug("Cannot iterate directory %s: %s", search, exc)
 
     # 1. src/ layout
     src_dir = project_root / "src"

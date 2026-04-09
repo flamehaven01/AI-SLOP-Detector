@@ -113,48 +113,59 @@ class LDRCalculator:
             is_type_stub=is_type_stub,
         )
 
+    @staticmethod
+    def _is_abc_base(base: ast.expr) -> bool:
+        """Return True if an AST base node refers to ABC."""
+        if isinstance(base, ast.Attribute) and base.attr == "ABC":
+            return True
+        if isinstance(base, ast.Name) and base.id == "ABC":
+            return True
+        return False
+
+    @staticmethod
+    def _has_abstract_decorator(
+        func_node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> bool:
+        """Return True if the function has an @abstractmethod decorator."""
+        for decorator in func_node.decorator_list:
+            if isinstance(decorator, ast.Name) and decorator.id == "abstractmethod":
+                return True
+            if isinstance(decorator, ast.Attribute) and decorator.attr == "abstractmethod":
+                return True
+        return False
+
+    def _count_abc_class_methods(self, node: ast.ClassDef) -> tuple[int, int]:
+        """Count (abstract_methods, total_methods) in an ABC class body."""
+        abstract_count = 0
+        total_count = 0
+        for item in node.body:
+            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                total_count += 1
+                if self._has_abstract_decorator(item):
+                    abstract_count += 1
+        return abstract_count, total_count
+
     def _is_abc_interface(self, content: str, tree: ast.AST) -> bool:
         """Check if file is an ABC interface."""
-        # Check for ABC import
         has_abc_import = (
             "abc.ABC" in content or "ABCMeta" in content or "from abc import" in content
         )
         if not has_abc_import:
             return False
 
-        # Count @abstractmethod decorators
         abstract_method_count = 0
         total_method_count = 0
 
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
-                for base in node.bases:
-                    is_abc = False
-                    if isinstance(base, ast.Attribute) and base.attr == "ABC":
-                        is_abc = True
-                    elif isinstance(base, ast.Name) and base.id == "ABC":
-                        is_abc = True
-
-                    if is_abc:
-                        for item in node.body:
-                            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                                total_method_count += 1
-                                for decorator in item.decorator_list:
-                                    if (
-                                        isinstance(decorator, ast.Name)
-                                        and decorator.id == "abstractmethod"
-                                    ):
-                                        abstract_method_count += 1
-                                    elif (
-                                        isinstance(decorator, ast.Attribute)
-                                        and decorator.attr == "abstractmethod"
-                                    ):
-                                        abstract_method_count += 1
+                if any(self._is_abc_base(base) for base in node.bases):
+                    abstract, total = self._count_abc_class_methods(node)
+                    abstract_method_count += abstract
+                    total_method_count += total
 
         # If more than 50% of methods are abstract, it's an interface
         if total_method_count > 0 and abstract_method_count / total_method_count >= 0.5:
             return True
-
         return False
 
     def _count_empty_function_lines(self, tree: ast.AST) -> int:
