@@ -433,9 +433,7 @@ class SlopDetector:
                 return True
         return False
 
-    def _compute_gqg(
-        self, ldr, inflation_normalized: float, ddc, purity: float
-    ) -> float:
+    def _compute_gqg(self, ldr, inflation_normalized: float, ddc, purity: float) -> float:
         """Geometric quality gate — weighted geometric mean of four dimensions.
 
         Formula: exp(sum(w_i * ln(max(1e-4, v_i))) / sum(w_i))
