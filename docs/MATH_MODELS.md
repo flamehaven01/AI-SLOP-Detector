@@ -1,4 +1,4 @@
-# Mathematical Models Reference — AI-SLOP Detector v2.8.0
+# Mathematical Models Reference — AI-SLOP Detector v3.1.1
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.
@@ -519,6 +519,27 @@ weights:
 thresholds:
   deficit:
     suspicious: 30
+    inflated: 50
+    critical: 70
+  ldr:
+    grade_a: 0.60
+    grade_b: 0.45
+    grade_c: 0.30
+
+pattern_penalties:
+  critical: 0.10
+  high: 0.05
+  medium: 0.02
+  low: 0.01
+```
+
+---
+
+*This document reflects the implementation in `src/slop_detector/` as of v2.8.0.
+For source-level detail, see the inline docstrings in `metrics/inflation.py`,
+`core.py`, `patterns/python_advanced.py`, and `ml/scorer.py`.*
+terns/python_advanced.py`, and `ml/scorer.py`.*
+ 30
     inflated: 50
     critical: 70
   ldr:
