@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.2] - 2026-04-11
+
+### Fixed
+
+**`ml/data_collector.py` — structural refactor + debug output**
+- Extracted two inner counting loops in `from_analysis()` as static helpers:
+  `_count_severities(issues)` and `_count_cross_lang(issues)`.
+  Reduces `from_analysis` from 75 lines / depth=7 to ~30 lines / depth=3.
+- `print(f"[!] Failed ...")` error handlers replaced with `logger.warning(...)`.
+  Module-level `logger = logging.getLogger(__name__)` added.
+  `save_dataset()` progress prints marked `# noqa: T201` (intentional CLI output).
+
+**`.slopconfig.yaml` — domain overrides gap fill**
+- Added `nested_complexity` overrides for functions not previously covered:
+  `_analyze_function`, `_detect_unused_imports`, `_count_implementation_lines`,
+  `_count_module_implementation_lines`, `analyze`.
+- Added `god_function` overrides for the same functions, plus ML pipeline:
+  `run`, `run_on_real_data`, `_train_from_samples`, `_build_dataset`, `_extract_features`.
+- Removed duplicate `god_function` block introduced by incremental editing.
+- Self-scan result: **43/43 files CLEAN** (was 4 suspicious before this patch).
+
+---
+
 ## [3.1.1] - 2026-04-08
 
 ### Fixed
