@@ -129,6 +129,25 @@ When primary scores are tied, the gap is computed from tiebreak scores
 
 ---
 
+## Git Integration (v3.2.1)
+
+Every scan now captures the current `git commit (short SHA)` and `branch` and
+stores them alongside each file result. The calibration engine uses this as a
+**noise filter**:
+
+| Signal | Git condition | Action |
+|--------|--------------|--------|
+| Apparent improvement | same commit before + after score drop | Skip — measurement noise within one commit |
+| Apparent FP candidate | different commit + stable file hash | Skip — user may have committed unrelated changes |
+
+When `git_commit` is `NULL` (non-git projects), the original hash-based heuristic
+applies unchanged. Backward compatible.
+
+**Result:** Fewer labeled events, but higher-fidelity signal. This is critical for
+the 5+5 per-class threshold (see below) to remain statistically sound.
+
+---
+
 ## Bootstrap
 
 Before scanning for the first time, run:
@@ -191,21 +210,30 @@ If `status = insufficient_data`, `--apply-calibration` is skipped with a warning
 ### Adjust the minimum event threshold
 
 ```bash
-# Require at least 30 labeled events before calibration runs
-slop-detector . --self-calibrate --min-history 30
+# Require at least 8 events per class before calibration runs
+slop-detector . --self-calibrate --min-history 8
 ```
 
-Default: 20 events. Increase for stricter confidence requirements.
+Default: 5 events **per class** (improvements + FP candidates each independently).
+Total minimum is 10 records (5+5). The 4D model's continuous tiebreak signal
+makes 5+5 statistically reliable; 3D required 10+10 (binary-only scoring).
+Increase `--min-history` for stricter confidence requirements.
 
-### Automatic calibration hints
+### Auto-calibration at milestone (v3.2.1)
 
-After each scan that reaches a 20-record milestone, the tool prints:
+Starting from v3.2.1, calibration runs **automatically** at every
+`CALIBRATION_MILESTONE` (10 records). No manual command required.
 
 ```
-[*] Calibration milestone: 20 history records accumulated. Run --self-calibrate to optimize weights.
+[*] Auto-calibration (10 records): weights updated -> .slopconfig.yaml
+    ldr: 0.40 -> 0.45
+    ddc: 0.30 -> 0.25
 ```
 
-No configuration required — the hint fires automatically.
+- Only writes when `status == "ok"` (CONFIDENCE_GAP + no_change gates fire first).
+- Only writes when `.slopconfig.yaml` already exists in the project (no silent creation).
+- Prints exactly what changed for full auditability.
+- Manual `--self-calibrate --apply-calibration` still available for explicit control.
 
 ---
 
@@ -223,8 +251,8 @@ No configuration required — the hint fires automatically.
 
 | Events | Reliability |
 |---|---|
-| < 20 | Too sparse — calibration skipped |
-| 20–50 | First signal, treat as directional only |
+| < 5 per class | Too sparse — calibration skipped (per-class floor: 5 improvements + 5 FP candidates) |
+| 10–50 | First confident signal (4D tiebreak resolves ties early) |
 | 50–200 | Reliable for most codebases |
 | 200+ | High confidence; recalibrate periodically as codebase evolves |
 

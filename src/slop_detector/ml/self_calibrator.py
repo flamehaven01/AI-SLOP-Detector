@@ -40,7 +40,12 @@ MIN_W: float = 0.10  # minimum allowed weight per dimension
 MAX_W: float = 0.65  # maximum allowed weight per dimension
 GRID_STEP: int = 20  # 1/GRID_STEP resolution -> 0.05 increments
 CONFIDENCE_GAP: float = 0.10  # min score gap between #1 and #2 candidate (Guardian pattern)
-MIN_EVENTS: int = 20  # minimum labeled events before calibration is meaningful
+# v3.2.1: per-class minimums replace single MIN_EVENTS=20.
+# 4D model (+ continuous tiebreak) resolves candidates with fewer events than 3D binary-only.
+# Safety gates (CONFIDENCE_GAP + no_change margin) prevent premature calibration.
+MIN_IMPROVEMENTS: int = 5   # improvement events required (true positive class)
+MIN_FP_CANDIDATES: int = 5  # fp_candidate events required (false positive class)
+CALIBRATION_MILESTONE: int = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES  # = 10
 
 
 # ------------------------------------------------------------------
@@ -116,11 +121,19 @@ class SelfCalibrator:
     def calibrate(
         self,
         current_weights: Optional[Dict[str, float]] = None,
-        min_events: int = MIN_EVENTS,
+        min_events: int = CALIBRATION_MILESTONE,  # kept for backward compat; sets both class floors
     ) -> CalibrationResult:
-        """Run self-calibration. Returns CalibrationResult with optimal weights."""
+        """Run self-calibration. Returns CalibrationResult with optimal weights.
+
+        v3.2.1: per-class minimums replace total MIN_EVENTS threshold.
+        min_events sets both MIN_IMPROVEMENTS and MIN_FP_CANDIDATES floors uniformly.
+        """
         cw = dict(current_weights) if current_weights else {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30}
         cw.setdefault("purity", 0.10)  # inject purity default for pre-v3.2.0 configs
+
+        # per-class floors — caller can override via min_events (applies to both classes)
+        min_imp = max(min_events, MIN_IMPROVEMENTS)
+        min_fp = max(min_events, MIN_FP_CANDIDATES)
 
         if not self.db_path.exists():
             return CalibrationResult(
@@ -141,10 +154,11 @@ class SelfCalibrator:
             current_weights=cw,
         )
 
-        total_events = len(improvements) + len(fp_candidates)
-        if total_events < min_events:
+        # Per-class floor check: both classes must meet minimum independently
+        if len(improvements) < min_imp or len(fp_candidates) < min_fp:
             result.message = (
-                f"Need >= {min_events} labeled events; have {total_events}. "
+                f"Need >= {min_imp} improvement events (have {len(improvements)}) "
+                f"and >= {min_fp} FP candidates (have {len(fp_candidates)}). "
                 f"Keep using the tool — data accumulates automatically."
             )
             return result
@@ -274,8 +288,22 @@ class SelfCalibrator:
     def _classify_run_pair(
         file_path: str, r_now: dict, r_next: dict, drop: float, seen_fp_files: set
     ) -> Optional[CalibrationEvent]:
-        """Classify a single (r_now, r_next) pair as improvement, fp_candidate, or None."""
+        """Classify a single (r_now, r_next) pair as improvement, fp_candidate, or None.
+
+        v3.2.1 — git_commit used as noise filter (when available):
+          improvement: if git commits are IDENTICAL, the score drop is measurement noise → skip.
+          fp_candidate: if git commits DIFFER, the stable score is ambiguous
+                        (user may have committed unrelated changes) → skip.
+        When git info is absent (NULL), original hash-based heuristic applies unchanged.
+        """
+        git_now = r_now.get("git_commit")
+        git_next = r_next.get("git_commit")
+        has_git = bool(git_now and git_next)
+
         if drop >= FIX_DELTA:
+            # Same commit: score drop within one commit is measurement noise, not a real fix
+            if has_git and git_now == git_next:
+                return None
             return CalibrationEvent(
                 file_path=file_path,
                 ldr=r_now["ldr_score"],
@@ -289,6 +317,9 @@ class SelfCalibrator:
             and r_now["file_hash"] == r_next["file_hash"]
             and abs(drop) < FP_STABLE_DELTA
         ):
+            # Different commits + stable hash: user committed something unrelated → ambiguous
+            if has_git and git_now != git_next:
+                return None
             seen_fp_files.add(file_path)
             return CalibrationEvent(
                 file_path=file_path,
@@ -455,7 +486,8 @@ class SelfCalibrator:
         sql = """
         SELECT file_path, file_hash, timestamp,
                deficit_score, ldr_score, inflation_score, ddc_usage_ratio,
-               COALESCE(n_critical_patterns, 0)
+               COALESCE(n_critical_patterns, 0),
+               git_commit
         FROM history
         ORDER BY file_path, timestamp ASC
         """
@@ -471,6 +503,7 @@ class SelfCalibrator:
                 "inflation_score": r[5],
                 "ddc_usage_ratio": r[6],
                 "n_critical_patterns": int(r[7]),
+                "git_commit": r[8],  # v3.2.1: used as noise filter in _classify_run_pair
             }
             for r in rows
         ]

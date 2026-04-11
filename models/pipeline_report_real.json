@@ -1,0 +1,81 @@
+{
+  "n_samples": 500,
+  "n_train": 400,
+  "n_test": 100,
+  "model_type": "random_forest",
+  "metrics": {
+    "random_forest": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0
+    }
+  },
+  "model_path": "models\\slop_classifier_real.pkl",
+  "feature_importance": [
+    [
+      "logic_lines",
+      0.33597516016535794
+    ],
+    [
+      "ldr_score",
+      0.30177465501416845
+    ],
+    [
+      "empty_lines",
+      0.2733313623136592
+    ],
+    [
+      "avg_complexity",
+      0.031143995897657796
+    ],
+    [
+      "ddc_score",
+      0.02974690007593687
+    ],
+    [
+      "total_lines",
+      0.019337988229635908
+    ],
+    [
+      "pattern_count_high",
+      0.004814205997398557
+    ],
+    [
+      "pattern_count_critical",
+      0.0031978599829180026
+    ],
+    [
+      "god_function_count",
+      0.00034903453746551466
+    ],
+    [
+      "deep_nesting_count",
+      0.0002733641477843834
+    ],
+    [
+      "pattern_count_medium",
+      5.547363801729263e-05
+    ],
+    [
+      "inflation_score",
+      0.0
+    ],
+    [
+      "pattern_count_low",
+      0.0
+    ],
+    [
+      "dead_code_count",
+      0.0
+    ],
+    [
+      "cross_language_patterns",
+      0.0
+    ],
+    [
+      "hallucination_count",
+      0.0
+    ]
+  ]
+}

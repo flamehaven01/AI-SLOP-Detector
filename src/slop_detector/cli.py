@@ -740,9 +740,9 @@ Examples:
     parser.add_argument(
         "--min-history",
         type=int,
-        default=20,
+        default=5,
         metavar="N",
-        help="Minimum labeled events required before calibration runs (default: 20)",
+        help="Minimum labeled events per class (improvements / FP candidates) before calibration runs (default: 5 per class)",
     )
     # Bootstrap (v3.2.0)
     parser.add_argument(
@@ -1153,35 +1153,73 @@ def _run_init(args: argparse.Namespace) -> int:
 
 
 def _check_calibration_hint(args) -> None:
-    """Print a periodic hint when the history DB has accumulated enough events."""
+    """At every CALIBRATION_MILESTONE scan, auto-run calibration and apply if confident."""
     if getattr(args, "no_history", False):
         return
     try:
         from slop_detector.history import HistoryTracker
-        from slop_detector.ml.self_calibrator import MIN_EVENTS
+        from slop_detector.ml.self_calibrator import CALIBRATION_MILESTONE, SelfCalibrator
+        from slop_detector.config import Config
 
         tracker = HistoryTracker()
         n = tracker.count_total_records()
-        if n >= MIN_EVENTS and n % MIN_EVENTS == 0:
+        if n < CALIBRATION_MILESTONE or n % CALIBRATION_MILESTONE != 0:
+            return
+
+        # Auto-calibrate at milestone
+        config = Config(config_path=getattr(args, "config", None))
+        current_weights = config.get_weights()
+        result = SelfCalibrator().calibrate(current_weights=current_weights)
+        config_path = getattr(args, "config", None) or ".slopconfig.yaml"
+
+        if result.status == "ok" and Path(config_path).exists():
+            written = SelfCalibrator.apply_to_config(result.optimal_weights, config_path=config_path)
+            print(f"\n[*] Auto-calibration ({n} records): weights updated -> {written}")
+            for k in ("ldr", "inflation", "ddc", "purity"):
+                old_v = current_weights.get(k, 0.0)
+                new_v = result.optimal_weights.get(k, 0.0)
+                if abs(old_v - new_v) > 0.001:
+                    print(f"    {k}: {old_v:.2f} -> {new_v:.2f}")
+        elif result.status == "no_change":
+            print(f"\n[*] Calibration milestone ({n} records): weights already optimal.")
+        else:
             print(
-                f"\n[*] Calibration milestone: {n} history records accumulated. "
-                f"Run --self-calibrate to optimize weights for this codebase."
+                f"\n[*] Calibration milestone ({n} records): {result.message} "
+                f"Run --self-calibrate for details."
             )
     except Exception:  # noqa: BLE001 — hint is informational; never block main flow
         pass
 
 
+def _get_git_context():
+    """Capture current git commit (short SHA) and branch. Returns (None, None) if not in a repo."""
+    import subprocess
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=3,
+        ).stdout.strip() or None
+        branch = subprocess.run(
+            ["git", "branch", "--show-current"],
+            capture_output=True, text=True, timeout=3,
+        ).stdout.strip() or None
+        return commit, branch
+    except Exception:
+        return None, None
+
+
 def _record_history(result) -> None:
-    """Auto-record analysis result(s) to history DB."""
+    """Auto-record analysis result(s) to history DB with git context."""
     try:
         from slop_detector.history import HistoryTracker
 
+        git_commit, git_branch = _get_git_context()
         tracker = HistoryTracker()
         if hasattr(result, "file_results"):
             for fa in result.file_results:
-                tracker.record(fa)
+                tracker.record(fa, git_commit=git_commit, git_branch=git_branch)
         else:
-            tracker.record(result)
+            tracker.record(result, git_commit=git_commit, git_branch=git_branch)
     except Exception as exc:  # noqa: BLE001 — history is best-effort; never block main flow
         import logging as _logging
 
@@ -1274,7 +1312,7 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
 
     config = Config(config_path=getattr(args, "config", None))
     current_weights = config.get_weights()
-    min_events = getattr(args, "min_history", 20)
+    min_events = getattr(args, "min_history", 5)
 
     calibrator = SelfCalibrator()
     result = calibrator.calibrate(current_weights=current_weights, min_events=min_events)

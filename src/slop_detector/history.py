@@ -101,8 +101,12 @@ class HistoryTracker:
     # Write
     # ------------------------------------------------------------------
 
-    def record(self, file_analysis) -> None:
-        """Record a FileAnalysis result. Accepts the dataclass directly."""
+    def record(self, file_analysis, git_commit: Optional[str] = None, git_branch: Optional[str] = None) -> None:
+        """Record a FileAnalysis result. Accepts the dataclass directly.
+
+        git_commit / git_branch: captured once per CLI run and passed in (v3.2.1).
+        When present, used by SelfCalibrator to filter measurement noise from real fixes.
+        """
         file_path = str(getattr(file_analysis, "file_path", ""))
         deficit = float(getattr(file_analysis, "deficit_score", 0.0))
 
@@ -139,6 +143,8 @@ class HistoryTracker:
             pattern_count=pattern_count,
             n_critical_patterns=n_critical_patterns,
             grade=grade,
+            git_commit=git_commit,
+            git_branch=git_branch,
         )
         self._insert(entry)
 

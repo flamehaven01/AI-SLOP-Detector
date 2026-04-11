@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.1] - 2026-04-12
+
+### Added
+
+**P1 — Auto-calibration at milestone (`cli.py` `_check_calibration_hint()`)**
+- At every `CALIBRATION_MILESTONE` (10) scans, calibration now runs *automatically*
+  and applies to `.slopconfig.yaml` (if it exists and calibration is confident).
+- Prints per-weight diff: `ldr: 0.40 -> 0.45` etc. for full transparency.
+- Only applies when `result.status == "ok"` — `CONFIDENCE_GAP` and `no_change`
+  safety gates prevent noisy or regressive updates.
+- This closes the "The more you use it, the smarter it becomes" loop end-to-end;
+  no manual `--self-calibrate` / `--apply-calibration` required.
+
+**P2 — Git commit context as noise filter (`history.py` + `cli.py` + `self_calibrator.py`)**
+- `_get_git_context()` in `cli.py`: captures `git rev-parse --short HEAD` and
+  `git branch --show-current` once per run (3 s timeout, graceful `None` fallback).
+- `history.py record()` accepts `git_commit` and `git_branch` kwargs and stores them.
+- `self_calibrator.py _load_history()` now SELECTs `git_commit` and includes it in
+  the returned dict.
+- `_classify_run_pair()` uses git context as a noise signal:
+  - **improvement filter**: same commit + score drop → measurement noise, skip.
+  - **FP candidate filter**: different commits + stable hash → ambiguous signal, skip.
+  - When `git_commit` is `NULL` (non-git projects), original heuristic applies unchanged.
+- Result: fewer but higher-fidelity labeled events → more reliable calibration signal.
+
+**P3 — Per-class minimum thresholds (`self_calibrator.py`)**
+- `MIN_EVENTS = 20` replaced by `MIN_IMPROVEMENTS = 5` / `MIN_FP_CANDIDATES = 5`.
+- `CALIBRATION_MILESTONE = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES` (= 10).
+- `calibrate()` checks each class independently: both must meet their floor before
+  grid search runs. Prevents class-imbalanced calibration.
+- 4D model's continuous `tiebreak` signal makes 5+5 statistically sufficient
+  (where 3D binary rates required 10+10).
+- `--min-history` CLI arg: default changed from 20 → 5 (per-class floor).
+- `cli.py` import updated: `MIN_EVENTS` → `CALIBRATION_MILESTONE`.
+
+### Fixed
+
+- `cli.py _run_self_calibration()`: `getattr(args, "min_history", 20)` default corrected to 5.
+
+---
+
 ## [3.2.0] - 2026-04-12
 
 ### Added
