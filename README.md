@@ -128,7 +128,7 @@ deficit_score = 100 × (1 − quality) + pattern_penalty
 | ≥ 30 | `SUSPICIOUS` |
 | < 30 | `CLEAN` |
 
-Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.20 · purity=0.10`
+Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.30` (purity=0.10 fixed, not calibrated)
 Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
 
 Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)

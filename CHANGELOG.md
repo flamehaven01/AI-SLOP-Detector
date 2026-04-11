@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.3] - 2026-04-11
+
+### Fixed
+
+**`ml/self_calibrator.py` — P1: `apply_to_config` comment preservation**
+- Replaced `yaml.safe_load` + `yaml.dump` full-file rewrite with a targeted
+  regex in-place approach: only the numeric values on the `ldr:`, `inflation:`,
+  `ddc:` lines are rewritten. All comments, `domain_overrides`, `ignore` patterns,
+  and every other key are left untouched.
+- Handles three edge cases: all keys present (common), some keys missing (insert
+  under existing `weights:` block), no `weights:` block (append one).
+- Eliminates the risk of losing annotated `.slopconfig.yaml` governance docs on
+  `--apply-calibration`.
+
+**`ml/self_calibrator.py` — P2: FP candidate deduplication**
+- `_extract_events()` previously emitted one `fp_candidate` per consecutive run
+  pair per file. A file unchanged across 50 runs generated 49 fp_candidates,
+  heavily biasing the FP pool and causing the calibrator to recommend inflated
+  `w_ddc` values.
+- Fix: introduced `seen_fp_files` set — each file now contributes at most one
+  `fp_candidate` event regardless of how many stable consecutive runs it has.
+
+**`ml/self_calibrator.py` — P4: MIN_EVENTS raised from 10 → 20**
+- At 10 events, a binary fp_rate on 3 FP candidates has only 4 possible values
+  (0.0 / 0.33 / 0.67 / 1.0), making grid-search rankings statistically unreliable.
+- Raised to 20 events for minimum viable calibration signal.
+
+**`README.md` — P3: weight drift correction**
+- Scoring Model section showed `ddc=0.20`; actual default in `config.py` and
+  `.slopconfig.yaml` is `ddc=0.30`. Corrected.
+- Added explicit note that `purity=0.10` is a fixed coefficient, not calibrated.
+
+### Security
+
+**`.gitignore` — P5: slop-detector runtime artifact exclusion**
+- Added `.slop-detector/` to cover any local cache directories created by
+  workflow variants. Documents that `.slopconfig.yaml` is intentionally committed
+  in this project (open-source governance transparency) while explaining that
+  private projects should exclude it via `--init` (coming in v3.2.0).
+
+---
+
 ## [3.1.2] - 2026-04-11
 
 ### Fixed
