@@ -121,12 +121,13 @@ class SelfCalibrator:
     def calibrate(
         self,
         current_weights: Optional[Dict[str, float]] = None,
-        min_events: int = CALIBRATION_MILESTONE,  # kept for backward compat; sets both class floors
+        min_events: int = MIN_IMPROVEMENTS,  # per-class floor; applies to both improvement and fp_candidate classes
     ) -> CalibrationResult:
         """Run self-calibration. Returns CalibrationResult with optimal weights.
 
         v3.2.1: per-class minimums replace total MIN_EVENTS threshold.
-        min_events sets both MIN_IMPROVEMENTS and MIN_FP_CANDIDATES floors uniformly.
+        min_events sets the per-class floor (applied independently to improvements and fp_candidates).
+        Default is MIN_IMPROVEMENTS (5). To require stricter per-class quorum, pass higher value.
         """
         cw = dict(current_weights) if current_weights else {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30}
         cw.setdefault("purity", 0.10)  # inject purity default for pre-v3.2.0 configs

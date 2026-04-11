@@ -1,0 +1,8 @@
+{
+  "step": "04_p2_git_context",
+  "description": "P2 git context check: mock_dir is outside git repo -> git_commit=NULL -> fallback heuristic active",
+  "total_records": 30,
+  "git_commit_null": 30,
+  "git_commit_non_null": 0,
+  "expected_behavior": "NULL everywhere (no git repo in mock_dir)"
+}

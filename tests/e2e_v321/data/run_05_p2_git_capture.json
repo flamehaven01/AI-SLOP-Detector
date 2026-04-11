@@ -1,0 +1,7 @@
+{
+  "step": "05_p2_git_noise_filter",
+  "description": "P2 git capture: _get_git_context() inside git repo -> non-None commit + branch",
+  "git_commit": "8bb12b6",
+  "git_branch": "main",
+  "project_root": "D:\\Sanctum\\ai-slop-detector"
+}

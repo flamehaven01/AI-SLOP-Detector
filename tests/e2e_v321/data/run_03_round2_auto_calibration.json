@@ -1,0 +1,50 @@
+{
+  "step": "03_round2_auto_calibration",
+  "description": "Round 2 scan — 5 fixed files create improvement events -> auto-calibration",
+  "records_before": 20,
+  "records_after": 30,
+  "new_records": 10,
+  "milestone_fired": true,
+  "auto_calibrated": false,
+  "calibration_hint_output": "\n\n[*] Calibration milestone (30 records): Confidence gap 0.0000 < 0.1. Candidates are too close — need more history data for reliable calibration. Run --self-calibrate for details.\n",
+  "weights_before": {
+    "ldr": 0.4,
+    "inflation": 0.3,
+    "ddc": 0.3,
+    "purity": 0.1
+  },
+  "weights_after": {
+    "ldr": 0.4,
+    "inflation": 0.3,
+    "ddc": 0.3,
+    "purity": 0.1
+  },
+  "weights_changed": false,
+  "labeled_events": {
+    "improvement_events": 5,
+    "fp_candidates": 10,
+    "improvement_files": [
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_1.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_2.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_3.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_4.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_5.py"
+    ],
+    "fp_candidate_files": [
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_1.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_2.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_3.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_4.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\improve_5.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\stable_1.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\stable_2.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\stable_3.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\stable_4.py",
+      "C:\\Users\\dream\\AppData\\Local\\Temp\\pytest-of-dream\\pytest-585\\e2e_v3210\\mock_project\\stable_5.py"
+    ]
+  },
+  "git_context_in_db": {
+    "any_git_commit": false,
+    "sample_git_commit": null
+  }
+}
