@@ -22,7 +22,7 @@ def java_mistakes():
 # Ruby patterns  
 def ruby_mistakes():
     items.each(lambda x: print(x))  # [!] Use for loop
-    if value.nil?():  # [!] Use is None
+    if value.nil():  # [!] Use is None
         pass
     
     first = array.first  # [!] Use array[0]

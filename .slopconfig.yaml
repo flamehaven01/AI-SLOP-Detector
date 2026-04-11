@@ -114,6 +114,11 @@ patterns:
       - function_pattern: "analyze"
         depth_threshold: 8
         cc_threshold: 20
+      # LEDA self-calibrator: 4D grid search — n nested loops for n-dimensional
+      # simplex traversal; complexity scales with dimension count by design.
+      - function_pattern: "_grid_search"
+        depth_threshold: 6
+        cc_threshold: 10
   god_function:
     complexity_threshold: 10
     lines_threshold: 50
@@ -171,11 +176,22 @@ patterns:
       - function_pattern: "_extract_features"
         complexity_threshold: 20
         lines_threshold: 100
+      # LEDA self-calibrator orchestrator — coordinates event loading, grid search,
+      # confidence-gap gating, and result assembly; orchestrator pattern is inherently multi-stage.
+      - function_pattern: "calibrate"
+        complexity_threshold: 15
+        lines_threshold: 100
+      # YAML comment-preserving in-place updater — must match/replace each of the 4
+      # weight keys individually via separate regex passes to avoid destroying comments.
+      - function_pattern: "apply_to_config"
+        complexity_threshold: 15
+        lines_threshold: 70
 
 weights:
   ldr: 0.40
   inflation: 0.30
   ddc: 0.30
+  purity: 0.10
 
 ignore:
   # -----------------------------------------------------------------------

@@ -35,6 +35,7 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 [What It Detects](#what-it-detects) •
 [Scoring](#scoring-model) •
 [Key Features](#key-features) •
+[Security](#security-considerations) •
 [CI/CD](#cicd-integration) •
 [Config](#configuration) •
 [VS Code](#vs-code-extension) •
@@ -128,7 +129,7 @@ deficit_score = 100 × (1 − quality) + pattern_penalty
 | ≥ 30 | `SUSPICIOUS` |
 | < 30 | `CLEAN` |
 
-Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.30` (purity=0.10 fixed, not calibrated)
+Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.30 · purity=0.10` (all four calibrated via `--self-calibrate` in v3.2.0+)
 Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
 
 Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
@@ -137,13 +138,24 @@ Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
 ## Key Features
 
+**Bootstrap** — one command to start
+```bash
+slop-detector --init       # generate .slopconfig.yaml + add to .gitignore
+```
+Detects project type (Python / JS / Go), generates a documented config template,
+and secures it in `.gitignore` by default.
+
+---
+
 **Self-Calibration** — the tool learns your codebase
 ```bash
 slop-detector . --self-calibrate               # see what your history recommends
 slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yaml
 ```
-Grid-searches 200+ weight combinations using your run history. Only applies when
-confidence gap between top two candidates exceeds 0.10.
+4D grid-search (ldr / inflation / ddc / purity) over your run history.
+Optimizes all four weight dimensions simultaneously.
+Only applies when confidence gap between top two candidates exceeds 0.10.
+A calibration milestone hint is printed when enough history accumulates.
 [docs/SELF_CALIBRATION.md →](docs/SELF_CALIBRATION.md)
 
 ---
@@ -157,6 +169,26 @@ slop-detector --export-history data.jsonl
 Every run auto-recorded to `~/.slop-detector/history.db`. The history database is
 the training signal for ML self-calibration.
 [docs/HISTORY_TRACKING.md →](docs/HISTORY_TRACKING.md)
+
+---
+
+## Security Considerations
+
+### `.slopconfig.yaml` sensitivity
+
+Your `.slopconfig.yaml` contains `domain_overrides` — a precise map of which functions
+are exempt from complexity rules. This is effectively a **codebase weakness surface**:
+it reveals which areas are too complex to refactor right now.
+
+**Best practice:**
+- Run `slop-detector --init` to generate `.slopconfig.yaml` and auto-add it to `.gitignore`
+- To share governance config with your team, explicitly remove `.slopconfig.yaml` from `.gitignore`
+- Open-source repos committing it is fine (transparency over obscurity — see this project's own `.slopconfig.yaml`)
+
+### `history.db`
+
+History is stored at `~/.slop-detector/history.db` (your home directory, outside all repos).
+It is never committed and accumulates across all projects you scan.
 
 ---
 

@@ -3,14 +3,16 @@ Self-Calibration Engine — adaptive weight optimization from usage history.
 
 Algorithm (LEDA MetaLearning pattern + Copilot Guardian confidence gap):
 
-1. Load all history runs from SQLite (file_path, ldr, inflation, ddc, deficit, timestamp)
+1. Load all history runs from SQLite (file_path, ldr, inflation, ddc, n_critical_patterns,
+   deficit, timestamp)
 2. Extract two event types per unique file:
    - improvement_event: deficit > SLOP_FLOOR in run[i], dropped > FIX_DELTA in run[i+1]
      -> current weights caught real slop (true positive candidate)
    - fp_candidate: deficit > SLOP_FLOOR in run[i], same file_hash in run[i+1], no change
      -> user never fixed it; may be a false positive for this codebase's style
-3. Grid search over weight simplex {w_ldr + w_inflation + w_ddc = 1.0, wi >= MIN_W}
+3. Grid search over 4D weight simplex {w_ldr + w_inf + w_ddc + w_pur = 1.0, wi >= MIN_W}
 4. For each candidate weights, recompute base_deficit (metric-only, no pattern penalties)
+   including purity = exp(-0.5 * n_critical_patterns) for the purity dimension,
    and score: FN_rate (missed real slops) + FP_rate (unnecessary alerts)
 5. Copilot Guardian-style confidence gap: if winner margin < CONFIDENCE_GAP, more data needed
 6. Return CalibrationResult; optionally write to .slopconfig.yaml via --apply-calibration
@@ -52,9 +54,10 @@ class CalibrationEvent:
 
     file_path: str
     ldr: float
-    inflation: float  # raw inflation_score (not normalized)
-    ddc: float  # usage_ratio
-    label: str  # "improvement" | "fp_candidate"
+    inflation: float          # raw inflation_score (not normalized)
+    ddc: float                # usage_ratio
+    n_critical_patterns: int  # CRITICAL-severity pattern count (purity dimension)
+    label: str                # "improvement" | "fp_candidate"
 
 
 @dataclass
@@ -64,6 +67,7 @@ class WeightCandidate:
     w_ldr: float
     w_inflation: float
     w_ddc: float
+    w_purity: float = 0.0
     fn_rate: float = 0.0  # missed real slops (binary)
     fp_rate: float = 0.0  # unnecessary alerts (binary)
     combined_score: float = 0.0  # fn_rate + fp_rate (lower = better)
@@ -115,7 +119,8 @@ class SelfCalibrator:
         min_events: int = MIN_EVENTS,
     ) -> CalibrationResult:
         """Run self-calibration. Returns CalibrationResult with optimal weights."""
-        cw = current_weights or {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30}
+        cw = dict(current_weights) if current_weights else {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30}
+        cw.setdefault("purity", 0.10)  # inject purity default for pre-v3.2.0 configs
 
         if not self.db_path.exists():
             return CalibrationResult(
@@ -144,9 +149,9 @@ class SelfCalibrator:
             )
             return result
 
-        # Score current weights as baseline
+        # Score current weights as baseline (4D)
         result.fn_rate_before, result.fp_rate_before, _ = self._score_weights(
-            cw["ldr"], cw["inflation"], cw["ddc"], improvements, fp_candidates
+            cw["ldr"], cw["inflation"], cw["ddc"], cw["purity"], improvements, fp_candidates
         )
 
         # Grid search
@@ -182,6 +187,7 @@ class SelfCalibrator:
             "ldr": winner.w_ldr,
             "inflation": winner.w_inflation,
             "ddc": winner.w_ddc,
+            "purity": winner.w_purity,
         }
 
         if result.confidence_gap < CONFIDENCE_GAP:
@@ -218,69 +224,81 @@ class SelfCalibrator:
 
     def _extract_events(self) -> Tuple[List[CalibrationEvent], int]:
         """
-        Load history and derive labeled events.
-
-        improvement: deficit was high, next run it dropped significantly
-                     -> user edited the file; current weights correctly flagged it
-        fp_candidate: deficit was high, same hash in next run, score barely moved
-                     -> user saw the warning and ignored it; likely FP for this style
+        Load history and derive labeled events (improvement / fp_candidate).
+        Delegates to helpers to keep nesting shallow and each responsibility single.
         """
         rows = self._load_history()
+        by_file = self._group_runs_by_file(rows)
+        seen_fp_files: set = set()
+        events: List[CalibrationEvent] = []
+        for file_path, runs in by_file.items():
+            for ev in self._classify_consecutive_runs(file_path, runs, seen_fp_files):
+                events.append(ev)
+        return events, len(by_file)
 
-        # Group by file_path, sorted by timestamp ascending
+    @staticmethod
+    def _group_runs_by_file(rows: list) -> Dict[str, list]:
+        """Group history rows by file_path and sort each group by timestamp ascending."""
         by_file: Dict[str, list] = {}
         for row in rows:
             by_file.setdefault(row["file_path"], []).append(row)
         for runs in by_file.values():
             runs.sort(key=lambda r: r["timestamp"])
+        return by_file
 
+    @staticmethod
+    def _classify_consecutive_runs(
+        file_path: str, runs: list, seen_fp_files: set
+    ) -> List[CalibrationEvent]:
+        """
+        Emit CalibrationEvents for consecutive run pairs on one file.
+
+        improvement: deficit dropped > FIX_DELTA -> user edited the file (true positive)
+        fp_candidate: same hash, score stable -> user ignored warning (false positive candidate)
+        Each file contributes at most one fp_candidate to prevent consecutive-run bias.
+        """
+        if len(runs) < 2:
+            return []
         events: List[CalibrationEvent] = []
-        unique_files = len(by_file)
-        seen_fp_files: set = set()  # each file contributes at most one fp_candidate
-
-        for file_path, runs in by_file.items():
-            if len(runs) < 2:
+        for i in range(len(runs) - 1):
+            r_now, r_next = runs[i], runs[i + 1]
+            if r_now["deficit_score"] <= SLOP_FLOOR:
                 continue
-            for i in range(len(runs) - 1):
-                r_now = runs[i]
-                r_next = runs[i + 1]
+            drop = r_now["deficit_score"] - r_next["deficit_score"]
+            ev = SelfCalibrator._classify_run_pair(file_path, r_now, r_next, drop, seen_fp_files)
+            if ev is not None:
+                events.append(ev)
+        return events
 
-                if r_now["deficit_score"] <= SLOP_FLOOR:
-                    continue  # was clean; not informative for slop calibration
-
-                drop = r_now["deficit_score"] - r_next["deficit_score"]
-
-                if drop >= FIX_DELTA:
-                    # Score improved significantly -> user likely edited it
-                    events.append(
-                        CalibrationEvent(
-                            file_path=file_path,
-                            ldr=r_now["ldr_score"],
-                            inflation=r_now["inflation_score"],
-                            ddc=r_now["ddc_usage_ratio"],
-                            label="improvement",
-                        )
-                    )
-                elif (
-                    file_path not in seen_fp_files
-                    and r_now["file_hash"] == r_next["file_hash"]
-                    and abs(drop) < FP_STABLE_DELTA
-                ):
-                    # Same content, same bad score, user did nothing.
-                    # Capped at one fp_candidate per file: prevents consecutive-run
-                    # bias where 50 unchanged runs generate 49 fp_candidates.
-                    events.append(
-                        CalibrationEvent(
-                            file_path=file_path,
-                            ldr=r_now["ldr_score"],
-                            inflation=r_now["inflation_score"],
-                            ddc=r_now["ddc_usage_ratio"],
-                            label="fp_candidate",
-                        )
-                    )
-                    seen_fp_files.add(file_path)
-
-        return events, unique_files
+    @staticmethod
+    def _classify_run_pair(
+        file_path: str, r_now: dict, r_next: dict, drop: float, seen_fp_files: set
+    ) -> Optional[CalibrationEvent]:
+        """Classify a single (r_now, r_next) pair as improvement, fp_candidate, or None."""
+        if drop >= FIX_DELTA:
+            return CalibrationEvent(
+                file_path=file_path,
+                ldr=r_now["ldr_score"],
+                inflation=r_now["inflation_score"],
+                ddc=r_now["ddc_usage_ratio"],
+                n_critical_patterns=r_now["n_critical_patterns"],
+                label="improvement",
+            )
+        if (
+            file_path not in seen_fp_files
+            and r_now["file_hash"] == r_next["file_hash"]
+            and abs(drop) < FP_STABLE_DELTA
+        ):
+            seen_fp_files.add(file_path)
+            return CalibrationEvent(
+                file_path=file_path,
+                ldr=r_now["ldr_score"],
+                inflation=r_now["inflation_score"],
+                ddc=r_now["ddc_usage_ratio"],
+                n_critical_patterns=r_now["n_critical_patterns"],
+                label="fp_candidate",
+            )
+        return None
 
     # ------------------------------------------------------------------
     # Deficit recomputation
@@ -291,23 +309,31 @@ class SelfCalibrator:
         ldr: float,
         inflation: float,
         ddc: float,
+        n_critical_patterns: int,
         w_ldr: float,
         w_inflation: float,
         w_ddc: float,
+        w_purity: float,
     ) -> float:
         """
-        Recompute base deficit score with candidate weights.
+        Recompute base deficit score with candidate weights (4D GQG).
         Mirrors core.py _calculate_slop_score (metric component only, GQG geometric mean).
-        Pattern penalties are orthogonal to weight calibration and excluded.
-        Purity is excluded: it depends on pattern count, not on ldr/inflation/ddc weights.
+        Pattern penalties are orthogonal to weight calibration and excluded from FN/FP scoring.
+
+        Purity dimension: purity_score = exp(-0.5 * n_critical_patterns)
+          - 1.0 when no critical patterns (perfect purity)
+          - Decays toward 0 as critical patterns accumulate
+          - This raw count is stored in history.db (v3.2.0+); old rows default to 0.
         """
         inflation_normalized = min(inflation, 2.0) / 2.0 if inflation != float("inf") else 1.0
-        total_w = w_ldr + w_inflation + w_ddc
+        purity_score = exp(-0.5 * n_critical_patterns)
+        total_w = w_ldr + w_inflation + w_ddc + w_purity
         gqg = exp(
             (
                 w_ldr * log(max(1e-4, ldr))
                 + w_inflation * log(max(1e-4, 1.0 - inflation_normalized))
                 + w_ddc * log(max(1e-4, ddc))
+                + w_purity * log(max(1e-4, purity_score))
             )
             / total_w
         )
@@ -322,11 +348,12 @@ class SelfCalibrator:
         w_ldr: float,
         w_inflation: float,
         w_ddc: float,
+        w_purity: float,
         improvements: List[CalibrationEvent],
         fp_candidates: List[CalibrationEvent],
     ) -> Tuple[float, float, float]:
         """
-        Score a weight set. Returns (fn_rate, fp_rate, tiebreak_score).
+        Score a weight set (4D). Returns (fn_rate, fp_rate, tiebreak_score).
 
         fn_rate: fraction of improvement events where new weights score < SLOP_FLOOR (missed)
         fp_rate: fraction of fp_candidates where new weights still score >= SLOP_FLOOR (FP)
@@ -339,7 +366,8 @@ class SelfCalibrator:
         tp_margins: List[float] = []
         for ev in improvements:
             recomputed = self._recompute_deficit(
-                ev.ldr, ev.inflation, ev.ddc, w_ldr, w_inflation, w_ddc
+                ev.ldr, ev.inflation, ev.ddc, ev.n_critical_patterns,
+                w_ldr, w_inflation, w_ddc, w_purity,
             )
             if recomputed < SLOP_FLOOR:
                 fn_count += 1
@@ -350,7 +378,8 @@ class SelfCalibrator:
         fp_deficits: List[float] = []
         for ev in fp_candidates:
             recomputed = self._recompute_deficit(
-                ev.ldr, ev.inflation, ev.ddc, w_ldr, w_inflation, w_ddc
+                ev.ldr, ev.inflation, ev.ddc, ev.n_critical_patterns,
+                w_ldr, w_inflation, w_ddc, w_purity,
             )
             fp_deficits.append(recomputed)
             if recomputed >= SLOP_FLOOR:
@@ -375,43 +404,46 @@ class SelfCalibrator:
         fp_candidates: List[CalibrationEvent],
     ) -> List[WeightCandidate]:
         """
-        Exhaustive grid search over the weight simplex.
+        Exhaustive grid search over the 4D weight simplex.
         Resolution: 1/GRID_STEP = 0.05 increments.
+        Constraint: w_ldr + w_inf + w_ddc + w_purity = 1.0, each in [MIN_W, MAX_W].
         Returns all valid candidates sorted ascending by combined score.
         """
         candidates: List[WeightCandidate] = []
         step = 1.0 / GRID_STEP
 
-        # Enumerate integer grid (i + j + k = GRID_STEP, all >= MIN_W*GRID_STEP)
         min_i = int(MIN_W * GRID_STEP)
         max_i = int(MAX_W * GRID_STEP)
 
         for i in range(min_i, max_i + 1):
             for j in range(min_i, max_i + 1):
-                k = GRID_STEP - i - j
-                if k < min_i or k > max_i:
-                    continue
+                for p in range(min_i, max_i + 1):
+                    k = GRID_STEP - i - j - p
+                    if k < min_i or k > max_i:
+                        continue
 
-                w_ldr = round(i * step, 4)
-                w_inf = round(j * step, 4)
-                w_ddc = round(k * step, 4)
+                    w_ldr = round(i * step, 4)
+                    w_inf = round(j * step, 4)
+                    w_ddc = round(k * step, 4)
+                    w_pur = round(p * step, 4)
 
-                fn_rate, fp_rate, tiebreak = self._score_weights(
-                    w_ldr, w_inf, w_ddc, improvements, fp_candidates
-                )
-                combined = round(fn_rate + fp_rate, 4)
-
-                candidates.append(
-                    WeightCandidate(
-                        w_ldr=w_ldr,
-                        w_inflation=w_inf,
-                        w_ddc=w_ddc,
-                        fn_rate=fn_rate,
-                        fp_rate=fp_rate,
-                        combined_score=combined,
-                        tiebreak_score=tiebreak,
+                    fn_rate, fp_rate, tiebreak = self._score_weights(
+                        w_ldr, w_inf, w_ddc, w_pur, improvements, fp_candidates
                     )
-                )
+                    combined = round(fn_rate + fp_rate, 4)
+
+                    candidates.append(
+                        WeightCandidate(
+                            w_ldr=w_ldr,
+                            w_inflation=w_inf,
+                            w_ddc=w_ddc,
+                            w_purity=w_pur,
+                            fn_rate=fn_rate,
+                            fp_rate=fp_rate,
+                            combined_score=combined,
+                            tiebreak_score=tiebreak,
+                        )
+                    )
 
         return candidates
 
@@ -422,7 +454,8 @@ class SelfCalibrator:
     def _load_history(self) -> List[Dict]:
         sql = """
         SELECT file_path, file_hash, timestamp,
-               deficit_score, ldr_score, inflation_score, ddc_usage_ratio
+               deficit_score, ldr_score, inflation_score, ddc_usage_ratio,
+               COALESCE(n_critical_patterns, 0)
         FROM history
         ORDER BY file_path, timestamp ASC
         """
@@ -437,6 +470,7 @@ class SelfCalibrator:
                 "ldr_score": r[4],
                 "inflation_score": r[5],
                 "ddc_usage_ratio": r[6],
+                "n_critical_patterns": int(r[7]),
             }
             for r in rows
         ]
@@ -470,6 +504,7 @@ class SelfCalibrator:
                 f"  ldr: {weights['ldr']}\n",
                 f"  inflation: {weights['inflation']}\n",
                 f"  ddc: {weights['ddc']}\n",
+                f"  purity: {weights.get('purity', 0.10)}\n",
             ]
             path.write_text("".join(lines), encoding="utf-8")
             return str(path.resolve())
@@ -484,17 +519,18 @@ class SelfCalibrator:
             new_t, n = re.subn(pat, rf"\g<1>{value}\g<2>", t, flags=re.MULTILINE)
             return new_t, n > 0
 
-        for key in ("ldr", "inflation", "ddc"):
-            text, replaced = _rewrite_key(text, key, weights[key])
+        for key in ("ldr", "inflation", "ddc", "purity"):
+            val = weights.get(key, 0.10 if key == "purity" else weights.get("ldr", 0.0))
+            text, replaced = _rewrite_key(text, key, val)
             if replaced:
                 updated.add(key)
 
-        missing = {"ldr", "inflation", "ddc"} - updated
+        missing = {"ldr", "inflation", "ddc", "purity"} - updated
         if missing:
             if re.search(r"^[ \t]*weights:\s*$", text, flags=re.MULTILINE):
-                # weights: block exists but some keys are absent — insert them
                 missing_block = "\n".join(
-                    f"  {k}: {weights[k]}" for k in sorted(missing)
+                    f"  {k}: {weights.get(k, 0.10 if k == 'purity' else 0.0)}"
+                    for k in sorted(missing)
                 )
                 text = re.sub(
                     r"^([ \t]*weights:\s*)$",
@@ -507,8 +543,8 @@ class SelfCalibrator:
                 if not text.endswith("\n"):
                     text += "\n"
                 text += "\nweights:\n"
-                for k in ("ldr", "inflation", "ddc"):
-                    text += f"  {k}: {weights[k]}\n"
+                for k in ("ldr", "inflation", "ddc", "purity"):
+                    text += f"  {k}: {weights.get(k, 0.10 if k == 'purity' else 0.0)}\n"
 
         path.write_text(text, encoding="utf-8")
         return str(path.resolve())

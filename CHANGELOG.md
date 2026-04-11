@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2026-04-12
+
+### Added
+
+**`ml/self_calibrator.py` — F1: 4D calibration (purity dimension)**
+- `CalibrationEvent` and `WeightCandidate` now carry a `purity` weight dimension.
+- `_recompute_deficit()` computes `purity_score = exp(-0.5 * n_critical_patterns)`:
+  1.0 when no critical patterns, decays toward 0 as critical patterns accumulate.
+- `_grid_search()` extended from 3D to 4D simplex: three nested loops (i, j, p),
+  k = GRID_STEP − i − j − p; constraints keep each weight in [MIN_W, MAX_W].
+- `apply_to_config()` now writes all four keys: `ldr`, `inflation`, `ddc`, `purity`.
+- `CalibrationResult.optimal_weights` now includes a `"purity"` key.
+- Backward compatible: old `history.db` rows default `n_critical_patterns = 0`
+  → `purity_score = 1.0` → no change to deficit from old records.
+
+**`ml/self_calibrator.py` — internal refactor: event extraction decomposed**
+- `_extract_events()` split into three focused helpers:
+  - `_group_runs_by_file(rows)` — groups + sorts rows by file and timestamp
+  - `_classify_consecutive_runs(file_path, runs, seen_fp_files)` — per-file loop
+  - `_classify_run_pair(file_path, r_now, r_next, drop, seen_fp_files)` — single pair
+- Reduces nesting depth (depth=4 → depth=3), CC (11 → 3 per function), and
+  lines per function (54 → 10 each). No behaviour change.
+
+**`history.py` — F1 schema: `n_critical_patterns` column**
+- `_SCHEMA_V2` includes `n_critical_patterns INTEGER NOT NULL DEFAULT 0`.
+- `_migrate()` adds the column when upgrading from schema v1.
+- `HistoryEntry` dataclass gains `n_critical_patterns: int = 0`.
+- `record()` computes the count from `pattern_issues` (CRITICAL severity only).
+- `_insert()` writes the value in the 12-column INSERT.
+- `count_total_records() -> int` method added for auto-trigger hint.
+
+**`cli.py` + `config.py` — F2: `--init` bootstrap**
+- `slop-detector --init [path]` generates a fully documented `.slopconfig.yaml`
+  in the target project root (or `.` by default).
+- Project type auto-detected (python / javascript / go) from `package.json` / `go.mod`.
+- `.gitignore` entry injected automatically with an explanatory security comment.
+- `--force-init` flag overwrites an existing `.slopconfig.yaml`.
+- `generate_slopconfig_template(project_type)` added to `config.py`.
+
+**`cli.py` — F3: auto-trigger calibration hint**
+- After every run that records history, `_check_calibration_hint()` fires when
+  total records cross a MIN_EVENTS milestone (every 20 records).
+- Output: `[*] Calibration available (N events). Run --self-calibrate to optimize weights.`
+- Closes the LEDA loop: `--init` → scan (auto-log) → hint → `--self-calibrate` → `--apply-calibration`.
+
+**`README.md` — F4: Security Considerations section**
+- Documents what `.slopconfig.yaml` contains (domain overrides = codebase weakness map)
+  and why it should default to `.gitignore` for private projects.
+- Documents `history.db` location (`~/.slop-detector/`) and its safety properties.
+- Navigation bar updated; scoring section reflects all 4 calibrated dimensions.
+
+### Changed
+
+**`.slopconfig.yaml` — purity weight added + ML calibrator overrides**
+- `weights:` block now includes `purity: 0.10` (4D calibration, v3.2.0+).
+- `nested_complexity.domain_overrides` adds `_grid_search` (depth=6, cc=10):
+  4D grid search requires n-1 nested loops by mathematical necessity.
+- `god_function.domain_overrides` adds `calibrate` (lines=100) and
+  `apply_to_config` (lines=70): orchestrator and YAML comment-preserving updater
+  patterns are inherently multi-step.
+- Self-scan result: **44/44 files CLEAN** (was 42/43 before this patch).
+
+---
+
 ## [3.1.3] - 2026-04-11
 
 ### Fixed

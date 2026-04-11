@@ -627,20 +627,27 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  slop-detector file.py                    # Analyze single file
-  slop-detector --project src/             # Analyze project
-  slop-detector --project . --json         # JSON output
-  slop-detector --project . -o report.html # HTML report
-  slop-detector file.py --fix --dry-run    # Preview auto-fixes
-  slop-detector file.py --fix              # Apply auto-fixes
-  slop-detector file.py --gate             # Show SNP gate decision
-  slop-detector src/ --js                  # Analyze JS/TS files
-  slop-detector src/ --cross-file          # Cross-file analysis
-  slop-detector src/ --governance          # Emit CR-EP session artifacts
-  slop-detector --version                  # Show version
+  slop-detector --init                       # Bootstrap .slopconfig.yaml + .gitignore
+  slop-detector file.py                      # Analyze single file
+  slop-detector --project src/               # Analyze project
+  slop-detector --project . --json           # JSON output
+  slop-detector --project . -o report.html   # HTML report
+  slop-detector file.py --fix --dry-run      # Preview auto-fixes
+  slop-detector file.py --fix                # Apply auto-fixes
+  slop-detector file.py --gate               # Show SNP gate decision
+  slop-detector src/ --js                    # Analyze JS/TS files
+  slop-detector src/ --cross-file            # Cross-file analysis
+  slop-detector src/ --governance            # Emit CR-EP session artifacts
+  slop-detector --self-calibrate             # Optimize weights from run history
+  slop-detector --version                    # Show version
         """,
     )
-    parser.add_argument("path", help="Path to Python file or project directory")
+    parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="Path to Python file or project directory (default: current directory)",
+    )
     parser.add_argument("--project", action="store_true", help="Analyze entire project")
     parser.add_argument("--output", "-o", help="Output file (txt, json, or html)")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
@@ -736,6 +743,17 @@ Examples:
         default=10,
         metavar="N",
         help="Minimum labeled events required before calibration runs (default: 10)",
+    )
+    # Bootstrap (v3.2.0)
+    parser.add_argument(
+        "--init",
+        action="store_true",
+        help="Bootstrap .slopconfig.yaml for this project and add it to .gitignore",
+    )
+    parser.add_argument(
+        "--force-init",
+        action="store_true",
+        help="Overwrite existing .slopconfig.yaml when using --init",
     )
     # CI/CD Gate options (v2.2)
     parser.add_argument(
@@ -857,6 +875,8 @@ def main() -> int:
     if getattr(args, "show_history", False):
         _show_file_history(args.path)
         return 0
+    if getattr(args, "init", False):
+        return _run_init(args)
     if getattr(args, "self_calibrate", False):
         return _run_self_calibration(args)
 
@@ -897,6 +917,7 @@ def main() -> int:
 
     if not getattr(args, "no_history", False):
         _record_history(result)
+        _check_calibration_hint(args)
 
     return 0
 
@@ -1077,6 +1098,79 @@ def _run_governance(path: str, result) -> None:
     print("  enforcement_log.jsonl, change_events.jsonl, review_contract.json")
 
 
+def _detect_project_type(path: Path) -> str:
+    """Infer project type from root directory structure."""
+    if (path / "package.json").exists():
+        return "javascript"
+    if (path / "go.mod").exists():
+        return "go"
+    return "python"  # pyproject.toml / setup.py / .py files — default
+
+
+def _inject_gitignore_entry(gitignore_path: Path, entry: str, comment: str) -> None:
+    """Append entry to .gitignore if not already present."""
+    if gitignore_path.exists():
+        text = gitignore_path.read_text(encoding="utf-8")
+        if entry in text:
+            return
+        with open(gitignore_path, "a", encoding="utf-8") as f:
+            f.write(f"\n{comment}\n{entry}\n")
+    else:
+        with open(gitignore_path, "w", encoding="utf-8") as f:
+            f.write(f"{comment}\n{entry}\n")
+    print(f"[+] {entry} added to {gitignore_path}")
+
+
+def _run_init(args: argparse.Namespace) -> int:
+    """Bootstrap .slopconfig.yaml and secure it in .gitignore."""
+    from slop_detector.config import generate_slopconfig_template
+
+    config_path = Path(".slopconfig.yaml")
+    force = getattr(args, "force_init", False)
+
+    if config_path.exists() and not force:
+        print("[!] .slopconfig.yaml already exists. Use --force-init to overwrite.")
+        return 1
+
+    project_type = _detect_project_type(Path("."))
+    template = generate_slopconfig_template(project_type)
+    config_path.write_text(template, encoding="utf-8")
+    print(f"[+] .slopconfig.yaml generated (project_type={project_type})")
+
+    _inject_gitignore_entry(
+        Path(".gitignore"),
+        entry=".slopconfig.yaml",
+        comment="# slop-detector: governance config (contains codebase complexity surface — keep private)",
+    )
+
+    print()
+    print("[>] Next steps:")
+    print("    slop-detector --project . --config .slopconfig.yaml")
+    print()
+    print("[!] Security: .slopconfig.yaml is in .gitignore (maps acceptable-complexity surface).")
+    print("    To share governance config with your team, remove it from .gitignore.")
+    return 0
+
+
+def _check_calibration_hint(args) -> None:
+    """Print a periodic hint when the history DB has accumulated enough events."""
+    if getattr(args, "no_history", False):
+        return
+    try:
+        from slop_detector.history import HistoryTracker
+        from slop_detector.ml.self_calibrator import MIN_EVENTS
+
+        tracker = HistoryTracker()
+        n = tracker.count_total_records()
+        if n >= MIN_EVENTS and n % MIN_EVENTS == 0:
+            print(
+                f"\n[*] Calibration milestone: {n} history records accumulated. "
+                f"Run --self-calibrate to optimize weights for this codebase."
+            )
+    except Exception:  # noqa: BLE001 — hint is informational; never block main flow
+        pass
+
+
 def _record_history(result) -> None:
     """Auto-record analysis result(s) to history DB."""
     try:
@@ -1210,7 +1304,7 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         wt.add_column("Current", justify="right")
         wt.add_column("Optimal", justify="right")
         wt.add_column("Delta", justify="right")
-        for dim in ("ldr", "inflation", "ddc"):
+        for dim in ("ldr", "inflation", "ddc", "purity"):
             cur = current_weights.get(dim, 0.0)
             opt = result.optimal_weights.get(dim, cur)
             delta = opt - cur

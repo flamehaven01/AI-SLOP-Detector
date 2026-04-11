@@ -7,6 +7,10 @@ Auto-recorded on every CLI run; opt-out with --no-history.
 Schema v2 (v2.9.0):
   - inflation_score replaces bcr_score (v2.8.0 rename)
   - pattern_count added
+
+Schema v3 (v3.2.0):
+  - n_critical_patterns added (CRITICAL-severity pattern count per file)
+    Required for 4D self-calibration (purity dimension).
 """
 
 import hashlib
@@ -19,18 +23,19 @@ from typing import Any, Dict, List, Optional
 
 _SCHEMA_V2 = """
 CREATE TABLE IF NOT EXISTS history (
-    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp        TEXT    NOT NULL,
-    file_path        TEXT    NOT NULL,
-    file_hash        TEXT    NOT NULL,
-    deficit_score    REAL    NOT NULL,
-    ldr_score        REAL    NOT NULL DEFAULT 0.0,
-    inflation_score  REAL    NOT NULL DEFAULT 0.0,
-    ddc_usage_ratio  REAL    NOT NULL DEFAULT 1.0,
-    pattern_count    INTEGER NOT NULL DEFAULT 0,
-    grade            TEXT    NOT NULL DEFAULT '',
-    git_commit       TEXT,
-    git_branch       TEXT
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp            TEXT    NOT NULL,
+    file_path            TEXT    NOT NULL,
+    file_hash            TEXT    NOT NULL,
+    deficit_score        REAL    NOT NULL,
+    ldr_score            REAL    NOT NULL DEFAULT 0.0,
+    inflation_score      REAL    NOT NULL DEFAULT 0.0,
+    ddc_usage_ratio      REAL    NOT NULL DEFAULT 1.0,
+    pattern_count        INTEGER NOT NULL DEFAULT 0,
+    n_critical_patterns  INTEGER NOT NULL DEFAULT 0,
+    grade                TEXT    NOT NULL DEFAULT '',
+    git_commit           TEXT,
+    git_branch           TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_file_path  ON history(file_path);
 CREATE INDEX IF NOT EXISTS idx_timestamp  ON history(timestamp DESC);
@@ -49,7 +54,8 @@ class HistoryEntry:
     inflation_score: float
     ddc_usage_ratio: float
     pattern_count: int
-    grade: str
+    grade: str = ""
+    n_critical_patterns: int = 0  # v3.2.0: CRITICAL-severity patterns (purity calibration signal)
     git_commit: Optional[str] = None
     git_branch: Optional[str] = None
 
@@ -82,6 +88,7 @@ class HistoryTracker:
             "ldr_score": "ALTER TABLE history ADD COLUMN ldr_score REAL NOT NULL DEFAULT 0.0",
             "ddc_usage_ratio": "ALTER TABLE history ADD COLUMN ddc_usage_ratio REAL NOT NULL DEFAULT 1.0",
             "grade": "ALTER TABLE history ADD COLUMN grade TEXT NOT NULL DEFAULT ''",
+            "n_critical_patterns": "ALTER TABLE history ADD COLUMN n_critical_patterns INTEGER NOT NULL DEFAULT 0",
         }
         for col, ddl in migrations.items():
             if col not in existing:
@@ -110,6 +117,11 @@ class HistoryTracker:
 
         pattern_issues = getattr(file_analysis, "pattern_issues", [])
         pattern_count = len(pattern_issues) if pattern_issues else 0
+        n_critical_patterns = sum(
+            1
+            for issue in (pattern_issues or [])
+            if str(getattr(getattr(issue, "severity", None), "value", "")).lower() == "critical"
+        )
 
         status = getattr(file_analysis, "status", None)
         grade = status.value if status and hasattr(status, "value") else str(status or "")
@@ -125,6 +137,7 @@ class HistoryTracker:
             inflation_score=inflation_score,
             ddc_usage_ratio=ddc_ratio,
             pattern_count=pattern_count,
+            n_critical_patterns=n_critical_patterns,
             grade=grade,
         )
         self._insert(entry)
@@ -133,8 +146,9 @@ class HistoryTracker:
         sql = """
         INSERT INTO history
             (timestamp, file_path, file_hash, deficit_score, ldr_score,
-             inflation_score, ddc_usage_ratio, pattern_count, grade, git_commit, git_branch)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             inflation_score, ddc_usage_ratio, pattern_count, n_critical_patterns,
+             grade, git_commit, git_branch)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._conn() as conn:
             conn.execute(
@@ -148,6 +162,7 @@ class HistoryTracker:
                     e.inflation_score,
                     e.ddc_usage_ratio,
                     e.pattern_count,
+                    e.n_critical_patterns,
                     e.grade,
                     e.git_commit,
                     e.git_branch,
@@ -157,6 +172,12 @@ class HistoryTracker:
     # ------------------------------------------------------------------
     # Read
     # ------------------------------------------------------------------
+
+    def count_total_records(self) -> int:
+        """Return total number of records in the history database."""
+        with self._conn() as conn:
+            row = conn.execute("SELECT COUNT(*) FROM history").fetchone()
+        return int(row[0]) if row else 0
 
     def get_file_history(self, file_path: str, limit: int = 20) -> List[Dict[str, Any]]:
         """Return recent history for a specific file, newest first."""
