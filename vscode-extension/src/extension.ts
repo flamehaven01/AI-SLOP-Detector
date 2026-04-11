@@ -55,6 +55,13 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('slop-detector.crossFileAnalysis', runCrossFileAnalysis)
     );
+    // v3.2.x commands: LEDA self-calibration loop
+    context.subscriptions.push(
+        vscode.commands.registerCommand('slop-detector.initConfig', initConfig)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('slop-detector.selfCalibrate', selfCalibrate)
+    );
 
     // Auto-lint on save
     context.subscriptions.push(
@@ -181,6 +188,12 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
         ? `, Clone: ${cloneIssues[0].severity?.toUpperCase() ?? 'DETECTED'}`
         : '';
 
+    // Purity score: exp(-0.5 * n_critical) — 4D LEDA dimension
+    const nCritical = (result.pattern_issues ?? []).filter(
+        (i: any) => (i.severity ?? '').toLowerCase() === 'critical'
+    ).length;
+    const purityScore = Math.exp(-0.5 * nCritical);
+
     // Overall summary diagnostic
     const mlPart = result.ml_score
         ? `, ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}]`
@@ -188,7 +201,8 @@ function updateDiagnostics(uri: vscode.Uri, result: any) {
     const summaryMessage = `Code Quality Score: ${deficitScore.toFixed(1)}/100 — ${(result.status ?? 'unknown').toUpperCase()}${mlPart}${clonePart}\n` +
                           `LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}  ` +
                           `Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}  ` +
-                          `DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}`;
+                          `DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}  ` +
+                          `Purity: ${purityScore.toFixed(3)} (${nCritical} critical)`;
 
     const summaryDiagnostic = new vscode.Diagnostic(
         new vscode.Range(0, 0, 0, 0),
@@ -348,12 +362,16 @@ function updateStatusBar(result: any) {
     const mlTooltip = result.ml_score
         ? `- ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}]\n`
         : '';
-    const cloneIssues = (result.pattern_issues ?? []).filter(
+    const cloneIssuesSB = (result.pattern_issues ?? []).filter(
         (i: any) => i.pattern_id === 'function_clone_cluster'
     );
-    const cloneTooltip = cloneIssues.length > 0
-        ? `- Clone: ${cloneIssues[0].severity?.toUpperCase() ?? 'DETECTED'}\n`
+    const cloneTooltip = cloneIssuesSB.length > 0
+        ? `- Clone: ${cloneIssuesSB[0].severity?.toUpperCase() ?? 'DETECTED'}\n`
         : '- Clone: PASS\n';
+    const nCriticalSB = (result.pattern_issues ?? []).filter(
+        (i: any) => (i.severity ?? '').toLowerCase() === 'critical'
+    ).length;
+    const puritySB = Math.exp(-0.5 * nCriticalSB);
     statusBarItem.tooltip = `SLOP Detector — ${severityLabel}\n` +
                            `Score: ${deficitScore.toFixed(1)}/100  Status: ${status}\n` +
                            `LDR Grade: ${ldrGrade}\n\n` +
@@ -361,6 +379,7 @@ function updateStatusBar(result: any) {
                            `- LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}\n` +
                            `- Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}\n` +
                            `- DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}\n` +
+                           `- Purity: ${puritySB.toFixed(3)} (${nCriticalSB} critical)\n` +
                            cloneTooltip +
                            mlTooltip;
 }
@@ -705,6 +724,119 @@ async function exportHistory() {
     } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`[-] Export History failed: ${msg}`);
+        statusBarItem.text = "$(error) SLOP: Error";
+    }
+}
+
+// v3.2.x: Bootstrap .slopconfig.yaml via --init
+async function initConfig() {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showWarningMessage('[!] No workspace folder open');
+        return;
+    }
+
+    const rootPath = workspaceFolders[0].uri.fsPath;
+    const config = vscode.workspace.getConfiguration('slopDetector');
+    const pythonPath = config.get('pythonPath', 'python');
+
+    const configExists = await vscode.workspace.findFiles(
+        new vscode.RelativePattern(workspaceFolders[0], '.slopconfig.yaml'),
+        undefined, 1
+    );
+
+    if (configExists.length > 0) {
+        const choice = await vscode.window.showWarningMessage(
+            '.slopconfig.yaml already exists. Overwrite?',
+            'Overwrite', 'Cancel'
+        );
+        if (choice !== 'Overwrite') {
+            return;
+        }
+    }
+
+    statusBarItem.text = "$(sync~spin) SLOP: Initializing config...";
+
+    try {
+        const command = `${pythonPath} -m slop_detector.cli --init "${rootPath}"${configExists.length > 0 ? ' --force-init' : ''}`;
+        const { stdout, stderr } = await execAsync(command, {
+            maxBuffer: 10 * 1024 * 1024,
+            cwd: rootPath
+        });
+
+        outputChannel.clear();
+        outputChannel.appendLine('=== SLOP Detector: Init Config ===');
+        outputChannel.appendLine(stdout);
+        if (stderr) { outputChannel.appendLine(stderr); }
+        outputChannel.show(true);
+
+        vscode.window.showInformationMessage(
+            '[+] .slopconfig.yaml created. Open output for details.'
+        );
+        statusBarItem.text = "$(check) SLOP: Ready";
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`[-] Init config failed: ${msg}`);
+        statusBarItem.text = "$(error) SLOP: Error";
+    }
+}
+
+// v3.2.x: Run LEDA self-calibration loop
+async function selfCalibrate() {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    const rootPath = workspaceFolders?.[0]?.uri.fsPath ?? '.';
+
+    const config = vscode.workspace.getConfiguration('slopDetector');
+    const pythonPath = config.get('pythonPath', 'python');
+
+    statusBarItem.text = "$(sync~spin) SLOP: Calibrating...";
+
+    try {
+        const command = `${pythonPath} -m slop_detector.cli --self-calibrate`;
+        const { stdout, stderr } = await execAsync(command, {
+            maxBuffer: 10 * 1024 * 1024,
+            cwd: rootPath
+        });
+
+        outputChannel.clear();
+        outputChannel.appendLine('=== SLOP Detector: Self-Calibration (LEDA) ===');
+        outputChannel.appendLine(stdout);
+        if (stderr) { outputChannel.appendLine(stderr); }
+        outputChannel.show(true);
+
+        const isInsufficient = stdout.includes('insufficient_data') || stdout.includes('Not enough');
+        const isNoChange = stdout.includes('no_change') || stdout.includes('No change');
+
+        if (isInsufficient) {
+            vscode.window.showWarningMessage(
+                '[!] Not enough history yet. Run more analyses to build up the calibration dataset.'
+            );
+        } else if (isNoChange) {
+            vscode.window.showInformationMessage(
+                '[=] Calibration complete: current weights are already optimal.'
+            );
+        } else {
+            const choice = await vscode.window.showInformationMessage(
+                '[*] Calibration ready. Apply new weights to .slopconfig.yaml?',
+                'Apply', 'View Only'
+            );
+
+            if (choice === 'Apply') {
+                const applyCmd = `${pythonPath} -m slop_detector.cli --self-calibrate --apply-calibration`;
+                const { stdout: applyOut } = await execAsync(applyCmd, {
+                    maxBuffer: 10 * 1024 * 1024,
+                    cwd: rootPath
+                });
+                outputChannel.appendLine('\n--- Apply Calibration ---');
+                outputChannel.appendLine(applyOut);
+                vscode.window.showInformationMessage('[+] Weights applied to .slopconfig.yaml');
+            }
+        }
+
+        statusBarItem.text = "$(check) SLOP: Ready";
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`[-] Self-calibration failed: ${msg}`);
         statusBarItem.text = "$(error) SLOP: Error";
     }
 }
