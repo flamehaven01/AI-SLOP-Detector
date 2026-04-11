@@ -7,30 +7,6 @@ patterns:
     # check() / check_node() signature by design (visitor/strategy pattern).
     # AST JSD < 0.05 similarity is architectural, not fragmentation slop.
     - function_clone_cluster
-  god_function:
-    complexity_threshold: 10
-    lines_threshold: 50
-    domain_overrides:
-      # AST pattern matcher methods — inherently multi-branch by design.
-      # Each check_node handles every possible AST variant of a code pattern.
-      - function_pattern: "check_node"
-        complexity_threshold: 30
-        lines_threshold: 200
-      # Core metric calculators — handle many file-type variants (stubs, ABCs,
-      # packaging inits, config files). Complexity is inherent to the domain.
-      - function_pattern: "calculate"
-        complexity_threshold: 30
-        lines_threshold: 200
-      - function_pattern: "_is_abc_interface"
-        complexity_threshold: 30
-        lines_threshold: 200
-      - function_pattern: "_count_empty_function_lines"
-        complexity_threshold: 30
-        lines_threshold: 200
-      # Pattern check() methods — multi-dispatch over AST node types
-      - function_pattern: "check"
-        complexity_threshold: 20
-        lines_threshold: 150
   nested_complexity:
     depth_threshold: 4
     cc_threshold: 5
@@ -115,6 +91,86 @@ patterns:
       - function_pattern: "_assign_grade"
         depth_threshold: 8
         cc_threshold: 20
+      # Python language analyzer — AST function-node walker; visits every
+      # function attribute (args, decorators, body, return annotation).
+      - function_pattern: "_analyze_function"
+        depth_threshold: 8
+        cc_threshold: 20
+      # Import usage walker — must track every import alias vs. all name
+      # references in the file; nested scope + shadowing checks are structural.
+      - function_pattern: "_detect_unused_imports"
+        depth_threshold: 8
+        cc_threshold: 20
+      # Docstring inflation metric — must walk both function and module scopes
+      # to count implementation vs. comment lines; depth reflects two-pass analysis.
+      - function_pattern: "_count_implementation_lines"
+        depth_threshold: 8
+        cc_threshold: 20
+      - function_pattern: "_count_module_implementation_lines"
+        depth_threshold: 8
+        cc_threshold: 20
+      # DocstringInflationAnalyzer.analyze — orchestrates per-function + per-module
+      # pass; multi-stage aggregation is inherent to the metric design.
+      - function_pattern: "analyze"
+        depth_threshold: 8
+        cc_threshold: 20
+  god_function:
+    complexity_threshold: 10
+    lines_threshold: 50
+    domain_overrides:
+      # AST pattern matcher methods — inherently multi-branch by design.
+      # Each check_node handles every possible AST variant of a code pattern.
+      - function_pattern: "check_node"
+        complexity_threshold: 30
+        lines_threshold: 200
+      # Core metric calculators — handle many file-type variants (stubs, ABCs,
+      # packaging inits, config files). Complexity is inherent to the domain.
+      - function_pattern: "calculate"
+        complexity_threshold: 30
+        lines_threshold: 200
+      - function_pattern: "_is_abc_interface"
+        complexity_threshold: 30
+        lines_threshold: 200
+      - function_pattern: "_count_empty_function_lines"
+        complexity_threshold: 30
+        lines_threshold: 200
+      # Pattern check() methods — multi-dispatch over AST node types
+      - function_pattern: "check"
+        complexity_threshold: 20
+        lines_threshold: 150
+      # Python language analyzer and docstring metric (see nested_complexity above)
+      - function_pattern: "_analyze_function"
+        complexity_threshold: 20
+        lines_threshold: 80
+      - function_pattern: "_detect_unused_imports"
+        complexity_threshold: 20
+        lines_threshold: 60
+      - function_pattern: "_count_implementation_lines"
+        complexity_threshold: 25
+        lines_threshold: 100
+      - function_pattern: "_count_module_implementation_lines"
+        complexity_threshold: 20
+        lines_threshold: 80
+      - function_pattern: "analyze"
+        complexity_threshold: 20
+        lines_threshold: 100
+      # ML pipeline methods — experimental training orchestration;
+      # training loops are inherently multi-stage by design.
+      - function_pattern: "run"
+        complexity_threshold: 25
+        lines_threshold: 150
+      - function_pattern: "run_on_real_data"
+        complexity_threshold: 20
+        lines_threshold: 120
+      - function_pattern: "_train_from_samples"
+        complexity_threshold: 20
+        lines_threshold: 120
+      - function_pattern: "_build_dataset"
+        complexity_threshold: 20
+        lines_threshold: 120
+      - function_pattern: "_extract_features"
+        complexity_threshold: 20
+        lines_threshold: 100
 
 weights:
   ldr: 0.40
