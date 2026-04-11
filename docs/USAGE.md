@@ -1,7 +1,7 @@
 # Complete Usage Guide - AI-SLOP Detector
 
-**Version:** 2.6.1
-**Last Updated:** 2026-01-12
+**Version:** 3.2.0
+**Last Updated:** 2026-04-12
 
 ---
 
@@ -58,6 +58,14 @@ pip install ai-slop-detector[dev,ml]
 ## Command Line Usage
 
 ### Basic Commands
+
+#### Bootstrap Config
+
+```bash
+# Bootstrap config for a new project
+slop-detector --init                    # generate .slopconfig.yaml + .gitignore
+slop-detector --init --force-init       # overwrite existing config
+```
 
 #### Analyze Single File
 
@@ -292,6 +300,7 @@ weights:
   ldr: 0.40
   inflation: 0.30
   ddc: 0.30
+  purity: 0.10
 
 # Files to ignore
 ignore:

@@ -1,4 +1,4 @@
-# History Tracking (v2.9.0)
+# History Tracking (v3.2.0)
 
 AI-SLOP Detector records every analysis run to a local SQLite database.
 Run it repeatedly on the same codebase and the accumulated data becomes
@@ -15,6 +15,7 @@ and which patterns keep recurring.
 
 Global across all projects. Each file is identified by its absolute path.
 Schema migrates automatically when new fields are introduced.
+Existing databases are automatically migrated to add `n_critical_patterns = 0` for historic rows.
 
 ### Schema
 
@@ -27,6 +28,7 @@ Schema migrates automatically when new fields are introduced.
 | `ldr_score` | REAL | Logic Density Ratio (0–1, higher is better) |
 | `inflation_score` | REAL | Jargon inflation score (0–10, lower is better) |
 | `ddc_usage_ratio` | REAL | Dependency usage ratio (0–1, higher is better) |
+| `n_critical_patterns` | INTEGER | Count of CRITICAL-severity pattern issues in this run (v3.2.0+) |
 | `pattern_count` | INTEGER | Number of pattern issues detected |
 | `grade` | TEXT | Status label (clean / suspicious / inflated_signal / critical_deficit) |
 | `git_commit` | TEXT | Current HEAD commit (when available) |
@@ -103,7 +105,8 @@ print(report.summary())
 
 ## Why This Matters
 
-The history log is the foundation for **independent ML training data**.
+The history log is the foundation for **independent ML training data** and
+**behavior-based self-calibration** (see [SELF_CALIBRATION.md](SELF_CALIBRATION.md)).
 
 The current ML pipeline uses rule-based `deficit_score` to generate training
 labels — creating a circular dependency where the ML model just learns the rules.
@@ -120,11 +123,12 @@ Longitudinal label: "this file improved" = confirmed slop
 Files that stay at 8 across 50 runs
     = stable, possibly rule false-positive
     ↓
-Independent signal for ML training
+Independent signal for ML training and self-calibration
 ```
 
-Future: `slop-detector feedback <file> --fp` to explicitly mark false positives,
-creating a labeled dataset for personalized threshold calibration per project.
+False positive detection is now automatic via behavior-based calibration:
+`--self-calibrate` reads this history and finds weight combinations that
+minimize both missed detections and unnecessary alerts for your codebase.
 
 ---
 

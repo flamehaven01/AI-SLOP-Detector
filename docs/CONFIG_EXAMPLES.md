@@ -101,6 +101,7 @@ weights:
   ldr: 0.40
   bcr: 0.30
   ddc: 0.30
+  purity: 0.10
 
 ignore:
   - "tests/**"

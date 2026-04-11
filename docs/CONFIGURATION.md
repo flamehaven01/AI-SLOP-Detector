@@ -10,8 +10,9 @@ Create `.slopconfig.yaml`:
 # Metric weights
 weights:
   ldr: 0.40        # Logic Density Ratio (40%)
-  inflation: 0.35  # Jargon/Buzzword Inflation (35%)
-  ddc: 0.25        # Dependency Check (25%)
+  inflation: 0.30  # Jargon/Buzzword Inflation (30%)
+  ddc: 0.30        # Dependency Check (30%)
+  purity: 0.10     # Critical pattern purity (10%)
 
 # Thresholds
 thresholds:

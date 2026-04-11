@@ -1,4 +1,4 @@
-# Mathematical Models Reference — AI-SLOP Detector v3.1.1
+# Mathematical Models Reference — AI-SLOP Detector v3.2.0
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.
@@ -136,22 +136,28 @@ Higher = more deficit (worse quality).
 ### Formula
 
 ```
-ldr_component       = w_ldr        * (1.0 - ldr_score)
-inflation_component = w_inflation  * min(inflation_score / 10.0, 1.0)
-ddc_component       = w_ddc        * (1.0 - ddc_usage_ratio)
-pattern_penalty     = Sigma(severity_weight[sev] * count[sev])
+base_deficit = 100 × (1 − GQG_4D)
 
-deficit_score = (ldr_component + inflation_component + ddc_component
-                 + pattern_penalty) * 100
+GQG_4D = exp( (w_ldr × log(ldr) + w_inf × log(1 − icr_norm) + w_ddc × log(ddc) + w_purity × log(purity_score)) / total_w )
+
+purity_score = exp(−0.5 × n_critical_patterns)
+total_w = w_ldr + w_inflation + w_ddc + w_purity
+
+pattern_penalty = Sigma(severity_weight[sev] * count[sev])
+
+deficit_score = base_deficit + pattern_penalty
 ```
 
 ### Default Weights
 
-| Signal      | Weight (w) | Source                         |
-|-------------|------------|--------------------------------|
-| LDR         | 0.40       | `.slopconfig.yaml` `weights.ldr` |
-| ICR         | 0.35       | `.slopconfig.yaml` `weights.inflation` |
-| DDC         | 0.25       | `.slopconfig.yaml` `weights.ddc` |
+| Signal    | Weight (w) | Source                              |
+|-----------|------------|-------------------------------------|
+| ldr       | 0.40       | `.slopconfig.yaml` `weights.ldr`    |
+| inflation | 0.30       | `.slopconfig.yaml` `weights.inflation` |
+| ddc       | 0.30       | `.slopconfig.yaml` `weights.ddc`    |
+| purity    | 0.10       | `.slopconfig.yaml` `weights.purity` |
+
+`w_ldr + w_inflation + w_ddc + w_purity = 1.10` (normalization uses `total_w`, so the sum need not equal 1.0 exactly).
 
 ### Pattern Severity Penalties (added after weighted sum, before x100)
 
@@ -513,8 +519,9 @@ All weights and thresholds are overridable via `.slopconfig.yaml`:
 ```yaml
 weights:
   ldr: 0.40
-  inflation: 0.35
-  ddc: 0.25
+  inflation: 0.30
+  ddc: 0.30
+  purity: 0.10
 
 thresholds:
   deficit:
@@ -535,24 +542,9 @@ pattern_penalties:
 
 ---
 
-*This document reflects the implementation in `src/slop_detector/` as of v2.8.0.
+*This document reflects the implementation in `src/slop_detector/` as of v3.2.0.
 For source-level detail, see the inline docstrings in `metrics/inflation.py`,
 `core.py`, `patterns/python_advanced.py`, and `ml/scorer.py`.*
-terns/python_advanced.py`, and `ml/scorer.py`.*
- 30
-    inflated: 50
-    critical: 70
-  ldr:
-    grade_a: 0.60
-    grade_b: 0.45
-    grade_c: 0.30
-
-pattern_penalties:
-  critical: 0.10
-  high: 0.05
-  medium: 0.02
-  low: 0.01
-```
 
 ---
 

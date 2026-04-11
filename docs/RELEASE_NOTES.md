@@ -5,6 +5,72 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.2.0 — 2026-04-12
+
+### Added
+
+**4D calibration — purity dimension**
+- `self_calibrator.py`: added purity as a 4th calibration dimension.
+- `purity_score = exp(-0.5 * n_critical_patterns)` — tracks how many CRITICAL-severity
+  pattern issues were detected; score = 1.0 (clean) and decays toward 0 with more criticals.
+- Grid search extended to 4D simplex: `w_ldr + w_inflation + w_ddc + w_purity = 1.0`.
+- `apply_to_config()` now writes all 4 weight keys to `.slopconfig.yaml`.
+- Old history rows default `n_critical_patterns = 0` → backward compatible (purity_score = 1.0).
+
+**`n_critical_patterns` history column (schema v2)**
+- `history.db` gains `n_critical_patterns INTEGER NOT NULL DEFAULT 0`.
+- Auto-migrated from schema v1. Records CRITICAL-severity pattern issues per run.
+- Used by self-calibration purity dimension.
+
+**`--init` bootstrap command**
+- `slop-detector --init [path]` generates a fully documented `.slopconfig.yaml` in
+  the target project (or `.` by default).
+- Auto-detects project type (python / javascript / go).
+- Automatically adds `.slopconfig.yaml` to `.gitignore` — creates `.gitignore` if missing,
+  appends if present, skips if entry already exists.
+- `--force-init` flag to overwrite an existing config.
+
+**Auto-trigger calibration hints**
+- After each scan, if total history records cross a 20-record milestone, prints:
+  `[*] Calibration milestone: N history records. Run --self-calibrate to optimize weights.`
+- Closes the full LEDA loop: `--init` → scan (auto-log) → hint → `--self-calibrate` → `--apply-calibration`.
+
+**`_extract_events` refactored (no behaviour change)**
+- Split into `_group_runs_by_file`, `_classify_consecutive_runs`, `_classify_run_pair`.
+- Reduces max nesting depth from 4 to 3, CC from 11 to 3 per function.
+
+**`.slopconfig.yaml` self-scan config**
+- `weights:` block now includes `purity: 0.10`.
+- Domain overrides added for `_grid_search`, `calibrate`, `apply_to_config`.
+- Self-scan: **44/44 CLEAN**.
+
+---
+
+## v3.1.3 — 2026-04-11
+
+### Fixed
+
+**`ml/self_calibrator.py` — P1: `apply_to_config` comment preservation**
+- Replaced `yaml.safe_load` + `yaml.dump` full-file rewrite with targeted regex in-place
+  replacement. Comments, `domain_overrides`, and all other keys are preserved.
+
+**`ml/self_calibrator.py` — P2: FP candidate deduplication**
+- `seen_fp_files` set introduced; each file contributes at most one `fp_candidate` event.
+  Prevents consecutive-run bias (50 unchanged runs → 49 fp_candidates → skewed weights).
+
+**`ml/self_calibrator.py` — P4: MIN_EVENTS raised from 10 → 20**
+- Minimum labeled events required for calibration raised to 20 for statistical reliability.
+
+**`README.md` — P3: weight drift correction**
+- `ddc` weight corrected from `0.20` to `0.30` in Scoring Model section.
+
+### Security
+
+**`.gitignore` — P5: slop-detector runtime artifacts**
+- Added `.slop-detector/` to `.gitignore`.
+
+---
+
 ## v3.1.2 — 2026-04-11
 
 ### Fixed

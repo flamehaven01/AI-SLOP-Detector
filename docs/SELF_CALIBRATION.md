@@ -19,6 +19,7 @@ weights:
   ldr: 0.40
   inflation: 0.30
   ddc: 0.30
+  purity: 0.10
 ```
 
 These numbers were tuned against Flamehaven's internal codebase and hardcoded.
@@ -43,7 +44,7 @@ Every `slop-detector` run is automatically recorded to
 `~/.slop-detector/history.db` (SQLite). Each record stores:
 
 ```
-file_path | file_hash | timestamp | deficit_score | ldr_score | inflation_score | ddc_usage_ratio | pattern_count | grade
+file_path | file_hash | timestamp | deficit_score | ldr_score | inflation_score | ddc_usage_ratio | n_critical_patterns | pattern_count | grade
 ```
 
 This accumulates silently as you use the tool. No configuration required.
@@ -83,9 +84,10 @@ This signal is completely independent of the formula's output.
 ### 3. Grid Search over the Weight Simplex
 
 With labeled events, the engine searches all weight combinations where:
-- `w_ldr + w_inflation + w_ddc = 1.0`
+- `w_ldr + w_inflation + w_ddc + w_purity = 1.0`
 - Each weight: `0.10 ≤ w ≤ 0.65`
 - Resolution: 0.05 increments
+- **Purity dimension:** `purity_score = exp(-0.5 * n_critical_patterns)` — 1.0 when no critical patterns, decays toward 0 as critical patterns accumulate
 
 For each candidate weight set, two rates are computed:
 
@@ -124,6 +126,20 @@ confidence_gap = score(rank_2) − score(rank_1)
 When primary scores are tied, the gap is computed from tiebreak scores
 (normalized). If `confidence_gap < 0.10`, the engine returns
 `status = insufficient_data` rather than applying a weakly-supported result.
+
+---
+
+## Bootstrap
+
+Before scanning for the first time, run:
+
+```bash
+slop-detector --init           # generate .slopconfig.yaml + secure .gitignore
+slop-detector --init --force-init   # overwrite existing config
+```
+
+This generates a fully documented `.slopconfig.yaml` tailored to your project type
+(python/javascript/go) and automatically adds `.slopconfig.yaml` to `.gitignore`.
 
 ---
 
@@ -179,7 +195,17 @@ If `status = insufficient_data`, `--apply-calibration` is skipped with a warning
 slop-detector . --self-calibrate --min-history 30
 ```
 
-Default: 10 events. Increase for stricter confidence requirements.
+Default: 20 events. Increase for stricter confidence requirements.
+
+### Automatic calibration hints
+
+After each scan that reaches a 20-record milestone, the tool prints:
+
+```
+[*] Calibration milestone: 20 history records accumulated. Run --self-calibrate to optimize weights.
+```
+
+No configuration required — the hint fires automatically.
 
 ---
 
@@ -197,8 +223,8 @@ Default: 10 events. Increase for stricter confidence requirements.
 
 | Events | Reliability |
 |---|---|
-| < 10 | Too sparse — calibration skipped |
-| 10–50 | First signal, treat as directional only |
+| < 20 | Too sparse — calibration skipped |
+| 20–50 | First signal, treat as directional only |
 | 50–200 | Reliable for most codebases |
 | 200+ | High confidence; recalibrate periodically as codebase evolves |
 
@@ -275,10 +301,14 @@ src/slop_detector/ml/self_calibrator.py
     ├── calibrate(current_weights, min_events) -> CalibrationResult
     ├── _extract_events() -> (List[CalibrationEvent], unique_file_count)
     │   ├── improvement_event: high deficit + score dropped + hash changed
-    │   └── fp_candidate:      high deficit + same hash + score stable
-    ├── _score_weights(w_ldr, w_inf, w_ddc, improvements, fp_candidates)
+    │   ├── fp_candidate:      high deficit + same hash + score stable
+    │   ├── _group_runs_by_file(rows) -> Dict[str, list]
+    │   ├── _classify_consecutive_runs(file_path, runs, seen_fp_files) -> List[CalibrationEvent]
+    │   └── _classify_run_pair(file_path, r_now, r_next, drop, seen_fp_files) -> Optional[CalibrationEvent]
+    ├── _score_weights(w_ldr, w_inf, w_ddc, w_purity, improvements, fp_candidates)
     │   -> (fn_rate, fp_rate, tiebreak_score)
     ├── _grid_search(improvements, fp_candidates) -> List[WeightCandidate]
+    │   4D simplex: w_ldr + w_inf + w_ddc + w_purity = 1.0
     │   sort key: (combined_score, tiebreak_score)
     └── apply_to_config(weights, config_path) -> str
 ```

@@ -11,7 +11,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-188%20passed-brightgreen.svg?v=3.1.2" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-192%20passed-brightgreen.svg?v=3.2.0" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-82%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
@@ -49,9 +49,10 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 ```bash
 pip install ai-slop-detector
 
-slop-detector mycode.py               # single file
-slop-detector --project ./src         # entire project
-slop-detector mycode.py --json        # machine-readable output
+slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
+slop-detector mycode.py                    # single file
+slop-detector --project ./src             # entire project
+slop-detector mycode.py --json            # machine-readable output
 slop-detector --project . --ci-mode hard --ci-report  # CI gate
 
 # Optional extras
@@ -244,8 +245,9 @@ slop-detector --project . --ci-mode quarantine --ci-report
 # .slopconfig.yaml
 weights:
   ldr: 0.40
-  inflation: 0.35
-  ddc: 0.25
+  inflation: 0.30
+  ddc: 0.30
+  purity: 0.10
 
 patterns:
   god_function:
@@ -282,6 +284,7 @@ cd vscode-extension && npm install && npx vsce package
 
 | Version | Highlights |
 |---|---|
+| **v3.2.0** | 4D calibration (purity dimension); `--init` bootstrap; auto-calibration hints; 44/44 self-scan CLEAN |
 | **v3.1.2** | `data_collector` refactor; slopconfig gap fill; 43/43 self-scan CLEAN |
 | **v3.1.1** | Clone Detection in Core Metrics table; table style unification; VS Code UX |
 | **v3.1.0** | 3 new adversarial patterns (`function_clone_cluster`, `placeholder_variable_naming`, `return_constant_stub`); GQG calibrator alignment; fhval SPAR-Code |
