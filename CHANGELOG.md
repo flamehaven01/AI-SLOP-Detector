@@ -69,6 +69,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   patterns are inherently multi-step.
 - Self-scan result: **44/44 files CLEAN** (was 42/43 before this patch).
 
+### Fixed
+
+**`cli.py` — P6: `--min-history` default / fallback drift (doc drift)**
+- `--min-history` argparser default was hardcoded `10`; fallback in `_run_self_calibration`
+  also used `10`. Both now sync to `MIN_EVENTS = 20` from `self_calibrator.py`.
+- Impact: without this fix, `slop-detector --self-calibrate` (no `--min-history` flag)
+  would trigger calibration with only 10 events — contradicting the documented threshold
+  and reducing statistical reliability of the result.
+- Fix: `default=20` in `add_argument`, `getattr(args, "min_history", 20)` in runner.
+
 ---
 
 ## [3.1.3] - 2026-04-11

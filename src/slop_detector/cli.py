@@ -740,9 +740,9 @@ Examples:
     parser.add_argument(
         "--min-history",
         type=int,
-        default=10,
+        default=20,
         metavar="N",
-        help="Minimum labeled events required before calibration runs (default: 10)",
+        help="Minimum labeled events required before calibration runs (default: 20)",
     )
     # Bootstrap (v3.2.0)
     parser.add_argument(
@@ -1274,7 +1274,7 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
 
     config = Config(config_path=getattr(args, "config", None))
     current_weights = config.get_weights()
-    min_events = getattr(args, "min_history", 10)
+    min_events = getattr(args, "min_history", 20)
 
     calibrator = SelfCalibrator()
     result = calibrator.calibrate(current_weights=current_weights, min_events=min_events)
