@@ -43,7 +43,7 @@ CONFIDENCE_GAP: float = 0.10  # min score gap between #1 and #2 candidate (Guard
 # v3.2.1: per-class minimums replace single MIN_EVENTS=20.
 # 4D model (+ continuous tiebreak) resolves candidates with fewer events than 3D binary-only.
 # Safety gates (CONFIDENCE_GAP + no_change margin) prevent premature calibration.
-MIN_IMPROVEMENTS: int = 5   # improvement events required (true positive class)
+MIN_IMPROVEMENTS: int = 5  # improvement events required (true positive class)
 MIN_FP_CANDIDATES: int = 5  # fp_candidate events required (false positive class)
 CALIBRATION_MILESTONE: int = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES  # = 10
 
@@ -59,10 +59,10 @@ class CalibrationEvent:
 
     file_path: str
     ldr: float
-    inflation: float          # raw inflation_score (not normalized)
-    ddc: float                # usage_ratio
+    inflation: float  # raw inflation_score (not normalized)
+    ddc: float  # usage_ratio
     n_critical_patterns: int  # CRITICAL-severity pattern count (purity dimension)
-    label: str                # "improvement" | "fp_candidate"
+    label: str  # "improvement" | "fp_candidate"
 
 
 @dataclass
@@ -129,7 +129,11 @@ class SelfCalibrator:
         min_events sets the per-class floor (applied independently to improvements and fp_candidates).
         Default is MIN_IMPROVEMENTS (5). To require stricter per-class quorum, pass higher value.
         """
-        cw = dict(current_weights) if current_weights else {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30}
+        cw = (
+            dict(current_weights)
+            if current_weights
+            else {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30}
+        )
         cw.setdefault("purity", 0.10)  # inject purity default for pre-v3.2.0 configs
 
         # per-class floors — caller can override via min_events (applies to both classes)
@@ -398,8 +402,14 @@ class SelfCalibrator:
         tp_margins: List[float] = []
         for ev in improvements:
             recomputed = self._recompute_deficit(
-                ev.ldr, ev.inflation, ev.ddc, ev.n_critical_patterns,
-                w_ldr, w_inflation, w_ddc, w_purity,
+                ev.ldr,
+                ev.inflation,
+                ev.ddc,
+                ev.n_critical_patterns,
+                w_ldr,
+                w_inflation,
+                w_ddc,
+                w_purity,
             )
             if recomputed < SLOP_FLOOR:
                 fn_count += 1
@@ -410,8 +420,14 @@ class SelfCalibrator:
         fp_deficits: List[float] = []
         for ev in fp_candidates:
             recomputed = self._recompute_deficit(
-                ev.ldr, ev.inflation, ev.ddc, ev.n_critical_patterns,
-                w_ldr, w_inflation, w_ddc, w_purity,
+                ev.ldr,
+                ev.inflation,
+                ev.ddc,
+                ev.n_critical_patterns,
+                w_ldr,
+                w_inflation,
+                w_ddc,
+                w_purity,
             )
             fp_deficits.append(recomputed)
             if recomputed >= SLOP_FLOOR:

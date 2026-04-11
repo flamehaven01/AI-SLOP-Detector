@@ -101,7 +101,9 @@ class HistoryTracker:
     # Write
     # ------------------------------------------------------------------
 
-    def record(self, file_analysis, git_commit: Optional[str] = None, git_branch: Optional[str] = None) -> None:
+    def record(
+        self, file_analysis, git_commit: Optional[str] = None, git_branch: Optional[str] = None
+    ) -> None:
         """Record a FileAnalysis result. Accepts the dataclass directly.
 
         git_commit / git_branch: captured once per CLI run and passed in (v3.2.1).

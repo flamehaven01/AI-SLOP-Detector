@@ -83,8 +83,12 @@ class TrainingFeatures:
     def _count_cross_lang(issues: list) -> Dict[str, int]:
         counts = {"js": 0, "java": 0, "ruby": 0, "go": 0, "csharp": 0, "php": 0}
         prefixes = {
-            "js_": "js", "java_": "java", "ruby_": "ruby",
-            "go_": "go", "csharp_": "csharp", "php_": "php",
+            "js_": "js",
+            "java_": "java",
+            "ruby_": "ruby",
+            "go_": "go",
+            "csharp_": "csharp",
+            "php_": "php",
         }
         for issue in issues:
             pid = issue.pattern_id

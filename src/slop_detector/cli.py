@@ -1173,7 +1173,9 @@ def _check_calibration_hint(args) -> None:
         config_path = getattr(args, "config", None) or ".slopconfig.yaml"
 
         if result.status == "ok" and Path(config_path).exists():
-            written = SelfCalibrator.apply_to_config(result.optimal_weights, config_path=config_path)
+            written = SelfCalibrator.apply_to_config(
+                result.optimal_weights, config_path=config_path
+            )
             print(f"\n[*] Auto-calibration ({n} records): weights updated -> {written}")
             for k in ("ldr", "inflation", "ddc", "purity"):
                 old_v = current_weights.get(k, 0.0)
@@ -1194,15 +1196,26 @@ def _check_calibration_hint(args) -> None:
 def _get_git_context():
     """Capture current git commit (short SHA) and branch. Returns (None, None) if not in a repo."""
     import subprocess
+
     try:
-        commit = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, timeout=3,
-        ).stdout.strip() or None
-        branch = subprocess.run(
-            ["git", "branch", "--show-current"],
-            capture_output=True, text=True, timeout=3,
-        ).stdout.strip() or None
+        commit = (
+            subprocess.run(
+                ["git", "rev-parse", "--short", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=3,
+            ).stdout.strip()
+            or None
+        )
+        branch = (
+            subprocess.run(
+                ["git", "branch", "--show-current"],
+                capture_output=True,
+                text=True,
+                timeout=3,
+            ).stdout.strip()
+            or None
+        )
         return commit, branch
     except Exception:
         return None, None

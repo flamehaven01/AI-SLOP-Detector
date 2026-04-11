@@ -30,6 +30,7 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 ---
 
 **Navigation:**
+[What Is It?](#what-is-ai-slop-detector) •
 [Quick Start](#quick-start) •
 [How It Works](#how-it-works) •
 [What It Detects](#what-it-detects) •
@@ -41,6 +42,22 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 [VS Code](#vs-code-extension) •
 [Changelog](CHANGELOG.md) •
 [Release Notes](docs/RELEASE_NOTES.md)
+
+---
+
+## What Is AI-SLOP Detector?
+
+AI-SLOP Detector is an **evidence-based static analyzer** purpose-built to catch the specific class of defects that AI code generation reliably introduces — before they reach production.
+
+Unlike general linters that flag style and convention, it targets **AI slop**: structurally plausible code that is functionally empty, disconnected, or misleading.
+
+- **27 adversarial pattern checks** — stubs, phantom imports, disconnected pipelines, buzzword inflation, clone clusters
+- **4D scoring model** — LDR (logic density), ICR (inflation), DDC (dependency coupling), Purity (critical severity) combined via geometric mean
+- **Self-calibrating** — every scan is recorded; after 10 scans the tool automatically tunes its weights to your codebase (no manual command required)
+- **Git-aware noise filter** — uses commit SHA to distinguish real improvements from measurement noise
+- **Zero-config bootstrap** — `--init` generates a documented `.slopconfig.yaml` and secures it in `.gitignore` in one command
+- **CI/CD gates** — soft / hard / quarantine modes; GitHub Actions ready
+- **VS Code extension** — real-time inline diagnostics, debounced lint-on-type, ML score in status bar
 
 ---
 
