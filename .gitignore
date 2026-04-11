@@ -132,3 +132,6 @@ remotion/.remotion/
 # .slopconfig.yaml is intentionally committed in this project (open-source governance).
 # For private/commercial projects, --init will add .slopconfig.yaml to the project .gitignore
 # because domain_overrides reveal the acceptable-complexity map of the codebase.
+
+# E2E test generated data (regenerated on every test run — not source)
+tests/e2e_v321/data/

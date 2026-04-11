@@ -1,4 +1,4 @@
-# Mathematical Models Reference — AI-SLOP Detector v3.2.0
+# Mathematical Models Reference — AI-SLOP Detector v3.2.1
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.

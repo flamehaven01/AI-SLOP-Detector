@@ -5,7 +5,47 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
-## v3.2.0 — 2026-04-12
+## v3.2.1 — 2026-04-11
+
+### Added
+
+**P1 — Auto-calibration at milestone (zero-config)**
+- Every 10 scans (`CALIBRATION_MILESTONE`), calibration now runs automatically and
+  writes updated weights to `.slopconfig.yaml` if it exists and calibration is confident.
+- Prints a per-weight diff (`ldr: 0.40 -> 0.45`) for full auditability.
+- Safety gates: only applies when `status == "ok"` — `CONFIDENCE_GAP < 0.10` and
+  `no_change` both suppress the write correctly.
+- Closes the full LEDA loop end-to-end: **"the more you use it, the smarter it gets"** —
+  no manual `--self-calibrate` / `--apply-calibration` required.
+
+**P2 — Git commit context as noise filter**
+- `_get_git_context()` in `cli.py`: captures `git rev-parse --short HEAD` and
+  `git branch --show-current` per run (3 s timeout, graceful `None` fallback).
+- `history.py record()` stores `git_commit` and `git_branch` alongside each record.
+- `self_calibrator.py _classify_run_pair()` uses git context:
+  - Same commit + score drop → skip (measurement noise within one commit).
+  - Different commit + stable file hash → skip (ambiguous signal).
+  - `git_commit = NULL` → original hash heuristic unchanged (backward compatible).
+- Fewer but higher-fidelity labeled events for more reliable calibration.
+
+**P3 — Per-class minimum thresholds**
+- `MIN_EVENTS = 20` replaced by `MIN_IMPROVEMENTS = 5` / `MIN_FP_CANDIDATES = 5`.
+- `CALIBRATION_MILESTONE = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES` (= 10).
+- Each class checked independently: both must meet their floor before grid search runs.
+  Prevents class-imbalanced calibration.
+- 4D model's continuous tiebreak signal makes 5+5 statistically sufficient.
+
+### Fixed
+
+- `self_calibrator.py calibrate()`: default `min_events` was `CALIBRATION_MILESTONE` (10),
+  causing `max(10, MIN_IMPROVEMENTS=5) = 10` per-class floor. Fixed to `MIN_IMPROVEMENTS` (5)
+  so both classes require 5 — matching the 5+5 design intent.
+- `cli.py _run_self_calibration()`: `getattr(args, "min_history", 20)` default corrected to 5.
+- `--min-history` CLI default: 20 → 5 (per-class floor, not total event count).
+
+---
+
+## v3.2.0 — 2026-04-11
 
 ### Added
 

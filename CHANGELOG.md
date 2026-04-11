@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.2.1] - 2026-04-12
+## [3.2.1] - 2026-04-11
 
 ### Added
 
@@ -44,11 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `self_calibrator.py calibrate()`: default `min_events` changed from `CALIBRATION_MILESTONE` (10)
+  to `MIN_IMPROVEMENTS` (5); old default caused `max(10, MIN_IMPROVEMENTS=5) = 10` per-class floor,
+  defeating the 5+5 design intent. Now correctly yields `max(5, 5) = 5` per class.
 - `cli.py _run_self_calibration()`: `getattr(args, "min_history", 20)` default corrected to 5.
 
 ---
 
-## [3.2.0] - 2026-04-12
+## [3.2.0] - 2026-04-11
 
 ### Added
 
