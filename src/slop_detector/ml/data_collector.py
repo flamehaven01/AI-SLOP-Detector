@@ -10,12 +10,15 @@ This module handles:
 
 import ast
 import json
+import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from slop_detector.core import SlopDetector
 from slop_detector.models import FileAnalysis
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -67,6 +70,30 @@ class TrainingFeatures:
         """Convert to dictionary for serialization."""
         return asdict(self)
 
+    @staticmethod
+    def _count_severities(issues: list) -> Dict[str, int]:
+        counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+        for issue in issues:
+            sev = issue.severity.value
+            if sev in counts:
+                counts[sev] += 1
+        return counts
+
+    @staticmethod
+    def _count_cross_lang(issues: list) -> Dict[str, int]:
+        counts = {"js": 0, "java": 0, "ruby": 0, "go": 0, "csharp": 0, "php": 0}
+        prefixes = {
+            "js_": "js", "java_": "java", "ruby_": "ruby",
+            "go_": "go", "csharp_": "csharp", "php_": "php",
+        }
+        for issue in issues:
+            pid = issue.pattern_id
+            for prefix, lang in prefixes.items():
+                if pid.startswith(prefix):
+                    counts[lang] += 1
+                    break
+        return counts
+
     @classmethod
     def from_analysis(
         cls,
@@ -74,8 +101,7 @@ class TrainingFeatures:
         is_slop: int,
         additional_features: Optional[Dict[str, Any]] = None,
     ) -> "TrainingFeatures":
-        """
-        Extract features from FileAnalysis result.
+        """Extract features from FileAnalysis result.
 
         Args:
             analysis: SlopDetector analysis result
@@ -83,42 +109,8 @@ class TrainingFeatures:
             additional_features: Extra computed features
         """
         additional = additional_features or {}
-
-        # Count patterns by severity
-        pattern_counts = {
-            "critical": 0,
-            "high": 0,
-            "medium": 0,
-            "low": 0,
-        }
-        for issue in analysis.pattern_issues:
-            severity = issue.severity.value
-            if severity in pattern_counts:
-                pattern_counts[severity] += 1
-
-        # Count cross-language patterns
-        cross_lang_counts = {
-            "js": 0,
-            "java": 0,
-            "ruby": 0,
-            "go": 0,
-            "csharp": 0,
-            "php": 0,
-        }
-        for issue in analysis.pattern_issues:
-            pattern_id = issue.pattern_id
-            if pattern_id.startswith("js_"):
-                cross_lang_counts["js"] += 1
-            elif pattern_id.startswith("java_"):
-                cross_lang_counts["java"] += 1
-            elif pattern_id.startswith("ruby_"):
-                cross_lang_counts["ruby"] += 1
-            elif pattern_id.startswith("go_"):
-                cross_lang_counts["go"] += 1
-            elif pattern_id.startswith("csharp_"):
-                cross_lang_counts["csharp"] += 1
-            elif pattern_id.startswith("php_"):
-                cross_lang_counts["php"] += 1
+        pattern_counts = cls._count_severities(analysis.pattern_issues)
+        cross_lang_counts = cls._count_cross_lang(analysis.pattern_issues)
 
         return cls(
             file_path=analysis.file_path,
@@ -197,7 +189,7 @@ class TrainingDataCollector:
             return features
 
         except Exception as e:
-            print(f"[!] Failed to collect {file_path}: {e}")
+            logger.warning("Failed to collect %s: %s", file_path, e)
             return None
 
     def _compute_additional_features(self, file_path: str) -> Dict[str, Any]:
@@ -272,7 +264,7 @@ class TrainingDataCollector:
             }
 
         except Exception as e:
-            print(f"[!] Failed to compute additional features: {e}")
+            logger.warning("Failed to compute additional features for %s: %s", file_path, e)
             return {}
 
     def _get_max_nesting_depth(self, node: ast.AST, current_depth: int = 0) -> int:
@@ -301,14 +293,14 @@ class TrainingDataCollector:
         with open(good_path, "w", encoding="utf-8") as f:
             json.dump([s.to_dict() for s in self.good_samples], f, indent=2)
 
-        print(f"[+] Saved {len(self.good_samples)} good samples to {good_path}")
+        print(f"[+] Saved {len(self.good_samples)} good samples to {good_path}")  # noqa: T201
 
         # Save slop samples
         slop_path = split_dir / "slop_samples.json"
         with open(slop_path, "w", encoding="utf-8") as f:
             json.dump([s.to_dict() for s in self.slop_samples], f, indent=2)
 
-        print(f"[+] Saved {len(self.slop_samples)} slop samples to {slop_path}")
+        print(f"[+] Saved {len(self.slop_samples)} slop samples to {slop_path}")  # noqa: T201
 
         # Save combined dataset
         all_samples = self.good_samples + self.slop_samples
@@ -316,7 +308,7 @@ class TrainingDataCollector:
         with open(combined_path, "w", encoding="utf-8") as f:
             json.dump([s.to_dict() for s in all_samples], f, indent=2)
 
-        print(f"[+] Saved {len(all_samples)} total samples to {combined_path}")
+        print(f"[+] Saved {len(all_samples)} total samples to {combined_path}")  # noqa: T201
 
         # Save statistics
         stats = {
@@ -332,7 +324,7 @@ class TrainingDataCollector:
         with open(stats_path, "w", encoding="utf-8") as f:
             json.dump(stats, f, indent=2)
 
-        print(f"[+] Dataset statistics saved to {stats_path}")
+        print(f"[+] Dataset statistics saved to {stats_path}")  # noqa: T201
 
     def clear(self) -> None:
         """Clear collected samples."""
