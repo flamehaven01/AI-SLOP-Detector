@@ -580,6 +580,7 @@ def test_step_05_p2_git_noise_filter(tmp_path):
     Verifies commit SHA and branch name are non-None when running from the project root.
     """
     import os
+
     from slop_detector.cli import _get_git_context
 
     orig_cwd = os.getcwd()
@@ -616,7 +617,7 @@ def test_step_06_calibrate_with_min_events_override(e2e_env):
     min_events=8 -> min_imp = max(8, MIN_IMPROVEMENTS=5) = 8 -> need 8 improvements.
     With only 5 improvements, this should return insufficient_data.
     """
-    from slop_detector.ml.self_calibrator import SelfCalibrator, CALIBRATION_MILESTONE
+    from slop_detector.ml.self_calibrator import CALIBRATION_MILESTONE, SelfCalibrator
 
     home_dir = e2e_env["home_dir"]
     db_path = _get_db(home_dir)
@@ -670,7 +671,7 @@ def test_step_06_calibrate_with_min_events_override(e2e_env):
 
 def test_step_07_optimal_weights_validity(e2e_env):
     """Verify optimal weights satisfy simplex constraint: sum ~= 1.0, each in [MIN_W, MAX_W]."""
-    from slop_detector.ml.self_calibrator import SelfCalibrator, MIN_W, MAX_W
+    from slop_detector.ml.self_calibrator import MAX_W, MIN_W, SelfCalibrator
 
     home_dir = e2e_env["home_dir"]
     db_path = _get_db(home_dir)
@@ -794,13 +795,13 @@ def test_step_10_write_report(e2e_env):
     results = e2e_env["results"]
 
     from slop_detector.ml.self_calibrator import (
-        MIN_IMPROVEMENTS,
-        MIN_FP_CANDIDATES,
         CALIBRATION_MILESTONE,
-        SLOP_FLOOR,
+        CONFIDENCE_GAP,
         FIX_DELTA,
         FP_STABLE_DELTA,
-        CONFIDENCE_GAP,
+        MIN_FP_CANDIDATES,
+        MIN_IMPROVEMENTS,
+        SLOP_FLOOR,
     )
 
     s01 = results.get("step_01", {})
@@ -808,10 +809,8 @@ def test_step_10_write_report(e2e_env):
     s03 = results.get("step_03", {})
     s06 = results.get("step_06", {})
     s07 = results.get("step_07", {})
-    s08 = results.get("step_08", {})
 
     labeled = s03.get("labeled_events", {})
-    git_ctx = s03.get("git_context_in_db", {})
     w_before = s03.get("weights_before", INITIAL_WEIGHTS)
     w_after = s03.get("weights_after", {})
 
@@ -821,8 +820,8 @@ def test_step_10_write_report(e2e_env):
         "# ai-slop-detector v3.2.1 — E2E Test Report",
         "",
         f"> Generated: {now}",
-        f"> Test: `tests/e2e_v321/test_e2e_v321.py`",
-        f"> Status: **ALL GREEN [+]**",
+        "> Test: `tests/e2e_v321/test_e2e_v321.py`",
+        "> Status: **ALL GREEN [+]**",
         "",
         "---",
         "",
@@ -833,9 +832,9 @@ def test_step_10_write_report(e2e_env):
         "",
         "| Promise | Feature | Result |",
         "|---------|---------|--------|",
-        f"| P1 | Auto-calibration at milestone | [+] Fired at n=20, applied to .slopconfig.yaml |",
-        f"| P2 | Git context capture + noise filter | [+] git_commit populated in-repo; NULL + fallback out-of-repo |",
-        f"| P3 | Per-class minimums (5+5=10) | [+] 5 improvements + 5 fp_candidates → sufficient |",
+        "| P1 | Auto-calibration at milestone | [+] Fired at n=20, applied to .slopconfig.yaml |",
+        "| P2 | Git context capture + noise filter | [+] git_commit populated in-repo; NULL + fallback out-of-repo |",
+        "| P3 | Per-class minimums (5+5=10) | [+] 5 improvements + 5 fp_candidates → sufficient |",
         "",
         "---",
         "",
@@ -849,16 +848,16 @@ def test_step_10_write_report(e2e_env):
         "```",
         "",
         "**Round 1:** Scan all 10 files → 10 history records",
-        f"  - Milestone fires at n=10",
-        f"  - `calibrate()` → `insufficient_data` (no consecutive pairs yet)",
+        "  - Milestone fires at n=10",
+        "  - `calibrate()` → `insufficient_data` (no consecutive pairs yet)",
         "",
         "**Fix phase:** Rewrite `improve_{{1..5}}.py` to clean code (zero jargon, pure logic)",
-        f"  - File hashes change → different SHA256",
+        "  - File hashes change → different SHA256",
         "",
         "**Round 2:** Scan all 10 files → 20 history records",
-        f"  - Milestone fires at n=20",
+        "  - Milestone fires at n=20",
         f"  - `calibrate()` extracts {labeled.get('improvement_events', '?')} improvements + {labeled.get('fp_candidates', '?')} fp_candidates",
-        f"  - `status = ok` → `apply_to_config()` writes to .slopconfig.yaml",
+        "  - `status = ok` → `apply_to_config()` writes to .slopconfig.yaml",
         "",
         "---",
         "",
@@ -905,7 +904,7 @@ def test_step_10_write_report(e2e_env):
         "  - Different commit + stable hash → ambiguous → skip fp_candidate",
         "",
         "**Test results (mock_project — no git repo):**",
-        f"- git_commit in DB: all NULL (correct — no git repo → graceful fallback)",
+        "- git_commit in DB: all NULL (correct — no git repo → graceful fallback)",
         f"- has_git=False → base heuristic applied → {labeled.get('improvement_events', '?')} improvements + {labeled.get('fp_candidates', '?')} fp_candidates extracted",
         "",
         "**Test results (ai-slop-detector src — git repo):**",
@@ -915,8 +914,8 @@ def test_step_10_write_report(e2e_env):
         "",
         "## P3 — Per-Class Minimums",
         "",
-        f"| Constant | Value | Rationale |",
-        f"|----------|-------|-----------|",
+        "| Constant | Value | Rationale |",
+        "|----------|-------|-----------|",
         f"| `MIN_IMPROVEMENTS` | {MIN_IMPROVEMENTS} | Minimum improvement events (TP class) |",
         f"| `MIN_FP_CANDIDATES` | {MIN_FP_CANDIDATES} | Minimum fp_candidate events (FP class) |",
         f"| `CALIBRATION_MILESTONE` | {CALIBRATION_MILESTONE} | Auto-trigger threshold (total records) |",
@@ -984,7 +983,7 @@ def test_step_10_write_report(e2e_env):
         "[+] SLOPCONFIG PERSISTED PASS",
         "```",
         "",
-        f"**ai-slop-detector v3.2.1 e2e test: ALL GREEN**",
+        "**ai-slop-detector v3.2.1 e2e test: ALL GREEN**",
         "",
         "> 'The more you use it, the smarter it becomes' — verified.",
         "",

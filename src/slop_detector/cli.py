@@ -1157,9 +1157,9 @@ def _check_calibration_hint(args) -> None:
     if getattr(args, "no_history", False):
         return
     try:
+        from slop_detector.config import Config
         from slop_detector.history import HistoryTracker
         from slop_detector.ml.self_calibrator import CALIBRATION_MILESTONE, SelfCalibrator
-        from slop_detector.config import Config
 
         tracker = HistoryTracker()
         n = tracker.count_total_records()
