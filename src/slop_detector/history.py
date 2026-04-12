@@ -11,6 +11,10 @@ Schema v2 (v2.9.0):
 Schema v3 (v3.2.0):
   - n_critical_patterns added (CRITICAL-severity pattern count per file)
     Required for 4D self-calibration (purity dimension).
+
+Schema v4 (v3.4.0):
+  - fired_rules added (JSON: {"pattern_id": count, ...})
+    Required for per-rule FP rate tracking in LEDA self-calibration.
 """
 
 import hashlib
@@ -56,6 +60,7 @@ class HistoryEntry:
     pattern_count: int
     grade: str = ""
     n_critical_patterns: int = 0  # v3.2.0: CRITICAL-severity patterns (purity calibration signal)
+    fired_rules: Optional[str] = None  # v3.4.0: JSON {pattern_id: count} for per-rule FP tracking
     git_commit: Optional[str] = None
     git_branch: Optional[str] = None
 
@@ -89,6 +94,7 @@ class HistoryTracker:
             "ddc_usage_ratio": "ALTER TABLE history ADD COLUMN ddc_usage_ratio REAL NOT NULL DEFAULT 1.0",
             "grade": "ALTER TABLE history ADD COLUMN grade TEXT NOT NULL DEFAULT ''",
             "n_critical_patterns": "ALTER TABLE history ADD COLUMN n_critical_patterns INTEGER NOT NULL DEFAULT 0",
+            "fired_rules": "ALTER TABLE history ADD COLUMN fired_rules TEXT DEFAULT NULL",
         }
         for col, ddl in migrations.items():
             if col not in existing:
@@ -129,6 +135,16 @@ class HistoryTracker:
             if str(getattr(getattr(issue, "severity", None), "value", "")).lower() == "critical"
         )
 
+        # v3.4.0: per-rule fired_rules for LEDA per-rule FP tracking
+        if pattern_issues:
+            rule_counts: dict = {}
+            for issue in pattern_issues:
+                pid = str(getattr(issue, "pattern_id", "unknown"))
+                rule_counts[pid] = rule_counts.get(pid, 0) + 1
+            fired_rules_json: Optional[str] = json.dumps(rule_counts)
+        else:
+            fired_rules_json = None
+
         status = getattr(file_analysis, "status", None)
         grade = status.value if status and hasattr(status, "value") else str(status or "")
 
@@ -144,6 +160,7 @@ class HistoryTracker:
             ddc_usage_ratio=ddc_ratio,
             pattern_count=pattern_count,
             n_critical_patterns=n_critical_patterns,
+            fired_rules=fired_rules_json,
             grade=grade,
             git_commit=git_commit,
             git_branch=git_branch,
@@ -155,8 +172,8 @@ class HistoryTracker:
         INSERT INTO history
             (timestamp, file_path, file_hash, deficit_score, ldr_score,
              inflation_score, ddc_usage_ratio, pattern_count, n_critical_patterns,
-             grade, git_commit, git_branch)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             fired_rules, grade, git_commit, git_branch)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._conn() as conn:
             conn.execute(
@@ -171,6 +188,7 @@ class HistoryTracker:
                     e.ddc_usage_ratio,
                     e.pattern_count,
                     e.n_critical_patterns,
+                    e.fired_rules,
                     e.grade,
                     e.git_commit,
                     e.git_branch,

@@ -455,6 +455,31 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
                 f"  FP {result.fp_rate_before:.4f}->{result.fp_rate_after:.4f})"
             )
 
+        # Per-rule FP rates (v3.4.0): show rules with notable FP behaviour
+        high_fp = {
+            rid: rate
+            for rid, rate in sorted(result.per_rule_fp_rates.items(), key=lambda x: -x[1])
+            if rate >= 0.5
+        }
+        if high_fp:
+            rt = Table(
+                box=box.ROUNDED,
+                show_header=True,
+                header_style="bold cyan",
+                title="Per-Rule FP Rates (>= 50%)",
+            )
+            rt.add_column("Rule ID", style="cyan")
+            rt.add_column("FP Rate", justify="right")
+            rt.add_column("Signal", justify="right")
+            for rid, rate in high_fp.items():
+                signal = "[red]HIGH FP[/red]" if rate >= 0.7 else "[yellow]MOD FP[/yellow]"
+                rt.add_row(rid, f"{rate:.0%}", signal)
+            console.print(rt)
+            console.print(
+                "[dim]Rules with HIGH FP (>=70%) are candidates for suppression"
+                " via .slopconfig.yaml exclude_rules[/dim]"
+            )
+
         console.print(f"\n[dim]{result.message}[/dim]")
     else:
         print(f"[Self-Calibration] status={result.status}")
@@ -464,6 +489,16 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         print(f"  confidence_gap={result.confidence_gap:.4f}")
         print(f"  current_weights={current_weights}")
         print(f"  optimal_weights={result.optimal_weights}")
+        if result.per_rule_fp_rates:
+            high_fp_plain = {
+                rid: rate
+                for rid, rate in sorted(result.per_rule_fp_rates.items(), key=lambda x: -x[1])
+                if rate >= 0.5
+            }
+            if high_fp_plain:
+                print("  per_rule_fp_rates (>=50%):")
+                for rid, rate in high_fp_plain.items():
+                    print(f"    {rid}: {rate:.0%}")
         print(f"  {result.message}")
 
     # --- Apply if requested ---

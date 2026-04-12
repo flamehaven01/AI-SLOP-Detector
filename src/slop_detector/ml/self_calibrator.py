@@ -23,6 +23,7 @@ This breaks the tautology that afflicts the ML classifier.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass, field
 from math import exp, log
@@ -38,6 +39,9 @@ FIX_DELTA: float = 10.0  # score drop required to count as "user fixed it"
 FP_STABLE_DELTA: float = 5.0  # max score change between runs to call it "stable / unfixed"
 MIN_W: float = 0.10  # minimum allowed weight per dimension
 MAX_W: float = 0.65  # maximum allowed weight per dimension
+MAX_PURITY_WEIGHT: float = (
+    0.25  # purity ceiling (v3.4.0): prevents one volatile dimension dominating
+)
 GRID_STEP: int = 20  # 1/GRID_STEP resolution -> 0.05 increments
 CONFIDENCE_GAP: float = 0.10  # min score gap between #1 and #2 candidate (Guardian pattern)
 # v3.2.1: per-class minimums replace single MIN_EVENTS=20.
@@ -46,6 +50,7 @@ CONFIDENCE_GAP: float = 0.10  # min score gap between #1 and #2 candidate (Guard
 MIN_IMPROVEMENTS: int = 5  # improvement events required (true positive class)
 MIN_FP_CANDIDATES: int = 5  # fp_candidate events required (false positive class)
 CALIBRATION_MILESTONE: int = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES  # = 10
+MIN_RULE_OCCURRENCES: int = 3  # min times a rule must fire to appear in per_rule_fp_rates
 
 
 # ------------------------------------------------------------------
@@ -63,6 +68,7 @@ class CalibrationEvent:
     ddc: float  # usage_ratio
     n_critical_patterns: int  # CRITICAL-severity pattern count (purity dimension)
     label: str  # "improvement" | "fp_candidate"
+    rule_ids: List[str] = field(default_factory=list)  # v3.4.0: pattern_ids that fired
 
 
 @dataclass
@@ -95,7 +101,28 @@ class CalibrationResult:
     fn_rate_after: float = 0.0
     fp_rate_after: float = 0.0
     top_candidates: List[WeightCandidate] = field(default_factory=list)
+    per_rule_fp_rates: Dict[str, float] = field(default_factory=dict)  # v3.4.0: rule_id -> FP rate
     message: str = ""
+
+
+# ------------------------------------------------------------------
+# Module-level helpers
+# ------------------------------------------------------------------
+
+
+def _parse_fired_rules(fired_rules_json: Optional[str]) -> List[str]:
+    """Parse a fired_rules JSON string into a list of unique pattern_ids.
+
+    fired_rules is stored as ``{"pattern_id": count, ...}`` in history.db.
+    Returns an empty list for NULL / malformed entries (old rows pre-v3.4.0).
+    """
+    if not fired_rules_json:
+        return []
+    try:
+        data = json.loads(fired_rules_json)
+        return list(data.keys()) if isinstance(data, dict) else []
+    except (json.JSONDecodeError, ValueError):
+        return []
 
 
 # ------------------------------------------------------------------
@@ -235,6 +262,7 @@ class SelfCalibrator:
                 f"(gap from #2: {result.confidence_gap:.4f})."
             )
 
+        result.per_rule_fp_rates = self._calc_per_rule_fp_rates(improvements, fp_candidates)
         return result
 
     # ------------------------------------------------------------------
@@ -316,6 +344,7 @@ class SelfCalibrator:
                 ddc=r_now["ddc_usage_ratio"],
                 n_critical_patterns=r_now["n_critical_patterns"],
                 label="improvement",
+                rule_ids=_parse_fired_rules(r_now.get("fired_rules")),
             )
         if (
             file_path not in seen_fp_files
@@ -333,6 +362,7 @@ class SelfCalibrator:
                 ddc=r_now["ddc_usage_ratio"],
                 n_critical_patterns=r_now["n_critical_patterns"],
                 label="fp_candidate",
+                rule_ids=_parse_fired_rules(r_now.get("fired_rules")),
             )
         return None
 
@@ -443,6 +473,39 @@ class SelfCalibrator:
         return round(fn_rate, 4), round(fp_rate, 4), tiebreak
 
     # ------------------------------------------------------------------
+    # Per-rule FP rate analysis (v3.4.0)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _calc_per_rule_fp_rates(
+        improvements: List[CalibrationEvent],
+        fp_candidates: List[CalibrationEvent],
+    ) -> Dict[str, float]:
+        """Compute per-rule FP rate from labeled events.
+
+        For each pattern_id X:
+            fp_rate_X = (fp_candidate events where X fired) / (all events where X fired)
+
+        Only rules appearing in >= MIN_RULE_OCCURRENCES events are included.
+        A rule with fp_rate >= 0.7 fires mostly on false positives for this codebase
+        and is a candidate for suppression via .slopconfig.yaml.
+        """
+        rule_fp: Dict[str, int] = {}
+        rule_total: Dict[str, int] = {}
+        for ev in fp_candidates:
+            for rid in ev.rule_ids:
+                rule_fp[rid] = rule_fp.get(rid, 0) + 1
+                rule_total[rid] = rule_total.get(rid, 0) + 1
+        for ev in improvements:
+            for rid in ev.rule_ids:
+                rule_total[rid] = rule_total.get(rid, 0) + 1
+        return {
+            rid: round(rule_fp.get(rid, 0) / total, 3)
+            for rid, total in rule_total.items()
+            if total >= MIN_RULE_OCCURRENCES
+        }
+
+    # ------------------------------------------------------------------
     # Grid search over simplex {w1+w2+w3=1, wi in [MIN_W, MAX_W]}
     # ------------------------------------------------------------------
 
@@ -455,6 +518,8 @@ class SelfCalibrator:
         Exhaustive grid search over the 4D weight simplex.
         Resolution: 1/GRID_STEP = 0.05 increments.
         Constraint: w_ldr + w_inf + w_ddc + w_purity = 1.0, each in [MIN_W, MAX_W].
+        Purity is additionally capped at MAX_PURITY_WEIGHT (v3.4.0) to prevent a
+        volatile count-based dimension from dominating calibration.
         Returns all valid candidates sorted ascending by combined score.
         """
         candidates: List[WeightCandidate] = []
@@ -462,10 +527,11 @@ class SelfCalibrator:
 
         min_i = int(MIN_W * GRID_STEP)
         max_i = int(MAX_W * GRID_STEP)
+        max_p = int(MAX_PURITY_WEIGHT * GRID_STEP)  # purity ceiling: 0.25 * 20 = 5
 
         for i in range(min_i, max_i + 1):
             for j in range(min_i, max_i + 1):
-                for p in range(min_i, max_i + 1):
+                for p in range(min_i, max_p + 1):  # purity capped at MAX_PURITY_WEIGHT
                     k = GRID_STEP - i - j - p
                     if k < min_i or k > max_i:
                         continue
@@ -504,7 +570,8 @@ class SelfCalibrator:
         SELECT file_path, file_hash, timestamp,
                deficit_score, ldr_score, inflation_score, ddc_usage_ratio,
                COALESCE(n_critical_patterns, 0),
-               git_commit
+               git_commit,
+               fired_rules
         FROM history
         ORDER BY file_path, timestamp ASC
         """
@@ -521,6 +588,7 @@ class SelfCalibrator:
                 "ddc_usage_ratio": r[6],
                 "n_critical_patterns": int(r[7]),
                 "git_commit": r[8],  # v3.2.1: used as noise filter in _classify_run_pair
+                "fired_rules": r[9],  # v3.4.0: JSON {pattern_id: count} or None
             }
             for r in rows
         ]

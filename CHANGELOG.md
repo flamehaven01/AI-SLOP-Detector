@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.0] — Phase 2: Per-Rule FP Tracking + Purity Weight Ceiling
+
+### Added
+
+**Per-Rule FP Rate Tracking (LEDA v3.4.0 — Phase 2A)**
+- `history.py` schema v4: new `fired_rules TEXT DEFAULT NULL` column stores
+  `{"pattern_id": count}` JSON per scan row; old rows degrade gracefully to `NULL`
+- `HistoryEntry.fired_rules: Optional[str]` field + `record()` builds the JSON dict
+  from `file_analysis.pattern_issues`
+- `SelfCalibrator._calc_per_rule_fp_rates()`: computes per-rule FP rate across all
+  labeled CalibrationEvents; only rules seen ≥ `MIN_RULE_OCCURRENCES=3` times included
+- `_parse_fired_rules(json_str) -> List[str]`: module-level helper for safe JSON parsing
+- `CalibrationEvent.rule_ids: List[str]`: pattern IDs fired during that event
+- `CalibrationResult.per_rule_fp_rates: Dict[str, float]`: rule_id → FP rate output
+- Rich per-rule FP table in `--self-calibrate` output (rules ≥50% shown; ≥70% = HIGH FP)
+- Plain-text fallback for non-rich environments
+
+**Purity Weight Ceiling (LEDA v3.4.0 — Phase 2B)**
+- `MAX_PURITY_WEIGHT = 0.25` constant: caps purity dimension at 25% of weight budget
+  (was implicitly up to 65% via MAX_W; purity is count-based and more volatile than ratios)
+- `MIN_RULE_OCCURRENCES = 3` constant: minimum events per rule to include in FP rate stats
+- Grid search `_grid_search()` respects ceiling: purity iterates `[0.10, 0.15, 0.20, 0.25]` only
+
 ## [3.3.0] — Phase 1 False-Positive Reduction
 
 ### Added
