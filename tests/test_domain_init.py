@@ -1,6 +1,5 @@
 """Tests for Phase 3a: domain-aware --init (detect_domain + template generation)."""
 
-import textwrap
 from pathlib import Path
 
 import pytest
@@ -8,7 +7,6 @@ import yaml
 
 from slop_detector.cli_commands import detect_domain
 from slop_detector.config import DOMAIN_PROFILES, generate_slopconfig_template
-
 
 # ---------------------------------------------------------------------------
 # Fixtures — minimal project trees written to tmp_path

@@ -1,7 +1,8 @@
 """Tests for Phase 3b: JSAnalyzer (regex fallback + optional AST mode)."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from slop_detector.languages.js_analyzer import JSAnalyzer, JSFileAnalysis
 
