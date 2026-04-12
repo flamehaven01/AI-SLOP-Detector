@@ -5,6 +5,7 @@ import sys
 from unittest.mock import patch
 
 import pytest
+import yaml
 
 from slop_detector.cli import (
     generate_html_report,
@@ -279,6 +280,46 @@ def test_main_project_mode(tmp_path):
     with patch.object(sys, "argv", ["slop-detector", "--project", str(project_dir), "--no-color"]):
         result = main()
         assert result == 0
+
+
+def test_main_emit_leda_yaml(tmp_path):
+    """Test main emits LEDA injection YAML."""
+    project_dir = tmp_path / "project"
+    project_dir.mkdir()
+    (project_dir / "model.py").write_text("def solve():\n    return 1\n", encoding="utf-8")
+    output_file = tmp_path / "reports" / "leda_injection.yaml"
+    fake_payload = {
+        "version": "0.1",
+        "source": {"analyzer": "LEDA"},
+        "analysis": {"mode": "project"},
+    }
+
+    with (
+        patch.object(
+            sys,
+            "argv",
+            [
+                "slop-detector",
+                "--project",
+                str(project_dir),
+                "--emit-leda-yaml",
+                "--leda-output",
+                str(output_file),
+                "--leda-profile",
+                "public",
+                "--no-color",
+                "--no-history",
+            ],
+        ),
+        patch("slop_detector.cli.build_leda_injection", return_value=fake_payload),
+    ):
+        result = main()
+        assert result == 0
+        assert output_file.exists()
+
+        data = json.loads(json.dumps(yaml.safe_load(output_file.read_text())))
+        assert data["source"]["analyzer"] == "LEDA"
+        assert data["analysis"]["mode"] == "project"
 
 
 def test_main_fail_threshold(tmp_path):

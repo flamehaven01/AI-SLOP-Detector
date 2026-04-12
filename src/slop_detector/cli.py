@@ -8,6 +8,7 @@ from pathlib import Path
 
 from slop_detector import __version__
 from slop_detector.core import SlopDetector
+from slop_detector.leda_injection import build_leda_injection, write_leda_injection
 from slop_detector.models import FileAnalysis, ProjectAnalysis
 from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
@@ -639,6 +640,7 @@ Examples:
   slop-detector src/ --cross-file            # Cross-file analysis
   slop-detector src/ --governance            # Emit CR-EP session artifacts
   slop-detector --self-calibrate             # Optimize weights from run history
+  slop-detector --project . --emit-leda-yaml # Emit LEDA injection YAML
   slop-detector --version                    # Show version
         """,
     )
@@ -681,6 +683,22 @@ Examples:
         "--governance",
         action="store_true",
         help="Emit CR-EP v2.7.2 session artifacts to .cr-ep/ directory",
+    )
+    parser.add_argument(
+        "--emit-leda-yaml",
+        action="store_true",
+        help="Emit LEDA injection YAML for downstream SPAR review",
+    )
+    parser.add_argument(
+        "--leda-output",
+        default="reports/leda_injection.yaml",
+        help="Output path for --emit-leda-yaml (default: reports/leda_injection.yaml)",
+    )
+    parser.add_argument(
+        "--leda-profile",
+        choices=["internal", "restricted", "public"],
+        default="restricted",
+        help="Redaction profile for LEDA YAML (default: restricted)",
     )
     parser.add_argument(
         "--disable",
@@ -849,6 +867,18 @@ def _run_optional_features(args, result) -> None:
         _run_governance(args.path, result)
 
 
+def _emit_leda_yaml(args, result) -> None:
+    """Build and write LEDA injection YAML."""
+    payload = build_leda_injection(
+        result,
+        path=args.path,
+        config_path=args.config,
+        profile=args.leda_profile,
+    )
+    written = write_leda_injection(args.leda_output, payload)
+    print(f"[+] LEDA injection YAML saved to {written}")
+
+
 def _run_analysis_phase(args, detector):
     """Run file or project analysis. Returns (result, score)."""
     from typing import Union
@@ -905,6 +935,9 @@ def main() -> int:
         return ci_exit
 
     _handle_output(args, result)
+
+    if getattr(args, "emit_leda_yaml", False):
+        _emit_leda_yaml(args, result)
 
     if args.fail_threshold is not None and score > args.fail_threshold:
         print(

@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+**LEDA injection emission for SPAR-adjacent review**
+- Added `slop_detector/leda_injection.py` to emit a structured YAML surface for
+  downstream SPAR review.
+- Added CLI flags:
+  - `--emit-leda-yaml`
+  - `--leda-output`
+- The emitted payload carries:
+  - project identity
+  - live analysis summary
+  - calibration surface
+  - claim-risk candidates
+  - suggested maturity hints
+  - SPAR review hints
+- Added tests covering payload generation and CLI emission.
+- Added LEDA redaction profiles:
+  - `internal`
+  - `restricted`
+  - `public`
+- Default CLI emission now uses `restricted` to reduce accidental exposure of
+  implementation weakness surfaces in exported YAML.
+
 ## [3.2.1] - 2026-04-11
 
 ### Added
