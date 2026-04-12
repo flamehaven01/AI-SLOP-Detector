@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from slop_detector.config import Config
+from slop_detector.ignore_handler import IgnoreHandler
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
 from slop_detector.metrics.context_jargon import ContextJargonDetector
 from slop_detector.metrics.docstring_inflation import DocstringInflationDetector
@@ -22,18 +23,6 @@ from slop_detector.patterns.registry import PatternRegistry
 
 logger = logging.getLogger(__name__)
 DEFAULT_EXCLUDE_PARTS = {".venv", "venv", "site-packages", "node_modules", "__pycache__", ".git"}
-
-
-def _compute_dcf(tree: ast.AST) -> Dict[str, float]:
-    """Compute DCF (Distributional Code Fingerprint) from a parsed AST.
-
-    Returns P(node_type | file) = count(node_type) / total_nodes.
-    Genuine probability distribution: values in [0,1], sum to 1.
-    Used for information-theoretic slop distance (CQMS Level 2).
-    """
-    counts = Counter(type(node).__name__ for node in ast.walk(tree))
-    total = sum(counts.values()) or 1
-    return {k: v / total for k, v in counts.items()}
 
 
 class SlopDetector:
@@ -78,6 +67,18 @@ class SlopDetector:
         _mp = _Path(model_path) if model_path else _Path("models/slop_classifier.pkl")
         self._ml_scorer = _MLScorer.from_model(_mp)
 
+    @staticmethod
+    def _compute_dcf(tree: ast.AST) -> Dict[str, float]:
+        """Compute DCF (Distributional Code Fingerprint) from a parsed AST.
+
+        Returns P(node_type | file) = count(node_type) / total_nodes.
+        Genuine probability distribution: values in [0,1], sum to 1.
+        Used for information-theoretic slop distance (CQMS Level 2).
+        """
+        counts = Counter(type(node).__name__ for node in ast.walk(tree))
+        total = sum(counts.values()) or 1
+        return {k: v / total for k, v in counts.items()}
+
     def analyze_file(self, file_path: str) -> FileAnalysis:
         """
         Analyze a single Python file.
@@ -111,7 +112,7 @@ class SlopDetector:
         ddc = self.ddc_calc.calculate(file_path, content, tree)
 
         # v3.0: Compute DCF before other analyses (reuses already-parsed tree)
-        dcf = _compute_dcf(tree)
+        dcf = self._compute_dcf(tree)
 
         # v2.2: Analyze docstring inflation
         docstring_inflation = self.docstring_inflation_detector.analyze(file_path, content, tree)
@@ -123,7 +124,7 @@ class SlopDetector:
         context_jargon = self.context_jargon_detector.analyze(file_path, content, tree, inflation)
 
         # v2.6.3: Collect @slop.ignore decorated functions
-        ignored_functions = self._collect_ignored_functions(tree)
+        ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
 
         # v2.1: Run pattern detection (v2.6.3: filters ignored functions)
         pattern_issues = self._run_patterns(tree, Path(file_path), content, ignored_functions)
@@ -176,11 +177,11 @@ class SlopDetector:
         ldr = self.ldr_calc.calculate(filename, content, tree)
         inflation = self.inflation_calc.calculate(filename, content, tree)
         ddc = self.ddc_calc.calculate(filename, content, tree)
-        dcf = _compute_dcf(tree)  # v3.0
+        dcf = self._compute_dcf(tree)  # v3.0
         docstring_inflation = self.docstring_inflation_detector.analyze(filename, content, tree)
         hallucination_deps = self.hallucination_deps_detector.analyze(filename, content, tree, ddc)
         context_jargon = self.context_jargon_detector.analyze(filename, content, tree, inflation)
-        ignored_functions = self._collect_ignored_functions(tree)
+        ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
         pattern_issues = self._run_patterns(tree, Path(filename), content, ignored_functions)
 
         slop_score, slop_status, warnings = self._calculate_slop_status(
@@ -322,116 +323,31 @@ class SlopDetector:
         """
         issues = []
         ignored_functions = ignored_functions or []
-        ignored_ranges = self._get_ignored_line_ranges(tree, ignored_functions)
+        ignored_ranges = IgnoreHandler.get_ignored_line_ranges(tree, ignored_functions)
 
         for pattern in self.pattern_registry.get_all():
             try:
                 pattern_issues = pattern.check(tree, file, content)
                 # v2.6.3: Filter issues in ignored functions
                 for issue in pattern_issues:
-                    if not self._is_line_in_ignored_range(issue.line, ignored_ranges):
+                    if not IgnoreHandler.is_line_in_ignored_range(issue.line, ignored_ranges):
                         issues.append(issue)
             except Exception as e:
                 logger.warning(f"Pattern {pattern.id} failed: {e}")
 
         return issues
 
+    # Backward-compat shims — delegate to IgnoreHandler
     def _collect_ignored_functions(self, tree: ast.AST) -> List[IgnoredFunction]:
-        """
-        Collect functions decorated with @slop.ignore.
-
-        v2.6.3: Consent-based complexity feature.
-
-        Detects patterns:
-        - @slop.ignore(reason="...")
-        - @slop_detector.decorators.ignore(reason="...")
-        """
-        ignored = []
-
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                for decorator in node.decorator_list:
-                    ignore_info = self._parse_slop_ignore_decorator(decorator)
-                    if ignore_info:
-                        ignored.append(
-                            IgnoredFunction(
-                                name=node.name,
-                                reason=ignore_info["reason"],
-                                rules=ignore_info["rules"],
-                                lineno=node.lineno,
-                            )
-                        )
-                        break  # Only need first match
-
-        return ignored
-
-    def _parse_slop_ignore_decorator(self, decorator: ast.expr) -> Optional[dict]:
-        """
-        Parse @slop.ignore decorator and extract reason/rules.
-
-        Returns None if not a slop.ignore decorator.
-        """
-        # Handle @slop.ignore(reason="...") pattern
-        if isinstance(decorator, ast.Call):
-            func = decorator.func
-
-            # Check for slop.ignore or ignore pattern
-            is_slop_ignore = False
-
-            if isinstance(func, ast.Attribute):
-                # @slop.ignore(...)
-                if func.attr == "ignore" and isinstance(func.value, ast.Name):
-                    if func.value.id in ("slop", "slop_detector"):
-                        is_slop_ignore = True
-            elif isinstance(func, ast.Name):
-                # @ignore(...) - direct import
-                if func.id == "ignore":
-                    is_slop_ignore = True
-
-            if is_slop_ignore:
-                reason = ""
-                rules = []
-
-                # Extract arguments
-                for keyword in decorator.keywords:
-                    if keyword.arg == "reason" and isinstance(keyword.value, ast.Constant):
-                        reason = str(keyword.value.value)
-                    elif keyword.arg == "rules" and isinstance(keyword.value, ast.List):
-                        rules = [
-                            elt.value for elt in keyword.value.elts if isinstance(elt, ast.Constant)
-                        ]
-
-                if reason:  # reason is required
-                    return {"reason": reason, "rules": rules}
-
-        return None
+        return IgnoreHandler.collect_ignored_functions(tree)
 
     def _get_ignored_line_ranges(
         self, tree: ast.AST, ignored_functions: List[IgnoredFunction]
     ) -> List[tuple]:
-        """
-        Get line ranges for ignored functions.
-
-        Returns list of (start_line, end_line) tuples.
-        """
-        ranges = []
-        ignored_names = {f.name for f in ignored_functions}
-
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if node.name in ignored_names:
-                    # Get end line (last line of function)
-                    end_line = node.end_lineno if hasattr(node, "end_lineno") else node.lineno
-                    ranges.append((node.lineno, end_line))
-
-        return ranges
+        return IgnoreHandler.get_ignored_line_ranges(tree, ignored_functions)
 
     def _is_line_in_ignored_range(self, line: int, ranges: List[tuple]) -> bool:
-        """Check if a line number is within any ignored range."""
-        for start, end in ranges:
-            if start <= line <= end:
-                return True
-        return False
+        return IgnoreHandler.is_line_in_ignored_range(line, ranges)
 
     def _compute_gqg(self, ldr, inflation_normalized: float, ddc, purity: float) -> float:
         """Geometric quality gate — weighted geometric mean of four dimensions.

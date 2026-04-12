@@ -188,10 +188,10 @@ patterns:
         lines_threshold: 70
 
 weights:
-  ldr: 0.40
-  inflation: 0.30
-  ddc: 0.30
-  purity: 0.10
+  ldr: 0.1
+  inflation: 0.1
+  ddc: 0.45
+  purity: 0.35
 
 ignore:
   # -----------------------------------------------------------------------

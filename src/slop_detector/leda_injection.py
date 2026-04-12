@@ -93,9 +93,7 @@ def redact_leda_injection(payload: dict[str, Any], *, profile: str) -> dict[str,
 
     # public profile
     total_risks = len(redacted.get("claim_risk", []))
-    high_risks = sum(
-        1 for risk in redacted.get("claim_risk", []) if risk.get("severity") == "high"
-    )
+    high_risks = sum(1 for risk in redacted.get("claim_risk", []) if risk.get("severity") == "high")
     redacted["claim_risk"] = []
     redacted["claim_risk_summary"] = {
         "total": total_risks,
@@ -113,7 +111,9 @@ def redact_leda_injection(payload: dict[str, Any], *, profile: str) -> dict[str,
         "suggested_current": redacted.get("maturity", {}).get("suggested_current")
     }
     redacted["overrides"] = {
-        "configured_override_count": redacted.get("overrides", {}).get("configured_override_count", 0),
+        "configured_override_count": redacted.get("overrides", {}).get(
+            "configured_override_count", 0
+        ),
     }
     redacted["spar_review_hints"] = {
         "preferred_layers": [],
@@ -149,9 +149,7 @@ def _build_analysis_summary(result: Any) -> dict[str, Any]:
             "deficit_files": getattr(result, "deficit_files", 0),
             "clean_files": getattr(result, "clean_files", 0),
             "avg_deficit_score": round(getattr(result, "avg_deficit_score", 0.0), 2),
-            "weighted_deficit_score": round(
-                getattr(result, "weighted_deficit_score", 0.0), 2
-            ),
+            "weighted_deficit_score": round(getattr(result, "weighted_deficit_score", 0.0), 2),
         }
     return {
         "mode": "file",

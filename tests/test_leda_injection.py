@@ -1,6 +1,5 @@
 """Tests for LEDA injection emission."""
 
-from pathlib import Path
 from unittest.mock import patch
 
 import yaml
