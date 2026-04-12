@@ -43,6 +43,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.1] — CI Fixes + STUB FileRole + Auto-Config Detection
+
+### Added
+
+- **`FileRole.STUB`** (`file_role.py`): new role for pure Protocol/ABC interface stubs.
+  Files where all top-level class definitions inherit from `Protocol`, `ABC`, or `ABCMeta`
+  and contain no top-level function definitions are now classified as STUB.
+  STUB skips `ldr` and `patterns` checks — `...`-body stubs and clone patterns are
+  structurally expected, not quality deficits.
+- **STUB regression test** (`tests/test_fp_reduction.py` ⑥): asserts Protocol-stub files
+  produce `FileRole.STUB` and `SlopStatus.CLEAN` to prevent silent regression.
+- **Auto-detect `.slopconfig.yaml`** (`cli.py`): when `--config` is not specified the CLI
+  now probes the project root (project mode) or the file's parent directory (single-file
+  mode) for `.slopconfig.yaml` and loads it automatically.
+
+### Fixed
+
+- `classify_file()` signature: `tree: ast.AST` → `tree: ast.Module`; `ast.AST` has no
+  `.body` attribute — `ast.parse()` always returns `ast.Module`. Fixes mypy `attr-defined`
+  error.
+- Python 3.8 CI compatibility: replaced `with (A, B):` parenthesized context manager
+  syntax (Python 3.9+) with nested `with` statements in `test_leda_injection.py` and
+  `test_cli.py::test_main_emit_leda_yaml`.
+
+### Added
+
+**LEDA injection emission for SPAR-adjacent review**
+- Added `slop_detector/leda_injection.py` to emit a structured YAML surface for
+  downstream SPAR review.
+- Added CLI flags:
+  - `--emit-leda-yaml`
+  - `--leda-output`
+- The emitted payload carries:
+  - project identity
+  - live analysis summary
+  - calibration surface
+  - claim-risk candidates
+  - suggested maturity hints
+  - SPAR review hints
+- Added tests covering payload generation and CLI emission.
+- Added LEDA redaction profiles:
+  - `internal`
+  - `restricted`
+  - `public`
+- Default CLI emission now uses `restricted` to reduce accidental exposure of
+  implementation weakness surfaces in exported YAML.
+
 ## [3.4.0] — Phase 2: Per-Rule FP Tracking + Purity Weight Ceiling
 
 ### Added
@@ -104,55 +151,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   excluded set) as denominator, not raw total imports
 
 ---
-
-## [3.4.1] — CI Fixes + STUB FileRole + Auto-Config Detection
-
-### Added
-
-- **`FileRole.STUB`** (`file_role.py`): new role for pure Protocol/ABC interface stubs.
-  Files where all top-level class definitions inherit from `Protocol`, `ABC`, or `ABCMeta`
-  and contain no top-level function definitions are now classified as STUB.
-  STUB skips `ldr` and `patterns` checks — `...`-body stubs and clone patterns are
-  structurally expected, not quality deficits.
-- **STUB regression test** (`tests/test_fp_reduction.py` ⑥): asserts Protocol-stub files
-  produce `FileRole.STUB` and `SlopStatus.CLEAN` to prevent silent regression.
-- **Auto-detect `.slopconfig.yaml`** (`cli.py`): when `--config` is not specified the CLI
-  now probes the project root (project mode) or the file's parent directory (single-file
-  mode) for `.slopconfig.yaml` and loads it automatically.
-
-### Fixed
-
-- `classify_file()` signature: `tree: ast.AST` → `tree: ast.Module`; `ast.AST` has no
-  `.body` attribute — `ast.parse()` always returns `ast.Module`. Fixes mypy `attr-defined`
-  error.
-- Python 3.8 CI compatibility: replaced `with (A, B):` parenthesized context manager
-  syntax (Python 3.9+) with nested `with` statements in `test_leda_injection.py` and
-  `test_cli.py::test_main_emit_leda_yaml`.
-
-## [Unreleased]
-
-### Added
-
-**LEDA injection emission for SPAR-adjacent review**
-- Added `slop_detector/leda_injection.py` to emit a structured YAML surface for
-  downstream SPAR review.
-- Added CLI flags:
-  - `--emit-leda-yaml`
-  - `--leda-output`
-- The emitted payload carries:
-  - project identity
-  - live analysis summary
-  - calibration surface
-  - claim-risk candidates
-  - suggested maturity hints
-  - SPAR review hints
-- Added tests covering payload generation and CLI emission.
-- Added LEDA redaction profiles:
-  - `internal`
-  - `restricted`
-  - `public`
-- Default CLI emission now uses `restricted` to reduce accidental exposure of
-  implementation weakness surfaces in exported YAML.
 
 ## [3.2.1] - 2026-04-11
 
@@ -1187,15 +1185,6 @@ Special thanks to community feedback that drives these improvements. This releas
 
 ---
 
-## [Unreleased]
-
-### Planned for v3.1 (Q3 2026)
-- Advanced ML models with transfer learning
-- Predictive quality scoring
-- Real-time code analysis IDE integration
-
----
-
 ## [2.5.1] - 2026-01-10
 
 ### Fixed
@@ -1234,23 +1223,6 @@ Special thanks to community feedback that drives these improvements. This releas
 
 ### Fixed
 - Obfuscated regex patterns to prevent self-detection of TODO/FIXME tags
-
----
-
-## [3.0.0] - PLANNED (Not Yet Implemented)
-
-> **Note:** The following is a roadmap of planned features for v3.0.0.
-> None of these features are implemented or benchmarked yet.
-> Prototype code exists in `src/slop_detector/auth/` and `src/slop_detector/ml/`
-> but is marked EXPERIMENTAL and not integrated with the core.
-
-### Planned Features
-- Multi-language support (JavaScript, TypeScript, Java, Go, Rust, C++, C#)
-- Enterprise authentication (SSO via SAML 2.0, OAuth2/OIDC)
-- Role-based access control (RBAC) with hierarchical permissions
-- Tamper-proof audit logging (SQLite/PostgreSQL backend)
-- Cloud-native deployment (Kubernetes Helm charts, Docker Compose)
-- Compliance features (GDPR, SOC 2, HIPAA)
 
 ---
 
