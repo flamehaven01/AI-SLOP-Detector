@@ -52,6 +52,7 @@ MIN_FP_CANDIDATES: int = 5  # fp_candidate events required (false positive class
 CALIBRATION_MILESTONE: int = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES  # = 10
 MIN_RULE_OCCURRENCES: int = 3  # min times a rule must fire to appear in per_rule_fp_rates
 DOMAIN_TOLERANCE: float = 0.15  # P3: max per-dimension deviation from domain anchor in grid search
+DOMAIN_DRIFT_LIMIT: float = 0.25  # P4: warn when optimal weight drifts this far from anchor
 
 
 # ------------------------------------------------------------------
@@ -103,6 +104,7 @@ class CalibrationResult:
     fp_rate_after: float = 0.0
     top_candidates: List[WeightCandidate] = field(default_factory=list)
     per_rule_fp_rates: Dict[str, float] = field(default_factory=dict)  # v3.4.0: rule_id -> FP rate
+    warnings: List[str] = field(default_factory=list)  # P4: domain drift alerts
     message: str = ""
 
 
@@ -271,6 +273,23 @@ class SelfCalibrator:
                 f"{current_score:.4f} -> {winner_score:.4f} "
                 f"(gap from #2: {result.confidence_gap:.4f})."
             )
+
+        # P4: domain drift warnings — flag dimensions that moved beyond DOMAIN_DRIFT_LIMIT.
+        # Reference is domain_anchor when provided (constrained search), else current weights.
+        # Constrained search (P3) limits drift to ±DOMAIN_TOLERANCE(0.15) < DOMAIN_DRIFT_LIMIT(0.25),
+        # so warnings only fire for unconstrained calls (e.g. manual --self-calibrate).
+        if result.status == "ok":
+            _ref = domain_anchor if domain_anchor else cw
+            _ref_label = "domain anchor" if domain_anchor else "current weights"
+            for dim in ("ldr", "inflation", "ddc", "purity"):
+                new_w = result.optimal_weights.get(dim, 0.0)
+                ref_w = _ref.get(dim, 0.0)
+                drift = abs(new_w - ref_w)
+                if drift > DOMAIN_DRIFT_LIMIT:
+                    result.warnings.append(
+                        f"{dim}: optimal {new_w:.2f} drifted {drift:.2f} from {_ref_label}"
+                        f" ({ref_w:.2f}); exceeds DOMAIN_DRIFT_LIMIT={DOMAIN_DRIFT_LIMIT}."
+                    )
 
         result.per_rule_fp_rates = self._calc_per_rule_fp_rates(improvements, fp_candidates)
         return result

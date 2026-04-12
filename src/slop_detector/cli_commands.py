@@ -591,6 +591,9 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
                 " via .slopconfig.yaml exclude_rules[/dim]"
             )
 
+        if result.warnings:
+            for w in result.warnings:
+                console.print(f"[yellow][!] {w}[/yellow]")
         console.print(f"\n[dim]{result.message}[/dim]")
     else:
         print(f"[Self-Calibration] status={result.status}")
@@ -610,6 +613,8 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
                 print("  per_rule_fp_rates (>=50%):")
                 for rid, rate in high_fp_plain.items():
                     print(f"    {rid}: {rate:.0%}")
+        for w in result.warnings:
+            print(f"  [!] {w}")
         print(f"  {result.message}")
 
     # --- Apply if requested ---
