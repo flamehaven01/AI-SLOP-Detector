@@ -14,6 +14,7 @@ from slop_detector.config import DOMAIN_PROFILES, generate_slopconfig_template
 # Fixtures — minimal project trees written to tmp_path
 # ---------------------------------------------------------------------------
 
+
 def _write_py(tmp_path: Path, filename: str, imports: str) -> None:
     (tmp_path / filename).write_text(imports, encoding="utf-8")
 
@@ -21,6 +22,7 @@ def _write_py(tmp_path: Path, filename: str, imports: str) -> None:
 # ---------------------------------------------------------------------------
 # detect_domain — trigger matching
 # ---------------------------------------------------------------------------
+
 
 class TestDetectDomain:
     def test_ml_imports_detected(self, tmp_path):
@@ -83,10 +85,18 @@ class TestDetectDomain:
 # DOMAIN_PROFILES — structural invariants
 # ---------------------------------------------------------------------------
 
+
 class TestDomainProfiles:
     def test_all_profiles_have_required_keys(self):
-        required = {"parent", "domain_path", "description", "triggers",
-                    "capability_vector", "pattern_config", "ignore_extra"}
+        required = {
+            "parent",
+            "domain_path",
+            "description",
+            "triggers",
+            "capability_vector",
+            "pattern_config",
+            "ignore_extra",
+        }
         for name, profile in DOMAIN_PROFILES.items():
             missing = required - profile.keys()
             assert not missing, f"Profile '{name}' missing keys: {missing}"
@@ -95,22 +105,23 @@ class TestDomainProfiles:
         for name, profile in DOMAIN_PROFILES.items():
             cv = profile["capability_vector"]
             total = sum(cv.values())
-            assert abs(total - 1.0) < 1e-6, (
-                f"Profile '{name}' capability_vector sums to {total:.4f}, expected 1.0"
-            )
+            assert (
+                abs(total - 1.0) < 1e-6
+            ), f"Profile '{name}' capability_vector sums to {total:.4f}, expected 1.0"
 
     def test_domain_path_starts_with_parent(self):
         for name, profile in DOMAIN_PROFILES.items():
             parent = profile["parent"]
             dp = profile["domain_path"]
-            assert dp == parent or dp.startswith(f"{parent}/"), (
-                f"Profile '{name}': domain_path '{dp}' must start with parent '{parent}'"
-            )
+            assert dp == parent or dp.startswith(
+                f"{parent}/"
+            ), f"Profile '{name}': domain_path '{dp}' must start with parent '{parent}'"
 
 
 # ---------------------------------------------------------------------------
 # generate_slopconfig_template — domain-specific output
 # ---------------------------------------------------------------------------
+
 
 class TestGenerateSlopconfigTemplate:
     def test_general_template_has_default_weights(self):

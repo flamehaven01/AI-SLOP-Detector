@@ -200,9 +200,7 @@ def detect_domain(project_path: Path) -> tuple:
 
     from slop_detector.config import DOMAIN_PROFILES
 
-    import_re = re.compile(
-        r"^\s*(?:import\s+([\w]+)|from\s+([\w]+)\s+import)", re.MULTILINE
-    )
+    import_re = re.compile(r"^\s*(?:import\s+([\w]+)|from\s+([\w]+)\s+import)", re.MULTILINE)
     found_imports: set = set()
     try:
         for py_file in project_path.rglob("*.py"):

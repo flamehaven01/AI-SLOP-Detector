@@ -207,8 +207,19 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "parent": "scientific",
         "domain_path": "scientific/ml",
         "description": "Machine learning, deep learning, data science",
-        "triggers": ["numpy", "scipy", "torch", "tensorflow", "keras", "sklearn",
-                     "jax", "xgboost", "lightgbm", "matplotlib", "seaborn"],
+        "triggers": [
+            "numpy",
+            "scipy",
+            "torch",
+            "tensorflow",
+            "keras",
+            "sklearn",
+            "jax",
+            "xgboost",
+            "lightgbm",
+            "matplotlib",
+            "seaborn",
+        ],
         "capability_vector": {"ldr": 0.50, "inflation": 0.05, "ddc": 0.40, "purity": 0.05},
         "pattern_config": {
             "god_function": {"complexity_threshold": 15, "lines_threshold": 100},
@@ -232,8 +243,16 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "parent": "web",
         "domain_path": "web/api",
         "description": "Web applications and REST APIs",
-        "triggers": ["fastapi", "flask", "django", "starlette", "aiohttp",
-                     "tornado", "sanic", "falcon"],
+        "triggers": [
+            "fastapi",
+            "flask",
+            "django",
+            "starlette",
+            "aiohttp",
+            "tornado",
+            "sanic",
+            "falcon",
+        ],
         "capability_vector": {"ldr": 0.35, "inflation": 0.25, "ddc": 0.30, "purity": 0.10},
         "pattern_config": {
             "god_function": {"complexity_threshold": 10, "lines_threshold": 60},
@@ -269,8 +288,16 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "parent": "bio",
         "domain_path": "bio",
         "description": "Bioinformatics, genomics, proteomics",
-        "triggers": ["Bio", "biopython", "pysam", "pybedtools", "anndata",
-                     "scanpy", "mne", "pyvcf"],
+        "triggers": [
+            "Bio",
+            "biopython",
+            "pysam",
+            "pybedtools",
+            "anndata",
+            "scanpy",
+            "mne",
+            "pyvcf",
+        ],
         "capability_vector": {"ldr": 0.55, "inflation": 0.05, "ddc": 0.35, "purity": 0.05},
         "pattern_config": {
             "god_function": {"complexity_threshold": 15, "lines_threshold": 100},
@@ -282,8 +309,7 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "parent": "finance",
         "domain_path": "finance",
         "description": "Financial applications and quantitative analysis",
-        "triggers": ["yfinance", "quantlib", "zipline", "backtrader",
-                     "alpaca", "ccxt", "ta"],
+        "triggers": ["yfinance", "quantlib", "zipline", "backtrader", "alpaca", "ccxt", "ta"],
         "capability_vector": {"ldr": 0.35, "inflation": 0.15, "ddc": 0.40, "purity": 0.10},
         "pattern_config": {
             "god_function": {"complexity_threshold": 12, "lines_threshold": 80},
@@ -314,13 +340,9 @@ def generate_slopconfig_template(
     gf = pc.get("god_function", {"complexity_threshold": 10, "lines_threshold": 50})
     nc = pc.get("nested_complexity", {"depth_threshold": 4, "cc_threshold": 5})
 
-    detected_line = (
-        f"# Detected by imports: {', '.join(detected_by)}\n" if detected_by else ""
-    )
+    detected_line = f"# Detected by imports: {', '.join(detected_by)}\n" if detected_by else ""
 
-    ignore_extra_lines = "".join(
-        f'\n  - "{p}"' for p in profile.get("ignore_extra", [])
-    )
+    ignore_extra_lines = "".join(f'\n  - "{p}"' for p in profile.get("ignore_extra", []))
     js_ignore_extra = (
         "\n  - node_modules/**\n  - dist/**\n  - build/**" if project_type == "javascript" else ""
     )
