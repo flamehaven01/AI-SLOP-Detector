@@ -219,3 +219,38 @@ def test_regular_source_classified_as_source():
     tree = ast.parse(src)
     role = classify_file("src/mymodule/logic.py", src, tree)
     assert role == FileRole.SOURCE
+
+
+# ---------------------------------------------------------------------------
+# ⑥ Protocol / ABC stub file — STUB role (v3.4.1)
+# ---------------------------------------------------------------------------
+
+PROTOCOL_STUB_SRC = textwrap.dedent(
+    """
+    from typing import Any, Protocol
+
+    class BuilderA(Protocol):
+        def __call__(self, *, subject: Any, gate: str) -> list[Any]: ...
+
+    class BuilderB(Protocol):
+        def __call__(self, *, subject: Any, source: str) -> list[Any]: ...
+
+    class Checker(Protocol):
+        def __call__(self, text: str) -> tuple[int, list[str]]: ...
+"""
+).strip()
+
+
+def test_protocol_stub_classified_as_stub():
+    """Pure Protocol-stub files must be classified as STUB."""
+    tree = ast.parse(PROTOCOL_STUB_SRC)
+    role = classify_file("src/mymodule/interfaces.py", PROTOCOL_STUB_SRC, tree)
+    assert role == FileRole.STUB, f"Expected STUB, got {role}"
+
+
+def test_protocol_stub_is_clean(detector):
+    """Protocol stub files must be CLEAN — ellipsis bodies and clone patterns are expected."""
+    result = detector.analyze_code_string(PROTOCOL_STUB_SRC, filename="interfaces.py")
+    assert (
+        result.status == SlopStatus.CLEAN
+    ), f"Expected CLEAN, got {result.status}. warnings={result.warnings}"
