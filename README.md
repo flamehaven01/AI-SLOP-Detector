@@ -57,6 +57,7 @@ Unlike general linters that flag style and convention, it targets **AI slop**: s
 - **Git-aware noise filter** — uses commit SHA to distinguish real improvements from measurement noise
 - **Domain-aware bootstrap** — `--init` auto-detects project domain (8 profiles: `web_frontend`, `data_science`, `ml_research`, `backend_api`, …) and pre-seeds weights accordingly; override with `--domain`
 - **JS/TS analysis** — optional `[js]` extra activates JSAnalyzer v2.8.0 with tree-sitter AST + regex fallback for `.js/.jsx/.ts/.tsx` files
+- **Go analysis** — optional `[go]` extra activates GoAnalyzer v1.0.0 with regex-based detection for `.go` files; detects empty funcs, panic-as-error, fmt.Print debug, ignored errors
 - **CI/CD gates** — soft / hard / quarantine modes; GitHub Actions ready
 - **VS Code extension** — real-time inline diagnostics, debounced lint-on-type, ML score in status bar
 
@@ -176,6 +177,17 @@ slop-detector --project ./src         # now includes .js/.jsx/.ts/.tsx files
 ```
 Activates JSAnalyzer v2.8.0 with tree-sitter AST (regex fallback when not installed).
 Results appear under `js_file_results` in `ProjectAnalysis` and JSON output.
+
+---
+
+**Go Analysis** — regex-based, optional tree-sitter-go path
+```bash
+pip install "ai-slop-detector[go]"
+slop-detector --project ./src         # now includes .go files
+```
+Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error handling,
+`fmt.Println/Printf` debug prints, `_ =` ignored errors, TODO/FIXME comments, god functions
+(> 60 lines). Results appear under `go_file_results` in JSON output.
 
 ---
 
@@ -315,7 +327,7 @@ cd vscode-extension && npm install && npx vsce package
 
 | Version | Highlights |
 |---|---|
-| **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]` optional dep; 268 tests GREEN |
+| **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]` optional dep; Go analysis via GoAnalyzer v1.0.0 + `[go]` optional dep; 292 tests GREEN |
 | **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |
 | **v3.4.0** | Per-rule FP rate tracking (LEDA Phase 2A); purity weight ceiling `MAX_PURITY_WEIGHT=0.25` (Phase 2B) |
 | **v3.3.0** | File role classifier (SOURCE/INIT/RE_EXPORT/TEST/MODEL/CORPUS); DDC annotation-only import fix; `# noqa: F401` + `__all__` re-export recognition |

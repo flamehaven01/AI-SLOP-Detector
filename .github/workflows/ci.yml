@@ -81,6 +81,23 @@ jobs:
       - name: Run JS/TS analyzer tests
         run: pytest tests/test_js_analyzer.py -v
 
+  test-go:
+    name: Go Analyzer (tree-sitter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies with Go extras
+        run: pip install -e ".[dev,go]"
+
+      - name: Run Go analyzer tests
+        run: pytest tests/test_go_analyzer.py -v
+
   slop-check:
     name: Self SLOP Detection
     runs-on: ubuntu-latest

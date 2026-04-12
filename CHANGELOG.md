@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.5.0] — Phase 3: Domain-Aware Init + JS/TS Analysis
+## [3.5.0] — Phase 3: Domain-Aware Init + JS/TS + Go Analysis
 
 ### Added
 
@@ -38,8 +38,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   issue detection (regex fallback), TS-specific `any` detection, AST mode (skipped without
   tree-sitter), and `SlopDetector` integration
 
+**Phase 3c — Go Analysis via GoAnalyzer v1.0.0**
+- `languages/go_analyzer.py`: standalone `GoAnalyzer` class with `GoIssue` + `GoFileAnalysis`
+  dataclasses; detects `go_empty_func`, `go_panic`, `go_fmt_print`, `go_ignored_error`,
+  `go_todo_comment`, `go_god_function`; regex fallback always active; optional `tree-sitter-go`
+  guard for future AST enrichment
+- `languages/__init__.py`: imports `GoAnalyzer`; `.go` added to `LANGUAGE_ANALYZERS`
+- `models.py`: `go_file_results: List[Any]` field added to `ProjectAnalysis`; `to_dict()`
+  serializes via `.to_dict()` per entry
+- `core.py`: `_GO_EXTENSIONS` frozenset; `_get_go_analyzer()` lazy-loader; `_analyze_go_files()`
+  private method; `analyze_go_file()` public API; Go analysis hoisted before early-return
+  (same pattern as JS — pure-Go projects populate `go_file_results` correctly)
+- `optional dep [go]`: `tree-sitter>=0.25.0`, `tree-sitter-go>=0.23.0`
+- 24 new tests in `tests/test_go_analyzer.py` covering all patterns, slop scoring, and
+  `SlopDetector` integration
+
 ### CI
 - New `test-js` job: installs `.[dev,js]` and runs `tests/test_js_analyzer.py` on Python 3.11
+- New `test-go` job: installs `.[dev,go]` and runs `tests/test_go_analyzer.py` on Python 3.11
 
 ---
 

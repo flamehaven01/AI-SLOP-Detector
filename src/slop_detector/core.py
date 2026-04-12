@@ -83,6 +83,8 @@ class SlopDetector:
 
         # Phase 3b: JS/TS analyzer (lazy — only instantiated when needed)
         self._js_analyzer = None
+        # Phase 3c: Go analyzer (lazy — only instantiated when needed)
+        self._go_analyzer = None
 
     def _get_js_analyzer(self):
         """Lazy-load JSAnalyzer (avoids import cost when not used)."""
@@ -91,6 +93,14 @@ class SlopDetector:
 
             self._js_analyzer = JSAnalyzer()
         return self._js_analyzer
+
+    def _get_go_analyzer(self):
+        """Lazy-load GoAnalyzer (avoids import cost when not used)."""
+        if self._go_analyzer is None:
+            from slop_detector.languages.go_analyzer import GoAnalyzer
+
+            self._go_analyzer = GoAnalyzer()
+        return self._go_analyzer
 
     @staticmethod
     def _compute_dcf(tree: ast.AST) -> Dict[str, float]:
@@ -287,11 +297,14 @@ class SlopDetector:
 
         # Phase 3b: JS/TS analysis is independent of Python — run before early return
         js_results = self._analyze_js_files(project_path_obj, ignore_patterns)
+        # Phase 3c: Go analysis is independent of Python — run before early return
+        go_results = self._analyze_go_files(project_path_obj, ignore_patterns)
 
         if not results:
             logger.warning("No files analyzed")
             pa = self._create_empty_project_analysis(str(project_path))
             pa.js_file_results = js_results
+            pa.go_file_results = go_results
             return pa
 
         # Calculate aggregated metrics
@@ -357,6 +370,7 @@ class SlopDetector:
             structural_coherence=structural_coherence,
             coherence_level=coherence_level,
             js_file_results=js_results,
+            go_file_results=go_results,
         )
 
     _JS_EXTENSIONS = frozenset({".js", ".jsx", ".ts", ".tsx"})
@@ -384,6 +398,32 @@ class SlopDetector:
     def analyze_js_file(self, file_path: str):
         """Analyze a single JS/TS file and return JSFileAnalysis."""
         return self._get_js_analyzer().analyze(file_path)
+
+    _GO_EXTENSIONS = frozenset({".go"})
+
+    def _analyze_go_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
+        """Scan and analyze Go files in project_path_obj (Phase 3c)."""
+        go_files = [
+            fp
+            for fp in project_path_obj.rglob("*")
+            if fp.suffix.lower() in self._GO_EXTENSIONS
+            and not self._should_ignore(fp, ignore_patterns)
+        ]
+        if not go_files:
+            return []
+        analyzer = self._get_go_analyzer()
+        results = []
+        for fp in go_files:
+            try:
+                results.append(analyzer.analyze(str(fp)))
+            except Exception as exc:
+                logger.error(f"Error analyzing Go file {fp}: {exc}")
+        logger.info(f"Analyzed {len(results)} Go files")
+        return results
+
+    def analyze_go_file(self, file_path: str):
+        """Analyze a single .go file and return GoFileAnalysis."""
+        return self._get_go_analyzer().analyze(file_path)
 
     def _run_patterns(
         self,

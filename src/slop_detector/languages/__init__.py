@@ -2,9 +2,11 @@
 Multi-Language Support Framework.
 PythonAnalyzer is the primary implementation.
 JSAnalyzer (v2.8.0) provides JS/TS support via tree-sitter AST (optional) with regex fallback.
+GoAnalyzer (v1.0.0) provides Go support with regex fallback and optional tree-sitter-go.
 """
 
 from .base import AnalysisResult, LanguageAnalyzer
+from .go_analyzer import GoAnalyzer
 from .js_analyzer import JSAnalyzer
 from .python_analyzer import PythonAnalyzer
 
@@ -13,6 +15,7 @@ __all__ = [
     "AnalysisResult",
     "PythonAnalyzer",
     "JSAnalyzer",
+    "GoAnalyzer",
     "get_analyzer_for_file",
     "LANGUAGE_ANALYZERS",
 ]
@@ -24,6 +27,7 @@ LANGUAGE_ANALYZERS = {
     ".jsx": JSAnalyzer,
     ".ts": JSAnalyzer,
     ".tsx": JSAnalyzer,
+    ".go": GoAnalyzer,
 }
 
 

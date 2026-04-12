@@ -190,6 +190,8 @@ class ProjectAnalysis:
     file_results: List[FileAnalysis] = field(default_factory=list)
     # Phase 3b: JS/TS analysis results (JSFileAnalysis objects)
     js_file_results: List[Any] = field(default_factory=list)
+    # Phase 3c: Go analysis results (GoFileAnalysis objects)
+    go_file_results: List[Any] = field(default_factory=list)
     # v3.0: CQMS structural coherence — max H0 persistence (MST-based) over file DCFs.
     # 1.0 = all files structurally uniform. Low = distinct structural clusters (AI/human mix signal).
     structural_coherence: float = 1.0
@@ -212,5 +214,8 @@ class ProjectAnalysis:
             "file_results": [r.to_dict() for r in self.file_results],
             "js_file_results": [
                 r.to_dict() if hasattr(r, "to_dict") else r for r in self.js_file_results
+            ],
+            "go_file_results": [
+                r.to_dict() if hasattr(r, "to_dict") else r for r in self.go_file_results
             ],
         }
