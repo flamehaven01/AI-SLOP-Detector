@@ -151,7 +151,9 @@ class SelfCalibrator:
         current_weights: Optional[Dict[str, float]] = None,
         min_events: int = MIN_IMPROVEMENTS,  # per-class floor; applies to both improvement and fp_candidate classes
         project_id: Optional[str] = None,  # P1: restrict history to this project
-        domain_anchor: Optional[Dict[str, float]] = None,  # P3: constrain grid to ±DOMAIN_TOLERANCE of anchor
+        domain_anchor: Optional[
+            Dict[str, float]
+        ] = None,  # P3: constrain grid to ±DOMAIN_TOLERANCE of anchor
     ) -> CalibrationResult:
         """Run self-calibration. Returns CalibrationResult with optimal weights.
 
@@ -547,11 +549,13 @@ class SelfCalibrator:
         max_p = int(MAX_PURITY_WEIGHT * GRID_STEP)  # purity ceiling: 0.25 * 20 = 5
 
         if domain_anchor:
+
             def _dim_bounds(key: str, hard_max: int = max_i) -> Tuple[int, int]:
                 anchor_v = domain_anchor.get(key, 0.30)
                 lo = max(min_i, int(round(max(MIN_W, anchor_v - DOMAIN_TOLERANCE) * GRID_STEP)))
                 hi = min(hard_max, int(round(min(MAX_W, anchor_v + DOMAIN_TOLERANCE) * GRID_STEP)))
                 return lo, hi
+
             ldr_lo, ldr_hi = _dim_bounds("ldr")
             inf_lo, inf_hi = _dim_bounds("inflation")
             ddc_lo, ddc_hi = _dim_bounds("ddc")

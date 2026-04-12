@@ -343,7 +343,9 @@ def _check_calibration_hint(args) -> None:
         config = Config(config_path=getattr(args, "config", None))
         current_weights = config.get_weights()
         # P3: use current config weights as domain anchor to constrain grid search
-        domain_anchor = {k: current_weights.get(k, 0.30) for k in ("ldr", "inflation", "ddc", "purity")}
+        domain_anchor = {
+            k: current_weights.get(k, 0.30) for k in ("ldr", "inflation", "ddc", "purity")
+        }
         result = SelfCalibrator().calibrate(
             current_weights=current_weights,
             project_id=project_id,
