@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from slop_detector.config import Config
+from slop_detector.file_role import classify_file
 from slop_detector.ignore_handler import IgnoreHandler
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
 from slop_detector.metrics.context_jargon import ContextJargonDetector
@@ -23,6 +24,19 @@ from slop_detector.patterns.registry import PatternRegistry
 
 logger = logging.getLogger(__name__)
 DEFAULT_EXCLUDE_PARTS = {".venv", "venv", "site-packages", "node_modules", "__pycache__", ".git"}
+
+
+class _SkipProxy:
+    """Thin proxy that overrides specific metric attributes for role-based skip logic."""
+
+    def __init__(self, wrapped, **overrides):
+        self._wrapped = wrapped
+        self._overrides = overrides
+
+    def __getattr__(self, name: str):
+        if name in self._overrides:
+            return self._overrides[name]
+        return getattr(self._wrapped, name)
 
 
 class SlopDetector:
@@ -106,6 +120,13 @@ class SlopDetector:
             # Return minimal analysis
             return self._create_error_analysis(file_path, str(e))
 
+        # v3.3.0: Classify file role — suppresses false-positive checks for
+        # __init__.py (INIT), re-export modules (RE_EXPORT), and corpus files (CORPUS).
+        role = classify_file(file_path, content, tree)
+        from slop_detector.file_role import ROLE_SKIP
+
+        skip = ROLE_SKIP[role]
+
         # Calculate all metrics (using shared content and tree)
         ldr = self.ldr_calc.calculate(file_path, content, tree)
         inflation = self.inflation_calc.calculate(file_path, content, tree)
@@ -127,11 +148,15 @@ class SlopDetector:
         ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
 
         # v2.1: Run pattern detection (v2.6.3: filters ignored functions)
-        pattern_issues = self._run_patterns(tree, Path(file_path), content, ignored_functions)
+        pattern_issues = (
+            []
+            if "patterns" in skip
+            else self._run_patterns(tree, Path(file_path), content, ignored_functions)
+        )
 
-        # Determine slop status (now includes pattern issues)
+        # Determine slop status (now includes pattern issues, respects role skip)
         slop_score, slop_status, warnings = self._calculate_slop_status(
-            ldr, inflation, ddc, pattern_issues
+            ldr, inflation, ddc, pattern_issues, skip=skip
         )
 
         result = FileAnalysis(
@@ -174,6 +199,11 @@ class SlopDetector:
         except SyntaxError as e:
             return self._create_error_analysis(filename, str(e))
 
+        from slop_detector.file_role import ROLE_SKIP
+
+        role = classify_file(filename, content, tree)
+        skip = ROLE_SKIP[role]
+
         ldr = self.ldr_calc.calculate(filename, content, tree)
         inflation = self.inflation_calc.calculate(filename, content, tree)
         ddc = self.ddc_calc.calculate(filename, content, tree)
@@ -182,10 +212,14 @@ class SlopDetector:
         hallucination_deps = self.hallucination_deps_detector.analyze(filename, content, tree, ddc)
         context_jargon = self.context_jargon_detector.analyze(filename, content, tree, inflation)
         ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
-        pattern_issues = self._run_patterns(tree, Path(filename), content, ignored_functions)
+        pattern_issues = (
+            []
+            if "patterns" in skip
+            else self._run_patterns(tree, Path(filename), content, ignored_functions)
+        )
 
         slop_score, slop_status, warnings = self._calculate_slop_status(
-            ldr, inflation, ddc, pattern_issues
+            ldr, inflation, ddc, pattern_issues, skip=skip
         )
 
         result = FileAnalysis(
@@ -372,32 +406,42 @@ class SlopDetector:
         )
 
     @staticmethod
-    def _build_metric_warnings(ldr, inflation, ddc) -> List[str]:
+    def _build_metric_warnings(ldr, inflation, ddc, skip: frozenset = frozenset()) -> List[str]:
         """Generate per-metric threshold warnings for ldr, inflation, and ddc."""
         warnings: List[str] = []
-        if ldr.ldr_score < 0.30:
-            warnings.append(f"CRITICAL: Logic density only {ldr.ldr_score:.2%}")
-        elif ldr.ldr_score < 0.60:
-            warnings.append(f"WARNING: Low logic density {ldr.ldr_score:.2%}")
-        if inflation.inflation_score > 1.0:
-            warnings.append(f"CRITICAL: Inflation ratio {inflation.inflation_score:.2f}")
-        elif inflation.inflation_score > 0.5:
-            warnings.append(f"WARNING: High inflation ratio {inflation.inflation_score:.2f}")
-        if ddc.usage_ratio < 0.50:
-            warnings.append(f"CRITICAL: Only {ddc.usage_ratio:.2%} of imports used")
-        elif ddc.usage_ratio < 0.70:
-            warnings.append(f"WARNING: Low import usage {ddc.usage_ratio:.2%}")
-        if ddc.fake_imports:
-            warnings.append(f"FAKE IMPORTS: {', '.join(ddc.fake_imports)}")
+        if "ldr" not in skip:
+            if ldr.ldr_score < 0.30:
+                warnings.append(f"CRITICAL: Logic density only {ldr.ldr_score:.2%}")
+            elif ldr.ldr_score < 0.60:
+                warnings.append(f"WARNING: Low logic density {ldr.ldr_score:.2%}")
+        if "inflation" not in skip:
+            if inflation.inflation_score > 1.0:
+                warnings.append(f"CRITICAL: Inflation ratio {inflation.inflation_score:.2f}")
+            elif inflation.inflation_score > 0.5:
+                warnings.append(f"WARNING: High inflation ratio {inflation.inflation_score:.2f}")
+        if "ddc" not in skip:
+            if ddc.usage_ratio < 0.50:
+                warnings.append(f"CRITICAL: Only {ddc.usage_ratio:.2%} of imports used")
+            elif ddc.usage_ratio < 0.70:
+                warnings.append(f"WARNING: Low import usage {ddc.usage_ratio:.2%}")
+            if ddc.fake_imports:
+                warnings.append(f"FAKE IMPORTS: {', '.join(ddc.fake_imports)}")
         return warnings
 
     def _calculate_slop_status(
-        self, ldr, inflation, ddc, pattern_issues: Optional[List[Issue]] = None
+        self,
+        ldr,
+        inflation,
+        ddc,
+        pattern_issues: Optional[List[Issue]] = None,
+        skip: frozenset = frozenset(),
     ) -> tuple[float, SlopStatus, List[str]]:
         """
         Calculate slop score using weighted formula + pattern penalties.
 
         v2.1: Includes pattern-based scoring.
+        v3.3.0: ``skip`` frozenset suppresses specific checks for file roles
+                (e.g. INIT files skip 'ldr' and 'ddc').
         """
         pattern_issues = pattern_issues or []
 
@@ -407,17 +451,23 @@ class SlopDetector:
             if inflation.inflation_score != float("inf")
             else 1.0
         )
+        if "inflation" in skip:
+            inflation_normalized = 0.0  # treat as perfect
 
         # purity = exp(-0.5 * n_critical): GQG AND-gate dimension for pattern severity
         n_critical = len([i for i in pattern_issues if i.severity.value == "critical"])
         purity = exp(-0.5 * n_critical)
 
-        gqg = self._compute_gqg(ldr, inflation_normalized, ddc, purity)
+        # Build effective ldr/ddc scores respecting skip
+        effective_ldr = _SkipProxy(ldr, ldr_score=1.0) if "ldr" in skip else ldr
+        effective_ddc = _SkipProxy(ddc, usage_ratio=1.0) if "ddc" in skip else ddc
+
+        gqg = self._compute_gqg(effective_ldr, inflation_normalized, effective_ddc, purity)
         base_deficit_score = 100 * (1 - gqg)
         pattern_penalty = self._calculate_pattern_penalty(pattern_issues)
         deficit_score = min(base_deficit_score + pattern_penalty, 100.0)
 
-        warnings = self._build_metric_warnings(ldr, inflation, ddc)
+        warnings = self._build_metric_warnings(ldr, inflation, ddc, skip=skip)
 
         # v2.1: Add pattern warnings
         critical_patterns = [i for i in pattern_issues if i.severity.value == "critical"]
@@ -448,8 +498,13 @@ class SlopDetector:
         # Supplementary override 2: near-zero import usage (structural issue)
         # DEPENDENCY_NOISE applies when DDC < 20% is the *primary* failure mode.
         # GQG collapses on near-zero DDC, but the label should reflect root cause.
-        # Guard: skip if critical patterns or high inflation indicate a worse cause.
-        if ddc.usage_ratio < 0.20 and not critical_patterns and inflation.inflation_score <= 1.0:
+        # Guard: skip if critical patterns, high inflation, or role-based DDC skip.
+        if (
+            ddc.usage_ratio < 0.20
+            and "ddc" not in skip
+            and not critical_patterns
+            and inflation.inflation_score <= 1.0
+        ):
             status = SlopStatus.DEPENDENCY_NOISE
 
         return deficit_score, status, warnings

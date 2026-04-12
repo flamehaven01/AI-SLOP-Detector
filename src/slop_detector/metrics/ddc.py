@@ -43,15 +43,32 @@ class DDCCalculator:
         self.config = config
 
     def calculate(self, file_path: str, content: str, tree: ast.AST) -> DDCResult:
-        """Calculate DDC with type hint and TYPE_CHECKING awareness."""
+        """Calculate DDC with type hint, noqa, __all__, and TYPE_CHECKING awareness."""
         # Collect imports (alias -> library)
         imports_map, type_checking_imports = self._collect_imports(tree, content)
+
+        # noqa: F401 imports — treat as intentional re-exports, never flag unused
+        noqa_libs = self._collect_noqa_imports(content, imports_map)
+        type_checking_imports |= noqa_libs
+
+        # __all__ members — if imported name is re-exported via __all__, treat as used
+        all_exported = self._collect_all_members(tree, imports_map)
+        type_checking_imports |= all_exported
 
         # All imported libraries
         all_imported_libs = set(imports_map.values())
 
-        # Collect actual usage (excluding type hints)
-        used_names = self._collect_usage(tree)
+        # Collect actual usage + annotation-only usage
+        used_names, annotation_names = self._collect_usage(tree)
+
+        # Annotation-only libs: imported and used only in type hints
+        annotation_only_libs: Set[str] = set()
+        for name in annotation_names:
+            if name in imports_map:
+                lib = imports_map[name]
+                # Only exclude if NOT also used at runtime
+                if lib not in {imports_map.get(n) for n in used_names}:
+                    annotation_only_libs.add(lib)
 
         # Determine actually used libraries based on used aliases
         actually_used = set()
@@ -61,13 +78,17 @@ class DDCCalculator:
 
         # Calculate metrics
         actually_used_list = sorted(list(actually_used))
-        unused = sorted(all_imported_libs - set(actually_used_list) - type_checking_imports)
+        excluded = type_checking_imports | annotation_only_libs
+        unused = sorted(all_imported_libs - set(actually_used_list) - excluded)
         fake_imports = sorted(self.HEAVYWEIGHT_LIBS & all_imported_libs - set(actually_used_list))
 
-        # Type checking imports are not counted as unused
-        total_imports = len(all_imported_libs)
-
-        usage_ratio = len(actually_used) / total_imports if total_imports > 0 else 1.0
+        # usage_ratio: fraction of runtime-expected imports that are actually used.
+        # Imports that are excluded (type-checking / annotation-only / noqa / __all__)
+        # are excluded from BOTH numerator and denominator — they are not "unused",
+        # they are simply not expected to have a runtime footprint.
+        runtime_imports = all_imported_libs - excluded
+        total_runtime = len(runtime_imports)
+        usage_ratio = len(actually_used) / total_runtime if total_runtime > 0 else 1.0
 
         # Determine grade
         if usage_ratio >= 0.90:
@@ -134,11 +155,55 @@ class DDCCalculator:
 
         return imports_map, type_checking_imports
 
-    def _collect_usage(self, tree: ast.AST) -> Set[str]:
-        """Collect actual library usage (excluding type annotations)."""
+    @staticmethod
+    def _collect_noqa_imports(content: str, imports_map: dict[str, str]) -> Set[str]:
+        """Return libs whose import line has '# noqa: F401' — treated as intentional re-exports."""
+        noqa_libs: Set[str] = set()
+        name_to_lib = {alias: lib for alias, lib in imports_map.items()}
+        for line in content.splitlines():
+            if "# noqa" not in line or "F401" not in line:
+                continue
+            # extract imported name(s) from the line
+            stripped = line.split("#")[0].strip()
+            if stripped.startswith("from ") and " import " in stripped:
+                # from module import X, Y  # noqa: F401
+                names_part = stripped.split(" import ", 1)[1]
+                for part in names_part.split(","):
+                    name = part.strip().split(" as ")[-1].strip()
+                    if name in name_to_lib:
+                        noqa_libs.add(name_to_lib[name])
+            elif stripped.startswith("import "):
+                # import X  # noqa: F401
+                name = stripped[len("import ") :].strip().split(" as ")[-1].strip()
+                lib = name.split(".")[0]
+                if lib in imports_map.values():
+                    noqa_libs.add(lib)
+        return noqa_libs
+
+    @staticmethod
+    def _collect_all_members(tree: ast.AST, imports_map: dict[str, str]) -> Set[str]:
+        """Return libs whose alias is listed in __all__ — treated as used (re-exported)."""
+        all_names: Set[str] = set()
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "__all__":
+                    if isinstance(node.value, (ast.List, ast.Tuple)):
+                        for elt in node.value.elts:
+                            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                                all_names.add(elt.value)
+        return {imports_map[n] for n in all_names if n in imports_map}
+
+    def _collect_usage(self, tree: ast.AST) -> tuple[Set[str], Set[str]]:
+        """Collect actual library usage and annotation-only usage.
+
+        Returns:
+            (used, annotation_used) — names used at runtime vs only in annotations.
+        """
         visitor = UsageCollector()
         visitor.visit(tree)
-        return visitor.used
+        return visitor.used, visitor.annotation_used
 
 
 class UsageCollector(ast.NodeVisitor):
@@ -146,6 +211,7 @@ class UsageCollector(ast.NodeVisitor):
 
     def __init__(self):
         self.used = set()
+        self.annotation_used: Set[str] = set()  # names used only in annotations
         self.in_annotation = False
 
     def visit_FunctionDef(self, node):
@@ -196,13 +262,19 @@ class UsageCollector(ast.NodeVisitor):
             self.visit(node.value)
 
     def visit_Name(self, node):
-        if not self.in_annotation and isinstance(node.ctx, (ast.Load, ast.Store)):
-            self.used.add(node.id)
+        if isinstance(node.ctx, (ast.Load, ast.Store)):
+            if self.in_annotation:
+                self.annotation_used.add(node.id)
+            else:
+                self.used.add(node.id)
         self.generic_visit(node)
 
     def visit_Attribute(self, node):
-        if not self.in_annotation and isinstance(node.value, ast.Name):
-            self.used.add(node.value.id)
+        if isinstance(node.value, ast.Name):
+            if self.in_annotation:
+                self.annotation_used.add(node.value.id)
+            else:
+                self.used.add(node.value.id)
         self.generic_visit(node)
 
     def visit_Call(self, node):

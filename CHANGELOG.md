@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.0] — Phase 1 False-Positive Reduction
+
+### Added
+
+**File Role Classifier (`file_role.py`)**
+- New `FileRole` enum: `SOURCE`, `INIT`, `RE_EXPORT`, `TEST`, `MODEL`, `CORPUS`
+- `classify_file()` auto-detects the role of each file being analyzed
+- `ROLE_SKIP` map: per-role metric suppression (e.g., INIT skips `ldr`+`ddc`)
+- `_SkipProxy` in `core.py`: thin proxy that nullifies skipped metric contributions
+  without duplicating the GQG scoring formula
+
+**DDC Annotation-Only Import Tracking (FP ①)**
+- `UsageCollector` now tracks `annotation_used` — names referenced only in type annotations
+- Imports used exclusively in type hints (e.g., `argparse.Namespace`) are excluded
+  from both `unused` list and `usage_ratio` denominator
+- Eliminates false-positive SUSPICIOUS on files with annotation-heavy APIs
+
+**`# noqa: F401` Recognition (FP ②)**
+- `_collect_noqa_imports()` scans inline comments for `# noqa: F401` markers
+- Such imports are excluded from `unused` and denominator — treated as intentional suppressions
+
+**`__all__` Re-Export Recognition (FP ③)**
+- `_collect_all_members()` collects names published via `__all__`
+- Imports re-exported through `__all__` are excluded from `unused` — they have runtime value
+
+### Changed
+
+- `analyze_file()` and `analyze_code_string()` in `core.py` now accept a `skip` set
+  derived from file role classification
+- `_calculate_slop_status()` and `_build_metric_warnings()` accept `skip` parameter
+- `DEPENDENCY_NOISE` override respects `skip` — won't fire for INIT/RE_EXPORT files
+
+### Fixed
+
+- `usage_ratio` calculation now correctly uses `runtime_imports` (all imports minus
+  excluded set) as denominator, not raw total imports
+
+---
+
 ## [Unreleased]
 
 ### Added
