@@ -11,7 +11,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-292%20passed-brightgreen.svg?v=3.5.0" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-308%20passed-brightgreen.svg?v=3.5.0" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-71%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
@@ -53,7 +53,7 @@ Unlike general linters that flag style and convention, it targets **AI slop**: s
 
 - **27 adversarial pattern checks** — stubs, phantom imports, disconnected pipelines, buzzword inflation, clone clusters
 - **4D scoring model** — LDR (logic density), ICR (inflation), DDC (dependency coupling), Purity (critical severity) combined via geometric mean
-- **Self-calibrating** — every scan is recorded; after 10 scans the tool automatically tunes its weights to your codebase (no manual command required)
+- **Self-calibrating** — every scan is recorded per-project; after 10 files have been re-scanned the tool automatically tunes its weights using project-scoped, domain-anchored grid search (no manual command required)
 - **Git-aware noise filter** — uses commit SHA to distinguish real improvements from measurement noise
 - **Domain-aware bootstrap** — `--init` auto-detects project domain (8 profiles: `web_frontend`, `data_science`, `ml_research`, `backend_api`, …) and pre-seeds weights accordingly; override with `--domain`
 - **JS/TS analysis** — optional `[js]` extra activates JSAnalyzer v2.8.0 with tree-sitter AST + regex fallback for `.js/.jsx/.ts/.tsx` files
@@ -110,8 +110,8 @@ flowchart LR
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
 Purity) **and** 27 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
-down regardless of other dimensions. Every scan is recorded to history; weights
-auto-tune at every 10-scan milestone.
+down regardless of other dimensions. Every scan is recorded to history (per project); weights
+auto-tune when 10 files have been re-scanned in the same project.
 
 Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
@@ -203,8 +203,12 @@ slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yam
 ```
 4D grid-search (ldr / inflation / ddc / purity) over your run history.
 Optimizes all four weight dimensions simultaneously.
-Only applies when confidence gap between top two candidates exceeds 0.10.
-A calibration milestone hint is printed when enough history accumulates.
+- **Project-scoped** — `history.db` tags every record with a `project_id` (sha256 of cwd); calibration signal never mixes across different projects
+- **Domain-anchored** — grid search is constrained to ±0.15 around the current domain weights, preventing drift outside the domain's meaningful weight region
+- **Drift warnings** — `CalibrationResult.warnings` flags any dimension that shifted > 0.25 from the anchor
+- Only applies when confidence gap between top two candidates exceeds 0.10
+- Milestone is triggered by files re-scanned (not raw record count), avoiding false triggers on first-time project scans
+
 [docs/SELF_CALIBRATION.md →](docs/SELF_CALIBRATION.md)
 
 ---
@@ -332,7 +336,7 @@ cd vscode-extension && npm install && npx vsce package
 
 | Version | Highlights |
 |---|---|
-| **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]` optional dep; Go analysis via GoAnalyzer v1.0.0 + `[go]` optional dep; 292 tests GREEN |
+| **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |
 | **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |
 | **v3.4.0** | Per-rule FP rate tracking (LEDA Phase 2A); purity weight ceiling `MAX_PURITY_WEIGHT=0.25` (Phase 2B) |
 | **v3.3.0** | File role classifier (SOURCE/INIT/RE_EXPORT/TEST/MODEL/CORPUS); DDC annotation-only import fix; `# noqa: F401` + `__all__` re-export recognition |

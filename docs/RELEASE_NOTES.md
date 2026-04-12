@@ -5,6 +5,56 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.5.0 — 2026-04-13
+
+### Added
+
+**Domain-aware `--init` (8 profiles)**
+- `DOMAIN_PROFILES` in `config.py`: `general`, `scientific/ml`, `scientific/numerical`,
+  `web/api`, `library/sdk`, `cli/tool`, `bio`, `finance` — each with a tuned
+  `capability_vector` (ldr/inflation/ddc/purity weights) and `pattern_config` thresholds.
+- `--init` auto-detects domain from imports; `--domain` flag for explicit override.
+- Generated `.slopconfig.yaml` is pre-seeded with the domain's weight profile.
+
+**JS/TS analysis — JSAnalyzer v2.8.0 + `[js]` optional dep**
+- Activates for `.js/.jsx/.ts/.tsx`; tree-sitter AST with regex fallback.
+- Results in `ProjectAnalysis.js_file_results`.
+
+**Go analysis — GoAnalyzer v1.0.0 + `[go]` optional dep**
+- Regex-based detection for `.go`: empty stubs, panic-as-error, fmt debug prints,
+  ignored errors, TODO/FIXME, god functions. Results in `go_file_results`.
+
+**Self-calibration patches (P1–P5)**
+- **P5** — removed dead `float("inf")` guard in `_recompute_deficit`; upstream caps at 10.0.
+- **P1 — Schema v5** (`project_id TEXT`): every history record now tagged with
+  `sha256[:12]` of the scan's cwd. Prevents cross-project signal pollution in the
+  global `~/.slop-detector/history.db`. Auto-migrated.
+- **P2 — milestone trigger** replaced `count_total_records() % 10` with
+  `count_files_with_multiple_runs(project_id) % 10`. A first-time N-file scan records
+  N rows but zero repeat-file pairs — the old trigger was a false milestone.
+- **P3 — domain-anchored grid search**: `_grid_search(domain_anchor=...)` constrains
+  each dimension's range to `[anchor ± DOMAIN_TOLERANCE(0.15)]`. Auto-calibration
+  passes current config weights as anchor.
+- **P4 — `CalibrationResult.warnings`**: after a confident "ok" result, any weight
+  deviating > `DOMAIN_DRIFT_LIMIT(0.25)` from the reference emits a warning string.
+  Printed in `--self-calibrate` output (rich yellow / plain `[!]`).
+
+**16 new unit tests** (`tests/test_calibration_patches.py`):
+P2 count logic (6), P1 project_id isolation (3), P3 grid bounds (3), P4 warnings (4).
+
+### Fixed
+
+- **CI jq parse error** — `_check_calibration_hint()` prints redirected to `stderr`
+  to prevent calibration text from contaminating `--json` stdout.
+- **`float("inf")` in JSON** — `inflation.py` returns `10.0` (not `inf`) when
+  `logic_lines == 0`; `json.dumps(..., allow_nan=False)` added as a fail-fast guard.
+- **`avg_inflation` filter regression** — `math.isfinite()` check replaces brittle
+  `status != "error"` guard.
+- **`_sanitize_for_json` tuple support** — added `tuple` alongside `list`.
+- **E2E calibration assertions** — check both `stdout` and `stderr` for milestone signals.
+
+---
+
 ## v3.2.1 — 2026-04-11
 
 ### Added
