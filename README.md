@@ -92,21 +92,26 @@ uvx ai-slop-detector mycode.py
 
 ```mermaid
 flowchart LR
-    A[📄 Source File] --> B[AST Parser]
+    A[📄 Source File] --> R[FileRole\nClassifier]
+    R --> B[AST Parser]
     B --> C[27 Pattern Checks]
-    B --> D[LDR · ICR · DDC\nMetrics]
-    C --> E[GQG Scorer]
+    B --> D[LDR · ICR · DDC\n+ Purity Metrics]
+    C --> E[GQG Scorer\nWeighted Geometric Mean]
     D --> E
     E --> F{deficit_score}
     F -->|< 30| G[✅ CLEAN]
     F -->|30–50| H[⚠️ SUSPICIOUS]
-    F -->|50–70| I[🔶 INFLATED]
+    F -->|50–70| I[🔶 INFLATED_SIGNAL]
     F -->|≥ 70| J[🚨 CRITICAL_DEFICIT]
+    E --> H2[history.db]
+    H2 --> K[Self-Calibrator\nauto-tune weights]
 ```
 
-Every file goes through three independent measurement axes **and** 27 pattern
-checks. The results are combined via a weighted geometric mean — a near-zero in
-any single dimension pulls the overall score down regardless of other dimensions.
+Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
+Purity) **and** 27 pattern checks. Results are combined via a **weighted
+geometric mean** — a near-zero in any single dimension pulls the overall score
+down regardless of other dimensions. Every scan is recorded to history; weights
+auto-tune at every 10-scan milestone.
 
 Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
