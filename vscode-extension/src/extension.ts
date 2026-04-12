@@ -108,7 +108,7 @@ async function analyzeDocument(document: vscode.TextDocument) {
     }
 
     const filePath = document.uri.fsPath;
-    const supportedExtensions = ['.py', '.js', '.ts'];
+    const supportedExtensions = ['.py', '.js', '.ts', '.go'];
 
     if (!supportedExtensions.some(ext => filePath.endsWith(ext))) {
         return;
