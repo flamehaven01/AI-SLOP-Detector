@@ -185,14 +185,28 @@ def _run_cli(mock_dir: Path, home_dir: Path, config: Path, extra_args=None) -> d
         except json.JSONDecodeError:
             scan_json = None
 
+    stderr_full = proc.stderr or ""
+    # Calibration hints are now emitted to stderr (not stdout) to avoid
+    # corrupting --json output when piped to jq or other JSON consumers.
+    # Check both streams for backward compatibility with any output path.
+    auto_calibrated = (
+        "[*] Auto-calibration" in proc.stdout
+        or "[*] Auto-calibration" in stderr_full
+    )
+    milestone_fired = (
+        "milestone" in proc.stdout.lower()
+        or "[*]" in proc.stdout
+        or "milestone" in stderr_full.lower()
+        or "[*]" in stderr_full
+    )
     return {
         "returncode": proc.returncode,
         "stdout": proc.stdout,
-        "stderr": proc.stderr[-2000:] if proc.stderr else "",
+        "stderr": stderr_full[-2000:],
         "scan_json": scan_json,
         "calibration_hint": calibration_hint,
-        "auto_calibrated": "[*] Auto-calibration" in proc.stdout,
-        "milestone_fired": "milestone" in proc.stdout.lower() or "[*]" in proc.stdout,
+        "auto_calibrated": auto_calibrated,
+        "milestone_fired": milestone_fired,
     }
 
 
@@ -509,10 +523,11 @@ def test_step_03_round2_scan_auto_calibration(e2e_env):
     # With uniform synthetic templates, confidence_gap stays near 0 — this is expected behavior.
     assert r["milestone_fired"], (
         f"P1 FAIL: Calibration milestone hint must fire automatically at n >= {n_after}.\n"
-        f"stdout:\n{r['stdout'][-1000:]}"
+        f"stdout:\n{r['stdout'][-1000:]}\nstderr:\n{r['stderr'][-500:]}"
     )
     # milestone output must reference calibration (either auto-apply or insufficient_data hint)
-    milestone_output = r["stdout"]
+    # Calibration hints go to stderr (to avoid corrupting --json stdout for jq consumers)
+    milestone_output = r["stdout"] + r["stderr"]
     has_calibration_message = (
         "[*] Auto-calibration" in milestone_output
         or "Calibration milestone" in milestone_output

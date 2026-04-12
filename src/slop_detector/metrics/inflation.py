@@ -154,7 +154,9 @@ class InflationCalculator:
         if is_config_file and self.config.is_config_file_exception_enabled():
             return 0.0
         if logic_lines == 0:
-            return float("inf") if effective_jargon > 0 else 0.0
+            # No logic lines: cap at max rather than using inf (which is invalid JSON).
+            # A jargon-only file (no logic) is maximally inflated.
+            return 10.0 if effective_jargon > 0 else 0.0
         jargon_density = effective_jargon / logic_lines
         # complexity_modifier >= 1.0: complex code pays premium for jargon.
         # Baseline cc=1.0 (simplest possible function); cc=3 was a free zone where

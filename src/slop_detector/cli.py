@@ -235,19 +235,20 @@ def _sanitize_for_json(obj):
 
     Python's json.dumps serializes float('inf') as 'Infinity' which is invalid
     JSON (RFC 8259 §6) and rejected by jq and most JSON parsers.
+    Handles dict, list, tuple, and float (including numpy-compatible subclasses).
     """
     if isinstance(obj, float):
         return None if not math.isfinite(obj) else obj
     if isinstance(obj, dict):
         return {k: _sanitize_for_json(v) for k, v in obj.items()}
-    if isinstance(obj, list):
+    if isinstance(obj, (list, tuple)):
         return [_sanitize_for_json(v) for v in obj]
     return obj
 
 
 def _write_json_output(args, result) -> None:
     """Serialize result to JSON and write to file or stdout."""
-    output = json.dumps(_sanitize_for_json(result.to_dict()), indent=2)
+    output = json.dumps(_sanitize_for_json(result.to_dict()), indent=2, allow_nan=False)
     if args.output:
         _write_file(args.output, output)
     else:
@@ -291,7 +292,7 @@ def _evaluate_ci_gate(args, result):
     gate_result = CIGate(mode=gate_mode, claims_strict=claims_strict).evaluate(result)
     if args.ci_report:
         if args.json:
-            print(json.dumps(_sanitize_for_json(gate_result.to_dict()), indent=2))
+            print(json.dumps(_sanitize_for_json(gate_result.to_dict()), indent=2, allow_nan=False))
         else:
             print(gate_result.pr_comment or gate_result.message)
         return 1 if gate_result.should_fail_build else 0

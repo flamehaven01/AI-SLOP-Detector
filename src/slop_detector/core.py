@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import fnmatch
 import logging
+import math
 from collections import Counter
 from math import exp, log, sqrt
 from pathlib import Path
@@ -321,8 +322,10 @@ class SlopDetector:
         ldr_scores = [r.ldr.ldr_score for r in results]
         avg_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / total_files)
         avg_inflation = sum(
-            r.inflation.inflation_score for r in results if r.inflation.status != "error"
-        ) / max(1, sum(1 for r in results if r.inflation.status != "error"))
+            r.inflation.inflation_score
+            for r in results
+            if math.isfinite(r.inflation.inflation_score)
+        ) / max(1, sum(1 for r in results if math.isfinite(r.inflation.inflation_score)))
         avg_ddc = sum(r.ddc.usage_ratio for r in results) / total_files
 
         # Weighted average (by LOC)

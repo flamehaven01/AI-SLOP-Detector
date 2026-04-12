@@ -332,18 +332,22 @@ def _check_calibration_hint(args) -> None:
             written = SelfCalibrator.apply_to_config(
                 result.optimal_weights, config_path=config_path
             )
-            print(f"\n[*] Auto-calibration ({n} records): weights updated -> {written}")
+            import sys as _sys
+            print(f"\n[*] Auto-calibration ({n} records): weights updated -> {written}", file=_sys.stderr)
             for k in ("ldr", "inflation", "ddc", "purity"):
                 old_v = current_weights.get(k, 0.0)
                 new_v = result.optimal_weights.get(k, 0.0)
                 if abs(old_v - new_v) > 0.001:
-                    print(f"    {k}: {old_v:.2f} -> {new_v:.2f}")
+                    print(f"    {k}: {old_v:.2f} -> {new_v:.2f}", file=_sys.stderr)
         elif result.status == "no_change":
-            print(f"\n[*] Calibration milestone ({n} records): weights already optimal.")
+            import sys as _sys
+            print(f"\n[*] Calibration milestone ({n} records): weights already optimal.", file=_sys.stderr)
         else:
+            import sys as _sys
             print(
                 f"\n[*] Calibration milestone ({n} records): {result.message} "
-                f"Run --self-calibrate for details."
+                f"Run --self-calibrate for details.",
+                file=_sys.stderr,
             )
     except Exception:  # noqa: BLE001 — hint is informational; never block main flow
         pass
