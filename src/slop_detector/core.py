@@ -321,10 +321,8 @@ class SlopDetector:
         ldr_scores = [r.ldr.ldr_score for r in results]
         avg_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / total_files)
         avg_inflation = sum(
-            r.inflation.inflation_score
-            for r in results
-            if r.inflation.inflation_score != float("inf")
-        ) / max(1, sum(1 for r in results if r.inflation.inflation_score != float("inf")))
+            r.inflation.inflation_score for r in results if r.inflation.status != "error"
+        ) / max(1, sum(1 for r in results if r.inflation.status != "error"))
         avg_ddc = sum(r.ddc.usage_ratio for r in results) / total_files
 
         # Weighted average (by LOC)
@@ -695,10 +693,12 @@ class SlopDetector:
         """Create minimal analysis for files with errors."""
         from slop_detector.models import DDCResult, InflationResult, LDRResult
 
+        # 999.0 sentinel instead of float("inf") — inf serializes as "Infinity"
+        # which violates RFC 8259 and is rejected by jq/most JSON parsers.
         return FileAnalysis(
             file_path=file_path,
             ldr=LDRResult(0, 0, 0, 0.0, "N/A"),
-            inflation=InflationResult(0, 0.0, float("inf"), "error", []),
+            inflation=InflationResult(0, 0.0, 999.0, "error", []),
             ddc=DDCResult([], [], [], [], [], 0.0, "N/A"),
             deficit_score=100.0,  # CRITICAL: Syntax errors are severe
             status=SlopStatus.CRITICAL_DEFICIT,

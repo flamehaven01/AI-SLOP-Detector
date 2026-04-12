@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import math
 import sys
 from pathlib import Path
 
@@ -229,9 +230,24 @@ def _write_file(path: str, content: str, label: str = "") -> None:
         print(f"[+] {label} saved to {path}")
 
 
+def _sanitize_for_json(obj):
+    """Recursively replace non-finite floats with None for RFC 8259 compliance.
+
+    Python's json.dumps serializes float('inf') as 'Infinity' which is invalid
+    JSON (RFC 8259 §6) and rejected by jq and most JSON parsers.
+    """
+    if isinstance(obj, float):
+        return None if not math.isfinite(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_for_json(v) for v in obj]
+    return obj
+
+
 def _write_json_output(args, result) -> None:
     """Serialize result to JSON and write to file or stdout."""
-    output = json.dumps(result.to_dict(), indent=2)
+    output = json.dumps(_sanitize_for_json(result.to_dict()), indent=2)
     if args.output:
         _write_file(args.output, output)
     else:
@@ -275,7 +291,7 @@ def _evaluate_ci_gate(args, result):
     gate_result = CIGate(mode=gate_mode, claims_strict=claims_strict).evaluate(result)
     if args.ci_report:
         if args.json:
-            print(json.dumps(gate_result.to_dict(), indent=2))
+            print(json.dumps(_sanitize_for_json(gate_result.to_dict()), indent=2))
         else:
             print(gate_result.pr_comment or gate_result.message)
         return 1 if gate_result.should_fail_build else 0
