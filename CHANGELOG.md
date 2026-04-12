@@ -57,6 +57,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `test-js` job: installs `.[dev,js]` and runs `tests/test_js_analyzer.py` on Python 3.11
 - New `test-go` job: installs `.[dev,go]` and runs `tests/test_go_analyzer.py` on Python 3.11
 
+### Fixed
+
+- **`jq` parse error in "Self SLOP Detection" CI job** (`cli_commands.py`): root cause was
+  `_check_calibration_hint()` printing calibration milestone text to stdout after the JSON
+  block when `src/` contained ≥10 files (a CALIBRATION_MILESTONE=10 multiple). jq received
+  `{...json...}\n[*] Calibration milestone...` and rejected it as invalid JSON. All
+  `_check_calibration_hint()` prints now go to `file=sys.stderr`.
+- **`float("inf")` in JSON output** (`metrics/inflation.py` L157): `_compute_inflation_score()`
+  returned `float("inf")` when `logic_lines == 0` and `effective_jargon > 0`. Python's
+  `json.dumps` serialises this as `Infinity` (invalid RFC 8259). Changed to `10.0` (same cap
+  as the normal code-path `min(..., 10.0)`) — maximally-inflated sentinel, no JSON leakage.
+- **`avg_inflation` filter regression** (`core.py`): previous fix used `status != "error"` as
+  an inf guard; with the sentinel changed to `999.0` the guard became dead code. Replaced with
+  `math.isfinite(r.inflation.inflation_score)` — correctly excludes any non-finite value
+  regardless of status string.
+- **`_sanitize_for_json` hardened** (`cli.py`): added `tuple` handling alongside `list`; added
+  `json.dumps(..., allow_nan=False)` so any residual non-finite float raises `ValueError`
+  immediately rather than silently emitting invalid JSON.
+- **E2E calibration tests** (`tests/e2e_v321/test_e2e_v321.py`): `milestone_fired` and
+  `auto_calibrated` assertions now check both stdout and stderr so the tests remain green after
+  the print redirection.
+
 ---
 
 ## [3.4.1] — CI Fixes + STUB FileRole + Auto-Config Detection
