@@ -41,10 +41,10 @@ def test_build_leda_injection_has_expected_sections(tmp_path):
         },
     )()
 
-    with patch("slop_detector.leda_injection.HistoryTracker", return_value=fake_tracker), \
-            patch("slop_detector.leda_injection.SelfCalibrator") as calibrator_cls:
-        calibrator_cls.return_value.calibrate.return_value = fake_calibration
-        payload = build_leda_injection(result, path=str(tmp_path))
+    with patch("slop_detector.leda_injection.HistoryTracker", return_value=fake_tracker):
+        with patch("slop_detector.leda_injection.SelfCalibrator") as calibrator_cls:
+            calibrator_cls.return_value.calibrate.return_value = fake_calibration
+            payload = build_leda_injection(result, path=str(tmp_path))
 
     assert payload["version"] == "0.1"
     assert payload["source"]["analyzer"] == "LEDA"
@@ -72,10 +72,10 @@ def test_write_leda_injection_writes_yaml(tmp_path):
             "optimal_weights": {},
         },
     )()
-    with patch("slop_detector.leda_injection.HistoryTracker", return_value=fake_tracker), \
-            patch("slop_detector.leda_injection.SelfCalibrator") as calibrator_cls:
-        calibrator_cls.return_value.calibrate.return_value = fake_calibration
-        payload = build_leda_injection(_sample_file_result(), path=str(tmp_path))
+    with patch("slop_detector.leda_injection.HistoryTracker", return_value=fake_tracker):
+        with patch("slop_detector.leda_injection.SelfCalibrator") as calibrator_cls:
+            calibrator_cls.return_value.calibrate.return_value = fake_calibration
+            payload = build_leda_injection(_sample_file_result(), path=str(tmp_path))
 
     output = write_leda_injection(tmp_path / "reports" / "leda_injection.yaml", payload)
 
@@ -104,10 +104,12 @@ def test_build_leda_injection_public_profile_redacts_sensitive_fields(tmp_path):
             "optimal_weights": {"ldr": 0.45, "inflation": 0.25, "ddc": 0.2},
         },
     )()
-    with patch("slop_detector.leda_injection.HistoryTracker", return_value=fake_tracker), \
-            patch("slop_detector.leda_injection.SelfCalibrator") as calibrator_cls:
-        calibrator_cls.return_value.calibrate.return_value = fake_calibration
-        payload = build_leda_injection(_sample_file_result(), path=str(tmp_path), profile="public")
+    with patch("slop_detector.leda_injection.HistoryTracker", return_value=fake_tracker):
+        with patch("slop_detector.leda_injection.SelfCalibrator") as calibrator_cls:
+            calibrator_cls.return_value.calibrate.return_value = fake_calibration
+            payload = build_leda_injection(
+                _sample_file_result(), path=str(tmp_path), profile="public"
+            )
 
     assert payload["security"]["classification"] == "public"
     assert payload["security"]["ingestible_by_spar"] is False

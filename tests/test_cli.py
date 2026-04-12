@@ -294,32 +294,30 @@ def test_main_emit_leda_yaml(tmp_path):
         "analysis": {"mode": "project"},
     }
 
-    with (
-        patch.object(
-            sys,
-            "argv",
-            [
-                "slop-detector",
-                "--project",
-                str(project_dir),
-                "--emit-leda-yaml",
-                "--leda-output",
-                str(output_file),
-                "--leda-profile",
-                "public",
-                "--no-color",
-                "--no-history",
-            ],
-        ),
-        patch("slop_detector.cli.build_leda_injection", return_value=fake_payload),
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "slop-detector",
+            "--project",
+            str(project_dir),
+            "--emit-leda-yaml",
+            "--leda-output",
+            str(output_file),
+            "--leda-profile",
+            "public",
+            "--no-color",
+            "--no-history",
+        ],
     ):
-        result = main()
-        assert result == 0
-        assert output_file.exists()
+        with patch("slop_detector.cli.build_leda_injection", return_value=fake_payload):
+            result = main()
+            assert result == 0
+            assert output_file.exists()
 
-        data = json.loads(json.dumps(yaml.safe_load(output_file.read_text())))
-        assert data["source"]["analyzer"] == "LEDA"
-        assert data["analysis"]["mode"] == "project"
+            data = json.loads(json.dumps(yaml.safe_load(output_file.read_text())))
+            assert data["source"]["analyzer"] == "LEDA"
+            assert data["analysis"]["mode"] == "project"
 
 
 def test_main_fail_threshold(tmp_path):
