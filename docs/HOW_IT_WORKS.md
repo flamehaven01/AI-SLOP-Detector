@@ -8,32 +8,39 @@ Visual guide to understanding the AI-SLOP detection process.
 
 ```mermaid
 graph TB
-    A[Input: Python File] --> B[File Reader]
-    B --> C[AST Parser]
+    A[Input: Source File] --> B[File Reader]
+    B --> R[FileRole Classifier<br/>SOURCE / INIT / STUB<br/>RE_EXPORT / TEST / MODEL]
+    R --> C[AST Parser]
     C --> D{Parse Success?}
     D -->|No| E[Syntax Error Handler]
     D -->|Yes| F[Metric Analysis]
-    
-    E --> Z[Return CRITICAL_DEFICIT]
-    
+
+    E --> Z[Return CRITICAL_DEFICIT<br/>deficit=100.0]
+
     F --> G[LDR Calculator]
-    F --> H[Inflation Calculator]
+    F --> H[Inflation Calculator<br/>v2.8.0 TOE formula]
     F --> I[DDC Calculator]
-    F --> J[Pattern Registry]
-    
-    G --> K[Score Aggregator]
+    F --> J[Pattern Registry<br/>27 patterns]
+    F --> OPT[Optional Metrics<br/>DocstringInflation<br/>HallucinationDeps<br/>ContextJargon<br/>MLScore]
+
+    G --> K[GQG Scorer<br/>Weighted Geometric Mean]
     H --> K
     I --> K
     J --> K
-    
-    K --> L[Deficit Score<br/>Calculation]
+
+    K --> L[Deficit Score<br/>= 100 × 1 - GQG + pattern_penalty]
     L --> M[Status Determination]
     M --> N[FileAnalysis Result]
-    
+
+    N --> HIST[History DB<br/>~/.slop-detector/history.db]
+    HIST --> CAL[Self-Calibrator<br/>auto-tune at milestone]
+
     style A fill:#e1f5ff
     style N fill:#d4edda
     style Z fill:#f8d7da
     style F fill:#fff3cd
+    style OPT fill:#f3e5f5
+    style CAL fill:#e8f5e9
 ```
 
 ---
@@ -43,35 +50,40 @@ graph TB
 ```mermaid
 flowchart LR
     A[Code Input] --> B[Read File]
-    B --> C[Parse AST]
-    C --> D[Parallel Analysis]
-    
+    B --> RC[FileRole Classify]
+    RC --> C[Parse AST]
+    C --> D[Analysis]
+
     D --> E1[LDR<br/>Logic Density]
-    D --> E2[Inflation<br/>Buzzwords]
+    D --> E2[Inflation<br/>TOE formula]
     D --> E3[DDC<br/>Dependencies]
-    D --> E4[Patterns<br/>Anti-patterns]
-    
-    E1 --> F[Combine Results]
+    D --> E4[27 Patterns<br/>Anti-patterns]
+
+    E1 --> F[GQG Scorer<br/>Geometric Mean]
     E2 --> F
     E3 --> F
     E4 --> F
-    
-    F --> G[Calculate<br/>Deficit Score]
+
+    F --> G[Deficit Score]
     G --> H{Score >= 70?}
-    
-    H -->|Yes| I[CRITICAL]
-    H -->|No| J{Score >= 30?}
-    J -->|Yes| K[SUSPICIOUS]
-    J -->|No| L[CLEAN]
-    
+
+    H -->|Yes| I[CRITICAL_DEFICIT]
+    H -->|No| J{Score >= 50?}
+    J -->|Yes| JJ[INFLATED_SIGNAL]
+    J -->|No| K{Score >= 30?}
+    K -->|Yes| KK[SUSPICIOUS]
+    K -->|No| L[CLEAN]
+
     I --> M[Report]
-    K --> M
+    JJ --> M
+    KK --> M
     L --> M
-    
+
     style A fill:#e3f2fd
     style M fill:#c8e6c9
     style I fill:#ffcdd2
-    style K fill:#fff9c4
+    style JJ fill:#ffccbc
+    style KK fill:#fff9c4
     style L fill:#c8e6c9
 ```
 
@@ -220,49 +232,63 @@ flowchart LR
 
 ## Deficit Score Calculation
 
+The scorer uses a **weighted geometric mean** (GQG), not an arithmetic sum.
+A near-zero in any single dimension pulls the overall quality down regardless
+of other dimensions.
+
+```
+purity        = exp(-0.5 × n_critical_patterns)
+quality (GQG) = exp( Σ wᵢ·ln(dimᵢ) / Σ wᵢ )   — weighted geometric mean
+deficit_score = 100 × (1 − GQG) + pattern_penalty
+```
+
 ```mermaid
 flowchart TD
-    A[Metric Results] --> B[Apply Weights]
-    
-    B --> C[LDR × 0.40]
-    B --> D[Inflation × 0.30]
-    B --> E[DDC × 0.30]
-    
-    C --> F[Calculate Base Quality]
+    A[Metric Results] --> B[4 Quality Dimensions]
+
+    B --> C[ldr_dim<br/>w=0.40 default]
+    B --> D[inflation_dim<br/>w=0.30 default]
+    B --> E[ddc_dim<br/>w=0.30 default]
+    B --> PUR[purity_dim<br/>w=0.10 default<br/>= exp-0.5 × n_critical]
+
+    C --> F[GQG = exp Σwᵢ·lnᵢ / Σwᵢ<br/>Weighted Geometric Mean]
     D --> F
     E --> F
-    
-    F --> G[Base Quality = Σ Weighted Metrics]
-    G --> H[Base Deficit = 100 × 1 - Quality]
-    
-    I[Pattern Issues] --> J[Calculate Pattern Penalty]
+    PUR --> F
+
+    F --> G[Base Quality = GQG]
+    G --> H[Base Deficit = 100 × 1 - GQG]
+
+    I[Pattern Issues] --> J[Pattern Penalty]
     J --> K[Critical: 10pt each]
     J --> L[High: 5pt each]
     J --> M[Medium: 2pt each]
     J --> N[Low: 1pt each]
-    
-    K --> O[Sum Penalties]
+
+    K --> O[Sum → cap at 50pt]
     L --> O
     M --> O
     N --> O
-    
-    O --> P[Cap at 50 points]
-    
-    H --> Q[Final Deficit Score]
-    P --> Q
-    
-    Q --> R[Deficit = Base + Patterns]
-    R --> S{Classify Status}
-    
+
+    H --> Q[Final = Base + Penalty<br/>capped at 100]
+    O --> Q
+
+    Q --> S{Classify}
     S -->|>= 70| T[CRITICAL_DEFICIT]
+    S -->|>= 50| TT[INFLATED_SIGNAL]
     S -->|>= 30| U[SUSPICIOUS]
     S -->|< 30| V[CLEAN]
-    
+
     style T fill:#ffcdd2
+    style TT fill:#ffccbc
     style U fill:#fff9c4
     style V fill:#c8e6c9
     style Q fill:#e1f5ff
+    style F fill:#fff3cd
 ```
+
+Weights are auto-tuned by the self-calibrator. Project-level aggregation
+uses SR9 conservative weighting: `0.6 × min_file + 0.4 × mean`.
 
 ---
 
@@ -291,7 +317,7 @@ sequenceDiagram
     end
     
     M->>P: Run pattern detection
-    P->>P: Check 13 patterns
+    P->>P: Check 27 patterns
     P-->>M: Return issues
     
     M->>M: Combine results
@@ -342,6 +368,33 @@ graph TB
     F2[4× Empty Functions]
     F3[2× TODO Comments]
     end
+```
+
+---
+
+## Self-Calibration Flow
+
+Every scan is auto-recorded to `~/.slop-detector/history.db`. At every
+`CALIBRATION_MILESTONE` (= 10) multiple of total records, the self-calibrator
+runs automatically — no manual command required.
+
+```mermaid
+flowchart TD
+    A[Scan Completes] --> B[Record to history.db<br/>git commit + branch tag]
+    B --> C{Total records<br/>multiple of 10?}
+    C -->|No| END[Done]
+    C -->|Yes| D[Extract Events<br/>improvement / fp_candidate pairs]
+    D --> E{Per-class min met?<br/>5 improvements + 5 fp_candidates}
+    E -->|No| F[Print: insufficient_data hint]
+    E -->|Yes| G[4D Grid Search<br/>ldr × inflation × ddc × purity]
+    G --> H{Confidence gap<br/>> 0.10?}
+    H -->|No| I[Print: already optimal]
+    H -->|Yes| J[Apply to .slopconfig.yaml]
+    J --> K[Print: weights updated]
+
+    style J fill:#c8e6c9
+    style G fill:#fff3cd
+    style F fill:#e1f5ff
 ```
 
 ---
@@ -528,5 +581,5 @@ flowchart TD
 
 ---
 
-**Generated:** 2026-01-12  
-**Version:** 2.6.1
+**Generated:** 2026-04-13  
+**Version:** 3.5.0
