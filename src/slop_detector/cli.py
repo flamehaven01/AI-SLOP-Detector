@@ -335,6 +335,16 @@ def main() -> int:
         args.project = True
         logging.info("Directory detected, enabling --project mode")
 
+    # Auto-detect .slopconfig.yaml when --config is not specified.
+    # In project mode the config lives in the project root; in single-file
+    # mode it lives next to the file.  Either way, prefer it over defaults.
+    if args.config is None:
+        config_dir = Path(args.path) if args.project else Path(args.path).parent
+        candidate = config_dir / ".slopconfig.yaml"
+        if candidate.exists():
+            args.config = str(candidate)
+            logging.info(f"Auto-detected config: {candidate}")
+
     if args.list_patterns:
         list_patterns()
         return 0

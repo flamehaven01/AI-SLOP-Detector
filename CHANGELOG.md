@@ -69,6 +69,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.1] — CI Fixes + STUB FileRole + Auto-Config Detection
+
+### Added
+
+- **`FileRole.STUB`** (`file_role.py`): new role for pure Protocol/ABC interface stubs.
+  Files where all top-level class definitions inherit from `Protocol`, `ABC`, or `ABCMeta`
+  and contain no top-level function definitions are now classified as STUB.
+  STUB skips `ldr` and `patterns` checks — `...`-body stubs and clone patterns are
+  structurally expected, not quality deficits.
+- **STUB regression test** (`tests/test_fp_reduction.py` ⑥): asserts Protocol-stub files
+  produce `FileRole.STUB` and `SlopStatus.CLEAN` to prevent silent regression.
+- **Auto-detect `.slopconfig.yaml`** (`cli.py`): when `--config` is not specified the CLI
+  now probes the project root (project mode) or the file's parent directory (single-file
+  mode) for `.slopconfig.yaml` and loads it automatically.
+
+### Fixed
+
+- `classify_file()` signature: `tree: ast.AST` → `tree: ast.Module`; `ast.AST` has no
+  `.body` attribute — `ast.parse()` always returns `ast.Module`. Fixes mypy `attr-defined`
+  error.
+- Python 3.8 CI compatibility: replaced `with (A, B):` parenthesized context manager
+  syntax (Python 3.9+) with nested `with` statements in `test_leda_injection.py` and
+  `test_cli.py::test_main_emit_leda_yaml`.
+
 ## [Unreleased]
 
 ### Added
