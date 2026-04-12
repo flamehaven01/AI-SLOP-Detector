@@ -11,8 +11,8 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-199%20passed-brightgreen.svg?v=3.2.1" alt="Tests"/></a>
-  <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-82%25-brightgreen.svg" alt="Coverage"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-268%20passed-brightgreen.svg?v=3.5.0" alt="Tests"/></a>
+  <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-71%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
 </p>
@@ -55,7 +55,8 @@ Unlike general linters that flag style and convention, it targets **AI slop**: s
 - **4D scoring model** — LDR (logic density), ICR (inflation), DDC (dependency coupling), Purity (critical severity) combined via geometric mean
 - **Self-calibrating** — every scan is recorded; after 10 scans the tool automatically tunes its weights to your codebase (no manual command required)
 - **Git-aware noise filter** — uses commit SHA to distinguish real improvements from measurement noise
-- **Zero-config bootstrap** — `--init` generates a documented `.slopconfig.yaml` and secures it in `.gitignore` in one command
+- **Domain-aware bootstrap** — `--init` auto-detects project domain (8 profiles: `web_frontend`, `data_science`, `ml_research`, `backend_api`, …) and pre-seeds weights accordingly; override with `--domain`
+- **JS/TS analysis** — optional `[js]` extra activates JSAnalyzer v2.8.0 with tree-sitter AST + regex fallback for `.js/.jsx/.ts/.tsx` files
 - **CI/CD gates** — soft / hard / quarantine modes; GitHub Actions ready
 - **VS Code extension** — real-time inline diagnostics, debounced lint-on-type, ML score in status bar
 
@@ -156,12 +157,25 @@ Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
 ## Key Features
 
-**Bootstrap** — one command to start
+**Bootstrap** — domain-aware, one command to start
 ```bash
-slop-detector --init       # generate .slopconfig.yaml + add to .gitignore
+slop-detector --init                   # auto-detect domain, generate .slopconfig.yaml
+slop-detector --init --domain web_frontend  # explicit domain override
 ```
-Detects project type (Python / JS / Go), generates a documented config template,
-and secures it in `.gitignore` by default.
+`--init` detects your project domain from file patterns (8 built-in profiles:
+`general`, `web_frontend`, `data_science`, `cli_tool`, `library`,
+`ml_research`, `backend_api`, `scientific`) and pre-seeds the weight profile
+accordingly. Also secures `.slopconfig.yaml` in `.gitignore` by default.
+
+---
+
+**JS/TS Analysis** — optional tree-sitter path
+```bash
+pip install "ai-slop-detector[js]"
+slop-detector --project ./src         # now includes .js/.jsx/.ts/.tsx files
+```
+Activates JSAnalyzer v2.8.0 with tree-sitter AST (regex fallback when not installed).
+Results appear under `js_file_results` in `ProjectAnalysis` and JSON output.
 
 ---
 
@@ -301,6 +315,10 @@ cd vscode-extension && npm install && npx vsce package
 
 | Version | Highlights |
 |---|---|
+| **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]` optional dep; 268 tests GREEN |
+| **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |
+| **v3.4.0** | Per-rule FP rate tracking (LEDA Phase 2A); purity weight ceiling `MAX_PURITY_WEIGHT=0.25` (Phase 2B) |
+| **v3.3.0** | File role classifier (SOURCE/INIT/RE_EXPORT/TEST/MODEL/CORPUS); DDC annotation-only import fix; `# noqa: F401` + `__all__` re-export recognition |
 | **v3.2.1** | Auto-calibration at every 10-scan milestone (no manual cmd); P2 git noise filter; P3 per-class thresholds (5+5); `calibrate()` min_events bugfix; 11/11 e2e GREEN |
 | **v3.2.0** | 4D calibration (purity dimension); `--init` bootstrap; auto-calibration hints; 44/44 self-scan CLEAN |
 | **v3.1.2** | `data_collector` refactor; slopconfig gap fill; 43/43 self-scan CLEAN |
