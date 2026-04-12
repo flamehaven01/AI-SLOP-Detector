@@ -34,7 +34,7 @@ ROLE_SKIP: dict[FileRole, frozenset[str]] = {
 }
 
 
-def classify_file(path: str, content: str, tree: ast.AST) -> FileRole:
+def classify_file(path: str, content: str, tree: ast.Module) -> FileRole:
     """Classify *path* into a FileRole based on its name and AST structure.
 
     The classification is purely structural and fast — no I/O beyond the
