@@ -189,6 +189,56 @@ def _detect_project_type(path: Path) -> str:
     return "python"  # pyproject.toml / setup.py / .py files — default
 
 
+def detect_domain(project_path: Path) -> tuple:
+    """Scan project imports and return (domain_path, detected_by, confidence).
+
+    Scans all .py files for import statements and matches against DOMAIN_PROFILES
+    triggers.  Returns ('general', [], 0.0) when no profile exceeds the threshold.
+    """
+    import re
+    from typing import Dict, List
+
+    from slop_detector.config import DOMAIN_PROFILES
+
+    import_re = re.compile(
+        r"^\s*(?:import\s+([\w]+)|from\s+([\w]+)\s+import)", re.MULTILINE
+    )
+    found_imports: set = set()
+    try:
+        for py_file in project_path.rglob("*.py"):
+            try:
+                text = py_file.read_text(encoding="utf-8", errors="ignore")
+                for m in import_re.finditer(text):
+                    mod = (m.group(1) or m.group(2) or "").lower()
+                    if mod:
+                        found_imports.add(mod)
+            except OSError:
+                continue
+    except OSError:
+        pass
+
+    scores: Dict[str, List[str]] = {}
+    for dp, profile in DOMAIN_PROFILES.items():
+        if dp == "general":
+            continue
+        hits = [t for t in profile.get("triggers", []) if t.lower() in found_imports]
+        if hits:
+            scores[dp] = hits
+
+    if not scores:
+        return "general", [], 0.0
+
+    # Rank by hit count; break ties by specificity (fewer triggers = more specific)
+    best = max(
+        scores,
+        key=lambda k: (len(scores[k]), -len(DOMAIN_PROFILES[k].get("triggers", []) or [1])),
+    )
+    hits = scores[best]
+    n_triggers = max(len(DOMAIN_PROFILES[best].get("triggers", [])), 1)
+    confidence = round(min(1.0, len(hits) / max(n_triggers * 0.4, 1)), 2)
+    return best, hits, confidence
+
+
 def _inject_gitignore_entry(gitignore_path: Path, entry: str, comment: str) -> None:
     """Append entry to .gitignore if not already present."""
     if gitignore_path.exists():
@@ -205,7 +255,7 @@ def _inject_gitignore_entry(gitignore_path: Path, entry: str, comment: str) -> N
 
 def _run_init(args: argparse.Namespace) -> int:
     """Bootstrap .slopconfig.yaml and secure it in .gitignore."""
-    from slop_detector.config import generate_slopconfig_template
+    from slop_detector.config import DOMAIN_PROFILES, generate_slopconfig_template
 
     config_path = Path(".slopconfig.yaml")
     force = getattr(args, "force_init", False)
@@ -215,9 +265,34 @@ def _run_init(args: argparse.Namespace) -> int:
         return 1
 
     project_type = _detect_project_type(Path("."))
-    template = generate_slopconfig_template(project_type)
+
+    # Domain detection: --domain flag overrides auto-detection
+    manual_domain = getattr(args, "domain", None)
+    if manual_domain:
+        if manual_domain not in DOMAIN_PROFILES:
+            valid = ", ".join(DOMAIN_PROFILES.keys())
+            print(f"[!] Unknown domain '{manual_domain}'. Valid: {valid}")
+            return 1
+        domain_path = manual_domain
+        detected_by: list = []
+        confidence = 1.0
+        print(f"[o] Domain: {domain_path} (manually specified)")
+    else:
+        domain_path, detected_by, confidence = detect_domain(Path("."))
+        if domain_path != "general":
+            print(
+                f"[o] Domain detected: {domain_path} "
+                f"(imports: {', '.join(detected_by)}  confidence={confidence:.0%})"
+            )
+        else:
+            print("[o] Domain: general (no specific imports detected)")
+
+    profile = dict(DOMAIN_PROFILES[domain_path])
+    profile["detected_by"] = detected_by  # embed for template header comment
+
+    template = generate_slopconfig_template(project_type, domain_profile=profile)
     config_path.write_text(template, encoding="utf-8")
-    print(f"[+] .slopconfig.yaml generated (project_type={project_type})")
+    print(f"[+] .slopconfig.yaml generated (project_type={project_type}, domain={domain_path})")
 
     _inject_gitignore_entry(
         Path(".gitignore"),
@@ -227,7 +302,8 @@ def _run_init(args: argparse.Namespace) -> int:
 
     print()
     print("[>] Next steps:")
-    print("    slop-detector --project . --config .slopconfig.yaml")
+    print("    slop-detector --project .")
+    print(f"    # domain profile: {profile.get('description', '')}")
     print()
     print("[!] Security: .slopconfig.yaml is in .gitignore (maps acceptable-complexity surface).")
     print("    To share governance config with your team, remove it from .gitignore.")

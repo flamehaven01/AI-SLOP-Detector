@@ -180,14 +180,147 @@ class Config:
         )
 
 
-def generate_slopconfig_template(project_type: str = "python") -> str:
+# ---------------------------------------------------------------------------
+# Domain profiles: NNSL-inspired trigger+capability_vector mapping.
+# Each profile defines:
+#   parent           — top-level domain category
+#   domain_path      — slash-delimited hierarchy (parent/sub)
+#   triggers         — import names used for auto-detection during --init
+#   capability_vector — metric weights (ldr, inflation, ddc, purity)
+#   pattern_config   — god_function / nested_complexity thresholds
+#   ignore_extra     — additional ignore patterns beyond defaults
+# ---------------------------------------------------------------------------
+DOMAIN_PROFILES: Dict[str, Any] = {
+    "general": {
+        "parent": "general",
+        "domain_path": "general",
+        "description": "General-purpose project (default)",
+        "triggers": [],
+        "capability_vector": {"ldr": 0.40, "inflation": 0.30, "ddc": 0.20, "purity": 0.10},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 10, "lines_threshold": 50},
+            "nested_complexity": {"depth_threshold": 4, "cc_threshold": 5},
+        },
+        "ignore_extra": [],
+    },
+    "scientific/ml": {
+        "parent": "scientific",
+        "domain_path": "scientific/ml",
+        "description": "Machine learning, deep learning, data science",
+        "triggers": ["numpy", "scipy", "torch", "tensorflow", "keras", "sklearn",
+                     "jax", "xgboost", "lightgbm", "matplotlib", "seaborn"],
+        "capability_vector": {"ldr": 0.50, "inflation": 0.05, "ddc": 0.40, "purity": 0.05},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 15, "lines_threshold": 100},
+            "nested_complexity": {"depth_threshold": 6, "cc_threshold": 20},
+        },
+        "ignore_extra": ["data/**", "datasets/**", "checkpoints/**", "**/*.ipynb"],
+    },
+    "scientific/numerical": {
+        "parent": "scientific",
+        "domain_path": "scientific/numerical",
+        "description": "Numerical computing, simulations, physical modelling",
+        "triggers": ["sympy", "cupy", "numba", "cython", "mpmath", "astropy", "fenics"],
+        "capability_vector": {"ldr": 0.50, "inflation": 0.05, "ddc": 0.40, "purity": 0.05},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 15, "lines_threshold": 120},
+            "nested_complexity": {"depth_threshold": 6, "cc_threshold": 25},
+        },
+        "ignore_extra": ["output/**", "results/**"],
+    },
+    "web/api": {
+        "parent": "web",
+        "domain_path": "web/api",
+        "description": "Web applications and REST APIs",
+        "triggers": ["fastapi", "flask", "django", "starlette", "aiohttp",
+                     "tornado", "sanic", "falcon"],
+        "capability_vector": {"ldr": 0.35, "inflation": 0.25, "ddc": 0.30, "purity": 0.10},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 10, "lines_threshold": 60},
+            "nested_complexity": {"depth_threshold": 4, "cc_threshold": 8},
+        },
+        "ignore_extra": ["static/**", "migrations/**", "node_modules/**", "dist/**"],
+    },
+    "library/sdk": {
+        "parent": "library",
+        "domain_path": "library/sdk",
+        "description": "Libraries, SDKs, and reusable packages (Protocol/ABC heavy)",
+        "triggers": [],  # detected via Protocol/ABC prevalence, not imports
+        "capability_vector": {"ldr": 0.30, "inflation": 0.20, "ddc": 0.35, "purity": 0.15},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 12, "lines_threshold": 70},
+            "nested_complexity": {"depth_threshold": 5, "cc_threshold": 10},
+        },
+        "ignore_extra": ["docs/**", "examples/**"],
+    },
+    "cli/tool": {
+        "parent": "cli",
+        "domain_path": "cli/tool",
+        "description": "Command-line tools and scripts",
+        "triggers": ["argparse", "click", "typer", "docopt", "fire", "plumbum"],
+        "capability_vector": {"ldr": 0.35, "inflation": 0.30, "ddc": 0.25, "purity": 0.10},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 12, "lines_threshold": 70},
+            "nested_complexity": {"depth_threshold": 5, "cc_threshold": 15},
+        },
+        "ignore_extra": ["dist/**", "build/**"],
+    },
+    "bio": {
+        "parent": "bio",
+        "domain_path": "bio",
+        "description": "Bioinformatics, genomics, proteomics",
+        "triggers": ["Bio", "biopython", "pysam", "pybedtools", "anndata",
+                     "scanpy", "mne", "pyvcf"],
+        "capability_vector": {"ldr": 0.55, "inflation": 0.05, "ddc": 0.35, "purity": 0.05},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 15, "lines_threshold": 100},
+            "nested_complexity": {"depth_threshold": 6, "cc_threshold": 20},
+        },
+        "ignore_extra": ["data/**", "genomes/**"],
+    },
+    "finance": {
+        "parent": "finance",
+        "domain_path": "finance",
+        "description": "Financial applications and quantitative analysis",
+        "triggers": ["yfinance", "quantlib", "zipline", "backtrader",
+                     "alpaca", "ccxt", "ta"],
+        "capability_vector": {"ldr": 0.35, "inflation": 0.15, "ddc": 0.40, "purity": 0.10},
+        "pattern_config": {
+            "god_function": {"complexity_threshold": 12, "lines_threshold": 80},
+            "nested_complexity": {"depth_threshold": 5, "cc_threshold": 12},
+        },
+        "ignore_extra": ["data/**", "backtests/**"],
+    },
+}
+
+
+def generate_slopconfig_template(
+    project_type: str = "python",
+    domain_profile: Optional[Dict[str, Any]] = None,
+) -> str:
     """
-    Return a project-type-aware .slopconfig.yaml template string.
+    Return a domain-aware .slopconfig.yaml template string.
 
     SECURITY NOTE: This file maps your acceptable-complexity surface (domain_overrides).
     It is added to .gitignore by default when generated via --init. To share governance
     config with your team, explicitly remove .slopconfig.yaml from .gitignore.
     """
+    profile = domain_profile or DOMAIN_PROFILES["general"]
+    domain_path = profile.get("domain_path", "general")
+    description = profile.get("description", "")
+    detected_by = profile.get("detected_by", [])  # injected at call-site
+    cv = profile.get("capability_vector", DOMAIN_PROFILES["general"]["capability_vector"])
+    pc = profile.get("pattern_config", DOMAIN_PROFILES["general"]["pattern_config"])
+    gf = pc.get("god_function", {"complexity_threshold": 10, "lines_threshold": 50})
+    nc = pc.get("nested_complexity", {"depth_threshold": 4, "cc_threshold": 5})
+
+    detected_line = (
+        f"# Detected by imports: {', '.join(detected_by)}\n" if detected_by else ""
+    )
+
+    ignore_extra_lines = "".join(
+        f'\n  - "{p}"' for p in profile.get("ignore_extra", [])
+    )
     js_ignore_extra = (
         "\n  - node_modules/**\n  - dist/**\n  - build/**" if project_type == "javascript" else ""
     )
@@ -197,7 +330,8 @@ def generate_slopconfig_template(project_type: str = "python") -> str:
 # .slopconfig.yaml — ai-slop-detector governance configuration
 # Generated by: slop-detector --init
 # Project type: {project_type}
-#
+# Domain:       {domain_path}  ({description})
+{detected_line}#
 # SECURITY: This file contains domain_overrides (your acceptable-complexity surface).
 # It is in .gitignore by default. Remove that entry to share with your team.
 # See: https://github.com/flamehaven01/AI-SLOP-Detector#security-considerations
@@ -205,12 +339,13 @@ def generate_slopconfig_template(project_type: str = "python") -> str:
 version: "2.0"
 
 # ── Metric weights ──────────────────────────────────────────────────────────
-# Sum must equal 1.0. Use --self-calibrate after 20+ runs to optimize.
+# Domain: {domain_path} — tuned by slop-detector --init.
+# Sum must equal 1.0. Use --self-calibrate after 20+ runs to refine.
 weights:
-  ldr:       0.40  # Logic Density Ratio (code-to-total lines)
-  inflation:  0.30  # Inflation-to-Code Ratio (jargon density)
-  ddc:        0.30  # Deep Dependency Check (import usage ratio)
-  purity:     0.10  # Critical-pattern penalty (auto-calibrated v3.2.0+)
+  ldr:       {cv['ldr']:.2f}  # Logic Density Ratio
+  inflation: {cv['inflation']:.2f}  # Inflation-to-Code Ratio (jargon density)
+  ddc:       {cv['ddc']:.2f}  # Deep Dependency Check (import usage ratio)
+  purity:    {cv['purity']:.2f}  # Critical-pattern penalty
 
 # ── Ignore patterns ─────────────────────────────────────────────────────────
 ignore:
@@ -223,7 +358,7 @@ ignore:
   - ".venv/**"
   - "**/venv/**"
   - "venv/**"
-  - "**/site-packages/**"{js_ignore_extra}{go_ignore_extra}
+  - "**/site-packages/**"{js_ignore_extra}{go_ignore_extra}{ignore_extra_lines}
 
 # ── Pattern detection ────────────────────────────────────────────────────────
 patterns:
@@ -231,8 +366,8 @@ patterns:
   severity_threshold: low  # minimum severity: low | medium | high | critical
 
   god_function:
-    complexity_threshold: 10   # cyclomatic complexity limit
-    lines_threshold: 50        # physical line limit
+    complexity_threshold: {gf['complexity_threshold']}
+    lines_threshold: {gf['lines_threshold']}
     # domain_overrides: add per-function exemptions here
     # Example:
     # domain_overrides:
@@ -243,8 +378,8 @@ patterns:
     domain_overrides: []
 
   nested_complexity:
-    depth_threshold: 4
-    cc_threshold: 5
+    depth_threshold: {nc['depth_threshold']}
+    cc_threshold: {nc['cc_threshold']}
     domain_overrides: []
 
 # ── Advanced ─────────────────────────────────────────────────────────────────

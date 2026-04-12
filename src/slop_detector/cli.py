@@ -194,6 +194,14 @@ Examples:
         action="store_true",
         help="Overwrite existing .slopconfig.yaml when using --init",
     )
+    parser.add_argument(
+        "--domain",
+        help=(
+            "Override auto-detected domain when using --init. "
+            "Choices: general, scientific/ml, scientific/numerical, "
+            "web/api, library/sdk, cli/tool, bio, finance"
+        ),
+    )
     # CI/CD Gate options (v2.2)
     parser.add_argument(
         "--ci-mode",
