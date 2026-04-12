@@ -18,6 +18,7 @@ class FileRole(Enum):
     TEST = "test"  # test file — already excluded by .slopconfig; kept for API
     MODEL = "model"  # dataclass-heavy, minimal function bodies — relax inflation
     CORPUS = "corpus"  # intentional slop corpus (tests/corpus/**) — skip all
+    STUB = "stub"  # Protocol/ABC interface stubs — skip LDR (bodies are `...`)
 
 
 # Which metric checks to suppress per role.
@@ -31,6 +32,7 @@ ROLE_SKIP: dict[FileRole, frozenset[str]] = {
     # CORPUS: analyzed normally — intentional slop fixtures are excluded during
     # self-scan via exclude_paths in .slopconfig.yaml ("tests/**").
     FileRole.CORPUS: frozenset(),
+    FileRole.STUB: frozenset({"ldr", "patterns"}),
 }
 
 
@@ -84,5 +86,22 @@ def classify_file(path: str, content: str, tree: ast.Module) -> FileRole:
                     name = deco.attr
                 if name == "dataclass":
                     return FileRole.MODEL
+
+    # STUB / INTERFACE: all top-level class definitions inherit from Protocol or ABC
+    # and there are no top-level function definitions. These files consist entirely
+    # of `...`-body stubs, so LDR is structurally near zero — not a logic deficit.
+    _abstract_bases = frozenset({"Protocol", "ABC", "ABCMeta"})
+
+    def _is_abstract_base(node: ast.ClassDef) -> bool:
+        for base in node.bases:
+            if isinstance(base, ast.Name) and base.id in _abstract_bases:
+                return True
+            if isinstance(base, ast.Attribute) and base.attr in _abstract_bases:
+                return True
+        return False
+
+    class_nodes = [n for n in body_nodes if isinstance(n, ast.ClassDef)]
+    if class_nodes and func_nodes == 0 and all(_is_abstract_base(c) for c in class_nodes):
+        return FileRole.STUB
 
     return FileRole.SOURCE
