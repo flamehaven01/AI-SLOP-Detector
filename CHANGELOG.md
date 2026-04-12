@@ -57,6 +57,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `test-js` job: installs `.[dev,js]` and runs `tests/test_js_analyzer.py` on Python 3.11
 - New `test-go` job: installs `.[dev,go]` and runs `tests/test_go_analyzer.py` on Python 3.11
 
+### Added (self-calibration improvements — v3.5.0 patch)
+
+- **Schema v5 `project_id`** (`history.py`): `project_id TEXT` column added (auto-migrated).
+  Set to `sha256[:12]` of the resolved cwd at scan time. Prevents cross-project signal
+  pollution in the global `~/.slop-detector/history.db`.
+- **Project-scoped calibration** (`self_calibrator.py`, `cli_commands.py`): `calibrate()`
+  accepts `project_id` and passes it to `_load_history()` and `_extract_events()`.
+  `_record_history()` and `_check_calibration_hint()` now compute and thread `project_id`
+  via new `_compute_project_id()` helper.
+- **Better calibration trigger** (`cli_commands.py`, `history.py`): milestone is now
+  `count_files_with_multiple_runs(project_id)` instead of `count_total_records()`. A first-time
+  scan of N files records N rows but zero repeat-file pairs, so `total_records % 10 == 0` was
+  a false trigger. Only files scanned ≥2× can produce improvement/fp_candidate events.
+- **Domain-anchored grid search** (`self_calibrator.py`): `_grid_search()` accepts
+  `domain_anchor` dict; when provided each dimension's range is constrained to
+  `[anchor - DOMAIN_TOLERANCE(0.15), anchor + DOMAIN_TOLERANCE]` (clipped to absolute
+  MIN_W/MAX_W). `_check_calibration_hint()` passes `current_weights` as the anchor so
+  calibration stays within the domain's meaningful weight region.
+- **`DOMAIN_TOLERANCE = 0.15`** constant added to `self_calibrator.py`.
+
 ### Fixed
 
 - **`jq` parse error in "Self SLOP Detection" CI job** (`cli_commands.py`): root cause was

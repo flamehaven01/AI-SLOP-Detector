@@ -308,34 +308,55 @@ def _run_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def _compute_project_id() -> str:
+    """Return a stable 12-char hex project ID from the resolved cwd (sha256)."""
+    import hashlib
+
+    cwd = str(Path.cwd().resolve())
+    return hashlib.sha256(cwd.encode()).hexdigest()[:12]
+
+
 def _check_calibration_hint(args) -> None:
-    """At every CALIBRATION_MILESTONE scan, auto-run calibration and apply if confident."""
+    """At every CALIBRATION_MILESTONE of multi-run files, auto-run calibration and apply if confident.
+
+    v3.5.0 (P1/P2): trigger is now count_files_with_multiple_runs(project_id) — not
+    count_total_records(). A first-time scan of N files records N rows but zero
+    repeat-file pairs, so total_records % 10 == 0 was a false trigger. Multi-run
+    count is the correct proxy for calibration readiness.
+    """
     if getattr(args, "no_history", False):
         return
     try:
+        import sys as _sys
+
         from slop_detector.config import Config
         from slop_detector.history import HistoryTracker
         from slop_detector.ml.self_calibrator import CALIBRATION_MILESTONE, SelfCalibrator
 
+        project_id = _compute_project_id()
         tracker = HistoryTracker()
-        n = tracker.count_total_records()
+        n = tracker.count_files_with_multiple_runs(project_id=project_id)
         if n < CALIBRATION_MILESTONE or n % CALIBRATION_MILESTONE != 0:
             return
 
         # Auto-calibrate at milestone
         config = Config(config_path=getattr(args, "config", None))
         current_weights = config.get_weights()
-        result = SelfCalibrator().calibrate(current_weights=current_weights)
+        # P3: use current config weights as domain anchor to constrain grid search
+        domain_anchor = {k: current_weights.get(k, 0.30) for k in ("ldr", "inflation", "ddc", "purity")}
+        result = SelfCalibrator().calibrate(
+            current_weights=current_weights,
+            project_id=project_id,
+            domain_anchor=domain_anchor,
+        )
         config_path = getattr(args, "config", None) or ".slopconfig.yaml"
 
         if result.status == "ok" and Path(config_path).exists():
             written = SelfCalibrator.apply_to_config(
                 result.optimal_weights, config_path=config_path
             )
-            import sys as _sys
-
             print(
-                f"\n[*] Auto-calibration ({n} records): weights updated -> {written}",
+                f"\n[*] Auto-calibration ({n} multi-run files): weights updated -> {written}",
                 file=_sys.stderr,
             )
             for k in ("ldr", "inflation", "ddc", "purity"):
@@ -344,17 +365,13 @@ def _check_calibration_hint(args) -> None:
                 if abs(old_v - new_v) > 0.001:
                     print(f"    {k}: {old_v:.2f} -> {new_v:.2f}", file=_sys.stderr)
         elif result.status == "no_change":
-            import sys as _sys
-
             print(
-                f"\n[*] Calibration milestone ({n} records): weights already optimal.",
+                f"\n[*] Calibration milestone ({n} multi-run files): weights already optimal.",
                 file=_sys.stderr,
             )
         else:
-            import sys as _sys
-
             print(
-                f"\n[*] Calibration milestone ({n} records): {result.message} "
+                f"\n[*] Calibration milestone ({n} multi-run files): {result.message} "
                 f"Run --self-calibrate for details.",
                 file=_sys.stderr,
             )
@@ -391,17 +408,22 @@ def _get_git_context():
 
 
 def _record_history(result) -> None:
-    """Auto-record analysis result(s) to history DB with git context."""
+    """Auto-record analysis result(s) to history DB with git context and project_id."""
     try:
         from slop_detector.history import HistoryTracker
 
         git_commit, git_branch = _get_git_context()
+        project_id = _compute_project_id()
         tracker = HistoryTracker()
         if hasattr(result, "file_results"):
             for fa in result.file_results:
-                tracker.record(fa, git_commit=git_commit, git_branch=git_branch)
+                tracker.record(
+                    fa, git_commit=git_commit, git_branch=git_branch, project_id=project_id
+                )
         else:
-            tracker.record(result, git_commit=git_commit, git_branch=git_branch)
+            tracker.record(
+                result, git_commit=git_commit, git_branch=git_branch, project_id=project_id
+            )
     except Exception as exc:  # noqa: BLE001 — history is best-effort; never block main flow
         import logging as _logging
 

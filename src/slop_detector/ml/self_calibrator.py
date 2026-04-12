@@ -51,6 +51,7 @@ MIN_IMPROVEMENTS: int = 5  # improvement events required (true positive class)
 MIN_FP_CANDIDATES: int = 5  # fp_candidate events required (false positive class)
 CALIBRATION_MILESTONE: int = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES  # = 10
 MIN_RULE_OCCURRENCES: int = 3  # min times a rule must fire to appear in per_rule_fp_rates
+DOMAIN_TOLERANCE: float = 0.15  # P3: max per-dimension deviation from domain anchor in grid search
 
 
 # ------------------------------------------------------------------
@@ -149,12 +150,19 @@ class SelfCalibrator:
         self,
         current_weights: Optional[Dict[str, float]] = None,
         min_events: int = MIN_IMPROVEMENTS,  # per-class floor; applies to both improvement and fp_candidate classes
+        project_id: Optional[str] = None,  # P1: restrict history to this project
+        domain_anchor: Optional[Dict[str, float]] = None,  # P3: constrain grid to ±DOMAIN_TOLERANCE of anchor
     ) -> CalibrationResult:
         """Run self-calibration. Returns CalibrationResult with optimal weights.
 
         v3.2.1: per-class minimums replace total MIN_EVENTS threshold.
         min_events sets the per-class floor (applied independently to improvements and fp_candidates).
         Default is MIN_IMPROVEMENTS (5). To require stricter per-class quorum, pass higher value.
+
+        v3.5.0:
+          project_id — when provided, only history rows matching this project are used.
+          domain_anchor — when provided, grid search is constrained to ±DOMAIN_TOLERANCE
+            around each anchor dimension weight (prevents cross-domain calibration drift).
         """
         cw = (
             dict(current_weights)
@@ -174,7 +182,7 @@ class SelfCalibrator:
                 message="No history database found. Run slop-detector on your files first.",
             )
 
-        events, unique_files = self._extract_events()
+        events, unique_files = self._extract_events(project_id=project_id)
         improvements = [e for e in events if e.label == "improvement"]
         fp_candidates = [e for e in events if e.label == "fp_candidate"]
 
@@ -200,8 +208,8 @@ class SelfCalibrator:
             cw["ldr"], cw["inflation"], cw["ddc"], cw["purity"], improvements, fp_candidates
         )
 
-        # Grid search
-        candidates = self._grid_search(improvements, fp_candidates)
+        # Grid search (P3: pass domain_anchor for constrained search)
+        candidates = self._grid_search(improvements, fp_candidates, domain_anchor=domain_anchor)
         if not candidates:
             result.status = "no_change"
             result.message = "Grid search found no valid candidates."
@@ -269,12 +277,14 @@ class SelfCalibrator:
     # Event extraction (label derivation from user behaviour)
     # ------------------------------------------------------------------
 
-    def _extract_events(self) -> Tuple[List[CalibrationEvent], int]:
+    def _extract_events(
+        self, project_id: Optional[str] = None
+    ) -> Tuple[List[CalibrationEvent], int]:
         """
         Load history and derive labeled events (improvement / fp_candidate).
         Delegates to helpers to keep nesting shallow and each responsibility single.
         """
-        rows = self._load_history()
+        rows = self._load_history(project_id=project_id)
         by_file = self._group_runs_by_file(rows)
         seen_fp_files: set = set()
         events: List[CalibrationEvent] = []
@@ -391,7 +401,7 @@ class SelfCalibrator:
           - Decays toward 0 as critical patterns accumulate
           - This raw count is stored in history.db (v3.2.0+); old rows default to 0.
         """
-        inflation_normalized = min(inflation, 2.0) / 2.0 if inflation != float("inf") else 1.0
+        inflation_normalized = min(inflation, 2.0) / 2.0
         purity_score = exp(-0.5 * n_critical_patterns)
         total_w = w_ldr + w_inflation + w_ddc + w_purity
         gqg = exp(
@@ -513,6 +523,7 @@ class SelfCalibrator:
         self,
         improvements: List[CalibrationEvent],
         fp_candidates: List[CalibrationEvent],
+        domain_anchor: Optional[Dict[str, float]] = None,
     ) -> List[WeightCandidate]:
         """
         Exhaustive grid search over the 4D weight simplex.
@@ -520,6 +531,12 @@ class SelfCalibrator:
         Constraint: w_ldr + w_inf + w_ddc + w_purity = 1.0, each in [MIN_W, MAX_W].
         Purity is additionally capped at MAX_PURITY_WEIGHT (v3.4.0) to prevent a
         volatile count-based dimension from dominating calibration.
+
+        P3 (v3.5.0): when domain_anchor is provided, each dimension's search range is
+        constrained to [anchor - DOMAIN_TOLERANCE, anchor + DOMAIN_TOLERANCE] (clipped to
+        absolute MIN_W/MAX_W). This prevents calibration from drifting outside the
+        domain's meaningful weight region (e.g. scientific projects keep inflation low).
+
         Returns all valid candidates sorted ascending by combined score.
         """
         candidates: List[WeightCandidate] = []
@@ -529,11 +546,27 @@ class SelfCalibrator:
         max_i = int(MAX_W * GRID_STEP)
         max_p = int(MAX_PURITY_WEIGHT * GRID_STEP)  # purity ceiling: 0.25 * 20 = 5
 
-        for i in range(min_i, max_i + 1):
-            for j in range(min_i, max_i + 1):
-                for p in range(min_i, max_p + 1):  # purity capped at MAX_PURITY_WEIGHT
+        if domain_anchor:
+            def _dim_bounds(key: str, hard_max: int = max_i) -> Tuple[int, int]:
+                anchor_v = domain_anchor.get(key, 0.30)
+                lo = max(min_i, int(round(max(MIN_W, anchor_v - DOMAIN_TOLERANCE) * GRID_STEP)))
+                hi = min(hard_max, int(round(min(MAX_W, anchor_v + DOMAIN_TOLERANCE) * GRID_STEP)))
+                return lo, hi
+            ldr_lo, ldr_hi = _dim_bounds("ldr")
+            inf_lo, inf_hi = _dim_bounds("inflation")
+            ddc_lo, ddc_hi = _dim_bounds("ddc")
+            pur_lo, pur_hi = _dim_bounds("purity", hard_max=max_p)
+        else:
+            ldr_lo, ldr_hi = min_i, max_i
+            inf_lo, inf_hi = min_i, max_i
+            ddc_lo, ddc_hi = min_i, max_i
+            pur_lo, pur_hi = min_i, max_p
+
+        for i in range(ldr_lo, ldr_hi + 1):
+            for j in range(inf_lo, inf_hi + 1):
+                for p in range(pur_lo, pur_hi + 1):
                     k = GRID_STEP - i - j - p
-                    if k < min_i or k > max_i:
+                    if k < ddc_lo or k > ddc_hi:
                         continue
 
                     w_ldr = round(i * step, 4)
@@ -565,18 +598,26 @@ class SelfCalibrator:
     # SQLite
     # ------------------------------------------------------------------
 
-    def _load_history(self) -> List[Dict]:
-        sql = """
+    def _load_history(self, project_id: Optional[str] = None) -> List[Dict]:
+        """Load history rows, optionally filtered by project_id (v3.5.0 P1)."""
+        base_sql = """
         SELECT file_path, file_hash, timestamp,
                deficit_score, ldr_score, inflation_score, ddc_usage_ratio,
                COALESCE(n_critical_patterns, 0),
                git_commit,
                fired_rules
         FROM history
+        {where}
         ORDER BY file_path, timestamp ASC
         """
-        with sqlite3.connect(self.db_path) as conn:
-            rows = conn.execute(sql).fetchall()
+        if project_id is not None:
+            sql = base_sql.format(where="WHERE project_id = ?")
+            with sqlite3.connect(self.db_path) as conn:
+                rows = conn.execute(sql, (project_id,)).fetchall()
+        else:
+            sql = base_sql.format(where="")
+            with sqlite3.connect(self.db_path) as conn:
+                rows = conn.execute(sql).fetchall()
         return [
             {
                 "file_path": r[0],

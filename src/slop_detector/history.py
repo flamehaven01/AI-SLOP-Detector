@@ -15,6 +15,10 @@ Schema v3 (v3.2.0):
 Schema v4 (v3.4.0):
   - fired_rules added (JSON: {"pattern_id": count, ...})
     Required for per-rule FP rate tracking in LEDA self-calibration.
+
+Schema v5 (v3.5.0):
+  - project_id added (sha256[:12] of resolved cwd at scan time)
+    Prevents cross-project calibration signal pollution in global history.db.
 """
 
 import hashlib
@@ -63,6 +67,7 @@ class HistoryEntry:
     fired_rules: Optional[str] = None  # v3.4.0: JSON {pattern_id: count} for per-rule FP tracking
     git_commit: Optional[str] = None
     git_branch: Optional[str] = None
+    project_id: Optional[str] = None  # v3.5.0: sha256[:12] of cwd — scopes calibration per project
 
 
 class HistoryTracker:
@@ -95,6 +100,7 @@ class HistoryTracker:
             "grade": "ALTER TABLE history ADD COLUMN grade TEXT NOT NULL DEFAULT ''",
             "n_critical_patterns": "ALTER TABLE history ADD COLUMN n_critical_patterns INTEGER NOT NULL DEFAULT 0",
             "fired_rules": "ALTER TABLE history ADD COLUMN fired_rules TEXT DEFAULT NULL",
+            "project_id": "ALTER TABLE history ADD COLUMN project_id TEXT DEFAULT NULL",
         }
         for col, ddl in migrations.items():
             if col not in existing:
@@ -108,11 +114,16 @@ class HistoryTracker:
     # ------------------------------------------------------------------
 
     def record(
-        self, file_analysis, git_commit: Optional[str] = None, git_branch: Optional[str] = None
+        self,
+        file_analysis,
+        git_commit: Optional[str] = None,
+        git_branch: Optional[str] = None,
+        project_id: Optional[str] = None,
     ) -> None:
         """Record a FileAnalysis result. Accepts the dataclass directly.
 
         git_commit / git_branch: captured once per CLI run and passed in (v3.2.1).
+        project_id: sha256[:12] of resolved cwd (v3.5.0); scopes calibration per project.
         When present, used by SelfCalibrator to filter measurement noise from real fixes.
         """
         file_path = str(getattr(file_analysis, "file_path", ""))
@@ -164,6 +175,7 @@ class HistoryTracker:
             grade=grade,
             git_commit=git_commit,
             git_branch=git_branch,
+            project_id=project_id,
         )
         self._insert(entry)
 
@@ -172,8 +184,8 @@ class HistoryTracker:
         INSERT INTO history
             (timestamp, file_path, file_hash, deficit_score, ldr_score,
              inflation_score, ddc_usage_ratio, pattern_count, n_critical_patterns,
-             fired_rules, grade, git_commit, git_branch)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             fired_rules, grade, git_commit, git_branch, project_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._conn() as conn:
             conn.execute(
@@ -192,6 +204,7 @@ class HistoryTracker:
                     e.grade,
                     e.git_commit,
                     e.git_branch,
+                    e.project_id,
                 ),
             )
 
@@ -203,6 +216,33 @@ class HistoryTracker:
         """Return total number of records in the history database."""
         with self._conn() as conn:
             row = conn.execute("SELECT COUNT(*) FROM history").fetchone()
+        return int(row[0]) if row else 0
+
+    def count_files_with_multiple_runs(self, project_id: Optional[str] = None) -> int:
+        """Return count of distinct files scanned at least twice (calibration readiness signal).
+
+        v3.5.0: Replaces count_total_records() as the calibration trigger basis.
+        A file scanned once contributes zero calibration events; only repeat scans can
+        produce improvement/fp_candidate pairs. This prevents first-time large project
+        scans from firing spurious calibration milestones.
+        """
+        if project_id is not None:
+            sql = """
+            SELECT COUNT(*) FROM (
+                SELECT file_path FROM history WHERE project_id = ?
+                GROUP BY file_path HAVING COUNT(*) >= 2
+            )
+            """
+            with self._conn() as conn:
+                row = conn.execute(sql, (project_id,)).fetchone()
+        else:
+            sql = """
+            SELECT COUNT(*) FROM (
+                SELECT file_path FROM history GROUP BY file_path HAVING COUNT(*) >= 2
+            )
+            """
+            with self._conn() as conn:
+                row = conn.execute(sql).fetchone()
         return int(row[0]) if row else 0
 
     def get_file_history(self, file_path: str, limit: int = 20) -> List[Dict[str, Any]]:
