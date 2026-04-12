@@ -189,10 +189,7 @@ def _run_cli(mock_dir: Path, home_dir: Path, config: Path, extra_args=None) -> d
     # Calibration hints are now emitted to stderr (not stdout) to avoid
     # corrupting --json output when piped to jq or other JSON consumers.
     # Check both streams for backward compatibility with any output path.
-    auto_calibrated = (
-        "[*] Auto-calibration" in proc.stdout
-        or "[*] Auto-calibration" in stderr_full
-    )
+    auto_calibrated = "[*] Auto-calibration" in proc.stdout or "[*] Auto-calibration" in stderr_full
     milestone_fired = (
         "milestone" in proc.stdout.lower()
         or "[*]" in proc.stdout
