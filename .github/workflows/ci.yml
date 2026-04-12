@@ -64,6 +64,23 @@ jobs:
           flags: unittests
           name: python-${{ matrix.python-version }}
 
+  test-js:
+    name: JS/TS Analyzer (tree-sitter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies with JS extras
+        run: pip install -e ".[dev,js]"
+
+      - name: Run JS/TS analyzer tests
+        run: pytest tests/test_js_analyzer.py -v
+
   slop-check:
     name: Self SLOP Detection
     runs-on: ubuntu-latest

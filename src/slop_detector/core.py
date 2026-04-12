@@ -81,6 +81,17 @@ class SlopDetector:
         _mp = _Path(model_path) if model_path else _Path("models/slop_classifier.pkl")
         self._ml_scorer = _MLScorer.from_model(_mp)
 
+        # Phase 3b: JS/TS analyzer (lazy — only instantiated when needed)
+        self._js_analyzer = None
+
+    def _get_js_analyzer(self):
+        """Lazy-load JSAnalyzer (avoids import cost when not used)."""
+        if self._js_analyzer is None:
+            from slop_detector.languages.js_analyzer import JSAnalyzer
+
+            self._js_analyzer = JSAnalyzer()
+        return self._js_analyzer
+
     @staticmethod
     def _compute_dcf(tree: ast.AST) -> Dict[str, float]:
         """Compute DCF (Distributional Code Fingerprint) from a parsed AST.
@@ -274,9 +285,14 @@ class SlopDetector:
             except Exception as e:
                 logger.error(f"Error analyzing {file_path}: {e}")
 
+        # Phase 3b: JS/TS analysis is independent of Python — run before early return
+        js_results = self._analyze_js_files(project_path_obj, ignore_patterns)
+
         if not results:
             logger.warning("No files analyzed")
-            return self._create_empty_project_analysis(str(project_path))
+            pa = self._create_empty_project_analysis(str(project_path))
+            pa.js_file_results = js_results
+            return pa
 
         # Calculate aggregated metrics
         total_files = len(results)
@@ -340,7 +356,34 @@ class SlopDetector:
             file_results=results,
             structural_coherence=structural_coherence,
             coherence_level=coherence_level,
+            js_file_results=js_results,
         )
+
+    _JS_EXTENSIONS = frozenset({".js", ".jsx", ".ts", ".tsx"})
+
+    def _analyze_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
+        """Scan and analyze JS/TS files in project_path_obj (Phase 3b)."""
+        js_files = [
+            fp
+            for fp in project_path_obj.rglob("*")
+            if fp.suffix.lower() in self._JS_EXTENSIONS
+            and not self._should_ignore(fp, ignore_patterns)
+        ]
+        if not js_files:
+            return []
+        analyzer = self._get_js_analyzer()
+        results = []
+        for fp in js_files:
+            try:
+                results.append(analyzer.analyze(str(fp)))
+            except Exception as exc:
+                logger.error(f"Error analyzing JS/TS file {fp}: {exc}")
+        logger.info(f"Analyzed {len(results)} JS/TS files")
+        return results
+
+    def analyze_js_file(self, file_path: str):
+        """Analyze a single JS/TS file and return JSFileAnalysis."""
+        return self._get_js_analyzer().analyze(file_path)
 
     def _run_patterns(
         self,

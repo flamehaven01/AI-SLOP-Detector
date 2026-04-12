@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.0] — Phase 3: Domain-Aware Init + JS/TS Analysis
+
+### Added
+
+**Phase 3a — Domain-Aware `--init` (v3.5.0)**
+- `DOMAIN_PROFILES` dict in `config.py`: 8 built-in profiles (`general`, `web_frontend`,
+  `data_science`, `cli_tool`, `library`, `ml_research`, `backend_api`, `scientific`)
+  each with normalized `capability_vector` weights (`w_ldr`, `w_inf`, `w_ddc`, `w_pur`)
+- `detect_domain(project_path)`: heuristic auto-detection from file patterns and directory
+  structure; returns the closest matching domain key
+- Domain-aware `_run_init()`: generates `.slopconfig.yaml` pre-seeded with the detected
+  domain's weight profile; printed as a user-visible suggestion in CLI output
+- `--domain` CLI flag: explicitly override auto-detection (`slop-detector --init --domain web_frontend`)
+- 21 new tests in `tests/test_domain_init.py` covering all 8 profiles and CLI flag
+
+**Phase 3b — JS/TS Analysis via JSAnalyzer v2.8.0**
+- `languages/__init__.py`: activated `JSAnalyzer` for `.js`, `.jsx`, `.ts`, `.tsx` extensions
+  (was commented-out stub); `LANGUAGE_ANALYZERS` dict now maps all four extensions
+- `models.py`: added `js_file_results: List[Any]` field to `ProjectAnalysis` dataclass;
+  `to_dict()` serializes each entry via `.to_dict()` when available
+- `core.py`: `_JS_EXTENSIONS` frozenset; `_get_js_analyzer()` lazy-loader; `_analyze_js_files()`
+  private method scanning with `rglob`; `analyze_js_file()` public API; JS analysis is computed
+  before the Python early-return path so pure-JS projects return correct results
+- `analyze_project()` early-return path now includes `js_file_results` in the returned
+  `ProjectAnalysis` (previously JS results were lost when no Python files were found)
+- `optional dep [js]`: `tree-sitter>=0.25.0`, `tree-sitter-javascript>=0.23.0`,
+  `tree-sitter-typescript>=0.23.0` (regex fallback active when not installed)
+- 32 new tests in `tests/test_js_analyzer.py`: instantiation, line counting, slop scoring,
+  issue detection (regex fallback), TS-specific `any` detection, AST mode (skipped without
+  tree-sitter), and `SlopDetector` integration
+
+### CI
+- New `test-js` job: installs `.[dev,js]` and runs `tests/test_js_analyzer.py` on Python 3.11
+
+---
+
 ## [3.4.0] — Phase 2: Per-Rule FP Tracking + Purity Weight Ceiling
 
 ### Added

@@ -188,6 +188,8 @@ class ProjectAnalysis:
     avg_ddc: float
     overall_status: SlopStatus
     file_results: List[FileAnalysis] = field(default_factory=list)
+    # Phase 3b: JS/TS analysis results (JSFileAnalysis objects)
+    js_file_results: List[Any] = field(default_factory=list)
     # v3.0: CQMS structural coherence — max H0 persistence (MST-based) over file DCFs.
     # 1.0 = all files structurally uniform. Low = distinct structural clusters (AI/human mix signal).
     structural_coherence: float = 1.0
@@ -208,4 +210,7 @@ class ProjectAnalysis:
             "structural_coherence": round(self.structural_coherence, 4),
             "coherence_level": self.coherence_level,
             "file_results": [r.to_dict() for r in self.file_results],
+            "js_file_results": [
+                r.to_dict() if hasattr(r, "to_dict") else r for r in self.js_file_results
+            ],
         }

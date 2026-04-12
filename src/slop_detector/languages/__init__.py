@@ -1,50 +1,29 @@
 """
-EXPERIMENTAL: Multi-Language Support Framework.
-Only PythonAnalyzer is implemented. Other language analyzers are planned.
-Prototype status.
+Multi-Language Support Framework.
+PythonAnalyzer is the primary implementation.
+JSAnalyzer (v2.8.0) provides JS/TS support via tree-sitter AST (optional) with regex fallback.
 """
 
 from .base import AnalysisResult, LanguageAnalyzer
+from .js_analyzer import JSAnalyzer
 from .python_analyzer import PythonAnalyzer
-
-# from .javascript_analyzer import JavaScriptAnalyzer
-# from .typescript_analyzer import TypeScriptAnalyzer
-# from .java_analyzer import JavaAnalyzer
-# from .go_analyzer import GoAnalyzer
-# from .rust_analyzer import RustAnalyzer
-# from .cpp_analyzer import CppAnalyzer
-# from .csharp_analyzer import CSharpAnalyzer
 
 __all__ = [
     "LanguageAnalyzer",
     "AnalysisResult",
     "PythonAnalyzer",
-    # 'JavaScriptAnalyzer',
-    # 'TypeScriptAnalyzer',
-    # 'JavaAnalyzer',
-    # 'GoAnalyzer',
-    # 'RustAnalyzer',
-    # 'CppAnalyzer',
-    # 'CSharpAnalyzer',
+    "JSAnalyzer",
     "get_analyzer_for_file",
+    "LANGUAGE_ANALYZERS",
 ]
 
 # Language to analyzer mapping
 LANGUAGE_ANALYZERS = {
     ".py": PythonAnalyzer,
-    # '.js': JavaScriptAnalyzer,
-    # '.jsx': JavaScriptAnalyzer,
-    # '.ts': TypeScriptAnalyzer,
-    # '.tsx': TypeScriptAnalyzer,
-    # '.java': JavaAnalyzer,
-    # '.go': GoAnalyzer,
-    # '.rs': RustAnalyzer,
-    # '.cpp': CppAnalyzer,
-    # '.cc': CppAnalyzer,
-    # '.cxx': CppAnalyzer,
-    # '.hpp': CppAnalyzer,
-    # '.h': CppAnalyzer,
-    # '.cs': CSharpAnalyzer,
+    ".js": JSAnalyzer,
+    ".jsx": JSAnalyzer,
+    ".ts": JSAnalyzer,
+    ".tsx": JSAnalyzer,
 }
 
 
