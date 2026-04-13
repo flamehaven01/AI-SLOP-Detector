@@ -2,6 +2,26 @@
 
 Integrate AI-SLOP Detector into your CI/CD pipeline with progressive enforcement modes.
 
+## CI/CD Safety Note (v3.5.0)
+
+When using `--json` in CI pipelines (e.g., piping to `jq`):
+
+```yaml
+# Safe since v3.5.0 — calibration hints go to stderr, not stdout
+- name: Quality Analysis (JSON)
+  run: slop-detector --project . --json > quality.json
+  # jq quality.json works correctly; calibration milestone output
+  # is always on stderr and will not corrupt JSON stdout
+```
+
+Prior to v3.5.0, auto-calibration milestone messages were printed to stdout,
+breaking `jq` parsing with `parse error: Invalid numeric literal`. This was
+fixed in v3.5.0 (all diagnostic output → `stderr`). If you encounter this
+error on older versions, upgrade to v3.5.0 or pin `--no-history` to suppress
+calibration triggers.
+
+---
+
 ## Quick Start
 
 ```yaml

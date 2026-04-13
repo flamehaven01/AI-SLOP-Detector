@@ -1,4 +1,4 @@
-# Mathematical Models Reference — AI-SLOP Detector v3.2.1
+# Mathematical Models Reference — AI-SLOP Detector v3.5.0
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.
@@ -500,6 +500,13 @@ training without requiring a real codebase:
 
 | Version | Signal    | Change                                                  |
 |---------|-----------|---------------------------------------------------------|
+| v3.5.0  | Calibr.   | P1: project_id scoping in history.db (Schema v5)        |
+| v3.5.0  | Calibr.   | P2: milestone trigger = count_files_with_multiple_runs  |
+| v3.5.0  | Calibr.   | P3: domain-anchored ±0.15 grid search bounds            |
+| v3.5.0  | Calibr.   | P4: DOMAIN_DRIFT_LIMIT=0.25 divergence warning          |
+| v3.4.0  | Pattern   | JS/TS 4 patterns + Go 4 patterns added                  |
+| v3.1.0  | Pattern   | Clone/naming/stub patterns added                        |
+| v2.9.0  | Pattern   | phantom_import (hallucinated package detection)         |
 | v2.8.0  | ICR       | Complexity now amplifies penalty (was: divided penalty) |
 | v2.8.0  | Status    | Single monotonic axis replaces multi-axis branching     |
 | v2.8.0  | LDR (proj)| SR9 conservative aggregation: 0.6*min + 0.4*mean       |
@@ -542,12 +549,6 @@ pattern_penalties:
 
 ---
 
-*This document reflects the implementation in `src/slop_detector/` as of v3.2.0.
-For source-level detail, see the inline docstrings in `metrics/inflation.py`,
-`core.py`, `patterns/python_advanced.py`, and `ml/scorer.py`.*
-
----
-
-*This document reflects the implementation in `src/slop_detector/` as of v2.8.0.
+*This document reflects the implementation in `src/slop_detector/` as of v3.5.0.
 For source-level detail, see the inline docstrings in `metrics/inflation.py`,
 `core.py`, `patterns/python_advanced.py`, and `ml/scorer.py`.*

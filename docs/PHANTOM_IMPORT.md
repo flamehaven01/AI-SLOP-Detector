@@ -3,6 +3,7 @@
 **Pattern ID:** `phantom_import`
 **Severity:** CRITICAL
 **Axis:** QUALITY
+**Language:** Python only — Go/JS/TS have language-specific error patterns (see [PATTERNS.md](PATTERNS.md#go))
 **Module:** `slop_detector.patterns.python_advanced`
 
 ---

@@ -40,8 +40,8 @@ not just verify the arithmetic.
 
 **5. Published results including failures**
 Any publication must include cases where the tool underperformed, produced
-false positives, or where the v3.0.0 changes made no measurable difference
-compared to v2.9.3. Reporting only positive results is its own form of
+false positives, or where the v3.5.0 changes made no measurable difference
+compared to v3.4.0. Reporting only positive results is its own form of
 distortion.
 
 ---
