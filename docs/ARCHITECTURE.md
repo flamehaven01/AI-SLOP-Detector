@@ -1,13 +1,15 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 2.6.1
-**Last Updated:** 2026-01-12
+**Version:** 3.5.0
+**Last Updated:** 2026-04-12
 
 ---
 
 ## Overview
 
-AI-SLOP Detector is a production-grade static analysis tool designed to identify quality issues in AI-generated code. The system uses a multi-metric analysis engine with pattern detection to provide comprehensive code quality assessment.
+AI-SLOP Detector is a production-grade static analysis tool designed to identify quality issues in AI-generated code. The system uses a multi-metric analysis engine with pattern detection, domain-aware initialization, and a self-calibrating weight engine that learns from per-project scan history.
+
+**Language support:** Python, JavaScript, TypeScript, Go (v3.5.0)
 
 ---
 
@@ -15,17 +17,18 @@ AI-SLOP Detector is a production-grade static analysis tool designed to identify
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              CLI / API Entry Point / CI Gate             │
+│         CLI / API Entry Point / CI Gate                  │
+│   (--init, --project, --self-calibrate, --json, ...)     │
 └────────────────────┬────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   SlopDetector (Core)                    │
 │  ┌───────────────────────────────────────────────────┐  │
-│  │          Configuration Manager                     │  │
-│  │  - YAML config loading                            │  │
-│  │  - Threshold management                           │  │
-│  │  - Pattern registry setup                         │  │
+│  │       Configuration Manager + Domain Init         │  │
+│  │  - YAML config loading / --init auto-generation   │  │
+│  │  - 8 domain profiles (scientific_ml, web_api, …)  │  │
+│  │  - Threshold management + Pattern registry setup  │  │
 │  └───────────────────────────────────────────────────┘  │
 └────────────────────┬────────────────────────────────────┘
                      │
@@ -33,14 +36,14 @@ AI-SLOP Detector is a production-grade static analysis tool designed to identify
         │            │            │              │
         ▼            ▼            ▼              ▼
 ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐
-│   LDR    │  │Inflation │  │   DDC    │  │Context Jargon│
-│Calculator│  │Calculator│  │Calculator│  │   Detector   │
+│   LDR    │  │Inflation │  │   DDC    │  │  Languages   │
+│Calculator│  │Calculator│  │Calculator│  │   Module     │
 └────┬─────┘  └────┬─────┘  └────┬─────┘  └──────┬───────┘
      │             │             │                │
      │             │             └────────┬───────┘
-     │             │                      │
-     │             └──────────┬───────────┘
-     │                        │
+     │             │                      │     PythonAnalyzer
+     │             └──────────┬───────────┘     JSAnalyzer (v3.4.0)
+     │                        │                 GoAnalyzer (v3.5.0)
      └────────────┬───────────┘
                   │
      ┌────────────┼──────────────┬─────────────────┐
@@ -49,7 +52,7 @@ AI-SLOP Detector is a production-grade static analysis tool designed to identify
 ┌──────────┐  ┌───────┐  ┌──────────────┐  ┌─────────────┐
 │Docstring │  │Pattern│  │Hallucination │  │  Question   │
 │Inflation │  │Registry│  │ Dependencies │  │  Generator  │
-│ Detector │  │14+ Det│  │   Detector   │  │  (v2.6)     │
+│ Detector │  │27+ Det│  │   Detector   │  │  (v2.6)     │
 └────┬─────┘  └───┬───┘  └──────┬───────┘  └──────┬──────┘
      │            │              │                 │
      └────────────┼──────────────┼─────────────────┘
@@ -57,14 +60,19 @@ AI-SLOP Detector is a production-grade static analysis tool designed to identify
                   ▼              ▼
           ┌─────────────────────────────┐
           │     FileAnalysis Result     │
-          │  + Actionable Questions     │
           └────────────┬────────────────┘
                        │
-                       ▼
-                  ┌─────────┐
-                  │ CI Gate │
-                  │ (v2.6)  │
-                  └─────────┘
+          ┌────────────┼────────────────────┐
+          │            │                    │
+          ▼            ▼                    ▼
+    ┌─────────┐  ┌────────────┐  ┌──────────────────────┐
+    │ CI Gate │  │  History   │  │  Self-Calibration    │
+    │ (v2.6)  │  │  Tracker   │  │  Engine (v3.2.0)     │
+    └─────────┘  │(~/.slop-   │  │ SelfCalibrator       │
+                 │ detector/  │  │ project_id scoped    │
+                 │ history.db)│  │ domain-anchored grid │
+                 │project_id  │  │ drift warning (P4)   │
+                 └────────────┘  └──────────────────────┘
 ```
 
 ---
@@ -770,5 +778,5 @@ slop-detector scan ./src --format json
 
 ---
 
-**Last Updated:** 2026-01-12
-**Version:** 2.6.1
+**Last Updated:** 2026-04-12
+**Version:** 3.5.0

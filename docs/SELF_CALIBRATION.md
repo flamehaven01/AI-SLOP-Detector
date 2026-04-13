@@ -89,6 +89,14 @@ With labeled events, the engine searches all weight combinations where:
 - Resolution: 0.05 increments
 - **Purity dimension:** `purity_score = exp(-0.5 * n_critical_patterns)` — 1.0 when no critical patterns, decays toward 0 as critical patterns accumulate
 
+**v3.5.0 — Domain-anchored search (P3):** When `domain_anchor` is provided
+(auto-calibration always passes current config weights as anchor), each
+dimension's search range is constrained to `[anchor ± DOMAIN_TOLERANCE(0.15)]`
+clipped to absolute `[MIN_W=0.10, MAX_W=0.65]`. This prevents calibration from
+drifting outside the domain's meaningful weight region (e.g. a `scientific/ml`
+project keeps `inflation` weight low). Manual `--self-calibrate` explores the
+full unconstrained grid.
+
 For each candidate weight set, two rates are computed:
 
 | Rate | Definition |
@@ -145,6 +153,43 @@ applies unchanged. Backward compatible.
 
 **Result:** Fewer labeled events, but higher-fidelity signal. This is critical for
 the 5+5 per-class threshold (see below) to remain statistically sound.
+
+---
+
+## Project Scoping (v3.5.0 — P1)
+
+The global `~/.slop-detector/history.db` is shared across all projects. Before
+v3.5.0, a `scientific/ml` project and a `web/api` project on the same machine
+would pollute each other's calibration signal.
+
+Since v3.5.0, every `record()` call tags the row with
+`project_id = sha256(cwd)[:12]`. Calibration only loads rows matching the
+current project's `project_id`. Old rows (`project_id = NULL`) are excluded
+from per-project calibration — clean separation with no contamination.
+
+```python
+# Internally: _compute_project_id()
+import hashlib
+from pathlib import Path
+project_id = hashlib.sha256(Path.cwd().resolve().__str__().encode()).hexdigest()[:12]
+```
+
+---
+
+## Domain-Drift Warning (v3.5.0 — P4)
+
+After a successful calibration, `calibrate()` compares each optimal weight
+against the reference anchor (or current config weights as fallback). Any
+dimension that drifts more than `DOMAIN_DRIFT_LIMIT = 0.25` emits a warning:
+
+```
+[!] Calibration warning: ldr drifted from anchor 0.40 to optimal 0.10 (Δ=-0.30)
+    — verify this divergence is intentional for your domain
+```
+
+Warnings appear in `--self-calibrate` output (yellow `[!]` in rich terminals,
+plain `[!]` otherwise) and are available programmatically via
+`CalibrationResult.warnings: List[str]`.
 
 ---
 
@@ -219,13 +264,22 @@ Total minimum is 10 records (5+5). The 4D model's continuous tiebreak signal
 makes 5+5 statistically reliable; 3D required 10+10 (binary-only scoring).
 Increase `--min-history` for stricter confidence requirements.
 
-### Auto-calibration at milestone (v3.2.1)
+### Auto-calibration at milestone (v3.5.0)
 
-Starting from v3.2.1, calibration runs **automatically** at every
-`CALIBRATION_MILESTONE` (10 records). No manual command required.
+Starting from v3.2.1, calibration runs **automatically** after each scan.
+v3.5.0 tightened the trigger condition:
+
+| Version | Trigger condition |
+|---|---|
+| v3.2.1 | `count_total_records() % 10 == 0` — fired on any N-file first scan (false trigger) |
+| **v3.5.0** | `count_files_with_multiple_runs(project_id) >= 10` — only files scanned ≥2× contribute |
+
+This prevents the common false trigger where scanning a 50-file project for the
+first time records 50 rows (50 % 10 == 0) but zero repeat-file pairs — no
+improvement/FP events can exist yet.
 
 ```
-[*] Auto-calibration (10 records): weights updated -> .slopconfig.yaml
+[*] Auto-calibration (10 repeat-file pairs, project abc123def456): weights updated -> .slopconfig.yaml
     ldr: 0.40 -> 0.45
     ddc: 0.30 -> 0.25
 ```
@@ -233,6 +287,7 @@ Starting from v3.2.1, calibration runs **automatically** at every
 - Only writes when `status == "ok"` (CONFIDENCE_GAP + no_change gates fire first).
 - Only writes when `.slopconfig.yaml` already exists in the project (no silent creation).
 - Prints exactly what changed for full auditability.
+- Calibration hint and warnings go to **stderr** — `--json` stdout is never contaminated.
 - Manual `--self-calibrate --apply-calibration` still available for explicit control.
 
 ---
@@ -326,23 +381,40 @@ dependency usage ratio is a stronger quality signal here than logic density.
 ```
 src/slop_detector/ml/self_calibrator.py
     SelfCalibrator
-    ├── calibrate(current_weights, min_events) -> CalibrationResult
-    ├── _extract_events() -> (List[CalibrationEvent], unique_file_count)
-    │   ├── improvement_event: high deficit + score dropped + hash changed
-    │   ├── fp_candidate:      high deficit + same hash + score stable
-    │   ├── _group_runs_by_file(rows) -> Dict[str, list]
-    │   ├── _classify_consecutive_runs(file_path, runs, seen_fp_files) -> List[CalibrationEvent]
-    │   └── _classify_run_pair(file_path, r_now, r_next, drop, seen_fp_files) -> Optional[CalibrationEvent]
-    ├── _score_weights(w_ldr, w_inf, w_ddc, w_purity, improvements, fp_candidates)
-    │   -> (fn_rate, fp_rate, tiebreak_score)
-    ├── _grid_search(improvements, fp_candidates) -> List[WeightCandidate]
-    │   4D simplex: w_ldr + w_inf + w_ddc + w_purity = 1.0
-    │   sort key: (combined_score, tiebreak_score)
+    ├── calibrate(current_weights, project_id, min_events, domain_anchor) -> CalibrationResult
+    │   ├── _extract_events(project_id) -> (List[CalibrationEvent], unique_file_count)
+    │   │   ├── improvement_event: high deficit + score dropped + hash changed
+    │   │   ├── fp_candidate:      high deficit + same hash + score stable
+    │   │   ├── _group_runs_by_file(rows) -> Dict[str, list]
+    │   │   ├── _classify_consecutive_runs(file_path, runs, seen_fp_files) -> List[CalibrationEvent]
+    │   │   └── _classify_run_pair(file_path, r_now, r_next, drop, seen_fp_files) -> Optional[CalibrationEvent]
+    │   ├── _score_weights(w_ldr, w_inf, w_ddc, w_purity, improvements, fp_candidates)
+    │   │   -> (fn_rate, fp_rate, tiebreak_score)
+    │   ├── _grid_search(improvements, fp_candidates, domain_anchor) -> List[WeightCandidate]
+    │   │   4D simplex: w_ldr + w_inf + w_ddc + w_purity = 1.0
+    │   │   Constrained to [anchor ± DOMAIN_TOLERANCE(0.15)] per dimension when anchor supplied
+    │   │   sort key: (combined_score, tiebreak_score)
+    │   └── _check_domain_drift(optimal_weights, anchor) -> List[str]
+    │       Emits warning if any dimension drifts > DOMAIN_DRIFT_LIMIT(0.25) from anchor
+    │
+    CalibrationResult
+    ├── status: str            # "ok" | "no_change" | "insufficient_data"
+    ├── optimal_weights: dict  # {"ldr": float, "inflation": float, "ddc": float, "purity": float}
+    ├── fn_rate: float
+    ├── fp_rate: float
+    ├── confidence_gap: float
+    └── warnings: List[str]    # drift warnings (v3.5.0 — P4)
+    │
     └── apply_to_config(weights, config_path) -> str
 ```
 
 **Dependencies:** `sqlite3` (stdlib), `yaml` (already required by core).
 No new packages required.
+
+**Constants:**
+- `DOMAIN_TOLERANCE = 0.15` — per-dimension grid search radius around anchor
+- `DOMAIN_DRIFT_LIMIT = 0.25` — drift threshold for post-calibration warning
+- `CALIBRATION_MILESTONE = 10` — min repeat-file pairs to trigger auto-calibration
 
 ---
 

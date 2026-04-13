@@ -1,4 +1,4 @@
-# History Tracking (v3.2.0)
+# History Tracking (v3.5.0)
 
 AI-SLOP Detector records every analysis run to a local SQLite database.
 Run it repeatedly on the same codebase and the accumulated data becomes
@@ -13,26 +13,32 @@ and which patterns keep recurring.
 ~/.slop-detector/history.db   (SQLite, auto-created on first run)
 ```
 
-Global across all projects. Each file is identified by its absolute path.
-Schema migrates automatically when new fields are introduced.
-Existing databases are automatically migrated to add `n_critical_patterns = 0` for historic rows.
+Shared across all projects on the machine. Each file is identified by its
+absolute path. Since v3.5.0, every record is tagged with a `project_id`
+(SHA-256[:12] of the scan's resolved cwd) so calibration signal is scoped
+per project and never bleeds between unrelated codebases.
 
-### Schema
+Schema migrates automatically when new columns are introduced — existing
+rows receive safe defaults (`project_id = NULL`, `n_critical_patterns = 0`).
 
-| Column | Type | Description |
-|---|---|---|
-| `timestamp` | TEXT | ISO-8601 datetime of the run |
-| `file_path` | TEXT | Absolute path of the analyzed file |
-| `file_hash` | TEXT | SHA256 prefix of file content (change detection) |
-| `deficit_score` | REAL | Primary slop score (0–100, lower is better) |
-| `ldr_score` | REAL | Logic Density Ratio (0–1, higher is better) |
-| `inflation_score` | REAL | Jargon inflation score (0–10, lower is better) |
-| `ddc_usage_ratio` | REAL | Dependency usage ratio (0–1, higher is better) |
-| `n_critical_patterns` | INTEGER | Count of CRITICAL-severity pattern issues in this run (v3.2.0+) |
-| `pattern_count` | INTEGER | Number of pattern issues detected |
-| `grade` | TEXT | Status label (clean / suspicious / inflated_signal / critical_deficit) |
-| `git_commit` | TEXT | Current HEAD commit (when available) |
-| `git_branch` | TEXT | Current branch (when available) |
+### Schema (v5 — v3.5.0)
+
+| Column | Type | Added | Description |
+|---|---|---|---|
+| `timestamp` | TEXT | v2.9.0 | ISO-8601 datetime of the run |
+| `file_path` | TEXT | v2.9.0 | Absolute path of the analyzed file |
+| `file_hash` | TEXT | v2.9.0 | SHA256 prefix of file content (change detection) |
+| `deficit_score` | REAL | v2.9.0 | Primary slop score (0–100, lower is better) |
+| `ldr_score` | REAL | v2.9.0 | Logic Density Ratio (0–1, higher is better) |
+| `inflation_score` | REAL | v2.9.0 | Jargon inflation score (0–10, lower is better) |
+| `ddc_usage_ratio` | REAL | v2.9.0 | Dependency usage ratio (0–1, higher is better) |
+| `pattern_count` | INTEGER | v2.9.0 | Number of pattern issues detected |
+| `grade` | TEXT | v2.9.0 | Status label (clean / suspicious / inflated_signal / critical_deficit) |
+| `git_commit` | TEXT | v3.2.1 | Current HEAD commit SHA (when available; NULL for non-git projects) |
+| `git_branch` | TEXT | v3.2.1 | Current branch name (when available) |
+| `n_critical_patterns` | INTEGER | v3.2.0 | Count of CRITICAL-severity pattern issues in this run |
+| `fired_rules` | TEXT | v3.4.0 | JSON-serialised list of fired rule IDs |
+| `project_id` | TEXT | **v3.5.0** | SHA-256[:12] of resolved scan cwd — scopes calibration per project |
 
 ---
 
@@ -113,7 +119,7 @@ labels — creating a circular dependency where the ML model just learns the rul
 The history tracker breaks this cycle:
 
 ```
-Daily runs accumulate history
+Daily runs accumulate history (per project via project_id)
     ↓
 Files that score 42 → 18 → 0 across runs
     = user actually fixed them
@@ -127,8 +133,9 @@ Independent signal for ML training and self-calibration
 ```
 
 False positive detection is now automatic via behavior-based calibration:
-`--self-calibrate` reads this history and finds weight combinations that
-minimize both missed detections and unnecessary alerts for your codebase.
+`--self-calibrate` reads this history (filtered by `project_id`) and finds
+weight combinations that minimize both missed detections and unnecessary alerts
+for your codebase specifically.
 
 ---
 
@@ -150,6 +157,11 @@ if reg and reg["is_regression"]:
 
 # Project trends
 trends = tracker.get_project_trends(days=7)
+
+# v3.5.0: count files scanned more than once (calibration trigger)
+project_id = "abc123def456"  # sha256[:12] of cwd
+repeat_files = tracker.count_files_with_multiple_runs(project_id=project_id)
+print(f"Files with multiple runs: {repeat_files}")  # calibration fires at ≥10
 
 # Export
 count = tracker.export_jsonl("history.jsonl")

@@ -76,6 +76,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   MIN_W/MAX_W). `_check_calibration_hint()` passes `current_weights` as the anchor so
   calibration stays within the domain's meaningful weight region.
 - **`DOMAIN_TOLERANCE = 0.15`** constant added to `self_calibrator.py`.
+- **Domain-drift warning** (`self_calibrator.py`): `CalibrationResult` gains `warnings: List[str]`
+  field (empty by default). After a successful calibration, `calibrate()` compares each optimal
+  dimension weight against `domain_anchor` (or `current_weights` as fallback); any dimension that
+  drifts more than `DOMAIN_DRIFT_LIMIT = 0.25` appends a human-readable warning. Warnings are
+  surfaced by `_run_self_calibration()` with a yellow `[!]` prefix (rich) or plain `[!]` prefix
+  (plain output).
+- **`DOMAIN_DRIFT_LIMIT = 0.25`** constant added to `self_calibrator.py`.
+- **16 unit tests in `tests/test_calibration_patches.py`**: P2 (6 tests: empty DB, single-run
+  exclusion, multi-run count, 3-run dedup, project_id scoping, cross-contamination guard),
+  P1 (3: project_id persisted, null stored as null, `_load_history` filter), P3 (3: unconstrained
+  covers full ldr range, constrained stays within ±DOMAIN_TOLERANCE, fewer candidates),
+  P4 (4: field exists + defaults empty, independent instances, drift warning fires, no warning
+  when drift small). 308/308 green.
 
 ### Fixed
 

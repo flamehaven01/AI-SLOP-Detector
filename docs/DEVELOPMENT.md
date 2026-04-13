@@ -88,31 +88,47 @@ git push origin feature/amazing-feature
 AI-SLOP-Detector/
 ├── src/slop_detector/
 │   ├── __init__.py
-│   ├── core.py              # Main detector logic
+│   ├── core.py              # Main detector logic + math.isfinite() inflation filter
 │   ├── models.py            # Data models
-│   ├── config.py            # Configuration
-│   ├── cli.py               # CLI interface
+│   ├── config.py            # Configuration + domain profile loading
+│   ├── cli.py               # CLI interface (allow_nan=False, tuple sanitizer)
+│   ├── cli_commands.py      # Command handlers: --init, --self-calibrate,
+│   │                        # _compute_project_id(), _check_calibration_hint()
 │   ├── question_generator.py # Review questions
 │   ├── ci_gate.py           # CI/CD enforcement
+│   ├── history.py           # SQLite history tracker (Schema v5, project_id)
 │   ├── metrics/             # Analysis metrics
 │   │   ├── ldr.py          # Logic Density Ratio
-│   │   ├── inflation.py    # Jargon detection
+│   │   ├── inflation.py    # Jargon detection (max cap 10.0, no float inf)
 │   │   ├── ddc.py          # Dependency check
 │   │   ├── context_jargon.py # Evidence validation
 │   │   ├── docstring_inflation.py
 │   │   └── hallucination_deps.py
-│   ├── patterns/            # Pattern detection
+│   ├── patterns/            # Pattern detection (27+ patterns)
 │   │   ├── base.py
 │   │   ├── placeholder.py
-│   │   ├── structural.py
-│   │   └── cross_language.py
+│   │   ├── structural.py    # god_function, nested_complexity
+│   │   ├── cross_language.py
+│   │   └── clone_detector.py # function_clone_cluster (v3.1.0)
+│   ├── languages/           # Language-specific analyzers (v3.4.0+)
+│   │   ├── __init__.py
+│   │   ├── python_analyzer.py
+│   │   ├── js_analyzer.py   # JS/TS patterns (v3.4.0)
+│   │   └── go_analyzer.py   # Go patterns (v3.5.0)
+│   ├── ml/                  # Self-calibration engine (v3.2.0+)
+│   │   ├── __init__.py
+│   │   └── self_calibrator.py  # SelfCalibrator, CalibrationResult
 │   └── auth/                # Enterprise features
-├── tests/                   # Test suite
+├── tests/                   # Test suite (308 tests)
 │   ├── test_core.py
 │   ├── test_metrics.py
 │   ├── test_patterns.py
-│   └── test_ci_gate.py
+│   ├── test_ci_gate.py
+│   ├── test_calibration_patches.py  # 16 P1–P4 unit tests (v3.5.0)
+│   └── e2e_v321/            # End-to-end tests
+│       └── test_e2e_v321.py
 ├── docs/                    # Documentation
+├── vscode-extension/        # VS Code extension (v3.5.0)
 ├── pyproject.toml          # Project metadata
 ├── .slopconfig.example.yaml # Config template
 └── README.md

@@ -2,7 +2,7 @@
 
 ## Overview
 
-AI SLOP Detector v2.4.0+ includes a production-ready REST API built with FastAPI.
+AI SLOP Detector v3.5.0+ includes a production-ready REST API built with FastAPI.
 
 **Base URL**: `http://localhost:8000` (configurable)
 
@@ -20,7 +20,7 @@ slop-api --host 0.0.0.0 --port 8000
 python -m slop_detector.api.server
 
 # Docker
-docker run -p 8000:8000 flamehaven/ai-slop-detector:2.4.0
+docker run -p 8000:8000 flamehaven/ai-slop-detector:3.5.0
 ```
 
 ### Access Documentation

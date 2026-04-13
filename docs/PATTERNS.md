@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 2.9.0
-**Last Updated:** 2026-03-08
+**Version:** 3.5.0
+**Last Updated:** 2026-04-12
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -14,6 +14,9 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 3. [Cross-Language Mistakes](#cross-language-mistakes)
 4. [Python Advanced (v2.8.0+)](#python-advanced)
 5. [Phantom Import (v2.9.0)](#phantom-import)
+6. [Clone Detection (v3.1.0)](#clone-detection)
+7. [JavaScript / TypeScript (v3.4.0)](#javascript--typescript)
+8. [Go (v3.5.0)](#go)
 
 ---
 
@@ -46,6 +49,18 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 | `deep_nesting` | HIGH | Python Advanced | Control-flow depth > 4 |
 | `lint_escape` | HIGH/MED/LOW | Python Advanced | `# noqa`, `# type: ignore`, `# pylint: disable` |
 | `phantom_import` | **CRITICAL** | **v2.9.0** | Import targets a non-existent package |
+| `function_clone_cluster` | **CRITICAL** | **v3.1.0** | Near-duplicate function bodies (clone cluster) |
+| `placeholder_variable_naming` | HIGH | v3.1.0 | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
+| `return_constant_stub` | HIGH | v3.1.0 | Function always returns the same constant (stub pattern) |
+| `nested_complexity` | HIGH | v3.1.0 | Control-flow nesting depth ≥ 4 |
+| `console_log_debug` | MEDIUM | v3.4.0 | `console.log` debug output in JS/TS |
+| `any_type_cast` | HIGH | v3.4.0 | TypeScript `as any` / `: any` type erasure |
+| `disabled_test` | HIGH | v3.4.0 | `.skip` / `.todo` / `.xtest` in JS/TS test files |
+| `promise_ignore` | HIGH | v3.4.0 | Unhandled promise (missing `await` / `.catch`) |
+| `error_discard` | CRITICAL | v3.5.0 | Go: `_ = fn()` silently discards error return |
+| `empty_select` | HIGH | v3.5.0 | Go: `select {}` blocks forever or empty select |
+| `todo_go` | MEDIUM | v3.5.0 | Go: `// TODO` / `// FIXME` comment |
+| `unused_goroutine` | HIGH | v3.5.0 | Go: `go func()` with no channel or sync primitive |
 
 ---
 
@@ -769,6 +784,18 @@ detector.pattern_registry.register(GlobalVariablePattern())
 | JS Array Length | `javascript_array_length` | High | Cross-Lang | Yes* |
 | Java Equals | `java_equals_method` | High | Cross-Lang | Yes* |
 | Java ToString | `java_tostring_method` | High | Cross-Lang | Yes* |
+| Function Clone Cluster | `function_clone_cluster` | Critical | v3.1.0 | No |
+| Placeholder Naming | `placeholder_variable_naming` | High | v3.1.0 | No |
+| Return Constant Stub | `return_constant_stub` | High | v3.1.0 | No |
+| Nested Complexity | `nested_complexity` | High | v3.1.0 | No |
+| Console Log Debug | `console_log_debug` | Medium | JS/TS v3.4.0 | No |
+| Any Type Cast | `any_type_cast` | High | JS/TS v3.4.0 | No |
+| Disabled Test | `disabled_test` | High | JS/TS v3.4.0 | No |
+| Promise Ignore | `promise_ignore` | High | JS/TS v3.4.0 | No |
+| Error Discard | `error_discard` | Critical | Go v3.5.0 | No |
+| Empty Select | `empty_select` | High | Go v3.5.0 | No |
+| Go TODO | `todo_go` | Medium | Go v3.5.0 | No |
+| Unused Goroutine | `unused_goroutine` | High | Go v3.5.0 | No |
 
 *Auto-fix available in future versions
 
@@ -890,5 +917,179 @@ See [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) for full specification.
 
 ---
 
-**Maintained by:** Flamehaven Labs
+## Clone Detection
+
+*Added: v3.1.0*
+
+### function_clone_cluster
+
+**Severity:** CRITICAL | **Axis:** QUALITY
+
+Detects clusters of near-duplicate function bodies — the most common structural
+sign of AI-generated code that was copy-pasted instead of abstracted.
+
+Detection uses normalized AST fingerprinting: comments and whitespace are stripped,
+variable names are normalized to positions, and Jaccard similarity is computed
+across function body token sets. Functions with similarity > 0.85 are grouped
+into a clone cluster.
+
+```python
+# Flagged: clone cluster (similarity 0.92)
+def process_user(user):
+    result = []
+    for item in user.items:
+        if item.active:
+            result.append(item.value)
+    return result
+
+def process_order(order):
+    result = []
+    for item in order.items:    # Nearly identical body
+        if item.active:
+            result.append(item.value)
+    return result
+
+# Fix: extract the shared logic
+def _collect_active_values(container):
+    return [item.value for item in container.items if item.active]
+```
+
+---
+
+### placeholder_variable_naming
+
+**Severity:** HIGH | **Axis:** QUALITY | **Added:** v3.1.0
+
+Detects placeholder variable names in production code: `x`, `y`, `z`, `tmp`,
+`temp`, `dummy`, `foo`, `bar`, `baz`, `data2`, `result2`, etc. Single-letter
+variables in loops are excluded (standard Python idiom).
+
+```python
+# Flagged:
+tmp = fetch_user()
+result2 = process(tmp)
+
+# OK:
+user = fetch_user()
+processed = process(user)
+```
+
+---
+
+### return_constant_stub
+
+**Severity:** HIGH | **Axis:** QUALITY | **Added:** v3.1.0
+
+Function always returns the same constant regardless of input — a classic stub
+pattern. Excludes known constant-returning idioms (e.g., `__bool__`, `__len__`,
+sentinel factories).
+
+```python
+# Flagged:
+def calculate_score(metrics):
+    """Complex scoring algorithm."""
+    return 42   # always 42 regardless of input
+
+# OK:
+def is_enabled():
+    return True  # explicit toggle — not a stub
+```
+
+---
+
+## JavaScript / TypeScript
+
+*Added: v3.4.0 — requires `.js`, `.ts`, `.jsx`, `.tsx` file extensions*
+
+### console_log_debug
+
+**Severity:** MEDIUM | `console_log_debug`
+
+`console.log()`, `console.debug()`, `console.warn()` leftover from debugging
+sessions. Use a logging library in production.
+
+### any_type_cast
+
+**Severity:** HIGH | `any_type_cast`
+
+`as any` or `: any` in TypeScript. Erases type information and signals the
+developer doesn't understand or trust the type system — a common AI shortcut.
+
+### disabled_test
+
+**Severity:** HIGH | `disabled_test`
+
+`describe.skip`, `it.todo`, `test.only`, `xit`, `xtest` — disabled or partial
+test blocks. Indicates test debt or incomplete implementation.
+
+### promise_ignore
+
+**Severity:** HIGH | `promise_ignore`
+
+Async function result is not `await`ed and has no `.catch()` — silent promise
+rejection. AI-generated async code frequently misses this.
+
+---
+
+## Go
+
+*Added: v3.5.0 — requires `.go` file extension*
+
+### error_discard
+
+**Severity:** CRITICAL | `error_discard`
+
+`_ = someFunc()` silently discards the error return value. Go's error handling
+contract requires every error to be either checked or explicitly documented as safe
+to ignore. This is the Go equivalent of a bare except.
+
+```go
+// CRITICAL:
+_ = os.Remove(tmpFile)     // error silently discarded
+
+// Fix:
+if err := os.Remove(tmpFile); err != nil {
+    log.Printf("failed to remove temp file: %v", err)
+}
+```
+
+### empty_select
+
+**Severity:** HIGH | `empty_select`
+
+`select {}` blocks the goroutine forever — typically a copy-paste placeholder
+for a real event loop. Also flags `select` with only a `default: break` that
+immediately exits without waiting.
+
+### todo_go
+
+**Severity:** MEDIUM | `todo_go`
+
+`// TODO` or `// FIXME` comment in Go source. Same debt signal as Python
+`todo_comment`.
+
+### unused_goroutine
+
+**Severity:** HIGH | `unused_goroutine`
+
+`go func() { ... }()` with no channel send/receive and no `sync.WaitGroup`
+usage — goroutine result is unobservable and its lifecycle is uncontrolled.
+Fire-and-forget without lifecycle management is a common AI-generated concurrency mistake.
+
+```go
+// Flagged:
+go func() {
+    result := expensiveComputation()  // result is lost; no channel, no wg
+    _ = result
+}()
+
+// Fix:
+ch := make(chan int, 1)
+go func() {
+    ch <- expensiveComputation()
+}()
+result := <-ch
+```
+
+---
 **Contact:** info@flamehaven.space
