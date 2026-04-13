@@ -10,14 +10,12 @@ P4 — CalibrationResult.warnings: populated when optimal drifts > DOMAIN_DRIFT_
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from slop_detector.history import HistoryEntry, HistoryTracker
 from slop_detector.ml.self_calibrator import (
-    DOMAIN_DRIFT_LIMIT,
     DOMAIN_TOLERANCE,
     MAX_W,
     MIN_W,
@@ -26,7 +24,6 @@ from slop_detector.ml.self_calibrator import (
     SelfCalibrator,
     WeightCandidate,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -277,12 +274,10 @@ class TestCalibrationWarnings:
         fp_events = [_fp_event() for _ in range(6)]
         all_events = imp_events + fp_events
 
-        with (
-            patch.object(calibrator, "_extract_events", return_value=(all_events, 12)),
-            patch.object(calibrator, "_grid_search", return_value=[winner, runner_up]),
-            patch.object(calibrator, "_score_weights", return_value=(0.3, 0.3, 0.0)),
-        ):
-            result = calibrator.calibrate(current_weights=current)
+        with patch.object(calibrator, "_extract_events", return_value=(all_events, 12)):
+            with patch.object(calibrator, "_grid_search", return_value=[winner, runner_up]):
+                with patch.object(calibrator, "_score_weights", return_value=(0.3, 0.3, 0.0)):
+                    result = calibrator.calibrate(current_weights=current)
 
         # Mocked setup guarantees confidence_gap=0.4, improvement=0.6 -> status="ok"
         assert result.status == "ok"
@@ -323,12 +318,10 @@ class TestCalibrationWarnings:
         fp_events = [_fp_event() for _ in range(6)]
         all_events = imp_events + fp_events
 
-        with (
-            patch.object(calibrator, "_extract_events", return_value=(all_events, 12)),
-            patch.object(calibrator, "_grid_search", return_value=[winner, runner_up]),
-            patch.object(calibrator, "_score_weights", return_value=(0.3, 0.3, 0.0)),
-        ):
-            result = calibrator.calibrate(current_weights=current)
+        with patch.object(calibrator, "_extract_events", return_value=(all_events, 12)):
+            with patch.object(calibrator, "_grid_search", return_value=[winner, runner_up]):
+                with patch.object(calibrator, "_score_weights", return_value=(0.3, 0.3, 0.0)):
+                    result = calibrator.calibrate(current_weights=current)
 
         assert result.status == "ok"
         assert result.warnings == [], f"Expected no warnings but got: {result.warnings}"
