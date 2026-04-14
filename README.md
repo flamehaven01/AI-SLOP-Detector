@@ -369,6 +369,26 @@ ruff check src/ tests/
 
 ---
 
+## Download Stats
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/downloads.svg" alt="PyPI weekly downloads" width="720"/>
+</p>
+
+<p align="center">
+  <a href="https://pepy.tech/project/ai-slop-detector">
+    <img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/>
+  </a>
+  &nbsp;
+  <a href="https://pepy.tech/project/ai-slop-detector">
+    <img src="https://static.pepy.tech/badge/ai-slop-detector" alt="Total downloads"/>
+  </a>
+</p>
+
+*Chart updated weekly via [GitHub Actions](.github/workflows/download-chart.yml). Data: [pypistats.org](https://pypistats.org/packages/ai-slop-detector)*
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
