@@ -1,0 +1,14 @@
+include LICENSE
+include README.md
+include CHANGELOG.md
+
+recursive-include src *.py *.yaml *.json
+
+exclude scripts/*
+prune scripts
+prune .github
+prune docs
+prune tests
+prune dashboard
+prune remotion
+prune tools
