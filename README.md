@@ -268,26 +268,33 @@ absolute gate. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
 
 ## CI/CD Integration
 
-```bash
-# Soft — informational, never fails build
-slop-detector --project . --ci-mode soft --ci-report
-
-# Hard — fails build at deficit_score >= 70 or critical_patterns >= 3
-slop-detector --project . --ci-mode hard --ci-report
-
-# Quarantine — escalates repeat offenders after 3 violations
-slop-detector --project . --ci-mode quarantine --ci-report
+**pre-commit** (runs on every commit):
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/flamehaven01/AI-SLOP-Detector
+    rev: v3.5.0
+    hooks:
+      - id: slop-detector
 ```
 
-**GitHub Actions:**
+**GitHub Actions** (runs on every PR):
 ```yaml
-- name: Slop Gate
+# .github/workflows/quality-gate.yml
+- name: AI-SLOP Gate
   run: |
     pip install ai-slop-detector
     slop-detector --project . --ci-mode hard --ci-report
 ```
 
-[CI/CD Integration Guide →](docs/CI_CD.md)
+**Enforcement modes:**
+```bash
+--ci-mode soft        # informational, never fails build
+--ci-mode hard        # fails at deficit_score >= 70 or critical_patterns >= 3
+--ci-mode quarantine  # escalates repeat offenders after 3 violations
+```
+
+[Full CI/CD Integration Guide →](docs/CI_CD.md)
 
 ---
 
