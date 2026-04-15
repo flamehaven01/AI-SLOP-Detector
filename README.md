@@ -384,6 +384,10 @@ ruff check src/ tests/
 
 <p align="center">
   <a href="https://pepy.tech/project/ai-slop-detector">
+    <img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month (incl. mirrors)"/>
+  </a>
+  &nbsp;
+  <a href="https://pepy.tech/project/ai-slop-detector">
     <img src="https://static.pepy.tech/badge/ai-slop-detector" alt="Total downloads (incl. mirrors)"/>
   </a>
 </p>
