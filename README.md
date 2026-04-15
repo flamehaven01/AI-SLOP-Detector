@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg" alt="PyPI version"/></a>
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/dm/ai-slop-detector.svg" alt="PyPI downloads"/></a>
+  <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
@@ -375,7 +375,17 @@ ruff check src/ tests/
   <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/downloads.svg" alt="PyPI weekly downloads" width="720"/>
 </p>
 
-*Chart updated weekly via [GitHub Actions](.github/workflows/download-chart.yml). Data source: [pypistats.org](https://pypistats.org/packages/ai-slop-detector) (mirrors excluded)*
+<p align="center">
+  <a href="https://pepy.tech/project/ai-slop-detector">
+    <img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/>
+  </a>
+  &nbsp;
+  <a href="https://pepy.tech/project/ai-slop-detector">
+    <img src="https://static.pepy.tech/badge/ai-slop-detector" alt="Total downloads"/>
+  </a>
+</p>
+
+*Chart updated weekly via [GitHub Actions](.github/workflows/download-chart.yml). Data: [pepy.tech](https://pepy.tech/project/ai-slop-detector)*
 
 ---
 
