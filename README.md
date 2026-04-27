@@ -11,13 +11,15 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-308%20passed-brightgreen.svg?v=3.5.0" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-311%20passed-brightgreen.svg?v=3.6.0" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-71%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
 </p>
 
 <p align="center"><b>Catches the slop that AI produces — before it reaches production.</b></p>
+
+<p align="center"><i>Not a style linter. A structural-risk scanner for AI-assisted code.</i></p>
 
 <p align="center">
 The problem isn't that AI writes code.<br/>
@@ -36,6 +38,7 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 [What It Detects](#what-it-detects) •
 [Scoring](#scoring-model) •
 [Key Features](#key-features) •
+[Claude Code Skill](#claude-code-skill) •
 [Security](#security-considerations) •
 [CI/CD](#cicd-integration) •
 [Config](#configuration) •
@@ -76,6 +79,7 @@ slop-detector --project . --ci-mode hard --ci-report  # CI gate
 
 # Optional extras
 pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
+pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
 pip install "ai-slop-detector[ml]"       # ML secondary signal
 
 # No install required
@@ -129,13 +133,14 @@ Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_M
 | **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `lint_escape`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
 | **Phantom** | `phantom_import` | Hallucinated packages |
 
-**Three metric axes per file:**
+**Four metric axes per file:**
 
 | Metric | What it measures |
 |---|---|
 | **LDR** (Logic Density Ratio) | `logic_lines / total_lines` — code vs. whitespace/comments |
 | **ICR** (Inflation Check) | `jargon_density × complexity_modifier` — buzzword weight |
 | **DDC** (Dependency Check) | `used_imports / total_imports` — import utilization |
+| **Purity** | `exp(-0.5 × n_critical_patterns)` — AND-gate on critical pattern severity |
 
 ---
 
@@ -154,7 +159,7 @@ deficit_score = 100 × (1 − quality) + pattern_penalty
 | ≥ 30 | `SUSPICIOUS` |
 | < 30 | `CLEAN` |
 
-Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.30 · purity=0.10` (all four calibrated via `--self-calibrate` in v3.2.0+)
+Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.30 · purity=0.10` — sum is 1.10; GQG divides by `total_w` so exact normalization is not required (all four calibrated via `--self-calibrate` in v3.2.0+)
 Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
 
 Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
@@ -222,6 +227,39 @@ slop-detector --export-history data.jsonl
 Every run auto-recorded to `~/.slop-detector/history.db`. The history database is
 the training signal for ML self-calibration.
 [docs/HISTORY_TRACKING.md →](docs/HISTORY_TRACKING.md)
+
+---
+
+## Claude Code Skill
+
+Turn AI-SLOP Detector into a persistent quality loop inside Claude Code — same scan criteria, same output shape, same gate logic, every session.
+
+```bash
+# Install
+cp -r claude-skills/slop-detector ~/.claude/skills/
+# then restart Claude Code
+```
+
+**Four commands:**
+
+| Command | What it does |
+|---|---|
+| `/slop` | Full project scan — interprets findings, prioritizes fixes |
+| `/slop-file [path]` | Single-file analysis with per-pattern fix guidance |
+| `/slop-gate` | CI hard gate — PASS/FAIL with blocking file list |
+| `/slop-spar` | Adversarial validation — catches calibration drift |
+
+**The loop:**
+
+```
+/slop  ->  review findings  ->  patch  ->  /slop-file <path>  ->  /slop-gate
+```
+
+> "It felt like the missing piece in my workflow — code quality tightened up almost immediately."
+>
+> A real user built this loop around the skill and reported: context burn dropped, review criteria held across sessions, and code quality improved immediately. The win was not that the agent became smarter — it was that the review loop stopped drifting.
+
+Skill source: [`claude-skills/slop-detector/SKILL.md`](claude-skills/slop-detector/SKILL.md) · [Full documentation →](docs/CLAUDE_CODE_SKILL.md)
 
 ---
 
@@ -343,6 +381,7 @@ cd vscode-extension && npm install && npx vsce package
 
 | Version | Highlights |
 |---|---|
+| **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); docs: Purity row added to metric axes, weight normalization note, `[go]` extra in Quick Start; stale test artifacts removed; 311 tests GREEN |
 | **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |
 | **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |
 | **v3.4.0** | Per-rule FP rate tracking (LEDA Phase 2A); purity weight ceiling `MAX_PURITY_WEIGHT=0.25` (Phase 2B) |
