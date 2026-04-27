@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.6.0] — Claude Code Skill + Documentation Fixes
+
+### Added
+
+**Claude Code Skill — `claude-skills/slop-detector/`**
+- `SKILL.md` with YAML frontmatter (`name: slop-detector`, description 456 chars)
+- Four slash commands: `/slop` (full project scan + interpretation), `/slop-file [path]`
+  (single file + per-pattern fix guidance), `/slop-gate` (CI hard gate PASS/FAIL),
+  `/slop-spar` (adversarial validation via `fhval spar`)
+- Implements full `scan -> patch -> re-scan -> gate` quality loop with delta reporting
+- Session-persistent review criteria: quality policy lives in skill layer, not prompt
+- `docs/CLAUDE_CODE_SKILL.md` — full skill documentation with command reference,
+  metric explanation table, patch reference, and calibration guide
+- README `Claude Code Skill` section with install instructions and loop diagram
+
+### Fixed
+
+**Documentation accuracy**
+- `What It Detects` table: corrected "Three metric axes" to "Four metric axes"; added
+  Purity row (`exp(-0.5 x n_critical_patterns)`) — consistent with 4D scoring model
+  stated in introduction and `docs/MATH_MODELS.md`
+- Scoring Model: added normalization note — weights sum to 1.10; GQG divides by
+  `total_w` so exact normalization is not required (matches `docs/MATH_MODELS.md:160`)
+- Quick Start: added missing `pip install "ai-slop-detector[go]"` extra (was listed in
+  Key Features and `pyproject.toml` but absent from Quick Start)
+- Positioning: added `Not a style linter. A structural-risk scanner for AI-assisted code.`
+  under the tagline
+
+### Removed
+
+- `tests/manual_test/audit_report.md`, `audit_report_full.md`, `report.md` — stale
+  artifacts from previous manual runs; no automated test dependency
+
+---
+
 ## [3.5.0] — Phase 3: Domain-Aware Init + JS/TS + Go Analysis
 
 ### Added

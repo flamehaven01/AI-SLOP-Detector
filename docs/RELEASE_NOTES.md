@@ -5,6 +5,40 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.6.0 — 2026-04-27
+
+### Added
+
+**Claude Code Skill**
+- `claude-skills/slop-detector/SKILL.md` — installable Claude Code skill with four
+  slash commands: `/slop`, `/slop-file [path]`, `/slop-gate`, `/slop-spar`
+- Implements `scan -> patch -> re-scan -> gate` quality loop with per-pattern fix
+  guidance, delta reporting, and session-persistent review criteria
+- `docs/CLAUDE_CODE_SKILL.md` — full skill documentation (install, commands,
+  metric explanation, patch reference, calibration guide)
+- README `Claude Code Skill` section with install instructions and loop diagram
+
+### Fixed
+
+**Documentation**
+- `What It Detects`: "Three metric axes" corrected to "Four metric axes"; Purity
+  row added (`exp(-0.5 x n_critical_patterns)`)
+- Scoring Model: normalization note added — weights sum to 1.10; GQG divides by
+  `total_w` (self-normalizing, matches `docs/MATH_MODELS.md`)
+- Quick Start: `pip install "ai-slop-detector[go]"` extra added (was missing)
+- Positioning line added: "Not a style linter. A structural-risk scanner for AI-assisted code."
+
+### Removed
+
+- `tests/manual_test/audit_report.md`, `audit_report_full.md`, `report.md` —
+  stale artifacts from previous manual runs
+
+### Tests
+
+311 passed (was 308 in v3.5.0)
+
+---
+
 ## v3.5.0 — 2026-04-13
 
 ### Added
