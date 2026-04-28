@@ -295,8 +295,7 @@ def _evaluate_ci_gate(args, result):
             print(json.dumps(_sanitize_for_json(gate_result.to_dict()), indent=2, allow_nan=False))
         else:
             print(gate_result.pr_comment or gate_result.message)
-        return 1 if gate_result.should_fail_build else 0
-    return None
+    return 1 if gate_result.should_fail_build else 0
 
 
 def _run_optional_features(args, result) -> None:
