@@ -1,5 +1,7 @@
 """Tests for CI/CD gate functionality."""
 
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -867,6 +869,7 @@ def empty{i}():
 # CRITICAL_DEFICIT files.
 # ---------------------------------------------------------------------------
 
+
 class TestCLIExitCodePropagation:
     """Verify the CLI propagates gate exit codes independent of --ci-report.
 
@@ -880,9 +883,7 @@ class TestCLIExitCodePropagation:
         src = tmp_path / "slop_critical.py"
         src.write_text(
             '"""Enterprise-grade distributed scalable fault-tolerant system."""\n\n'
-            + "\n\n".join(
-                f'def enterprise_function_{i}():\n    pass' for i in range(40)
-            )
+            + "\n\n".join(f"def enterprise_function_{i}():\n    pass" for i in range(40))
             + "\n",
             encoding="utf-8",
         )
@@ -895,13 +896,9 @@ class TestCLIExitCodePropagation:
         exit-code return inside `if args.ci_report`, so --ci-mode hard alone
         always returned None -> exit 0 even on CRITICAL_DEFICIT files.
         """
-        import subprocess
-        import sys
-
         src = self._write_critical_file(tmp_path)
         result = subprocess.run(
-            [sys.executable, "-m", "slop_detector.cli",
-             str(src), "--ci-mode", "hard"],
+            [sys.executable, "-m", "slop_detector.cli", str(src), "--ci-mode", "hard"],
             capture_output=True,
             text=True,
         )
@@ -913,13 +910,9 @@ class TestCLIExitCodePropagation:
 
     def test_soft_mode_exits_zero_without_ci_report(self, tmp_path):
         """--ci-mode soft must never return exit code 1."""
-        import subprocess
-        import sys
-
         src = self._write_critical_file(tmp_path)
         result = subprocess.run(
-            [sys.executable, "-m", "slop_detector.cli",
-             str(src), "--ci-mode", "soft"],
+            [sys.executable, "-m", "slop_detector.cli", str(src), "--ci-mode", "soft"],
             capture_output=True,
             text=True,
         )
@@ -930,18 +923,13 @@ class TestCLIExitCodePropagation:
 
     def test_hard_mode_exits_zero_on_clean_file(self, tmp_path):
         """--ci-mode hard must exit 0 when file is below CRITICAL_DEFICIT threshold."""
-        import subprocess
-        import sys
-
         clean = tmp_path / "clean.py"
         clean.write_text(
-            '"""Minimal module."""\n\n'
-            'def add(a: int, b: int) -> int:\n    return a + b\n',
+            '"""Minimal module."""\n\n' "def add(a: int, b: int) -> int:\n    return a + b\n",
             encoding="utf-8",
         )
         result = subprocess.run(
-            [sys.executable, "-m", "slop_detector.cli",
-             str(clean), "--ci-mode", "hard"],
+            [sys.executable, "-m", "slop_detector.cli", str(clean), "--ci-mode", "hard"],
             capture_output=True,
             text=True,
         )
