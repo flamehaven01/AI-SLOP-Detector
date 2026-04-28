@@ -368,14 +368,38 @@ ignore:
 
 Real-time inline diagnostics, debounced lint-on-type, ML score and Clone Detection in status bar.
 
-**Commands:** Analyze File · Analyze Workspace · Auto-Fix · Show Gate Decision · History Trends
+| What you see | Detail |
+|---|---|
+| Status bar score | `Warning (42.3)` — severity + deficit/100 with 4D tooltip |
+| Inline diagnostics | Pattern issues, jargon, docstring inflation, phantom imports — pinned to line |
+| Workspace QuickPick | All files sorted by deficit score, click to navigate |
+| ML signal | `ML: 73% [slop]` in summary diagnostic when `[ml]` extra is installed |
 
-Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector)
+**Commands (Ctrl+Shift+P > "SLOP"):**
+
+| Command | Description |
+|---|---|
+| Analyze Current File | On-demand single-file scan |
+| Analyze Workspace | Project-wide scan with QuickPick results |
+| Auto-Fix Detected Issues | Apply (or dry-run preview) auto-fixable patterns |
+| Show Gate Decision (SNP) | PASS/HALT with sr9/di2/jsd/ove metrics |
+| Show File History | Per-file deficit score trend |
+| Show History Trends | 7-day project-wide daily trend table |
+| Bootstrap .slopconfig.yaml | Domain-aware config generation (`--init`) |
+| Run Self-Calibration | LEDA 4D weight optimizer with one-click Apply |
+
+**Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector)**
 or build locally:
 
 ```bash
-cd vscode-extension && npm install && npx vsce package
+cd vscode-extension
+npm install
+npx vsce package          # produces vscode-slop-detector-3.6.0.vsix
+code --install-extension vscode-slop-detector-3.6.0.vsix
 ```
+
+**Settings** (`slopDetector.*`): `pythonPath`, `lintOnSave`, `lintOnType`,
+`failThreshold` (default 50), `warnThreshold` (default 30), `recordHistory`.
 
 ---
 
@@ -383,7 +407,7 @@ cd vscode-extension && npm install && npx vsce package
 
 | Version | Highlights |
 |---|---|
-| **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); docs: Purity row added to metric axes, weight normalization note, `[go]` extra in Quick Start; stale test artifacts removed; 311 tests GREEN |
+| **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); CI gate bugfix (`--ci-mode hard` now exits non-zero without `--ci-report`); pre-commit hooks rewritten (`python -m` entry, 3 hook variants); VS Code Extension v3.6.0 VSIX; docs: Purity row, weight normalization note, `[go]` extra; 311 tests GREEN |
 | **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |
 | **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |
 | **v3.4.0** | Per-rule FP rate tracking (LEDA Phase 2A); purity weight ceiling `MAX_PURITY_WEIGHT=0.25` (Phase 2B) |

@@ -1,8 +1,48 @@
-# AI SLOP Detector — VS Code Extension v3.5.0
+# AI SLOP Detector — VS Code Extension v3.6.0
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, clone detection,
 and actionable diagnostics without leaving your editor.
+
+---
+
+## What's New in v3.6.0
+
+### CI Gate Bug Fix — `--ci-mode hard` Now Exits Non-Zero
+
+The core CLI had a silent bug: `--ci-mode hard` only propagated its exit code
+when `--ci-report` was also passed. Without `--ci-report`, it returned 0 even on
+`CRITICAL_DEFICIT` files. This is now fixed — `hard` mode always gates correctly.
+
+Pre-commit hooks were also rewritten to use `python -m slop_detector.cli` (the
+`.exe` wrapper on Windows did not reliably propagate exit codes):
+
+```yaml
+repos:
+  - repo: https://github.com/flamehaven01/AI-SLOP-Detector
+    rev: v3.6.0
+    hooks:
+      - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
+      # - id: slop-detector-warn   # soft mode — reports only, never blocks
+      # - id: slop-detector-patterns  # fast per-file pattern scan
+```
+
+### Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`)
+
+Install the skill and get four agentic commands inside Claude Code:
+
+```bash
+cp -r claude-skills/slop-detector ~/.claude/skills/slop-detector
+```
+
+| Command | What it does |
+|---|---|
+| `/slop` | Full project scan + interpretation + patch suggestions |
+| `/slop-file [path]` | Per-file deep-dive with fix guidance |
+| `/slop-gate` | CI PASS/FAIL decision with metric breakdown |
+| `/slop-spar` | Adversarial validation — challenges "clean" findings |
+
+See [`docs/CLAUDE_CODE_SKILL.md`](../docs/CLAUDE_CODE_SKILL.md) for full reference.
 
 ---
 
