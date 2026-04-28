@@ -232,7 +232,7 @@ the training signal for ML self-calibration.
 
 ## Claude Code Skill
 
-Turn AI-SLOP Detector into a persistent quality loop inside Claude Code — same scan criteria, same output shape, same gate logic, every session.
+Turn AI-SLOP Detector into a persistent quality loop inside Claude Code — and the more you use it, the more accurate it becomes.
 
 ```bash
 # Install
@@ -247,17 +247,44 @@ cp -r claude-skills/slop-detector ~/.claude/skills/
 | `/slop` | Full project scan — interprets findings, prioritizes fixes |
 | `/slop-file [path]` | Single-file analysis with per-pattern fix guidance |
 | `/slop-gate` | CI hard gate — PASS/FAIL with blocking file list |
-| `/slop-spar` | Adversarial validation — catches calibration drift |
+| `/slop-spar` | Adversarial validation — catches calibration drift, recommends recalibration |
 
-**The loop:**
+**The quality loop:**
 
 ```
 /slop  ->  review findings  ->  patch  ->  /slop-file <path>  ->  /slop-gate
 ```
 
+### The LEDA Flywheel — It Gets Smarter Every Scan
+
+This is the key property: every `/slop` invocation **automatically feeds the self-calibration engine**.
+
+```
+/slop called (Claude Code session)
+    │
+    ├─► scan runs → result recorded to ~/.slop-detector/history.db
+    │                 (tagged by project_id — never mixes across repos)
+    │
+    ├─► 10 re-scanned files milestone reached?
+    │       └─► SelfCalibrator 4D grid-search runs automatically
+    │               └─► confident result?
+    │                       └─► .slopconfig.yaml weights updated silently
+    │
+    └─► next /slop → more accurate detection for this specific codebase
+```
+
+No manual command needed. The tool observes which files improve between scans and which stay problematic, and adjusts `ldr / inflation / ddc / purity` weights to match your project's actual patterns.
+
+**What this means in practice:**
+- Session 1: default domain weights
+- Session 10+: weights tuned to your codebase's specific coding style
+- False-positive rate drops as the tool learns what is normal for your project
+
+`/slop-spar` explicitly checks for calibration drift and triggers `--self-calibrate --apply-calibration` when the measured behavior diverges from metric claims.
+
 > "It felt like the missing piece in my workflow — code quality tightened up almost immediately."
 >
-> A real user built this loop around the skill and reported: context burn dropped, review criteria held across sessions, and code quality improved immediately. The win was not that the agent became smarter — it was that the review loop stopped drifting.
+> Context burn dropped, review criteria held across sessions, and the detection got sharper the more scans accumulated. The win was not that the agent became smarter — it was that the review loop stopped drifting.
 
 Skill source: [`claude-skills/slop-detector/SKILL.md`](claude-skills/slop-detector/SKILL.md) · [Full documentation →](docs/CLAUDE_CODE_SKILL.md)
 
