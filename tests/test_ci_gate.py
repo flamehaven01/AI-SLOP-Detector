@@ -859,5 +859,97 @@ def empty{i}():
             assert "more" in comment.lower()
 
 
+# ---------------------------------------------------------------------------
+# Regression: --ci-mode hard must exit non-zero without --ci-report
+# Fixed in v3.6.0 (commit 0d67997). Before the fix, _evaluate_ci_gate()
+# nested the exit-code return inside `if args.ci_report`, so calling
+# --ci-mode hard alone always returned None -> exit 0, even on
+# CRITICAL_DEFICIT files.
+# ---------------------------------------------------------------------------
+
+class TestCLIExitCodePropagation:
+    """Verify the CLI propagates gate exit codes independent of --ci-report.
+
+    Uses single-file mode (pass the .py path directly, not a directory) to
+    avoid relying on project-mode glob(), which can return 0 files in some
+    pytest tmp_path configurations on Windows.
+    """
+
+    def _write_critical_file(self, tmp_path: Path) -> Path:
+        """Write a synthetic CRITICAL_DEFICIT Python file (40 pass stubs)."""
+        src = tmp_path / "slop_critical.py"
+        src.write_text(
+            '"""Enterprise-grade distributed scalable fault-tolerant system."""\n\n'
+            + "\n\n".join(
+                f'def enterprise_function_{i}():\n    pass' for i in range(40)
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        return src
+
+    def test_hard_mode_exits_one_without_ci_report(self, tmp_path):
+        """--ci-mode hard must return exit code 1 on CRITICAL_DEFICIT files.
+
+        Regression for v3.6.0 (commit 0d67997): _evaluate_ci_gate() nested the
+        exit-code return inside `if args.ci_report`, so --ci-mode hard alone
+        always returned None -> exit 0 even on CRITICAL_DEFICIT files.
+        """
+        import subprocess
+        import sys
+
+        src = self._write_critical_file(tmp_path)
+        result = subprocess.run(
+            [sys.executable, "-m", "slop_detector.cli",
+             str(src), "--ci-mode", "hard"],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1, (
+            "--ci-mode hard must exit 1 on CRITICAL_DEFICIT files "
+            "even without --ci-report (regression: v3.6.0 fix)\n"
+            f"stderr: {result.stderr[-500:]}"
+        )
+
+    def test_soft_mode_exits_zero_without_ci_report(self, tmp_path):
+        """--ci-mode soft must never return exit code 1."""
+        import subprocess
+        import sys
+
+        src = self._write_critical_file(tmp_path)
+        result = subprocess.run(
+            [sys.executable, "-m", "slop_detector.cli",
+             str(src), "--ci-mode", "soft"],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, (
+            "--ci-mode soft must always exit 0 regardless of deficit score\n"
+            f"stderr: {result.stderr[-500:]}"
+        )
+
+    def test_hard_mode_exits_zero_on_clean_file(self, tmp_path):
+        """--ci-mode hard must exit 0 when file is below CRITICAL_DEFICIT threshold."""
+        import subprocess
+        import sys
+
+        clean = tmp_path / "clean.py"
+        clean.write_text(
+            '"""Minimal module."""\n\n'
+            'def add(a: int, b: int) -> int:\n    return a + b\n',
+            encoding="utf-8",
+        )
+        result = subprocess.run(
+            [sys.executable, "-m", "slop_detector.cli",
+             str(clean), "--ci-mode", "hard"],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, (
+            "--ci-mode hard must exit 0 when file is below CRITICAL_DEFICIT threshold\n"
+            f"stderr: {result.stderr[-500:]}"
+        )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
