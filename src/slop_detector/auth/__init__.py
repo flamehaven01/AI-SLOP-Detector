@@ -3,7 +3,7 @@ EXPERIMENTAL: Enterprise auth module (SSO, RBAC, Audit Logging).
 Not yet integrated with core. Prototype status.
 """
 
-from .. import __version__ as PACKAGE_VERSION
+from .. import __version__ as _pkg_version
 from .audit import AuditEvent, AuditEventType, AuditLogger, AuditSeverity
 from .rbac import Permission, RBACManager, Role, require_permission
 from .session import SessionManager, TokenValidator
@@ -29,4 +29,4 @@ __all__ = [
     "AuditSeverity",
 ]
 
-__version__ = PACKAGE_VERSION
+__version__ = _pkg_version

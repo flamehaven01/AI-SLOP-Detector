@@ -1,7 +1,17 @@
-from slop_detector import __version__
-from slop_detector.api.models import AnalysisResponse, TrendResponse
-from slop_detector.auth import __version__ as auth_version
-from slop_detector.models import DDCResult, FileAnalysis, InflationResult, LDRResult, SlopStatus
+import pytest
+
+pytest.importorskip("pydantic", reason="requires api extra: pip install ai-slop-detector[api]")
+
+from slop_detector import __version__  # noqa: E402
+from slop_detector.api.models import AnalysisResponse, TrendResponse  # noqa: E402
+from slop_detector.auth import __version__ as auth_version  # noqa: E402
+from slop_detector.models import (  # noqa: E402
+    DDCResult,
+    FileAnalysis,
+    InflationResult,
+    LDRResult,
+    SlopStatus,
+)
 
 
 def test_analysis_response_maps_current_file_analysis_shape():
