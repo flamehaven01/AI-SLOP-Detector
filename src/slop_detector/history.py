@@ -24,6 +24,7 @@ Schema v5 (v3.5.0):
 import hashlib
 import json
 import sqlite3
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -85,9 +86,10 @@ class HistoryTracker:
     # ------------------------------------------------------------------
 
     def _init_database(self) -> None:
-        with self._conn() as conn:
+        with self._managed_conn() as conn:
             conn.executescript(_SCHEMA_V2)
             self._migrate(conn)
+            conn.commit()
 
     def _migrate(self, conn: sqlite3.Connection) -> None:
         """Add columns introduced after initial schema if missing."""
@@ -108,6 +110,9 @@ class HistoryTracker:
 
     def _conn(self) -> sqlite3.Connection:
         return sqlite3.connect(self.db_path)
+
+    def _managed_conn(self):
+        return closing(self._conn())
 
     # ------------------------------------------------------------------
     # Write
@@ -187,7 +192,7 @@ class HistoryTracker:
              fired_rules, grade, git_commit, git_branch, project_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-        with self._conn() as conn:
+        with self._managed_conn() as conn:
             conn.execute(
                 sql,
                 (
@@ -207,6 +212,7 @@ class HistoryTracker:
                     e.project_id,
                 ),
             )
+            conn.commit()
 
     # ------------------------------------------------------------------
     # Read
@@ -214,7 +220,7 @@ class HistoryTracker:
 
     def count_total_records(self) -> int:
         """Return total number of records in the history database."""
-        with self._conn() as conn:
+        with self._managed_conn() as conn:
             row = conn.execute("SELECT COUNT(*) FROM history").fetchone()
         return int(row[0]) if row else 0
 
@@ -233,7 +239,7 @@ class HistoryTracker:
                 GROUP BY file_path HAVING COUNT(*) >= 2
             )
             """
-            with self._conn() as conn:
+            with self._managed_conn() as conn:
                 row = conn.execute(sql, (project_id,)).fetchone()
         else:
             sql = """
@@ -241,7 +247,7 @@ class HistoryTracker:
                 SELECT file_path FROM history GROUP BY file_path HAVING COUNT(*) >= 2
             )
             """
-            with self._conn() as conn:
+            with self._managed_conn() as conn:
                 row = conn.execute(sql).fetchone()
         return int(row[0]) if row else 0
 
@@ -255,7 +261,7 @@ class HistoryTracker:
         ORDER BY timestamp DESC
         LIMIT ?
         """
-        with self._conn() as conn:
+        with self._managed_conn() as conn:
             rows = conn.execute(sql, (file_path, limit)).fetchall()
 
         return [
@@ -305,7 +311,7 @@ class HistoryTracker:
         GROUP BY DATE(timestamp)
         ORDER BY date DESC
         """
-        with self._conn() as conn:
+        with self._managed_conn() as conn:
             rows = conn.execute(sql, (days,)).fetchall()
 
         return {
@@ -333,7 +339,7 @@ class HistoryTracker:
                git_commit, git_branch
         FROM history ORDER BY timestamp DESC
         """
-        with self._conn() as conn:
+        with self._managed_conn() as conn:
             rows = conn.execute(sql).fetchall()
 
         with open(output_path, "w", encoding="utf-8") as f:

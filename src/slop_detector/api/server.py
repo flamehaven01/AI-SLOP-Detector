@@ -15,6 +15,7 @@ except ImportError:
         "FastAPI is required for the API server. " "Install with: pip install ai-slop-detector[api]"
     )
 
+from .. import __version__
 from ..core import SlopDetector
 from ..history import HistoryTracker
 from .models import (
@@ -26,13 +27,19 @@ from .models import (
 )
 
 
+def _project_id_for_path(path: Path) -> str:
+    import hashlib
+
+    return hashlib.sha256(str(path.resolve()).encode("utf-8")).hexdigest()[:12]
+
+
 def create_app(config_path: Optional[Path] = None) -> FastAPI:
     """Create FastAPI application"""
 
     app = FastAPI(
         title="AI SLOP Detector API",
         description="REST API for detecting AI-generated code quality issues",
-        version="2.4.0",
+        version=__version__,
         docs_url="/docs",
         redoc_url="/redoc",
     )
@@ -58,7 +65,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     async def root():
         return {
             "service": "AI SLOP Detector API",
-            "version": "2.4.0",
+            "version": __version__,
             "docs": "/docs",
             "health": "/health",
         }
@@ -83,10 +90,11 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
 
             # Save to history if enabled
             if request.save_history:
-                history.record_analysis(
-                    file_path=str(file_path),
-                    result=result,
-                    metadata=request.metadata,
+                history.record(
+                    result,
+                    git_commit=request.metadata.get("commit"),
+                    git_branch=request.metadata.get("branch"),
+                    project_id=_project_id_for_path(file_path.parent),
                 )
 
             return AnalysisResponse.from_result(result)
@@ -112,11 +120,12 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             if request.save_history:
                 background_tasks.add_task(
                     _save_project_history,
-                    results,
+                    results.file_results,
+                    project_path,
                     request.metadata,
                 )
 
-            return [AnalysisResponse.from_result(r) for r in results]
+            return [AnalysisResponse.from_result(r) for r in results.file_results]
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -138,8 +147,8 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         history: HistoryTracker = Depends(get_history),
     ):
         """Get quality trends for project"""
-        trends = history.get_trends(project_path, days=days)
-        return TrendResponse.from_dict(trends)
+        trends = history.get_project_trends(days=days)
+        return TrendResponse.from_history(project_path, trends)
 
     @app.post("/webhook/github")
     async def github_webhook(
@@ -160,14 +169,16 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     return app
 
 
-async def _save_project_history(results: List[Any], metadata: Dict[str, Any]):
+async def _save_project_history(results: List[Any], project_path: Path, metadata: Dict[str, Any]):
     """Background task to save project analysis"""
     history = HistoryTracker()
+    project_id = _project_id_for_path(project_path)
     for result in results:
-        history.record_analysis(
-            file_path=result.file_path,
-            result=result,
-            metadata=metadata,
+        history.record(
+            result,
+            git_commit=metadata.get("commit"),
+            git_branch=metadata.get("branch"),
+            project_id=project_id,
         )
 
 
