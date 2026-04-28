@@ -311,9 +311,11 @@ absolute gate. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.5.0
+    rev: v3.6.0
     hooks:
-      - id: slop-detector
+      - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
+      # - id: slop-detector-warn   # soft mode — reports only, never blocks
+      # - id: slop-detector-patterns  # fast per-file pattern scan
 ```
 
 **GitHub Actions** (runs on every PR):
