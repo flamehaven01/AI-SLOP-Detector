@@ -3,7 +3,7 @@ LEDA Model Retraining Pipeline v1.1 — Flamehaven Sovereign Asset
 ================================================================
 
 PURPOSE:
-    Replaces stub/synthetic training data in models/ with real Dogfooding
+    Replaces initial synthetic baseline training data in models/ with real Dogfooding
     signals harvested from Extra Repo scan results.
 
     No external ML dependencies (sklearn not required).
@@ -11,8 +11,8 @@ PURPOSE:
     existing self_calibrator.py architecture.
 
     Overwrites:
-        models/training_data.json       (was synthetic 300/300 mock)
-        models/pipeline_report.json     (was accuracy=1.0 stub)
+        models/training_data.json       (was synthetic 300/300 baseline)
+        models/pipeline_report.json     (was accuracy=1.0 baseline)
         models/slop_classifier.pkl      (JSON-serialized threshold model)
 
     Removes:
@@ -69,7 +69,7 @@ OUT_DATA        = MODELS_DIR / "training_data.json"
 OUT_REPORT      = MODELS_DIR / "pipeline_report.json"
 OUT_PKL         = MODELS_DIR / "slop_classifier.pkl"
 
-STUBS_TO_REMOVE = [
+BASELINES_TO_REMOVE = [
     MODELS_DIR / "training_data_real.json",
     MODELS_DIR / "pipeline_report_real.json",
     MODELS_DIR / "slop_classifier_real.pkl",
@@ -419,9 +419,9 @@ def save_artifacts(
         print(f"  {OUT_DATA}  ({len(good)+len(bad)} samples)")
         print(f"  {OUT_REPORT}")
         print(f"  {OUT_PKL}  (JSON-serialized ThresholdClassifier)")
-        for stub in STUBS_TO_REMOVE:
-            if stub.exists():
-                print(f"  [DELETE] {stub.name}")
+        for baseline in BASELINES_TO_REMOVE:
+            if baseline.exists():
+                print(f"  [DELETE] {baseline.name}")
         return
 
     OUT_DATA.write_text(
@@ -441,11 +441,11 @@ def save_artifacts(
         pickle.dump(clf.to_dict(), f)
     print(f"  [+] {OUT_PKL.name}  (ThresholdClassifier — no sklearn needed)")
 
-    # Remove stub files
-    for stub in STUBS_TO_REMOVE:
-        if stub.exists():
-            stub.unlink()
-            print(f"  [-] Removed stub: {stub.name}")
+    # Remove baseline files
+    for baseline in BASELINES_TO_REMOVE:
+        if baseline.exists():
+            baseline.unlink()
+            print(f"  [-] Removed baseline: {baseline.name}")
 
 
 # ---------------------------------------------------------------------------

@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Real-world Dogfooding Model (v3.7.0)**
 - `scripts/retrain_model.py`: new `ThresholdClassifier` (pure-Python, no `sklearn` required) trained on real dogfooding data
 - Handled 784 actual samples from 7 distinct repositories with 55.1% bad class distribution
-- Achieved stable evaluation: `accuracy=0.7962`, `precision=0.9524`, `recall=0.6742` replacing previous overfitted stubs (`accuracy=1.0`)
+- Achieved stable evaluation: `accuracy=0.7962`, `precision=0.9524`, `recall=0.6742` replacing previous initial baseline models (`accuracy=1.0`)
 - Extracted and applied key thresholds for `ldr_score`, `inflation_score`, `ddc_score`, `god_function_count`
 - Completely replaced `models/training_data.json` and `models/slop_classifier.pkl` with live representations
 - Removed legacy `_real` suffixed files to streamline models structure
