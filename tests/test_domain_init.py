@@ -125,7 +125,7 @@ class TestGenerateSlopconfigTemplate:
     def test_general_template_has_default_weights(self):
         tmpl = generate_slopconfig_template()
         cfg = yaml.safe_load(tmpl)
-        assert cfg["weights"]["ldr"] == pytest.approx(0.40)
+        assert cfg["weights"]["ldr"] == pytest.approx(0.15)
         assert cfg["weights"]["purity"] == pytest.approx(0.10)
 
     def test_ml_template_has_low_purity_weight(self):
