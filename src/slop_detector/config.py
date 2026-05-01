@@ -28,7 +28,7 @@ class Config:
                 "suspicious": 0.30,
             },
         },
-        "weights": {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30},
+        "weights": {"ldr": 0.15, "inflation": 0.1285, "ddc": 0.6215},
         "ignore": [
             "**/__init__.py",
             "tests/**",
@@ -196,7 +196,7 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "domain_path": "general",
         "description": "General-purpose project (default)",
         "triggers": [],
-        "capability_vector": {"ldr": 0.40, "inflation": 0.30, "ddc": 0.20, "purity": 0.10},
+        "capability_vector": {"ldr": 0.15, "inflation": 0.1285, "ddc": 0.6215, "purity": 0.1},
         "pattern_config": {
             "god_function": {"complexity_threshold": 10, "lines_threshold": 50},
             "nested_complexity": {"depth_threshold": 4, "cc_threshold": 5},

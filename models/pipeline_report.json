@@ -1,69 +1,82 @@
 {
-  "n_samples": 600,
-  "n_train": 480,
-  "n_test": 120,
-  "model_type": "random_forest",
+  "version": "3.7.0",
+  "generated_at": "2026-05-01T09:53:51.574300+00:00",
+  "data_source": "dogfooding_real",
+  "n_samples": 784,
+  "class_balance": {
+    "good": 352,
+    "bad": 432
+  },
+  "model_type": "threshold_classifier_gaussian_nb",
+  "model_params": {
+    "type": "pure_python",
+    "no_sklearn": true
+  },
   "metrics": {
-    "random_forest": {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+    "threshold_classifier": {
+      "accuracy": 0.7962,
+      "precision": 0.9524,
+      "recall": 0.6742,
+      "f1_score": 0.7895
     }
   },
   "model_path": "models\\slop_classifier.pkl",
   "feature_importance": [
     [
-      "deep_nesting_count",
-      0.15
-    ],
-    [
-      "ddc_score",
-      0.13088216099802008
-    ],
-    [
-      "empty_lines",
-      0.13072308499209404
-    ],
-    [
-      "pattern_count_medium",
-      0.13
-    ],
-    [
-      "dead_code_count",
-      0.11
+      "pattern_count_critical",
+      0.870772
     ],
     [
       "pattern_count_high",
-      0.09
+      0.435186
     ],
     [
-      "ldr_score",
-      0.07
-    ],
-    [
-      "inflation_score",
-      0.07
-    ],
-    [
-      "god_function_count",
-      0.06
-    ],
-    [
-      "pattern_count_critical",
-      0.05
+      "total_lines",
+      0.404804
     ],
     [
       "logic_lines",
-      0.008394754009885897
+      0.40247
     ],
     [
-      "pattern_count_low",
-      0.0
+      "deep_nesting_count",
+      0.368231
+    ],
+    [
+      "god_function_count",
+      0.33802
+    ],
+    [
+      "pattern_count_medium",
+      0.326029
     ],
     [
       "avg_complexity",
-      0.0
+      0.157436
+    ],
+    [
+      "empty_lines",
+      0.138728
+    ],
+    [
+      "pattern_count_low",
+      0.132641
+    ],
+    [
+      "ldr_score",
+      0.093573
+    ],
+    [
+      "ddc_score",
+      0.081537
+    ],
+    [
+      "inflation_score",
+      0.070205
+    ],
+    [
+      "dead_code_count",
+      0.049623
     ],
     [
       "cross_language_patterns",
@@ -72,10 +85,13 @@
     [
       "hallucination_count",
       0.0
-    ],
-    [
-      "total_lines",
-      0.0
     ]
-  ]
+  ],
+  "key_thresholds": {
+    "ldr_score": 0.9681,
+    "inflation_score": 2.4021,
+    "ddc_score": 0.996,
+    "god_function_count": 0.8789,
+    "avg_complexity": 3.6139
+  }
 }

@@ -171,7 +171,7 @@ class SelfCalibrator:
         cw = (
             dict(current_weights)
             if current_weights
-            else {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30}
+            else {"ldr": 0.15, "inflation": 0.1285, "ddc": 0.6215}
         )
         cw.setdefault("purity", 0.10)  # inject purity default for pre-v3.2.0 configs
 

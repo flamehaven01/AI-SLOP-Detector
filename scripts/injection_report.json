@@ -1,0 +1,166 @@
+{
+  "generated_at": "2026-05-01T08:29:47.658042+00:00",
+  "dry_run": true,
+  "quality_gate": 0.05,
+  "min_improvement_events": 50,
+  "synthesized_weights": {
+    "ldr": 0.15,
+    "inflation": 0.1285,
+    "ddc": 0.6215,
+    "purity": 0.1
+  },
+  "warnings": [
+    "No trusted signals (gap >= 0.05 + events >= 50). Falling back to 7 valid-weight signals. Continue dogfooding to improve confidence."
+  ],
+  "contributors": [
+    {
+      "repo": "AI-Scientist",
+      "confidence_gap": 0.0076,
+      "improvement_events": 286,
+      "fp_candidates": 653,
+      "optimal_weights": {
+        "ldr": 0.15,
+        "inflation": 0.1,
+        "ddc": 0.65,
+        "purity": 0.1
+      },
+      "vote_weight": 288.17,
+      "trusted": false
+    },
+    {
+      "repo": "LMCache",
+      "confidence_gap": 0.0269,
+      "improvement_events": 273,
+      "fp_candidates": 429,
+      "optimal_weights": {
+        "ldr": 0.15,
+        "inflation": 0.1,
+        "ddc": 0.65,
+        "purity": 0.1
+      },
+      "vote_weight": 280.34,
+      "trusted": false
+    },
+    {
+      "repo": "minGPT",
+      "confidence_gap": 0.0076,
+      "improvement_events": 286,
+      "fp_candidates": 653,
+      "optimal_weights": {
+        "ldr": 0.15,
+        "inflation": 0.1,
+        "ddc": 0.65,
+        "purity": 0.1
+      },
+      "vote_weight": 288.17,
+      "trusted": false
+    },
+    {
+      "repo": "OpenMythos",
+      "confidence_gap": 0.0076,
+      "improvement_events": 286,
+      "fp_candidates": 653,
+      "optimal_weights": {
+        "ldr": 0.15,
+        "inflation": 0.1,
+        "ddc": 0.65,
+        "purity": 0.1
+      },
+      "vote_weight": 288.17,
+      "trusted": false
+    },
+    {
+      "repo": "sloppylint",
+      "confidence_gap": 0.0019,
+      "improvement_events": 285,
+      "fp_candidates": 535,
+      "optimal_weights": {
+        "ldr": 0.15,
+        "inflation": 0.2,
+        "ddc": 0.55,
+        "purity": 0.1
+      },
+      "vote_weight": 285.54,
+      "trusted": false
+    },
+    {
+      "repo": "unsloth",
+      "confidence_gap": 0.0019,
+      "improvement_events": 285,
+      "fp_candidates": 535,
+      "optimal_weights": {
+        "ldr": 0.15,
+        "inflation": 0.2,
+        "ddc": 0.55,
+        "purity": 0.1
+      },
+      "vote_weight": 285.54,
+      "trusted": false
+    },
+    {
+      "repo": "unstructured",
+      "confidence_gap": 0.0073,
+      "improvement_events": 286,
+      "fp_candidates": 684,
+      "optimal_weights": {
+        "ldr": 0.15,
+        "inflation": 0.1,
+        "ddc": 0.65,
+        "purity": 0.1
+      },
+      "vote_weight": 288.09,
+      "trusted": false
+    }
+  ],
+  "all_signals": [
+    {
+      "repo": "AI-Scientist",
+      "status": "insufficient_data",
+      "confidence_gap": 0.0076,
+      "improvement_events": 286,
+      "trusted": false
+    },
+    {
+      "repo": "LMCache",
+      "status": "insufficient_data",
+      "confidence_gap": 0.0269,
+      "improvement_events": 273,
+      "trusted": false
+    },
+    {
+      "repo": "minGPT",
+      "status": "insufficient_data",
+      "confidence_gap": 0.0076,
+      "improvement_events": 286,
+      "trusted": false
+    },
+    {
+      "repo": "OpenMythos",
+      "status": "insufficient_data",
+      "confidence_gap": 0.0076,
+      "improvement_events": 286,
+      "trusted": false
+    },
+    {
+      "repo": "sloppylint",
+      "status": "insufficient_data",
+      "confidence_gap": 0.0019,
+      "improvement_events": 285,
+      "trusted": false
+    },
+    {
+      "repo": "unsloth",
+      "status": "insufficient_data",
+      "confidence_gap": 0.0019,
+      "improvement_events": 285,
+      "trusted": false
+    },
+    {
+      "repo": "unstructured",
+      "status": "insufficient_data",
+      "confidence_gap": 0.0073,
+      "improvement_events": 286,
+      "trusted": false
+    }
+  ]
+}
