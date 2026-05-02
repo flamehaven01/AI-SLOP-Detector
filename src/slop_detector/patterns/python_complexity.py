@@ -200,8 +200,15 @@ class GodFunctionPattern(BasePattern):
             if is_too_long or is_too_complex:
                 issues.append(
                     self._make_god_issue(
-                        file, node, start, logic_lines, complexity,
-                        ln_limit, cc_limit, is_too_long, is_too_complex,
+                        file,
+                        node,
+                        start,
+                        logic_lines,
+                        complexity,
+                        ln_limit,
+                        cc_limit,
+                        is_too_long,
+                        is_too_complex,
                     )
                 )
 

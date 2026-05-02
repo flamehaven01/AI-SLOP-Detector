@@ -54,7 +54,8 @@ def _count_test_functions_ast(file_path: str) -> int:
     try:
         tree = ast.parse(Path(file_path).read_text(encoding="utf-8"))
         return sum(
-            1 for node in ast.walk(tree)
+            1
+            for node in ast.walk(tree)
             if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")
         )
     except (OSError, SyntaxError):

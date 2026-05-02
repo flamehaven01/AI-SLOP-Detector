@@ -28,10 +28,27 @@ _PROJECT_PACKAGES_CACHE: Dict[str, FrozenSet[str]] = {}
 
 _SKIP_LAYOUT_DIRS: FrozenSet[str] = frozenset(
     {
-        "tests", "test", "docs", "doc", "examples", "scripts", "tools",
-        ".venv", "venv", "env", "build", "dist", ".git", "__pycache__",
-        "node_modules", "site-packages", ".mypy_cache", ".ruff_cache",
-        ".pytest_cache", ".tox", "htmlcov",
+        "tests",
+        "test",
+        "docs",
+        "doc",
+        "examples",
+        "scripts",
+        "tools",
+        ".venv",
+        "venv",
+        "env",
+        "build",
+        "dist",
+        ".git",
+        "__pycache__",
+        "node_modules",
+        "site-packages",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pytest_cache",
+        ".tox",
+        "htmlcov",
     }
 )
 
@@ -64,7 +81,7 @@ def _add_dep_names(dep_list: List[str], packages: set) -> None:
         packages.add(canon)
         for prefix in ("flamehaven_", "flame_", "py", "python_"):
             if canon.startswith(prefix) and len(canon) > len(prefix) + 1:
-                packages.add(canon[len(prefix):])
+                packages.add(canon[len(prefix) :])
 
 
 def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) -> None:
@@ -76,10 +93,12 @@ def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) 
         toml_mod: Any = None
         try:
             import tomllib  # type: ignore[import-not-found]
+
             toml_mod = tomllib
         except ImportError:
             try:
                 import tomli  # type: ignore[import-not-found,import]
+
                 toml_mod = tomli
             except ImportError:
                 pass
@@ -146,6 +165,7 @@ def _get_resolvable_modules() -> FrozenSet[str]:
 
     try:
         from importlib.metadata import packages_distributions  # type: ignore[attr-defined]
+
         for top_level_names in packages_distributions().values():
             for name in top_level_names:
                 known.add(name)
@@ -225,8 +245,13 @@ class PhantomImportPattern(BasePattern):
                         continue
                     lineno = getattr(node, "lineno", 0)
                     issues.append(
-                        self._make_issue(file, lineno, getattr(node, "col_offset", 0),
-                                         alias.name, lineno in guarded_lines)
+                        self._make_issue(
+                            file,
+                            lineno,
+                            getattr(node, "col_offset", 0),
+                            alias.name,
+                            lineno in guarded_lines,
+                        )
                     )
 
             elif isinstance(node, ast.ImportFrom):
@@ -239,8 +264,13 @@ class PhantomImportPattern(BasePattern):
                     continue
                 lineno = getattr(node, "lineno", 0)
                 issues.append(
-                    self._make_issue(file, lineno, getattr(node, "col_offset", 0),
-                                     node.module, lineno in guarded_lines)
+                    self._make_issue(
+                        file,
+                        lineno,
+                        getattr(node, "col_offset", 0),
+                        node.module,
+                        lineno in guarded_lines,
+                    )
                 )
 
         return issues
