@@ -266,38 +266,40 @@ cp -r claude-skills/slop-detector ~/.claude/skills/
 /slop  ->  review findings  ->  patch  ->  /slop-file <path>  ->  /slop-gate
 ```
 
-### The LEDA Flywheel — It Gets Smarter Every Scan
-
-This is the key property: every `/slop` invocation **automatically feeds the self-calibration engine**.
-
-```
-/slop called (Claude Code session)
-    │
-    ├─► scan runs → result recorded to ~/.slop-detector/history.db
-    │                 (tagged by project_id — never mixes across repos)
-    │
-    ├─► 5 improvement + 5 fp_candidate events (per class)?
-    │       └─► SelfCalibrator 4D grid-search runs automatically
-    │               └─► confident result?
-    │                       └─► .slopconfig.yaml weights updated silently
-    │
-    └─► next /slop → more accurate detection for this specific codebase
-```
-
-No manual command needed. The tool observes which files improve between scans and which stay problematic, and adjusts `ldr / inflation / ddc / purity` weights to match your project's actual patterns.
-
-**What this means in practice:**
-- Session 1: default domain weights
-- Session 10+: weights tuned to your codebase's specific coding style
-- False-positive rate drops as the tool learns what is normal for your project
-
-`/slop-spar` explicitly checks for calibration drift and triggers `--self-calibrate --apply-calibration` when the measured behavior diverges from metric claims.
-
-> "It felt like the missing piece in my workflow — code quality tightened up almost immediately."
->
-> Context burn dropped, review criteria held across sessions, and the detection got sharper the more scans accumulated. The win was not that the agent became smarter — it was that the review loop stopped drifting.
-
 Skill source: [`claude-skills/slop-detector/SKILL.md`](claude-skills/slop-detector/SKILL.md) · [Full documentation →](docs/CLAUDE_CODE_SKILL.md)
+
+---
+
+## The LEDA Engine & Dogfooding Calibration
+
+AI-SLOP Detector is powered by the **LEDA (Logic-Density Evaluation & Drift-Atonement) Engine**, a dedicated infrastructure for autonomous calibration and continuous learning.
+
+Instead of arbitrary thresholds, the engine's 4D scoring weights (LDR, Inflation, DDC, Purity) are synthesized through high-throughput dogfooding across external repositories (the "Turbo Protocol").
+
+### The Calibration Flywheel
+
+```mermaid
+flowchart TD
+    A[External Repositories\nDogfooding] --> B[LEDA Turbo Protocol\nScan → Auto-Fix → Rescan]
+    B --> C{Measure Delta}
+    C -->|Git Commit| D[Improvement Event]
+    C -->|Ignored| E[False Positive Candidate]
+    D --> F[Self-Calibrator 4D Grid Search]
+    E --> F
+    F --> G{Confidence Gap >= 0.10?}
+    G -->|Yes| H[Global Injector Synthesizes Weights]
+    H --> I[config.py Base Weights Updated]
+```
+
+1. **Dogfooding (Turbo Protocol):** The `scripts/leda_turbo.bat` tool autonomously runs a `Scan → Fix → Rescan` loop over diverse external codebases (`minGPT`, `unsloth`, `LMCache`, etc.), safely testing fixes for patterns like `bare_except` or `mutable_default_arg`.
+2. **Event Labeling (The Oracle):** It measures the delta. If a file's deficit drops significantly and is committed, it's an `improvement_event`. If flagged but safely ignored, it's an `fp_candidate`. Human behavior is the ground truth.
+3. **Self-Calibration:** The `self_calibrator.py` runs a domain-anchored grid search (±0.15 drift limits). It requires a strict `confidence_gap` (distance between improvement event density and FP candidates) of at least **0.10** to prove statistical significance.
+4. **Global Synthesis:** `scripts/global_injector.py` harvests calibration signals across all dogfooding repositories. If the signal passes the quality gate, it synthesizes a new global weight profile and injects it directly into the engine's core `config.py`.
+
+**What this means for you:**
+The weights you use out-of-the-box (`ldr=0.40`, `inflation=0.30`, `ddc=0.20`, `purity=0.10`) aren't guessed. They are the synthesized result of the LEDA engine actively hunting slop in the wild, proposing fixes, measuring human acceptance, and proving the math.
+
+[LEDA Calibration Docs →](docs/LEDA_CALIBRATION.md) · [Turbo Protocol →](docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md)
 
 ---
 
