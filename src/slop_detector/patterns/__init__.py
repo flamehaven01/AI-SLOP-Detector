@@ -50,15 +50,15 @@ def get_all_patterns(
         TodoCommentPattern,
         XXXCommentPattern,
     )
+    from slop_detector.patterns.python_clones import FunctionClonePattern
     from slop_detector.patterns.python_complexity import (
         DeadCodePattern,
         DeepNestingPattern,
         GodFunctionPattern,
         NestedComplexityPattern,
     )
-    from slop_detector.patterns.python_lint import LintEscapePattern
     from slop_detector.patterns.python_imports import PhantomImportPattern
-    from slop_detector.patterns.python_clones import FunctionClonePattern
+    from slop_detector.patterns.python_lint import LintEscapePattern
     from slop_detector.patterns.python_naming import PlaceholderVariableNamingPattern
     from slop_detector.patterns.structural import (
         BareExceptPattern,

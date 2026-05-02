@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ast
 import re
-from pathlib import Path
 from typing import Any, List, Union
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
