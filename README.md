@@ -11,7 +11,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-311%20passed-brightgreen.svg?v=3.6.0" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-314%20passed-brightgreen.svg?v=3.7.0" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-71%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
@@ -56,9 +56,9 @@ Unlike general linters that flag style and convention, it targets **AI slop**: s
 
 - **27 adversarial pattern checks** — stubs, phantom imports, disconnected pipelines, buzzword inflation, clone clusters
 - **4D scoring model** — LDR (logic density), ICR (inflation), DDC (dependency coupling), Purity (critical severity) combined via geometric mean
-- **Self-calibrating** — every scan is recorded per-project; after 10 files have been re-scanned the tool automatically tunes its weights using project-scoped, domain-anchored grid search (no manual command required)
+- **Self-calibrating** — every scan is recorded per-project; when 5 improvement events and 5 fp_candidate events accumulate per class, the tool automatically tunes its weights using project-scoped, domain-anchored grid search (no manual command required)
 - **Git-aware noise filter** — uses commit SHA to distinguish real improvements from measurement noise
-- **Domain-aware bootstrap** — `--init` auto-detects project domain (8 profiles: `web_frontend`, `data_science`, `ml_research`, `backend_api`, …) and pre-seeds weights accordingly; override with `--domain`
+- **Domain-aware bootstrap** — `--init` auto-detects project domain (8 profiles: `general`, `scientific/ml`, `scientific/numerical`, `web/api`, `library/sdk`, `cli/tool`, `bio`, `finance`) and pre-seeds weights accordingly; override with `--domain`
 - **JS/TS analysis** — optional `[js]` extra activates JSAnalyzer v2.8.0 with tree-sitter AST + regex fallback for `.js/.jsx/.ts/.tsx` files
 - **Go analysis** — optional `[go]` extra activates GoAnalyzer v1.0.0 with regex-based detection for `.go` files; detects empty funcs, panic-as-error, fmt.Print debug, ignored errors
 - **CI/CD gates** — soft / hard / quarantine modes; GitHub Actions ready
@@ -115,7 +115,7 @@ Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
 Purity) **and** 27 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to history (per project); weights
-auto-tune when 10 files have been re-scanned in the same project.
+auto-tune when 5 improvement + 5 fp_candidate events accumulate per class.
 
 Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
@@ -159,7 +159,7 @@ deficit_score = 100 × (1 − quality) + pattern_penalty
 | ≥ 30 | `SUSPICIOUS` |
 | < 30 | `CLEAN` |
 
-Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.30 · purity=0.10` — sum is 1.10; GQG divides by `total_w` so exact normalization is not required (all four calibrated via `--self-calibrate` in v3.2.0+)
+Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.20 · purity=0.10` — sum is 1.00; GQG divides by `total_w` so exact normalization is not required (all four calibrated via `--self-calibrate` in v3.2.0+)
 Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
 
 Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
@@ -171,11 +171,11 @@ Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 **Bootstrap** — domain-aware, one command to start
 ```bash
 slop-detector --init                   # auto-detect domain, generate .slopconfig.yaml
-slop-detector --init --domain web_frontend  # explicit domain override
+slop-detector --init --domain web/api       # explicit domain override
 ```
 `--init` detects your project domain from file patterns (8 built-in profiles:
-`general`, `web_frontend`, `data_science`, `cli_tool`, `library`,
-`ml_research`, `backend_api`, `scientific`) and pre-seeds the weight profile
+`general`, `scientific/ml`, `scientific/numerical`, `web/api`,
+`library/sdk`, `cli/tool`, `bio`, `finance`) and pre-seeds the weight profile
 accordingly. Also secures `.slopconfig.yaml` in `.gitignore` by default.
 
 ---
@@ -234,6 +234,17 @@ the training signal for ML self-calibration.
 
 Turn AI-SLOP Detector into a persistent quality loop inside Claude Code — and the more you use it, the more accurate it becomes.
 
+### Breaking the Self-Referential Bias
+
+A common critique of AI-assisted engineering is **self-referential bias**: if AI detects the slop and AI fixes the slop, doesn't it just optimize for its own stylistic preferences? 
+
+AI-SLOP-DETECTOR breaks this loop structurally:
+- **It is a diagnostic instrument, not an auto-fixer.** The Claude Code skill (`/slop`) presents structured, mathematical evidence to the human developer. **AI measures; the human judges.**
+- **Metrics are structural facts, not vibes.** LDR (AST node count), DDC (import resolution), and Complexity (radon) cannot be hallucinated. 
+- **Ground truth is human behavior.** Self-calibration uses human `git commit` actions (accepting vs ignoring a fix) as the oracle, entirely bypassing AI scoring loops.
+
+---
+
 ```bash
 # Install
 cp -r claude-skills/slop-detector ~/.claude/skills/
@@ -265,7 +276,7 @@ This is the key property: every `/slop` invocation **automatically feeds the sel
     ├─► scan runs → result recorded to ~/.slop-detector/history.db
     │                 (tagged by project_id — never mixes across repos)
     │
-    ├─► 10 re-scanned files milestone reached?
+    ├─► 5 improvement + 5 fp_candidate events (per class)?
     │       └─► SelfCalibrator 4D grid-search runs automatically
     │               └─► confident result?
     │                       └─► .slopconfig.yaml weights updated silently
@@ -338,7 +349,7 @@ absolute gate. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.6.0
+    rev: v3.7.0
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks
@@ -357,7 +368,7 @@ repos:
 **Enforcement modes:**
 ```bash
 --ci-mode soft        # informational, never fails build
---ci-mode hard        # fails at deficit_score >= 70 or critical_patterns >= 3
+--ci-mode hard        # fails: deficit_score >= 70, critical_patterns >= 3, inflation >= 1.5, ddc < 0.5
 --ci-mode quarantine  # escalates repeat offenders after 3 violations
 ```
 
@@ -372,7 +383,7 @@ repos:
 weights:
   ldr: 0.40
   inflation: 0.30
-  ddc: 0.30
+  ddc: 0.20
   purity: 0.10
 
 patterns:
@@ -421,8 +432,8 @@ or build locally:
 ```bash
 cd vscode-extension
 npm install
-npx vsce package          # produces vscode-slop-detector-3.6.0.vsix
-code --install-extension vscode-slop-detector-3.6.0.vsix
+npx vsce package          # produces vscode-slop-detector-3.7.0.vsix
+code --install-extension vscode-slop-detector-3.7.0.vsix
 ```
 
 **Settings** (`slopDetector.*`): `pythonPath`, `lintOnSave`, `lintOnType`,
@@ -434,6 +445,7 @@ code --install-extension vscode-slop-detector-3.6.0.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.7.0** | Dogfooding calibration + SKILL.md OSOT repair (10 violations); `cli_renderer.py` split (730 lines → 4 renderer modules); `python_advanced.py` split (1150 lines → 5 modules); BUG-1 `ddc` weight 0.30→0.20; BUG-2 findings filter threshold fix; BUG-3 AST-accurate test counts; BUG-5 block-scoped YAML rewrite in self_calibrator; 314 tests GREEN |
 | **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); CI gate bugfix (`--ci-mode hard` now exits non-zero without `--ci-report`); pre-commit hooks rewritten (`python -m` entry, 3 hook variants); VS Code Extension v3.6.0 VSIX; docs: Purity row, weight normalization note, `[go]` extra; 311 tests GREEN |
 | **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |
 | **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |

@@ -28,7 +28,7 @@ class Config:
                 "suspicious": 0.30,
             },
         },
-        "weights": {"ldr": 0.15, "inflation": 0.1285, "ddc": 0.6215},
+        "weights": {"ldr": 0.40, "inflation": 0.30, "ddc": 0.20, "purity": 0.10},
         "ignore": [
             "**/__init__.py",
             "tests/**",
@@ -147,7 +147,7 @@ class Config:
 
     def get_weights(self) -> Dict[str, float]:
         """Get metric weights for slop score calculation."""
-        return self.get("weights", {"ldr": 0.4, "inflation": 0.3, "ddc": 0.3})
+        return self.get("weights", {"ldr": 0.40, "inflation": 0.30, "ddc": 0.20, "purity": 0.10})
 
     def use_radon(self) -> bool:
         """Check if radon should be used for complexity."""

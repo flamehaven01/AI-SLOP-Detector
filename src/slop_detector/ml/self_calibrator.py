@@ -695,11 +695,30 @@ class SelfCalibrator:
         updated: set = set()
 
         def _rewrite_key(t: str, key: str, value: float) -> Tuple[str, bool]:
-            # Matches "  ldr: 0.40  # optional comment" and replaces the numeric
-            # value only, leaving whitespace and inline comments intact.
-            pat = rf"^([ \t]*{re.escape(key)}:[ \t]+)\S+([ \t]*(?:#.*)?)$"
-            new_t, n = re.subn(pat, rf"\g<1>{value}\g<2>", t, flags=re.MULTILINE)
-            return new_t, n > 0
+            # Replace only within the weights: block so keys like `ldr:` in
+            # other YAML sections (comments, capability_vector) are not corrupted.
+            lines = t.split("\n")
+            in_block = False
+            block_indent = -1
+            replaced = False
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                cur_indent = len(line) - len(line.lstrip())
+                if re.match(r"^[ \t]*weights:\s*$", line):
+                    in_block = True
+                    block_indent = cur_indent
+                    continue
+                if in_block and not stripped.startswith("#") and cur_indent <= block_indent:
+                    in_block = False
+                if in_block:
+                    pat = rf"^([ \t]*{re.escape(key)}:[ \t]+)\S+([ \t]*(?:#.*)?)$"
+                    new_line, n = re.subn(pat, rf"\g<1>{value}\g<2>", line)
+                    if n:
+                        lines[i] = new_line
+                        replaced = True
+            return "\n".join(lines), replaced
 
         for key in ("ldr", "inflation", "ddc", "purity"):
             val = weights.get(key, 0.10 if key == "purity" else weights.get("ldr", 0.0))

@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.7.0] — Dogfooding Model Calibration
+## [3.7.0] — Dogfooding Model Calibration + SKILL.md Contract Repair
 
 ### Added
 
-**Real-world Dogfooding Model (v3.7.0)**
+**Real-world Dogfooding Model**
 - `scripts/retrain_model.py`: new `ThresholdClassifier` (pure-Python, no `sklearn` required) trained on real dogfooding data
 - Handled 784 actual samples from 7 distinct repositories with 55.1% bad class distribution
 - Achieved stable evaluation: `accuracy=0.7962`, `precision=0.9524`, `recall=0.6742` replacing previous initial baseline models (`accuracy=1.0`)
@@ -19,8 +19,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Completely replaced `models/training_data.json` and `models/slop_classifier.pkl` with live representations
 - Removed legacy `_real` suffixed files to streamline models structure
 
----
+**SKILL.md — CLI surface documented**
+- `--emit-leda-yaml` / `--leda-output` / `--leda-profile` (choices: internal | restricted | public)
+- `--cross-file` cross-file dependency + clone analysis
+- `--governance` CR-EP session artifact emission
+- `--gate` (SNP) vs `--ci-mode hard` (CIGate) gate path distinction
+- ML score availability: appears in `--json` output when ML model is loaded
+- `domain_overrides` corrected to per-function pattern exemption format
 
+### Fixed
+
+**SKILL.md — 10 OSOT violations repaired (Sentinel-verified)**
+
+Critical (command contract errors):
+- G1: `ddc` default weight `0.30` -> `0.20` (matches `core.py:479`)
+- G2: `/slop-gate` split -- `--gate` (SNP/sr9/di2/jsd/ove, PASS/HALT) vs `--ci-mode hard --ci-report` (CIGate, exit code)
+- G3: `DEPENDENCY_NOISE` status added with exact trigger (DDC < 20% AND no critical patterns AND inflation <= 1.0)
+- D1: Project-level `CRITICAL_DEFICIT` threshold corrected to `weighted_deficit_score >= 50`; file vs project scope distinguished
+- D2: CI hard gate completed -- 4 conditions: deficit >= 70, patterns >= 3, inflation >= 1.5, ddc < 0.5
+
+Medium (documentation drift):
+- G4: `fhval spar` marked as external Flamehaven tool with install prerequisite
+- D3: Domain profile names corrected (`web/api`, `library/sdk`, `cli/tool`, `scientific/ml`, `scientific/numerical`, `bio`, `finance`)
+- D4: `domain_overrides` YAML corrected -- per-function pattern exemption, not metric threshold override
+- D5: Self-calibration trigger corrected -- 5 improvements + 5 fp_candidates (per-class), not "10 files"
+- D6: DDC warning threshold added (< 0.70 = WARNING, < 0.50 = CRITICAL); LEDA profile `internal` documented; DDC three-band zone table added
+
+**Code bugs (Sentinel post-calibration audit)**
+
+Critical:
+- BUG-1: `config.py:31` DEFAULT_CONFIG weights corrected to `{ldr:0.40, inflation:0.30, ddc:0.20, purity:0.10}` — calibration had accidentally written general domain `capability_vector` values into `weights` key, causing no-init path to use `ddc=0.6215` instead of `0.20`; `purity` was absent (always fell back to GQG hardcoded 0.10)
+- BUG-1: `config.py:150` `get_weights()` fallback aligned to same values + `purity` added (was dead code but divergent)
+- BUG-2: `cli_renderer.py:500` Markdown findings filter threshold corrected `0.3` -> `30.0` — was comparing 0-100 scale deficit_score to 0.3, causing all files to appear in Detailed Findings section regardless of CLEAN status
+
+High:
+- BUG-3: `cli_renderer.py:446,450` Test function counts replaced with AST-actual counts via `_count_test_functions_ast()` — hardcoded `+= 5` / `+= 10` per file caused fabricated "Test Evidence" statistics in Markdown/text reports
+
+Medium:
+- BUG-5: `self_calibrator.py:697` `_rewrite_key()` scoped to `weights:` YAML block only — global MULTILINE regex could corrupt identically-named keys in other YAML sections (e.g., comments or custom domain stanzas)
+
+### Refactored
+
+**cli_renderer.py split (730 lines → 4 renderer modules)**
+- `renderer_rich.py` (~270 lines): Rich console rendering, `RICH_AVAILABLE`, `list_patterns`, `print_rich_report`, all `_build_*` panel helpers
+- `renderer_markdown.py` (~240 lines): `get_mitigation`, test-evidence helpers, `_md_*` section builders, `generate_markdown_report`
+- `renderer_text.py` (~80 lines): `_text_*` helpers, `generate_text_report`
+- `renderer_html.py` (~30 lines): `generate_html_report`
+- `cli_renderer.py` converted to 17-line re-export shim — all existing `cli.py` imports unchanged
+
+**patterns/python_advanced.py split (1150 lines → 5 domain modules)**
+- `python_complexity.py` (327 lines): `GodFunctionPattern`, `DeadCodePattern`, `DeepNestingPattern`, `NestedComplexityPattern`
+- `python_lint.py` (102 lines): `LintEscapePattern`
+- `python_imports.py` (282 lines): `PhantomImportPattern` + 8 resolution helpers
+- `python_clones.py` (76 lines): `FunctionClonePattern`
+- `python_naming.py` (123 lines): `PlaceholderVariableNamingPattern`
+
+---
 ## [3.6.0] — Claude Code Skill + Documentation Fixes
 
 ### Added

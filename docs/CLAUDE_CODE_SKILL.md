@@ -26,6 +26,19 @@ The skill adds the missing layer:
 
 ---
 
+## Philosophy: Breaking the Self-Referential Bias
+
+> *The problem isn't that AI writes code. The problem is the specific class of defects AI reliably introduces: unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy noise. The code speaks for itself.*
+
+A common critique of using AI to fix AI-generated code is **self-referential bias**: doesn't the AI just validate its own preferences? To break this loop, AI-SLOP Detector is designed strictly as a **diagnostic instrument**, not an autonomous code generator. The developer and AI collaborate, but the human remains the oracle.
+
+- **Evidence, not opinion.** All findings are backed by mathematical evidence: JSON output includes line numbers, AST-derived metrics, and formula derivation. Every score answers "why?"
+- **Developer-driven loop.** The `scan → patch → re-scan → gate` cycle is human-led. The developer reviews structured evidence, decides what to fix, and directs the AI on the patch. AI measures; the human judges.
+- **Objective metrics.** LDR counts executable lines (AST). DDC resolves imports (`importlib.util.find_spec`). Cyclomatic complexity is computed by `radon`. These are structural facts, not stylistic preferences. AI cannot "hallucinate" its way out of a 300-line function with a complexity of 45.
+- **Human-grounded calibration.** Self-calibration derives ground truth from human edit behavior (git commits), not AI judgment. A file the human fixes = improvement event. A flag the human ignores = false-positive candidate. The human's actions are the true anchor.
+
+---
+
 ## Installation
 
 ```bash
@@ -113,6 +126,8 @@ Runs `slop-detector --project . --ci-mode hard --ci-report`. Returns explicit PA
 **Gate thresholds (hard mode):**
 - `deficit_score >= 70` on any file → FAIL
 - `critical_pattern_count >= 3` on any file → FAIL
+- `inflation_score >= 1.5` on any file → FAIL
+- `ddc_usage_ratio < 0.50` on any file → FAIL
 
 **Output:**
 ```
@@ -196,7 +211,7 @@ slop-detector . --self-calibrate --apply-calibration
 
 ## Self-Calibration
 
-The skill's scoring weights auto-tune after 10 re-scanned files per project.
+The skill's scoring weights auto-tune after 5 improvement events + 5 fp_candidate events accumulate per class.
 To manually trigger or inspect:
 
 ```bash

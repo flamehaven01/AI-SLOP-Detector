@@ -19,6 +19,21 @@ Verify: `slop-detector --version`
 
 ---
 
+## Philosophy: Breaking the Self-Referential Bias
+
+> *The problem isn't that AI writes code. The problem is the specific class of defects AI reliably introduces: unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy noise. The code speaks for itself.*
+
+A common critique of using AI to fix AI-generated code is **self-referential bias**: doesn't the AI just validate its own preferences? To break this loop, AI-SLOP Detector is designed strictly as a **diagnostic instrument**, not an autonomous code generator. The developer and AI collaborate, but the human remains the oracle.
+
+- **Evidence, not opinion.** All findings are backed by mathematical evidence: JSON output includes line numbers, AST-derived metrics, and formula derivation. Every score answers "why?" — LDR contributed X%, DDC Y%, purity Z%, pattern_penalty W points.
+- **Developer-driven loop.** The `scan → patch → re-scan → gate` cycle is human-led. The developer reviews structured evidence, decides what to fix, and directs the AI on the patch. AI measures; the human judges.
+- **Objective metrics.** LDR counts executable lines (AST). DDC resolves imports (`importlib.util.find_spec`). Cyclomatic complexity is computed by `radon`. These are structural facts, not stylistic preferences. AI cannot "hallucinate" its way out of a 300-line function with a complexity of 45.
+- **Human-grounded calibration.** Self-calibration derives ground truth from human edit behavior (git commits), not AI judgment. A file the human fixes = improvement event. A flag the human ignores = false-positive candidate. The human's actions are the true anchor.
+- **Auditable at every layer.** `--json` exposes the full evidence chain. `--self-calibrate` reports per-rule FP rates with confidence gaps. `--emit-leda-yaml` produces a review surface with redaction profiles. Nothing is a black box.
+
+
+---
+
 ## Commands
 
 ### /slop — Full Project Scan
@@ -67,31 +82,54 @@ slop-detector <path> --json
 **Explain metrics:**
 - `ldr_score < 0.30` -> "Less than 30% of lines are executable logic. Heavy padding or empty stubs."
 - `inflation_score > 1.0` -> "Jargon density exceeds threshold. Unjustified quality claims detected."
-- `ddc usage_ratio < 0.50` -> "More than half of imported modules are unused. Possible phantom imports."
+- `ddc usage_ratio < 0.50` -> "CRITICAL: More than half of imported modules are unused. Possible phantom imports."
+- `ddc usage_ratio < 0.70` -> "WARNING: Low import usage detected."
 - `purity < 0.60` -> "Multiple critical patterns detected. AND-gate score pulled down."
 
 ---
 
-### /slop-gate — CI Gate Decision
+### /slop-gate — Gate Decision
 
+Two distinct gate paths — choose based on context:
+
+**Path A: SNP Gate (sr9/di2/jsd/ove metrics)**
+```bash
+slop-detector <file_or_dir> --gate
+```
+Produces a formal `SlopGateDecision` compatible with supreme-nexus-pipeline.
+Metrics: `sr9` (LDR), `di2` (DDC ratio), `jsd` (1-inflation), `ove` (1-penalty/50).
+Decision: `PASS` or `HALT`.
+
+HALT thresholds:
+- `ldr_score < 0.60`
+- `ddc_ratio < 0.50`
+- `inflation_score > 1.5`
+- `pattern_penalty > 30.0`
+
+**Path B: CI Hard Gate (deficit_score / pattern count)**
 ```bash
 slop-detector --project . --ci-mode hard --ci-report
 ```
+Standard CI integration gate. Exit 0 = PASS, non-zero = FAIL.
 
-**Workflow:**
-1. Run the command; capture exit code
-2. Exit 0 = PASS. Exit non-zero = FAIL.
-3. Report: PASS/FAIL, files exceeding threshold, critical pattern counts
-4. On FAIL: list blocking files with deficit_score >= 70 or critical_patterns >= 3
-5. Suggest minimum fixes required to unblock the gate
+FAIL thresholds (hard mode — any one triggers failure):
+- `deficit_score >= 70`
+- `critical_pattern_count >= 3`
+- `inflation_score >= 1.5`
+- `ddc usage_ratio < 0.50`
 
-**Gate thresholds (hard mode):**
-- deficit_score >= 70 -> blocks
-- critical_pattern_count >= 3 -> blocks
+**Workflow (either path):**
+1. Run the command; capture exit code / decision field
+2. Report: PASS/FAIL, blocking files, critical pattern counts
+3. On FAIL/HALT: list offending files with their key metric
+4. Suggest minimum fixes required to unblock
 
 ---
 
 ### /slop-spar — Adversarial Validation
+
+> **External dependency:** `fhval` is a separate Flamehaven validation tool — NOT included in `ai-slop-detector`.
+> Install separately before using this command.
 
 ```bash
 fhval spar
@@ -105,21 +143,47 @@ fhval spar --layer c    # existence probes
 ```
 
 **Workflow:**
-1. Run full 3-layer check
-2. Report any calibration drift detected
-3. Flag dimensions where metric claims diverge from measured behavior
-4. If drift found: recommend `slop-detector . --self-calibrate --apply-calibration`
+1. Confirm `fhval` is installed (`fhval --version`)
+2. Run full 3-layer check
+3. Report any calibration drift detected
+4. Flag dimensions where metric claims diverge from measured behavior
+5. If drift found: recommend `slop-detector . --self-calibrate --apply-calibration`
 
 ---
 
 ## Status Interpretation
 
-| Status | Score | Action |
+**File-level status** (per-file `deficit_score`):
+
+| Status | Score | Trigger | Action |
+|---|---|---|---|
+| `CLEAN` | < 30 | — | No action needed |
+| `SUSPICIOUS` | 30-50 | deficit or >= 5 critical patterns | Review flagged patterns; low urgency |
+| `INFLATED_SIGNAL` | 50-70 | deficit primary | Fix before merge; likely AI padding |
+| `DEPENDENCY_NOISE` | varies | DDC < 20% AND no critical patterns AND inflation <= 1.0 | Audit imports; remove phantom or unused deps |
+| `CRITICAL_DEFICIT` | >= 70 | deficit primary | Block merge; structural issue confirmed |
+
+> `DEPENDENCY_NOISE` overrides score-based status when DDC is the dominant failure axis. Score alone does not surface this class.
+
+**DDC threshold zones** (three distinct bands — not to be confused):
+
+| DDC usage_ratio | Effect |
+|---|---|
+| < 0.20 | `DEPENDENCY_NOISE` status (if no critical patterns AND inflation ≤ 1.0) |
+| < 0.50 | `CRITICAL` warning in file output; CIGate HARD mode FAIL |
+| < 0.70 | `WARNING` in file output; no gate action |
+
+> A file in the 0.20–0.50 band gets a CRITICAL warning and can fail CI, but does NOT become `DEPENDENCY_NOISE` (because other failure modes may be dominant). A file below 0.20 with clean patterns and low inflation IS reclassified to `DEPENDENCY_NOISE`.
+
+**Project-level status** (per-project `weighted_deficit_score = 0.6 * min + 0.4 * mean`):
+
+| Status | Threshold | Note |
 |---|---|---|
-| `CLEAN` | < 30 | No action needed |
-| `SUSPICIOUS` | 30-50 | Review flagged patterns; low urgency |
-| `INFLATED_SIGNAL` | 50-70 | Fix before merge; likely AI padding |
-| `CRITICAL_DEFICIT` | >= 70 | Block merge; structural issue confirmed |
+| `CLEAN` | < 30 | |
+| `SUSPICIOUS` | 30-50 | |
+| `CRITICAL_DEFICIT` | >= 50 | Lower than file-level threshold — aggregate penalizes distribution |
+
+> `INFLATED_SIGNAL` and `DEPENDENCY_NOISE` are **file-level only**. Project-level status has three states: CLEAN / SUSPICIOUS / CRITICAL_DEFICIT.
 
 ---
 
@@ -162,7 +226,7 @@ slop-detector . --self-calibrate               # preview recommended weights
 slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yaml
 ```
 
-Triggers automatically after 10 re-scanned files per project. Domain-anchored (+-0.15 from profile baseline). Use when false-positive rate feels high for your project type.
+Triggers automatically after **5 improvement events + 5 false-positive candidate events** (10 total, per-class balanced). An improvement event is recorded when a file's score improves after a fix; an fp_candidate event when a flagged file is not fixed (user signal). Domain-anchored (+-0.15 from profile baseline). Use when false-positive rate feels high for your project type.
 
 ---
 
@@ -173,7 +237,38 @@ slop-detector --init                        # auto-detect domain
 slop-detector --init --domain data_science  # explicit override
 ```
 
-Profiles: `general`, `web_frontend`, `data_science`, `cli_tool`, `library`, `ml_research`, `backend_api`, `scientific`
+Profiles (use exact key strings):
+`general`, `scientific/ml`, `scientific/numerical`, `web/api`, `library/sdk`, `cli/tool`, `bio`, `finance`
+
+`domain_overrides` in `.slopconfig.yaml` configures **per-function pattern exemptions** (not metric thresholds):
+```yaml
+patterns:
+  god_function:
+    domain_overrides:
+      - function_pattern: "validate_*"
+        complexity_threshold: 20
+        lines_threshold: 100
+```
+
+---
+
+## Additional CLI Options
+
+```bash
+# LEDA injection (SPAR-adjacent review surface)
+slop-detector --project . --emit-leda-yaml
+slop-detector --project . --emit-leda-yaml --leda-output reports/leda.yaml --leda-profile public
+# --leda-profile choices: internal | restricted | public (default: restricted)
+
+# Cross-file analysis (dependency graph + clone clusters across files)
+slop-detector src/ --cross-file
+
+# Governance artifacts (CR-EP session output)
+slop-detector src/ --governance
+
+# ML score (requires history: run >= 10 times to accumulate)
+slop-detector --project . --json   # field: ml_score in output when history present
+```
 
 ---
 
@@ -186,5 +281,5 @@ deficit_score = 100 * (1 - GQG) + pattern_penalty
 total_w       = w_ldr + w_inflation + w_ddc + w_purity  -- self-normalizing
 ```
 
-Default weights: `ldr=0.40, inflation=0.30, ddc=0.30, purity=0.10` (sum=1.10; normalized by total_w)
+Default weights: `ldr=0.40, inflation=0.30, ddc=0.20, purity=0.10` (sum=1.00; normalized by total_w)
 Project aggregation: `0.6 * min + 0.4 * mean` (SR9 conservative)
