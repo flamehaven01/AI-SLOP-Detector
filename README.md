@@ -414,6 +414,7 @@ code --install-extension vscode-slop-detector-3.7.0.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.7.1** | `LintEscapePattern` docstring FP fix — `# noqa:` text inside string literals no longer triggers lint_escape; self-scan avg_deficit 13.85 → 9.80; empty `except` blocks → debug logging; `global_injector.py` Patch 1 removed (weights design correction); `.slopconfig.yaml` domain_overrides expanded; LEDA_CALIBRATION.md GQG formula + §4.3 corrections |
 | **v3.7.0** | Dogfooding calibration + SKILL.md OSOT repair (10 violations); `cli_renderer.py` split (730 lines → 4 renderer modules); `python_advanced.py` split (1150 lines → 5 modules); BUG-1 `ddc` weight 0.30→0.20; BUG-2 findings filter threshold fix; BUG-3 AST-accurate test counts; BUG-5 block-scoped YAML rewrite in self_calibrator; 314 tests GREEN |
 | **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); CI gate bugfix (`--ci-mode hard` now exits non-zero without `--ci-report`); pre-commit hooks rewritten (`python -m` entry, 3 hook variants); VS Code Extension v3.6.0 VSIX; docs: Purity row, weight normalization note, `[go]` extra; 311 tests GREEN |
 | **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |
