@@ -38,7 +38,7 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 [What It Detects](#what-it-detects) •
 [Scoring](#scoring-model) •
 [Key Features](#key-features) •
-[Claude Code Skill](#claude-code-skill) •
+[Calibration](#empirical-weight-calibration-leda) •
 [Security](#security-considerations) •
 [CI/CD](#cicd-integration) •
 [Config](#configuration) •
@@ -56,7 +56,7 @@ Unlike general linters that flag style and convention, it targets **AI slop**: s
 
 - **27 adversarial pattern checks** — stubs, phantom imports, disconnected pipelines, buzzword inflation, clone clusters
 - **4D scoring model** — LDR (logic density), ICR (inflation), DDC (dependency coupling), Purity (critical severity) combined via geometric mean
-- **Self-calibrating** — every scan is recorded per-project; when 5 improvement events and 5 fp_candidate events accumulate per class, the tool automatically tunes its weights using project-scoped, domain-anchored grid search (no manual command required)
+- **Self-calibrating** — every scan is recorded per-project; at every 10 multi-run files milestone the calibration check fires automatically; weights update only when 5 improvement events and 5 fp_candidate events have accumulated per class (project-scoped, domain-anchored grid search, no manual command required)
 - **Git-aware noise filter** — uses commit SHA to distinguish real improvements from measurement noise
 - **Domain-aware bootstrap** — `--init` auto-detects project domain (8 profiles: `general`, `scientific/ml`, `scientific/numerical`, `web/api`, `library/sdk`, `cli/tool`, `bio`, `finance`) and pre-seeds weights accordingly; override with `--domain`
 - **JS/TS analysis** — optional `[js]` extra activates JSAnalyzer v2.8.0 with tree-sitter AST + regex fallback for `.js/.jsx/.ts/.tsx` files
@@ -114,8 +114,9 @@ flowchart LR
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
 Purity) **and** 27 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
-down regardless of other dimensions. Every scan is recorded to history (per project); weights
-auto-tune when 5 improvement + 5 fp_candidate events accumulate per class.
+down regardless of other dimensions. Every scan is recorded to history (per project); at every
+10 multi-run files milestone the calibrator fires — weights apply only when >= 5 improvement
+events and >= 5 fp_candidate events per class have accumulated.
 
 Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
@@ -230,74 +231,40 @@ the training signal for ML self-calibration.
 
 ---
 
-## Claude Code Skill
-
-Turn AI-SLOP Detector into a persistent quality loop inside Claude Code — and the more you use it, the more accurate it becomes.
-
-### Breaking the Self-Referential Bias
-
-A common critique of AI-assisted engineering is **self-referential bias**: if AI detects the slop and AI fixes the slop, doesn't it just optimize for its own stylistic preferences? 
-
-AI-SLOP-DETECTOR breaks this loop structurally:
-- **It is a diagnostic instrument, not an auto-fixer.** The Claude Code skill (`/slop`) presents structured, mathematical evidence to the human developer. **AI measures; the human judges.**
-- **Metrics are structural facts, not vibes.** LDR (AST node count), DDC (import resolution), and Complexity (radon) cannot be hallucinated. 
-- **Ground truth is human behavior.** Self-calibration uses human `git commit` actions (accepting vs ignoring a fix) as the oracle, entirely bypassing AI scoring loops.
-
----
+## Claude Code Integration
 
 ```bash
-# Install
 cp -r claude-skills/slop-detector ~/.claude/skills/
-# then restart Claude Code
+# restart Claude Code, then use /slop, /slop-file, /slop-gate, /slop-spar
 ```
 
-**Four commands:**
+Adds a persistent `scan → diagnose → patch → re-scan → gate → calibrate` quality loop inside Claude Code. `/slop` scans and prioritizes; `/slop-gate` gives a CI-style PASS/FAIL; `/slop-spar` catches calibration drift.
 
-| Command | What it does |
-|---|---|
-| `/slop` | Full project scan — interprets findings, prioritizes fixes |
-| `/slop-file [path]` | Single-file analysis with per-pattern fix guidance |
-| `/slop-gate` | CI hard gate — PASS/FAIL with blocking file list |
-| `/slop-spar` | Adversarial validation — catches calibration drift, recommends recalibration |
-
-**The quality loop:**
-
-```
-/slop  ->  review findings  ->  patch  ->  /slop-file <path>  ->  /slop-gate
-```
-
-Skill source: [`claude-skills/slop-detector/SKILL.md`](claude-skills/slop-detector/SKILL.md) · [Full documentation →](docs/CLAUDE_CODE_SKILL.md)
+[Skill source →](claude-skills/slop-detector/SKILL.md) · [Full docs →](docs/CLAUDE_CODE_SKILL.md)
 
 ---
 
-## The LEDA Engine & Dogfooding Calibration
+## Empirical Weight Calibration (LEDA)
 
-AI-SLOP Detector is powered by the **LEDA (Logic-Density Evaluation & Drift-Atonement) Engine**, a dedicated infrastructure for autonomous calibration and continuous learning.
-
-Instead of arbitrary thresholds, the engine's 4D scoring weights (LDR, Inflation, DDC, Purity) are synthesized through high-throughput dogfooding across external repositories (the "Turbo Protocol").
-
-### The Calibration Flywheel
+Most static analyzers ship with hand-tuned thresholds — or none at all. AI-SLOP Detector's 4D weights are **empirically synthesized**, not guessed. The oracle is human `git` behavior: a developer committing a flagged fix is an improvement signal; ignoring a flag is a false-positive candidate. Because LDR, DDC, and cyclomatic complexity are AST-derived structural facts, the calibration loop cannot hallucinate its way to a better score — **AI measures, the human judges.**
 
 ```mermaid
 flowchart TD
     A[External Repositories\nDogfooding] --> B[LEDA Turbo Protocol\nScan → Auto-Fix → Rescan]
     B --> C{Measure Delta}
-    C -->|Git Commit| D[Improvement Event]
-    C -->|Ignored| E[False Positive Candidate]
-    D --> F[Self-Calibrator 4D Grid Search]
+    C -->|Git Commit Accepted| D[Improvement Event]
+    C -->|Flagged but Ignored| E[False Positive Candidate]
+    D --> F[Self-Calibrator\n4D Grid Search]
     E --> F
-    F --> G{Confidence Gap >= 0.10?}
-    G -->|Yes| H[Global Injector Synthesizes Weights]
-    H --> I[config.py Base Weights Updated]
+    F --> G{Confidence Gap ≥ 0.10?}
+    G -->|Yes| H[Global Injector\nSynthesizes Weights]
+    H --> I[DOMAIN_PROFILES Updated]
 ```
 
-1. **Dogfooding (Turbo Protocol):** The `scripts/leda_turbo.bat` tool autonomously runs a `Scan → Fix → Rescan` loop over diverse external codebases (`minGPT`, `unsloth`, `LMCache`, etc.), safely testing fixes for patterns like `bare_except` or `mutable_default_arg`.
-2. **Event Labeling (The Oracle):** It measures the delta. If a file's deficit drops significantly and is committed, it's an `improvement_event`. If flagged but safely ignored, it's an `fp_candidate`. Human behavior is the ground truth.
-3. **Self-Calibration:** The `self_calibrator.py` runs a domain-anchored grid search (±0.15 drift limits). It requires a strict `confidence_gap` (distance between improvement event density and FP candidates) of at least **0.10** to prove statistical significance.
-4. **Global Synthesis:** `scripts/global_injector.py` harvests calibration signals across all dogfooding repositories. If the signal passes the quality gate, it synthesizes a new global weight profile and injects it directly into the engine's core `config.py`.
-
-**What this means for you:**
-The weights you use out-of-the-box (`ldr=0.40`, `inflation=0.30`, `ddc=0.20`, `purity=0.10`) aren't guessed. They are the synthesized result of the LEDA engine actively hunting slop in the wild, proposing fixes, measuring human acceptance, and proving the math.
+1. **Dogfooding** — `leda_turbo.bat` runs a `Scan → Auto-Fix → Rescan` loop over diverse external codebases, safely applying patterns like `bare_except` and `mutable_default_arg`.
+2. **Event Labeling** — deficit drop + git commit = `improvement_event`; flagged and ignored = `fp_candidate`.
+3. **Self-Calibration** — 4D grid search (±0.15 domain-anchored). Weights update only when the `confidence_gap` between improvement events and FP candidates exceeds **0.10**.
+4. **Global Synthesis** — `global_injector.py` harvests signals across all dogfooding repos, synthesizes a vote-weighted optimal profile, and injects it into `DOMAIN_PROFILES["general"]`.
 
 [LEDA Calibration Docs →](docs/LEDA_CALIBRATION.md) · [Turbo Protocol →](docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md)
 

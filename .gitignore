@@ -57,6 +57,7 @@ certification_report*.md
 SLOPPYLINT_COMPARISON.md
 tests/manual_test/*.md
 slop_report*.txt
+scripts/injection_report.json
 *_Verification_Report.md
 verification_report*.md
 slop_self_inspection.md

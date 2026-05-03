@@ -91,9 +91,11 @@ D:\Sanctum\ai-slop-detector\
 │    vote_weight = improvement_events × (1 + gap)     │
 │    → Weighted Average → Clamp[0.10,0.65] → Normalize │
 │  STEP 3: Inject                                     │
-│    config.py L31: DEFAULT_CONFIG["weights"]         │
 │    config.py L199: DOMAIN_PROFILES["general"]       │
 │    self_calibrator.py L174: calibrate() fallback    │
+│    (DEFAULT_CONFIG["weights"] is NOT modified —     │
+│     it is the canonical fallback; dogfooding values │
+│     belong only in DOMAIN_PROFILES["general"])      │
 │  STEP 4: Report                                     │
 │    → scripts\injection_report.json                  │
 └─────────────────────────────────────────────────────┘
@@ -110,12 +112,15 @@ D:\Sanctum\ai-slop-detector\
 deficit_score = 100 × (1 - GQG)
 
 GQG = exp(
-    (w_ldr   × log(LDR)
-   + w_inf   × log(1 - min(inflation, 2.0) / 2.0)
-   + w_ddc   × log(DDC_usage_ratio)
-   + w_pur   × log(exp(-0.5 × n_critical_patterns)))
+    (w_ldr   × log(max(1e-4, LDR))
+   + w_inf   × log(max(1e-4, 1.0 - inflation_normalized))
+   + w_ddc   × log(max(1e-4, DDC_usage_ratio))
+   + w_pur   × log(max(1e-4, purity)))
     / (w_ldr + w_inf + w_ddc + w_pur)
 )
+# max(1e-4, ...) prevents log(0) = -inf collapsing the entire score.
+# purity = exp(-0.5 × n_critical_patterns)
+# inflation_normalized = min(inflation_score, 2.0) / 2.0
 ```
 
 ### 3.2 Event Labeling (User Behaviour Based, Anti-Tautology)
@@ -192,12 +197,16 @@ structural_ceiling = len(unfixable) > 2 OR (unfixable+manual) > fixable*3
 
 **Drift Interpretation:**
 
-| Dimension | Before | After | Change | Interpretation |
+| Dimension | Before¹ | After | Change | Interpretation |
 |------|------|------|------|------|
 | ldr | 0.40 | **0.15** | -62.5% | Simple Logic Density is the main cause of excessive FP |
 | inflation | 0.30 | **0.13** | -57% | ML/OS code bare_except excessive penalty |
-| ddc | 0.30 | **0.62** | +107% | Dependency usage ratio is the core metric of actual Slop |
+| ddc | 0.20² | **0.62** | +210% | Dependency usage ratio is the core metric of actual Slop |
 | purity | 0.10 | **0.10** | 0% | Stable — No change |
+
+> ¹ "Before" = `DEFAULT_CONFIG["weights"]` (canonical fallback, not modified by injector).
+> ² Post-3.7.0 canonical value. At dogfooding time (2026-05-01) `ddc` was `0.30` in the pre-3.7.0 config.
+> The injector no longer writes to `DEFAULT_CONFIG`; dogfooding values go only to `DOMAIN_PROFILES["general"]`.
 
 ---
 

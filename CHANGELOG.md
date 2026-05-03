@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.1] — Self-Scan Quality Pass + LintEscape False Positive Fix
+
+### Fixed
+
+**Pattern accuracy**
+- `patterns/python_lint.py`: `LintEscapePattern.check()` now skips lines that fall inside string/docstring literals — `# noqa:` text in docstrings (e.g., `"""...has '# noqa: F401'..."""`) was incorrectly flagged as a live lint suppression; fix uses `_string_literal_lines()` to collect all `ast.Constant[str]` line ranges and exclude them from the regex scan
+
+**Code quality (self-scan audit — avg_deficit 13.85 → 9.80)**
+- `cli_commands.py L215`: `except OSError: pass` in `detect_domain()` replaced with debug-level log — domain detection is best-effort but the exception should be observable
+- `cli_commands.py L380`: `except Exception: pass` in `_check_calibration_hint()` replaced with debug-level log — calibration hint failure is informational, but silent discard masked the exception; `# noqa: BLE001` retained (broad catch is intentional for never-block semantics)
+- `scripts/global_injector.py`: Patch 1 (`DEFAULT_CONFIG["weights"]` rewrite) removed from `inject_config_py()` — dogfooding-calibrated values belong only in `DOMAIN_PROFILES["general"]["capability_vector"]`, not in the canonical production fallback; the regex was also outdated (3-key pattern, no purity) so it already MISS-ed, but the wrong design intent was preserved in code
+
+**Documentation accuracy**
+- `docs/LEDA_CALIBRATION.md §2` diagram: removed `config.py L31: DEFAULT_CONFIG["weights"]` injection target — injector only writes to `DOMAIN_PROFILES["general"]`; added clarifying note
+- `docs/LEDA_CALIBRATION.md §3.1` GQG formula: added `max(1e-4, ...)` clamp guards (matching `core.py:484-487`) — previously showed bare `log(x)` which would be `−inf` at zero
+- `docs/LEDA_CALIBRATION.md §4.3` Before column: ddc corrected to `0.20²` with footnote explaining pre-3.7.0 historical value was `0.30`
+- `docs/CLAUDE_CODE_SKILL.md`: loop label `scan -> interpret -> patch -> re-scan -> gate` corrected to `scan -> diagnose -> patch -> re-scan -> gate -> calibrate` in 4 locations; Quality Loop section updated to 7 numbered steps with role labels
+- `claude-skills/slop-detector/SKILL.md` (installed copy): same loop correction applied
+
+**README balance**
+- `Claude Code Skill` section demoted to compact "Claude Code Integration" block (38 lines → 10 lines) — convenience feature was given equal billing with core detection features
+- `LEDA Engine` section restored as "Empirical Weight Calibration (LEDA)" with Mermaid flywheel diagram; "Breaking the Self-Referential Bias" bullet list merged into single intro paragraph — three redundant restatements collapsed to one cohesive statement; `[Calibration]` nav link restored
+
+### Changed
+
+**`.slopconfig.yaml` — domain_overrides expanded for justified structural complexity**
+- `god_function`: added overrides for `detect_domain` (cc=13, domain trigger scanner), `_collect_imports` (cc=21/depth=7, DDC import resolver), `_analyze_regex` (118L, Go line dispatcher), `_run_self_calibration` (118L, CLI calibration orchestrator), `_check_calibration_hint` (56L, result formatter)
+- `nested_complexity`: added overrides for same functions plus `_collect_all_members`, `_collect_noqa_imports`
+- `ignore`: added `scripts/generate_download_chart.py` — legacy chart utility with optional `matplotlib`/`numpy` deps not in main venv; phantom_import flags are expected
+
+**`.gitignore`**: added `scripts/injection_report.json` — auto-generated audit trail from `global_injector.py`, not source
+
+---
+
 ## [3.7.0] — Dogfooding Model Calibration + SKILL.md Contract Repair
 
 ### Added
@@ -42,7 +76,7 @@ Medium (documentation drift):
 - G4: `fhval spar` marked as external Flamehaven tool with install prerequisite
 - D3: Domain profile names corrected (`web/api`, `library/sdk`, `cli/tool`, `scientific/ml`, `scientific/numerical`, `bio`, `finance`)
 - D4: `domain_overrides` YAML corrected -- per-function pattern exemption, not metric threshold override
-- D5: Self-calibration trigger corrected -- 5 improvements + 5 fp_candidates (per-class), not "10 files"
+- D5: Self-calibration two-gate structure documented -- outer trigger: 10 multi-run files milestone (`CALIBRATION_MILESTONE=10`); inner floor: >= 5 improvements + >= 5 fp_candidates per class. Previous docs described only one gate, causing confusion
 - D6: DDC warning threshold added (< 0.70 = WARNING, < 0.50 = CRITICAL); LEDA profile `internal` documented; DDC three-band zone table added
 
 **Code bugs (Sentinel post-calibration audit)**

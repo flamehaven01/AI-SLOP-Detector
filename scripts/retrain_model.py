@@ -381,7 +381,7 @@ def train(good: List[dict], bad: List[dict]) -> Tuple[ThresholdClassifier, dict]
     fi_sorted = sorted(clf.feature_importance.items(), key=lambda x: -x[1])
 
     report = {
-        "version":      "3.7.0",
+        "version":      "3.7.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "data_source":  "dogfooding_real",
         "n_samples":    n_good + n_bad,
@@ -461,7 +461,7 @@ def main() -> int:
     args = parser.parse_args()
 
     print("=" * 68)
-    print("  LEDA MODEL RETRAINING PIPELINE  v1.1  (3.6.0 -> 3.7.0)")
+    print("  LEDA MODEL RETRAINING PIPELINE  v1.1  (3.6.0 -> 3.7.1)")
     print("  Mode: Pure-Python ThresholdClassifier (no sklearn required)")
     print("=" * 68)
 
@@ -501,11 +501,11 @@ def main() -> int:
     if args.dry_run:
         print("  [DRY-RUN] No files written. Remove --dry-run to apply.")
     else:
-        print("  [+] Model retrained on real Dogfooding data (v3.7.0).")
+        print("  [+] Model retrained on real Dogfooding data (v3.7.1).")
         print("  Next steps:")
         print("    git add models/ scripts/retrain_model.py")
-        print("    git commit -m 'feat(ml): retrain on real dogfooding data (v3.7.0)'")
-        print("    git tag v3.7.0")
+        print("    git commit -m 'feat(ml): retrain on real dogfooding data (v3.7.1)'")
+        print("    git tag v3.7.1")
     print("=" * 68)
     return 0
 

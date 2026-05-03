@@ -208,7 +208,12 @@ def _clamp_and_normalize(weights: Dict[str, float]) -> Dict[str, float]:
 # ---------------------------------------------------------------------------
 
 def inject_config_py(weights: Dict[str, float], dry_run: bool) -> bool:
-    """Rewrite DEFAULT_CONFIG weights + general DOMAIN_PROFILES entry in config.py."""
+    """Rewrite general DOMAIN_PROFILES capability_vector in config.py.
+
+    NOTE: DEFAULT_CONFIG["weights"] is intentionally NOT updated here.
+    It is the canonical fallback for users without a domain profile.
+    Dogfooding-calibrated values belong only in DOMAIN_PROFILES["general"].
+    """
     if not SRC_CONFIG.exists():
         print(f"[!] config.py not found: {SRC_CONFIG}")
         return False
@@ -216,25 +221,7 @@ def inject_config_py(weights: Dict[str, float], dry_run: bool) -> bool:
     text = SRC_CONFIG.read_text(encoding="utf-8")
     original = text
 
-    # --- Patch 1: DEFAULT_CONFIG weights line ---
-    # Target:  "weights": {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30},
-    pat1 = (
-        r'("weights":\s*\{)'
-        r'(\s*"ldr":\s*)[\d.]+,'
-        r'(\s*"inflation":\s*)[\d.]+,'
-        r'(\s*"ddc":\s*)[\d.]+'
-        r'(\})'
-    )
-    repl1 = (
-        rf'\g<1>'
-        rf'\g<2>{weights["ldr"]}, '
-        rf'"inflation": {weights["inflation"]}, '
-        rf'"ddc": {weights["ddc"]}'
-        rf'\g<5>'
-    )
-    text, n1 = re.subn(pat1, repl1, text)
-
-    # --- Patch 2: DOMAIN_PROFILES "general" capability_vector ---
+    # --- Patch: DOMAIN_PROFILES "general" capability_vector ---
     # Target:  "capability_vector": {"ldr": 0.40, "inflation": 0.30, "ddc": 0.20, "purity": 0.10},
     # (first occurrence after DOMAIN_PROFILES assignment)
     pat2 = (
@@ -265,8 +252,7 @@ def inject_config_py(weights: Dict[str, float], dry_run: bool) -> bool:
     if not dry_run and changed:
         SRC_CONFIG.write_text(text, encoding="utf-8")
 
-    print(f"  config.py      — DEFAULT_CONFIG patch: {'ok' if n1 else 'MISS'}  "
-          f"DOMAIN_PROFILES[general] patch: {'ok' if n2 else 'MISS'}  "
+    print(f"  config.py      — DOMAIN_PROFILES[general] patch: {'ok' if n2 else 'MISS'}  "
           f"{'[DRY-RUN]' if dry_run else '[WRITTEN]'}")
     return changed
 

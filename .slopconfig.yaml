@@ -119,6 +119,39 @@ patterns:
       - function_pattern: "_grid_search"
         depth_threshold: 6
         cc_threshold: 10
+      # CLI domain detector — import trigger matching; depth reflects nested
+      # file-scan → import-parse → profile-match hierarchy.
+      - function_pattern: "detect_domain"
+        depth_threshold: 6
+        cc_threshold: 15
+      # DDC import collector — alias tracking + noqa + __all__ re-export resolution;
+      # depth reflects multi-level AST scope traversal.
+      - function_pattern: "_collect_imports"
+        depth_threshold: 8
+        cc_threshold: 25
+      # Go regex analyzer — multi-level pattern dispatch for Go source line analysis.
+      - function_pattern: "_analyze_regex"
+        depth_threshold: 6
+        cc_threshold: 20
+      # DDC member collector — tracks attribute/method references across nested scopes;
+      # depth reflects multi-level class/function scope traversal.
+      - function_pattern: "_collect_all_members"
+        depth_threshold: 7
+        cc_threshold: 15
+      # DDC noqa-import collector — parses import lines + noqa annotations;
+      # nested conditionals reflect multi-form import syntax handling.
+      - function_pattern: "_collect_noqa_imports"
+        depth_threshold: 5
+        cc_threshold: 12
+      # CLI self-calibration handler — orchestrates config load, calibration run,
+      # result formatting, and optional config write; multi-stage orchestration.
+      - function_pattern: "_run_self_calibration"
+        depth_threshold: 5
+        cc_threshold: 25
+      # Calibration hint printer — formats calibration state across result variants.
+      - function_pattern: "_check_calibration_hint"
+        depth_threshold: 5
+        cc_threshold: 15
   god_function:
     complexity_threshold: 10
     lines_threshold: 50
@@ -186,6 +219,31 @@ patterns:
       - function_pattern: "apply_to_config"
         complexity_threshold: 15
         lines_threshold: 70
+      # CLI domain detector — scans all project .py files and matches import triggers
+      # against every DOMAIN_PROFILES entry; branch count scales with profile count.
+      - function_pattern: "detect_domain"
+        complexity_threshold: 15
+        lines_threshold: 80
+      # DDC import collector — resolves import aliases, noqa markers, __all__ re-exports,
+      # and TYPE_CHECKING blocks per file; multi-case AST traversal is structural.
+      - function_pattern: "_collect_imports"
+        complexity_threshold: 25
+        lines_threshold: 200
+      # Go regex-based analyzer — one branch per detectable Go pattern type;
+      # line-by-line dispatch is inherent to regex-based language analysis.
+      - function_pattern: "_analyze_regex"
+        complexity_threshold: 25
+        lines_threshold: 150
+      # CLI self-calibration command handler — orchestrates config load, calibration
+      # run, result display, and optional config write; multi-stage CLI orchestration.
+      - function_pattern: "_run_self_calibration"
+        complexity_threshold: 25
+        lines_threshold: 130
+      # Calibration hint printer — formats and displays calibration state;
+      # branch count scales with calibration result variants.
+      - function_pattern: "_check_calibration_hint"
+        complexity_threshold: 15
+        lines_threshold: 70
 
 weights:
   ldr: 0.1
@@ -227,3 +285,6 @@ ignore:
   - "htmlcov/**"
   # VS Code extension (TypeScript/Node, not Python)
   - "vscode-extension/**"
+  # Legacy chart generation script — optional matplotlib/numpy dep not in main venv;
+  # phantom_import flags are a false positive for this standalone utility
+  - "scripts/generate_download_chart.py"

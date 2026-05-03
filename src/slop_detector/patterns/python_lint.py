@@ -28,13 +28,29 @@ class LintEscapePattern(BasePattern):
     axis = Axis.QUALITY
     message = "Lint suppression comment hides potential issue"
 
+    @staticmethod
+    def _string_literal_lines(tree: ast.AST) -> set[int]:
+        """Line numbers that fall inside a string/docstring literal (1-based)."""
+        inside: set[int] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                start = getattr(node, "lineno", None)
+                end = getattr(node, "end_lineno", start)
+                if start:
+                    for ln in range(start, (end or start) + 1):
+                        inside.add(ln)
+        return inside
+
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
         lines = content.splitlines()
+        string_lines = self._string_literal_lines(tree)
 
         for lineno, raw in enumerate(lines, start=1):
             stripped = raw.lstrip()
             if not stripped or stripped.startswith("#"):
+                continue
+            if lineno in string_lines:
                 continue
 
             if _NOQA_BARE.search(raw):

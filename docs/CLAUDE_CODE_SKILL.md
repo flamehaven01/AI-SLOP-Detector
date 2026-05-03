@@ -1,7 +1,7 @@
 # Claude Code Skill — AI-SLOP Detector
 
 Integrates AI-SLOP Detector into Claude Code as a persistent quality-control loop:
-`scan -> interpret -> patch -> re-scan -> gate`.
+`scan -> diagnose -> patch -> re-scan -> gate -> calibrate`.
 
 ---
 
@@ -13,7 +13,7 @@ The skill adds the missing layer:
 | Raw CLI | With Skill |
 |---|---|
 | Raw JSON / text output | Interpreted findings with per-pattern explanations |
-| Single-shot execution | Stateful scan -> patch -> re-scan loop |
+| Single-shot execution | Stateful scan -> diagnose -> patch -> re-scan -> gate -> calibrate loop |
 | No fix guidance | Per-pattern patch suggestions |
 | No context carry-over | Review criteria held across sessions |
 | Manual gate decision | Explicit PASS/FAIL with blocking file list |
@@ -33,7 +33,7 @@ The skill adds the missing layer:
 A common critique of using AI to fix AI-generated code is **self-referential bias**: doesn't the AI just validate its own preferences? To break this loop, AI-SLOP Detector is designed strictly as a **diagnostic instrument**, not an autonomous code generator. The developer and AI collaborate, but the human remains the oracle.
 
 - **Evidence, not opinion.** All findings are backed by mathematical evidence: JSON output includes line numbers, AST-derived metrics, and formula derivation. Every score answers "why?"
-- **Developer-driven loop.** The `scan → patch → re-scan → gate` cycle is human-led. The developer reviews structured evidence, decides what to fix, and directs the AI on the patch. AI measures; the human judges.
+- **Developer-driven loop.** The `scan → diagnose → patch → re-scan → gate → calibrate` cycle is human-led. The developer reviews structured evidence, decides what to fix, and directs the AI on the patch. AI measures; the human judges.
 - **Objective metrics.** LDR counts executable lines (AST). DDC resolves imports (`importlib.util.find_spec`). Cyclomatic complexity is computed by `radon`. These are structural facts, not stylistic preferences. AI cannot "hallucinate" its way out of a 300-line function with a complexity of 45.
 - **Human-grounded calibration.** Self-calibration derives ground truth from human edit behavior (git commits), not AI judgment. A file the human fixes = improvement event. A flag the human ignores = false-positive candidate. The human's actions are the true anchor.
 
@@ -175,12 +175,13 @@ slop-detector . --self-calibrate --apply-calibration
 ## The Quality Loop
 
 ```
-1. /slop                  baseline scan — identify top offenders
-2. review findings        prioritize CRITICAL_DEFICIT files
-3. apply patches          use per-pattern fix guidance
-4. /slop-file <path>      verify each patched file individually
-5. /slop                  confirm project aggregate improved
-6. /slop-gate             final gate before merge
+1. /slop                  scan: baseline scan — identify top offenders
+2. review findings        diagnose: explain each metric, prioritize CRITICAL_DEFICIT files
+3. apply patches          patch: use per-pattern fix guidance; human decides what to fix
+4. /slop-file <path>      re-scan: verify each patched file individually
+5. /slop                  re-scan: confirm project aggregate improved
+6. /slop-gate             gate: PASS/FAIL decision before merge
+7. (auto) calibrate       calibrate: LEDA registers improvement events; weights auto-tune at milestone
 ```
 
 **Delta tracking:** After re-scan, the skill compares `deficit_score` before vs. after for each patched file and reports the delta.
@@ -211,7 +212,7 @@ slop-detector . --self-calibrate --apply-calibration
 
 ## Self-Calibration
 
-The skill's scoring weights auto-tune after 5 improvement events + 5 fp_candidate events accumulate per class.
+The skill's scoring weights auto-tune via two gates: (1) every 10 multi-run files milestone the calibrator fires automatically; (2) weights only update when >= 5 improvement events AND >= 5 fp_candidate events have accumulated per class — insufficient signal returns `insufficient_data` without changing anything.
 To manually trigger or inspect:
 
 ```bash

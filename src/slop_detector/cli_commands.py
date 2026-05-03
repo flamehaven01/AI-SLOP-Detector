@@ -212,8 +212,9 @@ def detect_domain(project_path: Path) -> tuple:
                         found_imports.add(mod)
             except OSError:
                 continue
-    except OSError:
-        pass
+    except OSError as exc:
+        import logging as _logging
+        _logging.getLogger(__name__).debug("domain detection scan failed: %s", exc)
 
     scores: Dict[str, List[str]] = {}
     for dp, profile in DOMAIN_PROFILES.items():
@@ -377,8 +378,9 @@ def _check_calibration_hint(args) -> None:
                 f"Run --self-calibrate for details.",
                 file=_sys.stderr,
             )
-    except Exception:  # noqa: BLE001 — hint is informational; never block main flow
-        pass
+    except Exception as exc:  # noqa: BLE001 — hint is informational; never block main flow
+        import logging as _logging
+        _logging.getLogger(__name__).debug("calibration hint skipped: %s", exc)
 
 
 def _get_git_context():

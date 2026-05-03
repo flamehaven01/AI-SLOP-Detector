@@ -1,11 +1,11 @@
 ---
 name: slop-detector
-description: Structural risk scanner for AI-assisted code using AI-SLOP Detector CLI. Triggers on /slop (full project scan), /slop-file [path] (single file), /slop-gate (CI hard gate), /slop-spar (adversarial validation). Interprets findings, prioritizes fixes, and drives the scan -> patch -> re-scan -> gate quality loop. Use when asked to check code quality, detect AI slop, validate imports, review structural integrity, or run a quality gate on Python/JS/Go files.
+description: Structural risk scanner for AI-assisted code using AI-SLOP Detector CLI. Triggers on /slop (full project scan), /slop-file [path] (single file), /slop-gate (CI hard gate), /slop-spar (adversarial validation). Interprets findings, prioritizes fixes, and drives the scan -> diagnose -> patch -> re-scan -> gate -> calibrate quality loop. Use when asked to check code quality, detect AI slop, validate imports, review structural integrity, or run a quality gate on Python/JS/Go files.
 ---
 
 # AI-SLOP Detector Skill
 
-Structural risk scanner for AI-assisted code. Runs `slop-detector` CLI commands, interprets 4D scoring output (LDR + ICR + DDC + Purity), and drives the `scan -> patch -> re-scan -> gate` quality loop.
+Structural risk scanner for AI-assisted code. Runs `slop-detector` CLI commands, interprets 4D scoring output (LDR + ICR + DDC + Purity), and drives the `scan -> diagnose -> patch -> re-scan -> gate -> calibrate` quality loop.
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ Verify: `slop-detector --version`
 A common critique of using AI to fix AI-generated code is **self-referential bias**: doesn't the AI just validate its own preferences? To break this loop, AI-SLOP Detector is designed strictly as a **diagnostic instrument**, not an autonomous code generator. The developer and AI collaborate, but the human remains the oracle.
 
 - **Evidence, not opinion.** All findings are backed by mathematical evidence: JSON output includes line numbers, AST-derived metrics, and formula derivation. Every score answers "why?" — LDR contributed X%, DDC Y%, purity Z%, pattern_penalty W points.
-- **Developer-driven loop.** The `scan → patch → re-scan → gate` cycle is human-led. The developer reviews structured evidence, decides what to fix, and directs the AI on the patch. AI measures; the human judges.
+- **Developer-driven loop.** The `scan → diagnose → patch → re-scan → gate → calibrate` cycle is human-led. The developer reviews structured evidence, decides what to fix, and directs the AI on the patch. AI measures; the human judges.
 - **Objective metrics.** LDR counts executable lines (AST). DDC resolves imports (`importlib.util.find_spec`). Cyclomatic complexity is computed by `radon`. These are structural facts, not stylistic preferences. AI cannot "hallucinate" its way out of a 300-line function with a complexity of 45.
 - **Human-grounded calibration.** Self-calibration derives ground truth from human edit behavior (git commits), not AI judgment. A file the human fixes = improvement event. A flag the human ignores = false-positive candidate. The human's actions are the true anchor.
 - **Auditable at every layer.** `--json` exposes the full evidence chain. `--self-calibrate` reports per-rule FP rates with confidence gaps. `--emit-leda-yaml` produces a review surface with redaction profiles. Nothing is a black box.
@@ -204,15 +204,16 @@ fhval spar --layer c    # existence probes
 
 ---
 
-## Scan -> Patch -> Re-scan Loop
+## Scan -> Diagnose -> Patch -> Re-scan -> Gate -> Calibrate Loop
 
 ```
-1. /slop               -- baseline scan; identify top offenders
-2. Review findings     -- prioritize CRITICAL_DEFICIT files
-3. Apply patches       -- use Patch Guidance above
-4. /slop-file <path>   -- verify each patched file
-5. /slop               -- confirm project aggregate improved
-6. /slop-gate          -- gate decision before merge
+1. /slop               -- scan: baseline scan; identify top offenders
+2. Review findings     -- diagnose: explain each metric, prioritize CRITICAL_DEFICIT files
+3. Apply patches       -- patch: use Patch Guidance above; human decides what to fix
+4. /slop-file <path>   -- re-scan: verify each patched file individually
+5. /slop               -- re-scan: confirm project aggregate improved
+6. /slop-gate          -- gate: PASS/FAIL decision before merge
+7. (auto) calibrate    -- calibrate: LEDA registers improvement events; weights auto-tune at milestone
 ```
 
 **Delta reporting:** After re-scan, compare `deficit_score` before vs. after for each patched file. Report improvement or regression.
@@ -226,7 +227,7 @@ slop-detector . --self-calibrate               # preview recommended weights
 slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yaml
 ```
 
-Triggers automatically after **5 improvement events + 5 false-positive candidate events** (10 total, per-class balanced). An improvement event is recorded when a file's score improves after a fix; an fp_candidate event when a flagged file is not fixed (user signal). Domain-anchored (+-0.15 from profile baseline). Use when false-positive rate feels high for your project type.
+Two-gate auto-trigger: (1) outer — fires at every 10 multi-run files milestone (`count_files_with_multiple_runs % 10 == 0`); (2) inner floor — calibration applies only when >= 5 improvement events AND >= 5 fp_candidate events per class have accumulated (insufficient signal returns `insufficient_data`, no weights change). An improvement event is recorded when a file's score drops >= 10 pts after a commit; an fp_candidate when a flagged file is not fixed across runs. Domain-anchored (+-0.15 from profile baseline).
 
 ---
 
