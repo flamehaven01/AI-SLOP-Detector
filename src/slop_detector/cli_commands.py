@@ -214,6 +214,7 @@ def detect_domain(project_path: Path) -> tuple:
                 continue
     except OSError as exc:
         import logging as _logging
+
         _logging.getLogger(__name__).debug("domain detection scan failed: %s", exc)
 
     scores: Dict[str, List[str]] = {}
@@ -380,6 +381,7 @@ def _check_calibration_hint(args) -> None:
             )
     except Exception as exc:  # noqa: BLE001 — hint is informational; never block main flow
         import logging as _logging
+
         _logging.getLogger(__name__).debug("calibration hint skipped: %s", exc)
 
 
