@@ -11,7 +11,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-314%20passed-brightgreen.svg?v=3.7.1" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-314%20passed-brightgreen.svg?v=3.7.3" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-71%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
@@ -70,7 +70,7 @@ Unlike general linters that flag style and convention, it targets **AI slop**: s
 ## Quick Start
 
 ```bash
-pip install ai-slop-detector
+pip install "ai-slop-detector>=3.7.3"
 
 slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
 slop-detector mycode.py                    # single file
@@ -81,7 +81,6 @@ slop-detector --project . --ci-mode hard --ci-report  # CI gate
 # Optional extras
 pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
 pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
-pip install "ai-slop-detector[ml]"       # ML secondary signal
 
 # No install required
 uvx ai-slop-detector mycode.py
@@ -131,7 +130,7 @@ Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_M
 |---|---|---|
 | **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `return_constant_stub`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
 | **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement` | Anti-patterns |
-| **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_print`, `csharp_length`, `php_strlen` | Wrong-language syntax |
+| **Cross-Language** | `javascript_array_push`, `java_equals_method`, `ruby_each`, `go_print`, `csharp_length`, `php_strlen` | Wrong-language syntax |
 | **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `lint_escape`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
 | **Phantom** | `phantom_import` | Hallucinated packages |
 
@@ -150,9 +149,11 @@ Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_M
 
 ```
 purity        = exp(-0.5 × n_critical_patterns)
-quality (GQG) = exp( Σ wᵢ·ln(dimᵢ) / Σ wᵢ )   — weighted geometric mean
+quality (GQG) = exp( Σ wᵢ·ln(max(1e-4, dimᵢ)) / Σ wᵢ )   — weighted geometric mean
 deficit_score = 100 × (1 − quality) + pattern_penalty
 ```
+
+`max(1e-4, ...)` prevents `log(0) = -inf` from collapsing the entire score (v3.7.2 `__post_init__` guards enforce upstream range invariants on metric results).
 
 | Score | Status |
 |---|---|
@@ -336,7 +337,7 @@ absolute gate. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.7.1
+    rev: v3.7.3
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks
@@ -348,7 +349,7 @@ repos:
 # .github/workflows/quality-gate.yml
 - name: AI-SLOP Gate
   run: |
-    pip install ai-slop-detector
+    pip install "ai-slop-detector>=3.7.3"
     slop-detector --project . --ci-mode hard --ci-report
 ```
 
@@ -425,8 +426,8 @@ or build locally:
 ```bash
 cd vscode-extension
 npm install
-npx vsce package          # produces vscode-slop-detector-3.7.1.vsix
-code --install-extension vscode-slop-detector-3.7.1.vsix
+npx vsce package          # produces vscode-slop-detector-3.7.3.vsix
+code --install-extension vscode-slop-detector-3.7.3.vsix
 ```
 
 **Settings** (`slopDetector.*`): `pythonPath`, `lintOnSave`, `lintOnType`,
@@ -438,6 +439,7 @@ code --install-extension vscode-slop-detector-3.7.1.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.7.3** | **Hotfix**: pydantic import wrapped in `try/except ImportError` — package imports cleanly in stripped environments; `test_api_models.py` guard corrected to `fastapi`; CI Docker login `continue-on-error`, quality gate pinned to `>=3.7.3` |
 | **v3.7.2** | **Core schema validation**: `config.py` Pydantic guards catch bad `.slopconfig.yaml` at load time (wrong weight types, `domain_overrides` non-int thresholds); `LDRResult` / `DDCResult` / `InflationResult` `__post_init__` clamps protect GQG `math.log()`; `HistoryEntry` sanitises all LEDA calibration inputs + validates `fired_rules` JSON; **VS Code**: `schema.ts` `ISlopReport` interfaces + `parseSlopReport()` handwritten discriminated-union guard — schema mismatch surfaces exact field path before silent NaN |
 | **v3.7.1** | `LintEscapePattern` docstring FP fix; self-scan avg_deficit 13.85 → 9.80; `global_injector.py` Patch 1 removed; `.slopconfig.yaml` domain_overrides expanded; **Skill**: 3-Phase Pipeline (Triage → Deep-Dive → Action Plan), `/slop-delta` before/after comparison, Confidence Routing by status band, `→ Next:` guidance per command; **VS Code**: P1 monolith → 8 focused modules, P2 `SlopCodeActionProvider` (QuickFix for phantom_import/god_function/lint_escape), P3 TreeView sidebar (3-level hierarchy), P4 `SlopCodeLensProvider` (file summary + per-function hints) |
 | **v3.7.0** | Dogfooding calibration + SKILL.md OSOT repair (10 violations); `cli_renderer.py` split (730 lines → 4 renderer modules); `python_advanced.py` split (1150 lines → 5 modules); BUG-1 `ddc` weight 0.30→0.20; BUG-2 findings filter threshold fix; BUG-3 AST-accurate test counts; BUG-5 block-scoped YAML rewrite in self_calibrator; 314 tests GREEN |
