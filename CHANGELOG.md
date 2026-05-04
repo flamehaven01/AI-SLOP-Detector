@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.3] — Hotfix: Graceful pydantic import + CI test guard
+
+### Fixed
+
+- `config.py`: pydantic imports moved inside `try/except ImportError`; when pydantic is absent `_validate_yaml_config()` returns immediately — package imports cleanly in stripped environments (e.g. `pip install ai-slop-detector` before deps resolve)
+- `tests/test_api_models.py`: guard changed from `importorskip("pydantic")` to `importorskip("fastapi")`; pydantic is now a base dep so the old guard no longer skipped the test, causing a collection error when fastapi (api extra) was absent
+
+---
+
 ## [3.7.2] — Runtime Schema Validation + VS Code Typed Boundary
 
 ### Added

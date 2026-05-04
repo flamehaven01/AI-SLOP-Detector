@@ -1,6 +1,6 @@
 # Runtime Schema Validation — Technical Reference
 
-> **Version:** 3.7.2
+> **Version:** 3.7.3
 > **Last Updated:** 2026-05-04
 
 Three independent validation layers protect the analysis pipeline from malformed data
