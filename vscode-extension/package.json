@@ -184,6 +184,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show a notification when the LEDA auto-calibration milestone is reached"
+        },
+        "slopDetector.enableCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline SLOP score and issue hints above functions (CodeLens)"
         }
       }
     }

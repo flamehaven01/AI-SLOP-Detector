@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { initState, setLintTimer, lintOnTypeTimer, setTreeRefreshCallback } from './state';
+import { initState, setLintTimer, lintOnTypeTimer, setTreeRefreshCallback, setCodeLensRefreshCallback } from './state';
 import { analyzeDocument } from './analyzer';
 import {
     analyzeCurrentFile, analyzeWorkspace, showFileHistory,
@@ -9,6 +9,7 @@ import { autoFixCurrentFile, showGateDecision, initConfig, selfCalibrate } from 
 import { SlopCodeActionProvider, addFileToIgnore } from './codeActions';
 import { outputChannel } from './state';
 import { SlopTreeProvider } from './treeview';
+import { SlopCodeLensProvider } from './codelens';
 
 export function activate(context: vscode.ExtensionContext): void {
     const channel    = vscode.window.createOutputChannel('SLOP Detector');
@@ -31,6 +32,17 @@ export function activate(context: vscode.ExtensionContext): void {
         showCollapseAll: true,
     });
     context.subscriptions.push(treeView);
+
+    // P4: CodeLens — file summary + per-function issue hints
+    const codeLensProvider = new SlopCodeLensProvider();
+    setCodeLensRefreshCallback(() => codeLensProvider.refresh());
+    context.subscriptions.push(
+        vscode.languages.registerCodeLensProvider(
+            [{ language: 'python' }, { language: 'javascript' },
+             { language: 'typescript' }, { language: 'go' }],
+            codeLensProvider,
+        )
+    );
 
     // Core commands
     const cmds: [string, (...args: any[]) => any][] = [
