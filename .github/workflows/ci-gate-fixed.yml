@@ -22,7 +22,7 @@ jobs:
 
       - name: Install AI SLOP Detector
         run: |
-          pip install ai-slop-detector
+          pip install "ai-slop-detector>=3.7.3"
 
       - name: Run Quality Analysis
         id: quality_check
@@ -61,7 +61,7 @@ jobs:
 
       - name: Install AI SLOP Detector
         run: |
-          pip install ai-slop-detector
+          pip install "ai-slop-detector>=3.7.3"
 
       - name: Run Quality Gate with Threshold
         run: |
@@ -92,7 +92,7 @@ jobs:
 
       - name: Install AI SLOP Detector
         run: |
-          pip install ai-slop-detector
+          pip install "ai-slop-detector>=3.7.3"
 
       - name: Run Analysis
         id: analysis
