@@ -44,7 +44,8 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 [Config](#configuration) •
 [VS Code](#vs-code-extension) •
 [Changelog](CHANGELOG.md) •
-[Release Notes](docs/RELEASE_NOTES.md)
+[Release Notes](docs/RELEASE_NOTES.md) •
+[Schema Validation](docs/SCHEMA_VALIDATION.md)
 
 ---
 

@@ -210,7 +210,63 @@ structural_ceiling = len(unfixable) > 2 OR (unfixable+manual) > fixable*3
 
 ---
 
-## 5. leda_helper.py Command Reference
+## 5. Three Runtime Schema Guards (v3.7.2)
+
+LEDA's calibration accuracy depends entirely on the quality of data flowing into the
+grid search. Three guards — introduced in v3.7.2 — close the gap between "valid by
+Python types" and "valid by algorithm invariants."
+
+```
+.slopconfig.yaml          Calculators          HistoryTracker.record()
+      │                      │                        │
+      ▼                      ▼                        ▼
+_validate_yaml_config()  __post_init__()        __post_init__()
+  Pydantic schemas         LDR:  [0,1]           deficit ≥ 0
+  weights range            DDC:  [0,1]           ldr ∈ [0,1]
+  domain_overrides types   Inf:  ≥ 0             ddc ∈ [0,1]
+      │                      │                   fired_rules JSON
+      ▼                      ▼                        ▼
+ValueError (clear msg)   WARNING + clamp         ValueError or
+before GQG formula       score continues         blocked insert
+```
+
+### Why This Matters for LEDA
+
+**Grid search input corruption** — The 4D calibration grid search evaluates
+`combined_score` over `(ldr, inflation, ddc, purity)` weight candidates.
+A single `HistoryEntry` with `ddc_usage_ratio = 1.05` (impossible ratio) shifts
+the `ddc`-heavy candidate upward artificially, potentially flipping the optimal
+weight selection. The `HistoryEntry.__post_init__` clamp prevents this.
+
+**`fired_rules` silent loss** — The per-rule FP rate tracker reads `fired_rules`
+as JSON on each calibration pass. A malformed string previously returned `None`
+(silently dropping all FP candidate events for that file), biasing the
+`fp_candidate_count` denominator. The JSON validation guard surfaces the
+corruption at insertion time.
+
+**Config weight corruption** — If a user manually edits `.slopconfig.yaml` and
+sets `weights.ddc: 2.5`, GQG computes `log(ddc_ratio) × 2.5`, which dominates
+all other dimensions and makes every file appear `CRITICAL_DEFICIT`. Previously
+this produced a confusing, un-diagnosable result. Now it raises:
+```
+ValueError: .slopconfig.yaml validation failed:
+  - weights: ddc Input should be less than or equal to 1
+```
+
+### Monitoring
+
+Warning-level log messages from Layer 2 guards indicate a calculation edge case:
+```
+WARNING  LDRResult.ldr_score 1.2300 out of [0,1] — clamped
+WARNING  DDCResult.usage_ratio -0.0100 out of [0,1] — clamped
+```
+These should be investigated — they signal a real bug in the metric calculators.
+
+Full specification: [docs/SCHEMA_VALIDATION.md →](SCHEMA_VALIDATION.md)
+
+---
+
+## 6. leda_helper.py Command Reference
 
 ```bash
 python scripts\leda_helper.py select   <scan.json> [N]
@@ -221,7 +277,7 @@ python scripts\leda_helper.py gapcheck <leda_final.yaml>
   → stdout: "OK" | "LOW 0.0019"
 ```
 
-## 6. global_injector.py Command Reference
+## 7. global_injector.py Command Reference
 
 ```bash
 # Default execution (Harvest all Extra Repos → Inject)
@@ -238,7 +294,7 @@ python scripts\global_injector.py --extra-repos "E:\OtherRepos"
 
 ---
 
-## 7. Slop Report Output Explanation
+## 8. Slop Report Output Explanation
 
 ```
 <TARGET>\slop_reports\
@@ -258,7 +314,7 @@ python scripts\global_injector.py --extra-repos "E:\OtherRepos"
 
 ---
 
-## 8. Next Actions
+## 9. Next Actions
 
 1. **Additional Dogfooding to breach 0.10 confidence_gap:**
    - Scan additional small-scale, high-density repos (50~100 files).
