@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
-import { statusBarItem, outputChannel } from './state';
+import { statusBarItem, outputChannel, updateFileResult } from './state';
 import { analyzeDocument, extractJson } from './analyzer';
 
 const execAsync = promisify(exec);
@@ -28,6 +28,7 @@ export async function analyzeWorkspace(): Promise<void> {
             { maxBuffer: 50 * 1024 * 1024, cwd: rootPath }
         );
         const result = extractJson(stdout);
+        for (const f of result.file_results ?? []) { updateFileResult(f.file_path, f); }
         const icon = result.overall_status === 'clean' ? '$(check)' : '$(warning)';
         statusBarItem.text = `${icon} SLOP: ${result.avg_deficit_score.toFixed(1)} avg (${result.total_files} files)`;
 

@@ -91,8 +91,46 @@
         "command": "slop-detector.addFileToIgnore",
         "title": "Add File to .slopconfig.yaml Ignore",
         "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.refreshTree",
+        "title": "Refresh Issues",
+        "category": "SLOP Detector",
+        "icon": "$(refresh)"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "slop-detector",
+          "title": "SLOP Detector",
+          "icon": "images/slop-sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "slop-detector": [
+        {
+          "id": "slopDetector.fileTree",
+          "name": "Issues",
+          "icon": "images/slop-sidebar.svg"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "slop-detector.refreshTree",
+          "when": "view == slopDetector.fileTree",
+          "group": "navigation"
+        },
+        {
+          "command": "slop-detector.analyzeWorkspace",
+          "when": "view == slopDetector.fileTree",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "AI SLOP Detector",

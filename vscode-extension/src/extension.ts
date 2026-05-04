@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { initState, setLintTimer, lintOnTypeTimer } from './state';
+import { initState, setLintTimer, lintOnTypeTimer, setTreeRefreshCallback } from './state';
 import { analyzeDocument } from './analyzer';
 import {
     analyzeCurrentFile, analyzeWorkspace, showFileHistory,
@@ -8,6 +8,7 @@ import {
 import { autoFixCurrentFile, showGateDecision, initConfig, selfCalibrate } from './calibration';
 import { SlopCodeActionProvider, addFileToIgnore } from './codeActions';
 import { outputChannel } from './state';
+import { SlopTreeProvider } from './treeview';
 
 export function activate(context: vscode.ExtensionContext): void {
     const channel    = vscode.window.createOutputChannel('SLOP Detector');
@@ -21,6 +22,15 @@ export function activate(context: vscode.ExtensionContext): void {
     channel.appendLine('[*] AI SLOP Detector v3.7.1 activated');
 
     context.subscriptions.push(collection, bar, channel);
+
+    // P3: TreeView sidebar
+    const treeProvider = new SlopTreeProvider();
+    setTreeRefreshCallback(() => treeProvider.refresh());
+    const treeView = vscode.window.createTreeView('slopDetector.fileTree', {
+        treeDataProvider: treeProvider,
+        showCollapseAll: true,
+    });
+    context.subscriptions.push(treeView);
 
     // Core commands
     const cmds: [string, (...args: any[]) => any][] = [
@@ -38,6 +48,8 @@ export function activate(context: vscode.ExtensionContext): void {
         // P2: Code Action helpers
         ['slop-detector.showOutput',         () => outputChannel.show(true)],
         ['slop-detector.addFileToIgnore',    (relPath: string) => addFileToIgnore(relPath)],
+        // P3: TreeView refresh
+        ['slop-detector.refreshTree',        () => treeProvider.refresh()],
     ];
     for (const [id, handler] of cmds) {
         context.subscriptions.push(vscode.commands.registerCommand(id, handler));

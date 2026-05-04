@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { statusBarItem, outputChannel } from './state';
+import { statusBarItem, outputChannel, updateFileResult } from './state';
 import { updateDiagnostics } from './diagnostics';
 import { updateStatusBar } from './statusbar';
 
@@ -47,6 +47,7 @@ export async function analyzeDocument(document: vscode.TextDocument): Promise<vo
         const result = await runSlopDetector(filePath, config);
         updateDiagnostics(document.uri, result);
         updateStatusBar(result);
+        updateFileResult(filePath, result);
         outputChannel.appendLine(
             `[+] Analysis complete: Deficit=${result.deficit_score}, Status=${result.status}`
         );

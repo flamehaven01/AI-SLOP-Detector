@@ -18,3 +18,16 @@ export function initState(
 export function setLintTimer(t: ReturnType<typeof setTimeout> | undefined): void {
     lintOnTypeTimer = t;
 }
+
+// P3: per-file analysis results for TreeView
+export const fileResults: Map<string, any> = new Map();
+let _treeRefresh: (() => void) | undefined;
+
+export function setTreeRefreshCallback(cb: () => void): void {
+    _treeRefresh = cb;
+}
+
+export function updateFileResult(filePath: string, result: any): void {
+    fileResults.set(filePath, result);
+    _treeRefresh?.();
+}
