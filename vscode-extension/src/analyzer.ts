@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import { statusBarItem, outputChannel, updateFileResult } from './state';
 import { updateDiagnostics } from './diagnostics';
 import { updateStatusBar } from './statusbar';
+import { parseSlopReport, ISlopReport } from './schema';
 
 const execAsync = promisify(exec);
 
@@ -17,7 +18,7 @@ export function extractJson(stdout: string): any {
 export async function runSlopDetector(
     filePath: string,
     config: vscode.WorkspaceConfiguration,
-): Promise<any> {
+): Promise<ISlopReport> {
     const pythonPath    = config.get('pythonPath', 'python');
     const configPath    = config.get('configPath', '');
     const recordHistory = config.get('recordHistory', true);
@@ -29,7 +30,17 @@ export async function runSlopDetector(
     outputChannel.appendLine(`[*] Running: ${command}`);
     const { stdout, stderr } = await execAsync(command, { maxBuffer: 10 * 1024 * 1024 });
     if (stderr) { outputChannel.appendLine(`[!] stderr: ${stderr}`); }
-    return extractJson(stdout);
+
+    const raw    = extractJson(stdout);
+    const parsed = parseSlopReport(raw);
+    if (!parsed.ok) {
+        const { field, expected, got } = parsed.error;
+        throw new Error(
+            `CLI output schema mismatch — "${field}": expected ${expected}, got ${got}. ` +
+            `Check that slop-detector is installed and up to date.`
+        );
+    }
+    return parsed.value;
 }
 
 export async function analyzeDocument(document: vscode.TextDocument): Promise<void> {
