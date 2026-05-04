@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.7.3] — Hotfix: Graceful pydantic import + CI test guard
+## [3.7.3] — Hotfix: Graceful pydantic import + CI stability
 
 ### Fixed
 
 - `config.py`: pydantic imports moved inside `try/except ImportError`; when pydantic is absent `_validate_yaml_config()` returns immediately — package imports cleanly in stripped environments (e.g. `pip install ai-slop-detector` before deps resolve)
 - `tests/test_api_models.py`: guard changed from `importorskip("pydantic")` to `importorskip("fastapi")`; pydantic is now a base dep so the old guard no longer skipped the test, causing a collection error when fastapi (api extra) was absent
+
+### CI
+
+- `ci.yml` (Docker job): Docker Hub login now uses `continue-on-error: true`; push step conditional on `steps.docker_login.outcome == 'success'` — missing `DOCKER_USERNAME`/`DOCKER_TOKEN` secrets no longer fail the build
+- `ci-gate-fixed.yml`: install pinned to `"ai-slop-detector>=3.7.3"` to prevent the self-referential quality gate from resolving to the broken v3.7.2 PyPI package
 
 ---
 
