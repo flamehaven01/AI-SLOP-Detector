@@ -11,7 +11,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-314%20passed-brightgreen.svg?v=3.7.0" alt="Tests"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-314%20passed-brightgreen.svg?v=3.7.1" alt="Tests"/></a>
   <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-71%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
@@ -235,10 +235,27 @@ the training signal for ML self-calibration.
 
 ```bash
 cp -r claude-skills/slop-detector ~/.claude/skills/
-# restart Claude Code, then use /slop, /slop-file, /slop-gate, /slop-spar
+# restart Claude Code, then use /slop, /slop-file, /slop-gate, /slop-delta, /slop-spar
 ```
 
-Adds a persistent `scan → diagnose → patch → re-scan → gate → calibrate` quality loop inside Claude Code. `/slop` scans and prioritizes; `/slop-gate` gives a CI-style PASS/FAIL; `/slop-spar` catches calibration drift.
+Adds a persistent `scan → diagnose → patch → re-scan → gate → calibrate` quality loop inside Claude Code.
+
+| Command | What it does |
+|---|---|
+| `/slop` | **3-Phase**: Triage table → Confidence-Routed deep-dive → Action Plan with `→ Next:` guidance |
+| `/slop-file [path]` | Single file: status, 4D metrics, per-pattern fix guidance |
+| `/slop-gate` | CI-style PASS/FAIL — Path A (SNP gate) or Path B (hard CI mode) |
+| `/slop-delta` | Before/after comparison table against session baseline; flags regressions |
+| `/slop-spar` | Adversarial calibration validation via `fhval spar` (3 layers) |
+
+**Confidence Routing** (controls Phase 2 depth in `/slop`):
+
+| Status | Score | Action |
+|---|---|---|
+| `CRITICAL_DEFICIT` | ≥ 70 | Immediate deep-dive — full patch guidance |
+| `INFLATED_SIGNAL` | 50–70 | Full deep-dive — action required before merge |
+| `SUSPICIOUS` | 30–50 | Run `/slop-file` on top 2 files first; confirm before escalating |
+| `CLEAN` | < 30 | Skip Phase 2 — report clean, propose gate |
 
 [Skill source →](claude-skills/slop-detector/SKILL.md) · [Full docs →](docs/CLAUDE_CODE_SKILL.md)
 
@@ -318,7 +335,7 @@ absolute gate. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.7.0
+    rev: v3.7.1
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks
@@ -373,13 +390,17 @@ ignore:
 
 ## VS Code Extension
 
-Real-time inline diagnostics, debounced lint-on-type, ML score and Clone Detection in status bar.
+Real-time inline diagnostics, debounced lint-on-type, ML score and purity signal in status bar. v3.7.1 rebuilt from a single 855-line monolith into eight focused modules.
 
-| What you see | Detail |
+**What you see:**
+
+| Surface | Detail |
 |---|---|
-| Status bar score | `Warning (42.3)` — severity + deficit/100 with 4D tooltip |
-| Inline diagnostics | Pattern issues, jargon, docstring inflation, phantom imports — pinned to line |
-| Workspace QuickPick | All files sorted by deficit score, click to navigate |
+| Status bar | `$(error) SLOP 45.2` — severity icon + deficit score, updates on save |
+| Inline diagnostics | Pattern issues with line references — phantom imports, god functions, lint escapes |
+| **TreeView sidebar** | Activity bar panel: files sorted by deficit score, metric rows (LDR/DDC/Purity/Inflation), issue list with click-to-navigate |
+| **CodeLens** | Line 0: file summary (`SLOP 45.2 — 3 CRITICAL`); per-function: top severity icon + pattern IDs |
+| **QuickFix (CodeAction)** | Lightbulb on `phantom_import`/`god_function`/`lint_escape` diagnostics — show output or add to `.slopconfig.yaml` ignore |
 | ML signal | `ML: 73% [slop]` in summary diagnostic when `[ml]` extra is installed |
 
 **Commands (Ctrl+Shift+P > "SLOP"):**
@@ -387,11 +408,13 @@ Real-time inline diagnostics, debounced lint-on-type, ML score and Clone Detecti
 | Command | Description |
 |---|---|
 | Analyze Current File | On-demand single-file scan |
-| Analyze Workspace | Project-wide scan with QuickPick results |
+| Analyze Workspace | Project-wide scan, populates TreeView |
 | Auto-Fix Detected Issues | Apply (or dry-run preview) auto-fixable patterns |
 | Show Gate Decision (SNP) | PASS/HALT with sr9/di2/jsd/ove metrics |
+| Run Cross-File Analysis | Dependency + clone graph across project |
 | Show File History | Per-file deficit score trend |
 | Show History Trends | 7-day project-wide daily trend table |
+| Export History to JSONL | Dump `history.db` records for external analysis |
 | Bootstrap .slopconfig.yaml | Domain-aware config generation (`--init`) |
 | Run Self-Calibration | LEDA 4D weight optimizer with one-click Apply |
 
@@ -401,12 +424,12 @@ or build locally:
 ```bash
 cd vscode-extension
 npm install
-npx vsce package          # produces vscode-slop-detector-3.7.0.vsix
-code --install-extension vscode-slop-detector-3.7.0.vsix
+npx vsce package          # produces vscode-slop-detector-3.7.1.vsix
+code --install-extension vscode-slop-detector-3.7.1.vsix
 ```
 
 **Settings** (`slopDetector.*`): `pythonPath`, `lintOnSave`, `lintOnType`,
-`failThreshold` (default 50), `warnThreshold` (default 30), `recordHistory`.
+`failThreshold` (default 50), `warnThreshold` (default 30), `recordHistory`, `enableCodeLens` (default true).
 
 ---
 
@@ -414,7 +437,7 @@ code --install-extension vscode-slop-detector-3.7.0.vsix
 
 | Version | Highlights |
 |---|---|
-| **v3.7.1** | `LintEscapePattern` docstring FP fix — `# noqa:` text inside string literals no longer triggers lint_escape; self-scan avg_deficit 13.85 → 9.80; empty `except` blocks → debug logging; `global_injector.py` Patch 1 removed (weights design correction); `.slopconfig.yaml` domain_overrides expanded; LEDA_CALIBRATION.md GQG formula + §4.3 corrections |
+| **v3.7.1** | `LintEscapePattern` docstring FP fix; self-scan avg_deficit 13.85 → 9.80; `global_injector.py` Patch 1 removed; `.slopconfig.yaml` domain_overrides expanded; **Skill**: 3-Phase Pipeline (Triage → Deep-Dive → Action Plan), `/slop-delta` before/after comparison, Confidence Routing by status band, `→ Next:` guidance per command; **VS Code**: P1 monolith → 8 focused modules, P2 `SlopCodeActionProvider` (QuickFix for phantom_import/god_function/lint_escape), P3 TreeView sidebar (3-level hierarchy), P4 `SlopCodeLensProvider` (file summary + per-function hints) |
 | **v3.7.0** | Dogfooding calibration + SKILL.md OSOT repair (10 violations); `cli_renderer.py` split (730 lines → 4 renderer modules); `python_advanced.py` split (1150 lines → 5 modules); BUG-1 `ddc` weight 0.30→0.20; BUG-2 findings filter threshold fix; BUG-3 AST-accurate test counts; BUG-5 block-scoped YAML rewrite in self_calibrator; 314 tests GREEN |
 | **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); CI gate bugfix (`--ci-mode hard` now exits non-zero without `--ci-report`); pre-commit hooks rewritten (`python -m` entry, 3 hook variants); VS Code Extension v3.6.0 VSIX; docs: Purity row, weight normalization note, `[go]` extra; 311 tests GREEN |
 | **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |

@@ -39,6 +39,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **`.gitignore`**: added `scripts/injection_report.json` — auto-generated audit trail from `global_injector.py`, not source
 
+**Claude Code Skill — workflow upgrade**
+- `claude-skills/slop-detector/SKILL.md`: 3-Phase Pipeline execution model added
+  - Phase 1 Triage: structured table (file / score / status / top issue) with session baseline stored for delta comparison
+  - Phase 2 Deep-Dive: Confidence Routing by status band — CRITICAL_DEFICIT immediate; SUSPICIOUS routes through `/slop-file` second-pass before escalation (reduces false escalation of borderline files)
+  - Phase 3 Action Plan: ordered fixes with explicit gate-readiness assessment
+- `/slop-delta` new command: before/after comparison table against session baseline; regression detection; "never say fixed without a measured delta" rule enforced
+- Each command ends with explicit `→ Next:` guidance — eliminates user uncertainty about next step
+- `lint_escape` added to Patch Guidance table
+
+**VS Code Extension v3.7.1** (`vscode-extension/`)
+- P1: 855-line monolith split into 8 focused modules (`state` / `analyzer` / `diagnostics` / `statusbar` / `commands` / `calibration` / `codeActions` / `treeview` / `codelens`)
+- P2: `SlopCodeActionProvider` — QuickFix for `phantom_import` / `god_function` / `lint_escape`; "Add to .slopconfig.yaml ignore" action
+- P3: TreeView sidebar — 3-level hierarchy (file → 4D metric row → issue list); CRITICAL→LOW sort; click-to-navigate; Refresh + Analyze Workspace title-bar buttons
+- P4: `SlopCodeLensProvider` — file-level summary at line 0 + per-function issue hints; `slopDetector.enableCodeLens` setting
+
 ---
 
 ## [3.7.0] — Dogfooding Model Calibration + SKILL.md Contract Repair

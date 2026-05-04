@@ -1,7 +1,7 @@
 # Claude Code Skill — AI-SLOP Detector
 
 Integrates AI-SLOP Detector into Claude Code as a persistent quality-control loop:
-`scan -> diagnose -> patch -> re-scan -> gate -> calibrate`.
+`scan → diagnose → patch → re-scan → gate → calibrate`.
 
 ---
 
@@ -13,10 +13,10 @@ The skill adds the missing layer:
 | Raw CLI | With Skill |
 |---|---|
 | Raw JSON / text output | Interpreted findings with per-pattern explanations |
-| Single-shot execution | Stateful scan -> diagnose -> patch -> re-scan -> gate -> calibrate loop |
-| No fix guidance | Per-pattern patch suggestions |
-| No context carry-over | Review criteria held across sessions |
-| Manual gate decision | Explicit PASS/FAIL with blocking file list |
+| Single-shot execution | Stateful scan → diagnose → patch → re-scan → gate → calibrate loop |
+| No fix guidance | Per-pattern patch suggestions with priority ordering |
+| No context carry-over | Triage baseline held as session context for delta tracking |
+| Manual gate decision | Explicit PASS/FAIL with blocking file list and minimum fix to unblock |
 
 > "It felt like the missing piece in my workflow — code quality tightened up almost immediately."
 >
@@ -34,8 +34,8 @@ A common critique of using AI to fix AI-generated code is **self-referential bia
 
 - **Evidence, not opinion.** All findings are backed by mathematical evidence: JSON output includes line numbers, AST-derived metrics, and formula derivation. Every score answers "why?"
 - **Developer-driven loop.** The `scan → diagnose → patch → re-scan → gate → calibrate` cycle is human-led. The developer reviews structured evidence, decides what to fix, and directs the AI on the patch. AI measures; the human judges.
-- **Objective metrics.** LDR counts executable lines (AST). DDC resolves imports (`importlib.util.find_spec`). Cyclomatic complexity is computed by `radon`. These are structural facts, not stylistic preferences. AI cannot "hallucinate" its way out of a 300-line function with a complexity of 45.
-- **Human-grounded calibration.** Self-calibration derives ground truth from human edit behavior (git commits), not AI judgment. A file the human fixes = improvement event. A flag the human ignores = false-positive candidate. The human's actions are the true anchor.
+- **Objective metrics.** LDR counts executable lines (AST). DDC resolves imports (`importlib.util.find_spec`). Cyclomatic complexity is computed by `radon`. These are structural facts, not stylistic preferences.
+- **Human-grounded calibration.** Self-calibration derives ground truth from human edit behavior (git commits), not AI judgment. A file the human fixes = improvement event. A flag the human ignores = false-positive candidate.
 
 ---
 
@@ -63,130 +63,209 @@ pip install "ai-slop-detector[go]"      # optional: Go support
 
 ---
 
+## Execution Model: 3-Phase Pipeline
+
+Every `/slop` command runs in three phases. **Never skip to Phase 3 without completing Phases 1 and 2.**
+
+```
+Phase 1 — Triage      classify all files; surface CRITICAL instantly
+Phase 2 — Deep-Dive   explain WHY; only for files requiring action
+Phase 3 — Action Plan ordered fixes; explicit → Next: step
+```
+
+### Confidence Routing
+
+Phase 2 depth is determined by the file's status band:
+
+| Status | Score | Phase 2 action |
+|---|---|---|
+| `CRITICAL_DEFICIT` | ≥ 70 | Immediate — explain all issues, full patch guidance |
+| `INFLATED_SIGNAL` | 50–70 | Full deep-dive — action required before merge |
+| `SUSPICIOUS` | 30–50 | Run `/slop-file` on top 2 files first; confirm before escalating |
+| `DEPENDENCY_NOISE` | varies | Audit DDC section only — `/slop-file` with `--json` |
+| `CLEAN` | < 30 | Skip Phase 2 — report clean, propose gate |
+
+The Phase 1 triage table is stored as the **session baseline** for `/slop-delta` comparisons.
+
+---
+
 ## Commands
 
 ### `/slop` — Full Project Scan
 
-Runs `slop-detector --project . --json`, interprets all findings, and produces a prioritized action plan.
-
-**Output:**
+```bash
+slop-detector --project . --json
 ```
-[SCAN RESULTS]
-Project: ./  |  Status: CLEAN  |  Files: 51  |  Flagged: 7
 
-CRITICAL_DEFICIT (2):
-  cli_commands.py  score=81.3  patterns: [god_function, dead_code]  ldr=0.42 ddc=0.99
-  ddc.py           score=78.3  patterns: [not_implemented]          ldr=0.38 ddc=0.97
+**Phase 1 — Triage (always shown first):**
 
-SUSPICIOUS (5):
-  cross_file.py    score=42.1  ...
-  ...
+Parse JSON → build triage table sorted by `deficit_score` descending:
 
-Recommended fixes: [ordered by impact]
-1. cli_commands.py — god_function: decompose into focused units
-2. ddc.py — not_implemented: implement stub or remove
 ```
+[TRIAGE]
+File                    │ Score │ Status            │ Top Issue
+────────────────────────┼───────┼───────────────────┼──────────────────
+cli_commands.py         │  45.2 │ SUSPICIOUS        │ empty_except
+ddc.py                  │  38.1 │ SUSPICIOUS        │ lint_escape
+────────────────────────┴───────┴───────────────────┴──────────────────
+Project: SUSPICIOUS  avg=12.4  14 files  2 flagged  Gate track: PASS
+```
+
+**Phase 2 — Deep-Dive (per Confidence Routing):**
+
+For each file requiring action:
+1. WHY the score is what it is — metric breakdown (LDR X%, DDC Y%, purity Z%)
+2. Each pattern with line reference, severity, and concrete fix from the Patch Reference
+3. SUSPICIOUS files: run `/slop-file <file>` inline before including in the action list
+
+**Phase 3 — Action Plan:**
+
+```
+[ACTION PLAN]
+1. cli_commands.py L215 — empty_except → add specific exception + debug log
+2. ddc.py L160 — lint_escape (confirmed FP) → monitor, not block
+Gate readiness: project avg 12.4 → target < 30 for CLEAN
+```
+
+**→ Next:** apply top fix → `/slop-file <highest-score-file>` to verify → `/slop-delta`
 
 ---
 
 ### `/slop-file [path]` — Single File Analysis
 
-Runs `slop-detector <path> --json`. Reports status, all four metric scores, and per-pattern fix guidance.
+```bash
+slop-detector <path> --json
+```
 
-**Metric explanations:**
+**Phase 1 — Triage:**
+Report: status, deficit_score, LDR / Inflation / DDC / Purity in one line.
+
+**Phase 2 — Deep-Dive:**
+For each pattern issue: severity, line reference, WHY it triggered, concrete fix.
+
+**Metric explanation thresholds:**
 
 | Condition | Meaning |
 |---|---|
 | `ldr_score < 0.30` | Less than 30% of lines are executable logic — heavy padding or empty stubs |
 | `ldr_score < 0.60` | Low logic density — likely AI-generated boilerplate |
 | `inflation_score > 1.0` | Jargon density exceeds threshold — unjustified quality claims |
-| `ddc usage_ratio < 0.50` | Over half of imported modules unused — possible phantom imports |
+| `ddc usage_ratio < 0.50` | CRITICAL: over half of imported modules unused — possible phantom imports |
+| `ddc usage_ratio < 0.70` | WARNING: low import usage detected |
 | `purity < 0.60` | Multiple critical patterns — AND-gate score pulled down |
 
-**Example:**
-```
-/slop-file src/pipeline.py
+**Phase 3 — Action Plan:**
+Fixes in priority order (CRITICAL → HIGH → MEDIUM). One concrete action per issue.
 
-[FILE] src/pipeline.py
-Status: INFLATED_SIGNAL  |  deficit_score: 52.4
-LDR: 0.41  Inflation: 1.2  DDC: 0.94  Purity: 0.61
-
-Patterns:
-  [HIGH]     todo_comment        x3  — resolve or file a tracked issue
-  [CRITICAL] phantom_import      x1  — remove or install the actual package
-  [MEDIUM]   deep_nesting        x1  — flatten with early returns
-```
+**→ Next:** apply fixes → `/slop-file <path>` again → compare score → if clean, proceed to `/slop-gate`
 
 ---
 
-### `/slop-gate` — CI Gate Decision
+### `/slop-gate` — Gate Decision
 
-Runs `slop-detector --project . --ci-mode hard --ci-report`. Returns explicit PASS or FAIL.
+Two distinct gate paths — choose based on context:
 
-**Gate thresholds (hard mode):**
-- `deficit_score >= 70` on any file → FAIL
-- `critical_pattern_count >= 3` on any file → FAIL
-- `inflation_score >= 1.5` on any file → FAIL
-- `ddc_usage_ratio < 0.50` on any file → FAIL
-
-**Output:**
+**Path A: SNP Gate**
+```bash
+slop-detector <file_or_dir> --gate
 ```
-[GATE] HARD — FAIL
+Produces a formal `SlopGateDecision`. Decision: `PASS` or `HALT`.
 
-Blocking files:
-  cli_commands.py  score=81.3  (threshold: 70)
-  ddc.py           score=78.3  (threshold: 70)
+HALT thresholds:
+- `ldr_score < 0.60`
+- `ddc_ratio < 0.50`
+- `inflation_score > 1.5`
+- `pattern_penalty > 30.0`
 
-Minimum fixes to unblock:
-  1. cli_commands.py: reduce god_function (currently 148 lines, threshold 60)
-  2. ddc.py: implement 3 not_implemented stubs
+**Path B: CI Hard Gate**
+```bash
+slop-detector --project . --ci-mode hard --ci-report
+```
+Exit 0 = PASS, non-zero = FAIL.
+
+FAIL thresholds (any one triggers failure):
+- `deficit_score >= 70`
+- `critical_pattern_count >= 3`
+- `inflation_score >= 1.5`
+- `ddc usage_ratio < 0.50`
+
+**Workflow:**
+1. Run command; capture exit code / decision field
+2. Report: PASS/FAIL, blocking files, critical pattern counts
+3. On FAIL/HALT: list offending files with key metric and minimum fix to unblock
+4. On PASS: confirm gate cleared, ready to merge
+
+**→ Next:** PASS → merge | FAIL → fix blocking files → `/slop-file <blocking>` → re-run gate
+
+---
+
+### `/slop-delta` — Before/After Comparison
+
+Run after patches to measure improvement against the session baseline stored in Phase 1.
+
+```bash
+slop-detector --project . --json   # re-scan after patches
 ```
 
-Other modes: `--ci-mode soft` (informational, never fails) · `--ci-mode quarantine` (escalates repeat offenders)
+Compare each file's current `deficit_score` against the Phase 1 triage baseline:
+
+```
+[DELTA]
+File                    │ Before │ After  │ Change  │ Result
+────────────────────────┼────────┼────────┼─────────┼────────────
+cli_commands.py         │   45.2 │   22.1 │  -23.1  │ CLEAN
+ddc.py                  │   38.1 │   35.4 │   -2.7  │ SUSPICIOUS
+────────────────────────┼────────┼────────┼─────────┼────────────
+Project avg             │   12.4 │   10.8 │   -1.6  │ CLEAN
+```
+
+Classify each file: improved / regressed / unchanged. If any file **regressed** (score increased), flag immediately and explain the possible cause.
+
+**Delta rule:** Never say "fixed" without a measured delta. Always report `before → after (Δ)`.
+
+**→ Next:** all targets CLEAN → `/slop-gate` | still SUSPICIOUS → `/slop-file <file>` → repeat
 
 ---
 
 ### `/slop-spar` — Adversarial Validation
 
-Runs `fhval spar`. Verifies that each metric measures what it claims — catches calibration drift before it reaches production.
+> **External dependency:** `fhval` is a separate Flamehaven validation tool — NOT included in `ai-slop-detector`.
 
 ```bash
 fhval spar              # full 3-layer check
 fhval spar --layer a    # known-pattern ground-truth anchors
-fhval spar --layer b    # peer challenge probes
+fhval spar --layer b    # metric boundary probes
 fhval spar --layer c    # existence probes
 ```
 
-**Score interpretation:**
+**Workflow:**
+1. Confirm `fhval` is installed (`fhval --version`)
+2. Run full 3-layer check; report any calibration drift
+3. Flag dimensions where metric claims diverge from measured behavior
 
-| SPAR Score | Grade | Action |
-|---|---|---|
-| >= 80 | PASS | Calibration healthy |
-| 60-79 | WARN | Review blind spots |
-| < 60 | FAIL | Run self-calibration |
-
-On FAIL or anomalies detected:
+On drift detected:
 ```bash
 slop-detector . --self-calibrate --apply-calibration
 ```
+
+**→ Next:** drift detected → self-calibrate → re-run `/slop` with new weights
 
 ---
 
 ## The Quality Loop
 
 ```
-1. /slop                  scan: baseline scan — identify top offenders
-2. review findings        diagnose: explain each metric, prioritize CRITICAL_DEFICIT files
-3. apply patches          patch: use per-pattern fix guidance; human decides what to fix
-4. /slop-file <path>      re-scan: verify each patched file individually
-5. /slop                  re-scan: confirm project aggregate improved
-6. /slop-gate             gate: PASS/FAIL decision before merge
-7. (auto) calibrate       calibrate: LEDA registers improvement events; weights auto-tune at milestone
+Step 1  /slop              scan:     3-Phase baseline; store triage as session baseline
+Step 2  Review Phase 2     diagnose: explain each metric; prioritize CRITICAL_DEFICIT
+Step 3  Apply patches      patch:    use Patch Reference; developer decides what to fix
+Step 4  /slop-file <path>  re-scan:  verify each patched file individually
+Step 5  /slop-delta        compare:  before/after table; confirm improvement (delta rule)
+Step 6  /slop              re-scan:  confirm project aggregate improved
+Step 7  /slop-gate         gate:     PASS/FAIL decision before merge
+Step 8  (auto) calibrate   calibrate: LEDA registers improvement events; weights auto-tune
 ```
 
-**Delta tracking:** After re-scan, the skill compares `deficit_score` before vs. after for each patched file and reports the delta.
-
-**Session persistence:** Review criteria (patterns, thresholds, gate mode) are encoded in the skill layer — not in the prompt. They hold across sessions without re-explanation.
+**Session persistence:** The Phase 1 triage baseline is held in session context — `/slop-delta` uses it automatically without re-running the initial scan.
 
 ---
 
@@ -196,24 +275,25 @@ slop-detector . --self-calibrate --apply-calibration
 |---|---|
 | `not_implemented` / `pass_placeholder` | Implement the function body or remove the stub |
 | `phantom_import` | Remove import; install the actual package if needed |
-| `empty_except` | Replace `except:` with specific exception type + handling |
+| `empty_except` | Replace `except:` with specific exception type + handling + debug log |
 | `god_function` | Decompose into focused units (<= 50 lines each) |
 | `function_clone_cluster` | Extract shared logic into a single helper |
 | `dead_code` | Delete unreachable branches |
-| `todo_comment` / `fixme_comment` | Resolve inline or file a tracked issue |
+| `todo_comment` / `fixme_comment` | Resolve inline or file a tracked issue; remove comment |
 | `star_import` | Replace with explicit named imports |
 | `placeholder_variable_naming` | Rename single-letter params to descriptive names |
 | `return_constant_stub` | Return computed value or raise `NotImplementedError` |
 | `bare_except` | Replace with `except Exception as e:` minimum |
 | `deep_nesting` | Flatten with early returns or extracted helpers |
-| `lint_escape` | Remove `# noqa` suppression; fix the underlying issue |
+| `lint_escape` | Fix underlying lint error; if suppression unavoidable, add `# noqa: CODE` |
 
 ---
 
 ## Self-Calibration
 
-The skill's scoring weights auto-tune via two gates: (1) every 10 multi-run files milestone the calibrator fires automatically; (2) weights only update when >= 5 improvement events AND >= 5 fp_candidate events have accumulated per class — insufficient signal returns `insufficient_data` without changing anything.
-To manually trigger or inspect:
+The scoring weights auto-tune via two gates:
+1. Every 10 multi-run files milestone the calibrator fires automatically
+2. Weights only update when >= 5 improvement events AND >= 5 fp_candidate events per class have accumulated
 
 ```bash
 slop-detector . --self-calibrate                      # preview recommendations
