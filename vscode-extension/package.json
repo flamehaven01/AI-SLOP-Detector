@@ -2,7 +2,7 @@
   "name": "vscode-slop-detector",
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
-  "version": "3.6.0",
+  "version": "3.7.1",
   "publisher": "Flamehaven",
   "engines": {
     "vscode": "^1.80.0"
@@ -80,6 +80,16 @@
       {
         "command": "slop-detector.selfCalibrate",
         "title": "Run Self-Calibration",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.showOutput",
+        "title": "Show SLOP Output Panel",
+        "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.addFileToIgnore",
+        "title": "Add File to .slopconfig.yaml Ignore",
         "category": "SLOP Detector"
       }
     ],
