@@ -19,26 +19,27 @@ _logger = _logging.getLogger(__name__)
 # never reach the GQG formula or pattern matchers.
 # ---------------------------------------------------------------------------
 
+
 class _WeightsSchema(_BaseModel):
     model_config = {"extra": "allow"}
-    ldr:       float = _Field(default=0.40, ge=0.0, le=1.0)
+    ldr: float = _Field(default=0.40, ge=0.0, le=1.0)
     inflation: float = _Field(default=0.30, ge=0.0, le=1.0)
-    ddc:       float = _Field(default=0.20, ge=0.0, le=1.0)
-    purity:    float = _Field(default=0.10, ge=0.0, le=1.0)
+    ddc: float = _Field(default=0.20, ge=0.0, le=1.0)
+    purity: float = _Field(default=0.10, ge=0.0, le=1.0)
 
 
 class _DomainOverrideSchema(_BaseModel):
     model_config = {"extra": "allow"}
-    function_pattern:     str
+    function_pattern: str
     complexity_threshold: int = _Field(ge=1)
-    lines_threshold:      int = _Field(ge=1)
+    lines_threshold: int = _Field(ge=1)
 
 
 class _GodFunctionSchema(_BaseModel):
     model_config = {"extra": "allow"}
     complexity_threshold: int = _Field(default=10, ge=1)
-    lines_threshold:      int = _Field(default=50, ge=1)
-    domain_overrides:     List[_DomainOverrideSchema] = _Field(default_factory=list)
+    lines_threshold: int = _Field(default=50, ge=1)
+    domain_overrides: List[_DomainOverrideSchema] = _Field(default_factory=list)
 
 
 def _validate_yaml_config(raw: Dict[str, Any]) -> None:
@@ -64,8 +65,7 @@ def _validate_yaml_config(raw: Dict[str, Any]) -> None:
 
     if errors:
         raise ValueError(
-            ".slopconfig.yaml validation failed:\n"
-            + "\n".join(f"  - {e}" for e in errors)
+            ".slopconfig.yaml validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
         )
 
 

@@ -96,9 +96,7 @@ class DDCResult:
 
     def __post_init__(self) -> None:
         if not (0.0 <= self.usage_ratio <= 1.0):
-            _logger.warning(
-                "DDCResult.usage_ratio %.4f out of [0,1] — clamped", self.usage_ratio
-            )
+            _logger.warning("DDCResult.usage_ratio %.4f out of [0,1] — clamped", self.usage_ratio)
             self.usage_ratio = max(0.0, min(1.0, self.usage_ratio))
 
     def to_dict(self) -> Dict[str, Any]:
