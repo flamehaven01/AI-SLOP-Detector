@@ -1,10 +1,72 @@
 """Configuration management for SLOP detector."""
 
+import logging as _logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
+from pydantic import BaseModel as _BaseModel
+from pydantic import Field as _Field
+from pydantic import ValidationError as _ValidationError
+
+_logger = _logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Runtime schema guards for .slopconfig.yaml user input.
+# Catches bad values (wrong types, out-of-range floats) at load time so they
+# never reach the GQG formula or pattern matchers.
+# ---------------------------------------------------------------------------
+
+class _WeightsSchema(_BaseModel):
+    model_config = {"extra": "allow"}
+    ldr:       float = _Field(default=0.40, ge=0.0, le=1.0)
+    inflation: float = _Field(default=0.30, ge=0.0, le=1.0)
+    ddc:       float = _Field(default=0.20, ge=0.0, le=1.0)
+    purity:    float = _Field(default=0.10, ge=0.0, le=1.0)
+
+
+class _DomainOverrideSchema(_BaseModel):
+    model_config = {"extra": "allow"}
+    function_pattern:     str
+    complexity_threshold: int = _Field(ge=1)
+    lines_threshold:      int = _Field(ge=1)
+
+
+class _GodFunctionSchema(_BaseModel):
+    model_config = {"extra": "allow"}
+    complexity_threshold: int = _Field(default=10, ge=1)
+    lines_threshold:      int = _Field(default=50, ge=1)
+    domain_overrides:     List[_DomainOverrideSchema] = _Field(default_factory=list)
+
+
+def _validate_yaml_config(raw: Dict[str, Any]) -> None:
+    """Validate critical sections of a raw YAML config dict before merging.
+
+    Raises ValueError with a user-readable message if any section is invalid.
+    Unknown top-level keys are silently ignored (forward compatibility).
+    """
+    errors: List[str] = []
+
+    if "weights" in raw and isinstance(raw["weights"], dict):
+        try:
+            _WeightsSchema.model_validate(raw["weights"])
+        except _ValidationError as exc:
+            errors.append(f"weights: {exc}")
+
+    patterns = raw.get("patterns") or {}
+    if isinstance(patterns, dict) and "god_function" in patterns:
+        try:
+            _GodFunctionSchema.model_validate(patterns["god_function"])
+        except _ValidationError as exc:
+            errors.append(f"patterns.god_function: {exc}")
+
+    if errors:
+        raise ValueError(
+            ".slopconfig.yaml validation failed:\n"
+            + "\n".join(f"  - {e}" for e in errors)
+        )
 
 
 class Config:
@@ -96,7 +158,8 @@ class Config:
                 self._merge_config(custom_config)
 
     def _merge_config(self, custom: Dict[str, Any]) -> None:
-        """Deep merge custom config into defaults."""
+        """Deep merge custom config into defaults (validated before merge)."""
+        _validate_yaml_config(custom)
         self._deep_update(self.config, custom)
 
     def _deep_update(self, base: Dict[str, Any], update: Dict[str, Any]) -> None:

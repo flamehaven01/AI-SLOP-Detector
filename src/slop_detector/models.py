@@ -1,8 +1,11 @@
 """Data models for SLOP detection."""
 
+import logging as _logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List
+
+_logger = _logging.getLogger(__name__)
 
 
 class SlopStatus(str, Enum):
@@ -27,6 +30,11 @@ class LDRResult:
     is_abc_interface: bool = False
     is_type_stub: bool = False
     is_packaging_init: bool = False  # empty __init__.py — Python packaging convention
+
+    def __post_init__(self) -> None:
+        if not (0.0 <= self.ldr_score <= 1.0):
+            _logger.warning("LDRResult.ldr_score %.4f out of [0,1] — clamped", self.ldr_score)
+            self.ldr_score = max(0.0, min(1.0, self.ldr_score))
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -54,6 +62,13 @@ class InflationResult:
     justified_jargon: List[str] = field(default_factory=list)
     is_config_file: bool = False
 
+    def __post_init__(self) -> None:
+        if self.inflation_score < 0.0:
+            _logger.warning(
+                "InflationResult.inflation_score %.4f below 0 — clamped", self.inflation_score
+            )
+            self.inflation_score = 0.0
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "jargon_count": self.jargon_count,
@@ -78,6 +93,13 @@ class DDCResult:
     type_checking_imports: List[str]
     usage_ratio: float
     grade: str
+
+    def __post_init__(self) -> None:
+        if not (0.0 <= self.usage_ratio <= 1.0):
+            _logger.warning(
+                "DDCResult.usage_ratio %.4f out of [0,1] — clamped", self.usage_ratio
+            )
+            self.usage_ratio = max(0.0, min(1.0, self.usage_ratio))
 
     def to_dict(self) -> Dict[str, Any]:
         return {

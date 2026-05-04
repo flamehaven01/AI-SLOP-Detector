@@ -70,6 +70,22 @@ class HistoryEntry:
     git_branch: Optional[str] = None
     project_id: Optional[str] = None  # v3.5.0: sha256[:12] of cwd — scopes calibration per project
 
+    def __post_init__(self) -> None:
+        # Clamp scores so malformed data never corrupts the LEDA calibration grid search.
+        self.deficit_score      = max(0.0, self.deficit_score)
+        self.ldr_score          = max(0.0, min(1.0, self.ldr_score))
+        self.inflation_score    = max(0.0, self.inflation_score)
+        self.ddc_usage_ratio    = max(0.0, min(1.0, self.ddc_usage_ratio))
+        self.n_critical_patterns = max(0, self.n_critical_patterns)
+        self.pattern_count      = max(0, self.pattern_count)
+        if self.fired_rules is not None:
+            try:
+                json.loads(self.fired_rules)
+            except (json.JSONDecodeError, ValueError) as exc:
+                raise ValueError(
+                    f"HistoryEntry.fired_rules must be valid JSON: {exc}"
+                ) from exc
+
 
 class HistoryTracker:
     """Track slop detection results over time (SQLite, auto-migrated)."""
