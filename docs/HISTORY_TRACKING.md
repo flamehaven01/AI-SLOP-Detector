@@ -1,4 +1,4 @@
-# History Tracking (v3.5.0)
+# History Tracking (v3.7.3)
 
 AI-SLOP Detector records every analysis run to a local SQLite database.
 Run it repeatedly on the same codebase and the accumulated data becomes
@@ -37,7 +37,7 @@ rows receive safe defaults (`project_id = NULL`, `n_critical_patterns = 0`).
 | `git_commit` | TEXT | v3.2.1 | Current HEAD commit SHA (when available; NULL for non-git projects) |
 | `git_branch` | TEXT | v3.2.1 | Current branch name (when available) |
 | `n_critical_patterns` | INTEGER | v3.2.0 | Count of CRITICAL-severity pattern issues in this run |
-| `fired_rules` | TEXT | v3.4.0 | JSON-serialised list of fired rule IDs |
+| `fired_rules` | TEXT | v3.4.0 | JSON object `{"pattern_id": count, ...}` — validated on write since v3.7.2 |
 | `project_id` | TEXT | **v3.5.0** | SHA-256[:12] of resolved scan cwd — scopes calibration per project |
 
 ---
@@ -106,6 +106,29 @@ report = pipeline.run_on_real_data(
 )
 print(report.summary())
 ```
+
+---
+
+## Input Integrity Guards (v3.7.2)
+
+`HistoryEntry.__post_init__` fires before every `_insert()` call:
+
+| Field | Guard | Rationale |
+|---|---|---|
+| `deficit_score` | `max(0.0, x)` | GQG construction guarantees non-negative |
+| `ldr_score` | `max(0.0, min(1.0, x))` | ratio — impossible outside [0, 1] |
+| `inflation_score` | `max(0.0, x)` | non-negative by definition |
+| `ddc_usage_ratio` | `max(0.0, min(1.0, x))` | ratio — impossible outside [0, 1] |
+| `n_critical_patterns` | `max(0, x)` | count cannot be negative |
+| `pattern_count` | `max(0, x)` | count cannot be negative |
+
+`fired_rules` is validated as parseable JSON at write time. Prior to v3.7.2 a
+malformed string returned `None` on the next calibration read, silently dropping
+all FP candidate events for that file — biasing the per-rule FP rate tracker.
+Now it raises `ValueError: HistoryEntry.fired_rules must be valid JSON: ...`
+immediately at insertion so corruption is caught before it enters the DB.
+
+See [docs/SCHEMA_VALIDATION.md](SCHEMA_VALIDATION.md) for the full Layer 3 spec.
 
 ---
 

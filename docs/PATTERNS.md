@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 3.5.0
-**Last Updated:** 2026-04-12
+**Version:** 3.7.3
+**Last Updated:** 2026-05-04
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -25,7 +25,7 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 | ID | Severity | Category | Description |
 |---|---|---|---|
 | `bare_except` | CRITICAL | Structural | Catches all exceptions including SystemExit |
-| `mutable_default_arg` | HIGH | Structural | Mutable default argument (list/dict) |
+| `mutable_default_arg` | CRITICAL | Structural | Mutable default argument (list/dict) |
 | `star_import` | MEDIUM | Structural | `from module import *` |
 | `global_statement` | MEDIUM | Structural | `global` keyword usage |
 | `empty_except` | CRITICAL | Placeholder | Exception handler with only `pass` |
@@ -38,8 +38,8 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 | `fixme_comment` | MEDIUM | Placeholder | `# FIXME` comment |
 | `interface_only_class` | HIGH | Placeholder | Class with only `pass`/`...` bodies |
 | `xxx_comment` | LOW | Placeholder | `# XXX` comment |
-| `js_push` | HIGH | Cross-Language | `.push()` (JavaScript Array method) |
-| `java_equals` | HIGH | Cross-Language | `.equals()` (Java String method) |
+| `javascript_array_push` | HIGH | Cross-Language | `.push()` (JavaScript Array method) |
+| `java_equals_method` | HIGH | Cross-Language | `.equals()` (Java String method) |
 | `ruby_each` | HIGH | Cross-Language | `.each {}` (Ruby iterator) |
 | `go_print` | MEDIUM | Cross-Language | `fmt.Println()` (Go print) |
 | `csharp_length` | MEDIUM | Cross-Language | `.Length` (C# property) |

@@ -5,6 +5,156 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.7.3 — 2026-05-04
+
+### Fixed
+
+**Package import stability**
+- `config.py`: pydantic imports and schema class definitions moved inside
+  `try/except ImportError`. When pydantic is absent `_validate_yaml_config()`
+  returns immediately — package imports cleanly in stripped environments (e.g.
+  bare `pip install ai-slop-detector` before deps fully resolve). Validation
+  activates automatically once pydantic is present.
+- `tests/test_api_models.py`: guard changed from `importorskip("pydantic")` to
+  `importorskip("fastapi")`. Pydantic moved to base deps in v3.7.2, so the old
+  guard no longer skipped the file — causing a collection error when `fastapi`
+  (the actual `[api]` optional dep) was absent.
+
+**CI**
+- `ci.yml` (Docker job): Docker Hub login uses `continue-on-error: true`; push
+  step fires only when `steps.docker_login.outcome == 'success'` — missing
+  `DOCKER_USERNAME`/`DOCKER_TOKEN` secrets no longer fail the build.
+- `ci-gate-fixed.yml`: install pinned to `"ai-slop-detector>=3.7.3"` to prevent
+  the self-referential quality gate from resolving to the broken v3.7.2 PyPI
+  package.
+
+---
+
+## v3.7.2 — 2026-05-04
+
+### Added
+
+**Core — three-layer data boundary validation**
+
+Layer 1 — Config boundary (`config.py`):
+- `_validate_yaml_config()` validates critical sections of `.slopconfig.yaml`
+  before merging into `DEFAULT_CONFIG` — pydantic v2 schemas `_WeightsSchema`
+  (each weight `[0.0, 1.0]`), `_DomainOverrideSchema` (string pattern, int
+  thresholds `≥ 1`), `_GodFunctionSchema`. Raises `ValueError` with exact field
+  path at load time — bad config (e.g. `weights.ldr: "hello"`) is caught before
+  it can reach the GQG formula.
+- Pydantic v2 (`>=2.5.0`) promoted to base dependency.
+
+Layer 2 — Computed metric results (`models.py`):
+- `LDRResult.__post_init__`: clamps `ldr_score` to `[0, 1]` with `WARNING` log
+  — protects `log(max(1e-4, ldr))` in GQG scorer from out-of-range inputs.
+- `InflationResult.__post_init__`: clamps `inflation_score` to `[0, ∞)` —
+  prevents negative score artefacts from radon edge cases.
+- `DDCResult.__post_init__`: clamps `usage_ratio` to `[0, 1]` with `WARNING`
+  log — prevents positive GQG distortion from ratio > 1 edge cases.
+
+Layer 3 — History DB insertion (`history.py`):
+- `HistoryEntry.__post_init__` clamps all six numeric fields before SQLite
+  write: `deficit_score ≥ 0`, `ldr_score / ddc_usage_ratio ∈ [0, 1]`,
+  `inflation_score ≥ 0`, `n_critical_patterns / pattern_count ≥ 0`.
+- `fired_rules` validated as parseable JSON at write time — malformed strings
+  raised `ValueError` immediately instead of silently returning `None` on the
+  next LEDA calibration read (which would drop all FP candidate events for
+  that file).
+
+**VS Code Extension v3.7.2**
+- `schema.ts` (new, 185 L): `ISlopReport`, `ILdrResult`, `IInflationResult`,
+  `IDdcResult`, `ISlopPattern` TypeScript interfaces; `ParseResult<T>`
+  discriminated union (`ok / error`, never throws); `parseSlopReport(data:
+  unknown)` — handwritten type predicate guards, `status` enum membership,
+  `ldr.ldr_score` numeric, `pattern_issues[i]` shape. Zero new npm deps.
+- `analyzer.ts`: `runSlopDetector()` return type narrowed `any →
+  Promise<ISlopReport>`; `parseSlopReport()` applied after `extractJson()`;
+  schema mismatch throws with exact `field / expected / got` path and
+  version-hint message.
+
+**Docs**
+- `docs/SCHEMA_VALIDATION.md` (new): four-layer validation reference —
+  Layer 1 config, Layer 2 metric results, Layer 3 history DB, Layer 4 VS Code
+  boundary — with tables, rationale, LEDA interaction pipeline, and extension guide.
+- `docs/LEDA_CALIBRATION.md §5`: "Three Runtime Schema Guards" section added.
+- `docs/ARCHITECTURE.md`: Data Boundary Validation section added.
+
+---
+
+## v3.7.1 — 2026-05-03
+
+### Fixed
+
+**Pattern accuracy**
+- `patterns/python_lint.py` — `LintEscapePattern.check()` now skips lines
+  inside string/docstring literals. `# noqa:` text embedded in docstrings was
+  incorrectly flagged as a live lint suppression; fix uses
+  `_string_literal_lines()` to collect `ast.Constant[str]` line ranges.
+
+**Code quality (self-scan audit — avg_deficit 13.85 → 9.80)**
+- `cli_commands.py L215`: `except OSError: pass` in `detect_domain()` replaced
+  with debug-level log.
+- `cli_commands.py L380`: `except Exception: pass` in
+  `_check_calibration_hint()` replaced with debug-level log.
+- `scripts/global_injector.py`: Patch 1 (`DEFAULT_CONFIG["weights"]` rewrite)
+  removed — dogfooding values belong only in `DOMAIN_PROFILES["general"]`.
+
+**Documentation accuracy**
+- `docs/LEDA_CALIBRATION.md §3.1`: GQG formula updated with `max(1e-4, ...)`
+  clamp guards (matching `core.py` implementation).
+- `docs/LEDA_CALIBRATION.md §4.3`: `ddc` "Before" corrected to `0.20²` with
+  footnote (pre-3.7.0 historical value was `0.30`).
+- `docs/CLAUDE_CODE_SKILL.md`: loop label corrected in 4 locations; Quality
+  Loop updated to 7 numbered steps.
+
+### Changed
+
+**`.slopconfig.yaml`** — domain_overrides expanded for justified structural
+complexity in `detect_domain`, `_collect_imports`, `_analyze_regex`,
+`_run_self_calibration`, `_check_calibration_hint`.
+
+**Claude Code Skill — v3.7.1 workflow**
+- 3-Phase Pipeline: Triage → Deep-Dive (Confidence Routing) → Action Plan.
+- `/slop-delta` new command: before/after delta table, regression detection.
+
+**VS Code Extension v3.7.1**
+- 855-line monolith split into 8 focused modules.
+- `SlopCodeActionProvider`: QuickFix for `phantom_import`, `god_function`,
+  `lint_escape`; "Add to .slopconfig.yaml ignore" action.
+- TreeView sidebar: 3-level hierarchy (file → 4D metrics → issues), click-to-navigate.
+- `SlopCodeLensProvider`: file-level summary at line 0 + per-function hints.
+
+---
+
+## v3.7.0 — 2026-05-02
+
+### Added
+
+**Real-world Dogfooding Model**
+- `scripts/retrain_model.py`: new `ThresholdClassifier` (pure-Python, no
+  `sklearn`) trained on 784 samples from 7 repos; `accuracy=0.7962`,
+  `precision=0.9524`, `recall=0.6742`.
+- Replaced `models/training_data.json` and `models/slop_classifier.pkl` with
+  live representations.
+
+**SKILL.md — CLI surface documented**
+- `--emit-leda-yaml` / `--leda-output` / `--leda-profile`
+- `--cross-file`, `--governance`, `--gate` vs `--ci-mode hard` distinction.
+
+### Fixed
+
+**SKILL.md — 10 OSOT violations (Sentinel-verified)**
+- G1: `ddc` default weight corrected `0.30 → 0.20` (matches `core.py`).
+- G2: `/slop-gate` split — `--gate` (SNP) vs `--ci-mode hard` (CIGate).
+- G3: `DEPENDENCY_NOISE` status documented with exact trigger.
+- D1: Project-level `CRITICAL_DEFICIT` threshold `weighted_deficit_score >= 50`.
+- D2: CI hard gate 4 conditions documented.
+- D4: `domain_overrides` YAML corrected — per-function exemption.
+- D5: Self-calibration two-gate structure documented.
+
+---
+
 ## v3.6.0 — 2026-04-27
 
 ### Added

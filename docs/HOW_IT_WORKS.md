@@ -234,11 +234,13 @@ flowchart LR
 
 The scorer uses a **weighted geometric mean** (GQG), not an arithmetic sum.
 A near-zero in any single dimension pulls the overall quality down regardless
-of other dimensions.
+of other dimensions. All dimensions are clamped to `max(1e-4, x)` before
+`log()` to prevent `-inf` collapse (v3.7.2 `__post_init__` guards enforce
+upstream range invariants on `LDRResult`, `InflationResult`, `DDCResult`).
 
 ```
 purity        = exp(-0.5 × n_critical_patterns)
-quality (GQG) = exp( Σ wᵢ·ln(dimᵢ) / Σ wᵢ )   — weighted geometric mean
+quality (GQG) = exp( Σ wᵢ·ln(max(1e-4, dimᵢ)) / Σ wᵢ )
 deficit_score = 100 × (1 − GQG) + pattern_penalty
 ```
 
@@ -248,7 +250,7 @@ flowchart TD
 
     B --> C[ldr_dim<br/>w=0.40 default]
     B --> D[inflation_dim<br/>w=0.30 default]
-    B --> E[ddc_dim<br/>w=0.30 default]
+    B --> E[ddc_dim<br/>w=0.20 default]
     B --> PUR[purity_dim<br/>w=0.10 default<br/>= exp-0.5 × n_critical]
 
     C --> F[GQG = exp Σwᵢ·lnᵢ / Σwᵢ<br/>Weighted Geometric Mean]
@@ -381,7 +383,8 @@ runs automatically — no manual command required.
 ```mermaid
 flowchart TD
     A[Scan Completes] --> B[Record to history.db<br/>git commit + branch tag]
-    B --> C{Total records<br/>multiple of 10?}
+    B --> GUARD[HistoryEntry.__post_init__<br/>v3.7.2 — clamp 6 fields<br/>fired_rules JSON validated]
+    GUARD --> C{Total records<br/>multiple of 10?}
     C -->|No| END[Done]
     C -->|Yes| D[Extract Events<br/>improvement / fp_candidate pairs]
     D --> E{Per-class min met?<br/>5 improvements + 5 fp_candidates}
@@ -444,8 +447,10 @@ flowchart TD
     
     B -->|Yes| C[Load .slopconfig.yaml]
     B -->|No| D[Use Defaults]
-    
-    C --> E{CLI Args?}
+
+    C --> VAL[_validate_yaml_config<br/>Pydantic v2 — v3.7.2<br/>weights range 0-1<br/>domain_overrides types]
+    VAL -->|Invalid| ERR[ValueError — exact field path]
+    VAL -->|OK| E{CLI Args?}
     D --> E
     
     E -->|Yes| F[Override with CLI]
@@ -581,5 +586,5 @@ flowchart TD
 
 ---
 
-**Generated:** 2026-04-13  
-**Version:** 3.5.0
+**Generated:** 2026-05-04  
+**Version:** 3.7.3

@@ -1,4 +1,4 @@
-# Mathematical Models Reference — AI-SLOP Detector v3.5.0
+# Mathematical Models Reference — AI-SLOP Detector v3.7.3
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.
@@ -138,9 +138,17 @@ Higher = more deficit (worse quality).
 ```
 base_deficit = 100 × (1 − GQG_4D)
 
-GQG_4D = exp( (w_ldr × log(ldr) + w_inf × log(1 − icr_norm) + w_ddc × log(ddc) + w_purity × log(purity_score)) / total_w )
+GQG_4D = exp(
+    (w_ldr    × log(max(1e-4, ldr))
+   + w_inf    × log(max(1e-4, 1 − icr_norm))
+   + w_ddc    × log(max(1e-4, ddc))
+   + w_purity × log(max(1e-4, purity_score)))
+   / total_w
+)
 
-purity_score = exp(−0.5 × n_critical_patterns)
+# max(1e-4, ...) prevents log(0) = -inf collapsing the entire score.
+# icr_norm = min(inflation_score, 2.0) / 2.0
+# purity_score = exp(−0.5 × n_critical_patterns)
 total_w = w_ldr + w_inflation + w_ddc + w_purity
 
 pattern_penalty = Sigma(severity_weight[sev] * count[sev])
@@ -148,16 +156,20 @@ pattern_penalty = Sigma(severity_weight[sev] * count[sev])
 deficit_score = base_deficit + pattern_penalty
 ```
 
-### Default Weights
+### Default Weights (v3.7.0+)
 
 | Signal    | Weight (w) | Source                              |
 |-----------|------------|-------------------------------------|
 | ldr       | 0.40       | `.slopconfig.yaml` `weights.ldr`    |
 | inflation | 0.30       | `.slopconfig.yaml` `weights.inflation` |
-| ddc       | 0.30       | `.slopconfig.yaml` `weights.ddc`    |
+| ddc       | 0.20       | `.slopconfig.yaml` `weights.ddc`    |
 | purity    | 0.10       | `.slopconfig.yaml` `weights.purity` |
 
-`w_ldr + w_inflation + w_ddc + w_purity = 1.10` (normalization uses `total_w`, so the sum need not equal 1.0 exactly).
+`w_ldr + w_inflation + w_ddc + w_purity = 1.00`.
+`total_w` normalises the geometric mean, so weights need not sum to any fixed value.
+These are the `DEFAULT_CONFIG` canonical fallback values. The LEDA engine's
+dogfooding-calibrated weights live in `DOMAIN_PROFILES["general"]` and differ
+significantly (ddc ≈ 0.62, ldr ≈ 0.15) — see `docs/LEDA_CALIBRATION.md §4.3`.
 
 ### Pattern Severity Penalties (added after weighted sum, before x100)
 
@@ -498,24 +510,29 @@ training without requiring a real codebase:
 
 ## Appendix A: Formula Change History
 
-| Version | Signal    | Change                                                  |
-|---------|-----------|---------------------------------------------------------|
-| v3.5.0  | Calibr.   | P1: project_id scoping in history.db (Schema v5)        |
-| v3.5.0  | Calibr.   | P2: milestone trigger = count_files_with_multiple_runs  |
-| v3.5.0  | Calibr.   | P3: domain-anchored ±0.15 grid search bounds            |
-| v3.5.0  | Calibr.   | P4: DOMAIN_DRIFT_LIMIT=0.25 divergence warning          |
-| v3.4.0  | Pattern   | JS/TS 4 patterns + Go 4 patterns added                  |
-| v3.1.0  | Pattern   | Clone/naming/stub patterns added                        |
-| v2.9.0  | Pattern   | phantom_import (hallucinated package detection)         |
-| v2.8.0  | ICR       | Complexity now amplifies penalty (was: divided penalty) |
-| v2.8.0  | Status    | Single monotonic axis replaces multi-axis branching     |
-| v2.8.0  | LDR (proj)| SR9 conservative aggregation: 0.6*min + 0.4*mean       |
-| v2.8.0  | Justif.   | Function-scoped (was: file-scoped)                      |
-| v2.8.0  | ML        | 16 features (was: 13; added god/dead/nesting counts)    |
-| v2.7.0  | DDC       | Fake import detection added                             |
-| v2.6.3  | Pattern   | @slop.ignore decorator support                          |
-| v2.2.0  | ICR       | Docstring inflation added as sub-signal                 |
-| v2.1.0  | Patterns  | Cross-language pattern catalog added                    |
+| Version | Signal    | Change                                                          |
+|---------|-----------|-----------------------------------------------------------------|
+| v3.7.3  | Config    | Pydantic import made optional (try/except); package always loads |
+| v3.7.2  | Config    | `_validate_yaml_config()` — Layer 1 guard at YAML load time     |
+| v3.7.2  | Models    | `__post_init__` clamps on LDR/Inflation/DDC results (Layer 2)   |
+| v3.7.2  | History   | `HistoryEntry.__post_init__` field clamps + fired_rules JSON (Layer 3) |
+| v3.7.2  | VS Code   | `parseSlopReport()` typed boundary, `ISlopReport` interface      |
+| v3.7.0  | Weights   | `DEFAULT_CONFIG["weights"].ddc` corrected 0.30 → 0.20           |
+| v3.7.0  | ML        | `ThresholdClassifier` (pure-Python) replaces sklearn RandomForest |
+| v3.5.0  | Calibr.   | P1: project_id scoping in history.db (Schema v5)                |
+| v3.5.0  | Calibr.   | P2: milestone trigger = count_files_with_multiple_runs           |
+| v3.5.0  | Calibr.   | P3: domain-anchored ±0.15 grid search bounds                    |
+| v3.5.0  | Calibr.   | P4: DOMAIN_DRIFT_LIMIT=0.25 divergence warning                  |
+| v3.4.0  | Pattern   | JS/TS 4 patterns + Go 4 patterns added                          |
+| v3.1.0  | Pattern   | Clone/naming/stub patterns added                                |
+| v3.0.0  | Scoring   | GQG weighted geometric mean replaces arithmetic mean            |
+| v3.0.0  | Formula   | `max(1e-4, x)` clamp guards added to all log() arguments        |
+| v2.9.0  | Pattern   | phantom_import (hallucinated package detection)                 |
+| v2.8.0  | ICR       | Complexity now amplifies penalty (was: divided penalty)         |
+| v2.8.0  | Status    | Single monotonic axis replaces multi-axis branching             |
+| v2.8.0  | LDR (proj)| SR9 conservative aggregation: 0.6*min + 0.4*mean               |
+| v2.8.0  | Justif.   | Function-scoped (was: file-scoped)                              |
+| v2.6.3  | Pattern   | @slop.ignore decorator support                                  |
 
 ---
 
@@ -549,6 +566,7 @@ pattern_penalties:
 
 ---
 
-*This document reflects the implementation in `src/slop_detector/` as of v3.5.0.
-For source-level detail, see the inline docstrings in `metrics/inflation.py`,
-`core.py`, `patterns/python_advanced.py`, and `ml/scorer.py`.*
+*This document reflects the implementation in `src/slop_detector/` as of v3.7.3.
+For source-level detail see `metrics/inflation.py`, `core.py`,
+`patterns/python_advanced.py`, `ml/scorer.py`, and `docs/SCHEMA_VALIDATION.md`
+(runtime range guards for all metric result dataclasses).*

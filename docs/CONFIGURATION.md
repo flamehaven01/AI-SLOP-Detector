@@ -11,7 +11,7 @@ Create `.slopconfig.yaml`:
 weights:
   ldr: 0.40        # Logic Density Ratio (40%)
   inflation: 0.30  # Jargon/Buzzword Inflation (30%)
-  ddc: 0.30        # Dependency Check (30%)
+  ddc: 0.20        # Dependency Check (20%)
   purity: 0.10     # Critical pattern purity (10%)
 
 # Thresholds
@@ -41,6 +41,56 @@ ignore:
   - "venv/"
   - ".venv/"
 ```
+
+## Config Validation (v3.7.2)
+
+`.slopconfig.yaml` is validated by Pydantic v2 schemas before merging into the
+default config. Invalid values raise `ValueError` with the exact field path —
+before they can reach the GQG formula or the LEDA calibration grid search.
+
+### Validated Sections
+
+**`weights:` block** — each key must be `float` in `[0.0, 1.0]`:
+
+```yaml
+# Raises ValueError at load time:
+weights:
+  ldr: 2.5        # Error: ldr must be <= 1.0
+  inflation: -0.1 # Error: inflation must be >= 0.0
+```
+
+**`patterns.god_function:` block**:
+
+```yaml
+patterns:
+  god_function:
+    complexity_threshold: 10  # must be int >= 1
+    lines_threshold: 50       # must be int >= 1
+    domain_overrides:
+      - function_pattern: "train_*"   # must be string
+        complexity_threshold: 30      # must be int >= 1
+        lines_threshold: 200          # must be int >= 1
+```
+
+### Error Format
+
+All sections are validated before raising — you see every problem at once:
+
+```
+ValueError: .slopconfig.yaml validation failed:
+  - weights: 1 validation error for _WeightsSchema
+    ldr
+      Input should be less than or equal to 1 [type=less_than_equal, input_value=2.5]
+  - patterns.god_function: 1 validation error for _GodFunctionSchema
+    domain_overrides.0.function_pattern
+      Input should be a valid string [type=string_type, input_value=123]
+```
+
+Unknown top-level keys are silently ignored for forward compatibility.
+
+Full specification: [docs/SCHEMA_VALIDATION.md](SCHEMA_VALIDATION.md)
+
+---
 
 ## Integration Test Configuration (v2.6.2)
 

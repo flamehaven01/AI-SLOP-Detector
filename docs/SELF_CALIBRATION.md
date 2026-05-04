@@ -6,19 +6,26 @@
 
 ## The Problem with Universal Weights
 
-The default scoring formula is:
+The default scoring formula is a **weighted geometric mean (GQG)**:
 
 ```
-deficit_score = w_ldr × (1 − ldr) + w_inflation × icr_norm + w_ddc × (1 − ddc) + pattern_penalty
+GQG = exp(
+    (w_ldr    × log(max(1e-4, ldr))
+   + w_inf    × log(max(1e-4, 1 − inflation_norm))
+   + w_ddc    × log(max(1e-4, ddc))
+   + w_purity × log(max(1e-4, purity_score)))
+   / (w_ldr + w_inf + w_ddc + w_purity)
+)
+deficit_score = 100 × (1 − GQG) + pattern_penalty
 ```
 
-With default weights:
+With default weights (`DEFAULT_CONFIG`, v3.7.0+):
 
 ```yaml
 weights:
   ldr: 0.40
   inflation: 0.30
-  ddc: 0.30
+  ddc: 0.20
   purity: 0.10
 ```
 
@@ -418,9 +425,37 @@ No new packages required.
 
 ---
 
+## Input Integrity Guarantees (v3.7.2)
+
+Grid search accuracy depends on the quality of `HistoryEntry` records fed to it.
+Since v3.7.2, `HistoryEntry.__post_init__` clamps six numeric fields before
+every SQLite write:
+
+| Field | Guard |
+|---|---|
+| `deficit_score` | `max(0.0, x)` |
+| `ldr_score` | `max(0.0, min(1.0, x))` |
+| `inflation_score` | `max(0.0, x)` |
+| `ddc_usage_ratio` | `max(0.0, min(1.0, x))` |
+| `n_critical_patterns` | `max(0, x)` |
+| `pattern_count` | `max(0, x)` |
+
+`fired_rules` is also validated as parseable JSON at write time — a malformed
+string previously returned `None` on read, silently dropping all FP candidate
+events for that file and biasing the per-rule FP rate tracker.
+
+A single `ddc_usage_ratio = 1.05` (impossible value, calculation edge case)
+would shift the ddc-heavy weight candidate upward artificially and potentially
+flip the optimal weight selection. The `__post_init__` clamp prevents this.
+
+Full specification: [docs/SCHEMA_VALIDATION.md](SCHEMA_VALIDATION.md)
+
+---
+
 ## Related
 
 - [History Tracking](HISTORY_TRACKING.md) — the data source for calibration
 - [Configuration Guide](CONFIGURATION.md) — manual weight tuning, `.slopconfig.yaml` structure
 - [Scoring Model](MATH_MODELS.md) — mathematical specification of the deficit formula
+- [Schema Validation](SCHEMA_VALIDATION.md) — three-layer runtime guards that protect calibration input
 - [ML Pipeline](HOW_IT_WORKS.md) — how the experimental ML layer relates to calibration

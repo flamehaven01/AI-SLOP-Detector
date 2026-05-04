@@ -2,6 +2,25 @@
 
 Integrate AI-SLOP Detector into your CI/CD pipeline with progressive enforcement modes.
 
+## Installation Note (v3.7.3+)
+
+Pin to `>=3.7.3` in all CI workflows. v3.7.2 had a hard top-level pydantic
+import that caused `ModuleNotFoundError` in stripped environments; v3.7.3 wraps
+it in `try/except ImportError`. Pydantic v2 is a base dependency — it is
+installed automatically with `pip install "ai-slop-detector>=3.7.3"`.
+
+```yaml
+- name: Install AI-SLOP Detector
+  run: pip install "ai-slop-detector>=3.7.3"
+```
+
+**Docker Hub credentials:** The `ci.yml` workflow's Docker job uses
+`continue-on-error: true` on the login step; push only fires when
+`steps.docker_login.outcome == 'success'`. Missing `DOCKER_USERNAME` /
+`DOCKER_TOKEN` secrets do not fail the build — they skip the push.
+
+---
+
 ## CI/CD Safety Note (v3.5.0)
 
 When using `--json` in CI pipelines (e.g., piping to `jq`):
@@ -40,7 +59,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install AI-SLOP Detector
-        run: pip install ai-slop-detector
+        run: pip install "ai-slop-detector>=3.7.3"
 
       - name: Run Quality Gate
         run: slop-detector --project . --ci-mode hard --ci-report
