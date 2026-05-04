@@ -1,6 +1,6 @@
 import pytest
 
-pytest.importorskip("pydantic", reason="requires api extra: pip install ai-slop-detector[api]")
+pytest.importorskip("fastapi", reason="requires api extra: pip install ai-slop-detector[api]")
 
 from slop_detector import __version__  # noqa: E402
 from slop_detector.api.models import AnalysisResponse, TrendResponse  # noqa: E402
