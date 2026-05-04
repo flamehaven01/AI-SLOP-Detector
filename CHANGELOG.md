@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.2] — Runtime Schema Validation + VS Code Typed Boundary
+
+### Added
+
+**Core — data boundary validation**
+- `config.py`: `_validate_yaml_config()` validates critical sections of `.slopconfig.yaml` before merging
+  — Pydantic schemas `_WeightsSchema` (range `[0.0, 1.0]` per weight), `_DomainOverrideSchema` (str pattern, int thresholds `≥ 1`), `_GodFunctionSchema`
+  — Bad user config (e.g. `weights.ldr: "hello"`, `complexity_threshold: "high"`) raises `ValueError` with exact field path at load time, before it can reach the GQG formula
+- `models.py`: `__post_init__` range guards on computed metric results
+  — `LDRResult`: clamps `ldr_score` to `[0, 1]` with `WARNING` log — protects `math.log()` in GQG scorer
+  — `InflationResult`: clamps `inflation_score` to `[0, ∞)` — prevents negative score artefacts
+  — `DDCResult`: clamps `usage_ratio` to `[0, 1]` with `WARNING` log
+- `history.py`: `HistoryEntry.__post_init__` sanitises all numeric fields before SQLite insertion
+  — Clamps `deficit_score ≥ 0`, `ldr_score / ddc_usage_ratio ∈ [0, 1]`, `n_critical_patterns / pattern_count ≥ 0`
+  — Validates `fired_rules` as parseable JSON at write time (not silently on read); LEDA calibration grid search inputs are now structurally guaranteed
+
+**VS Code Extension v3.7.2**
+- `schema.ts` (new, 185 L): `ISlopReport`, `ILdrResult`, `IInflationResult`, `IDdcResult`, `ISlopPattern` TypeScript interfaces mirroring `FileAnalysis.to_dict()` contract; `ParseResult<T>` discriminated union (`ok / error`, never throws); `parseSlopReport(data: unknown): ParseResult<ISlopReport>` — handwritten type predicate guards on all required fields, `status` enum membership, `ldr.ldr_score` numeric, `pattern_issues[i]` shape
+- `analyzer.ts`: `runSlopDetector()` return type narrowed `any → Promise<ISlopReport>`; `parseSlopReport()` applied after `extractJson()`; schema mismatch throws with exact `field / expected / got` path and version-hint message
+
+---
+
 ## [3.7.1] — Self-Scan Quality Pass + LintEscape False Positive Fix
 
 ### Fixed

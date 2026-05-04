@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext): void {
     bar.show();
 
     initState(collection, bar, channel);
-    channel.appendLine('[*] AI SLOP Detector v3.7.1 activated');
+    channel.appendLine('[*] AI SLOP Detector v3.7.2 activated');
 
     context.subscriptions.push(collection, bar, channel);
 

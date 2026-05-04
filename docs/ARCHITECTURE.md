@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.5.0
-**Last Updated:** 2026-04-12
+**Version:** 3.7.2
+**Last Updated:** 2026-05-04
 
 ---
 
@@ -74,6 +74,41 @@ AI-SLOP Detector is a production-grade static analysis tool designed to identify
                  │project_id  │  │ drift warning (P4)   │
                  └────────────┘  └──────────────────────┘
 ```
+
+---
+
+## Data Boundary Validation (v3.7.2)
+
+Three runtime schema guards protect the analysis pipeline from malformed inputs reaching
+the GQG weighted geometric mean formula or the LEDA calibration grid search.
+
+```
+User YAML          Computed Metrics         History DB
+    │                     │                     │
+    ▼                     ▼                     ▼
+_validate_yaml_config()  __post_init__()    __post_init__()
+    │                     │                     │
+  Pydantic           clamp + warn log       clamp + JSON
+  WeightsSchema      ldr_score ∈ [0,1]      validation
+  DomainOverride     usage_ratio ∈ [0,1]    fired_rules
+  GodFunctionSchema  inflation_score ≥ 0    deficit ≥ 0
+    │                     │                     │
+    ▼                     ▼                     ▼
+ValueError (clear     WARNING logged        ValueError
+field path)           score clamped         at insert
+```
+
+| Guard | Location | Trigger |
+|---|---|---|
+| `_validate_yaml_config()` | `config.py` | `.slopconfig.yaml` load — bad weight type or range |
+| `LDRResult.__post_init__` | `models.py` | `ldr_score` outside `[0, 1]` |
+| `InflationResult.__post_init__` | `models.py` | `inflation_score < 0` |
+| `DDCResult.__post_init__` | `models.py` | `usage_ratio` outside `[0, 1]` |
+| `HistoryEntry.__post_init__` | `history.py` | Any metric out of range; invalid `fired_rules` JSON |
+
+**VS Code boundary** (`schema.ts`): `parseSlopReport(data: unknown): ParseResult<ISlopReport>`
+applies the same principle at the CLI→extension boundary — typed discriminated union, no
+external validation library, exact `field / expected / got` error on mismatch.
 
 ---
 
