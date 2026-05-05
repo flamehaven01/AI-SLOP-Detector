@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.7.3] — Hotfix: Graceful pydantic import + CI stability
+## [3.7.3] - 2026-05-04 — Hotfix: Graceful pydantic import + CI stability
 
 ### Fixed
 
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.7.2] — Runtime Schema Validation + VS Code Typed Boundary
+## [3.7.2] - 2026-05-04 — Runtime Schema Validation + VS Code Typed Boundary
 
 ### Added
 
@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.7.1] — Self-Scan Quality Pass + LintEscape False Positive Fix
+## [3.7.1] - 2026-05-03 — Self-Scan Quality Pass + LintEscape False Positive Fix
 
 ### Fixed
 
@@ -92,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.7.0] — Dogfooding Model Calibration + SKILL.md Contract Repair
+## [3.7.0] - 2026-05-02 — Dogfooding Model Calibration + SKILL.md Contract Repair
 
 ### Added
 
@@ -160,7 +160,7 @@ Medium:
 - `python_naming.py` (123 lines): `PlaceholderVariableNamingPattern`
 
 ---
-## [3.6.0] — Claude Code Skill + Documentation Fixes
+## [3.6.0] - 2026-04-28 — Claude Code Skill + Documentation Fixes
 
 ### Added
 
@@ -195,7 +195,7 @@ Medium:
 
 ---
 
-## [3.5.0] — Phase 3: Domain-Aware Init + JS/TS + Go Analysis
+## [3.5.0] - 2026-04-13 — Phase 3: Domain-Aware Init + JS/TS + Go Analysis
 
 ### Added
 
@@ -302,7 +302,7 @@ Medium:
 
 ---
 
-## [3.4.1] — CI Fixes + STUB FileRole + Auto-Config Detection
+## [3.4.1] - 2026-04-12 — CI Fixes + STUB FileRole + Auto-Config Detection
 
 ### Added
 
@@ -349,7 +349,7 @@ Medium:
 - Default CLI emission now uses `restricted` to reduce accidental exposure of
   implementation weakness surfaces in exported YAML.
 
-## [3.4.0] — Phase 2: Per-Rule FP Tracking + Purity Weight Ceiling
+## [3.4.0] - 2026-04-12 — Phase 2: Per-Rule FP Tracking + Purity Weight Ceiling
 
 ### Added
 
@@ -372,7 +372,7 @@ Medium:
 - `MIN_RULE_OCCURRENCES = 3` constant: minimum events per rule to include in FP rate stats
 - Grid search `_grid_search()` respects ceiling: purity iterates `[0.10, 0.15, 0.20, 0.25]` only
 
-## [3.3.0] — Phase 1 False-Positive Reduction
+## [3.3.0] - 2026-04-12 — Phase 1 False-Positive Reduction
 
 ### Added
 
