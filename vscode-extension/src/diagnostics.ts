@@ -98,9 +98,10 @@ export function updateDiagnostics(uri: vscode.Uri, result: any): void {
     }
 
     for (const dep of result.hallucination_deps?.hallucinated_deps ?? []) {
+        const libName = dep.library ?? dep.name ?? String(dep);
         diagnostics.push(makeDiag(
             FULL_LINE,
-            `Hallucinated dependency: "${dep.name || dep}" — imported but serves no verified purpose`,
+            `Hallucinated dependency: "${libName}" (${dep.category ?? 'unknown'}) — ${dep.likely_intent ?? 'imported but serves no verified purpose'}`,
             vscode.DiagnosticSeverity.Information, 'SLOP Detector - Hallucination', 'hallucinated-dep',
         ));
     }
