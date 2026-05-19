@@ -25,7 +25,7 @@ def _strip_docstring(body: List[ast.stmt]) -> List[ast.stmt]:
     ]
 
 
-def _has_abstractmethod(node: ast.FunctionDef) -> bool:
+def _has_abstractmethod(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
     """Return True if the function has an @abstractmethod decorator."""
     return any(
         (d.id if isinstance(d, ast.Name) else d.attr if isinstance(d, ast.Attribute) else "")
@@ -47,7 +47,7 @@ def _empty_container_repr(value: ast.expr) -> Optional[str]:
     return None
 
 
-def _has_optional_return(node: ast.FunctionDef) -> bool:
+def _has_optional_return(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
     """Return True if return annotation is Optional[T] or T | None."""
     ann = node.returns
     if ann is None:
