@@ -47,6 +47,23 @@ def _empty_container_repr(value: ast.expr) -> Optional[str]:
     return None
 
 
+def _has_optional_return(node: ast.FunctionDef) -> bool:
+    """Return True if return annotation is Optional[T] or T | None."""
+    ann = node.returns
+    if ann is None:
+        return False
+    if isinstance(ann, ast.Subscript) and isinstance(ann.value, ast.Name):
+        if ann.value.id == "Optional":
+            return True
+    if isinstance(ann, ast.BinOp):
+        left, right = ann.left, ann.right
+        if (isinstance(right, ast.Constant) and right.value is None) or (
+            isinstance(left, ast.Constant) and left.value is None
+        ):
+            return True
+    return False
+
+
 def _is_placeholder_stmt(stmt: ast.stmt) -> bool:
     """Return True if a single statement is a recognised placeholder body."""
     if isinstance(stmt, ast.Pass):
@@ -169,6 +186,8 @@ class EllipsisPlaceholderPattern(ASTPattern):
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
         if not isinstance(node, ast.FunctionDef):
+            return None
+        if _has_abstractmethod(node):
             return None
         body = _strip_docstring(node.body)
         if len(body) == 1:
@@ -305,6 +324,10 @@ class ReturnNonePlaceholderPattern(ASTPattern):
             return None
         if node.name.startswith("__") and node.name.endswith("__"):
             return None
+        if _has_abstractmethod(node):
+            return None
+        if _has_optional_return(node):
+            return None
         body = _strip_docstring(node.body)
         if len(body) == 1 and isinstance(body[0], ast.Return):
             ret = body[0]
@@ -414,10 +437,12 @@ class InterfaceOnlyClassPattern(ASTPattern):
     def _count_placeholder_methods(
         self, methods: List[Union[ast.FunctionDef, ast.AsyncFunctionDef]]
     ) -> int:
-        """Count non-dunder methods whose body is a single placeholder statement."""
+        """Count non-dunder, non-abstract methods whose body is a single placeholder statement."""
         count = 0
         for method in methods:
             if method.name.startswith("__") and method.name.endswith("__"):
+                continue
+            if _has_abstractmethod(method):
                 continue
             body = _strip_docstring(method.body)
             if len(body) == 1 and _is_placeholder_stmt(body[0]):

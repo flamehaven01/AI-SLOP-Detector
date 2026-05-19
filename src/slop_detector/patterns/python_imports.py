@@ -71,10 +71,17 @@ def _find_project_root(file_path: Path) -> Optional[Path]:
     return None
 
 
+_EXTRAS_RE = re.compile(r"\[.*?\]")
+
+
 def _add_dep_names(dep_list: List[str], packages: set) -> None:
-    """Parse PEP-508 dependency strings and add canonical names."""
+    """Parse PEP-508 dependency strings and add canonical names.
+
+    Strips extras specifiers (e.g. psycopg[binary]) before canonicalisation
+    so that `import psycopg` matches `psycopg[binary]>=3.1.0` in optional-deps.
+    """
     for dep in dep_list:
-        name = re.split(r"[>=<!~;\[\s]", dep.strip())[0].strip()
+        name = re.split(r"[>=<!~;\s]", _EXTRAS_RE.sub("", dep).strip())[0].strip()
         if not name:
             continue
         canon = name.replace("-", "_").lower()

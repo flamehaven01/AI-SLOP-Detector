@@ -5,6 +5,74 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.7.4 — 2026-05-19
+
+### Fixed
+
+**6 false-positive sources patched**
+
+#### Bug 1 — `ellipsis_placeholder`: `@abstractmethod` guard missing
+
+`EllipsisPlaceholderPattern` lacked the `_has_abstractmethod()` guard present in
+`PassPlaceholderPattern` and `NotImplementedPattern`. Abstract interface stubs
+(`def method(self) -> None: ...`) were incorrectly flagged.
+
+Fix: early return when `_has_abstractmethod(node)` is true.
+
+#### Bug 2 — `interface_only_class`: abstract methods counted as placeholders
+
+`_count_placeholder_methods` did not exclude `@abstractmethod` decorated methods.
+A pure ABC with all abstract methods would reach the 50% threshold and fire.
+
+Fix: `if _has_abstractmethod(method): continue` added to the count loop.
+
+#### Bug 3 — `return_none_placeholder`: Optional return type not checked
+
+`return None` is the correct implementation when a function is annotated
+`-> Optional[T]` or `-> T | None` (Null Object pattern). The pattern had no
+annotation check.
+
+Fix: `_has_optional_return()` helper added; checked before flagging. Also adds
+missing `@abstractmethod` guard to this pattern.
+
+#### Bug 4 — `function_clone_cluster`: ABC abstract stubs create spurious CRITICAL cluster
+
+`calculate_stub_density` fed all functions (including `@abstractmethod` stubs) to
+`_find_largest_clone_group`. All abstract stubs are structurally identical
+(single `...` or `pass` body), so any ABC with ≥6 abstract methods produced a
+`CRITICAL` clone cluster regardless of the concrete implementations.
+
+Fix: `non_abstract = [f for f in all_funcs if not _has_abstractmethod_fn(f)]`
+applied before `_find_largest_clone_group`.
+
+#### Bug 5 — `phantom_import`: extras specifier not explicitly stripped
+
+PEP-508 extras (`psycopg[binary]`) were split by the existing regex, but the
+intent was implicit and the behavior on edge inputs was undocumented.
+
+Fix: explicit `_EXTRAS_RE = re.compile(r"\[.*?\]")` applied in `_add_dep_names`
+before the version-specifier split, with inline documentation of the invariant.
+
+#### Bug 6 — `function_clone_cluster`: FastAPI route handlers falsely flagged
+
+FastAPI `APIRouter` files contain multiple route handler functions that share an
+identical structural pattern (try/except + HTTPException). The existing dispatcher
+signals (dict dispatch table, naming prefix) did not cover this case.
+
+Fix: Signal 3 added to `_is_dispatcher_pattern` — if the file contains a
+module-level `app` or `router` assignment, the file is exempt from clone flagging.
+
+### Impact
+
+Before patch (example `storage.py`): deficit 48.3 | After: ~5 (clean)
+Before patch (example `auth.py`): deficit 59.7 | After: ~30 (suspicious but not inflated)
+
+### Tests
+
+324 passing (6 new regression tests in `tests/test_fp_reduction.py`).
+
+---
+
 ## v3.7.3 — 2026-05-04
 
 ### Fixed

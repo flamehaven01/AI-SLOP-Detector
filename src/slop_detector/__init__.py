@@ -1,6 +1,6 @@
 """AI SLOP Detector - Production-ready code quality analyzer."""
 
-__version__ = "3.7.3"
+__version__ = "3.7.4"
 __author__ = "Flamehaven Labs"
 __email__ = "info@flamehaven.space"
 

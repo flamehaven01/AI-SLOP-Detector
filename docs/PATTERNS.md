@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 3.7.3
-**Last Updated:** 2026-05-04
+**Version:** 3.7.4
+**Last Updated:** 2026-05-19
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -31,12 +31,12 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 | `empty_except` | CRITICAL | Placeholder | Exception handler with only `pass` |
 | `not_implemented` | HIGH | Placeholder | `raise NotImplementedError` stub |
 | `pass_placeholder` | HIGH | Placeholder | Function/class body is only `pass` |
-| `ellipsis_placeholder` | HIGH | Placeholder | Function body is only `...` |
+| `ellipsis_placeholder` | HIGH | Placeholder | Function body is only `...` (skips `@abstractmethod`) |
 | `hack_comment` | HIGH | Placeholder | `# HACK` comment |
-| `return_none_placeholder` | MEDIUM | Placeholder | `return None` as only statement |
+| `return_none_placeholder` | MEDIUM | Placeholder | `return None` as only statement (skips `Optional[T]` annotations) |
 | `todo_comment` | MEDIUM | Placeholder | `# TODO` comment |
 | `fixme_comment` | MEDIUM | Placeholder | `# FIXME` comment |
-| `interface_only_class` | HIGH | Placeholder | Class with only `pass`/`...` bodies |
+| `interface_only_class` | HIGH | Placeholder | Class with ≥50% non-abstract placeholder methods |
 | `xxx_comment` | LOW | Placeholder | `# XXX` comment |
 | `javascript_array_push` | HIGH | Cross-Language | `.push()` (JavaScript Array method) |
 | `java_equals_method` | HIGH | Cross-Language | `.equals()` (Java String method) |
@@ -48,8 +48,8 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 | `dead_code` | MEDIUM | Python Advanced | Unreachable statements after return/raise |
 | `deep_nesting` | HIGH | Python Advanced | Control-flow depth > 4 |
 | `lint_escape` | HIGH/MED/LOW | Python Advanced | `# noqa`, `# type: ignore`, `# pylint: disable` |
-| `phantom_import` | **CRITICAL** | **v2.9.0** | Import targets a non-existent package |
-| `function_clone_cluster` | **CRITICAL** | **v3.1.0** | Near-duplicate function bodies (clone cluster) |
+| `phantom_import` | **CRITICAL** | **v2.9.0** | Import targets a non-existent package (extras specifiers stripped) |
+| `function_clone_cluster` | **CRITICAL** | **v3.1.0** | Near-duplicate function bodies via AST JSD (skips `@abstractmethod`, FastAPI routers) |
 | `placeholder_variable_naming` | HIGH | v3.1.0 | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
 | `return_constant_stub` | HIGH | v3.1.0 | Function always returns the same constant (stub pattern) |
 | `nested_complexity` | HIGH | v3.1.0 | Control-flow nesting depth ≥ 4 |
@@ -367,18 +367,20 @@ def calculate_result(x, y):
 - May cause None-related errors downstream
 - Common AI placeholder pattern
 
-**Note:** Functions with actual None-returning logic (validation, optional results) are not flagged.
+**Exclusions (v3.7.4):**
+- `@abstractmethod` decorated methods — skipped (correct ABC contract)
+- Return annotation is `Optional[T]` or `T | None` — skipped (intentional Null Object pattern)
 
 ---
 
 ### 8. Interface-Only Class (v2.6+)
 
 **ID:** `interface_only_class`
-**Severity:** MEDIUM
+**Severity:** HIGH
 **Category:** Empty Implementation
 
 **Description:**
-Class where 75%+ of methods are placeholders (pass, ..., NotImplementedError), indicating an incomplete implementation masquerading as a class.
+Class where ≥50% of non-dunder, non-abstract methods have placeholder bodies (`pass`, `...`, `return None`, `raise`), indicating an incomplete implementation masquerading as a class.
 
 **Bad Example:**
 ```python
@@ -426,9 +428,10 @@ class DataProcessor(ABC):
 
 **Why It's Bad:**
 - Fake implementation with no functionality
-- Should be an Abstract Base Class (ABC)
 - Misleads about class capabilities
 - Common AI code scaffolding pattern
+
+**Exclusions (v3.7.4):** `@abstractmethod` decorated methods are not counted as placeholders — a pure ABC with all abstract methods is a valid interface definition and will not trigger this pattern.
 
 ---
 
@@ -459,6 +462,8 @@ def transform(x):
 - Same issues as `pass` placeholder
 - Valid in type stubs (.pyi) but not in implementation
 - AI generators use this for "to be implemented" code
+
+**Exclusion (v3.7.4):** `@abstractmethod` decorated methods are skipped — `def method(self) -> None: ...` in an ABC is the correct Python interface idiom.
 
 ---
 
@@ -900,7 +905,9 @@ environment — a direct signal of AI-hallucinated code.
 3. `importlib.metadata.packages_distributions()` — pip-installed packages
 4. `importlib.util.find_spec` — namespace packages, editable installs
 
-Relative imports are excluded by design.
+Relative imports are excluded by design. Declared `[project.optional-dependencies]`
+entries are recognised after stripping PEP-508 extras specifiers (`psycopg[binary]`
+→ `psycopg`), so guarded imports for properly declared optional packages are not flagged.
 
 ```python
 # CRITICAL:
@@ -928,10 +935,15 @@ See [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) for full specification.
 Detects clusters of near-duplicate function bodies — the most common structural
 sign of AI-generated code that was copy-pasted instead of abstracted.
 
-Detection uses normalized AST fingerprinting: comments and whitespace are stripped,
-variable names are normalized to positions, and Jaccard similarity is computed
-across function body token sets. Functions with similarity > 0.85 are grouped
-into a clone cluster.
+Detection uses 30-dim normalized AST node-type histograms and Jensen-Shannon
+Divergence (JSD). Functions with pairwise JSD < 0.05 are grouped into a clone
+cluster via BFS connected components.
+
+**Dispatcher exemptions** (not flagged):
+- Functions dispatched via a dict lookup table (≥40% of group referenced)
+- Functions sharing a naming prefix ≥3 chars at ≥80% uniformity (`cmd_*`, `handle_*`)
+- FastAPI / Flask route files (module-level `app` or `router` assignment)
+- `@abstractmethod` stubs (excluded from histogram before clustering)
 
 ```python
 # Flagged: clone cluster (similarity 0.92)
