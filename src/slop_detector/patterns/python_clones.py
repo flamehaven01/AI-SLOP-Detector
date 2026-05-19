@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
-from typing import List, Any
+from typing import Any, List
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -28,9 +28,7 @@ def _is_dispatcher_pattern(tree: ast.AST, clone_names: List[str]) -> bool:
     # Signal 1: dispatch table
     for node in ast.walk(tree):
         if isinstance(node, ast.Dict):
-            hits = sum(
-                1 for v in node.values if isinstance(v, ast.Name) and v.id in clone_set
-            )
+            hits = sum(1 for v in node.values if isinstance(v, ast.Name) and v.id in clone_set)
             if hits >= threshold:
                 return True
 

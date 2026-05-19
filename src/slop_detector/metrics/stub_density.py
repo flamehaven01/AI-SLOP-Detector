@@ -56,6 +56,7 @@ def _has_abstractmethod_fn(func: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -
         for d in func.decorator_list
     )
 
+
 # 30 representative Python AST node types for structural fingerprinting.
 # Selected for discriminating power between stub and computational code.
 _NODE_TYPES: List[str] = [

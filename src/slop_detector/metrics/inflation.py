@@ -130,20 +130,20 @@ class InflationCalculator:
                 for word in words:
                     matches = re.findall(r"\b" + re.escape(word.lower()) + r"\b", line_lower)
                     for _ in matches:
-                            jargon_found.append(word)
-                            is_justified = self._is_jargon_justified_scoped(
-                                category, word, content, lines, line_idx, func_scopes
-                            )
-                            if is_justified:
-                                justified_jargon.append(word)
-                            jargon_details.append(
-                                {
-                                    "word": word,
-                                    "line": line_idx,
-                                    "category": category,
-                                    "justified": is_justified,
-                                }
-                            )
+                        jargon_found.append(word)
+                        is_justified = self._is_jargon_justified_scoped(
+                            category, word, content, lines, line_idx, func_scopes
+                        )
+                        if is_justified:
+                            justified_jargon.append(word)
+                        jargon_details.append(
+                            {
+                                "word": word,
+                                "line": line_idx,
+                                "category": category,
+                                "justified": is_justified,
+                            }
+                        )
         return jargon_found, justified_jargon, jargon_details
 
     # Minimum denominator for jargon density: prevents single hits in tiny files
