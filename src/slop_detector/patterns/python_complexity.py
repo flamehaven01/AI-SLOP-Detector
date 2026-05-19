@@ -197,7 +197,9 @@ class GodFunctionPattern(BasePattern):
             is_too_long = logic_lines > ln_limit
             is_too_complex = complexity > cc_limit
 
-            if is_too_long or is_too_complex:
+            # Pure lines violation with complexity < 4 is typically declarative setup
+            # code (argparse subcommand tables, config blocks) — not logic fragmentation.
+            if is_too_complex or (is_too_long and complexity >= 4):
                 issues.append(
                     self._make_god_issue(
                         file,

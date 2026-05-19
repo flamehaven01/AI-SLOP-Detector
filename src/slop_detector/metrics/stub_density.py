@@ -47,6 +47,15 @@ _CLONE_MED_THRESHOLD = 4  # >= 4 clones -> MEDIUM
 
 _EPS = 1e-12
 
+
+def _has_abstractmethod_fn(func: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
+    """Return True if the function has an @abstractmethod decorator."""
+    return any(
+        (d.id if isinstance(d, ast.Name) else d.attr if isinstance(d, ast.Attribute) else "")
+        == "abstractmethod"
+        for d in func.decorator_list
+    )
+
 # 30 representative Python AST node types for structural fingerprinting.
 # Selected for discriminating power between stub and computational code.
 _NODE_TYPES: List[str] = [
@@ -276,9 +285,12 @@ def calculate_stub_density(source: str) -> Optional[StubDensityResult]:
     stubs = [f for f in all_funcs if _is_stub_body(f)]
     stub_ratio = len(stubs) / total
 
-    # Clone detection only meaningful for files with >= MIN_FUNCTIONS_FOR_CLONE
+    # Clone detection only meaningful for files with >= MIN_FUNCTIONS_FOR_CLONE.
+    # Abstract methods are structurally identical stubs by design — exclude them
+    # so an ABC with N abstract methods does not generate a spurious CRITICAL cluster.
     if total >= _MIN_FUNCTIONS_FOR_CLONE:
-        clone_size, clone_names = _find_largest_clone_group(list(all_funcs))
+        non_abstract = [f for f in all_funcs if not _has_abstractmethod_fn(f)]
+        clone_size, clone_names = _find_largest_clone_group(non_abstract)
     else:
         clone_size, clone_names = 0, []
 

@@ -254,3 +254,411 @@ def test_protocol_stub_is_clean(detector):
     assert (
         result.status == SlopStatus.CLEAN
     ), f"Expected CLEAN, got {result.status}. warnings={result.warnings}"
+
+
+# ---------------------------------------------------------------------------
+# ⑦ Domain terminology — proof/lemma/theorem are math vocabulary, not slop
+# ---------------------------------------------------------------------------
+
+PROOF_DOMAIN_SRC = textwrap.dedent(
+    """
+    from __future__ import annotations
+    from pathlib import Path
+    import json
+
+    # Single source of truth — imported by proof_audit_probe.py and conftest.py
+    PROOF_DIR: str = "proofs"
+    LEMMA_SCHEMA_VERSION = "1.0"
+
+    def load_proof(path: Path) -> dict:
+        \"\"\"Load a proof bundle from disk.\"\"\"
+        with open(path) as f:
+            return json.load(f)
+
+    def validate_lemma(lemma: dict) -> bool:
+        \"\"\"Check lemma schema version.\"\"\"
+        return lemma.get("version") == LEMMA_SCHEMA_VERSION
+
+    def emit_theorem_record(theorem_id: str, proof: dict) -> dict:
+        \"\"\"Emit an audit record for a verified theorem.\"\"\"
+        return {"id": theorem_id, "proof": proof}
+"""
+).strip()
+
+
+def test_proof_domain_terms_not_flagged_as_jargon():
+    """proof/lemma/theorem are domain vocabulary in formal-methods code, not inflation."""
+    import ast as _ast
+    from slop_detector.config import Config
+    from slop_detector.metrics.inflation import InflationCalculator
+
+    tree = _ast.parse(PROOF_DOMAIN_SRC)
+    calc = InflationCalculator(Config())
+    result = calc.calculate("proof_custody.py", PROOF_DOMAIN_SRC, tree)
+    academic_hits = [d for d in result.jargon_details if d["category"] == "academic"]
+    assert academic_hits == [], f"Unexpected academic jargon hits: {academic_hits}"
+
+
+def test_proof_filename_in_comment_not_matched():
+    """'proof_audit_probe.py' in a comment must not trigger the 'proof' jargon signal."""
+    import ast as _ast
+    from slop_detector.config import Config
+    from slop_detector.metrics.inflation import InflationCalculator
+
+    src = textwrap.dedent(
+        """
+        # Imported by proof_audit_probe.py and tap_autoloop.py
+        README_CANDIDATES = ["README.md", "docs/index.md"]
+        PROOF_DIR = "proofs"
+    """
+    ).strip()
+    tree = _ast.parse(src)
+    calc = InflationCalculator(Config())
+    result = calc.calculate("shared.py", src, tree)
+    assert result.inflation_score < 1.0, (
+        f"inflation_score={result.inflation_score:.3f} — filename reference in comment "
+        f"should not trigger jargon: {result.jargon_details}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# ⑧ CLI dispatcher — cmd_* functions with dispatch table must not clone-flag
+# ---------------------------------------------------------------------------
+
+CLI_DISPATCHER_SRC = textwrap.dedent(
+    """
+    import argparse
+
+    def cmd_init(args: argparse.Namespace) -> int:
+        print("init")
+        return 0
+
+    def cmd_status(args: argparse.Namespace) -> int:
+        print("status")
+        return 0
+
+    def cmd_probe(args: argparse.Namespace) -> int:
+        print("probe")
+        return 0
+
+    def cmd_apply(args: argparse.Namespace) -> int:
+        print("apply")
+        return 0
+
+    def cmd_pack(args: argparse.Namespace) -> int:
+        print("pack")
+        return 0
+
+    def cmd_release(args: argparse.Namespace) -> int:
+        print("release")
+        return 0
+
+    def main() -> int:
+        parser = argparse.ArgumentParser()
+        sub = parser.add_subparsers(dest="command")
+        sub.add_parser("init")
+        sub.add_parser("status")
+        sub.add_parser("probe")
+        sub.add_parser("apply")
+        sub.add_parser("pack")
+        sub.add_parser("release")
+        args = parser.parse_args()
+        dispatch = {
+            "init": cmd_init,
+            "status": cmd_status,
+            "probe": cmd_probe,
+            "apply": cmd_apply,
+            "pack": cmd_pack,
+            "release": cmd_release,
+        }
+        return dispatch[args.command](args)
+"""
+).strip()
+
+
+def test_cli_dispatcher_not_flagged_as_clone_cluster():
+    """cmd_* functions dispatched via a table must not trigger function_clone_cluster."""
+    import ast as _ast
+    from slop_detector.patterns.python_clones import FunctionClonePattern
+
+    tree = _ast.parse(CLI_DISPATCHER_SRC)
+    pattern = FunctionClonePattern()
+    issues = pattern.check(tree, "cli.py", CLI_DISPATCHER_SRC)
+    clone_issues = [i for i in issues if i.pattern_id == "function_clone_cluster"]
+    assert clone_issues == [], (
+        f"CLI dispatcher pattern wrongly flagged as clone cluster: {[i.message for i in clone_issues]}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# ⑨ Argparse god function — declarative setup with complexity < 4 must not fire
+# ---------------------------------------------------------------------------
+
+ARGPARSE_MAIN_SRC = textwrap.dedent(
+    """
+    import argparse
+    import sys
+
+    def main() -> int:
+        parser = argparse.ArgumentParser(description="TAP CLI")
+        sub = parser.add_subparsers(dest="command", required=True)
+
+        p_init = sub.add_parser("init", help="Initialise")
+        p_init.add_argument("--target", default=".")
+        p_init.add_argument("--force", action="store_true")
+
+        p_status = sub.add_parser("status", help="Show status")
+        p_status.add_argument("--verbose", action="store_true")
+        p_status.add_argument("--format", choices=["text", "json"], default="text")
+
+        p_probe = sub.add_parser("probe", help="Run probe")
+        p_probe.add_argument("--timeout", type=int, default=60)
+        p_probe.add_argument("--dry-run", action="store_true")
+
+        p_apply = sub.add_parser("apply", help="Apply changes")
+        p_apply.add_argument("--patch", required=True)
+        p_apply.add_argument("--confirm", action="store_true")
+
+        p_pack = sub.add_parser("pack", help="Pack bundle")
+        p_pack.add_argument("--output", default="dist/")
+        p_pack.add_argument("--sign", action="store_true")
+
+        p_release = sub.add_parser("release", help="Release")
+        p_release.add_argument("--version", required=True)
+        p_release.add_argument("--tag", action="store_true")
+        p_release.add_argument("--push", action="store_true")
+
+        p_ribbon = sub.add_parser("ribbon", help="Ribbon")
+        p_ribbon.add_argument("--chain", default="main")
+
+        p_propose = sub.add_parser("propose", help="Propose")
+        p_propose.add_argument("--title", required=True)
+        p_propose.add_argument("--body", default="")
+        p_propose.add_argument("--draft", action="store_true")
+
+        args = parser.parse_args()
+        return 0
+
+    if __name__ == "__main__":
+        sys.exit(main())
+"""
+).strip()
+
+
+def test_argparse_main_not_flagged_as_god_function():
+    """main() dominated by argparse declarations (complexity < 4) must not fire god_function."""
+    import ast as _ast
+    from pathlib import Path
+    from slop_detector.patterns.python_complexity import GodFunctionPattern
+
+    tree = _ast.parse(ARGPARSE_MAIN_SRC)
+    pattern = GodFunctionPattern()
+    issues = pattern.check(tree, Path("cli.py"), ARGPARSE_MAIN_SRC)
+    god_issues = [i for i in issues if i.pattern_id == "god_function" and "main" in i.message]
+    assert god_issues == [], (
+        f"Argparse-heavy main() wrongly flagged: {[i.message for i in god_issues]}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# ⑩ ABC / abstract method FP suite (v3.7.4)
+# ---------------------------------------------------------------------------
+
+ABC_STUB_SRC = textwrap.dedent(
+    """
+    from abc import ABC, abstractmethod
+    from typing import Optional
+
+    class MetadataStore(ABC):
+        @abstractmethod
+        def ensure_store(self, name: str) -> None: ...
+
+        @abstractmethod
+        def add_doc(self, store_name: str, doc: dict) -> None: ...
+
+        @abstractmethod
+        def find_docs(self, store_name: str, query: dict) -> list: ...
+
+    class NullIAMProvider(ABC):
+        @abstractmethod
+        def validate_admin_token(self, token: str) -> Optional[str]:
+            return None
+
+    class ConcreteStore(MetadataStore):
+        def ensure_store(self, name: str) -> None:
+            pass
+
+        def add_doc(self, store_name: str, doc: dict) -> None:
+            pass
+
+        def find_docs(self, store_name: str, query: dict) -> list:
+            return []
+"""
+).strip()
+
+
+def test_abstract_ellipsis_not_flagged_as_ellipsis_placeholder():
+    """@abstractmethod with ... body must NOT trigger ellipsis_placeholder."""
+    import ast as _ast
+    from pathlib import Path
+    from slop_detector.patterns.placeholder import EllipsisPlaceholderPattern
+
+    tree = _ast.parse(ABC_STUB_SRC)
+    pattern = EllipsisPlaceholderPattern()
+    issues = pattern.check(tree, Path("storage.py"), ABC_STUB_SRC)
+    assert issues == [], (
+        f"Abstract ellipsis stubs wrongly flagged: {[i.message for i in issues]}"
+    )
+
+
+def test_abstract_class_not_flagged_as_interface_only():
+    """ABC with all @abstractmethod methods must NOT trigger interface_only_class."""
+    import ast as _ast
+    from pathlib import Path
+    from slop_detector.patterns.placeholder import InterfaceOnlyClassPattern
+
+    tree = _ast.parse(ABC_STUB_SRC)
+    pattern = InterfaceOnlyClassPattern()
+    issues = pattern.check(tree, Path("storage.py"), ABC_STUB_SRC)
+    abc_issues = [i for i in issues if "MetadataStore" in i.message or "NullIAMProvider" in i.message]
+    assert abc_issues == [], (
+        f"Abstract base class wrongly flagged as interface_only: {[i.message for i in abc_issues]}"
+    )
+
+
+def test_optional_return_none_not_flagged_as_placeholder():
+    """Function returning None with Optional[T] annotation must NOT trigger return_none_placeholder."""
+    import ast as _ast
+    from pathlib import Path
+    from slop_detector.patterns.placeholder import ReturnNonePlaceholderPattern
+
+    tree = _ast.parse(ABC_STUB_SRC)
+    pattern = ReturnNonePlaceholderPattern()
+    issues = pattern.check(tree, Path("auth.py"), ABC_STUB_SRC)
+    assert issues == [], (
+        f"Optional-annotated return None wrongly flagged: {[i.message for i in issues]}"
+    )
+
+
+def test_abstract_methods_excluded_from_clone_cluster():
+    """ABC with 6 @abstractmethod stubs must NOT generate a clone cluster."""
+    import ast as _ast
+    from slop_detector.patterns.python_clones import FunctionClonePattern
+
+    src = textwrap.dedent(
+        """
+        from abc import ABC, abstractmethod
+
+        class BigInterface(ABC):
+            @abstractmethod
+            def op_alpha(self) -> None: ...
+
+            @abstractmethod
+            def op_beta(self) -> None: ...
+
+            @abstractmethod
+            def op_gamma(self) -> None: ...
+
+            @abstractmethod
+            def op_delta(self) -> None: ...
+
+            @abstractmethod
+            def op_epsilon(self) -> None: ...
+
+            @abstractmethod
+            def op_zeta(self) -> None: ...
+
+        def real_work(x: int) -> int:
+            total = 0
+            for i in range(x):
+                total += i * i
+            return total
+    """
+    ).strip()
+
+    tree = _ast.parse(src)
+    pattern = FunctionClonePattern()
+    issues = pattern.check(tree, "interfaces.py", src)
+    clone_issues = [i for i in issues if i.pattern_id == "function_clone_cluster"]
+    assert clone_issues == [], (
+        f"Abstract method stubs wrongly triggered clone cluster: {[i.message for i in clone_issues]}"
+    )
+
+
+def test_fastapi_router_not_flagged_as_clone_cluster():
+    """FastAPI route handlers sharing try/except+HTTPException structure must not be clone-flagged."""
+    import ast as _ast
+    from slop_detector.patterns.python_clones import FunctionClonePattern
+
+    src = textwrap.dedent(
+        """
+        from fastapi import APIRouter, HTTPException
+
+        router = APIRouter()
+
+        @router.get("/items/{item_id}")
+        async def get_item(item_id: int):
+            try:
+                return {"id": item_id}
+            except Exception:
+                raise HTTPException(status_code=404)
+
+        @router.post("/items")
+        async def create_item(data: dict):
+            try:
+                return {"created": True}
+            except Exception:
+                raise HTTPException(status_code=400)
+
+        @router.put("/items/{item_id}")
+        async def update_item(item_id: int, data: dict):
+            try:
+                return {"updated": item_id}
+            except Exception:
+                raise HTTPException(status_code=404)
+
+        @router.delete("/items/{item_id}")
+        async def delete_item(item_id: int):
+            try:
+                return {"deleted": item_id}
+            except Exception:
+                raise HTTPException(status_code=404)
+
+        @router.get("/users")
+        async def list_users():
+            try:
+                return []
+            except Exception:
+                raise HTTPException(status_code=500)
+
+        @router.post("/users")
+        async def create_user(data: dict):
+            try:
+                return {"created": True}
+            except Exception:
+                raise HTTPException(status_code=400)
+    """
+    ).strip()
+
+    tree = _ast.parse(src)
+    pattern = FunctionClonePattern()
+    issues = pattern.check(tree, "api.py", src)
+    clone_issues = [i for i in issues if i.pattern_id == "function_clone_cluster"]
+    assert clone_issues == [], (
+        f"FastAPI router wrongly flagged as clone cluster: {[i.message for i in clone_issues]}"
+    )
+
+
+def test_extras_declared_optional_dep_not_flagged_as_phantom():
+    """psycopg[binary] in optional-deps: 'import psycopg' must not be flagged when declared."""
+    import ast as _ast
+    from slop_detector.patterns.python_imports import _add_dep_names
+
+    packages: set = set()
+    _add_dep_names(["psycopg[binary]>=3.1.0", "psycopg2-binary>=2.9"], packages)
+    assert "psycopg" in packages, (
+        f"psycopg not extracted from 'psycopg[binary]>=3.1.0': packages={packages}"
+    )
+    assert "psycopg2_binary" in packages or "psycopg2" in packages, (
+        f"psycopg2 variant not extracted from 'psycopg2-binary>=2.9': packages={packages}"
+    )

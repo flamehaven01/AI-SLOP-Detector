@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.4] - 2026-05-19 — False Positive Patch: ABC / Optional / FastAPI / Extras
+
+### Fixed
+
+**Pattern accuracy — 6 false-positive sources eliminated**
+
+- `patterns/placeholder.py` — `EllipsisPlaceholderPattern`: added `@abstractmethod` guard; `def method(self) -> None: ...` in an ABC no longer fires `ellipsis_placeholder`
+- `patterns/placeholder.py` — `InterfaceOnlyClassPattern._count_placeholder_methods`: `@abstractmethod` decorated methods are now excluded from the placeholder count; a pure ABC with N abstract stubs no longer triggers `interface_only_class`
+- `patterns/placeholder.py` — `ReturnNonePlaceholderPattern`: added `@abstractmethod` guard + `_has_optional_return()` helper; `return None` in a method annotated `-> Optional[T]` or `-> T | None` is the Null Object pattern, not a placeholder stub
+- `metrics/stub_density.py` — `calculate_stub_density()`: `@abstractmethod` functions are filtered before `_find_largest_clone_group`; an ABC with N identical abstract stubs no longer generates a spurious `CRITICAL` clone cluster
+- `patterns/python_imports.py` — `_add_dep_names()`: PEP-508 extras specifiers (`psycopg[binary]`) are now stripped via explicit regex before canonicalisation; guarded imports for properly declared optional dependencies are no longer flagged as phantom
+- `patterns/python_clones.py` — `_is_dispatcher_pattern()`: Signal 3 added — if the file contains a module-level `app` or `router` assignment (FastAPI / Flask route file), the entire file is exempt from clone-cluster flagging
+
+**Additional accuracy fixes**
+
+- `metrics/inflation.py` — `InflationCalculator._scan_for_jargon()`: word matching now uses `\b` regex boundaries; previously `"neural"` would match inside `neural_network_training` identifier names
+- `metrics/inflation.py` — `academic` jargon list: `theorem`, `proof`, `lemma` removed; these are primary domain vocabulary in formal-methods and governance code, not AI slop signals
+- `metrics/inflation.py` — `_MIN_DENSITY_LINES = 15`: jargon density is now computed against `max(logic_lines, 15)`; prevents a single jargon word in a 7-line file from scoring the same as 2 hits in a 14-line file
+- `patterns/python_complexity.py` — `GodFunctionPattern`: pure line-length violations where complexity < 4 are no longer flagged; declarative setup code (argparse subcommand tables, config blocks) is computationally simple and should not trigger `god_function`
+
+### Tests
+
+- `tests/test_fp_reduction.py`: 6 regression tests added (cases ⑩–⑮), one per fixed FP source; all 324 tests pass
+- `tests/corpus/placeholder_code.py`: ABC regression fixtures appended (abstract ellipsis stubs, Optional return, concrete NullImpl)
+- `tests/test_inflation.py`: `test_justified_jargon` updated to use standalone word in comment; validates word-boundary detection
+
+### Docs
+
+- `docs/PATTERNS.md`: version header updated; descriptions corrected for `ellipsis_placeholder`, `return_none_placeholder`, `interface_only_class` (severity HIGH, threshold 50%), `function_clone_cluster` (algorithm: JSD < 0.05, not Jaccard 0.85), `phantom_import` (extras handling)
+
+---
+
 ## [3.7.3] - 2026-05-04 — Hotfix: Graceful pydantic import + CI stability
 
 ### Fixed

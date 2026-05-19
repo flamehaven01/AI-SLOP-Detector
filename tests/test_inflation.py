@@ -44,11 +44,12 @@ def optimize():
 
 
 def test_justified_jargon(bcr_calc):
-    """Test jargon justified by implementation."""
+    """Test jargon justified by implementation (word must appear standalone, not as identifier)."""
     code = """
 import torch
 
-def neural_network_training():
+def train():
+    # This is a neural network training loop using deep learning
     model = torch.nn.Linear(10, 5)
     optimizer = torch.optim.Adam(model.parameters())
     return model, optimizer
@@ -56,7 +57,7 @@ def neural_network_training():
     tree = ast.parse(code)
     result = bcr_calc.calculate("test.py", code, tree)
 
-    # "neural" should be justified
+    # "neural" in a comment (standalone word) should be detected and justified by torch import
     assert len(result.justified_jargon) > 0
 
 

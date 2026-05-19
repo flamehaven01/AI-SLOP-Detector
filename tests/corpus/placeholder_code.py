@@ -55,3 +55,30 @@ def with_explanation():
     # This uses a greedy algorithm for performance
     # It's O(n log n) instead of O(n^2)
     return sorted(items, key=lambda x: x.score)
+
+
+# ABC REGRESSION — none of the below should trigger any placeholder pattern
+from abc import ABC, abstractmethod
+from typing import Optional
+
+
+class IntentionalInterface(ABC):
+    @abstractmethod
+    def method_one(self) -> None: ...  # ellipsis_placeholder must NOT fire
+
+    @abstractmethod
+    def method_two(self) -> Optional[str]: ...  # ellipsis_placeholder must NOT fire
+
+    @abstractmethod
+    def method_three(self) -> int: ...  # ellipsis_placeholder must NOT fire
+
+
+class NullImpl(IntentionalInterface):
+    def method_one(self) -> None:
+        pass  # pass_placeholder must NOT fire (concrete impl of abstract)
+
+    def method_two(self) -> Optional[str]:
+        return None  # return_none_placeholder must NOT fire (Optional annotation)
+
+    def method_three(self) -> int:
+        return 0

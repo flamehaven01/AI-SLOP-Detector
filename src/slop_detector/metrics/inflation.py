@@ -2,6 +2,7 @@
 
 import ast
 import logging
+import re
 from pathlib import Path
 
 from slop_detector.models import InflationResult
@@ -65,16 +66,14 @@ class InflationCalculator:
             "comprehensive",
             "holistic",
         ],
-        # Paper references
+        # Paper references (venue/publication names only — math terms like proof/lemma/theorem
+        # are primary domain vocabulary in formal-methods and governance code, not slop signals)
         "academic": [
             "neurips",
             "iclr",
             "icml",
             "cvpr",
             "equation",
-            "theorem",
-            "proof",
-            "lemma",
             "spotlight",
         ],
     }
@@ -129,8 +128,8 @@ class InflationCalculator:
             line_lower = line.lower()
             for category, words in self.JARGON.items():
                 for word in words:
-                    if word.lower() in line_lower:
-                        for _ in range(line_lower.count(word.lower())):
+                    matches = re.findall(r"\b" + re.escape(word.lower()) + r"\b", line_lower)
+                    for _ in matches:
                             jargon_found.append(word)
                             is_justified = self._is_jargon_justified_scoped(
                                 category, word, content, lines, line_idx, func_scopes
@@ -147,6 +146,12 @@ class InflationCalculator:
                             )
         return jargon_found, justified_jargon, jargon_details
 
+    # Minimum denominator for jargon density: prevents single hits in tiny files
+    # (e.g. a 7-line constants file) from producing disproportionately high scores.
+    # Derived from the observation that files below this size produce unreliable
+    # density signals — one hit in 7 lines scores the same as 2 hits in 14 lines.
+    _MIN_DENSITY_LINES = 15
+
     def _compute_inflation_score(
         self, effective_jargon: int, logic_lines: int, avg_complexity: float, is_config_file: bool
     ) -> float:
@@ -157,7 +162,8 @@ class InflationCalculator:
             # No logic lines: cap at max rather than using inf (which is invalid JSON).
             # A jargon-only file (no logic) is maximally inflated.
             return 10.0 if effective_jargon > 0 else 0.0
-        jargon_density = effective_jargon / logic_lines
+        effective_lines = max(logic_lines, self._MIN_DENSITY_LINES)
+        jargon_density = effective_jargon / effective_lines
         # complexity_modifier >= 1.0: complex code pays premium for jargon.
         # Baseline cc=1.0 (simplest possible function); cc=3 was a free zone where
         # jargon carried no complexity penalty — corrected to cc=1 minimum.
