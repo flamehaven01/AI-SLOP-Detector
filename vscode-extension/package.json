@@ -2,7 +2,7 @@
   "name": "vscode-slop-detector",
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
-  "version": "3.7.4",
+  "version": "3.7.5",
   "publisher": "Flamehaven",
   "engines": {
     "vscode": "^1.80.0"
@@ -97,6 +97,11 @@
         "title": "Refresh Issues",
         "category": "SLOP Detector",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "slop-detector.addModuleToAllowlist",
+        "title": "Add Module to phantom_import_allowlist",
+        "category": "SLOP Detector"
       }
     ],
     "viewsContainers": {
@@ -189,6 +194,12 @@
           "type": "boolean",
           "default": true,
           "description": "Show inline SLOP score and issue hints above functions (CodeLens)"
+        },
+        "slopDetector.phantomImportAllowlist": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Module names to skip in phantom_import detection (e.g. project-local flat modules). Mirrors phantom_import_allowlist in .slopconfig.yaml — entries here are shown in QuickFix suggestions."
         }
       }
     }

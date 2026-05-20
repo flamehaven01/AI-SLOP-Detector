@@ -6,7 +6,7 @@ import {
     installGitHook, runCrossFileAnalysis, showHistoryTrends, exportHistory,
 } from './commands';
 import { autoFixCurrentFile, showGateDecision, initConfig, selfCalibrate } from './calibration';
-import { SlopCodeActionProvider, addFileToIgnore } from './codeActions';
+import { SlopCodeActionProvider, addFileToIgnore, addModuleToAllowlist } from './codeActions';
 import { outputChannel } from './state';
 import { SlopTreeProvider } from './treeview';
 import { SlopCodeLensProvider } from './codelens';
@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext): void {
     bar.show();
 
     initState(collection, bar, channel);
-    channel.appendLine('[*] AI SLOP Detector v3.7.4 activated');
+    channel.appendLine('[*] AI SLOP Detector v3.7.5 activated');
 
     context.subscriptions.push(collection, bar, channel);
 
@@ -58,8 +58,9 @@ export function activate(context: vscode.ExtensionContext): void {
         ['slop-detector.initConfig',         initConfig],
         ['slop-detector.selfCalibrate',      selfCalibrate],
         // P2: Code Action helpers
-        ['slop-detector.showOutput',         () => outputChannel.show(true)],
-        ['slop-detector.addFileToIgnore',    (relPath: string) => addFileToIgnore(relPath)],
+        ['slop-detector.showOutput',              () => outputChannel.show(true)],
+        ['slop-detector.addFileToIgnore',         (relPath: string) => addFileToIgnore(relPath)],
+        ['slop-detector.addModuleToAllowlist',    (mod: string) => addModuleToAllowlist(mod)],
         // P3: TreeView refresh
         ['slop-detector.refreshTree',        () => treeProvider.refresh()],
     ];

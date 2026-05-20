@@ -1,8 +1,58 @@
-# AI SLOP Detector — VS Code Extension v3.6.0
+# AI SLOP Detector — VS Code Extension v3.7.5
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, clone detection,
 and actionable diagnostics without leaving your editor.
+
+---
+
+## What's New in v3.7.5
+
+### `phantom_import` False Positive Fix — Flat-Module Projects
+
+`phantom_import` now correctly handles projects where Python files are
+not organized as packages (no `__init__.py`, no `pyproject.toml`).
+Sibling `.py` files in the same directory are automatically recognised
+as local modules and never flagged as phantom imports.
+
+The `phantom_import_allowlist` key in `.slopconfig.yaml` is now fully
+wired to the detection engine — previously it was parsed but silently
+ignored. A new **QuickFix** action in the editor lets you add a flagged
+module directly from the Problems panel:
+
+> **Right-click → SLOP: Allowlist 'module_name' — add to phantom_import_allowlist in .slopconfig.yaml**
+
+The action either appends the entry to an existing `phantom_import_allowlist:` section
+or creates one at the end of the file.
+
+### New Setting: `slopDetector.phantomImportAllowlist`
+
+```jsonc
+"slopDetector.phantomImportAllowlist": ["my_local_module", "another_sibling"]
+```
+
+Documents which local modules you want allowlisted. When a phantom_import
+QuickFix fires, VS Code surfaces this setting alongside the `.slopconfig.yaml`
+entry suggestion so you have a clear, in-editor record.
+
+---
+
+## What's New in v3.7.4
+
+### False Positive Patch — ABC / Optional / FastAPI / Extras
+
+Six sources of false positives eliminated:
+
+- `ellipsis_placeholder` / `interface_only_class`: `@abstractmethod` bodies no
+  longer trigger stub warnings
+- `return_none_placeholder`: `return None` in `-> Optional[T]` methods is the
+  Null Object pattern, not a placeholder
+- `phantom_import`: PEP-508 extras specifiers (`psycopg[binary]`) are stripped
+  before resolution, fixing guarded optional-dep imports
+- `function_clone_cluster`: FastAPI / Flask route files with an `app` or `router`
+  assignment are exempt from clone-cluster flagging
+- Jargon matching: `\b` word boundaries prevent `neural` matching inside
+  `neural_network_training` identifiers
 
 ---
 
@@ -247,14 +297,29 @@ Open Settings (`Ctrl+,`) and search **"SLOP Detector"**, or edit `settings.json`
   "slopDetector.lintOnSave": true,
   "slopDetector.lintOnType": false,
   "slopDetector.showInlineWarnings": true,
-  "slopDetector.failThreshold": 50.0,       // deficit_score >= 50 -> Error
-  "slopDetector.warnThreshold": 30.0,       // deficit_score >= 30 -> Warning
+  "slopDetector.failThreshold": 50.0,            // deficit_score >= 50 -> Error
+  "slopDetector.warnThreshold": 30.0,            // deficit_score >= 30 -> Warning
   "slopDetector.pythonPath": "python",
-  "slopDetector.configPath": "",            // path to .slopconfig.yaml (optional)
-  "slopDetector.recordHistory": true,       // write results to ~/.slop-detector/history.db
-  "slopDetector.showCalibrationHints": true // notify when LEDA calibration milestone is reached
+  "slopDetector.configPath": "",                 // path to .slopconfig.yaml (optional)
+  "slopDetector.recordHistory": true,            // write results to ~/.slop-detector/history.db
+  "slopDetector.showCalibrationHints": true,     // notify when LEDA calibration milestone is reached
+  "slopDetector.phantomImportAllowlist": []      // [v3.7.5] module names to skip in phantom_import
 }
 ```
+
+### `phantom_import_allowlist` — flat-module projects
+
+For projects where sibling `.py` files import each other directly (no `pyproject.toml`
+or `__init__.py`), the detector automatically discovers sibling modules. If a false
+positive still occurs, add the module name to `.slopconfig.yaml`:
+
+```yaml
+phantom_import_allowlist:
+  - my_local_module
+  - another_sibling
+```
+
+Or use the QuickFix action in the Problems panel — it writes the entry directly into `.slopconfig.yaml`.
 
 ### Deficit Score Thresholds
 
@@ -334,6 +399,12 @@ Press **F5** to open Extension Development Host. The Output panel channel
 ## Changelog
 
 See the [full CHANGELOG](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md).
+
+**v3.7.5:** `phantom_import` FP fix for flat-module projects (sibling discovery + allowlist wired); new `addModuleToAllowlist` QuickFix action; `slopDetector.phantomImportAllowlist` setting.
+
+**v3.7.4:** False positive patch: ABC `@abstractmethod`, `Optional[T]` return, FastAPI router clone exemption, PEP-508 extras parsing, jargon `\b` boundary fix.
+
+**v3.6.0:** CI gate bug fix (`--ci-mode hard` always exits non-zero), Claude Code skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`).
 
 **v3.5.0:** Go analysis (GoAnalyzer v1.0.0 — 6 patterns), JS/TS full structural
 analysis, domain-aware `--init`, CI jq fix (calibration hints → stderr).
