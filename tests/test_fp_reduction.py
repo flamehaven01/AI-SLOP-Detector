@@ -248,6 +248,70 @@ def test_protocol_stub_classified_as_stub():
     assert role == FileRole.STUB, f"Expected STUB, got {role}"
 
 
+# ---------------------------------------------------------------------------
+# ⑦ phantom_import: sibling-module discovery (v3.7.4 regression)
+# ---------------------------------------------------------------------------
+# Flat-module projects (no pyproject.toml / __init__.py) import sibling .py
+# files directly.  The detector must not flag them as phantom imports.
+
+
+def test_sibling_module_not_flagged_as_phantom(tmp_path):
+    """Sibling .py files in same directory must not be flagged as phantom imports."""
+    from slop_detector.patterns.python_imports import PhantomImportPattern
+
+    helper = tmp_path / "my_helper.py"
+    helper.write_text("def greet(): return 'hi'", encoding="utf-8")
+
+    src = "from my_helper import greet\n\ndef run():\n    return greet()\n"
+    target = tmp_path / "main.py"
+    target.write_text(src, encoding="utf-8")
+
+    tree = ast.parse(src)
+    issues = PhantomImportPattern().check(tree, target, src)
+    phantom_ids = [i.pattern_id for i in issues if i.pattern_id == "phantom_import"]
+    assert not phantom_ids, f"Sibling module 'my_helper' must not be a phantom: {issues}"
+
+
+def test_phantom_import_allowlist_respected(tmp_path):
+    """Modules in the allowlist must never be flagged as phantom imports."""
+    from slop_detector.patterns.python_imports import PhantomImportPattern
+
+    src = "import totally_nonexistent_pkg\nimport another_fake_pkg\n"
+    target = tmp_path / "script.py"
+    target.write_text(src, encoding="utf-8")
+
+    tree = ast.parse(src)
+    pattern_with_allowlist = PhantomImportPattern(allowlist=["totally_nonexistent_pkg"])
+    issues = pattern_with_allowlist.check(tree, target, src)
+
+    flagged_names = {i.message for i in issues}
+    assert not any(
+        "totally_nonexistent_pkg" in m for m in flagged_names
+    ), "Allowlisted module must not be flagged"
+    assert any(
+        "another_fake_pkg" in m for m in flagged_names
+    ), "Non-allowlisted phantom must still be flagged"
+
+
+def test_discover_sibling_modules_returns_stems(tmp_path):
+    """_discover_sibling_modules returns stem names of sibling .py files."""
+    from slop_detector.patterns.python_imports import _discover_sibling_modules
+
+    (tmp_path / "alpha.py").write_text("x = 1", encoding="utf-8")
+    (tmp_path / "beta.py").write_text("y = 2", encoding="utf-8")
+    (tmp_path / "__init__.py").write_text("", encoding="utf-8")
+    (tmp_path / "readme.md").write_text("hi", encoding="utf-8")
+
+    target = tmp_path / "main.py"
+    target.write_text("", encoding="utf-8")
+    siblings = _discover_sibling_modules(target)
+
+    assert "alpha" in siblings
+    assert "beta" in siblings
+    assert "__init__" not in siblings, "__init__ should be excluded"
+    assert "readme" not in siblings, "non-.py files must not appear"
+
+
 def test_protocol_stub_is_clean(detector):
     """Protocol stub files must be CLEAN — ellipsis bodies and clone patterns are expected."""
     result = detector.analyze_code_string(PROTOCOL_STUB_SRC, filename="interfaces.py")

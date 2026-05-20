@@ -18,6 +18,7 @@ __all__ = [
 def get_all_patterns(
     god_function_config: dict | None = None,
     nested_complexity_config: dict | None = None,
+    phantom_import_allowlist: list | None = None,
 ) -> list[BasePattern]:
     """Get all registered patterns.
 
@@ -107,7 +108,7 @@ def get_all_patterns(
         ),
         LintEscapePattern(),
         # v2.9.0
-        PhantomImportPattern(),
+        PhantomImportPattern(allowlist=phantom_import_allowlist or []),
         # v3.1.0
         FunctionClonePattern(),
         PlaceholderVariableNamingPattern(),

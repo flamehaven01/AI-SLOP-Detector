@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.5] - 2026-05-20 — False Positive Patch: Flat-Module Sibling Discovery + `phantom_import_allowlist`
+
+### Fixed
+
+**`phantom_import` false positives on flat-module projects (no pyproject.toml / `__init__.py`)**
+
+- `patterns/python_imports.py` — `PhantomImportPattern`: added `__init__(allowlist)` parameter; modules listed in `phantom_import_allowlist` inside `.slopconfig.yaml` are now respected and skip phantom detection.
+- `patterns/python_imports.py` — `_discover_sibling_modules()`: new helper that collects stem names of all `.py` files in the scanned file's own directory. Used as an additional skip set in `check()` so that sibling modules in flat projects (e.g. `cas_parser.py`, `cas_html.py`) are never flagged as phantom regardless of whether a project root is found.
+- `config.py` — added `phantom_import_allowlist: []` to `DEFAULT_CONFIG` and `get_phantom_import_allowlist()` getter.
+- `patterns/__init__.py` — `get_all_patterns()` now accepts `phantom_import_allowlist` and forwards it to `PhantomImportPattern`.
+- `core.py` — `SlopDetector.__init__` passes `phantom_import_allowlist` from config to `get_all_patterns()`.
+
+**Root causes addressed**
+
+1. `_discover_project_packages` only recognised Python *packages* (directories with `__init__.py`); single-file modules in flat projects were invisible to it.
+2. `phantom_import_allowlist` was a documented `.slopconfig.yaml` key that was parsed into the config dict but never read by `PhantomImportPattern`.
+
+**Effect on CAS audit (Flamehaven Code Audit Standard)**
+
+Flat-module project `cas_*.py` with project-local imports (`from cas_parser import ...`): phantom_import false positives eliminated. `overall_status` for the CAS package corrected from `suspicious` to `clean`.
+
+### Tests
+
+- `tests/test_fp_reduction.py` — 3 new regression tests: `test_sibling_module_not_flagged_as_phantom`, `test_phantom_import_allowlist_respected`, `test_discover_sibling_modules_returns_stems`.
+
+---
+
 ## [3.7.4] - 2026-05-19 — False Positive Patch: ABC / Optional / FastAPI / Extras
 
 ### Fixed

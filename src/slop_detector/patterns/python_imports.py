@@ -26,6 +26,25 @@ _RESOLVABLE_MODULES_STORE: Dict[str, FrozenSet[str]] = {}
 
 _PROJECT_PACKAGES_CACHE: Dict[str, FrozenSet[str]] = {}
 
+_SIBLING_MODULES_CACHE: Dict[str, FrozenSet[str]] = {}
+
+
+def _discover_sibling_modules(file_path: Path) -> FrozenSet[str]:
+    """Return stem names of .py files in the same directory (importable siblings)."""
+    key = str(file_path.parent)
+    if key in _SIBLING_MODULES_CACHE:
+        return _SIBLING_MODULES_CACHE[key]
+    try:
+        result: FrozenSet[str] = frozenset(
+            p.stem for p in file_path.parent.iterdir()
+            if p.suffix == ".py" and p.stem != "__init__"
+        )
+    except OSError:
+        result = frozenset()
+    _SIBLING_MODULES_CACHE[key] = result
+    return result
+
+
 _SKIP_LAYOUT_DIRS: FrozenSet[str] = frozenset(
     {
         "tests",
@@ -227,13 +246,16 @@ class PhantomImportPattern(BasePattern):
     Three-tier classification:
       CRITICAL  Unguarded unresolvable import — hard runtime crash, likely AI hallucination.
       MEDIUM    Guarded with try/except ImportError — undeclared optional dependency.
-      (skip)    Internal project package or resolvable in current environment.
+      (skip)    Internal project package, resolvable in environment, or in allowlist.
     """
 
     id = "phantom_import"
     severity = Severity.CRITICAL
     axis = Axis.QUALITY
     message = "Import references a package that cannot be resolved in this environment"
+
+    def __init__(self, allowlist: Optional[List[str]] = None) -> None:
+        self._allowlist: FrozenSet[str] = frozenset(allowlist or [])
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
@@ -242,13 +264,16 @@ class PhantomImportPattern(BasePattern):
         internal_packages = (
             _discover_project_packages(project_root) if project_root else frozenset()
         )
+        # Always include sibling .py files — handles flat-module projects without pyproject.toml
+        sibling_modules = _discover_sibling_modules(file)
+        skip_names = internal_packages | sibling_modules | self._allowlist
         guarded_lines = _collect_import_guard_lines(tree)
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     top = alias.name.split(".")[0]
-                    if top in internal_packages or _module_exists(top):
+                    if top in skip_names or _module_exists(top):
                         continue
                     lineno = getattr(node, "lineno", 0)
                     issues.append(
@@ -267,7 +292,7 @@ class PhantomImportPattern(BasePattern):
                 if not node.module:
                     continue
                 top = node.module.split(".")[0]
-                if top in internal_packages or _module_exists(top):
+                if top in skip_names or _module_exists(top):
                     continue
                 lineno = getattr(node, "lineno", 0)
                 issues.append(

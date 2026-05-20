@@ -133,6 +133,7 @@ class Config:
             "min_file_size": 10,
             "max_file_size": 10000,
         },
+        "phantom_import_allowlist": [],
         "patterns": {
             "enabled": True,
             "disabled": [],  # List of pattern IDs to disable
@@ -237,6 +238,11 @@ class Config:
                 "domain_overrides": [],
             },
         )
+
+    def get_phantom_import_allowlist(self) -> List[str]:
+        """Get list of module names to skip in phantom import detection."""
+        val = self.get("phantom_import_allowlist", [])
+        return val if isinstance(val, list) else []
 
     def get_nested_complexity_config(self) -> Dict[str, Any]:
         """Get nested_complexity pattern configuration including domain_overrides."""

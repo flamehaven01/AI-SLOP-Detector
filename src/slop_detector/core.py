@@ -66,6 +66,7 @@ class SlopDetector:
             get_all_patterns(
                 god_function_config=self.config.get_god_function_config(),
                 nested_complexity_config=self.config.get_nested_complexity_config(),
+                phantom_import_allowlist=self.config.get_phantom_import_allowlist(),
             )
         )
 
