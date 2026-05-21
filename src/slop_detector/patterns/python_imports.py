@@ -36,8 +36,7 @@ def _discover_sibling_modules(file_path: Path) -> FrozenSet[str]:
         return _SIBLING_MODULES_CACHE[key]
     try:
         result: FrozenSet[str] = frozenset(
-            p.stem for p in file_path.parent.iterdir()
-            if p.suffix == ".py" and p.stem != "__init__"
+            p.stem for p in file_path.parent.iterdir() if p.suffix == ".py" and p.stem != "__init__"
         )
     except OSError:
         result = frozenset()
