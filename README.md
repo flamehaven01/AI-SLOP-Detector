@@ -11,22 +11,15 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://img.shields.io/badge/tests-324%20passed-brightgreen.svg?v=3.7.4" alt="Tests"/></a>
-  <a href="htmlcov/"><img src="https://img.shields.io/badge/coverage-71%25-brightgreen.svg" alt="Coverage"/></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
 </p>
 
-<p align="center"><b>Catches the slop that AI produces — before it reaches production.</b></p>
-
-<p align="center"><i>Not a style linter. A structural-risk scanner for AI-assisted code.</i></p>
+<p align="center"><b>Not a style linter. A structural-risk scanner for AI-assisted code.</b></p>
 
 <p align="center">
-The problem isn't that AI writes code.<br/>
-The problem is the specific class of defects AI reliably introduces:<br/>
-unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy noise.<br/>
-<br/>
-<b>The code speaks for itself.</b>
+Detects unimplemented stubs, phantom imports, disconnected pipelines, clone clusters, and inflated documentation.<br/>
+File-level evidence. Machine-readable output. No LLM in the scoring path.
 </p>
 
 ---
@@ -34,6 +27,8 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 **Navigation:**
 [What Is It?](#what-is-ai-slop-detector) •
 [Quick Start](#quick-start) •
+[Verification](#verification-path) •
+[Boundaries](#scope-and-boundaries) •
 [How It Works](#how-it-works) •
 [What It Detects](#what-it-detects) •
 [Scoring](#scoring-model) •
@@ -51,9 +46,9 @@ unimplemented stubs, disconnected pipelines, phantom imports, and buzzword-heavy
 
 ## What Is AI-SLOP Detector?
 
-AI-SLOP Detector is an **evidence-based static analyzer** purpose-built to catch the specific class of defects that AI code generation reliably introduces — before they reach production.
+AI-SLOP Detector is an **evidence-based static analyzer** that targets the specific defect class AI code generation reliably produces: structurally plausible code that is functionally empty, disconnected, or misleading.
 
-Unlike general linters that flag style and convention, it targets **AI slop**: structurally plausible code that is functionally empty, disconnected, or misleading.
+General linters flag style and convention. This tool flags structural risk.
 
 - **27 adversarial pattern checks** — stubs, phantom imports, disconnected pipelines, buzzword inflation, clone clusters
 - **4D scoring model** — LDR (logic density), ICR (inflation), DDC (dependency coupling), Purity (critical severity) combined via geometric mean
@@ -89,6 +84,36 @@ uvx ai-slop-detector mycode.py
 <p align="center">
   <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
 </p>
+
+---
+
+## Verification Path
+
+Use the same verification surface the repository exposes in CI:
+
+```bash
+pip install -e ".[dev]"
+python -m pytest -q
+ruff check src tests
+python -m build
+```
+
+Primary references:
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)
+- [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+- [docs/SCHEMA_VALIDATION.md](docs/SCHEMA_VALIDATION.md)
+- [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)
+
+---
+
+## Scope And Boundaries
+
+- This repository measures static code and documentation signals. It does not prove runtime correctness.
+- The default scoring path is deterministic; it does not require an LLM or external API.
+- JS/TS and Go support are optional extras with language-specific analyzers and fallbacks.
+- A low deficit score is evidence of cleaner structure, not a guarantee that the code is complete or safe.
 
 ---
 
