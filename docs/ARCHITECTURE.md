@@ -1,13 +1,13 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.7.2
-**Last Updated:** 2026-05-04
+**Version:** 3.7.5
+**Last Updated:** 2026-05-20
 
 ---
 
 ## Overview
 
-AI-SLOP Detector is a production-grade static analysis tool designed to identify quality issues in AI-generated code. The system uses a multi-metric analysis engine with pattern detection, domain-aware initialization, and a self-calibrating weight engine that learns from per-project scan history.
+AI-SLOP Detector is a static analysis tool for identifying quality issues that appear frequently in AI-assisted code. The system uses a multi-metric analysis engine with pattern detection, domain-aware initialization, and a self-calibrating weight engine that learns from per-project scan history.
 
 **Language support:** Python, JavaScript, TypeScript, Go (v3.5.0)
 
