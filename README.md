@@ -30,6 +30,7 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 [Verification](#verification-path) •
 [Boundaries](#scope-and-boundaries) •
 [How It Works](#how-it-works) •
+[Document Map](#document-map) •
 [What It Detects](#what-it-detects) •
 [Scoring](#scoring-model) •
 [Key Features](#key-features) •
@@ -98,14 +99,6 @@ ruff check src tests
 python -m build
 ```
 
-Primary references:
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)
-- [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
-- [docs/SCHEMA_VALIDATION.md](docs/SCHEMA_VALIDATION.md)
-- [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)
-
 ---
 
 ## Scope And Boundaries
@@ -144,6 +137,36 @@ down regardless of other dimensions. Every scan is recorded to history (per proj
 events and >= 5 fp_candidate events per class have accumulated.
 
 Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+
+---
+
+## Document Map
+
+Use the docs by task, not by chronology:
+
+**Core behavior**
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)
+- [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+- [docs/PATTERNS.md](docs/PATTERNS.md)
+
+**Verification and operations**
+- [docs/CI_CD.md](docs/CI_CD.md)
+- [docs/VALIDATION.md](docs/VALIDATION.md)
+- [docs/SCHEMA_VALIDATION.md](docs/SCHEMA_VALIDATION.md)
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+
+**Calibration and history**
+- [docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md)
+- [docs/LEDA_CALIBRATION.md](docs/LEDA_CALIBRATION.md)
+- [docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md](docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md)
+- [docs/HISTORY_TRACKING.md](docs/HISTORY_TRACKING.md)
+
+**Interfaces**
+- [docs/CLI_USAGE.md](docs/CLI_USAGE.md)
+- [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+- [docs/CONFIG_EXAMPLES.md](docs/CONFIG_EXAMPLES.md)
+- [docs/CLAUDE_CODE_SKILL.md](docs/CLAUDE_CODE_SKILL.md)
 
 ---
 
