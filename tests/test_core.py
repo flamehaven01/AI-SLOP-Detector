@@ -229,15 +229,20 @@ def multiply(a, b):
 
     bd = result.deficit_breakdown
     assert bd, "deficit_breakdown should be populated"
-    for key in ("ldr_penalty", "inflation_penalty", "ddc_penalty",
-                "purity_penalty", "pattern_hits", "total"):
+    for key in (
+        "ldr_penalty",
+        "inflation_penalty",
+        "ddc_penalty",
+        "purity_penalty",
+        "pattern_hits",
+        "total",
+    ):
         assert key in bd, f"missing key: {key}"
         assert bd[key] >= 0.0, f"{key} should be non-negative"
 
     # Conservation: penalties sum to total when deficit_score is not capped at 100
     if result.deficit_score < 100.0:
-        keys = ("ldr_penalty", "inflation_penalty", "ddc_penalty",
-                "purity_penalty", "pattern_hits")
+        keys = ("ldr_penalty", "inflation_penalty", "ddc_penalty", "purity_penalty", "pattern_hits")
         assert abs(sum(bd[k] for k in keys) - bd["total"]) < 0.01
 
     # to_dict round-trip preserves the field
