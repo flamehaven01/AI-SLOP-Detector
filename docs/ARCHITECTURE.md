@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.7.5
-**Last Updated:** 2026-05-20
+**Version:** 3.7.6
+**Last Updated:** 2026-05-25
 
 ---
 

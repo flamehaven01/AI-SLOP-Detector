@@ -174,3 +174,34 @@ class TestGenerateSlopconfigTemplate:
         profile = DOMAIN_PROFILES["web/api"]
         tmpl = generate_slopconfig_template(project_type="javascript", domain_profile=profile)
         assert "node_modules/**" in tmpl
+
+
+# ---------------------------------------------------------------------------
+# --init idempotency (SLOP-006)
+# ---------------------------------------------------------------------------
+
+
+class TestInitIdempotency:
+    """Re-running --init on an initialized project must exit 0, not 1.
+
+    CI scripts that call --init unconditionally should not fail when the
+    config already exists. --force-init remains the explicit overwrite path.
+    """
+
+    def test_rerun_returns_zero(self, tmp_path, monkeypatch, capsys):
+        from argparse import Namespace
+
+        from slop_detector.cli_commands import _run_init
+
+        monkeypatch.chdir(tmp_path)
+        args = Namespace(force_init=False, domain=None)
+
+        rc_first = _run_init(args)
+        assert rc_first == 0
+        assert (tmp_path / ".slopconfig.yaml").exists()
+
+        capsys.readouterr()  # drain first-run output
+        rc_second = _run_init(args)
+        out = capsys.readouterr().out
+        assert rc_second == 0, "re-running --init should succeed (idempotent)"
+        assert "already initialized" in out.lower()

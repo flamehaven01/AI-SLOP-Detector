@@ -63,15 +63,30 @@ General linters flag style and convention. This tool flags structural risk.
 
 ---
 
+## 60-Second First Run
+
+No project-side config needed. Run it against any folder of Python:
+
+```bash
+pip install "ai-slop-detector>=3.7.6"
+slop-detector --project . --json --output slop.json
+python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
+```
+
+Expected output for a healthy project: `clean 0.0` to `clean 30.0`. Anything
+above `30.0` is a real finding worth reading in `slop.json`. The `--output`
+form writes UTF-8 (no BOM) directly to disk, so it is safe under Windows
+PowerShell — prefer it to `> slop.json` redirection.
+
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.7.3"
+pip install "ai-slop-detector>=3.7.6"
 
 slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
 slop-detector mycode.py                    # single file
 slop-detector --project ./src             # entire project
-slop-detector mycode.py --json            # machine-readable output
+slop-detector --project . --json --output slop.json   # machine-readable output (Windows-safe)
 slop-detector --project . --ci-mode hard --ci-report  # CI gate
 
 # Optional extras
@@ -81,6 +96,11 @@ pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
 # No install required
 uvx ai-slop-detector mycode.py
 ```
+
+> **Windows / PowerShell tip:** PowerShell `>` redirection writes UTF-16 LE
+> or UTF-8 with BOM by default, which breaks `json.load(..., encoding='utf-8')`.
+> Use `--output <path>` instead — it writes UTF-8 bytes (no BOM) directly,
+> skipping the shell.
 
 <p align="center">
   <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
@@ -214,6 +234,38 @@ Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.20 · purity=0.10` — sum
 Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
 
 Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+
+### Per-file `deficit_breakdown` (v3.7.6)
+
+Every per-file result in the JSON output also carries a `deficit_breakdown`
+that attributes the score back to its source dimensions. This answers
+"why is my clean-status file not 0.0?" without drilling into raw findings:
+
+| Field | Meaning |
+|---|---|
+| `ldr_penalty` | Points of deficit attributable to low logic density |
+| `inflation_penalty` | Points from buzzword / docstring inflation |
+| `ddc_penalty` | Points from low import-usage ratio |
+| `purity_penalty` | Points from critical-severity pattern hits via GQG |
+| `pattern_hits` | Additive pattern penalty (post-cap) |
+| `total` | Equals `deficit_score` (sum of the above when not capped at 100) |
+
+GQG-dimension shares are computed via log-loss attribution — the sum of the
+five penalty fields equals `total` within `0.01` when `deficit_score < 100`.
+
+### Structural Coherence Level
+
+`coherence_level` in project-level JSON output reports how the
+`structural_coherence` value was derived:
+
+| Value | Meaning | When emitted |
+|---|---|---|
+| `vr_structural` | Vietoris-Rips H0 persistence over file DCFs (MST max edge) | At least two parsed Python files with non-empty DCFs |
+| `none` | No coherence computed | Empty project, single file, or all files unparseable |
+
+`mst_persistence` and `not_applicable` are **not** emitted — they were
+proposed in the v3.7.5 audit but never wired in. Verify the actual value
+from the JSON output rather than guessing.
 
 ---
 

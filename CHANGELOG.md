@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.6] - 2026-05-24 — UX & Distribution: Deficit Breakdown, Idempotent `--init`, Windows Output Path
+
+### Added
+
+**Per-file `deficit_breakdown` (SLOP-003)**
+
+- `core.py` — new `_compute_deficit_breakdown()` attributes a non-zero file score to its source dimensions via log-loss share allocation. Emits five penalty fields (`ldr_penalty`, `inflation_penalty`, `ddc_penalty`, `purity_penalty`, `pattern_hits`) plus `total`. Penalties sum to `total` within 0.01 when `deficit_score < 100`.
+- `core.py` — `_calculate_slop_status` signature extended to return the breakdown alongside `(score, status, warnings)`.
+- `models.py` — `FileAnalysis` gains a `deficit_breakdown: Dict[str, float]` field; `to_dict()` includes it when populated.
+- README "Scoring Model" section now documents the five-field shape and the sum-to-total invariant.
+
+**`coherence_level` documentation (SLOP-002)**
+
+- README "Scoring Model" now lists the actual emitted values (`vr_structural`, `none`) — the v3.7.5 audit listed `mst_persistence` / `not_applicable`, but those names are not present in the code. Verify-first applied.
+
+**60-Second First Run block (SLOP-005)**
+
+- README gains a top-level "60-Second First Run" section that produces a working JSON result on any folder of Python without requiring `--init`.
+- Quick Start and 60-Second blocks both recommend `--output <path>` over `> path` redirection (PowerShell BOM safety; SLOP-001).
+
+### Changed
+
+**`--init` is idempotent (SLOP-006)**
+
+- `cli_commands.py:_run_init` — re-running `--init` on an initialized project now prints `[*] .slopconfig.yaml already initialized.` and exits **0** (previously exited 1). CI scripts that call `--init` unconditionally no longer fail on repeat invocations. `--force-init` retains the explicit overwrite semantic.
+
+### Tests
+
+- `tests/test_core.py` — `test_calculate_slop_status_thresholds` updated for the new 4-tuple return; new `test_deficit_breakdown_attribution_on_clean_file` covers field shape, conservation, and `to_dict` round-trip.
+- `tests/test_domain_init.py` — `TestInitIdempotency::test_rerun_returns_zero` covers SLOP-006 acceptance.
+- Full suite: **323 passed, 5 skipped** (was 321 passed, 5 skipped).
+
+### Notes
+
+- SLOP-001 was filed against v3.7.5 but the `--output` flag and UTF-8 (no BOM) write path already existed in that release. v3.7.6 keeps the code path unchanged and only adds documentation that points users away from shell redirection.
+- SLOP-004 (per-file JSON schema) is deferred — `docs/SCHEMA_VALIDATION.md` already covers input-config validation; a separate output-shape schema requires more design work and was not material to the immediate UX gap.
+
+---
+
 ## [3.7.5] - 2026-05-20 — False Positive Patch: Flat-Module Sibling Discovery + `phantom_import_allowlist`
 
 ### Fixed

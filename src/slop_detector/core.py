@@ -178,7 +178,7 @@ class SlopDetector:
         )
 
         # Determine slop status (now includes pattern issues, respects role skip)
-        slop_score, slop_status, warnings = self._calculate_slop_status(
+        slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
             ldr, inflation, ddc, pattern_issues, skip=skip
         )
 
@@ -196,6 +196,7 @@ class SlopDetector:
             context_jargon=context_jargon,  # v2.2
             ignored_functions=ignored_functions,  # v2.6.3
             dcf=dcf,  # v3.0
+            deficit_breakdown=deficit_breakdown,  # v3.7.6 (SLOP-003)
         )
 
         # v2.8.0: Attach ML secondary score if model is loaded
@@ -241,7 +242,7 @@ class SlopDetector:
             else self._run_patterns(tree, Path(filename), content, ignored_functions)
         )
 
-        slop_score, slop_status, warnings = self._calculate_slop_status(
+        slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
             ldr, inflation, ddc, pattern_issues, skip=skip
         )
 
@@ -259,6 +260,7 @@ class SlopDetector:
             context_jargon=context_jargon,
             ignored_functions=ignored_functions,
             dcf=dcf,  # v3.0
+            deficit_breakdown=deficit_breakdown,  # v3.7.6 (SLOP-003)
         )
 
         if self._ml_scorer is not None:
@@ -520,13 +522,16 @@ class SlopDetector:
         ddc,
         pattern_issues: Optional[List[Issue]] = None,
         skip: frozenset = frozenset(),
-    ) -> tuple[float, SlopStatus, List[str]]:
+    ) -> tuple[float, SlopStatus, List[str], Dict[str, float]]:
         """
         Calculate slop score using weighted formula + pattern penalties.
 
         v2.1: Includes pattern-based scoring.
         v3.3.0: ``skip`` frozenset suppresses specific checks for file roles
                 (e.g. INIT files skip 'ldr' and 'ddc').
+        v3.7.6 (SLOP-003): also returns deficit_breakdown — per-dimension
+                penalty attribution so a non-zero score on a "clean" file
+                can be explained without reading raw findings.
         """
         pattern_issues = pattern_issues or []
 
@@ -551,6 +556,16 @@ class SlopDetector:
         base_deficit_score = 100 * (1 - gqg)
         pattern_penalty = self._calculate_pattern_penalty(pattern_issues)
         deficit_score = min(base_deficit_score + pattern_penalty, 100.0)
+
+        deficit_breakdown = self._compute_deficit_breakdown(
+            effective_ldr,
+            inflation_normalized,
+            effective_ddc,
+            purity,
+            base_deficit_score,
+            pattern_penalty,
+            deficit_score,
+        )
 
         warnings = self._build_metric_warnings(ldr, inflation, ddc, skip=skip)
 
@@ -592,7 +607,66 @@ class SlopDetector:
         ):
             status = SlopStatus.DEPENDENCY_NOISE
 
-        return deficit_score, status, warnings
+        return deficit_score, status, warnings, deficit_breakdown
+
+    def _compute_deficit_breakdown(
+        self,
+        ldr,
+        inflation_normalized: float,
+        ddc,
+        purity: float,
+        base_deficit_score: float,
+        pattern_penalty: float,
+        deficit_score: float,
+    ) -> Dict[str, float]:
+        """Attribute deficit_score to its source dimensions (SLOP-003).
+
+        The GQG geometric mean cannot be decomposed linearly, but we can
+        attribute the *log loss* contribution of each dimension and then
+        scale to the realised base_deficit_score. The fields sum to total
+        within 0.01 (when not capped at 100) — see test_deficit_breakdown.
+
+        Returns absolute "points-of-deficit" per dimension, plus the
+        pattern_penalty actually applied (post-cap, post-floor).
+        """
+        weights = self.config.get_weights()
+        w_ldr = weights.get("ldr", 0.40)
+        w_inf = weights.get("inflation", 0.30)
+        w_ddc = weights.get("ddc", 0.20)
+        w_pur = weights.get("purity", 0.10)
+        total_w = w_ldr + w_inf + w_ddc + w_pur
+
+        # Log-loss per dimension (negative since values are in (0,1]).
+        # Matches the same clamp used in _compute_gqg.
+        ldr_loss = -w_ldr * log(max(1e-4, ldr.ldr_score))
+        inf_loss = -w_inf * log(max(1e-4, 1.0 - inflation_normalized))
+        ddc_loss = -w_ddc * log(max(1e-4, ddc.usage_ratio))
+        pur_loss = -w_pur * log(max(1e-4, purity))
+        total_loss = (ldr_loss + inf_loss + ddc_loss + pur_loss) / total_w
+
+        # Share-based attribution: distributes base_deficit_score across
+        # dimensions in proportion to each one's log-loss share.
+        if total_loss > 1e-9:
+            ldr_share = (ldr_loss / total_w) / total_loss
+            inf_share = (inf_loss / total_w) / total_loss
+            ddc_share = (ddc_loss / total_w) / total_loss
+            pur_share = (pur_loss / total_w) / total_loss
+        else:
+            ldr_share = inf_share = ddc_share = pur_share = 0.0
+
+        # Effective pattern contribution after the 100-cap on total.
+        # When base + pattern_penalty <= 100, pattern_hits == pattern_penalty.
+        # When capped, the cap eats into the pattern contribution first.
+        effective_pattern = max(0.0, deficit_score - base_deficit_score)
+
+        return {
+            "ldr_penalty": round(ldr_share * base_deficit_score, 4),
+            "inflation_penalty": round(inf_share * base_deficit_score, 4),
+            "ddc_penalty": round(ddc_share * base_deficit_score, 4),
+            "purity_penalty": round(pur_share * base_deficit_score, 4),
+            "pattern_hits": round(effective_pattern, 4),
+            "total": round(deficit_score, 4),
+        }
 
     def _js_divergence(self, p: List[float], q: List[float]) -> float:
         """Jensen-Shannon divergence between two probability vectors.

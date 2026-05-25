@@ -149,6 +149,11 @@ class FileAnalysis:
     # v3.0: Distributional Code Fingerprint — P(node_type | file) over AST node types.
     # Genuine probability distribution. Used for information-theoretic slop distance (CQMS Level 2).
     dcf: Dict[str, float] = field(default_factory=dict)
+    # v3.7.6 (SLOP-003): per-dimension attribution of deficit_score so users
+    # can answer "why is my clean-status file not 0?" without reading findings.
+    # Fields: ldr_penalty, inflation_penalty, ddc_penalty, purity_penalty,
+    # pattern_hits, total. Sum of penalty fields equals total within 0.01.
+    deficit_breakdown: Dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -190,6 +195,8 @@ class FileAnalysis:
             )
         if self.dcf:
             result["dcf"] = self.dcf
+        if self.deficit_breakdown:
+            result["deficit_breakdown"] = self.deficit_breakdown
         return result
 
 

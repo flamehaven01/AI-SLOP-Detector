@@ -198,11 +198,52 @@ def test_calculate_slop_status_thresholds(detector):
         grade="A",
     )
 
-    score, status, warnings = detector._calculate_slop_status(high_ldr, low_inflation, good_ddc, [])
+    score, status, warnings, breakdown = detector._calculate_slop_status(
+        high_ldr, low_inflation, good_ddc, []
+    )
 
     assert score < 30
     assert status == SlopStatus.CLEAN
     assert len(warnings) == 0
+    # v3.7.6 (SLOP-003): breakdown fields sum to total within 0.01
+    keys = ("ldr_penalty", "inflation_penalty", "ddc_penalty", "purity_penalty", "pattern_hits")
+    assert abs(sum(breakdown[k] for k in keys) - breakdown["total"]) < 0.01
+
+
+def test_deficit_breakdown_attribution_on_clean_file(detector, temp_python_file):
+    """SLOP-003: analyze_file exposes per-dimension deficit_breakdown."""
+    code = '''
+def add(a, b):
+    """Return sum."""
+    return a + b
+
+
+def multiply(a, b):
+    """Return product."""
+    return a * b
+'''
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    bd = result.deficit_breakdown
+    assert bd, "deficit_breakdown should be populated"
+    for key in ("ldr_penalty", "inflation_penalty", "ddc_penalty",
+                "purity_penalty", "pattern_hits", "total"):
+        assert key in bd, f"missing key: {key}"
+        assert bd[key] >= 0.0, f"{key} should be non-negative"
+
+    # Conservation: penalties sum to total when deficit_score is not capped at 100
+    if result.deficit_score < 100.0:
+        keys = ("ldr_penalty", "inflation_penalty", "ddc_penalty",
+                "purity_penalty", "pattern_hits")
+        assert abs(sum(bd[k] for k in keys) - bd["total"]) < 0.01
+
+    # to_dict round-trip preserves the field
+    as_dict = result.to_dict()
+    assert "deficit_breakdown" in as_dict
+    assert as_dict["deficit_breakdown"]["total"] == bd["total"]
 
 
 def test_weighted_analysis(detector, temp_python_file):

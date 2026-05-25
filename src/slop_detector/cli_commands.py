@@ -261,8 +261,11 @@ def _run_init(args: argparse.Namespace) -> int:
     force = getattr(args, "force_init", False)
 
     if config_path.exists() and not force:
-        print("[!] .slopconfig.yaml already exists. Use --force-init to overwrite.")
-        return 1
+        # v3.7.6 (SLOP-006): idempotent — re-running on initialized project
+        # is a no-op success, not a failure. CI scripts can call --init safely.
+        print("[*] .slopconfig.yaml already initialized.")
+        print("    Run with --force-init to regenerate.")
+        return 0
 
     project_type = _detect_project_type(Path("."))
 
