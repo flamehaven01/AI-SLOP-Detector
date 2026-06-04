@@ -48,7 +48,11 @@ def _text_project_section(result) -> list:
     ]
     coherence_level = getattr(result, "coherence_level", "none")
     if coherence_level != "none":
-        label = "deterministic approximation" if coherence_level == "vr_structural_approx" else "exact MST"
+        label = (
+            "deterministic approximation"
+            if coherence_level == "vr_structural_approx"
+            else "exact MST"
+        )
         lines += [
             "Structural Coherence:",
             f"  Score: {result.structural_coherence:.4f}",
@@ -92,11 +96,7 @@ def _text_project_section(result) -> list:
             f"  Coverage Data: {'yes' if getattr(result, 'coverage_analysis_available', False) else 'no'}",
         ]
         for hotspot in priority_hotspots[:10]:
-            coverage = (
-                "n/a"
-                if hotspot.coverage_ratio is None
-                else f"{hotspot.coverage_ratio:.0%}"
-            )
+            coverage = "n/a" if hotspot.coverage_ratio is None else f"{hotspot.coverage_ratio:.0%}"
             lines.append(
                 f"  - {Path(hotspot.file_path).name}: priority {hotspot.priority_score:.1f}/100, "
                 f"deficit {hotspot.deficit_score:.1f}, churn {hotspot.churn_count}, "

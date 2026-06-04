@@ -7,9 +7,7 @@ from typing import List, Optional
 
 from slop_detector.models import SuppressionDirective, SuppressionLedgerEntry
 
-_SUPPRESSION_RE = re.compile(
-    r"^\s*#\s*slop-(disable-next-line|disable|enable)\b(?:\s+(.+?))?\s*$"
-)
+_SUPPRESSION_RE = re.compile(r"^\s*#\s*slop-(disable-next-line|disable|enable)\b(?:\s+(.+?))?\s*$")
 
 
 class SuppressionHandler:

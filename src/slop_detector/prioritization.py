@@ -5,16 +5,17 @@ from __future__ import annotations
 import ast
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 from slop_detector.models import FileAnalysis, PriorityHotspot, SlopStatus
 
+_CoverageData: Any = None
 try:
     from coverage import CoverageData
 
+    _CoverageData = CoverageData
     _COVERAGE_AVAILABLE = True
 except ImportError:
-    CoverageData = None
     _COVERAGE_AVAILABLE = False
 
 
@@ -54,9 +55,7 @@ class ProjectPrioritizer:
             churn_score = (churn_count / max_churn) if max_churn > 0 else 0.0
             coverage_ratio = coverage_ratios.get(file_key)
             coverage_gap = (
-                max(0.0, min(1.0, 1.0 - coverage_ratio))
-                if coverage_ratio is not None
-                else None
+                max(0.0, min(1.0, 1.0 - coverage_ratio)) if coverage_ratio is not None else None
             )
 
             priority_score = self._compute_priority_score(
@@ -188,7 +187,7 @@ class ProjectPrioritizer:
             return {}
 
         try:
-            data = CoverageData(basename=str(coverage_file))
+            data = _CoverageData(basename=str(coverage_file))
             data.read()
         except Exception:
             return {}
@@ -242,10 +241,12 @@ class ProjectPrioritizer:
             if not body:
                 continue
             first = body[0]
+            first_value = getattr(first, "value", None)
+            nested_value = getattr(first_value, "value", None)
             if (
                 isinstance(first, ast.Expr)
-                and isinstance(getattr(first, "value", None), ast.Constant)
-                and isinstance(first.value.value, str)
+                and isinstance(first_value, ast.Constant)
+                and isinstance(nested_value, str)
                 and hasattr(first, "lineno")
             ):
                 docstring_lines.add(first.lineno)

@@ -247,7 +247,11 @@ class Config:
     def get_topology_mode_above_ceiling(self) -> str:
         """How to compute topology after the exact ceiling is exceeded."""
         value = str(self.get("advanced.topology_mode_above_ceiling", "deterministic_approximate"))
-        return value if value in {"deterministic_approximate", "exact"} else "deterministic_approximate"
+        return (
+            value
+            if value in {"deterministic_approximate", "exact"}
+            else "deterministic_approximate"
+        )
 
     def use_analysis_cache(self) -> bool:
         """Check if repeated-run file analysis cache is enabled."""

@@ -133,7 +133,9 @@ def f5():
 """
     result = detector.analyze_code_string(code, filename="sample.py")
 
-    assert any("SUPPRESSIONS: high inline suppression usage" in warning for warning in result.warnings)
+    assert any(
+        "SUPPRESSIONS: high inline suppression usage" in warning for warning in result.warnings
+    )
 
 
 def test_file_analysis_to_dict_includes_suppression_ledger():

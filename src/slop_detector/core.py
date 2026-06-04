@@ -330,7 +330,7 @@ class SlopDetector:
         """Build a FileAnalysis from already-read source and parsed AST."""
         from slop_detector.file_role import ROLE_SKIP
 
-        role = classify_file(file_path, content, tree)
+        role = classify_file(file_path, content, tree)  # type: ignore[arg-type]
         skip = ROLE_SKIP[role]
 
         ldr = self.ldr_calc.calculate(file_path, content, tree)

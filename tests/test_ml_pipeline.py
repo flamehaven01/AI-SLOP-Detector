@@ -1,6 +1,7 @@
 """Tests for ML pipeline sample lifecycle and reporting."""
 
-from types import SimpleNamespace
+import sys
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -58,8 +59,6 @@ def test_train_from_samples_reports_usable_counts(tmp_path, monkeypatch):
     """Report counts should reflect usable feature rows, not requested sample rows."""
     pipeline = MLPipeline(output_dir=tmp_path / "models")
 
-    from slop_detector.ml import classifier as classifier_module
-
     class FakeClassifier:
         FEATURE_NAMES = ["ldr_score", "inflation_score"]
 
@@ -80,7 +79,9 @@ def test_train_from_samples_reports_usable_counts(tmp_path, monkeypatch):
         def save(self, path):
             path.write_text("model", encoding="utf-8")
 
-    monkeypatch.setattr(classifier_module, "SlopClassifier", FakeClassifier)
+    classifier_module = ModuleType("slop_detector.ml.classifier")
+    classifier_module.SlopClassifier = FakeClassifier
+    monkeypatch.setitem(sys.modules, "slop_detector.ml.classifier", classifier_module)
 
     samples = [
         TrainingSample(label=0, features={}, source="skipped"),

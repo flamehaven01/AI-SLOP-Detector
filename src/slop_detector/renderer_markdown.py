@@ -114,7 +114,9 @@ def _md_structural_coherence_section(result) -> list:
     coherence_level = getattr(result, "coherence_level", "none")
     if coherence_level == "none":
         return []
-    mode = "deterministic approximation" if coherence_level == "vr_structural_approx" else "exact MST"
+    mode = (
+        "deterministic approximation" if coherence_level == "vr_structural_approx" else "exact MST"
+    )
     return [
         "## Structural Coherence",
         "| Metric | Value |",

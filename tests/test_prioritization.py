@@ -70,9 +70,7 @@ def test_load_coverage_ratios_reads_coverage_data(tmp_path):
 
     file_path = tmp_path / "pkg.py"
     file_path.write_text(
-        "def add(a, b):\n"
-        "    total = a + b\n"
-        "    return total\n",
+        "def add(a, b):\n" "    total = a + b\n" "    return total\n",
         encoding="utf-8",
     )
 

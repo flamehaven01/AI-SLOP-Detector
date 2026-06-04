@@ -156,7 +156,9 @@ def _render_rich_project(console, result) -> None:
     console.print()
     suppression_ledger = getattr(result, "suppression_ledger", [])
     if suppression_ledger:
-        sup_table = Table(title="Inline Suppression Ledger", box=box.ROUNDED, header_style="bold cyan")
+        sup_table = Table(
+            title="Inline Suppression Ledger", box=box.ROUNDED, header_style="bold cyan"
+        )
         sup_table.add_column("File", style="bold")
         sup_table.add_column("Line", justify="right")
         sup_table.add_column("Pattern")

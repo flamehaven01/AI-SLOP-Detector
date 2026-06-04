@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from dataclasses import asdict, is_dataclass
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterator, Optional, cast
 
 from slop_detector.metrics.context_jargon import ContextJargonResult, JargonEvidence
 from slop_detector.metrics.docstring_inflation import (
@@ -55,8 +55,7 @@ class FileAnalysisCache:
 
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS file_analysis_cache (
                     file_path TEXT PRIMARY KEY,
                     file_size INTEGER NOT NULL,
@@ -66,8 +65,7 @@ class FileAnalysisCache:
                     config_fingerprint TEXT NOT NULL,
                     result_json TEXT NOT NULL
                 )
-                """
-            )
+                """)
 
     def get(
         self,
@@ -138,8 +136,8 @@ def fingerprint_config(config_dict: Dict[str, Any]) -> str:
     """Stable fingerprint for cache invalidation on config drift."""
 
     def _normalize(value: Any) -> Any:
-        if is_dataclass(value):
-            return asdict(value)
+        if is_dataclass(value) and not isinstance(value, type):
+            return asdict(cast(Any, value))
         if isinstance(value, dict):
             return {k: _normalize(v) for k, v in sorted(value.items())}
         if isinstance(value, list):

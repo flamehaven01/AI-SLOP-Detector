@@ -118,7 +118,7 @@ select = ["E", "F", "I", "N", "W"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_unused_configs = true
 ignore_errors = false
 exclude = ["tests/corpus/", "tests/manual_test/"]

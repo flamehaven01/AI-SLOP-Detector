@@ -263,11 +263,6 @@ class MLPipeline:
         Returns:
             PipelineReport with metrics and feature importance.
         """
-        try:
-            from slop_detector.ml.classifier import SlopClassifier
-        except ImportError as e:
-            raise RuntimeError(f"Pipeline dependencies missing: {e}") from e
-
         logger.info("[Pipeline] Generating synthetic training data...")
         samples = self._generate_samples(n_slop, n_clean)
         logger.info(f"[Pipeline] Generated {len(samples)} samples")
@@ -371,7 +366,9 @@ class MLPipeline:
         # Generate clean samples
         for _ in range(n_clean):
             code = gen.generate_clean_file()
-            samples.append(TrainingSample(label=0, features={}, source="synthetic_clean", code=code))
+            samples.append(
+                TrainingSample(label=0, features={}, source="synthetic_clean", code=code)
+            )
 
         return samples
 
