@@ -98,6 +98,36 @@ jobs:
       - name: Run Go analyzer tests
         run: pytest tests/test_go_analyzer.py -v
 
+  rust-accelerator:
+    name: Rust Accelerator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run Rust format check
+        run: cargo fmt --check --manifest-path rust/slop_scan/Cargo.toml
+
+      - name: Build Rust accelerator
+        run: cargo build --release --manifest-path rust/slop_scan/Cargo.toml
+
+      - name: Run Rust integration tests
+        env:
+          SLOP_RUST_SCAN_BIN: ${{ github.workspace }}/rust/slop_scan/target/release/slop_scan
+        run: pytest tests/test_rust_scan.py -v
+
   slop-check:
     name: Self SLOP Detection
     runs-on: ubuntu-latest
