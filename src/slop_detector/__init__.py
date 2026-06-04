@@ -40,7 +40,8 @@ __all__ = [
 ]
 
 try:  # v2.8.0: optional ML surface should not hard-fail core imports
-    from slop_detector.ml.scorer import MLScore as _MLScore, MLScorer as _MLScorer
+    from slop_detector.ml.scorer import MLScore as _MLScore
+    from slop_detector.ml.scorer import MLScorer as _MLScorer
 except ImportError:  # pragma: no cover - optional dependency path
     MLScore: Any = None
     MLScorer: Any = None
