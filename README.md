@@ -133,6 +133,16 @@ slop-detector verify-governance ./.cr-ep
 See [docs/GOVERNANCE.md](docs/GOVERNANCE.md) for the artifact contract and
 policy checks.
 
+Operational review commands live on the same CLI entry point:
+
+```bash
+slop-detector audit . --json
+slop-detector health . --json
+slop-detector dead-code . --json
+slop-detector watch . --follow
+slop-detector explain dead-code
+```
+
 ---
 
 ## Scope And Boundaries

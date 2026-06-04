@@ -229,6 +229,23 @@ fails closed when:
 
 See [GOVERNANCE.md](GOVERNANCE.md) for the record contract.
 
+## Operational Commands
+
+These commands return the same meaning across `--json`, markdown, and plain text:
+
+```bash
+slop-detector audit <path> --json
+slop-detector health <path> --json
+slop-detector dead-code <path> --json
+slop-detector dupes <path> --json
+slop-detector unused-deps <path> --json
+slop-detector stale-suppressions <path> --json
+slop-detector boundary-violations <path> --json
+slop-detector watch <path> --follow
+slop-detector fix <path> --dry-run
+slop-detector explain dead-code
+```
+
 ## Complete CLI Reference
 
 ```
