@@ -16,6 +16,7 @@ from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache
 from slop_detector.config import Config
 from slop_detector.file_role import classify_file
 from slop_detector.ignore_handler import IgnoreHandler
+from slop_detector.masking import FrameworkMasker
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
 from slop_detector.metrics.context_jargon import ContextJargonDetector
 from slop_detector.metrics.docstring_inflation import DocstringInflationDetector
@@ -23,6 +24,7 @@ from slop_detector.metrics.hallucination_deps import HallucinationDepsDetector
 from slop_detector.models import (
     FileAnalysis,
     IgnoredFunction,
+    MaskedIssue,
     ProjectAnalysis,
     SlopStatus,
     SuppressionDirective,
@@ -345,8 +347,8 @@ class SlopDetector:
         context_jargon = self.context_jargon_detector.analyze(file_path, content, tree, inflation)
         ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
         suppression_directives = SuppressionHandler.parse_comment_suppressions(content)
-        pattern_issues, suppression_ledger = (
-            ([], [])
+        pattern_issues, suppression_ledger, masked_issues = (
+            ([], [], [])
             if "patterns" in skip
             else self._run_patterns(
                 tree,
@@ -376,6 +378,7 @@ class SlopDetector:
             ignored_functions=ignored_functions,
             suppression_directives=suppression_directives,
             suppression_ledger=suppression_ledger,
+            masked_issues=masked_issues,
             dcf=dcf,
             deficit_breakdown=deficit_breakdown,
         )
@@ -465,7 +468,7 @@ class SlopDetector:
         content: str,
         ignored_functions: Optional[List[IgnoredFunction]] = None,
         suppression_directives: Optional[List[SuppressionDirective]] = None,
-    ) -> tuple[List[Issue], List[SuppressionLedgerEntry]]:
+    ) -> tuple[List[Issue], List[SuppressionLedgerEntry], List[MaskedIssue]]:
         """
         Run all enabled patterns on the file.
 
@@ -474,6 +477,7 @@ class SlopDetector:
         """
         issues = []
         suppression_ledger: List[SuppressionLedgerEntry] = []
+        masked_issues: List[MaskedIssue] = []
         ignored_functions = ignored_functions or []
         suppression_directives = suppression_directives or []
         ignored_ranges = IgnoreHandler.get_ignored_line_ranges(tree, ignored_functions)
@@ -481,6 +485,10 @@ class SlopDetector:
         for pattern in self.pattern_registry.get_all():
             try:
                 pattern_issues = pattern.check(tree, file, content)
+                pattern_issues, pattern_masked = FrameworkMasker.apply_python_masking(
+                    file, content, tree, pattern_issues
+                )
+                masked_issues.extend(pattern_masked)
                 # v2.6.3: Filter issues in ignored functions
                 for issue in pattern_issues:
                     if IgnoreHandler.is_line_in_ignored_range(issue.line, ignored_ranges):
@@ -495,7 +503,7 @@ class SlopDetector:
             except Exception as e:
                 logger.warning(f"Pattern {pattern.id} failed: {e}")
 
-        return issues, suppression_ledger
+        return issues, suppression_ledger, masked_issues
 
     # Backward-compat shims — delegate to IgnoreHandler
     def _collect_ignored_functions(self, tree: ast.AST) -> List[IgnoredFunction]:

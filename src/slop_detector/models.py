@@ -174,6 +174,30 @@ class SuppressionLedgerEntry:
 
 
 @dataclass
+class MaskedIssue:
+    """A framework-aware masked issue recorded for auditability."""
+
+    file_path: str
+    masked_line: int
+    pattern_id: str
+    framework: str
+    rule_id: str
+    reason: str
+    source: str = "framework_masking"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "file_path": self.file_path,
+            "masked_line": self.masked_line,
+            "pattern_id": self.pattern_id,
+            "framework": self.framework,
+            "rule_id": self.rule_id,
+            "reason": self.reason,
+            "source": self.source,
+        }
+
+
+@dataclass
 class FileAnalysis:
     """Complete file analysis result."""
 
@@ -191,6 +215,7 @@ class FileAnalysis:
     ignored_functions: List[IgnoredFunction] = field(default_factory=list)  # v2.6.3
     suppression_directives: List[SuppressionDirective] = field(default_factory=list)
     suppression_ledger: List[SuppressionLedgerEntry] = field(default_factory=list)
+    masked_issues: List[MaskedIssue] = field(default_factory=list)
     ml_score: Any = None  # v2.8.0: Optional ML secondary signal (MLScore | None)
     # v3.0: Distributional Code Fingerprint — P(node_type | file) over AST node types.
     # Genuine probability distribution. Used for information-theoretic slop distance (CQMS Level 2).
@@ -239,6 +264,8 @@ class FileAnalysis:
             result["suppression_directives"] = [d.to_dict() for d in self.suppression_directives]
         if self.suppression_ledger:
             result["suppression_ledger"] = [e.to_dict() for e in self.suppression_ledger]
+        if self.masked_issues:
+            result["masked_issues"] = [item.to_dict() for item in self.masked_issues]
         if self.ml_score is not None:
             result["ml_score"] = (
                 self.ml_score.to_dict() if hasattr(self.ml_score, "to_dict") else self.ml_score

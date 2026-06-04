@@ -206,6 +206,12 @@ Use this document as the execution checklist for the next phases.
 - critical findings are never hidden by masking
 - masking behavior is documented and regression-covered
 
+### Current implementation
+
+- Python test files mask pytest no-op hook `pass_placeholder` before suppression matching.
+- JS/TS test/spec files mask `js_console_log` and empty lifecycle hook arrows.
+- `critical` findings remain visible by policy.
+
 ---
 
 ## P6 - Cleanup Families and Watch Loop

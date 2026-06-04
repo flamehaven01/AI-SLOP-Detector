@@ -45,6 +45,7 @@ def test_cache_round_trip_preserves_file_analysis_contract(tmp_path):
     assert restored.status == result.status
     assert restored.deficit_breakdown == result.deficit_breakdown
     assert restored.suppression_ledger == result.suppression_ledger
+    assert restored.masked_issues == result.masked_issues
     assert restored.dcf == result.dcf
 
 

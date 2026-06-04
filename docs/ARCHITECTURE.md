@@ -116,6 +116,11 @@ recomputes the canonical hash and checks policy state in a separate CLI gate.
 This keeps math changes from silently changing CI policy and keeps policy
 changes from mutating the scoring model.
 
+**Framework masking boundary** (`masking.py`): deterministic framework-aware
+masking runs after pattern detection but before inline suppression matching.
+The current rules only hide narrow boilerplate noise in test harnesses and do
+not mask `critical` findings.
+
 ---
 
 ## Core Components

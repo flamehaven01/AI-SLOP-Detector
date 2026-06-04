@@ -151,6 +151,7 @@ slop-detector explain dead-code
 - The default scoring path is deterministic; it does not require an LLM or external API.
 - JS/TS and Go support are optional extras with language-specific analyzers and fallbacks.
 - Optional Rust acceleration is available for file discovery and glob matching when a compiled `rust/slop_scan` helper is present; otherwise the Python walker remains the fallback.
+- Narrow framework-aware masking is enabled for test boilerplate (pytest no-op hooks, test-harness console/no-op hooks in JS/TS) and never masks `critical` findings.
 - A low deficit score is evidence of cleaner structure, not a guarantee that the code is complete or safe.
 
 ---

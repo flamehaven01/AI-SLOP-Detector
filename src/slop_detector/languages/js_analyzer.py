@@ -43,6 +43,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from slop_detector.masking import FrameworkMasker
+from slop_detector.models import MaskedIssue
+
 logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------
@@ -177,6 +180,7 @@ class JSFileAnalysis:
     double_equals_count: int = 0
     empty_arrow_count: int = 0
     max_nesting_depth: int = 0
+    masked_issues: List[MaskedIssue] = field(default_factory=list)
 
     # v2.8.0: AST-derived metrics
     function_metrics: List[FunctionMetrics] = field(default_factory=list)
@@ -204,6 +208,7 @@ class JSFileAnalysis:
             "double_equals_count": self.double_equals_count,
             "empty_arrow_count": self.empty_arrow_count,
             "max_nesting_depth": self.max_nesting_depth,
+            "masked_issues": [item.to_dict() for item in self.masked_issues],
             "max_complexity": self.max_complexity,
             "god_function_count": self.god_function_count,
             "dead_code_count": self.dead_code_count,
@@ -332,6 +337,16 @@ class JSAnalyzer:
             return self._analyze_ast(file_path, content, language, is_ts, is_tsx)
         return self._analyze_regex(file_path, content, language, is_ts)
 
+    @staticmethod
+    def _recount_visible_issues(issues: List[JSIssue]) -> Dict[str, int]:
+        return {
+            "console": sum(1 for issue in issues if issue.pattern_id == "js_console_log"),
+            "var": sum(1 for issue in issues if issue.pattern_id == "js_var_usage"),
+            "any": sum(1 for issue in issues if issue.pattern_id == "js_any_type"),
+            "double_eq": sum(1 for issue in issues if issue.pattern_id == "js_double_equals"),
+            "empty_arrow": sum(1 for issue in issues if issue.pattern_id == "js_empty_arrow"),
+        }
+
     # ------------------------------------------------------------------
     # AST mode
     # ------------------------------------------------------------------
@@ -359,6 +374,8 @@ class JSAnalyzer:
         )
         issues.extend(fn_issues)
         issues.extend(self._detect_dead_code_issues(root))
+        issues, masked_issues = FrameworkMasker.apply_js_masking(file_path, content, issues)
+        counts = self._recount_visible_issues(issues)
 
         ldr_equiv = round(code_lines / max(total, 1), 4)
         pattern_penalty = min(sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues), 50.0)
@@ -384,6 +401,7 @@ class JSAnalyzer:
             double_equals_count=counts["double_eq"],
             empty_arrow_count=counts["empty_arrow"],
             max_nesting_depth=max_depth,
+            masked_issues=masked_issues,
             function_metrics=fn_metrics,
             max_complexity=max_complexity,
             god_function_count=god_count,
@@ -582,11 +600,6 @@ class JSAnalyzer:
         depth = 0
         max_depth = 0
         issues: List[JSIssue] = []
-        console_count = 0
-        var_count = 0
-        any_count = 0
-        double_eq_count = 0
-        empty_arrow_count = 0
         in_block_comment = False
 
         for i, line in enumerate(lines, start=1):
@@ -611,7 +624,6 @@ class JSAnalyzer:
             max_depth = max(max_depth, depth)
 
             if _RE_VAR.search(line):
-                var_count += 1
                 issues.append(
                     JSIssue(
                         "js_var_usage",
@@ -623,7 +635,6 @@ class JSAnalyzer:
                 )
             m = _RE_CONSOLE_LOG.search(line)
             if m:
-                console_count += 1
                 issues.append(
                     JSIssue(
                         "js_console_log",
@@ -636,7 +647,6 @@ class JSAnalyzer:
             if is_ts:
                 m2 = _RE_ANY_TYPE.search(line)
                 if m2:
-                    any_count += 1
                     issues.append(
                         JSIssue(
                             "js_any_type",
@@ -648,7 +658,6 @@ class JSAnalyzer:
                     )
             m3 = _RE_EMPTY_ARROW.search(line)
             if m3:
-                empty_arrow_count += 1
                 issues.append(
                     JSIssue(
                         "js_empty_arrow",
@@ -660,7 +669,6 @@ class JSAnalyzer:
                 )
             m4 = _RE_DOUBLE_EQUALS.search(line)
             if m4:
-                double_eq_count += 1
                 issues.append(
                     JSIssue("js_double_equals", "medium", i, m4.start(), "Loose equality (==)")
                 )
@@ -675,6 +683,9 @@ class JSAnalyzer:
                     f"Max nesting depth {max_depth} — callback hell risk",
                 )
             )
+
+        issues, masked_issues = FrameworkMasker.apply_js_masking(file_path, content, issues)
+        counts = self._recount_visible_issues(issues)
 
         ldr_equiv = round(code / max(total, 1), 4)
         pattern_penalty = min(sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues), 50.0)
@@ -695,12 +706,13 @@ class JSAnalyzer:
             blank_lines=blank,
             ldr_equivalent=ldr_equiv,
             issues=issues,
-            console_log_count=console_count,
-            var_usage_count=var_count,
-            any_type_count=any_count,
-            double_equals_count=double_eq_count,
-            empty_arrow_count=empty_arrow_count,
+            console_log_count=counts["console"],
+            var_usage_count=counts["var"],
+            any_type_count=counts["any"],
+            double_equals_count=counts["double_eq"],
+            empty_arrow_count=counts["empty_arrow"],
             max_nesting_depth=max_depth,
+            masked_issues=masked_issues,
             ast_mode=False,
             slop_score=slop_score,
             status=status,

@@ -26,6 +26,7 @@ from slop_detector.models import (
     IgnoredFunction,
     InflationResult,
     LDRResult,
+    MaskedIssue,
     SlopStatus,
     SuppressionDirective,
     SuppressionLedgerEntry,
@@ -175,6 +176,7 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
         suppression_ledger=[
             SuppressionLedgerEntry(**item) for item in data.get("suppression_ledger", [])
         ],
+        masked_issues=[MaskedIssue(**item) for item in data.get("masked_issues", [])],
         ml_score=_restore_ml_score(data.get("ml_score")),
         dcf=data.get("dcf", {}),
         deficit_breakdown=data.get("deficit_breakdown", {}),
