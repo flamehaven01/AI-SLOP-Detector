@@ -1,5 +1,7 @@
 """Command-line interface for SLOP detector."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import logging
