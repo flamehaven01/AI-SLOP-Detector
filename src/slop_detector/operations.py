@@ -225,7 +225,7 @@ def build_cleanup_payload(result, kind: str) -> Dict[str, Any]:
     """Build a cleanup-focused payload for a family of commands."""
     analyzer = CrossFileAnalyzer()
     project_path = Path(result.project_path)
-    cross = analyzer.analyze(project_path, result.file_results)
+    cross = analyzer.analyze(str(project_path), result.file_results)
     issues: List[Dict[str, Any]] = []
 
     if kind == "dead-code":

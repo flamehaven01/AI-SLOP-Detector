@@ -6,6 +6,7 @@ import logging
 import math
 import sys
 from pathlib import Path
+from typing import Optional
 
 from slop_detector import __version__
 from slop_detector.cli_commands import (  # noqa: F401
@@ -314,7 +315,7 @@ def _emit_command_payload(args, payload: dict) -> int:
 
 def _build_fallback_project_analysis(
     detector: SlopDetector, project_path: Path
-) -> ProjectAnalysis | None:
+) -> Optional[ProjectAnalysis]:
     """Reconstruct a project analysis from direct file walks when aggregate scan is empty."""
     ignore_patterns = detector.config.get_ignore_patterns()
     scan_root = (
