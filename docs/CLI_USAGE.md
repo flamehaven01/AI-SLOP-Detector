@@ -152,8 +152,8 @@ See [PATTERNS.md](PATTERNS.md) for full descriptions, severity levels, and examp
 # Auto-detect project type and generate .slopconfig.yaml
 slop-detector --init
 
-# Specify domain explicitly (python / javascript / go / scientific_ml / web_api / data_engineering / generic)
-slop-detector --init --domain scientific_ml
+# Specify domain explicitly
+slop-detector --init --domain general
 
 # Overwrite an existing .slopconfig.yaml
 slop-detector --init --force-init
@@ -267,6 +267,32 @@ slop-detector fix <path> --dry-run
 slop-detector explain dead-code
 ```
 
+Operational cleanup commands share one contract across text, markdown, and
+JSON:
+
+- every cleanup `issue` can carry `confidence`, `action_class`, and `evidence`
+- `unused-deps` now includes project-manifest findings:
+  - `manifest_unused_dependency`
+  - `undeclared_import`
+- `boundary-violations` remains import-cycle only unless architecture review is
+  explicitly enabled in `.slopconfig.yaml`
+
+Example opt-in architecture config:
+
+```yaml
+architecture:
+  enabled: true
+  preset: layered
+  layers: []
+```
+
+The built-in `layered` preset keeps safe defaults:
+
+- `api -> domain` is allowed
+- `domain -> data` is blocked
+- each `layer_boundary_violation` includes the matched importer/importee
+  patterns plus the explicit allow/forbid rule
+
 ## MCP Server
 
 The same structured agent surface is available over MCP stdio:
@@ -299,7 +325,7 @@ usage: slop-detector [-h] [--project] [--output OUTPUT] [--json] [--verbose]
                      [--ci-claims-strict]
                      [path]
 
-AI-SLOP Detector v3.5.0 — Evidence-based static analyzer (Python/JS/TS/Go)
+AI-SLOP Detector v3.8.x — Evidence-based static analyzer (Python/JS/TS/Go)
 
 positional arguments:
   path                  File or directory to analyze
@@ -321,8 +347,8 @@ Pattern Options:
 
 Init Options (v3.2.0):
   --init                Generate .slopconfig.yaml for current project
-  --domain DOMAIN       Specify domain for --init (python/javascript/go/
-                        scientific_ml/web_api/data_engineering/generic)
+  --domain DOMAIN       Specify domain for --init (general/scientific/numerical/
+                        web/api/library/sdk/cli/tool/bio/finance)
   --force-init          Overwrite existing .slopconfig.yaml
 
 Self-Calibration Options (v3.2.0):

@@ -5,6 +5,45 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.8.1 — 2026-06-04
+
+### Summary
+
+This follow-through release extends the canonical CLI surface with
+stronger operational semantics rather than new verbs: cleanup families now act
+like ranked action plans, dependency hygiene now reads project manifests, and
+boundary review can opt into layered architecture rules.
+
+### Added
+
+**Cleanup confidence planning**
+- cleanup-family `issues[]` entries can now include:
+  - `confidence`
+  - `action_class`
+  - `evidence`
+- ranking reuses existing deficit, churn, coverage, and local cleanup evidence
+  instead of inventing a detached second model.
+
+**Manifest hygiene**
+- `unused-deps` now emits project-level findings for:
+  - `manifest_unused_dependency`
+  - `undeclared_import`
+- both `pyproject.toml` and `package.json` are now first-class cleanup inputs.
+
+**Opt-in layered architecture review**
+- `boundary-violations` remains cycle-only by default.
+- `.slopconfig.yaml` can enable `architecture.preset: layered` for rule-based
+  boundary checks such as allowed `api -> domain` and forbidden
+  `domain -> data`.
+
+### Validation
+
+- `python -m pytest tests/test_operations_commands.py tests/test_cli.py -q -W error::ResourceWarning`
+- `python -m black --check src/slop_detector/operations.py src/slop_detector/config.py src/slop_detector/analysis/cross_file.py src/slop_detector/cli.py tests/test_operations_commands.py`
+- `python -m ruff check src/slop_detector/operations.py src/slop_detector/config.py src/slop_detector/analysis/cross_file.py src/slop_detector/cli.py tests/test_operations_commands.py`
+
+---
+
 ## v3.8.0 — 2026-06-04
 
 ### Summary

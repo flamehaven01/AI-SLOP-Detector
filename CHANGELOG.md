@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.1] - 2026-06-04 — Absorption Chapter: Cleanup Confidence, Manifest Hygiene, Architecture Review
+
+### Added
+
+**Absorption chapter: cleanup planning and architecture review**
+
+- Cleanup-family output now extends each `issues[]` item with:
+  - `confidence`
+  - `action_class`
+  - `evidence`
+- Cleanup confidence reuses existing signals instead of inventing a detached
+  model:
+  - `deficit_score`
+  - churn
+  - coverage
+  - cleanup-local evidence
+- `unused-deps` now includes project-level manifest hygiene for:
+  - `pyproject.toml`
+  - `package.json`
+- New cleanup issue types:
+  - `manifest_unused_dependency`
+  - `undeclared_import`
+- `boundary-violations` now supports an opt-in architecture review path with a
+  layered preset and explicit `layer_boundary_violation` findings.
+
+### Changed
+
+- Architecture review remains cycle-only by default; layered boundary rules are
+  opt-in through `.slopconfig.yaml`.
+- Layered preset evidence now includes matched importer/importee patterns and
+  the exact allow/forbid rule that triggered the finding.
+- README, CLI, architecture, and configuration docs now describe the
+  `v3.8.1` operational surface.
+
+---
+
 ## [3.8.0] - 2026-06-04 — Canonical CLI Surface & Dogfood Stability
 
 ### Added

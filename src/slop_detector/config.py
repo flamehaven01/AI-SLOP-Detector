@@ -141,6 +141,11 @@ class Config:
             "hotspot_limit": 10,
             "hotspot_weights": {"deficit": 0.50, "churn": 0.30, "coverage_gap": 0.20},
         },
+        "architecture": {
+            "enabled": False,
+            "preset": "none",
+            "layers": [],
+        },
         "phantom_import_allowlist": [],
         "patterns": {
             "enabled": True,
@@ -328,6 +333,20 @@ class Config:
                 "cc_threshold": 5,
                 "domain_overrides": [],
             },
+        )
+
+    def get_architecture_config(self) -> Dict[str, Any]:
+        """Get architecture boundary analysis configuration."""
+        value = self.get(
+            "architecture",
+            {
+                "enabled": False,
+                "preset": "none",
+                "layers": [],
+            },
+        )
+        return (
+            value if isinstance(value, dict) else {"enabled": False, "preset": "none", "layers": []}
         )
 
 

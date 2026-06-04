@@ -485,7 +485,7 @@ def _run_operations_command(command: str, argv: list[str]) -> int:
         "stale-suppressions",
         "boundary-violations",
     }:
-        return _emit_command_payload(args, build_cleanup_payload(result, command))
+        return _emit_command_payload(args, build_cleanup_payload(result, command, detector.config))
 
     if command == "fix":
         _run_autofix(result, dry_run=bool(getattr(args, "dry_run", False)))

@@ -1,6 +1,6 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.7.9
+**Version:** 3.8.1
 **Last Updated:** 2026-06-04
 
 ---
@@ -9,7 +9,7 @@
 
 AI-SLOP Detector is a static analysis tool for identifying quality issues that appear frequently in AI-assisted code. The system uses a multi-metric analysis engine with pattern detection, domain-aware initialization, and a self-calibrating weight engine that learns from per-project scan history.
 
-**Language support:** Python, JavaScript, TypeScript, Go (v3.5.0)
+**Language support:** Python, JavaScript, TypeScript, Go
 
 ---
 
@@ -27,7 +27,7 @@ AI-SLOP Detector is a static analysis tool for identifying quality issues that a
 │  ┌───────────────────────────────────────────────────┐  │
 │  │       Configuration Manager + Domain Init         │  │
 │  │  - YAML config loading / --init auto-generation   │  │
-│  │  - 8 domain profiles (scientific_ml, web_api, …)  │  │
+│  │  - domain profiles (general, web/api, finance, …) │  │
 │  │  - Threshold management + Pattern registry setup  │  │
 │  └───────────────────────────────────────────────────┘  │
 └────────────────────┬────────────────────────────────────┘
@@ -120,6 +120,12 @@ changes from mutating the scoring model.
 masking runs after pattern detection but before inline suppression matching.
 The current rules only hide narrow boilerplate noise in test harnesses and do
 not mask `critical` findings.
+
+**Cleanup planning boundary** (`operations.py`): cleanup-family commands do not
+replace the scoring model. They extend it with action semantics by reusing
+existing signals such as deficit, churn, coverage, and local evidence. This
+keeps cleanup guidance aligned with the core math instead of drifting into a
+second detached heuristic system.
 
 ---
 
@@ -599,35 +605,58 @@ else:
 ### Config Structure
 
 ```yaml
-version: "2.0"
-
-thresholds:
-  ldr:
-    excellent: 0.85
-    critical: 0.30
-  inflation:
-    fail: 2.0
-  ddc:
-    suspicious: 0.30
-
 weights:
   ldr: 0.40
   inflation: 0.30
-  ddc: 0.30
+  ddc: 0.20
+  purity: 0.10
 
 ignore:
   - "**/__init__.py"
   - "tests/**"
 
-exceptions:
-  abc_interface:
-    enabled: true
-    penalty_reduction: 0.5
+advanced:
+  exact_topology_ceiling: 300
+  topology_mode_above_ceiling: deterministic_approximate
+  analysis_cache_enabled: true
+  churn_commit_window: 200
+  coverage_data_file: ".coverage"
+
+architecture:
+  enabled: false
+  preset: none
+  layers: []
 
 patterns:
   disabled:
     - "todo_comment"
 ```
+
+`architecture.enabled` defaults to `false`. Without an explicit opt-in, the
+`boundary-violations` cleanup family stays limited to import-cycle reporting.
+
+When `preset: layered` is enabled, the review path uses built-in practical
+patterns such as:
+
+- `api/routes/controllers/presentation`
+- `service/services/application/use_cases`
+- `domain/models/entities/value_objects`
+- `data/repositories/infrastructure/adapters`
+
+The preset is rule-based, not heuristic-only:
+
+- `api -> domain` is allowed
+- `domain -> data` is blocked
+- `domain -> api` is blocked
+- `domain -> service` is blocked
+
+Each `layer_boundary_violation` carries evidence including:
+
+- `matched_importer_pattern`
+- `matched_importee_pattern`
+- `allowed_imports`
+- `forbidden_imports`
+- violated preset/rule name
 
 **Implementation:** `src/slop_detector/config.py`
 
@@ -692,6 +721,8 @@ detector.pattern_registry.disable("todo_comment")
 3. **Smart caching**
    - Config cached after first load
    - Pattern registry built once
+   - Cross-file analysis now exposes an `import_graph` so cycle detection and
+     layered boundary review share the same import topology
 
 4. **Parallel processing** (future)
    - File-level parallelization
@@ -717,6 +748,8 @@ detector.pattern_registry.disable("todo_comment")
   version, and config fingerprint
 - Project-level prioritization can overlay git churn and `.coverage` evidence to
   rank "fix first" hotspots without changing the underlying file deficit score
+- Cleanup families now reuse that same churn/coverage overlay to produce
+  confidence-ranked action plans instead of flat candidate lists
 
 ---
 
@@ -839,4 +872,4 @@ slop-detector scan ./src --format json
 ---
 
 **Last Updated:** 2026-06-04
-**Version:** 3.7.9
+**Version:** 3.8.1

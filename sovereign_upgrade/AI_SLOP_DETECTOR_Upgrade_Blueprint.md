@@ -30,6 +30,8 @@ Execution note:
   `AI_SLOP_DETECTOR_MATHEMATICAL_CHECKLIST.md`
 - output and operations changes are now gated through
   `AI_SLOP_DETECTOR_OPERATIONS_CHECKLIST.md`
+- external capability absorption is now gated through
+  `AI_SLOP_DETECTOR_ABSORPTION_CHECKLIST.md`
 - the blueprint stays phase-oriented; the checklist handles add-one-by-one
   acceptance and rollback decisions
 

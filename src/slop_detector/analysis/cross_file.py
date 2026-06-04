@@ -67,6 +67,7 @@ class CrossFileReport:
     duplicates: List[DuplicateBlock] = field(default_factory=list)
     hotspots: List[SlopHotspot] = field(default_factory=list)
     slop_propagation: Dict[str, List[str]] = field(default_factory=dict)
+    import_graph: Dict[str, List[str]] = field(default_factory=dict)
 
     @property
     def risk_score(self) -> float:
@@ -106,6 +107,7 @@ class CrossFileReport:
                 for h in self.hotspots
             ],
             "slop_propagation": self.slop_propagation,
+            "import_graph": self.import_graph,
         }
 
 
@@ -248,6 +250,7 @@ class CrossFileAnalyzer:
         report.hotspots, report.slop_propagation = self._detect_hotspots(
             import_graph, score_map, slop_threshold
         )
+        report.import_graph = {key: sorted(value) for key, value in import_graph.items()}
 
         return report
 

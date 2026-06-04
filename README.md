@@ -23,9 +23,10 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 </p>
 
 **Release track**
-- Stable tag: `v3.8.0`
-- Previous stable tag: `v3.7.9`
+- Stable tag: `v3.8.1`
+- Previous stable tag: `v3.8.0`
 - `v3.8.0` establishes the canonical `scan / review / pulse / sweep` CLI surface and hardens dogfood operation paths used by `health` and `audit`.
+- `v3.8.1` adds confidence-ranked cleanup plans, manifest hygiene, and opt-in layered architecture review.
 
 ---
 
@@ -44,6 +45,7 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 [CI/CD](#cicd-integration) •
 [Config](#configuration) •
 [VS Code](#vs-code-extension) •
+[Roadmap](ROADMAP.md) •
 [Changelog](CHANGELOG.md) •
 [Release Notes](docs/RELEASE_NOTES.md) •
 [Schema Validation](docs/SCHEMA_VALIDATION.md)
@@ -73,7 +75,7 @@ General linters flag style and convention. This tool flags structural risk.
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.8.0"
+pip install "ai-slop-detector>=3.8.1"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -86,7 +88,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.8.0"
+pip install "ai-slop-detector>=3.8.1"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -146,6 +148,7 @@ slop-detector review . --json
 slop-detector pulse . --json
 slop-detector sweep dead-code . --json
 slop-detector sweep dupes . --json
+slop-detector sweep unused-deps . --json
 slop-detector sweep boundary-violations . --json
 slop-detector watch . --follow
 slop-detector explain dead-code
@@ -154,6 +157,15 @@ slop-detector explain dead-code
 Legacy command forms such as `audit`, `health`, and direct cleanup-family names
 remain supported for compatibility, but `scan / review / pulse / sweep` are the
 preferred stable surface.
+
+Cleanup-family semantics are now more operational than a raw candidate list:
+
+- `dead-code`, `dupes`, `unused-deps`, `stale-suppressions`, and
+  `boundary-violations` emit `confidence`, `action_class`, and `evidence`
+- `unused-deps` includes project-manifest findings such as
+  `manifest_unused_dependency` and `undeclared_import`
+- `boundary-violations` stays cycle-only by default and only enables layered
+  boundary review when architecture rules are explicitly configured
 
 Agent tooling can use the same semantics over MCP stdio:
 
@@ -221,6 +233,7 @@ Use the docs by task, not by chronology:
 - [docs/VALIDATION.md](docs/VALIDATION.md)
 - [docs/SCHEMA_VALIDATION.md](docs/SCHEMA_VALIDATION.md)
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+- [ROADMAP.md](ROADMAP.md)
 
 **Calibration and history**
 - [docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md)
@@ -548,6 +561,11 @@ advanced:
     deficit: 0.50
     churn: 0.30
     coverage_gap: 0.20
+
+architecture:
+  enabled: true
+  preset: layered
+  layers: []
 ```
 
 [Full Configuration Guide →](docs/CONFIGURATION.md) · [Config Examples →](docs/CONFIG_EXAMPLES.md)
@@ -676,6 +694,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.8.1** | cleanup-family outputs become confidence-ranked action plans; `unused-deps` grows manifest hygiene for `pyproject.toml` / `package.json`; `boundary-violations` gains opt-in layered architecture review with explicit rule evidence |
 | **v3.7.9** | **Governance gate**: `verify-governance` fail-closed CLI, deterministic governance-record verification, and a formal split between scoring math and enforcement |
 | **v3.7.3** | **Hotfix**: pydantic import wrapped in `try/except ImportError` — package imports cleanly in stripped environments; `test_api_models.py` guard corrected to `fastapi`; CI Docker login `continue-on-error`, quality gate pinned to `>=3.7.3` |
 | **v3.7.2** | **Core schema validation**: `config.py` Pydantic guards catch bad `.slopconfig.yaml` at load time (wrong weight types, `domain_overrides` non-int thresholds); `LDRResult` / `DDCResult` / `InflationResult` `__post_init__` clamps protect GQG `math.log()`; `HistoryEntry` sanitises all LEDA calibration inputs + validates `fired_rules` JSON; **VS Code**: `schema.ts` `ISlopReport` interfaces + `parseSlopReport()` handwritten discriminated-union guard — schema mismatch surfaces exact field path before silent NaN |

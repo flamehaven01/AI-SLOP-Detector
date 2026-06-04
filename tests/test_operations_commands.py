@@ -17,7 +17,7 @@ def _make_project(tmp_path):
     return project
 
 
-def _make_analysis(project):
+def _make_analysis(project, *, churn_count=0, churn_score=0.0, coverage_ratio=None, reasons=None):
     detector = SlopDetector()
     bad_result = detector.analyze_file(str(project / "bad.py"))
     good_result = detector.analyze_file(str(project / "good.py"))
@@ -46,7 +46,10 @@ def _make_analysis(project):
                 file_path=str(project / "bad.py"),
                 deficit_score=bad_result.deficit_score,
                 priority_score=100.0,
-                reasons=["critical deficit"],
+                churn_count=churn_count,
+                churn_score=churn_score,
+                coverage_ratio=coverage_ratio,
+                reasons=reasons or ["critical deficit"],
             )
         ],
     )
@@ -98,7 +101,13 @@ def test_health_command_json_contract(tmp_path):
 
 def test_dead_code_command_reports_issues(tmp_path):
     project = _make_project(tmp_path)
-    analysis = _make_analysis(project)
+    analysis = _make_analysis(
+        project,
+        churn_count=0,
+        churn_score=0.0,
+        coverage_ratio=0.0,
+        reasons=["critical deficit", "low coverage"],
+    )
     output_file = tmp_path / "dead_code.json"
 
     with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
@@ -113,6 +122,256 @@ def test_dead_code_command_reports_issues(tmp_path):
     assert payload["command"] == "dead-code"
     assert payload["verdict"] == "fail"
     assert payload["issues"]
+    issue = payload["issues"][0]
+    assert issue["action_class"] == "safe_review"
+    assert 0.0 <= issue["confidence"] <= 1.0
+    assert issue["evidence"]["coverage_ratio"] == 0.0
+    assert issue["evidence"]["churn_score"] == 0.0
+
+
+def test_dead_code_high_churn_lowers_confidence(tmp_path):
+    project = _make_project(tmp_path)
+    analysis = _make_analysis(
+        project,
+        churn_count=9,
+        churn_score=1.0,
+        coverage_ratio=0.0,
+        reasons=["critical deficit", "high churn", "low coverage"],
+    )
+    output_file = tmp_path / "dead_code_churn.json"
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch.object(
+            sys,
+            "argv",
+            ["slop-detector", "dead-code", str(project), "--json", "-o", str(output_file)],
+        ):
+            assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    issue = payload["issues"][0]
+    assert issue["action_class"] in {"needs_review", "unsafe_auto_remove"}
+    assert issue["confidence"] < 0.75
+    assert issue["evidence"]["churn_score"] == 1.0
+
+
+def test_unused_deps_includes_python_manifest_hygiene(tmp_path):
+    project = tmp_path / "pyproj"
+    project.mkdir()
+    (project / "module.py").write_text(
+        "import yaml\nimport rich\n\n\ndef run():\n    return yaml.__name__, rich.__name__\n",
+        encoding="utf-8",
+    )
+    (project / "pyproject.toml").write_text(
+        "[project]\nname='demo'\nversion='0.1.0'\ndependencies=['pyyaml>=6.0','jinja2>=3.1']\n",
+        encoding="utf-8",
+    )
+    detector = SlopDetector()
+    file_result = detector.analyze_file(str(project / "module.py"))
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=1,
+        deficit_files=1 if file_result.deficit_score > 0 else 0,
+        clean_files=0 if file_result.deficit_score > 0 else 1,
+        avg_deficit_score=file_result.deficit_score,
+        weighted_deficit_score=file_result.deficit_score,
+        avg_ldr=file_result.ldr.ldr_score,
+        avg_inflation=file_result.inflation.inflation_score,
+        avg_ddc=file_result.ddc.usage_ratio,
+        overall_status=file_result.status,
+        file_results=[file_result],
+    )
+    output_file = tmp_path / "python_manifest_unused.json"
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch.object(
+            sys,
+            "argv",
+            ["slop-detector", "unused-deps", str(project), "--json", "-o", str(output_file)],
+        ):
+            assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    issue_types = {(item.get("issue_type"), item.get("dependency")) for item in payload["issues"]}
+    assert ("manifest_unused_dependency", "jinja2>=3.1") in issue_types
+    assert ("undeclared_import", "rich") in issue_types
+
+
+def test_unused_deps_includes_package_json_hygiene(tmp_path):
+    project = tmp_path / "jsproj"
+    project.mkdir()
+    (project / "app.js").write_text(
+        "import _ from 'lodash';\nimport React from 'react';\nconsole.log(_, React);\n",
+        encoding="utf-8",
+    )
+    (project / "package.json").write_text(
+        json.dumps(
+            {
+                "name": "demo-js",
+                "version": "0.1.0",
+                "dependencies": {"lodash": "^4.17.0", "axios": "^1.0.0"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=0,
+        deficit_files=0,
+        clean_files=0,
+        avg_deficit_score=0.0,
+        weighted_deficit_score=0.0,
+        avg_ldr=1.0,
+        avg_inflation=0.0,
+        avg_ddc=1.0,
+        overall_status=SlopStatus.CLEAN,
+        file_results=[],
+    )
+    output_file = tmp_path / "js_manifest_unused.json"
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch.object(
+            sys,
+            "argv",
+            ["slop-detector", "unused-deps", str(project), "--json", "-o", str(output_file)],
+        ):
+            assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    issue_types = {(item.get("issue_type"), item.get("dependency")) for item in payload["issues"]}
+    assert ("manifest_unused_dependency", "axios") in issue_types
+    assert ("undeclared_import", "react") in issue_types
+
+
+def test_boundary_violations_respects_opt_in_layered_architecture(tmp_path, monkeypatch):
+    monkeypatch.delenv("SLOP_CONFIG", raising=False)
+    project = tmp_path / "archproj"
+    (project / "src" / "api").mkdir(parents=True)
+    (project / "src" / "domain").mkdir(parents=True)
+    (project / "src" / "data").mkdir(parents=True)
+    (project / "src" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "api" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "domain" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "data" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "api" / "controller.py").write_text(
+        "from src.domain import model\n", encoding="utf-8"
+    )
+    (project / "src" / "domain" / "model.py").write_text(
+        "from src.data import repo\n", encoding="utf-8"
+    )
+    (project / "src" / "data" / "repo.py").write_text("VALUE = 1\n", encoding="utf-8")
+    config_file = tmp_path / "arch.slopconfig.yaml"
+    config_file.write_text(
+        "architecture:\n  enabled: true\n  preset: layered\n",
+        encoding="utf-8",
+    )
+    output_file = tmp_path / "boundary.json"
+
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "slop-detector",
+            "boundary-violations",
+            str(project),
+            "--config",
+            str(config_file),
+            "--json",
+            "-o",
+            str(output_file),
+        ],
+    ):
+        assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    issue_types = {item.get("issue_type") for item in payload["issues"]}
+    assert "layer_boundary_violation" in issue_types
+    assert any(item.get("importer_layer") == "domain" for item in payload["issues"])
+    violating_issue = next(
+        item for item in payload["issues"] if item.get("importer_layer") == "domain"
+    )
+    assert violating_issue["evidence"]["matched_importer_pattern"]
+    assert violating_issue["evidence"]["matched_importee_pattern"]
+
+
+def test_boundary_violations_allows_api_to_domain_in_layered_preset(tmp_path, monkeypatch):
+    monkeypatch.delenv("SLOP_CONFIG", raising=False)
+    project = tmp_path / "archproj_allowed"
+    (project / "src" / "api").mkdir(parents=True)
+    (project / "src" / "domain").mkdir(parents=True)
+    (project / "src" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "api" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "domain" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "api" / "controller.py").write_text(
+        "from src.domain import model\n", encoding="utf-8"
+    )
+    (project / "src" / "domain" / "model.py").write_text("VALUE = 1\n", encoding="utf-8")
+    config_file = tmp_path / "arch_allowed.slopconfig.yaml"
+    config_file.write_text(
+        "architecture:\n  enabled: true\n  preset: layered\n",
+        encoding="utf-8",
+    )
+    output_file = tmp_path / "boundary_allowed.json"
+
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "slop-detector",
+            "boundary-violations",
+            str(project),
+            "--config",
+            str(config_file),
+            "--json",
+            "-o",
+            str(output_file),
+        ],
+    ):
+        assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    issue_types = {item.get("issue_type") for item in payload["issues"]}
+    assert "layer_boundary_violation" not in issue_types
+
+
+def test_boundary_violations_stays_cycle_only_without_architecture_opt_in(tmp_path, monkeypatch):
+    monkeypatch.delenv("SLOP_CONFIG", raising=False)
+    project = tmp_path / "archproj_default"
+    (project / "src" / "domain").mkdir(parents=True)
+    (project / "src" / "data").mkdir(parents=True)
+    (project / "src" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "domain" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "data" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "src" / "domain" / "model.py").write_text(
+        "from src.data import repo\n", encoding="utf-8"
+    )
+    (project / "src" / "data" / "repo.py").write_text("VALUE = 1\n", encoding="utf-8")
+    config_file = tmp_path / "arch_disabled.slopconfig.yaml"
+    config_file.write_text(
+        "architecture:\n  enabled: false\n  preset: none\n",
+        encoding="utf-8",
+    )
+    output_file = tmp_path / "boundary_default.json"
+
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "slop-detector",
+            "boundary-violations",
+            str(project),
+            "--config",
+            str(config_file),
+            "--json",
+            "-o",
+            str(output_file),
+        ],
+    ):
+        assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    issue_types = {item.get("issue_type") for item in payload["issues"]}
+    assert "layer_boundary_violation" not in issue_types
 
 
 def test_explain_command_outputs_mitigation(tmp_path):
