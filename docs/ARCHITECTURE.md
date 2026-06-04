@@ -682,6 +682,7 @@ detector.pattern_registry.disable("todo_comment")
 2. **Efficient pattern matching**
    - Compiled regex patterns
    - Early exit conditions
+   - Optional Rust helper accelerates file walking and glob matching when built; scoring and policy remain in Python
 
 3. **Smart caching**
    - Config cached after first load

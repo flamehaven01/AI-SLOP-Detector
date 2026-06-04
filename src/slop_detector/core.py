@@ -32,6 +32,7 @@ from slop_detector.patterns import get_all_patterns
 from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
 from slop_detector.prioritization import ProjectPrioritizer
+from slop_detector.rust_scan import discover_project_files
 from slop_detector.suppression_handler import SuppressionHandler
 
 logger = logging.getLogger(__name__)
@@ -220,12 +221,14 @@ class SlopDetector:
         ignore_patterns = self.config.get_ignore_patterns()
 
         # Find Python files
-        python_files = []
-        for file_path in project_path_obj.glob(pattern):
-            # Check ignore patterns
-            if self._should_ignore(file_path, ignore_patterns, root=project_path_obj):
-                continue
-            python_files.append(file_path)
+        python_files = discover_project_files(project_path_obj, [pattern], ignore_patterns)
+        if python_files is None:
+            python_files = []
+            for file_path in project_path_obj.glob(pattern):
+                # Check ignore patterns
+                if self._should_ignore(file_path, ignore_patterns, root=project_path_obj):
+                    continue
+                python_files.append(file_path)
 
         logger.info(f"Found {len(python_files)} Python files in {project_path}")
 
@@ -391,12 +394,20 @@ class SlopDetector:
 
     def _analyze_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
         """Scan and analyze JS/TS files in project_path_obj (Phase 3b)."""
-        js_files = [
-            fp
-            for fp in project_path_obj.rglob("*")
-            if fp.suffix.lower() in self._JS_EXTENSIONS
-            and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
-        ]
+        discovered = discover_project_files(
+            project_path_obj,
+            [f"**/*{ext}" for ext in self._JS_EXTENSIONS],
+            ignore_patterns,
+        )
+        if discovered is None:
+            js_files = [
+                fp
+                for fp in project_path_obj.rglob("*")
+                if fp.suffix.lower() in self._JS_EXTENSIONS
+                and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
+            ]
+        else:
+            js_files = [fp for fp in discovered if fp.suffix.lower() in self._JS_EXTENSIONS]
         if not js_files:
             return []
         analyzer = self._get_js_analyzer()
@@ -417,12 +428,20 @@ class SlopDetector:
 
     def _analyze_go_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
         """Scan and analyze Go files in project_path_obj (Phase 3c)."""
-        go_files = [
-            fp
-            for fp in project_path_obj.rglob("*")
-            if fp.suffix.lower() in self._GO_EXTENSIONS
-            and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
-        ]
+        discovered = discover_project_files(
+            project_path_obj,
+            [f"**/*{ext}" for ext in self._GO_EXTENSIONS],
+            ignore_patterns,
+        )
+        if discovered is None:
+            go_files = [
+                fp
+                for fp in project_path_obj.rglob("*")
+                if fp.suffix.lower() in self._GO_EXTENSIONS
+                and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
+            ]
+        else:
+            go_files = [fp for fp in discovered if fp.suffix.lower() in self._GO_EXTENSIONS]
         if not go_files:
             return []
         analyzer = self._get_go_analyzer()

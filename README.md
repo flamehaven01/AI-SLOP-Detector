@@ -150,6 +150,7 @@ slop-detector explain dead-code
 - This repository measures static code and documentation signals. It does not prove runtime correctness.
 - The default scoring path is deterministic; it does not require an LLM or external API.
 - JS/TS and Go support are optional extras with language-specific analyzers and fallbacks.
+- Optional Rust acceleration is available for file discovery and glob matching when a compiled `rust/slop_scan` helper is present; otherwise the Python walker remains the fallback.
 - A low deficit score is evidence of cleaner structure, not a guarantee that the code is complete or safe.
 
 ---
