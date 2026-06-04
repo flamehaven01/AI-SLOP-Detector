@@ -285,14 +285,23 @@ def test_weighted_geometric_deficit_contract(detector):
 
     import math
 
+    weights = detector.config.get_weights()
+    total_weight = sum(
+        [
+            weights.get("ldr", 0.40),
+            weights.get("inflation", 0.30),
+            weights.get("ddc", 0.20),
+            weights.get("purity", 0.10),
+        ]
+    )
     expected = math.exp(
         (
-            0.40 * math.log(0.8)
-            + 0.30 * math.log(1.0 - inflation_normalized)
-            + 0.20 * math.log(0.5)
-            + 0.10 * math.log(1.0)
+            weights.get("ldr", 0.40) * math.log(0.8)
+            + weights.get("inflation", 0.30) * math.log(1.0 - inflation_normalized)
+            + weights.get("ddc", 0.20) * math.log(0.5)
+            + weights.get("purity", 0.10) * math.log(1.0)
         )
-        / 1.0
+        / total_weight
     )
 
     assert gqg == pytest.approx(expected, rel=1e-9, abs=1e-9)
