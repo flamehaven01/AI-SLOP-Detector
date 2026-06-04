@@ -8,6 +8,8 @@ import pytest
 import yaml
 
 from slop_detector.cli import (
+    _apply_runtime_overrides,
+    _build_arg_parser,
     generate_html_report,
     generate_markdown_report,
     generate_text_report,
@@ -16,13 +18,16 @@ from slop_detector.cli import (
     main,
     setup_logging,
 )
+from slop_detector.core import SlopDetector
 from slop_detector.models import (
     DDCResult,
     FileAnalysis,
     InflationResult,
     LDRResult,
+    PriorityHotspot,
     ProjectAnalysis,
     SlopStatus,
+    SuppressionLedgerEntry,
 )
 
 
@@ -117,6 +122,108 @@ def test_generate_text_report_project():
     assert "SUSPICIOUS" in report
 
 
+def test_generate_text_report_project_shows_approximate_coherence():
+    file_result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 50, 50, 0.50, "B"),
+        inflation=InflationResult(10, 2.0, 1.5, "WARNING", ["neural"] * 10, []),
+        ddc=DDCResult(["numpy", "pandas"], ["numpy"], ["pandas"], [], [], 0.5, "ACCEPTABLE"),
+        deficit_score=60.0,
+        status=SlopStatus.INFLATED_SIGNAL,
+        warnings=["High inflation"],
+    )
+
+    result = ProjectAnalysis(
+        project_path="/test/project",
+        total_files=10,
+        deficit_files=3,
+        clean_files=7,
+        avg_deficit_score=35.0,
+        weighted_deficit_score=32.0,
+        avg_ldr=0.75,
+        avg_inflation=0.8,
+        avg_ddc=0.85,
+        overall_status=SlopStatus.SUSPICIOUS,
+        file_results=[file_result],
+        structural_coherence=0.8123,
+        coherence_level="vr_structural_approx",
+    )
+
+    report = generate_text_report(result)
+    assert "Structural Coherence:" in report
+    assert "vr_structural_approx" in report
+    assert "deterministic approximation" in report
+
+
+def test_generate_text_report_project_shows_priority_hotspots():
+    file_result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 50, 50, 0.50, "B"),
+        inflation=InflationResult(10, 2.0, 1.5, "WARNING", ["neural"] * 10, []),
+        ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=60.0,
+        status=SlopStatus.INFLATED_SIGNAL,
+        warnings=[],
+    )
+
+    result = ProjectAnalysis(
+        project_path="/test/project",
+        total_files=10,
+        deficit_files=3,
+        clean_files=7,
+        avg_deficit_score=35.0,
+        weighted_deficit_score=32.0,
+        avg_ldr=0.75,
+        avg_inflation=0.8,
+        avg_ddc=0.85,
+        overall_status=SlopStatus.SUSPICIOUS,
+        file_results=[file_result],
+        priority_hotspots=[
+            PriorityHotspot(
+                file_path="/test/file.py",
+                deficit_score=60.0,
+                churn_count=9,
+                churn_score=1.0,
+                coverage_ratio=0.2,
+                priority_score=82.0,
+                reasons=["high deficit", "high churn", "low coverage"],
+            )
+        ],
+        churn_analysis_available=True,
+        coverage_analysis_available=True,
+    )
+
+    report = generate_text_report(result)
+    assert "Priority Hotspots:" in report
+    assert "priority 82.0/100" in report
+    assert "coverage 20%" in report
+
+
+def test_generate_text_report_single_file_shows_suppression_ledger():
+    result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 80, 20, 0.80, "A"),
+        inflation=InflationResult(5, 2.0, 0.5, "PASS", ["neural"], []),
+        ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=25.0,
+        status=SlopStatus.CLEAN,
+        suppression_ledger=[
+            SuppressionLedgerEntry(
+                file_path="/test/file.py",
+                suppressed_line=12,
+                directive_line=11,
+                pattern_id="bare_except",
+                scope="next_line",
+                matched_rule="bare_except",
+            )
+        ],
+    )
+
+    report = generate_text_report(result)
+    assert "Inline Suppressions:" in report
+    assert "bare_except" in report
+
+
 def test_generate_markdown_report_single_file():
     """Test generate_markdown_report for single file."""
     result = FileAnalysis(
@@ -183,6 +290,145 @@ def test_generate_markdown_report_project():
     assert "# AI Code Quality Audit Report" in report
     assert "/test/project" in report
     assert "Jargon" in report
+
+
+def test_generate_markdown_report_project_shows_approximate_coherence():
+    file_result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 50, 50, 0.50, "B"),
+        inflation=InflationResult(10, 2.0, 1.5, "WARNING", ["neural"] * 10, []),
+        ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=60.0,
+        status=SlopStatus.INFLATED_SIGNAL,
+        warnings=[],
+        pattern_issues=[],
+    )
+
+    result = ProjectAnalysis(
+        project_path="/test/project",
+        total_files=10,
+        deficit_files=3,
+        clean_files=7,
+        avg_deficit_score=35.0,
+        weighted_deficit_score=32.0,
+        avg_ldr=0.75,
+        avg_inflation=0.8,
+        avg_ddc=0.85,
+        overall_status=SlopStatus.SUSPICIOUS,
+        file_results=[file_result],
+        structural_coherence=0.8123,
+        coherence_level="vr_structural_approx",
+    )
+
+    report = generate_markdown_report(result)
+    assert "## Structural Coherence" in report
+    assert "vr_structural_approx" in report
+
+
+def test_generate_markdown_report_project_shows_suppression_ledger():
+    file_result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 50, 50, 0.50, "B"),
+        inflation=InflationResult(10, 2.0, 1.5, "WARNING", ["neural"] * 10, []),
+        ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=60.0,
+        status=SlopStatus.INFLATED_SIGNAL,
+        warnings=[],
+        pattern_issues=[],
+    )
+
+    result = ProjectAnalysis(
+        project_path="/test/project",
+        total_files=10,
+        deficit_files=3,
+        clean_files=7,
+        avg_deficit_score=35.0,
+        weighted_deficit_score=32.0,
+        avg_ldr=0.75,
+        avg_inflation=0.8,
+        avg_ddc=0.85,
+        overall_status=SlopStatus.SUSPICIOUS,
+        file_results=[file_result],
+        suppression_ledger=[
+            SuppressionLedgerEntry(
+                file_path="/test/file.py",
+                suppressed_line=12,
+                directive_line=11,
+                pattern_id="bare_except",
+                scope="next_line",
+                matched_rule="bare_except",
+            )
+        ],
+    )
+
+    report = generate_markdown_report(result)
+    assert "## Inline Suppression Ledger" in report
+    assert "bare_except" in report
+
+
+def test_generate_markdown_report_project_shows_priority_hotspots():
+    file_result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 50, 50, 0.50, "B"),
+        inflation=InflationResult(10, 2.0, 1.5, "WARNING", ["neural"] * 10, []),
+        ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=60.0,
+        status=SlopStatus.INFLATED_SIGNAL,
+        warnings=[],
+        pattern_issues=[],
+    )
+
+    result = ProjectAnalysis(
+        project_path="/test/project",
+        total_files=10,
+        deficit_files=3,
+        clean_files=7,
+        avg_deficit_score=35.0,
+        weighted_deficit_score=32.0,
+        avg_ldr=0.75,
+        avg_inflation=0.8,
+        avg_ddc=0.85,
+        overall_status=SlopStatus.SUSPICIOUS,
+        file_results=[file_result],
+        priority_hotspots=[
+            PriorityHotspot(
+                file_path="/test/file.py",
+                deficit_score=60.0,
+                churn_count=9,
+                churn_score=1.0,
+                coverage_ratio=0.2,
+                priority_score=82.0,
+                reasons=["high deficit", "high churn", "low coverage"],
+            )
+        ],
+        churn_analysis_available=True,
+        coverage_analysis_available=True,
+    )
+
+    report = generate_markdown_report(result)
+    assert "## Priority Hotspots" in report
+    assert "82.0/100" in report
+    assert "low coverage" in report
+
+
+def test_apply_runtime_overrides_updates_topology_settings():
+    detector = SlopDetector()
+    args = type("Args", (), {"topology_ceiling": 123, "topology_mode": "exact"})()
+
+    _apply_runtime_overrides(args, detector)
+
+    assert detector.config.get_exact_topology_ceiling() == 123
+    assert detector.config.get_topology_mode_above_ceiling() == "exact"
+
+
+def test_cli_parser_accepts_topology_flags():
+    parser = _build_arg_parser()
+    args = parser.parse_args(
+        ["--project", ".", "--topology-ceiling", "123", "--topology-mode", "exact"]
+    )
+
+    assert args.topology_ceiling == 123
+    assert args.topology_mode == "exact"
 
 
 def test_generate_html_report():

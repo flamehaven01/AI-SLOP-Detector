@@ -5,15 +5,14 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
-## v3.7.7 — 2026-06-04
+## v3.7.8 — 2026-06-04
 
 ### Summary
 
-This patch closes a follow-through gap introduced after JS/TS and Go support were
-added: project-level aggregation and ignore behavior were not fully brought up to
-the same standard as the original Python path. It also hardens the ML training
-pipeline so synthetic training runs are reproducible and their reports reflect
-usable samples rather than requested samples.
+This release integrates the full P0-P4 sovereign upgrade path: structural
+scaling, inline suppression, repeated-run caching, churn/coverage hotspot
+prioritization, and an agent-native API surface. It also preserves the earlier
+cross-language aggregation and ML reproducibility fixes.
 
 ### Fixed
 
@@ -46,10 +45,22 @@ usable samples rather than requested samples.
 - `python -m pytest tests/test_core.py -k "should_ignore or analyze_project_repo_relative_ignore_patterns or analyze_project_includes_non_python_results_in_aggregate or analyze_project_js_only_is_not_reported_as_empty_clean" -q`
 - `python -m pytest tests/test_core.py tests/test_js_analyzer.py tests/test_go_analyzer.py tests/test_ml_pipeline.py -q`
 
+**Sovereign upgrade integration**
+- `core.py`: exact structural coherence now falls back to a deterministic
+  approximation above the configured ceiling.
+- `core.py`: inline comment suppression is parsed and recorded in a suppression
+  ledger, and suppression overuse is visible in project output.
+- `analysis_cache.py`: repeated Python-file analyses can be reused safely via
+  a SQLite-backed cache keyed by file metadata and config fingerprint.
+- `prioritization.py`: project scans now rank "fix first" hotspots by deficit,
+  churn, and coverage gap.
+- `api/server.py`: agent-native `/agent/schema`, `/agent/file`, and
+  `/agent/project` endpoints now provide structured responses for tools.
+
 ### Tag
 
-- Latest stable tag: `v3.7.7`
-- Previous stable tag: `v3.7.6`
+- Latest stable tag: `v3.7.8`
+- Previous stable tag: `v3.7.7`
 
 ## v3.7.4 — 2026-05-19
 

@@ -1,6 +1,6 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.7.7
+**Version:** 3.7.8
 **Last Updated:** 2026-06-04
 
 ---
@@ -695,6 +695,16 @@ detector.pattern_registry.disable("todo_comment")
 - AST parsing (unavoidable)
 - Radon complexity calculation (optional)
 - File I/O (mitigated by streaming)
+- Structural coherence exact MST above the topology ceiling now falls back to a
+  deterministic approximation to avoid repeated quadratic blowups on large
+  repositories
+- The behavior is controlled by `advanced.exact_topology_ceiling` and
+  `advanced.topology_mode_above_ceiling`
+- Repeated Python-file analysis can reuse cached `FileAnalysis` payloads through
+  the SQLite metadata cache, keyed by file metadata, content hash, engine
+  version, and config fingerprint
+- Project-level prioritization can overlay git churn and `.coverage` evidence to
+  rank "fix first" hotspots without changing the underlying file deficit score
 
 ---
 
@@ -813,5 +823,5 @@ slop-detector scan ./src --format json
 
 ---
 
-**Last Updated:** 2026-04-12
-**Version:** 3.5.0
+**Last Updated:** 2026-06-04
+**Version:** 3.7.8

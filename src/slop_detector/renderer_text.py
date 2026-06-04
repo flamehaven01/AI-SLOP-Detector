@@ -46,6 +46,31 @@ def _text_project_section(result) -> list:
         f"  Dependency Usage (DDC): {result.avg_ddc:.2%}",
         "",
     ]
+    coherence_level = getattr(result, "coherence_level", "none")
+    if coherence_level != "none":
+        label = "deterministic approximation" if coherence_level == "vr_structural_approx" else "exact MST"
+        lines += [
+            "Structural Coherence:",
+            f"  Score: {result.structural_coherence:.4f}",
+            f"  Mode: {coherence_level} ({label})",
+            "",
+        ]
+    suppression_ledger = getattr(result, "suppression_ledger", [])
+    if suppression_ledger:
+        lines += [
+            "Inline Suppressions:",
+            f"  Suppressed Issues: {len(suppression_ledger)}",
+        ]
+        if len(suppression_ledger) >= 10:
+            lines.append("  [!] Warning: high inline suppression usage across the project")
+        for entry in suppression_ledger[:10]:
+            lines.append(
+                f"  - {Path(entry.file_path).name}: L{entry.suppressed_line} "
+                f"({entry.pattern_id}) via L{entry.directive_line} [{entry.scope}]"
+            )
+        if len(suppression_ledger) > 10:
+            lines.append(f"  - ... and {len(suppression_ledger) - 10} more")
+        lines.append("")
     if hasattr(result, "file_results"):
         te = _collect_test_evidence_stats(result.file_results)
         if te["total_test_files"] > 0:
@@ -58,6 +83,26 @@ def _text_project_section(result) -> list:
             if te["integration_test_files"] == 0 and te.get("has_production_claims"):
                 lines.append("  [!] WARNING: No integration tests, but has production claims")
             lines.append("")
+    priority_hotspots = getattr(result, "priority_hotspots", [])
+    if priority_hotspots:
+        lines += [
+            "Priority Hotspots:",
+            "  Focus order uses deficit + churn + coverage gap",
+            f"  Churn Data: {'yes' if getattr(result, 'churn_analysis_available', False) else 'no'}",
+            f"  Coverage Data: {'yes' if getattr(result, 'coverage_analysis_available', False) else 'no'}",
+        ]
+        for hotspot in priority_hotspots[:10]:
+            coverage = (
+                "n/a"
+                if hotspot.coverage_ratio is None
+                else f"{hotspot.coverage_ratio:.0%}"
+            )
+            lines.append(
+                f"  - {Path(hotspot.file_path).name}: priority {hotspot.priority_score:.1f}/100, "
+                f"deficit {hotspot.deficit_score:.1f}, churn {hotspot.churn_count}, "
+                f"coverage {coverage} ({', '.join(hotspot.reasons)})"
+            )
+        lines.append("")
     lines += ["=" * 80, "FILE-LEVEL ANALYSIS", "=" * 80, ""]
     for fr in result.file_results:
         if fr.status != "clean":
@@ -75,6 +120,15 @@ def _text_single_file_section(result) -> list:
         f"ICR: {result.inflation.inflation_score:.2f} ({result.inflation.status})",
         f"DDC: {result.ddc.usage_ratio:.2%} ({result.ddc.grade})",
     ]
+    suppression_ledger = getattr(result, "suppression_ledger", [])
+    if suppression_ledger:
+        lines += ["", "Inline Suppressions:"]
+        for entry in suppression_ledger[:10]:
+            lines.append(
+                f"  - L{entry.suppressed_line} {entry.pattern_id} via L{entry.directive_line} [{entry.scope}]"
+            )
+        if len(suppression_ledger) > 10:
+            lines.append(f"  - ... and {len(suppression_ledger) - 10} more")
     if result.warnings:
         lines += ["", "Warnings:"] + [f"  - {w}" for w in result.warnings]
     return lines

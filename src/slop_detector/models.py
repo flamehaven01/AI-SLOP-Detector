@@ -3,7 +3,7 @@
 import logging as _logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 _logger = _logging.getLogger(__name__)
 
@@ -130,6 +130,50 @@ class IgnoredFunction:
 
 
 @dataclass
+class SuppressionDirective:
+    """Inline comment suppression directive."""
+
+    scope: str
+    action: str
+    lineno: int
+    rules: List[str] = field(default_factory=list)
+    source: str = "comment"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "scope": self.scope,
+            "action": self.action,
+            "lineno": self.lineno,
+            "rules": self.rules,
+            "source": self.source,
+        }
+
+
+@dataclass
+class SuppressionLedgerEntry:
+    """A suppressed issue recorded for auditability."""
+
+    file_path: str
+    directive_line: int
+    suppressed_line: int
+    pattern_id: str
+    scope: str
+    matched_rule: str
+    source: str = "comment"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "file_path": self.file_path,
+            "directive_line": self.directive_line,
+            "suppressed_line": self.suppressed_line,
+            "pattern_id": self.pattern_id,
+            "scope": self.scope,
+            "matched_rule": self.matched_rule,
+            "source": self.source,
+        }
+
+
+@dataclass
 class FileAnalysis:
     """Complete file analysis result."""
 
@@ -145,6 +189,8 @@ class FileAnalysis:
     hallucination_deps: Any = None  # v2.2: Hallucinated dependencies
     context_jargon: Any = None  # v2.2: Context-based jargon validation
     ignored_functions: List[IgnoredFunction] = field(default_factory=list)  # v2.6.3
+    suppression_directives: List[SuppressionDirective] = field(default_factory=list)
+    suppression_ledger: List[SuppressionLedgerEntry] = field(default_factory=list)
     ml_score: Any = None  # v2.8.0: Optional ML secondary signal (MLScore | None)
     # v3.0: Distributional Code Fingerprint — P(node_type | file) over AST node types.
     # Genuine probability distribution. Used for information-theoretic slop distance (CQMS Level 2).
@@ -189,6 +235,10 @@ class FileAnalysis:
             )
         if self.ignored_functions:
             result["ignored_functions"] = [f.to_dict() for f in self.ignored_functions]
+        if self.suppression_directives:
+            result["suppression_directives"] = [d.to_dict() for d in self.suppression_directives]
+        if self.suppression_ledger:
+            result["suppression_ledger"] = [e.to_dict() for e in self.suppression_ledger]
         if self.ml_score is not None:
             result["ml_score"] = (
                 self.ml_score.to_dict() if hasattr(self.ml_score, "to_dict") else self.ml_score
@@ -198,6 +248,30 @@ class FileAnalysis:
         if self.deficit_breakdown:
             result["deficit_breakdown"] = self.deficit_breakdown
         return result
+
+
+@dataclass
+class PriorityHotspot:
+    """Prioritized project-level file hotspot."""
+
+    file_path: str
+    deficit_score: float
+    churn_count: int = 0
+    churn_score: float = 0.0
+    coverage_ratio: Optional[float] = None
+    priority_score: float = 0.0
+    reasons: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "file_path": self.file_path,
+            "deficit_score": self.deficit_score,
+            "churn_count": self.churn_count,
+            "churn_score": self.churn_score,
+            "coverage_ratio": self.coverage_ratio,
+            "priority_score": self.priority_score,
+            "reasons": self.reasons,
+        }
 
 
 @dataclass
@@ -222,7 +296,12 @@ class ProjectAnalysis:
     # v3.0: CQMS structural coherence — max H0 persistence (MST-based) over file DCFs.
     # 1.0 = all files structurally uniform. Low = distinct structural clusters (AI/human mix signal).
     structural_coherence: float = 1.0
-    coherence_level: str = "none"  # "vr_structural" | "none"
+    coherence_level: str = "none"  # "vr_structural" | "vr_structural_approx" | "none"
+    suppressed_issue_count: int = 0
+    suppression_ledger: List[SuppressionLedgerEntry] = field(default_factory=list)
+    priority_hotspots: List[PriorityHotspot] = field(default_factory=list)
+    churn_analysis_available: bool = False
+    coverage_analysis_available: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -238,6 +317,11 @@ class ProjectAnalysis:
             "overall_status": self.overall_status.value,
             "structural_coherence": round(self.structural_coherence, 4),
             "coherence_level": self.coherence_level,
+            "suppressed_issue_count": self.suppressed_issue_count,
+            "suppression_ledger": [e.to_dict() for e in self.suppression_ledger],
+            "priority_hotspots": [h.to_dict() for h in self.priority_hotspots],
+            "churn_analysis_available": self.churn_analysis_available,
+            "coverage_analysis_available": self.coverage_analysis_available,
             "file_results": [r.to_dict() for r in self.file_results],
             "js_file_results": [
                 r.to_dict() if hasattr(r, "to_dict") else r for r in self.js_file_results

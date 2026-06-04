@@ -110,6 +110,44 @@ def _md_summary_section(avg_deficit: float, avg_inflation: float, status) -> lis
     ]
 
 
+def _md_structural_coherence_section(result) -> list:
+    coherence_level = getattr(result, "coherence_level", "none")
+    if coherence_level == "none":
+        return []
+    mode = "deterministic approximation" if coherence_level == "vr_structural_approx" else "exact MST"
+    return [
+        "## Structural Coherence",
+        "| Metric | Value |",
+        "| :--- | :--- |",
+        f"| Structural coherence | {getattr(result, 'structural_coherence', 1.0):.4f} |",
+        f"| Coherence mode | `{coherence_level}` ({mode}) |",
+        "",
+    ]
+
+
+def _md_suppression_section(result) -> list:
+    suppression_ledger = getattr(result, "suppression_ledger", [])
+    if not suppression_ledger:
+        return []
+    lines = [
+        "## Inline Suppression Ledger",
+        "| File | Suppressed Line | Pattern | Directive Line | Scope |",
+        "| :--- | :--- | :--- | :--- | :--- |",
+    ]
+    for entry in suppression_ledger[:20]:
+        lines.append(
+            f"| `{Path(entry.file_path).name}` | {entry.suppressed_line} | "
+            f"`{entry.pattern_id}` | {entry.directive_line} | {entry.scope} |"
+        )
+    if len(suppression_ledger) >= 10:
+        lines += [
+            "",
+            "[!] **Warning**: high inline suppression usage detected. Review whether suppressed patterns should be fixed instead of muted.",
+        ]
+    lines.append("")
+    return lines
+
+
 def _md_test_evidence_section(result) -> list:
     if not hasattr(result, "file_results"):
         return []
@@ -129,6 +167,30 @@ def _md_test_evidence_section(result) -> list:
             "",
             "[!] **Warning**: No integration tests detected, but codebase contains production-ready/enterprise-grade/scalable claims.",
         ]
+    lines.append("")
+    return lines
+
+
+def _md_priority_hotspots_section(result) -> list:
+    hotspots = getattr(result, "priority_hotspots", [])
+    if not hotspots:
+        return []
+    lines = [
+        "## Priority Hotspots",
+        "",
+        f"- Churn data available: `{getattr(result, 'churn_analysis_available', False)}`",
+        f"- Coverage data available: `{getattr(result, 'coverage_analysis_available', False)}`",
+        "",
+        "| File | Priority | Deficit | Churn | Coverage | Reasons |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- |",
+    ]
+    for hotspot in hotspots[:10]:
+        coverage = "n/a" if hotspot.coverage_ratio is None else f"{hotspot.coverage_ratio:.0%}"
+        lines.append(
+            f"| `{Path(hotspot.file_path).name}` | {hotspot.priority_score:.1f}/100 | "
+            f"{hotspot.deficit_score:.1f} | {hotspot.churn_count} | {coverage} | "
+            f"{', '.join(hotspot.reasons)} |"
+        )
     lines.append("")
     return lines
 
@@ -225,7 +287,12 @@ def generate_markdown_report(result) -> str:
     lines += _md_summary_section(avg_deficit, avg_inflation, status)
 
     if is_project:
+        lines += _md_structural_coherence_section(result)
+        lines += _md_suppression_section(result)
         lines += _md_test_evidence_section(result)
+        lines += _md_priority_hotspots_section(result)
+    else:
+        lines += _md_suppression_section(result)
 
     if is_project:
         if hasattr(result, "files") and result.files:

@@ -366,6 +366,12 @@ class CIGate:
                 f"- Analyzed: {result.total_files} files ({result.clean_files} clean, {result.deficit_files} with issues)"
             )
             lines.append(f"- Average Deficit Score: {result.avg_deficit_score:.1f}/100")
+            if getattr(result, "suppressed_issue_count", 0) > 0:
+                lines.append(f"- Suppressed Issues: {result.suppressed_issue_count}")
+            lines.append("")
+        elif hasattr(result, "suppression_ledger") and result.suppression_ledger:
+            lines.append("### Summary")
+            lines.append(f"- Suppressed Issues: {len(result.suppression_ledger)}")
             lines.append("")
 
         # Failed files

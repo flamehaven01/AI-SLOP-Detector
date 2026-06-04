@@ -19,6 +19,9 @@ from .. import __version__
 from ..core import SlopDetector
 from ..history import HistoryTracker
 from .models import (
+    AgentFileResponse,
+    AgentProjectResponse,
+    AgentSurfaceManifest,
     AnalysisRequest,
     AnalysisResponse,
     ProjectStatus,
@@ -74,6 +77,40 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     async def health():
         return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
+    @app.get("/agent/schema", response_model=AgentSurfaceManifest)
+    async def agent_schema():
+        """Describe the agent-native surface and available endpoints."""
+        return AgentSurfaceManifest(
+            capabilities=[
+                "structured project snapshots",
+                "structured file snapshots",
+                "priority hotspots",
+                "suppression ledger",
+                "structural coherence mode",
+            ],
+            endpoints=[
+                {
+                    "path": "/agent/file",
+                    "method": "POST",
+                    "description": "Structured snapshot for a single file analysis",
+                },
+                {
+                    "path": "/agent/project",
+                    "method": "POST",
+                    "description": "Structured snapshot for a full project analysis",
+                },
+                {
+                    "path": "/agent/schema",
+                    "method": "GET",
+                    "description": "Describe the agent-native response contract",
+                },
+            ],
+            notes=[
+                "Existing /analyze/* routes remain available for backward compatibility.",
+                "Agent responses include hotspot, suppression, and coherence metadata.",
+            ],
+        )
+
     @app.post("/analyze/file", response_model=AnalysisResponse)
     async def analyze_file(
         request: AnalysisRequest,
@@ -99,6 +136,25 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
 
             return AnalysisResponse.from_result(result)
 
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.post("/agent/file", response_model=AgentFileResponse)
+    async def analyze_file_agent(
+        request: AnalysisRequest,
+        detector: SlopDetector = Depends(get_detector),
+    ):
+        """Analyze a single file and return an agent-friendly snapshot."""
+        try:
+            file_path = Path(request.file_path)
+            if not file_path.exists():
+                raise HTTPException(status_code=404, detail="File not found")
+            result = detector.analyze_file(str(file_path))
+            return AgentFileResponse.from_result(result)
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -127,6 +183,25 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
 
             return [AnalysisResponse.from_result(r) for r in results.file_results]
 
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.post("/agent/project", response_model=AgentProjectResponse)
+    async def analyze_project_agent(
+        request: AnalysisRequest,
+        detector: SlopDetector = Depends(get_detector),
+    ):
+        """Analyze a project and return the agent-native structured snapshot."""
+        try:
+            project_path = Path(request.project_path)
+            if not project_path.exists():
+                raise HTTPException(status_code=404, detail="Project not found")
+            results = detector.analyze_project(str(project_path))
+            return AgentProjectResponse.from_result(results)
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

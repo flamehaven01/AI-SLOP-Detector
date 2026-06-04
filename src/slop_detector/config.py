@@ -132,6 +132,14 @@ class Config:
             "weighted_analysis": True,
             "min_file_size": 10,
             "max_file_size": 10000,
+            "exact_topology_ceiling": 300,
+            "topology_mode_above_ceiling": "deterministic_approximate",
+            "analysis_cache_enabled": True,
+            "analysis_cache_db": "",
+            "churn_commit_window": 200,
+            "coverage_data_file": ".coverage",
+            "hotspot_limit": 10,
+            "hotspot_weights": {"deficit": 0.50, "churn": 0.30, "coverage_gap": 0.20},
         },
         "phantom_import_allowlist": [],
         "patterns": {
@@ -227,6 +235,69 @@ class Config:
     def use_weighted_analysis(self) -> bool:
         """Check if weighted project analysis is enabled."""
         return self.get("advanced.weighted_analysis", True)
+
+    def get_exact_topology_ceiling(self) -> int:
+        """Maximum file count allowed for exact structural topology."""
+        value = self.get("advanced.exact_topology_ceiling", 300)
+        try:
+            return max(2, int(value))
+        except (TypeError, ValueError):
+            return 300
+
+    def get_topology_mode_above_ceiling(self) -> str:
+        """How to compute topology after the exact ceiling is exceeded."""
+        value = str(self.get("advanced.topology_mode_above_ceiling", "deterministic_approximate"))
+        return value if value in {"deterministic_approximate", "exact"} else "deterministic_approximate"
+
+    def use_analysis_cache(self) -> bool:
+        """Check if repeated-run file analysis cache is enabled."""
+        return bool(self.get("advanced.analysis_cache_enabled", True))
+
+    def get_analysis_cache_db(self) -> str:
+        """Get configured SQLite path for the file analysis cache."""
+        return str(self.get("advanced.analysis_cache_db", "") or "")
+
+    def get_churn_commit_window(self) -> int:
+        """Get the recent commit window used for churn-based prioritization."""
+        value = self.get("advanced.churn_commit_window", 200)
+        try:
+            return max(1, int(value))
+        except (TypeError, ValueError):
+            return 200
+
+    def get_coverage_data_file(self) -> str:
+        """Get the relative coverage data filename used for hotspot prioritization."""
+        value = str(self.get("advanced.coverage_data_file", ".coverage") or ".coverage").strip()
+        return value or ".coverage"
+
+    def get_hotspot_limit(self) -> int:
+        """Get the number of prioritized hotspots to retain."""
+        value = self.get("advanced.hotspot_limit", 10)
+        try:
+            return max(1, int(value))
+        except (TypeError, ValueError):
+            return 10
+
+    def get_hotspot_weights(self) -> Dict[str, float]:
+        """Get normalized weights for project hotspot prioritization."""
+        raw = self.get(
+            "advanced.hotspot_weights",
+            {"deficit": 0.50, "churn": 0.30, "coverage_gap": 0.20},
+        )
+        if not isinstance(raw, dict):
+            return {"deficit": 0.50, "churn": 0.30, "coverage_gap": 0.20}
+        try:
+            weights = {
+                "deficit": max(0.0, float(raw.get("deficit", 0.50) or 0.0)),
+                "churn": max(0.0, float(raw.get("churn", 0.30) or 0.0)),
+                "coverage_gap": max(0.0, float(raw.get("coverage_gap", 0.20) or 0.0)),
+            }
+        except (TypeError, ValueError):
+            return {"deficit": 0.50, "churn": 0.30, "coverage_gap": 0.20}
+        total = sum(weights.values())
+        if total <= 0:
+            return {"deficit": 0.50, "churn": 0.30, "coverage_gap": 0.20}
+        return {key: value / total for key, value in weights.items()}
 
     def get_god_function_config(self) -> Dict[str, Any]:
         """Get god_function pattern configuration including domain_overrides."""

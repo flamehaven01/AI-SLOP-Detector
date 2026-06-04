@@ -1,0 +1,1720 @@
+# From Test-Passing Code to Mathematical Governance Records
+
+## A Public Conformance Framework for Measuring AI-Generated Code Drift
+
+### Status
+
+Public Conformance Specification
+Scope: Research-grounded technical framework, not an empirical validation paper
+
+---
+
+## Abstract
+
+AI coding agents are commonly evaluated through task completion, benchmark pass rates, and automated test outcomes. These signals remain necessary, but they do not measure whether repeated AI-generated changes preserve the structural integrity of a codebase.
+
+A generated patch can pass tests while introducing unnecessary dependencies, repeated structural templates, oversized functions, inflated explanatory language, and repository-level architectural drift. These risks are not always visible in binary test outcomes, and they are not reliably resolved by asking another model to judge the output.
+
+This document defines a public conformance framework for measuring AI-generated code drift.
+
+The framework is not tied to one detector. Any implementation may conform if it emits reconstructable structural measurements, declares its policies, records its failure modes, and exposes enough metadata for another reviewer to reproduce the decision.
+
+The contribution is not a new universal metric for software quality. The contribution is an integration pattern:
+
+```text
+structural measurement
+→ declared policy
+→ reproducible governance record
+→ review or CI/CD decision surface
+```
+
+The framework distinguishes between snapshot structural audit and temporal drift measurement. A single governance record describes one repository state. Temporal drift requires comparable governance records across repository states and a declared delta policy.
+
+A public reference implementation exists: [AI-SLOP Detector](https://github.com/flamehaven01/AI-SLOP-Detector). It provides an implementation-backed signal for part of the mathematical kernel described here. It should not be treated as complete conformance proof.
+
+A scoring engine produces numbers.
+A governance instrument produces reconstructable decisions.
+
+---
+
+## 1. Problem Statement
+
+Most AI coding workflows still reduce success to a narrow operational question:
+
+```text
+Did the generated patch pass the tests?
+```
+
+That question is necessary. It is not sufficient.
+
+Tests measure whether known behaviors were satisfied under defined conditions. They do not measure whether the repository is becoming harder to maintain under repeated generated change. They do not show whether an agent repeatedly produced the same wrapper structure, inflated docstrings, unused imports, or concentrated future review burden into a small number of files.
+
+The risk is not only incorrect execution. The risk is accumulation.
+
+AI-generated code can remain locally plausible while becoming globally more difficult to review, extend, govern, and audit. This is structural drift.
+
+Recent long-horizon coding-agent evaluations motivate this concern. Benchmarks such as SlopCodeBench and SpecBench suggest that passing available tests can coexist with verbosity, structural erosion, reward hacking, or hidden-test failure in iterative coding settings.
+
+Those works do not validate this framework directly. They motivate the need for an external measurement layer.
+
+The central claim here is limited:
+
+> AI-generated code should be evaluated not only by execution success, but also by a reproducible structural measurement record.
+
+That record must be external to the generating model. It must specify what was measured, how it was measured, which policies were applied, which artifacts were excluded, how the decision was derived, and whether the result can be reconstructed.
+
+---
+
+## 2. Claim Boundary
+
+This framework does not claim to measure software quality in the universal sense.
+
+It does not prove:
+
+```text
+semantic correctness
+security safety
+domain validity
+regulatory compliance
+architectural optimality
+developer intent satisfaction
+```
+
+It measures a narrower class of structural signals:
+
+```text
+structural distribution
+dependency usage alignment
+logic density
+inflation relative to executable code
+complexity concentration
+cross-file structural similarity
+critical pattern presence
+calibration stability
+record reproducibility
+implementation determinism
+temporal structural degradation under declared comparability rules
+```
+
+These signals are not truth. They are measurement surfaces.
+
+A metric is not governance merely because it is mathematical. A metric becomes governance-relevant only when its inputs, transformations, policies, thresholds, exclusions, and outputs are reconstructable.
+
+The governing principle is:
+
+```text
+No reconstructable measurement record, no governance claim.
+```
+
+This applies equally to prototypes, commercial tools, open-source scanners, internal CI gates, and research pipelines.
+
+---
+
+## 3. Structural Drift Definition
+
+Structural drift is defined as measurable degradation in structural properties across comparable repository states.
+
+The framework surfaces drift candidates.
+It does not define drift by fiat.
+
+A structural drift claim requires three elements:
+
+```text
+1. comparable governance records across time
+2. a declared delta or trend policy
+3. an independent validation criterion
+```
+
+Independent validation criteria may include:
+
+```text
+maintainer judgment
+extension difficulty
+reviewer burden
+controlled fixture labels
+longitudinal repository outcomes
+human evaluator agreement
+runtime or maintainability regression
+```
+
+This boundary is necessary because a metric can otherwise create its own target.
+
+A framework should not say:
+
+```text
+drift is whatever this framework scores poorly
+```
+
+It should say:
+
+```text
+this framework surfaces structural degradation candidates,
+which must be validated against independent review or longitudinal evidence
+```
+
+This keeps the measurement layer separate from the truth claim.
+
+---
+
+## 4. Conformance Principle
+
+The framework is implementation-neutral.
+
+A conforming implementation may be:
+
+```text
+an open-source detector
+a CI plugin
+a static analysis extension
+a research prototype
+an internal governance service
+a repository audit pipeline
+```
+
+The framework does not require a specific tool, programming language, repository host, or CI/CD platform.
+
+A conforming implementation must satisfy four conditions.
+
+### 4.1 It must emit reconstructable measurements
+
+The implementation must preserve enough metadata for another reviewer to reconstruct how the measurement was produced.
+
+This includes:
+
+```text
+repository identifier or commit
+file hashes
+parser version
+AST or representation taxonomy version
+metric versions
+normalization policy
+distance policy
+topology policy
+weight profile
+decision rule
+record hash
+```
+
+### 4.2 It must declare its policies
+
+The implementation must not hide important scoring choices.
+
+Policy-bearing choices include:
+
+```text
+file exclusion rules
+support alignment
+smoothing behavior
+zero handling
+normalization direction
+critical severity threshold
+topology approximation mode
+calibration state
+HOLD / BLOCK boundary
+drift comparability policy
+```
+
+### 4.3 It must record failure modes
+
+The implementation must not silently convert measurement failure into normal scoring.
+
+If parsing fails, support alignment fails, topology approximation becomes nondeterministic, records are non-comparable, or normalized values fall outside declared bounds, the implementation must record the event and emit an appropriate HOLD, REVIEW, or BLOCK according to policy.
+
+### 4.4 It must expose enough metadata for review
+
+A reviewer must be able to inspect:
+
+```text
+what was measured
+what was excluded
+which thresholds applied
+which findings triggered the decision
+whether approximation was used
+whether calibration was active
+whether the decision was deterministic
+whether temporal comparison was valid
+```
+
+If this cannot be inspected, the result is a score, not a governance record.
+
+---
+
+## 5. Minimum Viable Adoption
+
+A team does not need to implement the full framework on day one.
+
+Minimum viable adoption requires four artifacts:
+
+```text
+1. structural_fingerprint.json
+2. distance_policy.json
+3. findings_ledger.jsonl
+4. governance_record.json
+```
+
+These artifacts can be produced by any implementation. The framework does not require one specific detector.
+
+### 5.1 structural_fingerprint.json
+
+This artifact records how code was represented structurally.
+
+Minimum fields:
+
+```text
+repository_id
+file_path
+file_hash
+language
+language_version
+parser_version
+representation_mode
+taxonomy_version
+fingerprint
+```
+
+Acceptable representation modes include:
+
+```text
+AST_NODE_DISTRIBUTION
+DEPTH_BOUNDED_SUBTREE_DISTRIBUTION
+GRAPH_ENRICHED_REPRESENTATION
+CUSTOM_DECLARED_REPRESENTATION
+```
+
+For initial adoption, AST node-type distribution is sufficient. Depth-bounded subtree distribution should be treated as an extended audit mode unless runtime and support policies are already declared.
+
+### 5.2 distance_policy.json
+
+This artifact records how structural distances were computed.
+
+Minimum fields:
+
+```text
+distance_formula
+log_base
+support_policy
+smoothing_policy
+zero_handling_policy
+normalization_convention
+clamp_policy
+distance_formula_version
+```
+
+A distance value without its policy is not reconstructable.
+
+### 5.3 findings_ledger.jsonl
+
+This artifact records structural findings as source-anchored events.
+
+Minimum fields per finding:
+
+```text
+finding_id
+file_path
+file_hash
+line_range_or_source_anchor
+rule_id
+metric_name
+metric_value
+threshold
+severity
+severity_taxonomy_version
+evidence_snippet_hash
+```
+
+A finding without a source anchor should not be used as a governance finding.
+
+### 5.4 governance_record.json
+
+This artifact records the final decision and enough metadata to reconstruct it.
+
+Minimum fields:
+
+```text
+repository_id
+repository_commit_or_snapshot
+file_hashes
+representation_mode
+distance_policy_ref
+topology_mode
+determinism_status
+normalization_policy
+weight_profile
+critical_severity_threshold
+decision_rule
+findings_ref
+decision
+record_hash
+```
+
+The governance record is the primary artifact. The score is secondary.
+
+---
+
+## 6. Integration Modes
+
+Different teams have different risk tolerance. The same framework can be adopted in different enforcement modes.
+
+### Mode A — Advisory
+
+Purpose:
+
+```text
+surface structural drift without blocking development
+```
+
+Behavior:
+
+```text
+emits findings
+emits governance record
+never blocks
+recommended for first adoption
+```
+
+Use when:
+
+```text
+the team is calibrating thresholds
+the detector is newly introduced
+the repository has no baseline
+```
+
+### Mode B — Review Gate
+
+Purpose:
+
+```text
+require human review when declared structural thresholds are exceeded
+```
+
+Behavior:
+
+```text
+PASS if below threshold
+REVIEW if threshold exceeded
+HOLD if measurement is incomplete
+does not emit BLOCK unless explicitly configured
+```
+
+Use when:
+
+```text
+the team wants governance without automatic release blocking
+the repository is under active AI-assisted development
+human reviewers remain the enforcement authority
+```
+
+### Mode C — Release Gate
+
+Purpose:
+
+```text
+prevent release or merge when fail-closed conditions are met
+```
+
+Behavior:
+
+```text
+PASS if measurement satisfies policy
+REVIEW if human inspection is required
+HOLD if measurement cannot be reconstructed
+BLOCK if declared release policy is violated
+```
+
+Use when:
+
+```text
+the repository is safety-adjacent
+the deployment environment requires auditability
+structural drift must not silently enter release branches
+```
+
+### Mode D — Research Audit
+
+Purpose:
+
+```text
+collect measurement data without enforcement
+```
+
+Behavior:
+
+```text
+emits structural metrics
+emits records
+supports experiments and threshold studies
+does not affect CI outcome
+```
+
+Use when:
+
+```text
+running multi-repository case studies
+comparing representations
+testing thresholds
+evaluating reviewer agreement
+```
+
+---
+
+## 7. Mathematical Framework
+
+The framework uses a layered measurement model.
+
+Each layer emits artifacts used by the next layer. A higher-level claim is limited by the weakest missing artifact beneath it.
+
+### Layer 0 — Artifact Sufficiency
+
+Before measurement begins, the implementation determines whether enough material exists to support a valid structural assessment.
+
+Artifact modes:
+
+```text
+FULL
+PARTIAL
+LIMITED
+BLOCKED
+```
+
+Definitions:
+
+```text
+FULL:
+All required artifacts exist for normal measurement.
+
+PARTIAL:
+Primary measurement is possible, but one or more secondary traceability elements are missing.
+
+LIMITED:
+Some required artifacts are missing, but a constrained measurement remains possible.
+
+BLOCKED:
+The implementation cannot support a valid measurement claim.
+```
+
+If the mode is BLOCKED, the implementation must not manufacture a normal score.
+
+HOLD / BLOCK boundary:
+
+```text
+HOLD:
+Artifact absence prevents measurement reconstruction, but does not itself prove a declared policy violation.
+
+BLOCK:
+Artifact absence itself violates a declared release requirement or fail-closed policy.
+```
+
+### Layer 1 — Structural Representation
+
+The implementation converts code into structural representations.
+
+#### DCF-1: Node-Type Distribution
+
+For a file (f), define a normalized distribution over node types:
+
+[
+P_f(N_i) = \frac{\text{count}_f(N_i)}{\sum_j \text{count}_f(N_j)}
+]
+
+This is lightweight and suitable for default CI mode. It is also lossy. A node-type distribution is a structural fingerprint, not a quality verdict.
+
+#### DCF-2: Depth-Bounded Subtree Distribution
+
+A more expressive representation counts bounded local subtrees.
+
+For subtree pattern (S_k):
+
+[
+P_f(S_k) = \frac{\text{count}_f(S_k)}{\sum_l \text{count}_f(S_l)}
+]
+
+This captures more local structural context, but it increases support size and runtime cost.
+
+Recommended policy:
+
+```text
+DCF-1:
+default CI mode
+
+DCF-2:
+extended audit / nightly audit / research audit mode
+```
+
+A conforming implementation using DCF-2 must declare:
+
+```text
+maximum subtree depth
+maximum node count
+maximum file size
+runtime budget
+memory budget
+child ordering policy
+fallback behavior
+```
+
+### Layer 2 — Distributional Distance
+
+Once files are represented as distributions, the implementation computes structural distance.
+
+The default distance is Jensen-Shannon Divergence:
+
+[
+JSD(P \parallel Q) =
+\frac{1}{2}D_{KL}(P \parallel M)
++
+\frac{1}{2}D_{KL}(Q \parallel M)
+]
+
+where:
+
+[
+M = \frac{1}{2}(P+Q)
+]
+
+The operational distance is:
+
+[
+d(P,Q) = \sqrt{JSD(P \parallel Q)}
+]
+
+The distance policy must declare:
+
+```text
+log base
+support alignment
+smoothing policy
+zero handling
+distance formula version
+clamp policy
+```
+
+Support policy is mandatory when distributions may have different support spaces.
+
+Acceptable policies include:
+
+```text
+UNION_EPSILON:
+align on union support and apply declared epsilon smoothing.
+
+INTERSECTION_WITH_MISSING_REPORT:
+compare shared support while separately reporting missing patterns.
+
+JSD_STANDARD_NO_SMOOTHING:
+use standard zero-probability convention for JSD, while still recording zero-support events.
+```
+
+Cross-entropy extensions require smoothing when (Q(i)=0) is possible.
+
+### Layer 3 — Repository Topology
+
+Pairwise distances can be lifted to repository-level topology.
+
+Represent the repository as a weighted graph:
+
+```text
+node = file
+edge weight = structural distance
+```
+
+The framework does not define a single universal repository coherence score. It defines repository topology signals.
+
+One outlier-sensitive signal can be derived from a minimum spanning tree:
+
+[
+coherence_{max_edge} = 1 - \max_{e \in MST} d(e)
+]
+
+The longest MST edge is not necessarily the most distant pair of files. It is the largest structural jump required to connect the repository’s minimum-distance backbone.
+
+This signal is intentionally sensitive to outliers. It should not be treated as a complete architectural assessment.
+
+A conforming implementation may also emit:
+
+```text
+average_mst_edge
+median_pairwise_distance
+distance_distribution_skew
+clone_cluster_density
+outlier_file_count
+largest_structural_jump
+```
+
+The governance record must identify:
+
+```text
+topology_signal_name
+topology_signal_formula
+topology_signal_role
+decision_authority
+```
+
+Recommended values for `topology_signal_role` include:
+
+```text
+outlier_detection
+backbone_coherence
+cluster_density
+structural_diversity
+template_repetition
+anomaly_surface
+diagnostic_only
+fail_closed_trigger
+```
+
+If (coherence_{max_edge}) is used as a fail-closed trigger, the policy must explicitly declare that it is being used as an outlier-sensitive trigger, not as a complete repository coherence measure.
+
+Allowed topology modes:
+
+```text
+EXACT:
+full pairwise graph and exact topology computation.
+
+DETERMINISTIC_APPROXIMATE:
+declared approximation path with stable seed, stable ordering, and reproducible behavior.
+
+NONDETERMINISTIC_APPROXIMATE:
+approximation without reproducibility guarantee.
+```
+
+Decision authority:
+
+```text
+EXACT:
+PASS / REVIEW / HOLD / BLOCK allowed.
+
+DETERMINISTIC_APPROXIMATE:
+PASS only under conservative thresholds; otherwise REVIEW or HOLD.
+
+NONDETERMINISTIC_APPROXIMATE:
+no final governance verdict; default outcome is HOLD.
+```
+
+### Layer 4 — File-Level Structural Risk
+
+Repository-level similarity must be combined with file-level risk.
+
+Common inputs include:
+
+```text
+logic density
+dependency usage alignment
+inflation relative to executable code
+complexity concentration
+explicit pattern findings
+```
+
+The framework does not mandate one exact formula for every file-level metric. It requires each metric to declare:
+
+```text
+metric_name
+metric_version
+input_range
+normalization_function
+directionality
+threshold
+source_anchor_policy
+```
+
+Pattern findings must include:
+
+```text
+file path
+file hash
+source anchor
+rule id
+severity
+metric value
+threshold
+snippet hash or evidence anchor
+```
+
+A pattern finding without a source anchor is not a governance artifact.
+
+### Layer 5 — Aggregation
+
+The aggregation layer combines normalized structural inputs into a bounded decision signal.
+
+Each input (v_i) must be normalized into ([0,1]) before log-space aggregation.
+
+The normalization policy must include:
+
+```text
+normalization_function
+input_range
+clipping_policy
+inversion_policy_if_lower_is_better
+normalization_version
+```
+
+Let:
+
+```text
+v1 = normalized logic density signal
+v2 = normalized dependency usage signal
+v3 = normalized inflation resistance signal
+v4 = purity signal from critical findings
+```
+
+Define:
+
+[
+v_4 = \exp(-\lambda \cdot N_{critical})
+]
+
+where (\lambda) is a declared purity decay coefficient.
+
+The count-based purity term is the simplest form and treats all critical findings equally. A stronger implementation may replace (N_{critical}) with a declared severity-weighted finding mass, provided the severity weights are versioned and recorded in the severity taxonomy.
+
+The aggregate score may be computed as a weighted geometric gate:
+
+[
+\Omega =
+\exp\left(
+\frac{
+\sum_{i=1}^{3}w_i\ln(v_i)
++
+w_{pur}\ln(v_4)
+}{
+W_{total}
+}
+\right)
+]
+
+where:
+
+[
+W_{total} = w_1 + w_2 + w_3 + w_{pur}
+]
+
+All weights must be non-negative, and at least one active dimension must have non-zero weight.
+
+The effective critical-pattern pressure is governed by:
+
+[
+w_{pur}\lambda
+]
+
+Therefore a conforming implementation must record joint sensitivity when (\lambda) and (w_{pur}) influence enforcement decisions.
+
+Required fields:
+
+```text
+lambda_values_tested
+w_pur_values_tested
+joint_sensitivity_result
+decision_flip_points
+recommended_profile
+```
+
+Zero handling must be explicit:
+
+```text
+CLIP_TO_EPSILON:
+clip all inputs to [epsilon, 1.0] before log aggregation.
+
+HARD_FLOOR:
+treat zero-valued critical inputs as hard-floor events before aggregation.
+```
+
+The framework permits intentional double-weighting of critical findings when declared:
+
+```text
+continuous degradation through the geometric gate
++
+discrete fail-closed pressure through explicit pattern penalties
+```
+
+This is acceptable only when visible in the record.
+
+### Layer 6 — Calibration
+
+Calibration adjusts weights or thresholds using observed project behavior. It does not discover objective truth.
+
+Possible calibration signals:
+
+```text
+Confirmed Improvement Event:
+a file was flagged, and a later human commit reduced the structural deficit score by more than a declared threshold.
+
+Ignored Finding Proxy:
+a file was flagged, but remained unchanged across a declared number of subsequent commits.
+```
+
+These are behavioral signals, not ground-truth labels.
+
+A conforming calibration report must include:
+
+```text
+calibration window
+number of files
+number of events
+threshold definition
+ignored-finding window
+search grid or optimization method
+candidate profile
+baseline profile
+domain reference profile
+sensitivity result
+human approval status
+```
+
+Initial policy:
+
+```text
+calibration should begin as an offline report
+calibration should not silently mutate enforcement weights
+human approval is required before policy changes affect release gates
+```
+
+### Layer 7 — Decision
+
+The decision layer maps measurements to operational outcomes.
+
+Allowed outcomes:
+
+```text
+PASS:
+the measured structural deficit remains within policy.
+
+REVIEW:
+a human inspection is required.
+
+HOLD:
+measurement is incomplete, unstable, approximate beyond policy, non-comparable across records, or dependent on missing artifacts.
+
+BLOCK:
+a declared fail-closed boundary or release policy is violated.
+```
+
+A decision is valid only if it is traceable to measured values and policy rules.
+
+Composite verdicts require component verification.
+
+For example:
+
+```text
+PASS_NON_DEGRADATION
+```
+
+requires independent verification of:
+
+```text
+PASS
+NON_DEGRADATION
+```
+
+Narrative interpretation is not a verdict.
+
+### Layer 8 — Governance Record
+
+The final output is not the score. The final output is the record.
+
+A minimum governance record includes:
+
+```text
+repository_id
+repository_commit_or_snapshot
+file_hashes
+parser_version
+representation_mode
+distance_formula_version
+support_policy
+smoothing_policy
+zero_handling_policy
+topology_mode
+determinism_status
+exclusion_manifest
+metric_versions
+normalization_policy
+critical_severity_threshold
+severity_taxonomy_version
+weight_profile
+purity_decay_coefficient
+joint_sensitivity_result
+calibration_state
+domain_reference_profile
+threshold_policy
+HOLD_BLOCK_policy
+integration_mode
+findings_ref
+decision
+record_hash
+```
+
+Without the record, a team can only say:
+
+```text
+The AI-generated code was reviewed.
+```
+
+With the record, the team can say:
+
+```text
+This repository state was measured under this policy, with these exclusions, these metrics, these thresholds, this integration mode, and this decision.
+```
+
+That is the governance difference.
+
+---
+
+## 8. Public Reference Implementation Signal
+
+This framework is not detached from implementation.
+
+A public reference implementation exists: [AI-SLOP Detector](https://github.com/flamehaven01/AI-SLOP-Detector).
+
+The reference implementation provides an implementation-backed signal for part of this framework’s mathematical kernel, including:
+
+```text
+AST-derived structural fingerprints
+distributional distance
+repository-level topology coherence
+file-level structural metrics
+explicit pattern findings
+geometric aggregation
+CI-oriented gate behavior
+```
+
+This reference implementation should not be treated as a complete conformance implementation.
+
+It shows that the mathematical kernel is practical, but the full public conformance framework requires additional hardening:
+
+```text
+governance record hardening
+declared support and smoothing policies
+deterministic topology boundaries
+PASS / REVIEW / HOLD / BLOCK taxonomy
+calibration reporting with approval boundary
+multi-repository validation
+```
+
+This distinction matters.
+
+A prototype can show that the measurement kernel is implementable.
+It does not, by itself, prove that the full governance framework is validated.
+
+The reference implementation should therefore be read as:
+
+```text
+implementation-backed prototype signal
+```
+
+not as:
+
+```text
+complete conformance proof
+```
+
+---
+
+## 9. Delta Governance
+
+A single governance record describes the structural state of one repository snapshot under a declared measurement profile. That is not yet temporal drift by itself.
+
+Temporal drift exists only when comparable governance records are emitted across repository states and their deltas are evaluated under a declared drift policy.
+
+Let:
+
+```text
+G_t = governance record at repository state t
+Ω_t = aggregate structural quality score at t
+D_t = declared structural deficit score at t
+```
+
+(\Omega_t) and (D_t) are not interchangeable.
+
+If no additional penalty layer is used, a simple normalized deficit policy may define:
+
+[
+D_t = 1 - \Omega_t
+]
+
+If the implementation uses explicit pattern penalties, hard floors, or fail-closed adjustments, (D_t) must be defined by the declared deficit policy, for example:
+
+[
+D_t = clamp((1 - \Omega_t) + penalty_mass_t,\ 0,\ 1)
+]
+
+where:
+
+```text
+penalty_mass_t is an implementation-declared scalar in the [0,1] range,
+sourced from the findings ledger at repository state t.
+```
+
+It may include:
+
+```text
+pattern penalties
+hard-floor adjustments
+severity-weighted finding mass
+other declared fail-closed additions
+```
+
+The governance record must specify:
+
+```text
+penalty_mass_formula
+penalty_source
+penalty_range
+penalty_clamp_policy
+finding_ids_contributing_to_penalty
+```
+
+Without a declared deficit policy, (\Delta D_t) and drift calculations are not reconstructable.
+
+Basic delta values may be defined as:
+
+[
+\Delta \Omega_t = \Omega_t - \Omega_{t-1}
+]
+
+[
+\Delta D_t = D_t - D_{t-1}
+]
+
+[
+degradation_t = \max(0, \Delta D_t)
+]
+
+A record-indexed drift rate may be defined as:
+
+[
+record_indexed_drift_rate_k = \frac{D_t - D_{t-k}}{k}
+]
+
+where (k) is the number of comparable governance-record intervals.
+
+A time-normalized drift rate may be defined as:
+
+[
+time_normalized_drift_rate = \frac{D_t - D_{t_0}}{\Delta time}
+]
+
+where (\Delta time) is a declared wall-clock or operational interval such as days, weeks, release cycles, or review windows.
+
+These measure different phenomena and must not be used interchangeably.
+
+```text
+record_indexed_drift_rate_k:
+change per comparable governance-record interval.
+
+time_normalized_drift_rate:
+change per declared wall-clock or operational interval.
+```
+
+A conforming implementation must declare which drift-rate policy is used.
+
+Two governance records are drift-comparable only if their measurement basis is compatible.
+
+At minimum, the following must be identical or explicitly migrated:
+
+```text
+parser version
+representation mode
+AST or structural taxonomy version
+distance policy
+support policy
+normalization policy
+weight profile
+topology mode
+exclusion policy
+critical severity threshold
+decision rule
+deficit policy
+```
+
+If these are not compatible, the implementation may compare records for exploratory analysis, but it should not emit a final temporal drift verdict.
+
+In that case, the correct outcome is:
+
+```text
+HOLD_FOR_NON_COMPARABLE_RECORDS
+```
+
+The framework therefore distinguishes:
+
+```text
+snapshot structural audit
+```
+
+from:
+
+```text
+temporal structural drift measurement
+```
+
+This distinction prevents the framework from claiming drift when it has only measured a single structural state.
+
+---
+
+## 10. Conforming Implementation Requirements
+
+A conforming implementation must emit enough material for independent reconstruction.
+
+Minimum required outputs:
+
+```text
+structural_fingerprint.json
+distance_policy.json
+findings_ledger.jsonl
+governance_record.json
+```
+
+For stronger conformance, the implementation should also emit:
+
+```text
+measurement_manifest.json
+exclusion_manifest.json
+normalization_policy.json
+topology_report.json
+calibration_report.json
+governance_record.sha256
+drift_report.json
+```
+
+A conforming implementation must declare:
+
+```text
+representation mode
+distance formula
+support policy
+normalization policy
+aggregation policy
+topology mode
+decision rule
+failure-mode behavior
+record hash method
+drift comparability policy
+```
+
+A conforming implementation must not:
+
+```text
+hide exclusions
+silently clamp without recording unclamped values
+convert parser failure into normal scoring
+emit final governance verdict under nondeterministic approximation
+emit temporal drift verdict across non-comparable records
+mutate enforcement weights through calibration without approval
+claim semantic correctness from structural metrics alone
+```
+
+---
+
+## 11. Adoption Guide for External Teams
+
+External teams should not begin by implementing every metric.
+
+They should begin by making their current measurements reconstructable.
+
+### Step 1 — Emit records before adding metrics
+
+Start with:
+
+```text
+governance_record.json
+findings_ledger.jsonl
+measurement_manifest.json
+```
+
+The first maturity gain is not a better score. It is a reconstructable measurement surface.
+
+### Step 2 — Run in Advisory Mode
+
+Use Advisory Mode first.
+
+Do not block merges during initial adoption. Collect structural findings, false positives, missing metadata, and reviewer feedback.
+
+### Step 3 — Define policy boundaries
+
+Before enabling enforcement, define:
+
+```text
+critical severity threshold
+normalization policy
+HOLD / BLOCK boundary
+topology approximation rule
+exclusion policy
+human review path
+drift comparability policy
+```
+
+### Step 4 — Enable Review Gate
+
+Move to Review Gate only after the team can inspect and reproduce records.
+
+Review Gate is usually the first operationally safe enforcement mode.
+
+### Step 5 — Use Release Gate only when records are stable
+
+Release Gate should require:
+
+```text
+stable thresholds
+declared policies
+known failure modes
+deterministic execution path
+reviewer-visible findings
+record hash
+comparability rules if drift is claimed
+```
+
+### Step 6 — Treat calibration as reporting first
+
+Calibration should begin as an offline report.
+
+Do not let calibration silently rewrite enforcement profiles. Use it to compare candidate profiles, not to bypass governance.
+
+---
+
+## 12. Validation Plan
+
+The validation plan must separate four kinds of evidence.
+
+### 12.1 Controlled Fixtures
+
+Controlled fixtures test whether each metric responds to designed structural changes.
+
+Examples:
+
+```text
+clean human-written file
+unused dependency file
+inflated comment file
+large monolithic function
+duplicated wrapper cluster
+placeholder variable sequence
+generated boilerplate fixture
+```
+
+Purpose:
+
+```text
+unit-level metric sanity check
+```
+
+This does not validate real-world performance.
+
+### 12.2 Human Baseline Datasets
+
+Large software-quality datasets can help estimate normal ranges for maintainability metrics, code smells, complexity, and project-level quality signals.
+
+Purpose:
+
+```text
+human software baseline
+```
+
+These datasets should not be described as AI-generated code validation corpora unless they actually contain AI-generated or AI-assisted code.
+
+### 12.3 AI Drift Evidence
+
+Long-horizon coding-agent benchmarks provide evidence that test pass rates can miss structural degradation, reward hacking, or hidden failure.
+
+Purpose:
+
+```text
+external motivation for structural measurement
+```
+
+They do not validate this framework directly.
+
+### 12.4 Multi-Repository Case Study
+
+A minimal case study should include:
+
+```text
+one reference implementation repository
+2–3 human-written open-source repositories
+2–3 AI-assisted or generated repositories
+controlled slop fixtures
+generated boilerplate fixtures
+```
+
+For each repository, report:
+
+```text
+structural fingerprints
+distance matrix or summary
+topology mode
+determinism status
+file-level structural metrics
+pattern findings
+aggregate score
+deficit score
+decision
+manual reviewer notes
+runtime profile
+```
+
+Purpose:
+
+```text
+preliminary framework validation
+```
+
+### 12.5 Longitudinal Drift Study
+
+A stronger validation stage requires longitudinal comparison.
+
+Design:
+
+```text
+multiple comparable governance records across time
+declared drift comparability policy
+record-indexed and/or time-normalized drift rates
+maintainer review
+extension difficulty assessment
+runtime and maintainability outcomes
+```
+
+Purpose:
+
+```text
+temporal drift validation
+```
+
+This is required before making strong claims about drift prediction or long-term maintainability.
+
+### 12.6 Human Evaluator Study
+
+A stronger validation stage also requires experienced reviewers.
+
+Design:
+
+```text
+sample flagged files
+blind human review
+classification of true concern / acceptable pattern / false positive
+agreement rate
+false-positive category analysis
+threshold sensitivity analysis
+```
+
+Purpose:
+
+```text
+human-aligned validity check
+```
+
+This is required before making strong claims about practical review accuracy.
+
+---
+
+## 13. Failure Modes
+
+A conforming implementation must name and handle its own failure modes.
+
+### 13.1 Representation Loss
+
+AST distributions discard semantic intent.
+
+Mitigation:
+
+```text
+treat structural fingerprints as representations, not verdicts
+escalate to semantic or graph-enriched review when required
+```
+
+### 13.2 Parser Drift
+
+Language or parser version changes can alter structural output.
+
+Mitigation:
+
+```text
+pin parser version
+pin taxonomy
+record normalization policy
+```
+
+### 13.3 Support Mismatch
+
+Two files may have different structural support spaces.
+
+Mitigation:
+
+```text
+declare support policy
+record missing patterns
+emit HOLD when support policy is absent
+```
+
+### 13.4 Smoothing Distortion
+
+Smoothing can stabilize computation while distorting rare-pattern signals.
+
+Mitigation:
+
+```text
+declare epsilon
+test sensitivity
+report zero-support events
+```
+
+### 13.5 Tail-Mass Compression
+
+Top-k truncation can merge unrelated structures into an `OTHER` bucket.
+
+Mitigation:
+
+```text
+do not use top-k tail compression for final governance decisions by default
+record tail mass if used for diagnostics
+downgrade decision authority when tail mass exceeds threshold
+```
+
+### 13.6 Exclusion Abuse
+
+Exclusions can remove inconvenient files.
+
+Mitigation:
+
+```text
+emit exclusion manifest
+record reason codes
+make exclusions reviewer-visible
+```
+
+### 13.7 Metric Gaming
+
+Developers or agents may optimize for the score rather than maintainability.
+
+Mitigation:
+
+```text
+use multiple independent signals
+rotate review samples
+preserve human inspection
+run adversarial metric-gaming tests
+```
+
+### 13.8 Calibration Bias
+
+Team history may encode poor priorities.
+
+Mitigation:
+
+```text
+compare team profile against domain reference profile
+emit deviation warning
+require human approval before enforcement profile changes
+```
+
+### 13.9 Approximation Drift
+
+Sampling or approximation can make topology results unstable.
+
+Mitigation:
+
+```text
+declare topology mode
+record sampling seed and policy
+permit final verdict only under exact or deterministic approximation modes
+default nondeterministic approximation to HOLD
+```
+
+### 13.10 Normalization Error
+
+Metrics with different directions can be normalized incorrectly.
+
+Mitigation:
+
+```text
+record normalization function
+record inversion policy
+emit HOLD for out-of-range normalized values unless clipping is declared
+```
+
+### 13.11 Severity Boundary Drift
+
+The definition of a critical finding can change over time.
+
+Mitigation:
+
+```text
+record severity taxonomy version
+record critical severity threshold
+record included and excluded severity levels
+```
+
+### 13.12 Implementation Drift
+
+The conformance specification and implementation can diverge.
+
+Mitigation:
+
+```text
+version the measurement profile
+version the implementation mode
+emit record_hash
+run conformance tests
+treat undocumented implementation behavior as not traceable
+```
+
+### 13.13 Temporal Comparability Failure
+
+Records may be compared even when their measurement bases differ.
+
+Mitigation:
+
+```text
+declare comparability rules
+require migration policy for changed profiles
+emit HOLD_FOR_NON_COMPARABLE_RECORDS when comparability fails
+```
+
+### 13.14 Over-Aggregation
+
+A single score may hide the cause of risk.
+
+Mitigation:
+
+```text
+emit component scores
+emit finding ledger
+block critical findings separately when declared
+```
+
+---
+
+## 14. Scope and Empirical Boundary
+
+This document is a public conformance specification.
+
+It defines implementation-neutral requirements that external teams can adopt to produce reconstructable structural governance records for AI-generated code drift.
+
+Allowed claim:
+
+```text
+The framework defines conformance requirements for producing reconstructable structural governance records and comparing those records under declared drift policies.
+```
+
+Not allowed:
+
+```text
+This framework proves AI-generated code quality.
+This framework proves semantic correctness.
+This framework proves practical accuracy across repositories.
+This framework predicts long-term maintainability without empirical validation.
+```
+
+Claims about practical accuracy, false-positive rates, reviewer agreement, runtime scalability, or longitudinal drift prediction require empirical study.
+
+Those claims are outside the scope of this conformance specification.
+
+Required future evidence for empirical claims includes:
+
+```text
+multi-repository case study
+human evaluator comparison
+threshold sensitivity analysis
+false-positive analysis
+runtime analysis
+baseline comparison
+implementation reproducibility package
+longitudinal drift validation
+```
+
+---
+
+## 15. Discussion
+
+The framework does not remove subjectivity from code review. It changes where subjectivity lives.
+
+Without a measurement framework, judgment is often informal:
+
+```text
+This looks fine.
+This feels too complex.
+This seems generated.
+This should probably be refactored.
+```
+
+With a measurement framework, judgment becomes explicit:
+
+```text
+This file exceeded the declared complexity threshold.
+This dependency was imported but unused.
+This repository entered a tighter-than-baseline structural cluster.
+This exclusion was applied under this reason code.
+This approximation mode limited the decision authority.
+This decision was produced under this policy version.
+```
+
+With conformance, one more statement becomes possible:
+
+```text
+This implementation produced this governance record from this repository state under this declared measurement profile.
+```
+
+With Delta Governance, an additional statement becomes possible:
+
+```text
+These comparable governance records show structural degradation under this declared drift policy.
+```
+
+That is the practical difference.
+
+The main risk in AI-generated code is not that every generated patch is wrong. The risk is that the cost of generating plausible code drops faster than the capacity to review its structural consequences. A repository can accumulate changes that pass immediate checks while increasing future review cost, extension cost, and governance ambiguity.
+
+This framework addresses that failure mode by shifting from unrecorded judgment to reconstructable measurement.
+
+The next step is not to add every mathematically interesting metric. The next step is to make existing structural measurements reconstructable and comparable over time.
+
+---
+
+## 16. Conclusion
+
+AI coding agents require a measurement layer beyond test execution.
+
+Tests measure whether known behaviors were satisfied under defined conditions. They do not measure whether the repository’s structure is becoming harder to maintain under repeated generated change. LLM review can assist explanation, but it should not be the sole authority over LLM-generated code.
+
+This framework defines a public conformance model for structural code-drift governance.
+
+It is not tied to one detector. A conforming implementation may be open-source, commercial, internal, experimental, or CI-native. What matters is not the brand of the detector, but whether the implementation emits reconstructable structural measurements, declares its policies, records its failure modes, and exposes enough metadata for another reviewer to reproduce the decision.
+
+The framework also defines the boundary between snapshot structural audit and temporal drift measurement. A single record is not drift. Drift requires comparable records across time, a declared delta policy, and independent validation criteria.
+
+The contribution is therefore not a new universal metric for code quality.
+
+The contribution is a public governance integration pattern:
+
+```text
+structural fingerprint
++ distance policy
++ finding ledger
++ governance record
++ declared decision surface
++ record-to-record comparability
+```
+
+The framework should be judged by whether another reviewer can reconstruct the decision from the record.
+
+If the decision cannot be reconstructed, the governance claim does not hold.
+
+---
+
+## References
+
+[R1] Song et al., “[Measuring LLM Code Generation Stability via Structural Entropy](https://arxiv.org/abs/2508.14288),” arXiv preprint, 2025.
+
+[R2] Endres and Schindelin, “A New Metric for Probability Distributions,” IEEE Transactions on Information Theory, 2003.
+
+[R3] Orlanski et al., “[SlopCodeBench: Benchmarking How Coding Agents Degrade Over Long-Horizon Iterative Tasks](https://arxiv.org/abs/2603.24755),” arXiv:2603.24755, preprint, 2026.
+
+[R4] Zhao et al., “[SpecBench: Measuring Reward Hacking in Long-Horizon Coding Agents](https://arxiv.org/abs/2605.21384),” arXiv:2605.21384, preprint, 2026.
+
+[R5] Sharma and Kessentini, “QScored: A Large Dataset of Code Smells and Quality Metrics,” 2021.
+
+[R6] Robredo et al., “SQuaD: The Software Quality Dataset,” 2025.
+
+[R7] Pfeiffer and Lungu, “[Technical Debt and Maintainability: How Do Tools Measure It?](https://arxiv.org/abs/2202.13464),” arXiv preprint, 2022.
+
+[R8] Zhang et al., “[ASTRO: An AST-Assisted Approach for Generalizable Neural Clone Detection](https://arxiv.org/abs/2208.08067),” arXiv preprint, 2022.
+
+[R9] Zhang and Saber, “[AST-Enhanced or AST-Overloaded? The Surprising Impact of Hybrid Graph Representations on Code Clone Detection](https://arxiv.org/abs/2506.14470),” arXiv preprint, 2025.
+
+Note: R3 and R4 are cited as arXiv preprints and should be treated as emerging evidence, not peer-reviewed consensus. They motivate the need for long-horizon structural measurement but do not validate this framework directly.

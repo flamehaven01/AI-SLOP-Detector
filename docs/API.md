@@ -2,7 +2,7 @@
 
 ## Overview
 
-AI SLOP Detector v3.5.0+ includes a production-ready REST API built with FastAPI.
+AI SLOP Detector v3.7.8+ includes a production-ready REST API built with FastAPI.
 
 **Base URL**: `http://localhost:8000` (configurable)
 
@@ -20,7 +20,7 @@ slop-api --host 0.0.0.0 --port 8000
 python -m slop_detector.api.server
 
 # Docker
-docker run -p 8000:8000 flamehaven/ai-slop-detector:3.5.0
+docker run -p 8000:8000 flamehaven/ai-slop-detector:3.7.8
 ```
 
 ### Access Documentation
@@ -171,6 +171,27 @@ Content-Type: application/json
 ```
 
 **Note**: Analysis runs in background. Results posted back to GitHub (planned).
+
+---
+
+### Agent-Native Surface
+
+```http
+GET /agent/schema
+POST /agent/file
+POST /agent/project
+```
+
+The agent surface returns structured snapshots instead of only human-facing
+reports:
+
+- `/agent/schema` describes the contract, capabilities, and endpoint list.
+- `/agent/file` returns a file snapshot with summary metrics, warnings, and raw analysis.
+- `/agent/project` returns a project snapshot with summary, file results,
+  JS/Go adjunct results, priority hotspots, and suppression metadata.
+
+These endpoints keep the original `/analyze/*` routes intact for backward
+compatibility.
 
 ---
 
@@ -325,7 +346,7 @@ gunicorn slop_detector.api.server:create_app \
 docker run -p 8000:8000 \
   -v $(pwd)/config:/config \
   -e CONFIG_PATH=/config/slop.yaml \
-  flamehaven/ai-slop-detector:2.4.0
+  flamehaven/ai-slop-detector:3.7.8
 ```
 
 ### Kubernetes
@@ -347,7 +368,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: flamehaven/ai-slop-detector:2.4.0
+        image: flamehaven/ai-slop-detector:3.7.8
         ports:
         - containerPort: 8000
         env:
@@ -541,5 +562,5 @@ allow_origins=["http://localhost:3000"]
 ## See Also
 
 - [CHANGELOG.md](../CHANGELOG.md) - Version history
-- [RELEASE_v2.4.0.md](../RELEASE_v2.4.0.md) - Release notes
+- [RELEASE_NOTES.md](RELEASE_NOTES.md) - Release notes
 - [README.md](../README.md) - Main documentation

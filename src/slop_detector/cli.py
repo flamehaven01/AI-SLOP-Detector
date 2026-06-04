@@ -77,6 +77,17 @@ Examples:
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument(
+        "--topology-ceiling",
+        type=int,
+        metavar="N",
+        help="Maximum Python-file count for exact structural topology before fallback",
+    )
+    parser.add_argument(
+        "--topology-mode",
+        choices=["exact", "deterministic_approximate"],
+        help="Structural topology mode above the exact ceiling",
+    )
+    parser.add_argument(
         "--fix",
         action="store_true",
         help="Apply auto-fixes for detected patterns (use --dry-run to preview)",
@@ -336,6 +347,15 @@ def _run_analysis_phase(args, detector):
     return result, result.deficit_score
 
 
+def _apply_runtime_overrides(args, detector) -> None:
+    """Apply CLI overrides onto detector config before analysis."""
+    advanced = detector.config.config.setdefault("advanced", {})
+    if getattr(args, "topology_ceiling", None) is not None:
+        advanced["exact_topology_ceiling"] = args.topology_ceiling
+    if getattr(args, "topology_mode", None) is not None:
+        advanced["topology_mode_above_ceiling"] = args.topology_mode
+
+
 def main() -> int:
     """CLI entry point."""
     args = _build_arg_parser().parse_args()
@@ -378,6 +398,8 @@ def main() -> int:
     except Exception as e:
         print(f"[!] Failed to initialize detector: {e}", file=sys.stderr)
         return 1
+
+    _apply_runtime_overrides(args, detector)
 
     try:
         result, score = _run_analysis_phase(args, detector)

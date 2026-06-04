@@ -215,6 +215,8 @@ See [CI/CD Integration Guide](CI_CD.md) for:
 
 ```
 usage: slop-detector [-h] [--project] [--output OUTPUT] [--json] [--verbose]
+                     [--topology-ceiling N]
+                     [--topology-mode {exact,deterministic_approximate}]
                      [--config CONFIG] [--list-patterns]
                      [--disable PATTERN [PATTERN ...]]
                      [--init] [--domain DOMAIN] [--force-init]
@@ -236,6 +238,9 @@ optional arguments:
   --output OUTPUT       Output file path (.json, .md, .html)
   --json                Output as JSON (diagnostics go to stderr)
   --verbose             Show detailed progress
+  --topology-ceiling N  Maximum Python-file count for exact structural topology
+  --topology-mode {exact,deterministic_approximate}
+                        Structural topology mode above the exact ceiling
   --config CONFIG       Custom config file path
   --list-patterns       List all detectable patterns
 
@@ -266,7 +271,36 @@ CI/CD Options:
   --ci-claims-strict    Fail if production claims lack integration tests
 ```
 
+Structural topology notes:
+- Exact structural coherence uses the full MST path up to the configured ceiling.
+- Above that ceiling, `deterministic_approximate` keeps output stable while avoiding repeated quadratic cost.
+- JSON output exposes this through `coherence_level`, and plain-text / markdown output prints the same mode directly.
+
+Priority hotspot notes:
+- Project output now ranks files by deficit score, recent git churn, and coverage gap when those signals are available.
+- `.coverage` is read from the project root by default; missing git history or missing coverage data does not fail the scan.
+
 ## Examples
+
+### Inline Suppression
+
+```python
+# slop-disable-next-line bare_except
+except:
+    pass
+
+# slop-disable all
+def compatibility_layer():
+    ...
+# slop-enable all
+```
+
+- `slop-disable-next-line <pattern_id|all>` suppresses only the next line
+- `slop-disable <pattern_id|all>` opens a block suppression
+- `slop-enable <pattern_id|all>` closes a block suppression
+
+Suppressed findings stay visible in JSON / text / markdown / rich output through
+the suppression ledger.
 
 ### Development Workflow
 

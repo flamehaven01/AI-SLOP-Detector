@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.8] - 2026-06-04 — Sovereign Upgrade Integration (P0-P4)
+
+### Added
+
+**Structural scaling**
+
+- `core.py` now caps exact structural coherence at a configurable ceiling and
+  falls back to a deterministic approximation above that limit.
+- CLI flags expose the exact-ceiling and above-ceiling topology mode so the
+  behavior is user-controlled instead of implicit.
+
+**Inline suppression**
+
+- Inline directive parsing now supports `# slop-disable-next-line`,
+  `# slop-disable`, and `# slop-enable` with `pattern_id` or `all`.
+- Suppressed issues are recorded in an audit ledger and surfaced in terminal,
+  markdown, rich, and CI/gate output.
+
+**Repeated-run cache**
+
+- Python file analysis results can now be reused through a SQLite-backed cache.
+- Cache entries are invalidated by file content, metadata, config fingerprint,
+  and engine version drift.
+
+**Priority hotspots**
+
+- Project scans now combine deficit, git churn, and coverage gap to rank files
+  by "fix first" priority.
+- Hotspot reasons are exposed in human-readable form for agent and reviewer use.
+
+**Agent-native surface**
+
+- The FastAPI API now exposes `/agent/schema`, `/agent/file`, and
+  `/agent/project` for structured consumers.
+- Agent responses bundle summaries, suppression metadata, hotspots, and
+  polyglot analysis results without changing the existing `/analyze/*` routes.
+
+### Fixed
+
+**Release documentation sanity**
+
+- README, release notes, architecture docs, and API docs now describe the
+  current integrated release rather than the earlier 3.7.7 baseline.
+
 ## [3.7.7] - 2026-06-04 — Cross-Language Aggregation Follow-Through & ML Pipeline Reproducibility
 
 ### Fixed

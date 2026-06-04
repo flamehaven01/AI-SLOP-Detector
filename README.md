@@ -23,9 +23,9 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 </p>
 
 **Release track**
-- Stable tag: `v3.7.7`
-- Previous stable tag: `v3.7.6`
-- `v3.7.7` includes the cross-language aggregation, repo-relative ignore, and ML-pipeline follow-through fixes described in the changelog and release notes.
+- Stable tag: `v3.7.8`
+- Previous stable tag: `v3.7.7`
+- `v3.7.8` includes the sovereign upgrade integration across structural scaling, suppression, cache, hotspot prioritization, and agent-native surface.
 
 ---
 
@@ -73,7 +73,7 @@ General linters flag style and convention. This tool flags structural risk.
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.7.7"
+pip install "ai-slop-detector>=3.7.8"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -86,7 +86,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.7.7"
+pip install "ai-slop-detector>=3.7.8"
 
 slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
 slop-detector mycode.py                    # single file
@@ -266,6 +266,7 @@ five penalty fields equals `total` within `0.01` when `deficit_score < 100`.
 | Value | Meaning | When emitted |
 |---|---|---|
 | `vr_structural` | Vietoris-Rips H0 persistence over file DCFs (MST max edge) | At least two parsed Python files with non-empty DCFs |
+| `vr_structural_approx` | Deterministic approximation of the same signal above the exact topology ceiling | At least two parsed Python files, with file count above `advanced.exact_topology_ceiling` |
 | `none` | No coherence computed | Empty project, single file, or all files unparseable |
 
 `mst_persistence` and `not_applicable` are **not** emitted — they were
@@ -431,7 +432,10 @@ project = detector.analyze_project("./src")
 print(project.structural_coherence)  # 0.0 – 1.0
 ```
 Experimental. Use for longitudinal comparison within a project, not as an
-absolute gate. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
+absolute gate. Exact MST topology is used up to
+`advanced.exact_topology_ceiling` (default `300` files); above that the engine
+switches to a deterministic approximation and reports
+`coherence_level = "vr_structural_approx"`. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
 
 ---
 
@@ -489,9 +493,95 @@ patterns:
 ignore:
   - "tests/**"
   - "**/__init__.py"
+
+advanced:
+  exact_topology_ceiling: 300
+  topology_mode_above_ceiling: deterministic_approximate
+  analysis_cache_enabled: true
+  analysis_cache_db: ""
+  churn_commit_window: 200
+  coverage_data_file: ".coverage"
+  hotspot_limit: 10
+  hotspot_weights:
+    deficit: 0.50
+    churn: 0.30
+    coverage_gap: 0.20
 ```
 
 [Full Configuration Guide →](docs/CONFIGURATION.md) · [Config Examples →](docs/CONFIG_EXAMPLES.md)
+
+---
+
+## Inline Suppression
+
+Use inline suppression when a specific local exception is intentional and should
+remain visible in audit output:
+
+```python
+# slop-disable-next-line bare_except
+except:
+    pass
+
+# slop-disable all
+def compatibility_layer():
+    ...
+# slop-enable all
+```
+
+- `# slop-disable-next-line <pattern_id|all>`
+- `# slop-disable <pattern_id|all>`
+- `# slop-enable <pattern_id|all>`
+
+Suppressed findings are removed from scoring, but they are still recorded in the
+suppression ledger so reviewers can see which lines were muted.
+
+---
+
+## Repeated-Run Cache
+
+Repeated Python-file analysis can reuse prior results through the SQLite-backed
+metadata cache:
+
+```yaml
+advanced:
+  analysis_cache_enabled: true
+  analysis_cache_db: ""  # empty = default user cache under ~/.slop-detector/
+```
+
+- Cache keys include file path, size, `mtime`, content hash, engine version, and config fingerprint.
+- A changed file or changed config invalidates only the affected entries.
+- Current scope is Python file analysis reuse; project aggregation still recomputes from the live file set.
+
+---
+
+## Priority Hotspots
+
+Project scans now rank repair order instead of only printing static scores.
+The hotspot layer combines:
+
+- deficit score
+- recent git churn
+- coverage gap from `.coverage`
+
+When present, the report highlights files that are both sloppy and risky to
+change because they churn often or remain under-tested. If git metadata or
+coverage data is missing, the prioritization layer degrades gracefully instead
+of failing the scan.
+
+---
+
+## Agent Surface
+
+The FastAPI server exposes an agent-native contract alongside the existing
+human-oriented `/analyze/*` routes:
+
+- `GET /agent/schema`
+- `POST /agent/file`
+- `POST /agent/project`
+
+These routes return structured snapshots with summary metrics, suppression
+metadata, hotspot ranking, and the raw analysis payload so tools can consume
+the results without scraping text output.
 
 ---
 

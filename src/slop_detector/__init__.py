@@ -1,6 +1,6 @@
 """AI SLOP Detector - Production-ready code quality analyzer."""
 
-__version__ = "3.7.7"
+__version__ = "3.7.8"
 __author__ = "Flamehaven Labs"
 __email__ = "info@flamehaven.space"
 
@@ -15,6 +15,7 @@ from slop_detector.models import (
     IgnoredFunction,
     InflationResult,
     LDRResult,
+    PriorityHotspot,
     ProjectAnalysis,
     SlopStatus,
 )
@@ -27,6 +28,7 @@ __all__ = [
     "DDCResult",
     "FileAnalysis",
     "ProjectAnalysis",
+    "PriorityHotspot",
     "IgnoredFunction",  # v2.6.3
     "slop",  # v2.6.3: for @slop.ignore syntax
     "ignore",  # v2.6.3: for @ignore syntax

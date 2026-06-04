@@ -90,6 +90,15 @@ def _build_rich_summary_tables(result):
     )
     sc = "red" if result.overall_status != "clean" else "green"
     summary_table.add_row("Overall Status", f"[{sc}]{result.overall_status.upper()}[/{sc}]")
+    coherence_level = getattr(result, "coherence_level", "none")
+    if coherence_level != "none":
+        mode = (
+            "deterministic approximation"
+            if coherence_level == "vr_structural_approx"
+            else "exact MST"
+        )
+        summary_table.add_row("Coherence", f"{result.structural_coherence:.4f}")
+        summary_table.add_row("Coherence Mode", f"{coherence_level} ({mode})")
 
     metrics_table = Table(title="Average Metrics", box=box.ROUNDED, header_style="bold cyan")
     metrics_table.add_column("Metric", style="cyan")
@@ -145,6 +154,57 @@ def _render_rich_project(console, result) -> None:
     console.print()
     console.print(metrics_table)
     console.print()
+    suppression_ledger = getattr(result, "suppression_ledger", [])
+    if suppression_ledger:
+        sup_table = Table(title="Inline Suppression Ledger", box=box.ROUNDED, header_style="bold cyan")
+        sup_table.add_column("File", style="bold")
+        sup_table.add_column("Line", justify="right")
+        sup_table.add_column("Pattern")
+        sup_table.add_column("Directive", justify="right")
+        sup_table.add_column("Scope")
+        for entry in suppression_ledger[:10]:
+            sup_table.add_row(
+                Path(entry.file_path).name,
+                str(entry.suppressed_line),
+                entry.pattern_id,
+                str(entry.directive_line),
+                entry.scope,
+            )
+        console.print(sup_table)
+        console.print()
+        if len(suppression_ledger) >= 10:
+            console.print(
+                Panel(
+                    "High inline suppression usage detected. Review whether muted patterns should be fixed instead.",
+                    style="yellow",
+                )
+            )
+            console.print()
+    priority_hotspots = getattr(result, "priority_hotspots", [])
+    if priority_hotspots:
+        hotspot_table = Table(title="Priority Hotspots", box=box.ROUNDED, header_style="bold cyan")
+        hotspot_table.add_column("File", style="bold")
+        hotspot_table.add_column("Priority", justify="right")
+        hotspot_table.add_column("Deficit", justify="right")
+        hotspot_table.add_column("Churn", justify="right")
+        hotspot_table.add_column("Coverage", justify="right")
+        hotspot_table.add_column("Reasons", style="dim")
+        for hotspot in priority_hotspots[:10]:
+            coverage = "n/a" if hotspot.coverage_ratio is None else f"{hotspot.coverage_ratio:.0%}"
+            hotspot_table.add_row(
+                Path(hotspot.file_path).name,
+                f"{hotspot.priority_score:.1f}/100",
+                f"{hotspot.deficit_score:.1f}",
+                str(hotspot.churn_count),
+                coverage,
+                ", ".join(hotspot.reasons),
+            )
+        console.print(hotspot_table)
+        console.print(
+            f"[dim]Signals: churn={'yes' if getattr(result, 'churn_analysis_available', False) else 'no'}, "
+            f"coverage={'yes' if getattr(result, 'coverage_analysis_available', False) else 'no'}[/dim]"
+        )
+        console.print()
     if result.deficit_files > 0:
         console.print(_build_rich_files_table(result))
     else:
@@ -306,6 +366,14 @@ def _build_single_file_content(result) -> "Text":
                 content.append(
                     f"- Line {det.line}: {det.name} ({det.docstring_lines}doc/{det.implementation_lines}impl = {det.inflation_ratio:.1f}x)\n"
                 )
+    suppression_ledger = getattr(result, "suppression_ledger", [])
+    if suppression_ledger:
+        content.append("\nInline Suppressions:\n", style="bold yellow")
+        for entry in suppression_ledger[:10]:
+            content.append(
+                f"  L{entry.suppressed_line} {entry.pattern_id} via L{entry.directive_line} [{entry.scope}]\n",
+                style="yellow",
+            )
     _append_pattern_issues_rich(content, result)
     ml = getattr(result, "ml_score", None)
     if ml is not None:
@@ -342,6 +410,29 @@ def _render_rich_single_file(console, result) -> None:
     questions = QuestionGenerator().generate_questions(result)
     if questions:
         console.print(_build_questions_panel(questions))
+        console.print()
+    extra = Text()
+    suppression_ledger = getattr(result, "suppression_ledger", [])
+    if suppression_ledger:
+        extra.append("Inline Suppressions:\n", style="bold yellow")
+        for entry in suppression_ledger[:10]:
+            extra.append(
+                f"  L{entry.suppressed_line} {entry.pattern_id} via L{entry.directive_line} [{entry.scope}]\n",
+                style="yellow",
+            )
+    if result.warnings:
+        extra.append("\nWarnings:\n", style="bold yellow")
+        for w in result.warnings:
+            extra.append(f"  - {w}\n")
+    if extra.plain.strip():
+        console.print(
+            Panel(
+                extra,
+                title="[bold yellow]Audit Notes[/bold yellow]",
+                border_style="yellow",
+                box=box.ROUNDED,
+            )
+        )
         console.print()
 
 

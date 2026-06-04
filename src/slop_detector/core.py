@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import ast
 import fnmatch
+import hashlib
 import logging
 import math
 from collections import Counter
 from math import exp, log, sqrt
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
+from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector.config import Config
 from slop_detector.file_role import classify_file
 from slop_detector.ignore_handler import IgnoreHandler
@@ -18,10 +20,19 @@ from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalcula
 from slop_detector.metrics.context_jargon import ContextJargonDetector
 from slop_detector.metrics.docstring_inflation import DocstringInflationDetector
 from slop_detector.metrics.hallucination_deps import HallucinationDepsDetector
-from slop_detector.models import FileAnalysis, IgnoredFunction, ProjectAnalysis, SlopStatus
+from slop_detector.models import (
+    FileAnalysis,
+    IgnoredFunction,
+    ProjectAnalysis,
+    SlopStatus,
+    SuppressionDirective,
+    SuppressionLedgerEntry,
+)
 from slop_detector.patterns import get_all_patterns
 from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
+from slop_detector.prioritization import ProjectPrioritizer
+from slop_detector.suppression_handler import SuppressionHandler
 
 logger = logging.getLogger(__name__)
 DEFAULT_EXCLUDE_PARTS = {".venv", "venv", "site-packages", "node_modules", "__pycache__", ".git"}
@@ -87,6 +98,12 @@ class SlopDetector:
         self._js_analyzer = None
         # Phase 3c: Go analyzer (lazy — only instantiated when needed)
         self._go_analyzer = None
+        self._analysis_cache = (
+            FileAnalysisCache(self.config.get_analysis_cache_db())
+            if self.config.use_analysis_cache()
+            else None
+        )
+        self.project_prioritizer = ProjectPrioritizer(self.config)
 
     def _get_js_analyzer(self):
         """Lazy-load JSAnalyzer (avoids import cost when not used)."""
@@ -124,16 +141,31 @@ class SlopDetector:
         - Pattern-based detection alongside metrics
         - Hybrid scoring (metrics + patterns)
         """
-        file_path = str(Path(file_path).resolve())
+        path_obj = Path(file_path).resolve()
+        file_path = str(path_obj)
         logger.info(f"Analyzing: {file_path}")
 
-        # Read file once
+        stat = path_obj.stat()
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
+            raw_bytes = path_obj.read_bytes()
         except Exception as e:
             logger.error(f"Failed to read {file_path}: {e}")
             raise
+        content = raw_bytes.decode("utf-8", errors="ignore")
+        content_hash = hashlib.sha256(raw_bytes).hexdigest()
+
+        if self._analysis_cache is not None:
+            cached = self._analysis_cache.get(
+                file_path=file_path,
+                file_size=stat.st_size,
+                mtime_ns=stat.st_mtime_ns,
+                content_hash=content_hash,
+                config_fingerprint=fingerprint_config(self.config.config),
+                engine_version=CACHE_ENGINE_VERSION,
+            )
+            if cached is not None:
+                logger.debug("File analysis cache hit: %s", file_path)
+                return cached
 
         # Parse AST once
         try:
@@ -143,66 +175,17 @@ class SlopDetector:
             # Return minimal analysis
             return self._create_error_analysis(file_path, str(e))
 
-        # v3.3.0: Classify file role — suppresses false-positive checks for
-        # __init__.py (INIT), re-export modules (RE_EXPORT), and corpus files (CORPUS).
-        role = classify_file(file_path, content, tree)
-        from slop_detector.file_role import ROLE_SKIP
-
-        skip = ROLE_SKIP[role]
-
-        # Calculate all metrics (using shared content and tree)
-        ldr = self.ldr_calc.calculate(file_path, content, tree)
-        inflation = self.inflation_calc.calculate(file_path, content, tree)
-        ddc = self.ddc_calc.calculate(file_path, content, tree)
-
-        # v3.0: Compute DCF before other analyses (reuses already-parsed tree)
-        dcf = self._compute_dcf(tree)
-
-        # v2.2: Analyze docstring inflation
-        docstring_inflation = self.docstring_inflation_detector.analyze(file_path, content, tree)
-
-        # v2.2: Analyze hallucination dependencies
-        hallucination_deps = self.hallucination_deps_detector.analyze(file_path, content, tree, ddc)
-
-        # v2.2: Analyze context-based jargon
-        context_jargon = self.context_jargon_detector.analyze(file_path, content, tree, inflation)
-
-        # v2.6.3: Collect @slop.ignore decorated functions
-        ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
-
-        # v2.1: Run pattern detection (v2.6.3: filters ignored functions)
-        pattern_issues = (
-            []
-            if "patterns" in skip
-            else self._run_patterns(tree, Path(file_path), content, ignored_functions)
-        )
-
-        # Determine slop status (now includes pattern issues, respects role skip)
-        slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
-            ldr, inflation, ddc, pattern_issues, skip=skip
-        )
-
-        result = FileAnalysis(
-            file_path=file_path,
-            ldr=ldr,
-            inflation=inflation,
-            ddc=ddc,
-            deficit_score=slop_score,
-            status=slop_status,
-            warnings=warnings,
-            pattern_issues=pattern_issues,  # v2.1
-            docstring_inflation=docstring_inflation,  # v2.2
-            hallucination_deps=hallucination_deps,  # v2.2
-            context_jargon=context_jargon,  # v2.2
-            ignored_functions=ignored_functions,  # v2.6.3
-            dcf=dcf,  # v3.0
-            deficit_breakdown=deficit_breakdown,  # v3.7.6 (SLOP-003)
-        )
-
-        # v2.8.0: Attach ML secondary score if model is loaded
-        if self._ml_scorer is not None:
-            result.ml_score = self._ml_scorer.score(result)
-
+        result = self._build_file_analysis(file_path, content, tree)
+        if self._analysis_cache is not None:
+            self._analysis_cache.put(
+                file_path=file_path,
+                file_size=stat.st_size,
+                mtime_ns=stat.st_mtime_ns,
+                content_hash=content_hash,
+                config_fingerprint=fingerprint_config(self.config.config),
+                result=result,
+                engine_version=CACHE_ENGINE_VERSION,
+            )
         return result
 
     def analyze_code_string(self, content: str, filename: str = "<string>") -> FileAnalysis:
@@ -222,51 +205,7 @@ class SlopDetector:
             tree = ast.parse(content, filename=filename)
         except SyntaxError as e:
             return self._create_error_analysis(filename, str(e))
-
-        from slop_detector.file_role import ROLE_SKIP
-
-        role = classify_file(filename, content, tree)
-        skip = ROLE_SKIP[role]
-
-        ldr = self.ldr_calc.calculate(filename, content, tree)
-        inflation = self.inflation_calc.calculate(filename, content, tree)
-        ddc = self.ddc_calc.calculate(filename, content, tree)
-        dcf = self._compute_dcf(tree)  # v3.0
-        docstring_inflation = self.docstring_inflation_detector.analyze(filename, content, tree)
-        hallucination_deps = self.hallucination_deps_detector.analyze(filename, content, tree, ddc)
-        context_jargon = self.context_jargon_detector.analyze(filename, content, tree, inflation)
-        ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
-        pattern_issues = (
-            []
-            if "patterns" in skip
-            else self._run_patterns(tree, Path(filename), content, ignored_functions)
-        )
-
-        slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
-            ldr, inflation, ddc, pattern_issues, skip=skip
-        )
-
-        result = FileAnalysis(
-            file_path=filename,
-            ldr=ldr,
-            inflation=inflation,
-            ddc=ddc,
-            deficit_score=slop_score,
-            status=slop_status,
-            warnings=warnings,
-            pattern_issues=pattern_issues,
-            docstring_inflation=docstring_inflation,
-            hallucination_deps=hallucination_deps,
-            context_jargon=context_jargon,
-            ignored_functions=ignored_functions,
-            dcf=dcf,  # v3.0
-            deficit_breakdown=deficit_breakdown,  # v3.7.6 (SLOP-003)
-        )
-
-        if self._ml_scorer is not None:
-            result.ml_score = self._ml_scorer.score(result)
-
-        return result
+        return self._build_file_analysis(filename, content, tree)
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """
@@ -356,12 +295,13 @@ class SlopDetector:
 
         # v3.0: VR structural coherence — MST H0 persistence over file DCFs
         file_dcfs = [r.dcf for r in results if r.dcf]
-        if len(file_dcfs) >= 2:
-            structural_coherence = self._compute_coherence_vr(file_dcfs)
-            coherence_level = "vr_structural"
-        else:
-            structural_coherence = 1.0
-            coherence_level = "none"
+        structural_coherence, coherence_level = self._compute_coherence_vr(file_dcfs)
+        suppression_ledger = [
+            entry for result in results for entry in getattr(result, "suppression_ledger", [])
+        ]
+        priority_hotspots, churn_available, coverage_available = (
+            self.project_prioritizer.prioritize_project(str(project_path_obj), results)
+        )
 
         return ProjectAnalysis(
             project_path=str(project_path),
@@ -377,9 +317,75 @@ class SlopDetector:
             file_results=results,
             structural_coherence=structural_coherence,
             coherence_level=coherence_level,
+            suppressed_issue_count=len(suppression_ledger),
+            suppression_ledger=suppression_ledger,
+            priority_hotspots=priority_hotspots,
+            churn_analysis_available=churn_available,
+            coverage_analysis_available=coverage_available,
             js_file_results=js_results,
             go_file_results=go_results,
         )
+
+    def _build_file_analysis(self, file_path: str, content: str, tree: ast.AST) -> FileAnalysis:
+        """Build a FileAnalysis from already-read source and parsed AST."""
+        from slop_detector.file_role import ROLE_SKIP
+
+        role = classify_file(file_path, content, tree)
+        skip = ROLE_SKIP[role]
+
+        ldr = self.ldr_calc.calculate(file_path, content, tree)
+        inflation = self.inflation_calc.calculate(file_path, content, tree)
+        ddc = self.ddc_calc.calculate(file_path, content, tree)
+        dcf = self._compute_dcf(tree)
+        docstring_inflation = self.docstring_inflation_detector.analyze(file_path, content, tree)
+        hallucination_deps = self.hallucination_deps_detector.analyze(file_path, content, tree, ddc)
+        context_jargon = self.context_jargon_detector.analyze(file_path, content, tree, inflation)
+        ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
+        suppression_directives = SuppressionHandler.parse_comment_suppressions(content)
+        pattern_issues, suppression_ledger = (
+            ([], [])
+            if "patterns" in skip
+            else self._run_patterns(
+                tree,
+                Path(file_path),
+                content,
+                ignored_functions,
+                suppression_directives=suppression_directives,
+            )
+        )
+
+        slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
+            ldr, inflation, ddc, pattern_issues, skip=skip
+        )
+
+        result = FileAnalysis(
+            file_path=file_path,
+            ldr=ldr,
+            inflation=inflation,
+            ddc=ddc,
+            deficit_score=slop_score,
+            status=slop_status,
+            warnings=warnings,
+            pattern_issues=pattern_issues,
+            docstring_inflation=docstring_inflation,
+            hallucination_deps=hallucination_deps,
+            context_jargon=context_jargon,
+            ignored_functions=ignored_functions,
+            suppression_directives=suppression_directives,
+            suppression_ledger=suppression_ledger,
+            dcf=dcf,
+            deficit_breakdown=deficit_breakdown,
+        )
+
+        if len(suppression_ledger) >= 5 or len(suppression_directives) >= 3:
+            result.warnings.append(
+                "SUPPRESSIONS: high inline suppression usage — review whether rules should be fixed or narrowed"
+            )
+
+        if self._ml_scorer is not None:
+            result.ml_score = self._ml_scorer.score(result)
+
+        return result
 
     _JS_EXTENSIONS = frozenset({".js", ".jsx", ".ts", ".tsx"})
 
@@ -439,7 +445,8 @@ class SlopDetector:
         file: Path,
         content: str,
         ignored_functions: Optional[List[IgnoredFunction]] = None,
-    ) -> List[Issue]:
+        suppression_directives: Optional[List[SuppressionDirective]] = None,
+    ) -> tuple[List[Issue], List[SuppressionLedgerEntry]]:
         """
         Run all enabled patterns on the file.
 
@@ -447,7 +454,9 @@ class SlopDetector:
         v2.6.3: Filters issues from @slop.ignore decorated functions.
         """
         issues = []
+        suppression_ledger: List[SuppressionLedgerEntry] = []
         ignored_functions = ignored_functions or []
+        suppression_directives = suppression_directives or []
         ignored_ranges = IgnoreHandler.get_ignored_line_ranges(tree, ignored_functions)
 
         for pattern in self.pattern_registry.get_all():
@@ -455,12 +464,19 @@ class SlopDetector:
                 pattern_issues = pattern.check(tree, file, content)
                 # v2.6.3: Filter issues in ignored functions
                 for issue in pattern_issues:
-                    if not IgnoreHandler.is_line_in_ignored_range(issue.line, ignored_ranges):
-                        issues.append(issue)
+                    if IgnoreHandler.is_line_in_ignored_range(issue.line, ignored_ranges):
+                        continue
+                    ledger_entry = SuppressionHandler.match_issue(
+                        str(file), issue.line, pattern.id, suppression_directives
+                    )
+                    if ledger_entry is not None:
+                        suppression_ledger.append(ledger_entry)
+                        continue
+                    issues.append(issue)
             except Exception as e:
                 logger.warning(f"Pattern {pattern.id} failed: {e}")
 
-        return issues
+        return issues, suppression_ledger
 
     # Backward-compat shims — delegate to IgnoreHandler
     def _collect_ignored_functions(self, tree: ast.AST) -> List[IgnoredFunction]:
@@ -687,7 +703,39 @@ class SlopDetector:
         jsd = 0.5 * kl(p, m) + 0.5 * kl(q, m)
         return max(0.0, min(1.0, jsd))
 
-    def _compute_coherence_vr(self, file_dcfs: List[Dict[str, float]]) -> float:
+    @staticmethod
+    def _deterministic_sample_indices(total: int, sample_size: int) -> List[int]:
+        """Pick a stable spread of indices across an ordered sequence."""
+        if sample_size >= total:
+            return list(range(total))
+        if sample_size <= 1:
+            return [0]
+
+        last = total - 1
+        raw = [round(i * last / (sample_size - 1)) for i in range(sample_size)]
+        indices: List[int] = []
+        seen = set()
+
+        for idx in raw:
+            candidate = int(idx)
+            while candidate in seen and candidate < total - 1:
+                candidate += 1
+            while candidate in seen and candidate > 0:
+                candidate -= 1
+            if candidate not in seen:
+                indices.append(candidate)
+                seen.add(candidate)
+
+        for candidate in range(total):
+            if len(indices) >= sample_size:
+                break
+            if candidate not in seen:
+                indices.append(candidate)
+                seen.add(candidate)
+
+        return sorted(indices)
+
+    def _compute_coherence_vr_exact(self, file_dcfs: Sequence[Dict[str, float]]) -> float:
         """MST H0 persistent homology coherence over file DCFs.
 
         coherence = 1 - max_mst_edge
@@ -732,6 +780,22 @@ class SlopDetector:
 
         max_persistence = max(mst_edge_weights) if mst_edge_weights else 0.0
         return max(0.0, 1.0 - max_persistence)
+
+    def _compute_coherence_vr(self, file_dcfs: List[Dict[str, float]]) -> tuple[float, str]:
+        """Compute structural coherence with an exact ceiling and deterministic fallback."""
+        n = len(file_dcfs)
+        if n <= 1:
+            return 1.0, "none"
+
+        exact_ceiling = self.config.get_exact_topology_ceiling()
+        mode = self.config.get_topology_mode_above_ceiling()
+
+        if n <= exact_ceiling or mode == "exact":
+            return self._compute_coherence_vr_exact(file_dcfs), "vr_structural"
+
+        sample_indices = self._deterministic_sample_indices(n, exact_ceiling)
+        sampled_dcfs = [file_dcfs[idx] for idx in sample_indices]
+        return self._compute_coherence_vr_exact(sampled_dcfs), "vr_structural_approx"
 
     def _calculate_pattern_penalty(self, issues: List[Issue]) -> float:
         """
@@ -835,4 +899,9 @@ class SlopDetector:
             avg_ddc=0.0,
             overall_status=SlopStatus.CLEAN,
             file_results=[],
+            suppressed_issue_count=0,
+            suppression_ledger=[],
+            priority_hotspots=[],
+            churn_analysis_available=False,
+            coverage_analysis_available=False,
         )

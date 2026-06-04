@@ -513,6 +513,87 @@ def test_analyze_project_js_only_is_not_reported_as_empty_clean(detector, tmp_pa
     assert result.overall_status == SlopStatus.CRITICAL_DEFICIT
 
 
+def test_compute_coherence_uses_deterministic_approximation_above_ceiling(detector):
+    detector.config.config["advanced"]["exact_topology_ceiling"] = 2
+    detector.config.config["advanced"]["topology_mode_above_ceiling"] = "deterministic_approximate"
+
+    file_dcfs = [
+        {"Module": 1.0},
+        {"FunctionDef": 1.0},
+        {"ClassDef": 1.0},
+    ]
+
+    coherence_a, level_a = detector._compute_coherence_vr(file_dcfs)
+    coherence_b, level_b = detector._compute_coherence_vr(file_dcfs)
+
+    assert level_a == "vr_structural_approx"
+    assert level_b == "vr_structural_approx"
+    assert coherence_a == coherence_b
+
+
+def test_analyze_project_marks_approximate_coherence_above_ceiling(detector, tmp_path):
+    detector.config.config["advanced"]["exact_topology_ceiling"] = 2
+    detector.config.config["advanced"]["topology_mode_above_ceiling"] = "deterministic_approximate"
+    detector.config.config["ignore"] = []
+
+    (tmp_path / "a.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "b.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+    (tmp_path / "c.py").write_text("class C:\n    pass\n", encoding="utf-8")
+
+    result = detector.analyze_project(str(tmp_path))
+
+    assert result.total_files == 3
+    assert result.coherence_level == "vr_structural_approx"
+    assert 0.0 <= result.structural_coherence <= 1.0
+
+
+def test_analyze_project_attaches_priority_hotspots(detector, tmp_path, monkeypatch):
+    detector.config.config["ignore"] = []
+    file_path = tmp_path / "a.py"
+    file_path.write_text("def a():\n    return 1\n", encoding="utf-8")
+
+    fake_hotspot = SimpleNamespace(
+        file_path=str(file_path),
+        deficit_score=80.0,
+        churn_count=7,
+        churn_score=1.0,
+        coverage_ratio=0.2,
+        priority_score=88.0,
+        reasons=["critical deficit", "high churn", "low coverage"],
+    )
+    monkeypatch.setattr(
+        detector.project_prioritizer,
+        "prioritize_project",
+        lambda *args, **kwargs: ([fake_hotspot], True, True),
+    )
+
+    result = detector.analyze_project(str(tmp_path))
+
+    assert result.priority_hotspots == [fake_hotspot]
+    assert result.churn_analysis_available is True
+    assert result.coverage_analysis_available is True
+
+
+def test_compute_coherence_caps_exact_input_size_for_large_repo(monkeypatch, detector):
+    detector.config.config["advanced"]["exact_topology_ceiling"] = 5
+    detector.config.config["advanced"]["topology_mode_above_ceiling"] = "deterministic_approximate"
+
+    seen_sizes = []
+
+    def fake_exact(file_dcfs):
+        seen_sizes.append(len(file_dcfs))
+        return 0.42
+
+    monkeypatch.setattr(detector, "_compute_coherence_vr_exact", fake_exact)
+
+    file_dcfs = [{"Module": 1.0}] * 40
+    coherence, level = detector._compute_coherence_vr(file_dcfs)
+
+    assert coherence == 0.42
+    assert level == "vr_structural_approx"
+    assert seen_sizes == [5]
+
+
 def test_calculate_pattern_penalty(detector):
     """Test pattern penalty calculation."""
     from slop_detector.patterns.base import Axis, Issue, Severity
