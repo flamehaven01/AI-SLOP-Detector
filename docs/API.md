@@ -195,6 +195,27 @@ compatibility.
 
 ---
 
+### MCP Surface
+
+The same contract is also available over MCP stdio:
+
+```bash
+slop-detector mcp
+# or
+slop-mcp
+```
+
+Tools:
+
+- `slop_schema`
+- `slop_analyze_file`
+- `slop_analyze_project`
+
+The MCP wrapper is intentionally thin. It forwards to the same structured
+agent snapshot models instead of introducing a second analysis contract.
+
+---
+
 ## Data Models
 
 ### AnalysisRequest

@@ -246,6 +246,22 @@ slop-detector fix <path> --dry-run
 slop-detector explain dead-code
 ```
 
+## MCP Server
+
+The same structured agent surface is available over MCP stdio:
+
+```bash
+slop-detector mcp
+# or
+slop-mcp
+```
+
+Tools exposed by the wrapper:
+
+- `slop_schema`
+- `slop_analyze_file`
+- `slop_analyze_project`
+
 ## Complete CLI Reference
 
 ```

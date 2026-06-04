@@ -75,6 +75,7 @@ dev = [
 slop-detector = "slop_detector.cli:main"
 ai-slop-detector = "slop_detector.cli:main"
 slop-api = "slop_detector.api.server:run_server"
+slop-mcp = "slop_detector.mcp.server:main"
 
 [project.urls]
 Homepage = "https://github.com/flamehaven/ai-slop-detector"

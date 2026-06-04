@@ -35,6 +35,7 @@ from slop_detector.cli_renderer import (  # noqa: F401
 )
 from slop_detector.core import SlopDetector
 from slop_detector.leda_injection import build_leda_injection, write_leda_injection
+from slop_detector.mcp.server import run_stdio_server
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
 from slop_detector.operations import (
     build_audit_payload,
@@ -606,6 +607,8 @@ def main() -> int:
     """CLI entry point."""
     if len(sys.argv) > 1 and sys.argv[1] in _OPERATIONS_COMMANDS:
         return _run_operations_command(sys.argv[1], sys.argv[2:])
+    if len(sys.argv) > 1 and sys.argv[1] == "mcp":
+        return run_stdio_server()
     if len(sys.argv) > 1 and sys.argv[1] == "verify-governance":
         verify_parser = argparse.ArgumentParser(
             prog="slop-detector verify-governance",

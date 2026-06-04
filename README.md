@@ -143,6 +143,14 @@ slop-detector watch . --follow
 slop-detector explain dead-code
 ```
 
+Agent tooling can use the same semantics over MCP stdio:
+
+```bash
+slop-detector mcp
+# or
+slop-mcp
+```
+
 ---
 
 ## Scope And Boundaries

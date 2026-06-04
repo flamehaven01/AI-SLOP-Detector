@@ -281,6 +281,12 @@ Use this document as the execution checklist for the next phases.
 - no duplicated analysis semantics appear in the wrapper
 - the wrapper stays thin and protocol-compliant
 
+### Current implementation
+
+- stdio JSON-RPC wrapper with `initialize`, `tools/list`, and `tools/call`
+- thin tool surface: `slop_schema`, `slop_analyze_file`, `slop_analyze_project`
+- tool payloads reuse the same structured agent snapshot models as the REST API
+
 ---
 
 ## P8 - Rust Hot-Path Acceleration
