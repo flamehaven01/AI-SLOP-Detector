@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.9] - 2026-06-04 — Governance Verification Gate
+
+### Added
+
+**Fail-closed governance verification**
+
+- `slop-detector verify-governance` verifies `.cr-ep/governance_record.json`
+  by recomputing the canonical record hash and failing closed on tamper.
+- The gate also fails closed on policy violations such as `halt_count > 0`
+  or `trust_tier == "UNTRUSTED"`.
+- Governance verification is isolated from scoring so mathematical metrics and
+  enforcement policy remain separate layers.
+
+**Formal docs**
+
+- `docs/MATH_MODELS.md` now carries the snapshot audit boundary used by the
+  scoring model.
+- `docs/GOVERNANCE.md` documents the governance artifact contract and
+  verification command.
+
+### Changed
+
+- README, architecture notes, CLI usage, and release notes now describe the
+  governance verification surface and the math/enforcement split.
+
+---
+
 ## [3.7.8] - 2026-06-04 — Sovereign Upgrade Integration (P0-P4)
 
 ### Added

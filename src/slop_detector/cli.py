@@ -20,6 +20,7 @@ from slop_detector.cli_commands import (  # noqa: F401
     _run_init,
     _run_js_analysis,
     _run_self_calibration,
+    _run_verify_governance,
     _show_file_history,
     _show_trends,
 )
@@ -50,6 +51,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  slop-detector verify-governance ./.cr-ep  # Verify governance artifact integrity
   slop-detector --init                       # Bootstrap .slopconfig.yaml + .gitignore
   slop-detector file.py                      # Analyze single file
   slop-detector --project src/               # Analyze project
@@ -358,6 +360,20 @@ def _apply_runtime_overrides(args, detector) -> None:
 
 def main() -> int:
     """CLI entry point."""
+    if len(sys.argv) > 1 and sys.argv[1] == "verify-governance":
+        verify_parser = argparse.ArgumentParser(
+            prog="slop-detector verify-governance",
+            description="Verify CR-EP governance artifacts",
+        )
+        verify_parser.add_argument(
+            "target",
+            nargs="?",
+            default=".",
+            help="Project root or .cr-ep/governance_record.json path",
+        )
+        verify_args = verify_parser.parse_args(sys.argv[2:])
+        return _run_verify_governance(verify_args.target)
+
     args = _build_arg_parser().parse_args()
     setup_logging(args.verbose)
 

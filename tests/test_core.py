@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from slop_detector.core import SlopDetector
-from slop_detector.models import SlopStatus
+from slop_detector.models import DDCResult, InflationResult, LDRResult, SlopStatus
 
 
 @pytest.fixture
@@ -250,6 +250,60 @@ def multiply(a, b):
     as_dict = result.to_dict()
     assert "deficit_breakdown" in as_dict
     assert as_dict["deficit_breakdown"]["total"] == bd["total"]
+
+
+def test_weighted_geometric_deficit_contract(detector):
+    """The snapshot score must follow the declared weighted geometric formula."""
+    ldr = LDRResult(
+        total_lines=10,
+        logic_lines=8,
+        empty_lines=2,
+        ldr_score=0.8,
+        grade="A",
+    )
+    inflation_normalized = 0.25
+    inflation = InflationResult(
+        jargon_count=1,
+        avg_complexity=1.0,
+        inflation_score=0.5,
+        status="pass",
+        jargon_found=[],
+        jargon_details=[],
+    )
+    ddc = DDCResult(
+        imported=["os"],
+        actually_used=[],
+        unused=[],
+        fake_imports=[],
+        type_checking_imports=[],
+        usage_ratio=0.5,
+        grade="A",
+    )
+    purity = 1.0
+
+    gqg = detector._compute_gqg(ldr, inflation_normalized, ddc, purity)
+
+    import math
+
+    expected = math.exp(
+        (
+            0.40 * math.log(0.8)
+            + 0.30 * math.log(1.0 - inflation_normalized)
+            + 0.20 * math.log(0.5)
+            + 0.10 * math.log(1.0)
+        )
+        / 1.0
+    )
+
+    assert gqg == pytest.approx(expected, rel=1e-9, abs=1e-9)
+
+    score, status, warnings, breakdown = detector._calculate_slop_status(ldr, inflation, ddc, [])
+
+    assert status == SlopStatus.CLEAN
+    assert warnings == ["WARNING: Low import usage 50.00%"]
+    assert score == pytest.approx(100.0 * (1.0 - gqg), rel=1e-9, abs=1e-9)
+    assert breakdown["pattern_hits"] == 0.0
+    assert breakdown["total"] == round(score, 4)
 
 
 def test_weighted_analysis(detector, temp_python_file):

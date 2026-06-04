@@ -59,6 +59,28 @@ def test_prioritize_project_ranks_high_churn_low_coverage_high_deficit_first(tmp
     assert hotspots[0].priority_score > hotspots[1].priority_score
 
 
+def test_compute_priority_score_contract():
+    prioritizer = ProjectPrioritizer(
+        SimpleNamespace(
+            get_hotspot_weights=lambda: {"deficit": 0.5, "churn": 0.3, "coverage_gap": 0.2},
+            get_hotspot_limit=lambda: 10,
+            get_churn_commit_window=lambda: 200,
+            get_coverage_data_file=lambda: ".coverage",
+        )
+    )
+
+    score = prioritizer._compute_priority_score(
+        deficit_score=80.0,
+        churn_score=0.75,
+        coverage_gap=0.80,
+        weights={"deficit": 0.5, "churn": 0.3, "coverage_gap": 0.2},
+    )
+
+    expected = 100.0 * ((0.5 * 0.8 + 0.3 * 0.75 + 0.2 * 0.80) / (0.5 + 0.3 + 0.2))
+
+    assert score == expected
+
+
 def test_load_coverage_ratios_reads_coverage_data(tmp_path):
     config = SimpleNamespace(
         get_hotspot_weights=lambda: {"deficit": 0.5, "churn": 0.3, "coverage_gap": 0.2},

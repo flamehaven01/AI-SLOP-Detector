@@ -23,9 +23,9 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 </p>
 
 **Release track**
-- Stable tag: `v3.7.8`
-- Previous stable tag: `v3.7.7`
-- `v3.7.8` includes the sovereign upgrade integration across structural scaling, suppression, cache, hotspot prioritization, and agent-native surface.
+- Stable tag: `v3.7.9`
+- Previous stable tag: `v3.7.8`
+- `v3.7.9` adds the fail-closed governance verification gate and formalizes the math / enforcement boundary in the docs.
 
 ---
 
@@ -73,7 +73,7 @@ General linters flag style and convention. This tool flags structural risk.
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.7.8"
+pip install "ai-slop-detector>=3.7.9"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -86,7 +86,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.7.8"
+pip install "ai-slop-detector>=3.7.9"
 
 slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
 slop-detector mycode.py                    # single file
@@ -123,6 +123,15 @@ python -m pytest -q
 ruff check src tests
 python -m build
 ```
+
+Governance verification is a separate enforcement gate:
+
+```bash
+slop-detector verify-governance ./.cr-ep
+```
+
+See [docs/GOVERNANCE.md](docs/GOVERNANCE.md) for the artifact contract and
+policy checks.
 
 ---
 
@@ -186,6 +195,7 @@ Use the docs by task, not by chronology:
 - [docs/LEDA_CALIBRATION.md](docs/LEDA_CALIBRATION.md)
 - [docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md](docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md)
 - [docs/HISTORY_TRACKING.md](docs/HISTORY_TRACKING.md)
+- [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
 
 **Interfaces**
 - [docs/CLI_USAGE.md](docs/CLI_USAGE.md)
@@ -634,6 +644,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.7.9** | **Governance gate**: `verify-governance` fail-closed CLI, deterministic governance-record verification, and a formal split between scoring math and enforcement |
 | **v3.7.3** | **Hotfix**: pydantic import wrapped in `try/except ImportError` — package imports cleanly in stripped environments; `test_api_models.py` guard corrected to `fastapi`; CI Docker login `continue-on-error`, quality gate pinned to `>=3.7.3` |
 | **v3.7.2** | **Core schema validation**: `config.py` Pydantic guards catch bad `.slopconfig.yaml` at load time (wrong weight types, `domain_overrides` non-int thresholds); `LDRResult` / `DDCResult` / `InflationResult` `__post_init__` clamps protect GQG `math.log()`; `HistoryEntry` sanitises all LEDA calibration inputs + validates `fired_rules` JSON; **VS Code**: `schema.ts` `ISlopReport` interfaces + `parseSlopReport()` handwritten discriminated-union guard — schema mismatch surfaces exact field path before silent NaN |
 | **v3.7.1** | `LintEscapePattern` docstring FP fix; self-scan avg_deficit 13.85 → 9.80; `global_injector.py` Patch 1 removed; `.slopconfig.yaml` domain_overrides expanded; **Skill**: 3-Phase Pipeline (Triage → Deep-Dive → Action Plan), `/slop-delta` before/after comparison, Confidence Routing by status band, `→ Next:` guidance per command; **VS Code**: P1 monolith → 8 focused modules, P2 `SlopCodeActionProvider` (QuickFix for phantom_import/god_function/lint_escape), P3 TreeView sidebar (3-level hierarchy), P4 `SlopCodeLensProvider` (file summary + per-function hints) |

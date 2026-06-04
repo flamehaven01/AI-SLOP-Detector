@@ -1,4 +1,4 @@
-# Mathematical Models Reference — AI-SLOP Detector v3.7.3
+# Mathematical Models Reference — AI-SLOP Detector v3.7.9
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.
@@ -17,6 +17,7 @@
 8. [Function-Scoped Justification](#8-function-scoped-justification)
 9. [ML Feature Vector](#9-ml-feature-vector)
 10. [ML Secondary Signal (MLScore)](#10-ml-secondary-signal)
+11. [Snapshot Audit Boundary](#11-snapshot-audit-boundary)
 
 ---
 
@@ -566,7 +567,46 @@ pattern_penalties:
 
 ---
 
-*This document reflects the implementation in `src/slop_detector/` as of v3.7.3.
+*This document reflects the implementation in `src/slop_detector/` as of v3.7.9.
 For source-level detail see `metrics/inflation.py`, `core.py`,
 `patterns/python_advanced.py`, `ml/scorer.py`, and `docs/SCHEMA_VALIDATION.md`
 (runtime range guards for all metric result dataclasses).*
+
+---
+
+## 11. Snapshot Audit Boundary
+
+The repository keeps the scoring model and governance enforcement separate.
+This section records the math that is safe to treat as part of the scoring
+surface and the boundary around it.
+
+### Temporal drift summary
+
+Temporal drift is read-only summary data. It describes how a file's score moves
+over time but does not alter the score itself.
+
+```text
+drift_direction = sign(recent_average - historical_average)
+drift_delta = recent_average - historical_average
+```
+
+This is used for reporting and trend inspection only.
+
+### Governance record hash
+
+The governance record is a reconstructable artifact, not a scoring input.
+The canonical hash is computed over the record with volatile timestamps
+removed:
+
+```text
+canonical_record = JSON(record without generated_at_utc and record_hash)
+record_hash = SHA-256(canonical_record)
+```
+
+### Boundary rule
+
+- Scoring math may include deficit composition, deterministic topology, and
+  hotspot prioritization.
+- Enforcement math may verify the governance record hash and policy fields.
+- Enforcement may fail closed, but it does not feed back into the deficit
+  score.

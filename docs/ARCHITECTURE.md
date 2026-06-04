@@ -1,6 +1,6 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.7.8
+**Version:** 3.7.9
 **Last Updated:** 2026-06-04
 
 ---
@@ -109,6 +109,12 @@ field path)           score clamped         at insert
 **VS Code boundary** (`schema.ts`): `parseSlopReport(data: unknown): ParseResult<ISlopReport>`
 applies the same principle at the CLI→extension boundary — typed discriminated union, no
 external validation library, exact `field / expected / got` error on mismatch.
+
+**Governance boundary** (`governance_record.json` + `verify-governance`): the
+scoring model emits a reconstructable record, while the enforcement layer
+recomputes the canonical hash and checks policy state in a separate CLI gate.
+This keeps math changes from silently changing CI policy and keeps policy
+changes from mutating the scoring model.
 
 ---
 
@@ -781,6 +787,8 @@ slop-detector scan ./src --format json
 - Minimal dependencies
 - No network calls during analysis
 - Optional ML features isolated
+- Governance verification is fail-closed and reads `.cr-ep/governance_record.json`
+  only; it does not feed back into scoring
 
 ---
 
@@ -807,6 +815,7 @@ slop-detector scan ./src --format json
 - [Usage Guide](USAGE.md)
 - [Pattern Catalog](PATTERNS.md)
 - [API Reference](API.md)
+- [Governance Verification](GOVERNANCE.md)
 
 ### External Resources
 - [AST Module Documentation](https://docs.python.org/3/library/ast.html)
@@ -824,4 +833,4 @@ slop-detector scan ./src --format json
 ---
 
 **Last Updated:** 2026-06-04
-**Version:** 3.7.8
+**Version:** 3.7.9

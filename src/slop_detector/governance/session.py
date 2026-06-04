@@ -8,6 +8,7 @@ Artifacts: session.json, why_gate.json, scope_declaration.json,
 
 from __future__ import annotations
 
+import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field
@@ -41,7 +42,7 @@ class AnalysisSession:
 
     def __post_init__(self) -> None:
         self.cr_ep_dir = Path(self.project_path) / ".cr-ep"
-        self.cr_ep_dir.mkdir(exist_ok=True)
+        self.cr_ep_dir.mkdir(parents=True, exist_ok=True)
         self._write_session()
         self._write_why_gate()
 
@@ -107,6 +108,7 @@ class AnalysisSession:
         self._write_change_events()
         self._write_enforcement_log()
         self._write_review_contract(total_issues, halt_count)
+        self._write_governance_record(files_planned, files_actual, total_issues, halt_count)
         return self.cr_ep_dir
 
     # ------------------------------------------------------------------
@@ -194,6 +196,64 @@ class AnalysisSession:
             "finalized_at_utc": datetime.now(timezone.utc).isoformat(),
         }
         self._write_json("review_contract.json", data)
+
+    def _build_governance_record(
+        self,
+        files_planned: List[str],
+        files_actual: List[str],
+        total_issues: int,
+        halt_count: int,
+    ) -> Dict[str, Any]:
+        """Build a reconstructable governance record from the session artifacts."""
+        payload: Dict[str, Any] = {
+            "schema_version": "1.0",
+            "kind": "governance_record",
+            "cr_ep_version": CR_EP_VERSION,
+            "session_id": self.session_id,
+            "mode": self.mode,
+            "trust_tier": self.trust_tier,
+            "project_path": str(self.project_path),
+            "declared_why": self.declared_why,
+            "started_at_utc": self.started_at.isoformat(),
+            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            "counts": {
+                "planned_files": len(files_planned),
+                "actual_files": len(files_actual),
+                "total_issues": total_issues,
+                "halt_count": halt_count,
+            },
+            "artifacts": {
+                "session": "session.json",
+                "why_gate": "why_gate.json",
+                "scope_declaration": "scope_declaration.json",
+                "change_events": "change_events.jsonl",
+                "enforcement_log": "enforcement_log.jsonl",
+                "review_contract": "review_contract.json",
+            },
+            "comparability": {
+                "cr_ep_version": CR_EP_VERSION,
+                "mode": self.mode,
+                "trust_tier": self.trust_tier,
+                "project_path": str(self.project_path),
+            },
+        }
+        hash_payload = dict(payload)
+        hash_payload.pop("generated_at_utc", None)
+        canonical = json.dumps(hash_payload, sort_keys=True, separators=(",", ":"))
+        payload["record_hash"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        return payload
+
+    def _write_governance_record(
+        self,
+        files_planned: List[str],
+        files_actual: List[str],
+        total_issues: int,
+        halt_count: int,
+    ) -> None:
+        self._write_json(
+            "governance_record.json",
+            self._build_governance_record(files_planned, files_actual, total_issues, halt_count),
+        )
 
     def _write_json(self, filename: str, data: Dict[str, Any]) -> None:
         path = self.cr_ep_dir / filename

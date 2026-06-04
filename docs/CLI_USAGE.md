@@ -211,6 +211,24 @@ See [CI/CD Integration Guide](CI_CD.md) for:
 - Quarantine mode (track offenders)
 - Claim-based enforcement
 
+## Governance Verification
+
+The governance verification gate is separate from scoring and CI summary
+reporting:
+
+```bash
+slop-detector verify-governance ./.cr-ep
+```
+
+It recomputes the canonical hash in `.cr-ep/governance_record.json` and
+fails closed when:
+
+- the record hash does not match
+- `counts.halt_count > 0`
+- `trust_tier == "UNTRUSTED"`
+
+See [GOVERNANCE.md](GOVERNANCE.md) for the record contract.
+
 ## Complete CLI Reference
 
 ```

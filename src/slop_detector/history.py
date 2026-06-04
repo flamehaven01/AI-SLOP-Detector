@@ -294,19 +294,35 @@ class HistoryTracker:
 
     def detect_regression(self, file_path: str, current_score: float) -> Optional[Dict[str, Any]]:
         """Return regression info if current score is 10+ points worse than recent avg."""
-        history = self.get_file_history(file_path, limit=5)
+        summary = self.get_file_drift_summary(file_path, current_score, limit=5)
+        if summary is None:
+            return None
+        summary["is_regression"] = summary["delta"] >= 10.0
+        return summary
+
+    def get_file_drift_summary(
+        self, file_path: str, current_score: float, limit: int = 5
+    ) -> Optional[Dict[str, Any]]:
+        """Return a temporal drift summary for a file.
+
+        This is a read-only comparison surface over existing history records.
+        It does not mutate policy or alter scoring.
+        """
+        history = self.get_file_history(file_path, limit=limit)
         if not history:
             return None
 
         recent_avg = sum(h["deficit_score"] for h in history) / len(history)
         delta = current_score - recent_avg
+        direction = "improved" if delta < 0 else "degraded" if delta > 0 else "stable"
 
         return {
-            "is_regression": delta >= 10.0,
             "current_score": current_score,
             "recent_average": round(recent_avg, 2),
             "delta": round(delta, 2),
+            "direction": direction,
             "history_count": len(history),
+            "is_regression": delta >= 10.0,
         }
 
     def get_project_trends(self, days: int = 7) -> Dict[str, Any]:

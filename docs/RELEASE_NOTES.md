@@ -5,6 +5,35 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.7.9 — 2026-06-04
+
+### Summary
+
+This release adds a fail-closed governance verification gate and moves the
+mathematical model boundary into formal docs so scoring math stays separate
+from enforcement policy.
+
+### Added
+
+**Governance verification**
+- `slop-detector verify-governance` recomputes the canonical
+  `.cr-ep/governance_record.json` hash and exits non-zero on tamper.
+- The command also fails closed when the record violates governance policy,
+  such as `halt_count > 0` or `trust_tier == "UNTRUSTED"`.
+
+**Formal documentation**
+- `docs/MATH_MODELS.md` now documents the snapshot audit boundary for the
+  scoring model.
+- `docs/GOVERNANCE.md` explains the record contract and the enforcement gate.
+
+### Validation
+
+- `python -m pytest tests/test_verify_governance.py tests/test_governance_session.py -q -W error::ResourceWarning`
+- `python -m black --check src/slop_detector/cli_commands.py tests/test_verify_governance.py`
+- `python -m ruff check src/slop_detector/cli_commands.py tests/test_verify_governance.py`
+
+---
+
 ## v3.7.8 — 2026-06-04
 
 ### Summary
@@ -59,8 +88,8 @@ cross-language aggregation and ML reproducibility fixes.
 
 ### Tag
 
-- Latest stable tag: `v3.7.8`
-- Previous stable tag: `v3.7.7`
+- Latest stable tag: `v3.7.9`
+- Previous stable tag: `v3.7.8`
 
 ## v3.7.4 — 2026-05-19
 

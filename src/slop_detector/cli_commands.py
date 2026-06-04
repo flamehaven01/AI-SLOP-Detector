@@ -1,6 +1,7 @@
 """Command execution helpers for the SLOP detector CLI."""
 
 import argparse
+import sys
 from pathlib import Path
 
 
@@ -178,6 +179,46 @@ def _run_governance(path: str, result) -> None:
     print(f"\n[Governance] CR-EP v2.7.2 artifacts written to: {cr_ep_dir}")
     print("  session.json, why_gate.json, scope_declaration.json")
     print("  enforcement_log.jsonl, change_events.jsonl, review_contract.json")
+
+
+def _resolve_governance_record_path(target: str) -> Path:
+    path = Path(target)
+    if path.is_dir():
+        candidate = path / ".cr-ep" / "governance_record.json"
+        if candidate.exists():
+            return candidate
+        candidate = path / "governance_record.json"
+        if candidate.exists():
+            return candidate
+    if path.is_file():
+        return path
+    candidate = path / ".cr-ep" / "governance_record.json"
+    if candidate.exists():
+        return candidate
+    return path
+
+
+def _run_verify_governance(target: str) -> int:
+    """Verify governance artifact integrity and policy constraints."""
+    from slop_detector.governance.verification import (
+        GovernanceVerificationError,
+        verify_governance_record,
+    )
+
+    record_path = _resolve_governance_record_path(target)
+    try:
+        record, computed_hash = verify_governance_record(record_path)
+    except GovernanceVerificationError as exc:
+        print(f"[!] Governance verification failed: {exc}", file=sys.stderr)
+        return 1
+
+    print("[Governance Verification]")
+    print(f"  Record     : {record_path}")
+    print(f"  Hash       : {computed_hash[:16]}...")
+    print(f"  Session    : {record.get('session_id', 'unknown')}")
+    print("  Integrity  : PASS")
+    print("  Policy     : PASS")
+    return 0
 
 
 def _detect_project_type(path: Path) -> str:

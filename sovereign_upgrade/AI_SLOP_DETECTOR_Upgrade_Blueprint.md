@@ -25,6 +25,12 @@ It is weaker at:
 
 So the upgrade program should begin with mechanics, not marketing.
 
+Execution note:
+- model changes are now gated through
+  `AI_SLOP_DETECTOR_MATHEMATICAL_CHECKLIST.md`
+- the blueprint stays phase-oriented; the checklist handles add-one-by-one
+  acceptance and rollback decisions
+
 ---
 
 ## 2. Active Implementation Ladder
