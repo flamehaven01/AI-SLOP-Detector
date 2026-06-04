@@ -5,6 +5,52 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.7.7 — 2026-06-04
+
+### Summary
+
+This patch closes a follow-through gap introduced after JS/TS and Go support were
+added: project-level aggregation and ignore behavior were not fully brought up to
+the same standard as the original Python path. It also hardens the ML training
+pipeline so synthetic training runs are reproducible and their reports reflect
+usable samples rather than requested samples.
+
+### Fixed
+
+**Project aggregation across Python + JS/TS + Go**
+- `core.py`: project summaries now aggregate all supported language analyzers
+  before computing totals and overall status.
+- JS-only or Go-only projects no longer return the empty-project `clean` result.
+- Status normalization now explicitly handles Python enum values and JS/Go string
+  statuses through one helper boundary.
+
+**Ignore matching parity**
+- `core.py`: `_should_ignore()` now supports repo-relative matching when the scan
+  begins from an absolute project root.
+- Patterns like `tests/**`, `**/*.generated.py`, and `src/**/*.generated.py` are
+  now regression-covered and consistent across Python, JS/TS, and Go project scans.
+
+**Metric consistency**
+- `core.py`: `avg_ddc` denominator corrected so Python-derived DDC averages are not
+  diluted by JS/Go file counts.
+
+**ML pipeline**
+- `ml/pipeline.py`: synthetic `TrainingSample` objects retain their generated code.
+- `_build_dataset()` consumes preserved sample source instead of silently generating
+  fresh code at feature-extraction time.
+- Training reports now reflect usable feature rows.
+- One-class datasets now fail fast with a clear `ValueError`.
+
+### Validation
+
+- `python -m pytest tests/test_core.py -k "should_ignore or analyze_project_repo_relative_ignore_patterns or analyze_project_includes_non_python_results_in_aggregate or analyze_project_js_only_is_not_reported_as_empty_clean" -q`
+- `python -m pytest tests/test_core.py tests/test_js_analyzer.py tests/test_go_analyzer.py tests/test_ml_pipeline.py -q`
+
+### Tag
+
+- Latest stable tag: `v3.7.7`
+- Previous stable tag: `v3.7.6`
+
 ## v3.7.4 — 2026-05-19
 
 ### Fixed

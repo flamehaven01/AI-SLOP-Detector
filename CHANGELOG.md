@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.7] - 2026-06-04 — Cross-Language Aggregation Follow-Through & ML Pipeline Reproducibility
+
+### Fixed
+
+**Cross-language project aggregation completeness**
+
+- `core.py` — `analyze_project()` now aggregates Python, JS/TS, and Go results into a
+  single `all_results` collection before computing `total_files`, `deficit_files`,
+  `clean_files`, `avg_deficit_score`, `weighted_deficit_score`, and
+  `overall_status`.
+- JS-only and Go-only projects no longer fall through the empty-project path and
+  get mislabeled as `clean` with `total_files = 0`.
+- Added language-neutral helpers for project aggregation so Python `SlopStatus`
+  enum values and JS/Go string statuses are normalized through one boundary.
+
+**Repo-relative ignore matching on absolute paths**
+
+- `core.py` — `_should_ignore()` now accepts an optional `root` and matches both
+  absolute and repo-relative normalized paths. Patterns such as `tests/**`,
+  `**/*.generated.py`, and `src/**/*.generated.py` now behave consistently during
+  project scans.
+- `analyze_project()`, `_analyze_js_files()`, and `_analyze_go_files()` now pass
+  `root=project_path_obj` into `_should_ignore()` so all three language paths use
+  the same ignore semantics.
+
+**Project metric consistency**
+
+- `core.py` — `avg_ddc` now uses the Python-result count as its denominator
+  (`max(1, len(results))`) instead of `total_files`. This restores consistency with
+  `avg_inflation`, which is Python-derived only, and prevents JS/Go file counts
+  from artificially depressing DDC averages.
+
+**ML pipeline reproducibility and report correctness**
+
+- `ml/pipeline.py` — `TrainingSample` now preserves generated source in `code`.
+- `_build_dataset()` reuses `sample.code` instead of regenerating synthetic files,
+  eliminating hidden drift between labeled sample creation and feature extraction.
+- `_train_from_dataset()` centralizes dataset training, report writing, and
+  fail-fast validation.
+- Training now raises `ValueError` when only one class remains after filtering,
+  instead of proceeding into an invalid one-class training run.
+- `PipelineReport.n_samples`, `n_train`, and `n_test` now reflect usable feature
+  rows rather than originally requested raw sample count.
+
+### Added
+
+- `tests/test_core.py` — regression tests for:
+  - JS/Go-inclusive project aggregation
+  - JS-only project status
+  - repo-relative ignore behavior on absolute paths
+  - recursive generated-file glob ignores
+- `tests/test_ml_pipeline.py` — regression tests for:
+  - synthetic sample code preservation
+  - no-regeneration dataset building
+  - usable-sample report counts
+  - one-class fail-fast behavior
+
 ## [3.7.6] - 2026-05-24 — UX & Distribution: Deficit Breakdown, Idempotent `--init`, Windows Output Path
 
 ### Added

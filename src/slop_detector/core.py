@@ -9,7 +9,7 @@ import math
 from collections import Counter
 from math import exp, log, sqrt
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from slop_detector.config import Config
 from slop_detector.file_role import classify_file
@@ -284,7 +284,7 @@ class SlopDetector:
         python_files = []
         for file_path in project_path_obj.glob(pattern):
             # Check ignore patterns
-            if self._should_ignore(file_path, ignore_patterns):
+            if self._should_ignore(file_path, ignore_patterns, root=project_path_obj):
                 continue
             python_files.append(file_path)
 
@@ -304,7 +304,9 @@ class SlopDetector:
         # Phase 3c: Go analysis is independent of Python — run before early return
         go_results = self._analyze_go_files(project_path_obj, ignore_patterns)
 
-        if not results:
+        all_results = results + js_results + go_results
+
+        if not all_results:
             logger.warning("No files analyzed")
             pa = self._create_empty_project_analysis(str(project_path))
             pa.js_file_results = js_results
@@ -312,30 +314,32 @@ class SlopDetector:
             return pa
 
         # Calculate aggregated metrics
-        total_files = len(results)
-        slop_files = sum(1 for r in results if r.status != SlopStatus.CLEAN)
+        total_files = len(all_results)
+        slop_files = sum(1 for r in all_results if self._is_result_non_clean(r))
         clean_files = total_files - slop_files
 
-        # Simple average for deficit score
-        avg_deficit_score = sum(r.deficit_score for r in results) / total_files
+        # Simple average for deficit score across all supported languages.
+        avg_deficit_score = sum(self._result_slop_score(r) for r in all_results) / total_files
 
-        # v2.8.0: SR9-inspired conservative LDR aggregation
-        # SR9 = 0.6*min + 0.4*mean — gives more weight to worst-case file
-        # Prevents bad files from being diluted by the average
-        ldr_scores = [r.ldr.ldr_score for r in results]
+        # v2.8.0: SR9-inspired conservative LDR aggregation across all languages.
+        # Prevents bad files from being diluted by the average.
+        ldr_scores = [self._result_ldr_score(r) for r in all_results]
         avg_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / total_files)
         avg_inflation = sum(
             r.inflation.inflation_score
             for r in results
             if math.isfinite(r.inflation.inflation_score)
         ) / max(1, sum(1 for r in results if math.isfinite(r.inflation.inflation_score)))
-        avg_ddc = sum(r.ddc.usage_ratio for r in results) / total_files
+        avg_ddc = sum(r.ddc.usage_ratio for r in results) / max(1, len(results))
 
         # Weighted average (by LOC)
         if self.config.use_weighted_analysis():
-            total_loc = sum(r.ldr.total_lines for r in results)
+            total_loc = sum(self._result_total_lines(r) for r in all_results)
             weighted_deficit_score = (
-                sum(r.deficit_score * (r.ldr.total_lines / total_loc) for r in results)
+                sum(
+                    self._result_slop_score(r) * (self._result_total_lines(r) / total_loc)
+                    for r in all_results
+                )
                 if total_loc > 0
                 else avg_deficit_score
             )
@@ -385,7 +389,7 @@ class SlopDetector:
             fp
             for fp in project_path_obj.rglob("*")
             if fp.suffix.lower() in self._JS_EXTENSIONS
-            and not self._should_ignore(fp, ignore_patterns)
+            and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
         ]
         if not js_files:
             return []
@@ -411,7 +415,7 @@ class SlopDetector:
             fp
             for fp in project_path_obj.rglob("*")
             if fp.suffix.lower() in self._GO_EXTENSIONS
-            and not self._should_ignore(fp, ignore_patterns)
+            and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
         ]
         if not go_files:
             return []
@@ -750,21 +754,55 @@ class SlopDetector:
         # Cap pattern penalty at 50 points
         return min(penalty, 50.0)
 
-    def _should_ignore(self, file_path: Path, patterns: List[str]) -> bool:
+    @staticmethod
+    def _result_status_value(result: Any) -> str:
+        status = getattr(result, "status", SlopStatus.CLEAN)
+        return status.value if isinstance(status, SlopStatus) else str(status)
+
+    def _is_result_non_clean(self, result: Any) -> bool:
+        return self._result_status_value(result) != SlopStatus.CLEAN.value
+
+    @staticmethod
+    def _result_slop_score(result: Any) -> float:
+        if hasattr(result, "deficit_score"):
+            return float(result.deficit_score)
+        return float(getattr(result, "slop_score", 0.0))
+
+    @staticmethod
+    def _result_total_lines(result: Any) -> int:
+        if hasattr(result, "ldr"):
+            return int(getattr(result.ldr, "total_lines", 0))
+        return int(getattr(result, "total_lines", 0))
+
+    @staticmethod
+    def _result_ldr_score(result: Any) -> float:
+        if hasattr(result, "ldr"):
+            return float(getattr(result.ldr, "ldr_score", 0.0))
+        return float(getattr(result, "ldr_equivalent", 0.0))
+
+    def _should_ignore(
+        self, file_path: Path, patterns: List[str], root: Optional[Path] = None
+    ) -> bool:
         """Check if file matches any ignore pattern."""
         lowered_parts = {part.lower() for part in file_path.parts}
         if lowered_parts & DEFAULT_EXCLUDE_PARTS:
             return True
 
-        normalized = str(file_path).replace("\\", "/")
+        normalized_paths = {str(file_path).replace("\\", "/")}
+        if root is not None:
+            try:
+                normalized_paths.add(str(file_path.relative_to(root)).replace("\\", "/"))
+            except ValueError:
+                pass
         for pattern in patterns:
             pat = str(pattern).replace("\\", "/")
-            if file_path.match(pat):
-                return True
-            if fnmatch.fnmatch(normalized, pat):
-                return True
-            if pat.startswith("**/") and fnmatch.fnmatch(normalized, pat[3:]):
-                return True
+            for normalized in normalized_paths:
+                if Path(normalized).match(pat):
+                    return True
+                if fnmatch.fnmatch(normalized, pat):
+                    return True
+                if pat.startswith("**/") and fnmatch.fnmatch(normalized, pat[3:]):
+                    return True
         return False
 
     def _create_error_analysis(self, file_path: str, error: str) -> FileAnalysis:

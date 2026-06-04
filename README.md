@@ -22,6 +22,11 @@ Detects unimplemented stubs, phantom imports, disconnected pipelines, clone clus
 File-level evidence. Machine-readable output. No LLM in the scoring path.
 </p>
 
+**Release track**
+- Stable tag: `v3.7.7`
+- Previous stable tag: `v3.7.6`
+- `v3.7.7` includes the cross-language aggregation, repo-relative ignore, and ML-pipeline follow-through fixes described in the changelog and release notes.
+
 ---
 
 **Navigation:**
@@ -68,7 +73,7 @@ General linters flag style and convention. This tool flags structural risk.
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.7.6"
+pip install "ai-slop-detector>=3.7.7"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -81,7 +86,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.7.6"
+pip install "ai-slop-detector>=3.7.7"
 
 slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
 slop-detector mycode.py                    # single file

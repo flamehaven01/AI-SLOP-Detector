@@ -2,6 +2,7 @@
 
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -420,6 +421,96 @@ def test_should_ignore(detector):
 
     venv_path = Path("project/.venv/Lib/site-packages/pkg/module.py")
     assert detector._should_ignore(venv_path, ignore_patterns) is True
+
+
+def test_should_ignore_with_project_root_absolute_path(detector, tmp_path):
+    """Repo-relative ignore globs must still work for absolute paths."""
+    test_path = tmp_path / "tests" / "test_main.py"
+    test_path.parent.mkdir()
+    test_path.write_text("def test_main():\n    assert True\n", encoding="utf-8")
+
+    assert detector._should_ignore(test_path, ["tests/**"], root=tmp_path) is True
+
+
+def test_should_ignore_recursive_generated_glob(detector, tmp_path):
+    """Recursive generated-file globs should match repo-relative nested paths."""
+    generated_path = tmp_path / "src" / "generated" / "foo.generated.py"
+    generated_path.parent.mkdir(parents=True)
+    generated_path.write_text("x = 1\n", encoding="utf-8")
+
+    assert detector._should_ignore(generated_path, ["**/*.generated.py"], root=tmp_path) is True
+    assert detector._should_ignore(generated_path, ["src/**/*.generated.py"], root=tmp_path) is True
+
+
+def test_analyze_project_repo_relative_ignore_patterns(detector, tmp_path, monkeypatch):
+    """Project analysis must apply repo-relative ignore patterns to absolute paths."""
+    (tmp_path / "src").mkdir()
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "src" / "main.py").write_text("def main():\n    return 1\n", encoding="utf-8")
+    (tmp_path / "tests" / "test_main.py").write_text(
+        "def test_main():\n    assert True\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(detector.config, "get_ignore_patterns", lambda: ["tests/**"])
+
+    result = detector.analyze_project(str(tmp_path))
+
+    analyzed = {Path(item.file_path).name for item in result.file_results}
+    assert analyzed == {"main.py"}
+
+
+def test_analyze_project_includes_non_python_results_in_aggregate(
+    detector, tmp_path, monkeypatch
+):
+    """Project totals and status must include JS/Go analyzer results."""
+    (tmp_path / "src").mkdir()
+    app_path = tmp_path / "src" / "app.py"
+    app_path.write_text("def ok():\n    return 1\n", encoding="utf-8")
+    py_result = detector.analyze_file(str(app_path))
+    js_result = SimpleNamespace(
+        file_path=str(tmp_path / "index.js"),
+        total_lines=200,
+        ldr_equivalent=0.10,
+        slop_score=80.0,
+        status="critical_deficit",
+    )
+    go_result = SimpleNamespace(
+        file_path=str(tmp_path / "main.go"),
+        total_lines=40,
+        ldr_equivalent=0.90,
+        slop_score=0.0,
+        status="clean",
+    )
+    monkeypatch.setattr(detector.config, "get_ignore_patterns", lambda: [])
+    monkeypatch.setattr(detector, "analyze_file", lambda path: py_result)
+    monkeypatch.setattr(detector, "_analyze_js_files", lambda *args, **kwargs: [js_result])
+    monkeypatch.setattr(detector, "_analyze_go_files", lambda *args, **kwargs: [go_result])
+
+    result = detector.analyze_project(str(tmp_path))
+
+    assert result.total_files == 3
+    assert result.deficit_files >= 1
+    assert result.clean_files == result.total_files - result.deficit_files
+    assert result.overall_status == SlopStatus.CRITICAL_DEFICIT
+
+
+def test_analyze_project_js_only_is_not_reported_as_empty_clean(detector, tmp_path, monkeypatch):
+    """JS-only projects must not fall through to empty CLEAN results."""
+    js_result = SimpleNamespace(
+        file_path=str(tmp_path / "index.js"),
+        total_lines=120,
+        ldr_equivalent=0.15,
+        slop_score=72.0,
+        status="critical_deficit",
+    )
+    monkeypatch.setattr(detector, "_analyze_js_files", lambda *args, **kwargs: [js_result])
+    monkeypatch.setattr(detector, "_analyze_go_files", lambda *args, **kwargs: [])
+
+    result = detector.analyze_project(str(tmp_path))
+
+    assert result.total_files == 1
+    assert result.deficit_files == 1
+    assert result.js_file_results == [js_result]
+    assert result.overall_status == SlopStatus.CRITICAL_DEFICIT
 
 
 def test_calculate_pattern_penalty(detector):

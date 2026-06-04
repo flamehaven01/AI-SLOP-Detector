@@ -36,6 +36,7 @@ class TrainingSample:
     label: int  # 0 = clean, 1 = slop
     features: Dict[str, float]
     source: str  # "synthetic_slop" | "synthetic_clean" | "real"
+    code: str = ""
 
 
 @dataclass
@@ -276,52 +277,7 @@ class MLPipeline:
         logger.info(
             f"[Pipeline] Feature dataset ready: {len(dataset['good'])} clean, {len(dataset['bad'])} slop"
         )
-
-        # Write dataset to temp file
-        dataset_path = self.output_dir / "training_data.json"
-        with open(dataset_path, "w", encoding="utf-8") as f:
-            json.dump(dataset, f)
-
-        logger.info(f"[Pipeline] Training {model_type} classifier...")
-        classifier = SlopClassifier(model_type=model_type)
-        metrics = classifier.train(dataset_path, test_size=test_size)
-
-        model_path = None
-        if save_model:
-            model_path = str(self.output_dir / "slop_classifier.pkl")
-            classifier.save(Path(model_path))
-            logger.info(f"[Pipeline] Model saved: {model_path}")
-
-        # Feature importance from RF model
-        feature_importance: List[Tuple[str, float]] = []
-        if classifier.rf_model is not None:
-            feature_importance = sorted(
-                zip(classifier.FEATURE_NAMES, classifier.rf_model.feature_importances_),
-                key=lambda x: x[1],
-                reverse=True,
-            )
-
-        n_total = len(samples)
-        n_test = int(n_total * test_size)
-        n_train = n_total - n_test
-
-        report = PipelineReport(
-            n_samples=n_total,
-            n_train=n_train,
-            n_test=n_test,
-            model_type=model_type,
-            metrics=metrics,
-            model_path=model_path,
-            feature_importance=list(feature_importance),
-        )
-
-        # Save report
-        report_path = self.output_dir / "pipeline_report.json"
-        with open(report_path, "w", encoding="utf-8") as f:
-            json.dump(report.to_dict(), f, indent=2)
-
-        logger.info(f"[Pipeline] Complete. Report: {report_path}")
-        return report
+        return self._train_from_dataset(dataset, model_type, test_size, save_model)
 
     def _train_from_samples(
         self,
@@ -332,15 +288,33 @@ class MLPipeline:
         suffix: str = "",
     ) -> PipelineReport:
         """Shared training logic for both synthetic and real-data pipelines."""
-        from slop_detector.ml.classifier import SlopClassifier
-
         good = [s.features for s in samples if s.label == 0 and s.features]
         bad = [s.features for s in samples if s.label == 1 and s.features]
         dataset = {"good": good, "bad": bad}
+        return self._train_from_dataset(dataset, model_type, test_size, save_model, suffix=suffix)
+
+    def _train_from_dataset(
+        self,
+        dataset: Dict[str, List[Dict[str, float]]],
+        model_type: str,
+        test_size: float,
+        save_model: bool,
+        suffix: str = "",
+    ) -> PipelineReport:
+        """Train from an already-extracted feature dataset."""
+        good = dataset.get("good", [])
+        bad = dataset.get("bad", [])
+        n_total = len(good) + len(bad)
+        if not good or not bad:
+            raise ValueError(
+                "Training dataset must contain at least one clean sample and one slop sample"
+            )
+
+        from slop_detector.ml.classifier import SlopClassifier
 
         dataset_path = self.output_dir / f"training_data{suffix}.json"
         with open(dataset_path, "w", encoding="utf-8") as f:
-            json.dump(dataset, f)
+            json.dump({"good": good, "bad": bad}, f)
 
         logger.info(
             "[Pipeline] Training %s classifier (%d clean, %d slop)...",
@@ -353,7 +327,8 @@ class MLPipeline:
 
         model_path = None
         if save_model:
-            model_path = str(self.output_dir / f"slop_classifier{suffix}.pkl")
+            model_name = f"slop_classifier{suffix}.pkl" if suffix else "slop_classifier.pkl"
+            model_path = str(self.output_dir / model_name)
             classifier.save(Path(model_path))
             logger.info("[Pipeline] Model saved: %s", model_path)
 
@@ -365,7 +340,6 @@ class MLPipeline:
                 reverse=True,
             )
 
-        n_total = len(samples)
         n_test = int(n_total * test_size)
         report = PipelineReport(
             n_samples=n_total,
@@ -376,7 +350,8 @@ class MLPipeline:
             model_path=model_path,
             feature_importance=list(feature_importance),
         )
-        report_path = self.output_dir / f"pipeline_report{suffix}.json"
+        report_name = f"pipeline_report{suffix}.json" if suffix else "pipeline_report.json"
+        report_path = self.output_dir / report_name
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2)
         logger.info("[Pipeline] Complete. Report: %s", report_path)
@@ -390,13 +365,13 @@ class MLPipeline:
 
         # Generate slop samples
         for _ in range(n_slop):
-            gen.generate_slop_file()
-            samples.append(TrainingSample(label=1, features={}, source="synthetic_slop"))
+            code = gen.generate_slop_file()
+            samples.append(TrainingSample(label=1, features={}, source="synthetic_slop", code=code))
 
         # Generate clean samples
         for _ in range(n_clean):
-            gen.generate_clean_file()
-            samples.append(TrainingSample(label=0, features={}, source="synthetic_clean"))
+            code = gen.generate_clean_file()
+            samples.append(TrainingSample(label=0, features={}, source="synthetic_clean", code=code))
 
         return samples
 
@@ -420,10 +395,12 @@ class MLPipeline:
             for idx, sample in enumerate(samples):
                 is_slop = sample.label == 1
                 try:
-                    if is_slop:
-                        code = gen.generate_slop_file()
-                    else:
-                        code = gen.generate_clean_file()
+                    code = sample.code
+                    if not code:
+                        if is_slop:
+                            code = gen.generate_slop_file()
+                        else:
+                            code = gen.generate_clean_file()
 
                     fpath = tmp_path / f"sample_{idx}.py"
                     fpath.write_text(code, encoding="utf-8")
