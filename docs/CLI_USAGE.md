@@ -2,34 +2,55 @@
 
 Complete reference for `slop-detector` command-line interface.
 
+## Canonical Commands
+
+The preferred stable CLI surface is:
+
+```bash
+slop-detector scan <target>
+slop-detector review <target>
+slop-detector pulse <target>
+slop-detector sweep <family> <target>
+slop-detector watch <target> --follow
+slop-detector explain <identifier>
+slop-detector verify-governance <target>
+slop-detector mcp
+```
+
+Legacy forms such as `--project`, `audit`, `health`, and direct cleanup-family
+commands remain supported for backward compatibility.
+
 ## Basic Commands
 
 ### Single File Analysis
 
 ```bash
-# Analyze a single Python file
+# Canonical
+slop-detector scan mycode.py
+
+# Compatible legacy form
 slop-detector mycode.py
 
 # With JSON output
-slop-detector mycode.py --json
+slop-detector scan mycode.py --json
 
 # Save to file
-slop-detector mycode.py --output report.json
-slop-detector mycode.py --output report.md
-slop-detector mycode.py --output report.html
+slop-detector scan mycode.py --output report.json
+slop-detector scan mycode.py --output report.md
+slop-detector scan mycode.py --output report.html
 ```
 
 ### Project Analysis
 
 ```bash
-# Scan entire project
+# Canonical
+slop-detector scan ./src
+
+# Compatible legacy form
 slop-detector --project ./src
 
-# Scan with specific path
-slop-detector --project /path/to/project
-
 # Generate markdown report
-slop-detector --project ./src --output report.md
+slop-detector scan ./src --output report.md
 ```
 
 ## Output Formats
@@ -234,13 +255,13 @@ See [GOVERNANCE.md](GOVERNANCE.md) for the record contract.
 These commands return the same meaning across `--json`, markdown, and plain text:
 
 ```bash
-slop-detector audit <path> --json
-slop-detector health <path> --json
-slop-detector dead-code <path> --json
-slop-detector dupes <path> --json
-slop-detector unused-deps <path> --json
-slop-detector stale-suppressions <path> --json
-slop-detector boundary-violations <path> --json
+slop-detector review <path> --json
+slop-detector pulse <path> --json
+slop-detector sweep dead-code <path> --json
+slop-detector sweep dupes <path> --json
+slop-detector sweep unused-deps <path> --json
+slop-detector sweep stale-suppressions <path> --json
+slop-detector sweep boundary-violations <path> --json
 slop-detector watch <path> --follow
 slop-detector fix <path> --dry-run
 slop-detector explain dead-code

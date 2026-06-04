@@ -23,9 +23,9 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 </p>
 
 **Release track**
-- Stable tag: `v3.7.9`
-- Previous stable tag: `v3.7.8`
-- `v3.7.9` adds the fail-closed governance verification gate and formalizes the math / enforcement boundary in the docs.
+- Stable tag: `v3.8.0`
+- Previous stable tag: `v3.7.9`
+- `v3.8.0` establishes the canonical `scan / review / pulse / sweep` CLI surface and hardens dogfood operation paths used by `health` and `audit`.
 
 ---
 
@@ -73,7 +73,7 @@ General linters flag style and convention. This tool flags structural risk.
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.7.9"
+pip install "ai-slop-detector>=3.8.0"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -86,8 +86,14 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.7.9"
+pip install "ai-slop-detector>=3.8.0"
 
+slop-detector scan .                        # canonical analysis entry
+slop-detector review . --json              # canonical changed-code review
+slop-detector pulse . --json               # canonical repo health view
+slop-detector sweep dead-code . --json     # canonical cleanup family
+
+# legacy / compatible surface
 slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
 slop-detector mycode.py                    # single file
 slop-detector --project ./src             # entire project
@@ -136,12 +142,18 @@ policy checks.
 Operational review commands live on the same CLI entry point:
 
 ```bash
-slop-detector audit . --json
-slop-detector health . --json
-slop-detector dead-code . --json
+slop-detector review . --json
+slop-detector pulse . --json
+slop-detector sweep dead-code . --json
+slop-detector sweep dupes . --json
+slop-detector sweep boundary-violations . --json
 slop-detector watch . --follow
 slop-detector explain dead-code
 ```
+
+Legacy command forms such as `audit`, `health`, and direct cleanup-family names
+remain supported for compatibility, but `scan / review / pulse / sweep` are the
+preferred stable surface.
 
 Agent tooling can use the same semantics over MCP stdio:
 

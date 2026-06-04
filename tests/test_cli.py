@@ -483,6 +483,20 @@ def test_main_single_file_json(tmp_path):
         assert "deficit_score" in data
 
 
+def test_main_scan_alias_single_file_json(tmp_path):
+    """scan is the canonical analysis surface for file/project inspection."""
+    test_file = tmp_path / "test.py"
+    test_file.write_text("def hello():\n    print('Hello')\n", encoding="utf-8")
+    output_file = tmp_path / "scan_output.json"
+
+    result = main(["scan", str(test_file), "--json", "-o", str(output_file)])
+
+    assert result == 0
+    data = json.loads(output_file.read_text(encoding="utf-8"))
+    assert "file_path" in data
+    assert "deficit_score" in data
+
+
 def test_main_single_file_markdown(tmp_path):
     """Test main analyzing single file with markdown output."""
     test_file = tmp_path / "test.py"
@@ -526,6 +540,110 @@ def test_main_project_mode(tmp_path):
     with patch.object(sys, "argv", ["slop-detector", "--project", str(project_dir), "--no-color"]):
         result = main()
         assert result == 0
+
+
+def test_main_review_alias_routes_to_audit(tmp_path):
+    """review is the canonical changed-code surface."""
+    from slop_detector.models import PriorityHotspot
+
+    project = tmp_path / "project"
+    project.mkdir()
+    output_file = tmp_path / "review.json"
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=1,
+        deficit_files=1,
+        clean_files=0,
+        avg_deficit_score=55.0,
+        weighted_deficit_score=55.0,
+        avg_ldr=0.4,
+        avg_inflation=0.7,
+        avg_ddc=0.5,
+        overall_status=SlopStatus.INFLATED_SIGNAL,
+        file_results=[],
+        priority_hotspots=[
+            PriorityHotspot(
+                file_path=str(project / "bad.py"),
+                deficit_score=55.0,
+                priority_score=55.0,
+                reasons=["high deficit"],
+            )
+        ],
+    )
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch("slop_detector.operations.get_changed_files", return_value=["bad.py"]):
+            result = main(["review", str(project), "--json", "-o", str(output_file)])
+
+    assert result == 0
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    assert payload["command"] == "audit"
+    assert payload["verdict"] in {"pass", "warn", "fail"}
+
+
+def test_main_pulse_alias_routes_to_health(tmp_path):
+    """pulse is the canonical repository health surface."""
+    from slop_detector.models import PriorityHotspot
+
+    project = tmp_path / "project"
+    project.mkdir()
+    output_file = tmp_path / "pulse.json"
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=1,
+        deficit_files=0,
+        clean_files=1,
+        avg_deficit_score=12.0,
+        weighted_deficit_score=12.0,
+        avg_ldr=0.8,
+        avg_inflation=0.1,
+        avg_ddc=0.9,
+        overall_status=SlopStatus.CLEAN,
+        file_results=[],
+        priority_hotspots=[
+            PriorityHotspot(
+                file_path=str(project / "good.py"),
+                deficit_score=12.0,
+                priority_score=12.0,
+                reasons=["elevated deficit"],
+            )
+        ],
+    )
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        result = main(["pulse", str(project), "--json", "-o", str(output_file)])
+
+    assert result == 0
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    assert payload["command"] == "health"
+    assert payload["targets"]
+
+
+def test_main_sweep_routes_to_cleanup_family(tmp_path):
+    """sweep canonicalizes cleanup-family execution under one verb."""
+    project = tmp_path / "project"
+    project.mkdir()
+    output_file = tmp_path / "sweep.json"
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=0,
+        deficit_files=0,
+        clean_files=0,
+        avg_deficit_score=0.0,
+        weighted_deficit_score=0.0,
+        avg_ldr=1.0,
+        avg_inflation=0.0,
+        avg_ddc=1.0,
+        overall_status=SlopStatus.CLEAN,
+        file_results=[],
+    )
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        result = main(["sweep", "dead-code", str(project), "--json", "-o", str(output_file)])
+
+    assert result == 0
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    assert payload["command"] == "dead-code"
 
 
 def test_main_emit_leda_yaml(tmp_path):

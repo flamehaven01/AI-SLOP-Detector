@@ -8,7 +8,7 @@ import logging
 import math
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Sequence
 
 from slop_detector import __version__
 from slop_detector.cli_commands import (  # noqa: F401
@@ -62,6 +62,17 @@ _OPERATIONS_COMMANDS = {
     "fix",
     "explain",
 }
+_CLEANUP_FAMILIES = {
+    "dead-code",
+    "dupes",
+    "unused-deps",
+    "stale-suppressions",
+    "boundary-violations",
+}
+_CANONICAL_COMMAND_ALIASES = {
+    "review": "audit",
+    "pulse": "health",
+}
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -77,6 +88,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  slop-detector scan src/                  # Canonical analysis entry
+  slop-detector review .                   # Canonical changed-code review entry
+  slop-detector pulse .                    # Canonical repo health entry
+  slop-detector sweep dead-code .          # Canonical cleanup entry
   slop-detector verify-governance ./.cr-ep  # Verify governance artifact integrity
   slop-detector --init                       # Bootstrap .slopconfig.yaml + .gitignore
   slop-detector file.py                      # Analyze single file
@@ -298,6 +313,23 @@ def _build_operations_parser(command: str) -> argparse.ArgumentParser:
     return parser
 
 
+def _build_sweep_parser() -> argparse.ArgumentParser:
+    """Build the canonical cleanup parser surface."""
+    parser = argparse.ArgumentParser(
+        prog="slop-detector sweep",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Cleanup sweep for the AI SLOP detector",
+    )
+    parser.add_argument("family", choices=sorted(_CLEANUP_FAMILIES), help="Cleanup family to run")
+    parser.add_argument("target", nargs="?", default=".", help="Project root or file path")
+    parser.add_argument("--json", action="store_true", help="Output JSON format")
+    parser.add_argument("--output", "-o", help="Write report to file")
+    parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+    parser.add_argument("--no-color", action="store_true", help="Disable rich output")
+    return parser
+
+
 def _emit_command_payload(args, payload: dict) -> int:
     """Emit a command payload in JSON, markdown, or text form."""
     if getattr(args, "json", False):
@@ -483,6 +515,23 @@ def _run_operations_command(command: str, argv: list[str]) -> int:
     return 1
 
 
+def _run_sweep_command(argv: list[str]) -> int:
+    """Execute canonical cleanup sweep surface."""
+    args = _build_sweep_parser().parse_args(argv)
+    forwarded = [args.target]
+    if getattr(args, "json", False):
+        forwarded.append("--json")
+    if getattr(args, "output", None):
+        forwarded.extend(["--output", str(args.output)])
+    if getattr(args, "config", None):
+        forwarded.extend(["--config", str(args.config)])
+    if getattr(args, "verbose", False):
+        forwarded.append("--verbose")
+    if getattr(args, "no_color", False):
+        forwarded.append("--no-color")
+    return _run_operations_command(args.family, forwarded)
+
+
 def _write_file(path: str, content: str, label: str = "") -> None:
     """Write content to a file, with optional console confirmation."""
     with open(path, "w", encoding="utf-8") as f:
@@ -606,13 +655,19 @@ def _apply_runtime_overrides(args, detector) -> None:
         advanced["topology_mode_above_ceiling"] = args.topology_mode
 
 
-def main() -> int:
+def main(argv: Optional[Sequence[str]] = None) -> int:
     """CLI entry point."""
-    if len(sys.argv) > 1 and sys.argv[1] in _OPERATIONS_COMMANDS:
-        return _run_operations_command(sys.argv[1], sys.argv[2:])
-    if len(sys.argv) > 1 and sys.argv[1] == "mcp":
+    argv_list = list(sys.argv[1:] if argv is None else argv)
+
+    if argv_list and argv_list[0] in _OPERATIONS_COMMANDS:
+        return _run_operations_command(argv_list[0], argv_list[1:])
+    if argv_list and argv_list[0] in _CANONICAL_COMMAND_ALIASES:
+        return _run_operations_command(_CANONICAL_COMMAND_ALIASES[argv_list[0]], argv_list[1:])
+    if argv_list and argv_list[0] == "sweep":
+        return _run_sweep_command(argv_list[1:])
+    if argv_list and argv_list[0] == "mcp":
         return run_stdio_server()
-    if len(sys.argv) > 1 and sys.argv[1] == "verify-governance":
+    if argv_list and argv_list[0] == "verify-governance":
         verify_parser = argparse.ArgumentParser(
             prog="slop-detector verify-governance",
             description="Verify CR-EP governance artifacts",
@@ -623,10 +678,12 @@ def main() -> int:
             default=".",
             help="Project root or .cr-ep/governance_record.json path",
         )
-        verify_args = verify_parser.parse_args(sys.argv[2:])
+        verify_args = verify_parser.parse_args(argv_list[1:])
         return _run_verify_governance(verify_args.target)
+    if argv_list and argv_list[0] == "scan":
+        argv_list = argv_list[1:]
 
-    args = _build_arg_parser().parse_args()
+    args = _build_arg_parser().parse_args(argv_list)
     setup_logging(args.verbose)
 
     if getattr(args, "history_trends", False):

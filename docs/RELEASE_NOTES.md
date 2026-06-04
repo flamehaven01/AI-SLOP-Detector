@@ -5,6 +5,38 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.8.0 — 2026-06-04
+
+### Summary
+
+This release normalizes the public CLI into a small canonical command surface
+and fixes a dogfood crash in hotspot prioritization that affected `health` and
+`audit` when coverage overlays encountered non-list AST bodies.
+
+### Added
+
+**Canonical CLI**
+- `scan` is the stable analysis entry point.
+- `review` is the stable changed-code review entry point.
+- `pulse` is the stable repository-health entry point.
+- `sweep <family>` is the stable cleanup-family entry point.
+
+### Fixed
+
+**Dogfood stability**
+- `prioritization.py` now skips AST nodes whose `body` is not a list while
+  estimating executable lines for coverage overlays.
+- Self-analysis through `pulse` / `review` no longer crashes on lambda-based
+  expression bodies.
+
+### Validation
+
+- `python -m pytest tests/test_cli.py tests/test_prioritization.py tests/test_operations_commands.py -q -W error::ResourceWarning`
+- `python -m black --check src/slop_detector/cli.py src/slop_detector/prioritization.py tests/test_cli.py tests/test_prioritization.py`
+- `python -m ruff check src/slop_detector/cli.py src/slop_detector/prioritization.py tests/test_cli.py tests/test_prioritization.py`
+
+---
+
 ## v3.7.9 — 2026-06-04
 
 ### Summary

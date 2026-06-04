@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.0] - 2026-06-04 — Canonical CLI Surface & Dogfood Stability
+
+### Added
+
+**Canonical CLI verbs**
+
+- `slop-detector scan <target>` is now the preferred stable analysis entry point.
+- `slop-detector review <target>` is now the preferred changed-code review surface.
+- `slop-detector pulse <target>` is now the preferred repository health surface.
+- `slop-detector sweep <family> <target>` is now the preferred cleanup-family surface.
+- Legacy command forms such as `audit`, `health`, and direct cleanup-family verbs remain supported for compatibility.
+
+### Fixed
+
+**Dogfood hotspot prioritization stability**
+
+- `prioritization.py` no longer assumes every AST `body` is a list while estimating executable lines for coverage overlays.
+- `health` and `audit` now survive lambda-heavy files and other non-list AST body shapes during self-analysis.
+
+### Changed
+
+- README and CLI docs now present the canonical CLI surface first and treat earlier mixed flag/verb paths as compatible legacy entry points.
+
+---
+
 ## [3.7.9] - 2026-06-04 — Governance Verification Gate
 
 ### Added

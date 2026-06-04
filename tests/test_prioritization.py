@@ -106,6 +106,28 @@ def test_load_coverage_ratios_reads_coverage_data(tmp_path):
     assert 0.0 < ratios[str(file_path.resolve())] < 1.0
 
 
+def test_estimate_executable_lines_skips_non_list_ast_bodies(tmp_path):
+    config = SimpleNamespace(
+        get_hotspot_weights=lambda: {"deficit": 0.5, "churn": 0.3, "coverage_gap": 0.2},
+        get_hotspot_limit=lambda: 10,
+        get_churn_commit_window=lambda: 200,
+        get_coverage_data_file=lambda: ".coverage",
+    )
+    prioritizer = ProjectPrioritizer(config)
+
+    file_path = tmp_path / "lambda_case.py"
+    file_path.write_text(
+        "f = lambda x: x + 1\n" "def keep():\n" "    return f(1)\n",
+        encoding="utf-8",
+    )
+
+    executable = prioritizer._estimate_executable_lines(file_path)
+
+    assert executable
+    assert 1 in executable
+    assert 3 in executable
+
+
 def test_load_git_churn_counts_recent_touches(tmp_path, monkeypatch):
     config = SimpleNamespace(
         get_hotspot_weights=lambda: {"deficit": 0.5, "churn": 0.3, "coverage_gap": 0.2},
