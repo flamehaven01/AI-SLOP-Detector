@@ -123,7 +123,8 @@ class AuditLogger:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS audit_logs (
                 event_id TEXT PRIMARY KEY,
                 event_type TEXT NOT NULL,
@@ -139,28 +140,37 @@ class AuditLogger:
                 session_id TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Create indices for common queries
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_timestamp
             ON audit_logs(timestamp)
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_user_id
             ON audit_logs(user_id)
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_event_type
             ON audit_logs(event_type)
-        """)
+        """
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_severity
             ON audit_logs(severity)
-        """)
+        """
+        )
 
         conn.commit()
         conn.close()
@@ -405,32 +415,38 @@ class AuditLogger:
         total = cursor.fetchone()[0]
 
         # Events by type
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT event_type, COUNT(*) as count
             FROM audit_logs
             GROUP BY event_type
             ORDER BY count DESC
             LIMIT 10
-        """)
+        """
+        )
         by_type = dict(cursor.fetchall())
 
         # Events by severity
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT severity, COUNT(*) as count
             FROM audit_logs
             GROUP BY severity
-        """)
+        """
+        )
         by_severity = dict(cursor.fetchall())
 
         # Most active users
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT user_id, COUNT(*) as count
             FROM audit_logs
             WHERE user_id IS NOT NULL
             GROUP BY user_id
             ORDER BY count DESC
             LIMIT 10
-        """)
+        """
+        )
         top_users = dict(cursor.fetchall())
 
         conn.close()

@@ -55,7 +55,8 @@ class FileAnalysisCache:
 
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS file_analysis_cache (
                     file_path TEXT PRIMARY KEY,
                     file_size INTEGER NOT NULL,
@@ -65,7 +66,8 @@ class FileAnalysisCache:
                     config_fingerprint TEXT NOT NULL,
                     result_json TEXT NOT NULL
                 )
-                """)
+                """
+            )
 
     def get(
         self,

@@ -50,7 +50,8 @@ DATA_DIR = THIS_DIR / "data"
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # High-slop template: low LDR (comment-heavy) + dense jargon -> deficit > 25 guaranteed
-HIGH_SLOP = textwrap.dedent("""\
+HIGH_SLOP = textwrap.dedent(
+    """\
     \"\"\"Enterprise-grade production-ready module for world-class operations.
 
     This is the ultimate best-practice implementation of revolutionary enterprise patterns.
@@ -101,10 +102,12 @@ HIGH_SLOP = textwrap.dedent("""\
             # Production-ready configuration accessor
             # Enterprise-grade fallback semantics
             return self.config.get(key, default) if self.config else default
-    """).replace("{n}", "{n}")
+    """
+).replace("{n}", "{n}")
 
 # Clean template: high LDR (pure logic) + zero jargon -> deficit < 10
-CLEAN_CODE = textwrap.dedent("""\
+CLEAN_CODE = textwrap.dedent(
+    """\
     class DataProcessor{n}:
         def __init__(self, config):
             self.config = config
@@ -118,10 +121,12 @@ CLEAN_CODE = textwrap.dedent("""\
 
         def set(self, key, value):
             self._cache[key] = value
-    """).replace("{n}", "{n}")
+    """
+).replace("{n}", "{n}")
 
 # Minimal .slopconfig.yaml (4D weights, purity included)
-SLOPCONFIG_YAML = textwrap.dedent("""\
+SLOPCONFIG_YAML = textwrap.dedent(
+    """\
     weights:
       ldr: 0.40
       inflation: 0.30
@@ -129,7 +134,8 @@ SLOPCONFIG_YAML = textwrap.dedent("""\
       purity: 0.10
     threshold: 30
     ignore_patterns: []
-    """)
+    """
+)
 
 INITIAL_WEIGHTS = {"ldr": 0.40, "inflation": 0.30, "ddc": 0.30, "purity": 0.10}
 
