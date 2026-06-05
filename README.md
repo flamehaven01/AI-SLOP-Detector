@@ -121,6 +121,9 @@ npx ai-slop-detector pulse . --format json
 npx ai-slop-detector sweep dead-code . --format json
 npx ai-slop-detector mcp
 
+# Typed output contract
+import type { ReviewOutput, ScanOutput } from "ai-slop-detector/types"
+
 # Local wrapper development
 cd npm-wrapper
 node ./bin/ai-slop-detector.js --version
@@ -138,6 +141,7 @@ The npm surface is intentionally thin:
 - it requires a Python backend and discovers it in this order:
   `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
   `python -m slop_detector.cli`
+- it ships version-pinned TypeScript interfaces at `ai-slop-detector/types`
 
 > **Windows / PowerShell tip:** PowerShell `>` redirection writes UTF-16 LE
 > or UTF-8 with BOM by default, which breaks `json.load(..., encoding='utf-8')`.

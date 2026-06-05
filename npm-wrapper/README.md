@@ -48,6 +48,23 @@ npx ai-slop-detector sweep dead-code . --format json
 npx ai-slop-detector mcp
 ```
 
+## Typed Output Contract
+
+The wrapper also ships version-pinned TypeScript interfaces for the structured
+CLI outputs:
+
+```ts
+import type { ScanOutput, ReviewOutput, HealthOutput, SweepOutput } from "ai-slop-detector/types";
+```
+
+These types mirror the current JSON contracts for:
+
+- `scan`
+- `review`
+- `pulse`
+- `sweep`
+- `explain`
+
 ## Notes
 
 - `--format json` and `--json` are equivalent structured-output surfaces.

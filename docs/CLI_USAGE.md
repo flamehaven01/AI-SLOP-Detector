@@ -214,6 +214,12 @@ npx ai-slop-detector sweep dead-code . --format json
 npx ai-slop-detector mcp
 ```
 
+Typed output contract:
+
+```ts
+import type { AuditOutput, CleanupOutput, HealthOutput, ScanOutput } from "ai-slop-detector/types";
+```
+
 Local wrapper checks:
 
 ```bash
@@ -231,6 +237,8 @@ Wrapper guarantees:
 - backend discovery order is stable:
   `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
   `python -m slop_detector.cli`
+- version-pinned TypeScript interfaces are available at
+  `ai-slop-detector/types`
 
 ---
 
