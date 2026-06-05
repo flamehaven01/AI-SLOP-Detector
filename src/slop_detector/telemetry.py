@@ -117,6 +117,14 @@ class TelemetryManager:
         self.config_path = self.config_path or home / "telemetry.json"
         self.queue_path = self.queue_path or home / "telemetry-events.jsonl"
 
+    def _config_path(self) -> Path:
+        assert self.config_path is not None
+        return self.config_path
+
+    def _queue_path(self) -> Path:
+        assert self.queue_path is not None
+        return self.queue_path
+
     def _default_config(self) -> Dict[str, Any]:
         return {
             "schema_version": 1,
@@ -125,32 +133,37 @@ class TelemetryManager:
         }
 
     def _load_config(self) -> Dict[str, Any]:
-        if not self.config_path.exists():
+        config_path = self._config_path()
+        if not config_path.exists():
             return self._default_config()
         try:
-            return json.loads(self.config_path.read_text(encoding="utf-8"))
+            return json.loads(config_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError, ValueError):
             return self._default_config()
 
     def _save_config(self, document: Dict[str, Any]) -> None:
-        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path = self._config_path()
+        config_path.parent.mkdir(parents=True, exist_ok=True)
         document["updated_at_utc"] = _utc_now()
-        self.config_path.write_text(json.dumps(document, indent=2), encoding="utf-8")
+        config_path.write_text(json.dumps(document, indent=2), encoding="utf-8")
 
     def status(self) -> Dict[str, Any]:
         config = self._load_config()
         queued_events = 0
-        if self.queue_path.exists():
+        queue_path = self._queue_path()
+        if queue_path.exists():
             try:
                 queued_events = sum(
-                    1 for _ in self.queue_path.read_text(encoding="utf-8").splitlines() if _.strip()
+                    1
+                    for line in queue_path.read_text(encoding="utf-8").splitlines()
+                    if line.strip()
                 )
             except OSError:
                 queued_events = 0
         return {
             "enabled": bool(config.get("enabled", False)),
-            "config_path": str(self.config_path),
-            "queue_path": str(self.queue_path),
+            "config_path": str(self._config_path()),
+            "queue_path": str(queue_path),
             "queued_events": queued_events,
         }
 
@@ -199,7 +212,8 @@ class TelemetryManager:
             return payload
         if not self._load_config().get("enabled", False):
             return None
-        self.queue_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.queue_path.open("a", encoding="utf-8") as handle:
+        queue_path = self._queue_path()
+        queue_path.parent.mkdir(parents=True, exist_ok=True)
+        with queue_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(payload) + "\n")
         return payload

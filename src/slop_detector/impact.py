@@ -86,6 +86,10 @@ class ImpactTracker:
         self.project_root = self.project_root.resolve()
         self.impact_path = self.impact_path or self.project_root / ".slop-detector" / "impact.json"
 
+    def _impact_path(self) -> Path:
+        assert self.impact_path is not None
+        return self.impact_path
+
     def _default_document(self) -> Dict[str, Any]:
         return {
             "schema_version": 1,
@@ -97,17 +101,19 @@ class ImpactTracker:
         }
 
     def _load(self) -> Dict[str, Any]:
-        if not self.impact_path.exists():
+        impact_path = self._impact_path()
+        if not impact_path.exists():
             return self._default_document()
         try:
-            return json.loads(self.impact_path.read_text(encoding="utf-8"))
+            return json.loads(impact_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError, ValueError):
             return self._default_document()
 
     def _save(self, document: Dict[str, Any]) -> None:
-        self.impact_path.parent.mkdir(parents=True, exist_ok=True)
+        impact_path = self._impact_path()
+        impact_path.parent.mkdir(parents=True, exist_ok=True)
         document["updated_at_utc"] = _utc_now()
-        self.impact_path.write_text(json.dumps(document, indent=2), encoding="utf-8")
+        impact_path.write_text(json.dumps(document, indent=2), encoding="utf-8")
 
     def enable(self) -> Dict[str, Any]:
         document = self._load()
@@ -125,7 +131,7 @@ class ImpactTracker:
         document = self._load()
         return {
             "enabled": bool(document.get("enabled", False)),
-            "impact_path": str(self.impact_path),
+            "impact_path": str(self._impact_path()),
             "project_id": document.get("project_id", _project_id_for(self.project_root)),
             "runs_recorded": len(document.get("runs", []) or []),
         }
@@ -161,7 +167,7 @@ class ImpactTracker:
                 direction = "degraded"
         return {
             "enabled": bool(document.get("enabled", False)),
-            "impact_path": str(self.impact_path),
+            "impact_path": str(self._impact_path()),
             "project_id": document.get("project_id", _project_id_for(self.project_root)),
             "runs_recorded": len(runs),
             "latest_run": latest,

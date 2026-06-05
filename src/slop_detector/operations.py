@@ -7,6 +7,7 @@ import fnmatch
 import json
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -17,15 +18,15 @@ from slop_detector.gate.models import GateMode
 from slop_detector.patterns.python_imports import _discover_project_packages, _find_project_root
 from slop_detector.renderer_markdown import get_mitigation
 
-try:
-    import tomllib
-except ImportError:  # pragma: no cover - py38 fallback
+if sys.version_info >= (3, 11):
+    import tomllib  # type: ignore[import-not-found]
+else:  # pragma: no cover - py38 fallback
     import tomli as tomllib  # type: ignore[import-not-found,assignment]
 
 try:
     from importlib.metadata import packages_distributions
 except ImportError:  # pragma: no cover - py38 fallback
-    packages_distributions = None
+    packages_distributions = None  # type: ignore[assignment]
 
 _JS_IMPORT_RE = re.compile(
     r"""(?:import\s+(?:.+?\s+from\s+)?|export\s+.+?\s+from\s+|require\()\s*['"]([^'"]+)['"]"""
@@ -277,7 +278,7 @@ def _classify_action(confidence: float) -> str:
 def _cleanup_file_evidence(result, file_path: str) -> Dict[str, Any]:
     hotspot = _build_hotspot_index(result).get(str(Path(file_path).resolve()))
     file_result = _find_file_result(result, file_path)
-    evidence = {
+    evidence: Dict[str, Any] = {
         "deficit_score": None,
         "churn_count": 0,
         "churn_score": 0.0,
