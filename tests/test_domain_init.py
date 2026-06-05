@@ -1,11 +1,15 @@
-"""Tests for Phase 3a: domain-aware --init (detect_domain + template generation)."""
+"""Tests for domain-aware and adaptive --init support."""
 
 from pathlib import Path
 
 import pytest
 import yaml
 
-from slop_detector.cli_commands import detect_domain
+from slop_detector.cli_commands import (
+    collect_init_signals,
+    detect_domain,
+    synthesize_init_suggestions,
+)
 from slop_detector.config import DOMAIN_PROFILES, generate_slopconfig_template
 
 # ---------------------------------------------------------------------------
@@ -205,3 +209,299 @@ class TestInitIdempotency:
         out = capsys.readouterr().out
         assert rc_second == 0, "re-running --init should succeed (idempotent)"
         assert "already initialized" in out.lower()
+
+    def test_preview_does_not_write_config(self, tmp_path, monkeypatch, capsys):
+        from argparse import Namespace
+
+        from slop_detector.cli_commands import _run_init
+
+        monkeypatch.chdir(tmp_path)
+        args = Namespace(
+            force_init=False,
+            domain=None,
+            adaptive_init=True,
+            init_preview=True,
+            apply_init_suggestions=False,
+        )
+
+        rc = _run_init(args)
+        out = capsys.readouterr().out
+
+        assert rc == 0
+        assert not (tmp_path / ".slopconfig.yaml").exists()
+        assert "Preview mode" in out
+        assert "Adaptive Init Preview" in out
+
+    def test_apply_init_suggestions_merges_existing_config(self, tmp_path, monkeypatch, capsys):
+        from argparse import Namespace
+
+        from slop_detector.cli_commands import _run_init
+
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "src" / "domain").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "src" / "api").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "src" / "data").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "results").mkdir()
+        existing = {
+            "version": "2.0",
+            "ignore": ["tests/**"],
+            "patterns": {
+                "god_function": {
+                    "complexity_threshold": 10,
+                    "lines_threshold": 50,
+                    "domain_overrides": [],
+                }
+            },
+            "architecture": {
+                "enabled": False,
+                "preset": "none",
+                "layers": [],
+            },
+            "custom_section": {
+                "keep_me": True,
+            },
+        }
+        (tmp_path / ".slopconfig.yaml").write_text(yaml.safe_dump(existing, sort_keys=False))
+        _write_py(
+            tmp_path / "src" / "domain",
+            "workflow.py",
+            "\n".join(
+                [
+                    "def reconcile(items):",
+                    "    total = 0",
+                    "    for item in items:",
+                    "        if item > 10:",
+                    "            total += item",
+                    "        elif item > 5:",
+                    "            total += item - 1",
+                    "        elif item > 0:",
+                    "            total += item - 2",
+                    "        else:",
+                    "            total -= 1",
+                    "    if total > 100:",
+                    "        return total",
+                    "    if total > 80:",
+                    "        return total - 1",
+                    "    if total > 60:",
+                    "        return total - 2",
+                    "    if total > 40:",
+                    "        return total - 3",
+                    "    if total > 35:",
+                    "        return total - 4",
+                    "    if total > 30:",
+                    "        return total - 5",
+                    "    if total > 25:",
+                    "        return total - 6",
+                    "    if total > 20:",
+                    "        return total - 7",
+                    "    return total",
+                ]
+            ),
+        )
+        args = Namespace(
+            force_init=False,
+            domain=None,
+            adaptive_init=True,
+            init_preview=False,
+            apply_init_suggestions=True,
+        )
+
+        rc = _run_init(args)
+        out = capsys.readouterr().out
+        merged = yaml.safe_load((tmp_path / ".slopconfig.yaml").read_text(encoding="utf-8"))
+
+        assert rc == 0
+        assert "Applying adaptive suggestions only" in out
+        assert "Adaptive init suggestions merged" in out
+        assert "results/**" in merged["ignore"]
+        assert merged["custom_section"]["keep_me"] is True
+        assert merged["architecture"]["enabled"] is True
+        assert merged["architecture"]["preset"] == "layered"
+        assert merged["patterns"]["god_function"]["domain_overrides"]
+
+
+class TestAdaptiveInitSignals:
+    def test_collect_init_signals_includes_manifests_and_counts(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text("[project]\nname='demo'\n", encoding="utf-8")
+        (tmp_path / "package.json").write_text('{"name":"demo"}', encoding="utf-8")
+        (tmp_path / "go.mod").write_text("module example/demo\n", encoding="utf-8")
+        _write_py(tmp_path, "app.py", "import click\n")
+        (tmp_path / "frontend.ts").write_text("export const ok = true;\n", encoding="utf-8")
+        (tmp_path / "worker.go").write_text("package main\n", encoding="utf-8")
+
+        signals = collect_init_signals(tmp_path)
+
+        assert signals["project_type"] == "javascript"
+        assert signals["manifests"]["pyproject_toml"] is True
+        assert signals["manifests"]["package_json"] is True
+        assert signals["manifests"]["go_mod"] is True
+        assert signals["language_counts"]["python"] == 1
+        assert signals["language_counts"]["typescript"] == 1
+        assert signals["language_counts"]["go"] == 1
+
+    def test_collect_init_signals_finds_noise_directories(self, tmp_path):
+        (tmp_path / "tests").mkdir()
+        (tmp_path / "dist").mkdir()
+        (tmp_path / "node_modules").mkdir()
+        _write_py(tmp_path / "tests", "test_demo.py", "import os\n")
+
+        signals = collect_init_signals(tmp_path)
+
+        assert "tests" in signals["noise_directories"]
+        assert "dist" in signals["noise_directories"]
+        assert "node_modules" not in signals["noise_directories"]
+        assert signals["cleanup_markers"]["has_tests"] is True
+
+    def test_collect_init_signals_collects_complexity_candidates(self, tmp_path):
+        code = """
+def orchestrate(payload):
+    total = 0
+    for item in payload:
+        if item > 0:
+            if item % 2 == 0:
+                total += item
+            else:
+                total -= item
+        elif item == 0:
+            total += 0
+        else:
+            total -= 1
+    if total > 100:
+        return total
+    if total > 50:
+        return total - 10
+    if total > 25:
+        return total - 5
+    return total
+"""
+        _write_py(tmp_path, "workflow.py", code)
+
+        signals = collect_init_signals(tmp_path)
+
+        candidates = signals["python_complexity_candidates"]
+        assert candidates
+        assert candidates[0]["function_name"] == "orchestrate"
+        assert candidates[0]["complexity"] >= 8 or candidates[0]["logic_lines"] >= 20
+
+    def test_collect_init_signals_collects_architecture_markers(self, tmp_path):
+        for rel in [
+            "src/api",
+            "src/domain",
+            "src/data",
+            "src/services",
+        ]:
+            (tmp_path / rel).mkdir(parents=True, exist_ok=True)
+        _write_py(tmp_path / "src" / "api", "controller.py", "import os\n")
+
+        signals = collect_init_signals(tmp_path)
+
+        markers = signals["architecture_markers"]
+        assert markers["has_src_layout"] is True
+        assert markers["layered_hint_strength"] > 0.0
+        assert "api" in markers["layer_names"]
+        assert "domain" in markers["layer_names"]
+
+
+class TestAdaptiveInitSuggestions:
+    def test_suggestions_are_stable_for_same_repository(self, tmp_path):
+        (tmp_path / "src" / "domain").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "src" / "data").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "src" / "api").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "results").mkdir()
+        (tmp_path / "pyproject.toml").write_text("[project]\nname='demo'\n", encoding="utf-8")
+        long_function = "\n".join(
+            [
+                "def orchestrate(items):",
+                "    total = 0",
+                "    for item in items:",
+                "        if item > 0:",
+                "            if item % 2 == 0:",
+                "                total += item",
+                "            else:",
+                "                total -= item",
+                "        elif item == 0:",
+                "            total += 0",
+                "        else:",
+                "            total -= 1",
+                "    if total > 100:",
+                "        return total",
+                "    if total > 90:",
+                "        return total - 1",
+                "    if total > 80:",
+                "        return total - 2",
+                "    if total > 70:",
+                "        return total - 3",
+                "    if total > 60:",
+                "        return total - 4",
+                "    if total > 50:",
+                "        return total - 5",
+                "    if total > 40:",
+                "        return total - 6",
+                "    if total > 30:",
+                "        return total - 7",
+                "    if total > 20:",
+                "        return total - 8",
+                "    return total",
+            ]
+        )
+        _write_py(tmp_path / "src" / "domain", "workflow.py", long_function)
+
+        signals_a = collect_init_signals(tmp_path)
+        signals_b = collect_init_signals(tmp_path)
+
+        assert synthesize_init_suggestions(signals_a) == synthesize_init_suggestions(signals_b)
+
+    def test_weak_evidence_does_not_escalate_to_strong_config_changes(self, tmp_path):
+        (tmp_path / "src" / "helpers").mkdir(parents=True, exist_ok=True)
+        _write_py(tmp_path / "src" / "helpers", "utils.py", "def helper(x):\n    return x + 1\n")
+
+        suggestions = synthesize_init_suggestions(collect_init_signals(tmp_path))
+
+        assert suggestions["god_function_domain_overrides"] == []
+        assert suggestions["architecture"]["recommendation"] == "stay_disabled"
+        assert suggestions["cleanup_hints"]
+        assert suggestions["cleanup_hints"][0]["hint"] == "coverage_signals_limited"
+
+    def test_suggestions_are_plainly_explainable(self, tmp_path):
+        (tmp_path / "src" / "api").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "src" / "domain").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "src" / "data").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "checkpoints").mkdir()
+        (tmp_path / "package.json").write_text('{"name":"demo"}', encoding="utf-8")
+        _write_py(
+            tmp_path / "src" / "domain",
+            "logic.py",
+            "\n".join(
+                [
+                    "def reconcile(items):",
+                    "    total = 0",
+                    "    for item in items:",
+                    "        if item > 10:",
+                    "            total += item",
+                    "        elif item > 5:",
+                    "            total += item - 1",
+                    "        elif item > 0:",
+                    "            total += item - 2",
+                    "        else:",
+                    "            total -= 1",
+                    "    if total > 100:",
+                    "        return total",
+                    "    if total > 80:",
+                    "        return total - 1",
+                    "    if total > 60:",
+                    "        return total - 2",
+                    "    if total > 40:",
+                    "        return total - 3",
+                    "    return total",
+                ]
+            ),
+        )
+
+        suggestions = synthesize_init_suggestions(collect_init_signals(tmp_path))
+
+        assert suggestions["ignore_patterns"]
+        assert isinstance(suggestions["ignore_patterns"][0]["reason"], str)
+        assert suggestions["ignore_patterns"][0]["reason"]
+        assert isinstance(suggestions["architecture"]["reason"], str)
+        assert suggestions["architecture"]["reason"]
+        assert all(item["reason"] for item in suggestions["cleanup_hints"])

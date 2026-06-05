@@ -155,12 +155,54 @@ slop-detector --init
 # Specify domain explicitly
 slop-detector --init --domain general
 
+# Preview adaptive suggestions without writing
+slop-detector --init --adaptive-init --init-preview
+
+# Merge adaptive suggestions into a new or existing config
+slop-detector --init --adaptive-init --apply-init-suggestions
+
 # Overwrite an existing .slopconfig.yaml
 slop-detector --init --force-init
 ```
 
 `--init` creates a fully-documented `.slopconfig.yaml` tailored to your domain and
 automatically adds `.slopconfig.yaml` to `.gitignore` (avoids leaking weakness maps).
+
+Adaptive init is intentionally split into safe stages:
+
+- baseline init:
+  - generates the template
+  - no repository-specific tuning
+- adaptive preview:
+  - collects repository signals
+  - prints ignore / override / architecture / cleanup hints
+  - does not write config
+- adaptive apply:
+  - requires explicit `--apply-init-suggestions`
+  - preserves unknown handwritten keys
+  - never silently rewrites an existing config
+
+---
+
+## NPM Thin Wrapper
+
+The Node distribution surface is intentionally thin and delegates to the Python
+CLI rather than reimplementing analysis logic.
+
+Local wrapper checks:
+
+```bash
+cd npm-wrapper
+node ./bin/ai-slop-detector.js --version
+node ./bin/ai-slop-detector.js scan .
+```
+
+Wrapper guarantees:
+
+- canonical CLI commands stay the same
+- stdout/stderr are passed through
+- exit codes are propagated
+- backend discovery is explicit and fails with actionable messaging
 
 ---
 
@@ -318,6 +360,8 @@ usage: slop-detector [-h] [--project] [--output OUTPUT] [--json] [--verbose]
                      [--config CONFIG] [--list-patterns]
                      [--disable PATTERN [PATTERN ...]]
                      [--init] [--domain DOMAIN] [--force-init]
+                     [--adaptive-init] [--init-preview]
+                     [--apply-init-suggestions]
                      [--self-calibrate] [--apply-calibration] [--min-history N]
                      [--show-history] [--history-trends] [--no-history]
                      [--export-history FILE]
@@ -348,6 +392,10 @@ Pattern Options:
 Init Options (v3.2.0):
   --init                Generate .slopconfig.yaml for current project
   --domain DOMAIN       Specify domain for --init (general/scientific/numerical/
+  --adaptive-init       Collect repository signals and synthesize conservative init suggestions
+  --init-preview        Preview adaptive init suggestions without writing config
+  --apply-init-suggestions
+                        Merge adaptive suggestions into a new or existing config
                         web/api/library/sdk/cli/tool/bio/finance)
   --force-init          Overwrite existing .slopconfig.yaml
 

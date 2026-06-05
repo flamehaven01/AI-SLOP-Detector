@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+**Adaptive `--init` onboarding flow**
+
+- `--adaptive-init` adds a second-stage repository signal scan on top of the
+  existing baseline `.slopconfig.yaml` generator.
+- `--init-preview` prints adaptive suggestions without writing config.
+- `--apply-init-suggestions` opt-in merges bounded suggestions into a new or
+  existing `.slopconfig.yaml`.
+- Adaptive signal collection now gathers:
+  - manifest presence
+  - language counts
+  - noise directories
+  - Python complexity candidates
+  - architecture layout markers
+  - cleanup markers
+
+**NPM thin wrapper surface**
+
+- Added a dedicated `npm-wrapper/` package for Node-first distribution.
+- Added a thin launcher:
+  - `bin/ai-slop-detector.js`
+- Added wrapper runtime contract tests and CI coverage.
+
+### Changed
+
+- Adaptive suggestions stay conservative and evidence-backed:
+  - ignore suggestions skip patterns already covered by defaults/profile rules
+  - `god_function.domain_overrides` suggestions are exact-name and capped
+  - architecture remains `stay_disabled` unless layered evidence is strong
+- Existing-config init flow remains idempotent by default and only merges
+  adaptive changes with explicit opt-in.
+- README, CLI usage, and configuration docs now describe baseline init,
+  adaptive preview, and explicit merge as distinct flows.
+- npm wrapper documentation now states explicitly that Node is a transport
+  surface over the Python core, not a second implementation.
+
+---
+
 ## [3.8.1] - 2026-06-04 — Absorption Chapter: Cleanup Confidence, Manifest Hygiene, Architecture Review
 
 ### Added

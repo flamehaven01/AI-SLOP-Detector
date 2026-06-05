@@ -128,6 +128,37 @@ jobs:
           SLOP_RUST_SCAN_BIN: ${{ github.workspace }}/rust/slop_scan/target/release/slop_scan
         run: pytest tests/test_rust_scan.py -v
 
+  npm-wrapper:
+    name: NPM Thin Wrapper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python package
+        run: pip install -e .
+
+      - name: Run wrapper unit tests
+        working-directory: npm-wrapper
+        run: node --test tests/runtime.test.js
+
+      - name: Verify wrapper backend invocation
+        working-directory: npm-wrapper
+        run: node ./bin/ai-slop-detector.js --version
+
+      - name: Verify npm package surface
+        working-directory: npm-wrapper
+        run: npm pack --dry-run
+
   slop-check:
     name: Self SLOP Detection
     runs-on: ubuntu-latest

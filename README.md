@@ -96,7 +96,9 @@ slop-detector pulse . --json               # canonical repo health view
 slop-detector sweep dead-code . --json     # canonical cleanup family
 
 # legacy / compatible surface
-slop-detector --init                       # bootstrap .slopconfig.yaml + .gitignore
+slop-detector --init                       # bootstrap baseline .slopconfig.yaml + .gitignore
+slop-detector --init --adaptive-init --init-preview
+slop-detector --init --adaptive-init --apply-init-suggestions
 slop-detector mycode.py                    # single file
 slop-detector --project ./src             # entire project
 slop-detector --project . --json --output slop.json   # machine-readable output (Windows-safe)
@@ -106,9 +108,20 @@ slop-detector --project . --ci-mode hard --ci-report  # CI gate
 pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
 pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
 
+# Thin npm wrapper (delegates to the Python CLI)
+cd npm-wrapper
+node ./bin/ai-slop-detector.js --version
+
 # No install required
 uvx ai-slop-detector mycode.py
 ```
+
+The npm surface is intentionally thin:
+
+- it does **not** reimplement analysis logic
+- it delegates into the Python CLI/runtime
+- it exists for Node-first teams that want `npx`-style entry without changing
+  product semantics
 
 > **Windows / PowerShell tip:** PowerShell `>` redirection writes UTF-16 LE
 > or UTF-8 with BOM by default, which breaks `json.load(..., encoding='utf-8')`.
@@ -336,11 +349,24 @@ from the JSON output rather than guessing.
 ```bash
 slop-detector --init                   # auto-detect domain, generate .slopconfig.yaml
 slop-detector --init --domain web/api       # explicit domain override
+slop-detector --init --adaptive-init --init-preview
+slop-detector --init --adaptive-init --apply-init-suggestions
 ```
 `--init` detects your project domain from file patterns (8 built-in profiles:
 `general`, `scientific/ml`, `scientific/numerical`, `web/api`,
 `library/sdk`, `cli/tool`, `bio`, `finance`) and pre-seeds the weight profile
 accordingly. Also secures `.slopconfig.yaml` in `.gitignore` by default.
+
+Adaptive init is now a separate safety layer:
+
+- `--init --adaptive-init --init-preview`
+  - scans the repository
+  - prints evidence-backed config suggestions
+  - writes nothing
+- `--init --adaptive-init --apply-init-suggestions`
+  - opt-in merge path
+  - preserves unknown handwritten keys
+  - only applies conservative suggestions
 
 ---
 

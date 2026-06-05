@@ -1,0 +1,35 @@
+{
+  "name": "ai-slop-detector",
+  "version": "3.8.1",
+  "description": "Thin npm wrapper for the AI-SLOP-DETECTOR Python CLI",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "ai-slop-detector": "./bin/ai-slop-detector.js"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "scripts": {
+    "test": "node --test tests/runtime.test.js"
+  },
+  "keywords": [
+    "ai",
+    "code-quality",
+    "static-analysis",
+    "slop-detection",
+    "wrapper"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://github.com/flamehaven/ai-slop-detector",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flamehaven/ai-slop-detector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flamehaven/ai-slop-detector/issues"
+  }
+}

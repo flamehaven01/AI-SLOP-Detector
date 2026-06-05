@@ -163,9 +163,18 @@ Instead of writing `.slopconfig.yaml` by hand, run:
 ```bash
 slop-detector --init
 slop-detector --init --domain general
+slop-detector --init --adaptive-init --init-preview
+slop-detector --init --adaptive-init --apply-init-suggestions
 ```
 
 This generates a fully-documented config tuned to your domain profile.
+
+The adaptive layer is conservative by design:
+
+- preview mode prints suggestions only
+- apply mode is explicit opt-in
+- existing handwritten sections are preserved during merge
+- architecture stays disabled unless repository evidence is strong
 
 ### Built-in Domain Profiles
 
