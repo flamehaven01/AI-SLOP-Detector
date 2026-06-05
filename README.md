@@ -124,6 +124,9 @@ npx ai-slop-detector mcp
 # Typed output contract
 import type { ReviewOutput, ScanOutput } from "ai-slop-detector/types"
 
+# Programmatic Node API
+import { scanProject, reviewChanges, computeHealth, runCleanupFamily } from "ai-slop-detector"
+
 # Local wrapper development
 cd npm-wrapper
 node ./bin/ai-slop-detector.js --version
@@ -142,6 +145,8 @@ The npm surface is intentionally thin:
   `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
   `python -m slop_detector.cli`
 - it ships version-pinned TypeScript interfaces at `ai-slop-detector/types`
+- it exports a small async Node API for `scanProject`, `reviewChanges`,
+  `computeHealth`, and `runCleanupFamily`
 
 > **Windows / PowerShell tip:** PowerShell `>` redirection writes UTF-16 LE
 > or UTF-8 with BOM by default, which breaks `json.load(..., encoding='utf-8')`.

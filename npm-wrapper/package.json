@@ -4,11 +4,13 @@
   "description": "Thin npm wrapper for the AI-SLOP-DETECTOR Python CLI",
   "license": "MIT",
   "type": "commonjs",
+  "main": "./lib/api.js",
   "types": "./types.d.ts",
   "bin": {
     "ai-slop-detector": "./bin/ai-slop-detector.js"
   },
   "exports": {
+    ".": "./lib/api.js",
     "./types": "./types.d.ts"
   },
   "files": [
@@ -18,7 +20,7 @@
     "types.d.ts"
   ],
   "scripts": {
-    "test": "node --test tests/runtime.test.js"
+    "test": "node --test tests/runtime.test.js tests/api.test.js"
   },
   "keywords": [
     "ai",

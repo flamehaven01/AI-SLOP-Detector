@@ -41,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added version-pinned TypeScript contract exports at
   `ai-slop-detector/types` for `scan`, `review`, `pulse`, `sweep`, and
   `explain` JSON outputs.
+- Added a programmatic Node API surface at the package root for:
+  - `scanProject`
+  - `reviewChanges`
+  - `computeHealth`
+  - `runCleanupFamily`
 
 ### Changed
 

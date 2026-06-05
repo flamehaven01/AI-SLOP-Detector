@@ -220,6 +220,17 @@ Typed output contract:
 import type { AuditOutput, CleanupOutput, HealthOutput, ScanOutput } from "ai-slop-detector/types";
 ```
 
+Programmatic Node API:
+
+```ts
+import {
+  computeHealth,
+  reviewChanges,
+  runCleanupFamily,
+  scanProject,
+} from "ai-slop-detector";
+```
+
 Local wrapper checks:
 
 ```bash
@@ -239,6 +250,7 @@ Wrapper guarantees:
   `python -m slop_detector.cli`
 - version-pinned TypeScript interfaces are available at
   `ai-slop-detector/types`
+- the package root exports a thin async API for direct Node consumption
 
 ---
 

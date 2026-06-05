@@ -65,6 +65,24 @@ These types mirror the current JSON contracts for:
 - `sweep`
 - `explain`
 
+## Programmatic Node API
+
+The package root exports a thin async API over the same backend:
+
+```ts
+import {
+  computeHealth,
+  reviewChanges,
+  runCleanupFamily,
+  scanProject,
+} from "ai-slop-detector";
+
+const scan = await scanProject(process.cwd());
+const review = await reviewChanges(process.cwd());
+const health = await computeHealth(process.cwd());
+const cleanup = await runCleanupFamily("dead-code", process.cwd());
+```
+
 ## Notes
 
 - `--format json` and `--json` are equivalent structured-output surfaces.
