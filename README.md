@@ -23,11 +23,10 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 </p>
 
 **Release track**
-- Stable tag: `v3.8.1`
-- Previous stable tag: `v3.8.0`
-- `v3.8.0` establishes the canonical `scan / review / pulse / sweep` CLI surface and hardens dogfood operation paths used by `health` and `audit`.
+- Stable tag: `v3.8.2`
+- Previous stable tag: `v3.8.1`
 - `v3.8.1` adds confidence-ranked cleanup plans, manifest hygiene, and opt-in layered architecture review.
-- Unreleased work adds repo-local impact tracking and default-off telemetry controls.
+- `v3.8.2` adds adaptive `--init`, a Node/npm transport surface, repo-local impact tracking, and default-off telemetry controls.
 
 ---
 
@@ -76,7 +75,7 @@ General linters flag style and convention. This tool flags structural risk.
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.8.1"
+pip install "ai-slop-detector>=3.8.2"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -89,7 +88,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.8.1"
+pip install "ai-slop-detector>=3.8.2"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -763,6 +762,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.8.2** | adaptive `--init` adds bounded repo-signal suggestions and preview/merge flows; npm wrapper adds typed contracts, Node API, and agent workflow docs; local impact tracking and opt-in telemetry become first-class observability surfaces |
 | **v3.8.1** | cleanup-family outputs become confidence-ranked action plans; `unused-deps` grows manifest hygiene for `pyproject.toml` / `package.json`; `boundary-violations` gains opt-in layered architecture review with explicit rule evidence |
 | **v3.7.9** | **Governance gate**: `verify-governance` fail-closed CLI, deterministic governance-record verification, and a formal split between scoring math and enforcement |
 | **v3.7.3** | **Hotfix**: pydantic import wrapped in `try/except ImportError` — package imports cleanly in stripped environments; `test_api_models.py` guard corrected to `fastapi`; CI Docker login `continue-on-error`, quality gate pinned to `>=3.7.3` |

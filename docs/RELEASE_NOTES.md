@@ -5,6 +5,72 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.8.2 — 2026-06-05
+
+### Summary
+
+This release extends AI-SLOP Detector from a stronger review surface into a
+safer onboarding and adoption surface. `--init` can now run a bounded second
+stage of repository signal collection, the npm wrapper graduates into a typed
+and programmatic Node transport surface, and local impact plus default-off
+telemetry make repeated use observable without entering the scoring path.
+
+### Added
+
+**Adaptive `--init`**
+- `--adaptive-init` adds a second-stage repository signal scan on top of the
+  baseline `.slopconfig.yaml` generator.
+- `--init-preview` prints suggestions without writing config.
+- `--apply-init-suggestions` opt-in merges bounded suggestions into a new or
+  existing `.slopconfig.yaml`.
+- adaptive signal collection now gathers:
+  - manifest presence
+  - language counts
+  - noise directories
+  - Python complexity candidates
+  - architecture layout markers
+  - cleanup markers
+
+**NPM thin wrapper**
+- dedicated `npm-wrapper/` package for Node-first distribution
+- `bin/ai-slop-detector.js` launcher
+- version-pinned TypeScript contract exports at `ai-slop-detector/types`
+- package-root Node API:
+  - `scanProject`
+  - `reviewChanges`
+  - `computeHealth`
+  - `runCleanupFamily`
+- agent workflow guide for JSON-first review and MCP-assisted usage
+
+**Local impact and opt-in telemetry**
+- local impact commands:
+  - `slop-detector impact enable`
+  - `slop-detector impact`
+  - `slop-detector impact disable`
+- telemetry commands:
+  - `slop-detector telemetry status`
+  - `slop-detector telemetry enable`
+  - `slop-detector telemetry disable`
+  - `slop-detector telemetry inspect --example`
+- `AI_SLOP_DETECTOR_TELEMETRY=inspect` prints a real payload without queueing
+  or sending it
+
+### Changed
+
+- adaptive suggestions stay conservative and evidence-backed
+- existing-config init stays idempotent by default
+- npm wrapper docs now state clearly that Node is a transport surface over the
+  Python core
+- impact and telemetry remain outside the deterministic scoring path
+
+### Validation
+
+- `python -m pytest tests/test_domain_init.py tests/test_cli.py tests/test_impact_telemetry.py -q -W error::ResourceWarning`
+- `node --test npm-wrapper/tests/runtime.test.js npm-wrapper/tests/api.test.js`
+- `npm pack --dry-run` in `npm-wrapper/`
+
+---
+
 ## v3.8.1 — 2026-06-04
 
 ### Summary
@@ -159,8 +225,8 @@ cross-language aggregation and ML reproducibility fixes.
 
 ### Tag
 
-- Latest stable tag: `v3.7.9`
-- Previous stable tag: `v3.7.8`
+- Latest stable tag: `v3.8.2`
+- Previous stable tag: `v3.8.1`
 
 ## v3.7.4 — 2026-05-19
 
