@@ -189,6 +189,31 @@ Adaptive init is intentionally split into safe stages:
 The Node distribution surface is intentionally thin and delegates to the Python
 CLI rather than reimplementing analysis logic.
 
+Install:
+
+```bash
+npm install --save-dev ai-slop-detector
+# or: pnpm add -D ai-slop-detector
+# or: yarn add -D ai-slop-detector
+# or: bun add -d ai-slop-detector
+```
+
+Python backend prerequisite:
+
+```bash
+pip install ai-slop-detector
+```
+
+Normal usage:
+
+```bash
+npx ai-slop-detector scan .
+npx ai-slop-detector review . --format json
+npx ai-slop-detector pulse . --format json
+npx ai-slop-detector sweep dead-code . --format json
+npx ai-slop-detector mcp
+```
+
 Local wrapper checks:
 
 ```bash
@@ -203,6 +228,9 @@ Wrapper guarantees:
 - stdout/stderr are passed through
 - exit codes are propagated
 - backend discovery is explicit and fails with actionable messaging
+- backend discovery order is stable:
+  `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
+  `python -m slop_detector.cli`
 
 ---
 

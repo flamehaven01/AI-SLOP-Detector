@@ -32,6 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a thin launcher:
   - `bin/ai-slop-detector.js`
 - Added wrapper runtime contract tests and CI coverage.
+- Added explicit install story for:
+  - `npm`
+  - `pnpm`
+  - `yarn`
+  - `bun`
+- Added package-local wrapper README and backend prerequisite documentation.
 
 ### Changed
 

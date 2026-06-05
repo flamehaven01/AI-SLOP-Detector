@@ -109,6 +109,19 @@ pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
 pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
 
 # Thin npm wrapper (delegates to the Python CLI)
+npm install --save-dev ai-slop-detector
+# or: pnpm add -D ai-slop-detector / yarn add -D ai-slop-detector / bun add -d ai-slop-detector
+
+# Python backend still required
+pip install ai-slop-detector
+
+npx ai-slop-detector scan .
+npx ai-slop-detector review . --format json
+npx ai-slop-detector pulse . --format json
+npx ai-slop-detector sweep dead-code . --format json
+npx ai-slop-detector mcp
+
+# Local wrapper development
 cd npm-wrapper
 node ./bin/ai-slop-detector.js --version
 
@@ -122,6 +135,9 @@ The npm surface is intentionally thin:
 - it delegates into the Python CLI/runtime
 - it exists for Node-first teams that want `npx`-style entry without changing
   product semantics
+- it requires a Python backend and discovers it in this order:
+  `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
+  `python -m slop_detector.cli`
 
 > **Windows / PowerShell tip:** PowerShell `>` redirection writes UTF-16 LE
 > or UTF-8 with BOM by default, which breaks `json.load(..., encoding='utf-8')`.

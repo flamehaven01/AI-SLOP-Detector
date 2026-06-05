@@ -9,7 +9,8 @@
   },
   "files": [
     "bin",
-    "lib"
+    "lib",
+    "README.md"
   ],
   "scripts": {
     "test": "node --test tests/runtime.test.js"
