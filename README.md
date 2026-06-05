@@ -253,6 +253,7 @@ down regardless of other dimensions. Every scan is recorded to history (per proj
 events and >= 5 fp_candidate events per class have accumulated.
 
 Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
+Agent usage: [docs/AGENT_WORKFLOW.md](docs/AGENT_WORKFLOW.md)
 
 ---
 

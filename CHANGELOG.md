@@ -46,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `reviewChanges`
   - `computeHealth`
   - `runCleanupFamily`
+- Added an agent workflow guide covering JSON-first review, cleanup, health,
+  and MCP-assisted usage patterns.
 
 ### Changed
 

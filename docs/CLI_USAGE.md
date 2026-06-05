@@ -399,6 +399,9 @@ Tools exposed by the wrapper:
 - `slop_analyze_file`
 - `slop_analyze_project`
 
+For end-to-end AI-agent usage patterns, see
+[docs/AGENT_WORKFLOW.md](AGENT_WORKFLOW.md).
+
 ## Complete CLI Reference
 
 ```
