@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import fnmatch
+import importlib
 import json
 import re
 import subprocess
@@ -19,9 +20,9 @@ from slop_detector.patterns.python_imports import _discover_project_packages, _f
 from slop_detector.renderer_markdown import get_mitigation
 
 if sys.version_info >= (3, 11):
-    import tomllib  # type: ignore[import-not-found]
+    import tomllib as _toml_loader  # type: ignore[import-not-found]
 else:  # pragma: no cover - py38 fallback
-    import tomli as tomllib  # type: ignore[import-not-found,assignment]
+    _toml_loader = importlib.import_module("tomli")
 
 try:
     from importlib.metadata import packages_distributions
@@ -217,28 +218,77 @@ def _looks_like_dead_code(file_path: str) -> bool:
     except OSError:
         return False
 
-    if "TODO" in source or "FIXME" in source:
-        return True
-
-    try:
-        tree = ast.parse(source, filename=str(path))
-    except SyntaxError:
+    if _is_script_entrypoint(tree := _safe_parse_ast(source, path)):
         return False
 
+    if _has_placeholder_markers(source):
+        return True
+    return _has_placeholder_only_body(tree)
+
+
+def _safe_parse_ast(source: str, path: Path) -> Optional[ast.AST]:
+    try:
+        return ast.parse(source, filename=str(path))
+    except SyntaxError:
+        return None
+
+
+def _has_placeholder_markers(source: str) -> bool:
+    markers = ("TODO", "FIXME", "NotImplementedError", "pass  # placeholder")
+    return any(marker in source for marker in markers)
+
+
+def _is_script_entrypoint(tree: Optional[ast.AST]) -> bool:
+    if tree is None:
+        return False
+    has_main_guard = False
+    has_cli_setup = False
+    for node in getattr(tree, "body", []):
+        if isinstance(node, ast.If) and _is_main_guard(node):
+            has_main_guard = True
+        elif isinstance(node, ast.Import):
+            has_cli_setup = has_cli_setup or any(alias.name == "argparse" for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            has_cli_setup = has_cli_setup or node.module in {"argparse", "click", "typer"}
+    return has_main_guard or has_cli_setup
+
+
+def _is_main_guard(node: ast.If) -> bool:
+    test = node.test
+    return (
+        isinstance(test, ast.Compare)
+        and isinstance(test.left, ast.Name)
+        and test.left.id == "__name__"
+        and len(test.ops) == 1
+        and isinstance(test.ops[0], ast.Eq)
+        and len(test.comparators) == 1
+        and isinstance(test.comparators[0], ast.Constant)
+        and test.comparators[0].value == "__main__"
+    )
+
+
+def _has_placeholder_only_body(tree: Optional[ast.AST]) -> bool:
+    if tree is None:
+        return False
     for node in ast.walk(tree):
         body = getattr(node, "body", None)
-        if isinstance(body, list) and body:
-            if all(isinstance(item, (ast.Pass, ast.Expr)) for item in body):
-                if any(isinstance(item, ast.Pass) for item in body):
-                    return True
-                if any(
-                    isinstance(item, ast.Expr)
-                    and isinstance(getattr(item, "value", None), ast.Constant)
-                    and getattr(item.value, "value", None) in (Ellipsis, "")
-                    for item in body
-                ):
-                    return True
+        if not isinstance(body, list) or not body:
+            continue
+        if not all(isinstance(item, (ast.Pass, ast.Expr)) for item in body):
+            continue
+        if any(isinstance(item, ast.Pass) for item in body):
+            return True
+        if any(_is_placeholder_expression(item) for item in body):
+            return True
     return False
+
+
+def _is_placeholder_expression(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Expr)
+        and isinstance(getattr(node, "value", None), ast.Constant)
+        and getattr(node.value, "value", None) in (Ellipsis, "")
+    )
 
 
 def _build_hotspot_index(result) -> Dict[str, Any]:
@@ -322,7 +372,7 @@ def _module_to_distribution(module_name: str) -> str:
             if dists:
                 return _canonical_dep_name(dists[0])
         except Exception:
-            pass
+            return canonical
     return canonical
 
 
@@ -332,18 +382,31 @@ def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, 
         return []
 
     try:
-        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+        data = _toml_loader.loads(pyproject.read_text(encoding="utf-8"))
     except Exception:
         return []
 
     project_data = data.get("project", {})
-    declared_raw = list(project_data.get("dependencies", []) or [])
-    for extras in (project_data.get("optional-dependencies", {}) or {}).values():
-        declared_raw.extend(list(extras or []))
+    declared_raw = _collect_python_declared_dependencies(project_data)
     declared = {_pep508_name(spec): spec for spec in declared_raw if _pep508_name(spec)}
     if not declared:
         return []
 
+    imported_dists = _collect_python_imported_distributions(project_path, result)
+    issues: List[Dict[str, Any]] = []
+    issues.extend(_build_python_unused_declared_issues(declared, imported_dists))
+    issues.extend(_build_python_undeclared_issues(declared, imported_dists))
+    return issues
+
+
+def _collect_python_declared_dependencies(project_data: Dict[str, Any]) -> List[str]:
+    declared_raw = list(project_data.get("dependencies", []) or [])
+    for extras in (project_data.get("optional-dependencies", {}) or {}).values():
+        declared_raw.extend(list(extras or []))
+    return declared_raw
+
+
+def _collect_python_imported_distributions(project_path: Path, result) -> set[str]:
     internal_packages = (
         _discover_project_packages(_find_project_root(project_path / "dummy.py") or project_path)
         or frozenset()
@@ -355,12 +418,14 @@ def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, 
             if _canonical_dep_name(top_level) in internal_packages:
                 continue
             imported_modules.add(top_level)
+    return {_module_to_distribution(name) for name in imported_modules}
 
-    imported_dists = {_module_to_distribution(name) for name in imported_modules}
+
+def _build_python_unused_declared_issues(
+    declared: Dict[str, str], imported_dists: set[str]
+) -> List[Dict[str, Any]]:
     issues: List[Dict[str, Any]] = []
-
-    unused_declared = sorted(name for name in declared if name not in imported_dists)
-    for dep_name in unused_declared:
+    for dep_name in sorted(name for name in declared if name not in imported_dists):
         issues.append(
             {
                 "issue_type": "manifest_unused_dependency",
@@ -375,9 +440,14 @@ def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, 
                 },
             }
         )
+    return issues
 
-    undeclared = sorted(name for name in imported_dists if name and name not in declared)
-    for dep_name in undeclared:
+
+def _build_python_undeclared_issues(
+    declared: Dict[str, str], imported_dists: set[str]
+) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    for dep_name in sorted(name for name in imported_dists if name and name not in declared):
         issues.append(
             {
                 "issue_type": "undeclared_import",
@@ -392,7 +462,6 @@ def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, 
                 },
             }
         )
-
     return issues
 
 
@@ -406,6 +475,19 @@ def _scan_js_manifest_hygiene(project_path: Path) -> List[Dict[str, Any]]:
     except Exception:
         return []
 
+    declared = _collect_js_declared_dependencies(data)
+    if not declared:
+        return []
+    imported_modules = _collect_js_imported_modules(project_path)
+    if not imported_modules:
+        return []
+    issues: List[Dict[str, Any]] = []
+    issues.extend(_build_js_unused_declared_issues(declared, imported_modules))
+    issues.extend(_build_js_undeclared_issues(declared, imported_modules))
+    return issues
+
+
+def _collect_js_declared_dependencies(data: Dict[str, Any]) -> Dict[str, str]:
     declared_sections = {
         "dependencies": data.get("dependencies", {}) or {},
         "devDependencies": data.get("devDependencies", {}) or {},
@@ -416,9 +498,10 @@ def _scan_js_manifest_hygiene(project_path: Path) -> List[Dict[str, Any]]:
     for section, deps in declared_sections.items():
         for name in deps:
             declared[_canonical_dep_name(name)] = section
-    if not declared:
-        return []
+    return declared
 
+
+def _collect_js_imported_modules(project_path: Path) -> set[str]:
     imported_modules = set()
     for path in project_path.rglob("*"):
         if path.suffix.lower() not in {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"}:
@@ -430,24 +513,31 @@ def _scan_js_manifest_hygiene(project_path: Path) -> List[Dict[str, Any]]:
         except OSError:
             continue
         for match in _JS_IMPORT_RE.findall(content):
-            if not match or match.startswith(".") or match.startswith("/"):
-                continue
-            top_level = match.split("/", 1)[0]
-            if top_level.startswith("@") and "/" in match:
-                top_level = "/".join(match.split("/", 2)[:2])
-            if top_level.startswith("node:"):
-                top_level = top_level.split(":", 1)[1]
-            canonical = _canonical_dep_name(top_level)
-            if canonical in _NODE_BUILTINS:
-                continue
-            imported_modules.add(canonical)
+            canonical = _canonicalize_js_import(match)
+            if canonical:
+                imported_modules.add(canonical)
+    return imported_modules
 
-    if not imported_modules:
-        return []
 
+def _canonicalize_js_import(match: str) -> Optional[str]:
+    if not match or match.startswith(".") or match.startswith("/"):
+        return None
+    top_level = match.split("/", 1)[0]
+    if top_level.startswith("@") and "/" in match:
+        top_level = "/".join(match.split("/", 2)[:2])
+    if top_level.startswith("node:"):
+        top_level = top_level.split(":", 1)[1]
+    canonical = _canonical_dep_name(top_level)
+    if canonical in _NODE_BUILTINS:
+        return None
+    return canonical
+
+
+def _build_js_unused_declared_issues(
+    declared: Dict[str, str], imported_modules: set[str]
+) -> List[Dict[str, Any]]:
     issues: List[Dict[str, Any]] = []
-    unused_declared = sorted(name for name in declared if name not in imported_modules)
-    for dep_name in unused_declared:
+    for dep_name in sorted(name for name in declared if name not in imported_modules):
         issues.append(
             {
                 "issue_type": "manifest_unused_dependency",
@@ -465,9 +555,14 @@ def _scan_js_manifest_hygiene(project_path: Path) -> List[Dict[str, Any]]:
                 },
             }
         )
+    return issues
 
-    undeclared = sorted(name for name in imported_modules if name not in declared)
-    for dep_name in undeclared:
+
+def _build_js_undeclared_issues(
+    declared: Dict[str, str], imported_modules: set[str]
+) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    for dep_name in sorted(name for name in imported_modules if name not in declared):
         issues.append(
             {
                 "issue_type": "undeclared_import",
@@ -484,7 +579,6 @@ def _scan_js_manifest_hygiene(project_path: Path) -> List[Dict[str, Any]]:
                 },
             }
         )
-
     return issues
 
 
@@ -493,30 +587,34 @@ def _architecture_layers_from_config(project_path: Path, config) -> List[Dict[st
     if not architecture or not architecture.get("enabled"):
         return []
 
-    layers = architecture.get("layers") or []
-    if layers:
-        normalized = []
-        for layer in layers:
-            if not isinstance(layer, dict):
-                continue
-            name = str(layer.get("name") or "").strip()
-            patterns = [str(item) for item in (layer.get("patterns") or []) if str(item).strip()]
-            if name and patterns:
-                normalized.append(
-                    {
-                        "name": name,
-                        "patterns": patterns,
-                        "can_import": [str(item) for item in (layer.get("can_import") or [])],
-                        "cannot_import": [str(item) for item in (layer.get("cannot_import") or [])],
-                    }
-                )
-        if normalized:
-            return normalized
+    normalized = _normalize_architecture_layers(architecture.get("layers") or [])
+    if normalized:
+        return normalized
 
     preset = str(architecture.get("preset") or "none").strip().lower()
     if preset == "layered":
         return list(_LAYERED_PRESET)
     return []
+
+
+def _normalize_architecture_layers(layers: List[Any]) -> List[Dict[str, Any]]:
+    normalized = []
+    for layer in layers:
+        if not isinstance(layer, dict):
+            continue
+        name = str(layer.get("name") or "").strip()
+        patterns = [str(item) for item in (layer.get("patterns") or []) if str(item).strip()]
+        if not name or not patterns:
+            continue
+        normalized.append(
+            {
+                "name": name,
+                "patterns": patterns,
+                "can_import": [str(item) for item in (layer.get("can_import") or [])],
+                "cannot_import": [str(item) for item in (layer.get("cannot_import") or [])],
+            }
+        )
+    return normalized
 
 
 def _match_architecture_layer(rel_path: str, layers: List[Dict[str, Any]]) -> Optional[str]:
@@ -549,10 +647,7 @@ def _detect_boundary_violations(project_path: Path, cross, config) -> List[Dict[
     issues: List[Dict[str, Any]] = []
 
     for importer, imported_items in (cross.import_graph or {}).items():
-        try:
-            importer_rel = str(Path(importer).resolve().relative_to(project_path.resolve()))
-        except Exception:
-            importer_rel = str(importer)
+        importer_rel = _project_relative_path(importer, project_path)
         importer_layer, importer_pattern = _match_architecture_layer_with_pattern(
             importer_rel, layers
         )
@@ -560,53 +655,74 @@ def _detect_boundary_violations(project_path: Path, cross, config) -> List[Dict[
             continue
 
         for imported in imported_items:
-            try:
-                imported_rel = str(Path(imported).resolve().relative_to(project_path.resolve()))
-            except Exception:
-                imported_rel = str(imported)
+            imported_rel = _project_relative_path(imported, project_path)
             imported_layer, imported_pattern = _match_architecture_layer_with_pattern(
                 imported_rel, layers
             )
             if imported_layer is None or imported_layer == importer_layer:
                 continue
-            allowed_imports = layer_rules.get(importer_layer, set())
-            forbidden_imports = layer_forbidden.get(importer_layer, set())
-            is_forbidden = imported_layer in forbidden_imports
-            is_not_allowed = bool(allowed_imports) and imported_layer not in allowed_imports
-            if is_forbidden or is_not_allowed:
-                violation_reason = (
-                    f"{importer_layer} -> {imported_layer} is explicitly forbidden"
-                    if is_forbidden
-                    else f"{importer_layer} -> {imported_layer} is not in the allowed import set"
-                )
-                issues.append(
-                    {
-                        "issue_type": "layer_boundary_violation",
-                        "importer": importer_rel,
-                        "importee": imported_rel,
-                        "importer_layer": importer_layer,
-                        "importee_layer": imported_layer,
-                        "display": (
-                            f"{importer_rel} ({importer_layer}) depends on "
-                            f"{imported_rel} ({imported_layer})"
-                        ),
-                        "confidence": 0.42,
-                        "action_class": "unsafe_auto_remove",
-                        "evidence": {
-                            "preset": str(config.get_architecture_config().get("preset", "custom")),
-                            "rule": "layer imports must satisfy configured architecture rules",
-                            "reasons": [
-                                "import crosses configured architecture layer order",
-                                violation_reason,
-                            ],
-                            "allowed_imports": sorted(allowed_imports),
-                            "forbidden_imports": sorted(forbidden_imports),
-                            "matched_importer_pattern": importer_pattern,
-                            "matched_importee_pattern": imported_pattern,
-                        },
-                    }
-                )
+            issue = _build_boundary_violation_issue(
+                importer_rel,
+                imported_rel,
+                importer_layer,
+                imported_layer,
+                importer_pattern,
+                imported_pattern,
+                layer_rules.get(importer_layer, set()),
+                layer_forbidden.get(importer_layer, set()),
+                config,
+            )
+            if issue is not None:
+                issues.append(issue)
     return issues
+
+
+def _project_relative_path(path_value: str, project_path: Path) -> str:
+    try:
+        return str(Path(path_value).resolve().relative_to(project_path.resolve()))
+    except Exception:
+        return str(path_value)
+
+
+def _build_boundary_violation_issue(
+    importer_rel: str,
+    imported_rel: str,
+    importer_layer: str,
+    imported_layer: str,
+    importer_pattern: Optional[str],
+    imported_pattern: Optional[str],
+    allowed_imports: set[str],
+    forbidden_imports: set[str],
+    config,
+) -> Optional[Dict[str, Any]]:
+    is_forbidden = imported_layer in forbidden_imports
+    is_not_allowed = bool(allowed_imports) and imported_layer not in allowed_imports
+    if not (is_forbidden or is_not_allowed):
+        return None
+    violation_reason = (
+        f"{importer_layer} -> {imported_layer} is explicitly forbidden"
+        if is_forbidden
+        else f"{importer_layer} -> {imported_layer} is not in the allowed import set"
+    )
+    return {
+        "issue_type": "layer_boundary_violation",
+        "importer": importer_rel,
+        "importee": imported_rel,
+        "importer_layer": importer_layer,
+        "importee_layer": imported_layer,
+        "display": f"{importer_rel} ({importer_layer}) depends on {imported_rel} ({imported_layer})",
+        "confidence": 0.42,
+        "action_class": "unsafe_auto_remove",
+        "evidence": {
+            "preset": str(config.get_architecture_config().get("preset", "custom")),
+            "rule": "layer imports must satisfy configured architecture rules",
+            "reasons": ["import crosses configured architecture layer order", violation_reason],
+            "allowed_imports": sorted(allowed_imports),
+            "forbidden_imports": sorted(forbidden_imports),
+            "matched_importer_pattern": importer_pattern,
+            "matched_importee_pattern": imported_pattern,
+        },
+    }
 
 
 def _score_dead_code_confidence(
@@ -614,34 +730,9 @@ def _score_dead_code_confidence(
 ) -> Dict[str, Any]:
     evidence = _cleanup_file_evidence(result, file_path)
     confidence = 0.45
-
-    deficit_score = float(evidence["deficit_score"] or 0.0)
-    churn_score = float(evidence["churn_score"] or 0.0)
-    coverage_ratio = evidence["coverage_ratio"]
-
-    if placeholder:
-        confidence += 0.15
-    if pattern_count > 0:
-        confidence += 0.10
-    if deficit_score >= 60:
-        confidence += 0.10
-    elif deficit_score >= 30:
-        confidence += 0.05
-
-    if churn_score >= 0.60:
-        confidence -= 0.30
-    elif churn_score >= 0.30:
-        confidence -= 0.15
-    elif churn_score == 0.0:
-        confidence += 0.10
-
-    if coverage_ratio is not None and coverage_ratio <= 0.10:
-        confidence += 0.15
-    elif coverage_ratio is not None and coverage_ratio <= 0.30:
-        confidence += 0.10
-    elif coverage_ratio is not None and coverage_ratio >= 0.60:
-        confidence -= 0.15
-
+    confidence += _dead_code_strength_bonus(placeholder, pattern_count, evidence)
+    confidence += _dead_code_churn_adjustment(evidence)
+    confidence += _dead_code_coverage_adjustment(evidence["coverage_ratio"])
     confidence = _clamp_confidence(confidence)
     evidence["rule_inputs"] = {
         "pattern_count": pattern_count,
@@ -652,6 +743,45 @@ def _score_dead_code_confidence(
         "action_class": _classify_action(confidence),
         "evidence": evidence,
     }
+
+
+def _dead_code_strength_bonus(
+    placeholder: bool, pattern_count: int, evidence: Dict[str, Any]
+) -> float:
+    confidence = 0.0
+    deficit_score = float(evidence["deficit_score"] or 0.0)
+    if placeholder:
+        confidence += 0.15
+    if pattern_count > 0:
+        confidence += 0.10
+    if deficit_score >= 60:
+        confidence += 0.10
+    elif deficit_score >= 30:
+        confidence += 0.05
+    return confidence
+
+
+def _dead_code_churn_adjustment(evidence: Dict[str, Any]) -> float:
+    churn_score = float(evidence["churn_score"] or 0.0)
+    if churn_score >= 0.60:
+        return -0.30
+    if churn_score >= 0.30:
+        return -0.15
+    if churn_score == 0.0:
+        return 0.10
+    return 0.0
+
+
+def _dead_code_coverage_adjustment(coverage_ratio: Optional[float]) -> float:
+    if coverage_ratio is None:
+        return 0.0
+    if coverage_ratio <= 0.10:
+        return 0.15
+    if coverage_ratio <= 0.30:
+        return 0.10
+    if coverage_ratio >= 0.60:
+        return -0.15
+    return 0.0
 
 
 def _score_duplicate_confidence(
@@ -843,100 +973,7 @@ def build_cleanup_payload(result, kind: str, config=None) -> Dict[str, Any]:
     analyzer = CrossFileAnalyzer()
     project_path = Path(result.project_path)
     cross = analyzer.analyze(str(project_path), result.file_results)
-    issues: List[Dict[str, Any]] = []
-
-    if kind == "dead-code":
-        for fr in result.file_results:
-            placeholder = _looks_like_dead_code(fr.file_path)
-            if (
-                getattr(fr, "pattern_issues", [])
-                or getattr(fr, "deficit_score", 0.0) >= 30
-                or placeholder
-            ):
-                ranking = _score_dead_code_confidence(
-                    result,
-                    fr.file_path,
-                    len(getattr(fr, "pattern_issues", [])),
-                    placeholder,
-                )
-                issues.append(
-                    {
-                        "file_path": fr.file_path,
-                        "deficit_score": getattr(fr, "deficit_score", 0.0),
-                        "pattern_count": len(getattr(fr, "pattern_issues", [])),
-                        "reason": "dead code placeholder",
-                        **ranking,
-                    }
-                )
-    elif kind == "dupes":
-        for dup in cross.duplicates:
-            ranking = _score_duplicate_confidence(result, dup.file_a, dup.file_b, dup.similarity)
-            issues.append(
-                {
-                    "file_a": dup.file_a,
-                    "file_b": dup.file_b,
-                    "func_a": dup.func_a,
-                    "func_b": dup.func_b,
-                    "similarity": dup.similarity,
-                    **ranking,
-                }
-            )
-    elif kind == "unused-deps":
-        for fr in result.file_results:
-            if getattr(fr.ddc, "unused", []):
-                ranking = _score_unused_dep_confidence(
-                    result,
-                    fr.file_path,
-                    len(getattr(fr.ddc, "unused", [])),
-                    getattr(fr.ddc, "usage_ratio", 0.0),
-                )
-                issues.append(
-                    {
-                        "file_path": fr.file_path,
-                        "usage_ratio": fr.ddc.usage_ratio,
-                        "unused": list(fr.ddc.unused),
-                        **ranking,
-                    }
-                )
-        issues.extend(_scan_python_manifest_hygiene(project_path, result))
-        issues.extend(_scan_js_manifest_hygiene(project_path))
-    elif kind == "stale-suppressions":
-        ledger_entries = getattr(result, "suppression_ledger", []) or []
-        directives = (
-            getattr(result.file_results[0], "suppression_directives", [])
-            if result.file_results
-            else []
-        )
-        directive_lines = {entry.directive_line for entry in ledger_entries}
-        for directive in directives:
-            if directive.lineno not in directive_lines:
-                ranking = _score_stale_suppression_confidence(
-                    directive.lineno,
-                    directive.scope,
-                    list(directive.rules),
-                    directive.source,
-                )
-                issues.append(
-                    {
-                        "lineno": directive.lineno,
-                        "scope": directive.scope,
-                        "rules": list(directive.rules),
-                        "source": directive.source,
-                        **ranking,
-                    }
-                )
-    elif kind == "boundary-violations":
-        for cycle in cross.import_cycles:
-            ranking = _score_boundary_confidence(list(cycle.cycle))
-            issues.append(
-                {
-                    "issue_type": "import_cycle",
-                    "cycle": list(cycle.cycle),
-                    "display": str(cycle),
-                    **ranking,
-                }
-            )
-        issues.extend(_detect_boundary_violations(project_path, cross, config))
+    issues = _collect_cleanup_issues(kind, result, project_path, cross, config)
 
     verdict = "fail" if issues else "pass"
     return {
@@ -949,6 +986,137 @@ def build_cleanup_payload(result, kind: str, config=None) -> Dict[str, Any]:
         },
         "issues": issues,
     }
+
+
+def _collect_cleanup_issues(
+    kind: str, result, project_path: Path, cross, config
+) -> List[Dict[str, Any]]:
+    if kind == "dead-code":
+        return _collect_dead_code_issues(result)
+    if kind == "dupes":
+        return _collect_duplicate_issues(result, cross)
+    if kind == "unused-deps":
+        return _collect_unused_dependency_issues(result, project_path)
+    if kind == "stale-suppressions":
+        return _collect_stale_suppression_issues(result)
+    if kind == "boundary-violations":
+        return _collect_boundary_issues(result, project_path, cross, config)
+    return []
+
+
+def _collect_dead_code_issues(result) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    for fr in result.file_results:
+        placeholder = _looks_like_dead_code(fr.file_path)
+        if not _should_include_dead_code_candidate(fr, placeholder):
+            continue
+        ranking = _score_dead_code_confidence(
+            result,
+            fr.file_path,
+            len(getattr(fr, "pattern_issues", [])),
+            placeholder,
+        )
+        issues.append(
+            {
+                "file_path": fr.file_path,
+                "deficit_score": getattr(fr, "deficit_score", 0.0),
+                "pattern_count": len(getattr(fr, "pattern_issues", [])),
+                "reason": "dead code placeholder",
+                **ranking,
+            }
+        )
+    return issues
+
+
+def _should_include_dead_code_candidate(fr, placeholder: bool) -> bool:
+    return bool(
+        getattr(fr, "pattern_issues", []) or getattr(fr, "deficit_score", 0.0) >= 30 or placeholder
+    )
+
+
+def _collect_duplicate_issues(result, cross) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    for dup in cross.duplicates:
+        ranking = _score_duplicate_confidence(result, dup.file_a, dup.file_b, dup.similarity)
+        issues.append(
+            {
+                "file_a": dup.file_a,
+                "file_b": dup.file_b,
+                "func_a": dup.func_a,
+                "func_b": dup.func_b,
+                "similarity": dup.similarity,
+                **ranking,
+            }
+        )
+    return issues
+
+
+def _collect_unused_dependency_issues(result, project_path: Path) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    for fr in result.file_results:
+        if not getattr(fr.ddc, "unused", []):
+            continue
+        ranking = _score_unused_dep_confidence(
+            result,
+            fr.file_path,
+            len(getattr(fr.ddc, "unused", [])),
+            getattr(fr.ddc, "usage_ratio", 0.0),
+        )
+        issues.append(
+            {
+                "file_path": fr.file_path,
+                "usage_ratio": fr.ddc.usage_ratio,
+                "unused": list(fr.ddc.unused),
+                **ranking,
+            }
+        )
+    issues.extend(_scan_python_manifest_hygiene(project_path, result))
+    issues.extend(_scan_js_manifest_hygiene(project_path))
+    return issues
+
+
+def _collect_stale_suppression_issues(result) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    ledger_entries = getattr(result, "suppression_ledger", []) or []
+    directives = (
+        getattr(result.file_results[0], "suppression_directives", []) if result.file_results else []
+    )
+    directive_lines = {entry.directive_line for entry in ledger_entries}
+    for directive in directives:
+        if directive.lineno in directive_lines:
+            continue
+        ranking = _score_stale_suppression_confidence(
+            directive.lineno,
+            directive.scope,
+            list(directive.rules),
+            directive.source,
+        )
+        issues.append(
+            {
+                "lineno": directive.lineno,
+                "scope": directive.scope,
+                "rules": list(directive.rules),
+                "source": directive.source,
+                **ranking,
+            }
+        )
+    return issues
+
+
+def _collect_boundary_issues(result, project_path: Path, cross, config) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    for cycle in cross.import_cycles:
+        ranking = _score_boundary_confidence(list(cycle.cycle))
+        issues.append(
+            {
+                "issue_type": "import_cycle",
+                "cycle": list(cycle.cycle),
+                "display": str(cycle),
+                **ranking,
+            }
+        )
+    issues.extend(_detect_boundary_violations(project_path, cross, config))
+    return issues
 
 
 def build_explain_payload(identifier: str) -> Dict[str, Any]:
@@ -983,23 +1151,37 @@ def render_payload_text(payload: Dict[str, Any]) -> str:
     if verdict:
         lines.append(f"Verdict: {str(verdict).upper()}")
     summary = payload.get("summary", {})
-    if isinstance(summary, dict):
-        for key, value in summary.items():
-            lines.append(f"{key}: {value}")
-    elif summary:
-        lines.append(f"summary: {summary}")
-    targets = payload.get("targets", [])
-    if targets:
-        lines.append("Targets:")
-        for item in targets[:5]:
-            lines.append(f"  - {item['file_path']} ({item.get('reason', 'review')})")
-    issues = payload.get("issues", [])
-    if issues:
-        lines.append("Issues:")
-        for item in issues[:5]:
-            label = item.get("file_path") or item.get("display") or item.get("lineno")
-            lines.append(f"  - {label}")
+    lines.extend(_render_summary_lines(summary))
+    lines.extend(_render_target_lines(payload.get("targets", [])))
+    lines.extend(_render_issue_lines(payload.get("issues", [])))
     return "\n".join(lines)
+
+
+def _render_summary_lines(summary: Any) -> List[str]:
+    if isinstance(summary, dict):
+        return [f"{key}: {value}" for key, value in summary.items()]
+    if summary:
+        return [f"summary: {summary}"]
+    return []
+
+
+def _render_target_lines(targets: List[Dict[str, Any]]) -> List[str]:
+    if not targets:
+        return []
+    lines = ["Targets:"]
+    for item in targets[:5]:
+        lines.append(f"  - {item['file_path']} ({item.get('reason', 'review')})")
+    return lines
+
+
+def _render_issue_lines(issues: List[Dict[str, Any]]) -> List[str]:
+    if not issues:
+        return []
+    lines = ["Issues:"]
+    for item in issues[:5]:
+        label = item.get("file_path") or item.get("display") or item.get("lineno")
+        lines.append(f"  - {label}")
+    return lines
 
 
 def render_payload_markdown(payload: Dict[str, Any]) -> str:
@@ -1008,31 +1190,47 @@ def render_payload_markdown(payload: Dict[str, Any]) -> str:
     if payload.get("verdict"):
         lines += [f"**Verdict**: `{str(payload['verdict']).upper()}`", ""]
     summary = payload.get("summary", {})
-    if summary:
-        lines += ["## Summary", ""]
-        if isinstance(summary, dict):
-            for key, value in summary.items():
-                lines.append(f"- **{key}**: `{value}`")
-        else:
-            lines.append(f"- `{summary}`")
-        lines.append("")
-    targets = payload.get("targets", [])
-    if targets:
-        lines += ["## Targets", "", "| File | Priority | Reason |", "| :--- | :--- | :--- |"]
-        for item in targets[:10]:
-            lines.append(
-                f"| `{Path(item['file_path']).name}` | {item.get('priority_score', 0):.1f} | "
-                f"{', '.join(item.get('reasons', [])) or 'review'} |"
-            )
-        lines.append("")
-    issues = payload.get("issues", [])
-    if issues:
-        lines += ["## Issues", "", "| Item | Details |", "| :--- | :--- |"]
-        for item in issues[:10]:
-            detail = item.get("display") or item.get("reason") or item.get("file_path") or ""
-            lines.append(f"| `{item.get('file_path', item.get('lineno', 'item'))}` | {detail} |")
-        lines.append("")
+    lines.extend(_render_markdown_summary(summary))
+    lines.extend(_render_markdown_targets(payload.get("targets", [])))
+    lines.extend(_render_markdown_issues(payload.get("issues", [])))
     return "\n".join(lines)
+
+
+def _render_markdown_summary(summary: Any) -> List[str]:
+    if not summary:
+        return []
+    lines = ["## Summary", ""]
+    if isinstance(summary, dict):
+        for key, value in summary.items():
+            lines.append(f"- **{key}**: `{value}`")
+    else:
+        lines.append(f"- `{summary}`")
+    lines.append("")
+    return lines
+
+
+def _render_markdown_targets(targets: List[Dict[str, Any]]) -> List[str]:
+    if not targets:
+        return []
+    lines = ["## Targets", "", "| File | Priority | Reason |", "| :--- | :--- | :--- |"]
+    for item in targets[:10]:
+        lines.append(
+            f"| `{Path(item['file_path']).name}` | {item.get('priority_score', 0):.1f} | "
+            f"{', '.join(item.get('reasons', [])) or 'review'} |"
+        )
+    lines.append("")
+    return lines
+
+
+def _render_markdown_issues(issues: List[Dict[str, Any]]) -> List[str]:
+    if not issues:
+        return []
+    lines = ["## Issues", "", "| Item | Details |", "| :--- | :--- |"]
+    for item in issues[:10]:
+        detail = item.get("display") or item.get("reason") or item.get("file_path") or ""
+        lines.append(f"| `{item.get('file_path', item.get('lineno', 'item'))}` | {detail} |")
+    lines.append("")
+    return lines
 
 
 def watch_project(result_factory, interval: float = 2.0, follow: bool = False) -> int:

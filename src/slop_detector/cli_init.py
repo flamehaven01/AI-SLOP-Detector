@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import ast
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
@@ -21,37 +21,10 @@ def _detect_project_type(path: Path) -> str:
 
 def detect_domain(project_path: Path) -> Tuple[str, List[str], float]:
     """Scan project imports and return (domain_path, detected_by, confidence)."""
-    import re
-
     from slop_detector.config import DOMAIN_PROFILES
 
-    import_re = re.compile(r"^\s*(?:import\s+([\w]+)|from\s+([\w]+)\s+import)", re.MULTILINE)
-    found_imports: set[str] = set()
-    try:
-        for py_file in project_path.rglob("*.py"):
-            try:
-                text = py_file.read_text(encoding="utf-8", errors="ignore")
-                for match in import_re.finditer(text):
-                    module = (match.group(1) or match.group(2) or "").lower()
-                    if module:
-                        found_imports.add(module)
-            except OSError:
-                continue
-    except OSError as exc:
-        import logging as _logging
-
-        _logging.getLogger(__name__).debug("domain detection scan failed: %s", exc)
-
-    scores: Dict[str, List[str]] = {}
-    for domain_path, profile in DOMAIN_PROFILES.items():
-        if domain_path == "general":
-            continue
-        hits = [
-            trigger for trigger in profile.get("triggers", []) if trigger.lower() in found_imports
-        ]
-        if hits:
-            scores[domain_path] = hits
-
+    found_imports = _collect_domain_imports(project_path)
+    scores = _score_domain_triggers(found_imports, DOMAIN_PROFILES)
     if not scores:
         return "general", [], 0.0
 
@@ -63,6 +36,47 @@ def detect_domain(project_path: Path) -> Tuple[str, List[str], float]:
     trigger_count = max(len(DOMAIN_PROFILES[best].get("triggers", [])), 1)
     confidence = round(min(1.0, len(hits) / max(trigger_count * 0.4, 1)), 2)
     return best, hits, confidence
+
+
+def _collect_domain_imports(project_path: Path) -> set[str]:
+    import re
+
+    import_re = re.compile(r"^\s*(?:import\s+([\w]+)|from\s+([\w]+)\s+import)", re.MULTILINE)
+    found_imports: set[str] = set()
+    try:
+        for py_file in project_path.rglob("*.py"):
+            _record_domain_imports(py_file, import_re, found_imports)
+    except OSError as exc:
+        import logging as _logging
+
+        _logging.getLogger(__name__).debug("domain detection scan failed: %s", exc)
+    return found_imports
+
+
+def _record_domain_imports(py_file: Path, import_re, found_imports: set[str]) -> None:
+    try:
+        text = py_file.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return
+    for match in import_re.finditer(text):
+        module = (match.group(1) or match.group(2) or "").lower()
+        if module:
+            found_imports.add(module)
+
+
+def _score_domain_triggers(
+    found_imports: set[str], domain_profiles: Dict[str, Dict[str, Any]]
+) -> Dict[str, List[str]]:
+    scores: Dict[str, List[str]] = {}
+    for domain_path, profile in domain_profiles.items():
+        if domain_path == "general":
+            continue
+        hits = [
+            trigger for trigger in profile.get("triggers", []) if trigger.lower() in found_imports
+        ]
+        if hits:
+            scores[domain_path] = hits
+    return scores
 
 
 _INIT_SKIP_DIRS = {
@@ -158,24 +172,32 @@ def _collect_noise_directories(project_path: Path) -> List[str]:
 def _count_repo_languages(project_path: Path) -> Dict[str, int]:
     """Count dominant code file types with a lightweight directory walk."""
     counts = {"python": 0, "javascript": 0, "typescript": 0, "go": 0}
+    suffix_map = {
+        ".py": "python",
+        ".js": "javascript",
+        ".jsx": "javascript",
+        ".mjs": "javascript",
+        ".cjs": "javascript",
+        ".ts": "typescript",
+        ".tsx": "typescript",
+        ".go": "go",
+    }
     try:
         for path in project_path.rglob("*"):
-            if not path.is_file():
-                continue
-            if any(part in _INIT_SKIP_DIRS for part in path.parts):
-                continue
-            suffix = path.suffix.lower()
-            if suffix == ".py":
-                counts["python"] += 1
-            elif suffix in {".js", ".jsx", ".mjs", ".cjs"}:
-                counts["javascript"] += 1
-            elif suffix in {".ts", ".tsx"}:
-                counts["typescript"] += 1
-            elif suffix == ".go":
-                counts["go"] += 1
+            bucket = _language_bucket_for_path(path, suffix_map)
+            if bucket:
+                counts[bucket] += 1
     except OSError:
         return counts
     return counts
+
+
+def _language_bucket_for_path(path: Path, suffix_map: Dict[str, str]) -> Optional[str]:
+    if not path.is_file():
+        return None
+    if any(part in _INIT_SKIP_DIRS for part in path.parts):
+        return None
+    return suffix_map.get(path.suffix.lower())
 
 
 def _collect_architecture_markers(project_path: Path) -> Dict[str, Any]:
@@ -518,48 +540,66 @@ def _merge_adaptive_init_suggestions(
 ) -> Dict[str, Any]:
     """Merge conservative adaptive-init suggestions into an existing config dict."""
     merged = dict(config_data)
+    merged["ignore"] = _merge_ignore_patterns(merged, suggestions)
+    merged["patterns"] = _merge_pattern_overrides(merged, suggestions)
+    merged["architecture"] = _merge_architecture_settings(merged, suggestions)
+    return merged
 
-    ignore_list = list(merged.get("ignore", []) or [])
+
+def _merge_ignore_patterns(config_data: Dict[str, Any], suggestions: Dict[str, Any]) -> List[str]:
+    ignore_list = list(config_data.get("ignore", []) or [])
     for item in suggestions.get("ignore_patterns", []):
         pattern = item.get("pattern")
         if pattern and pattern not in ignore_list:
             ignore_list.append(pattern)
-    if ignore_list:
-        merged["ignore"] = ignore_list
+    return ignore_list
 
-    patterns = dict(merged.get("patterns", {}) or {})
+
+def _merge_pattern_overrides(
+    config_data: Dict[str, Any], suggestions: Dict[str, Any]
+) -> Dict[str, Any]:
+    patterns = dict(config_data.get("patterns", {}) or {})
     god_function = dict(patterns.get("god_function", {}) or {})
     domain_overrides = list(god_function.get("domain_overrides", []) or [])
     existing_patterns = {str(item.get("function_pattern", "")) for item in domain_overrides}
     for item in suggestions.get("god_function_domain_overrides", []):
-        function_pattern = str(item.get("function_pattern", "")).strip()
-        if not function_pattern or function_pattern in existing_patterns:
-            continue
-        domain_overrides.append(
-            {
-                "function_pattern": function_pattern,
-                "complexity_threshold": int(item.get("complexity_threshold", 10)),
-                "lines_threshold": int(item.get("lines_threshold", 50)),
-                "reason": item.get("reason", "Adaptive init suggestion"),
-            }
-        )
-        existing_patterns.add(function_pattern)
+        _append_domain_override(domain_overrides, existing_patterns, item)
     god_function["domain_overrides"] = domain_overrides
     patterns["god_function"] = god_function
-    merged["patterns"] = patterns
+    return patterns
 
-    architecture = dict(merged.get("architecture", {}) or {})
+
+def _append_domain_override(
+    domain_overrides: List[Dict[str, Any]],
+    existing_patterns: set[str],
+    item: Dict[str, Any],
+) -> None:
+    function_pattern = str(item.get("function_pattern", "")).strip()
+    if not function_pattern or function_pattern in existing_patterns:
+        return
+    domain_overrides.append(
+        {
+            "function_pattern": function_pattern,
+            "complexity_threshold": int(item.get("complexity_threshold", 10)),
+            "lines_threshold": int(item.get("lines_threshold", 50)),
+            "reason": item.get("reason", "Adaptive init suggestion"),
+        }
+    )
+    existing_patterns.add(function_pattern)
+
+
+def _merge_architecture_settings(
+    config_data: Dict[str, Any], suggestions: Dict[str, Any]
+) -> Dict[str, Any]:
+    architecture = dict(config_data.get("architecture", {}) or {})
     architecture_suggestion = suggestions.get("architecture", {})
     if architecture_suggestion.get("recommendation") == "enable_layered_preset":
         if not architecture.get("enabled", False):
             architecture["enabled"] = True
         if architecture.get("preset", "none") in {"none", "", None}:
             architecture["preset"] = "layered"
-    if "layers" not in architecture:
-        architecture["layers"] = []
-    merged["architecture"] = architecture
-
-    return merged
+    architecture.setdefault("layers", [])
+    return architecture
 
 
 def _write_init_config(
@@ -592,61 +632,42 @@ def _run_init(args: argparse.Namespace) -> int:
     from slop_detector.config import DOMAIN_PROFILES, generate_slopconfig_template
 
     config_path = Path(".slopconfig.yaml")
-    force = getattr(args, "force_init", False)
-    adaptive_init = bool(getattr(args, "adaptive_init", False))
-    init_preview = bool(getattr(args, "init_preview", False))
-    apply_init_suggestions = bool(getattr(args, "apply_init_suggestions", False))
     repo_path = Path(".")
     config_exists = config_path.exists()
-
     project_type = _detect_project_type(repo_path)
-
-    manual_domain = getattr(args, "domain", None)
-    if manual_domain:
-        if manual_domain not in DOMAIN_PROFILES:
-            valid = ", ".join(DOMAIN_PROFILES.keys())
-            print(f"[!] Unknown domain '{manual_domain}'. Valid: {valid}")
-            return 1
-        domain_path = manual_domain
-        detected_by: List[str] = []
-        confidence = 1.0
-        print(f"[o] Domain: {domain_path} (manually specified)")
-    else:
-        domain_path, detected_by, confidence = detect_domain(repo_path)
-        if domain_path != "general":
-            print(
-                f"[o] Domain detected: {domain_path} "
-                f"(imports: {', '.join(detected_by)}  confidence={confidence:.0%})"
-            )
-        else:
-            print("[o] Domain: general (no specific imports detected)")
-
+    init_options = _resolve_init_options(args)
+    resolved_domain = _resolve_init_domain(args, DOMAIN_PROFILES, repo_path)
+    if resolved_domain is None:
+        return 1
+    domain_path, detected_by, confidence = resolved_domain
     profile = dict(DOMAIN_PROFILES[domain_path])
     profile["detected_by"] = detected_by
-    needs_adaptive = adaptive_init or init_preview or apply_init_suggestions
+    needs_adaptive = (
+        init_options["adaptive_init"]
+        or init_options["init_preview"]
+        or init_options["apply_init_suggestions"]
+    )
     signals = collect_init_signals(repo_path) if needs_adaptive else {}
     suggestions = synthesize_init_suggestions(signals) if needs_adaptive else {}
 
     template = generate_slopconfig_template(project_type, domain_profile=profile)
-    if init_preview:
-        if config_exists and not force:
-            print("[*] Preview mode: existing .slopconfig.yaml will not be modified.")
-        else:
-            print("[*] Preview mode: .slopconfig.yaml would be generated.")
-        if needs_adaptive:
-            print()
-            print(_render_init_preview(project_type, domain_path, signals, suggestions))
+    preview_text = _render_init_preview(project_type, domain_path, signals, suggestions)
+    if _handle_init_preview(
+        config_exists,
+        init_options["force"],
+        init_options["init_preview"],
+        needs_adaptive,
+        preview_text,
+    ):
         return 0
 
-    if config_exists and not force and not apply_init_suggestions:
-        print("[*] .slopconfig.yaml already initialized.")
-        print("    Run with --force-init to regenerate.")
-        if needs_adaptive:
-            print()
-            print(_render_init_preview(project_type, domain_path, signals, suggestions))
+    if _should_skip_existing_config(
+        config_exists, init_options["force"], init_options["apply_init_suggestions"]
+    ):
+        _print_skip_existing_config(needs_adaptive, preview_text)
         return 0
 
-    if config_exists and not force and apply_init_suggestions:
+    if config_exists and not init_options["force"] and init_options["apply_init_suggestions"]:
         print("[*] Existing .slopconfig.yaml detected. Applying adaptive suggestions only.")
     else:
         config_path.write_text(template, encoding="utf-8")
@@ -658,13 +679,10 @@ def _run_init(args: argparse.Namespace) -> int:
             comment="# slop-detector: governance config (contains codebase complexity surface — keep private)",
         )
 
-    if apply_init_suggestions:
-        try:
-            current_data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-        except yaml.YAMLError as exc:
-            print(f"[!] Failed to read .slopconfig.yaml for adaptive merge: {exc}")
+    if init_options["apply_init_suggestions"]:
+        current_data = _load_existing_init_yaml(config_path)
+        if current_data is None:
             return 1
-
         merged = _merge_adaptive_init_suggestions(current_data, suggestions)
         _write_init_config(
             config_path,
@@ -679,7 +697,7 @@ def _run_init(args: argparse.Namespace) -> int:
 
     if needs_adaptive:
         print()
-        print(_render_init_preview(project_type, domain_path, signals, suggestions))
+        print(preview_text)
 
     print()
     print("[>] Next steps:")
@@ -689,3 +707,78 @@ def _run_init(args: argparse.Namespace) -> int:
     print("[!] Security: .slopconfig.yaml is in .gitignore (maps acceptable-complexity surface).")
     print("    To share governance config with your team, remove it from .gitignore.")
     return 0
+
+
+def _resolve_init_options(args: argparse.Namespace) -> Dict[str, bool]:
+    return {
+        "force": bool(getattr(args, "force_init", False)),
+        "adaptive_init": bool(getattr(args, "adaptive_init", False)),
+        "init_preview": bool(getattr(args, "init_preview", False)),
+        "apply_init_suggestions": bool(getattr(args, "apply_init_suggestions", False)),
+    }
+
+
+def _resolve_init_domain(
+    args: argparse.Namespace, domain_profiles: Dict[str, Dict[str, Any]], repo_path: Path
+) -> Optional[Tuple[str, List[str], float]]:
+    manual_domain = getattr(args, "domain", None)
+    if manual_domain:
+        if manual_domain not in domain_profiles:
+            valid = ", ".join(domain_profiles.keys())
+            print(f"[!] Unknown domain '{manual_domain}'. Valid: {valid}")
+            return None
+        print(f"[o] Domain: {manual_domain} (manually specified)")
+        return manual_domain, [], 1.0
+
+    domain_path, detected_by, confidence = detect_domain(repo_path)
+    if domain_path != "general":
+        print(
+            f"[o] Domain detected: {domain_path} (imports: {', '.join(detected_by)}  confidence={confidence:.0%})"
+        )
+    else:
+        print("[o] Domain: general (no specific imports detected)")
+    return domain_path, detected_by, confidence
+
+
+def _handle_init_preview(
+    config_exists: bool,
+    force: bool,
+    init_preview: bool,
+    needs_adaptive: bool,
+    preview_text: str,
+) -> bool:
+    if not init_preview:
+        return False
+    if config_exists and not force:
+        print("[*] Preview mode: existing .slopconfig.yaml will not be modified.")
+    else:
+        print("[*] Preview mode: .slopconfig.yaml would be generated.")
+    if needs_adaptive:
+        print()
+        print(preview_text)
+    return True
+
+
+def _should_skip_existing_config(
+    config_exists: bool, force: bool, apply_init_suggestions: bool
+) -> bool:
+    return config_exists and not force and not apply_init_suggestions
+
+
+def _print_skip_existing_config(needs_adaptive: bool, preview_text: str) -> None:
+    print("[*] .slopconfig.yaml already initialized.")
+    print("    Run with --force-init to regenerate.")
+    if needs_adaptive:
+        print()
+        print(preview_text)
+
+
+def _load_existing_init_yaml(config_path: Path) -> Optional[Dict[str, Any]]:
+    try:
+        current_data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        print(f"[!] Failed to read .slopconfig.yaml for adaptive merge: {exc}")
+        return None
+    if not isinstance(current_data, dict):
+        return {}
+    return current_data

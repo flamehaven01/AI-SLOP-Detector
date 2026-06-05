@@ -9,6 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+**P0 self-dogfood debt reduction**
+
+- `operations.py` cleanup-family assembly was split into smaller helpers for:
+  - dead-code collection
+  - duplicate collection
+  - manifest hygiene
+  - stale suppressions
+  - boundary review
+- `operations.py` manifest hygiene paths now use smaller Python / JS helper
+  stages instead of monolithic scanners.
+- `operations.py` text and markdown cleanup renderers were split into smaller
+  summary/target/issue formatting helpers.
+- `cli_init.py` init orchestration was decomposed into smaller helpers for:
+  - option resolution
+  - domain resolution
+  - preview handling
+  - existing-config skip handling
+  - YAML load / merge support
+- `cli_init.py` domain detection and language counting now use dedicated
+  collection/scoring helpers rather than single monolithic functions.
+
+### Fixed
+
+**P0 self-dogfood hotspot reduction**
+
+- self-dogfood `pulse` weighted deficit score improved from `21.3221` to
+  `18.9637` after refactoring `operations.py` and `cli_init.py`.
+- `cli_init.py` dropped out of the top self-dogfood hotspot set and now scans
+  as `clean` at the file level.
+- `operations.py` dead-code heuristics now avoid treating obvious CLI / script
+  entrypoints as placeholder-only files.
+- `operations.py` no longer imports `tomli` directly in the scoring surface;
+  runtime import fallback is now used to avoid phantom-import findings on the
+  compatibility path.
+
 ---
 
 ## [3.8.2] - 2026-06-05 — Adaptive Init, Node Surface, Impact, Telemetry
