@@ -897,12 +897,14 @@ class SlopDetector:
         if lowered_parts & DEFAULT_EXCLUDE_PARTS:
             return True
 
-        normalized_paths = {str(file_path).replace("\\", "/")}
+        normalized_paths = set()
         if root is not None:
             try:
                 normalized_paths.add(str(file_path.relative_to(root)).replace("\\", "/"))
             except ValueError:
-                pass
+                normalized_paths.add(str(file_path).replace("\\", "/"))
+        else:
+            normalized_paths.add(str(file_path).replace("\\", "/"))
         for pattern in patterns:
             pat = str(pattern).replace("\\", "/")
             for normalized in normalized_paths:
