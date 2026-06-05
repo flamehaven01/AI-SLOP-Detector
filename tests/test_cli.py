@@ -431,6 +431,26 @@ def test_cli_parser_accepts_topology_flags():
     assert args.topology_mode == "exact"
 
 
+def test_cli_parser_accepts_format_json_alias():
+    parser = _build_arg_parser()
+    args = parser.parse_args(["--format", "json"])
+
+    assert args.format == "json"
+    assert args.json is False
+
+
+def test_cli_parser_accepts_adaptive_init_flags():
+    parser = _build_arg_parser()
+    args = parser.parse_args(
+        ["--init", "--adaptive-init", "--init-preview", "--apply-init-suggestions"]
+    )
+
+    assert args.init is True
+    assert args.adaptive_init is True
+    assert args.init_preview is True
+    assert args.apply_init_suggestions is True
+
+
 def test_generate_html_report():
     """Test generate_html_report."""
     result = FileAnalysis(
@@ -579,6 +599,34 @@ def test_main_review_alias_routes_to_audit(tmp_path):
     payload = json.loads(output_file.read_text(encoding="utf-8"))
     assert payload["command"] == "audit"
     assert payload["verdict"] in {"pass", "warn", "fail"}
+
+
+def test_main_review_alias_accepts_format_json(tmp_path):
+    """review should accept --format json as an alias for --json."""
+    project = tmp_path / "project"
+    project.mkdir()
+    output_file = tmp_path / "review_format.json"
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=1,
+        deficit_files=0,
+        clean_files=1,
+        avg_deficit_score=12.0,
+        weighted_deficit_score=12.0,
+        avg_ldr=0.8,
+        avg_inflation=0.1,
+        avg_ddc=0.9,
+        overall_status=SlopStatus.CLEAN,
+        file_results=[],
+    )
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch("slop_detector.operations.get_changed_files", return_value=[]):
+            result = main(["review", str(project), "--format", "json", "-o", str(output_file)])
+
+    assert result == 0
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    assert payload["command"] == "audit"
 
 
 def test_main_pulse_alias_routes_to_health(tmp_path):

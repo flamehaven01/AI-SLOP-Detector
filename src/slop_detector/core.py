@@ -38,7 +38,19 @@ from slop_detector.rust_scan import discover_project_files
 from slop_detector.suppression_handler import SuppressionHandler
 
 logger = logging.getLogger(__name__)
-DEFAULT_EXCLUDE_PARTS = {".venv", "venv", "site-packages", "node_modules", "__pycache__", ".git"}
+DEFAULT_EXCLUDE_PARTS = {
+    ".venv",
+    "venv",
+    "site-packages",
+    "node_modules",
+    "__pycache__",
+    ".git",
+    "build",
+    "dist",
+    ".tox",
+    ".next",
+    "htmlcov",
+}
 
 
 class _SkipProxy:
@@ -231,6 +243,12 @@ class SlopDetector:
                 if self._should_ignore(file_path, ignore_patterns, root=project_path_obj):
                     continue
                 python_files.append(file_path)
+        else:
+            python_files = [
+                file_path
+                for file_path in python_files
+                if not self._should_ignore(file_path, ignore_patterns, root=project_path_obj)
+            ]
 
         logger.info(f"Found {len(python_files)} Python files in {project_path}")
 

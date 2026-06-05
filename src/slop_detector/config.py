@@ -113,6 +113,16 @@ class Config:
             "**/node_modules/**",
             "node_modules/**",
             "**/__pycache__/**",
+            "**/build/**",
+            "build/**",
+            "**/dist/**",
+            "dist/**",
+            "**/.tox/**",
+            ".tox/**",
+            "**/.next/**",
+            ".next/**",
+            "**/htmlcov/**",
+            "htmlcov/**",
         ],
         "exceptions": {
             "abc_interface": {"enabled": True, "penalty_reduction": 0.5},
@@ -514,7 +524,9 @@ def generate_slopconfig_template(
 
     ignore_extra_lines = "".join(f'\n  - "{p}"' for p in profile.get("ignore_extra", []))
     js_ignore_extra = (
-        "\n  - node_modules/**\n  - dist/**\n  - build/**" if project_type == "javascript" else ""
+        "\n  - node_modules/**\n  - dist/**\n  - build/**\n  - .next/**"
+        if project_type == "javascript"
+        else ""
     )
     go_ignore_extra = "\n  - vendor/**" if project_type == "go" else ""
 

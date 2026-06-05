@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from slop_detector.core import SlopDetector
-from slop_detector.models import DDCResult, InflationResult, LDRResult, SlopStatus
+from slop_detector.models import DDCResult, FileAnalysis, InflationResult, LDRResult, SlopStatus
 
 
 @pytest.fixture
@@ -485,6 +485,9 @@ def test_should_ignore(detector):
     venv_path = Path("project/.venv/Lib/site-packages/pkg/module.py")
     assert detector._should_ignore(venv_path, ignore_patterns) is True
 
+    build_path = Path("project/build/lib/pkg/module.py")
+    assert detector._should_ignore(build_path, ignore_patterns) is True
+
 
 def test_should_ignore_with_project_root_absolute_path(detector, tmp_path):
     """Repo-relative ignore globs must still work for absolute paths."""
@@ -519,6 +522,63 @@ def test_analyze_project_repo_relative_ignore_patterns(detector, tmp_path, monke
 
     analyzed = {Path(item.file_path).name for item in result.file_results}
     assert analyzed == {"main.py"}
+
+
+def test_analyze_project_filters_rust_discovered_build_artifacts(detector, tmp_path, monkeypatch):
+    """Rust-discovered Python files must still pass through ignore filtering."""
+    (tmp_path / "src").mkdir()
+    (tmp_path / "build" / "lib").mkdir(parents=True)
+    main_path = tmp_path / "src" / "main.py"
+    build_path = tmp_path / "build" / "lib" / "main.py"
+    main_path.write_text("def main():\n    return 1\n", encoding="utf-8")
+    build_path.write_text("def main():\n    return 1\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "slop_detector.core.discover_project_files",
+        lambda *args, **kwargs: [main_path, build_path],
+    )
+    monkeypatch.setattr(detector.config, "get_ignore_patterns", lambda: [])
+    assert detector._should_ignore(main_path, [], root=tmp_path) is False
+    assert detector._should_ignore(build_path, [], root=tmp_path) is True
+    monkeypatch.setattr(
+        detector,
+        "analyze_file",
+        lambda file_path: FileAnalysis(
+            file_path=str(Path(file_path).resolve()),
+            ldr=LDRResult(total_lines=2, logic_lines=1, empty_lines=0, ldr_score=0.8, grade="A"),
+            inflation=InflationResult(
+                jargon_count=0,
+                avg_complexity=1.0,
+                inflation_score=0.1,
+                status="pass",
+                jargon_found=[],
+                jargon_details=[],
+            ),
+            ddc=DDCResult(
+                imported=[],
+                actually_used=[],
+                unused=[],
+                fake_imports=[],
+                type_checking_imports=[],
+                usage_ratio=1.0,
+                grade="A",
+            ),
+            deficit_score=5.0,
+            status=SlopStatus.CLEAN,
+            dcf={"FunctionDef": 1.0},
+        ),
+    )
+    monkeypatch.setattr(
+        detector.project_prioritizer,
+        "prioritize_project",
+        lambda *args, **kwargs: ([], False, False),
+    )
+
+    result = detector.analyze_project(str(tmp_path))
+
+    analyzed = {Path(item.file_path) for item in result.file_results}
+    assert main_path.resolve() in analyzed
+    assert build_path.resolve() not in analyzed
 
 
 def test_analyze_project_includes_non_python_results_in_aggregate(detector, tmp_path, monkeypatch):

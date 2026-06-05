@@ -118,6 +118,11 @@ Examples:
     parser.add_argument("--project", action="store_true", help="Analyze entire project")
     parser.add_argument("--output", "-o", help="Output file (txt, json, or html)")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
+    parser.add_argument(
+        "--format",
+        choices=["json"],
+        help="Structured output format alias (currently supports: json)",
+    )
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument(
         "--topology-ceiling",
@@ -257,6 +262,21 @@ Examples:
             "web/api, library/sdk, cli/tool, bio, finance"
         ),
     )
+    parser.add_argument(
+        "--adaptive-init",
+        action="store_true",
+        help="Run adaptive repository signal collection and suggestion synthesis during --init",
+    )
+    parser.add_argument(
+        "--init-preview",
+        action="store_true",
+        help="Preview baseline/adaptive init suggestions without writing .slopconfig.yaml",
+    )
+    parser.add_argument(
+        "--apply-init-suggestions",
+        action="store_true",
+        help="Opt in to merging adaptive init suggestions into a new or existing .slopconfig.yaml",
+    )
     # CI/CD Gate options (v2.2)
     parser.add_argument(
         "--ci-mode",
@@ -293,6 +313,11 @@ def _build_operations_parser(command: str) -> argparse.ArgumentParser:
         help="Git base ref used for introduced vs inherited attribution (audit only)",
     )
     parser.add_argument("--json", action="store_true", help="Output JSON format")
+    parser.add_argument(
+        "--format",
+        choices=["json"],
+        help="Structured output format alias (currently supports: json)",
+    )
     parser.add_argument("--output", "-o", help="Write report to file")
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
@@ -323,6 +348,11 @@ def _build_sweep_parser() -> argparse.ArgumentParser:
     parser.add_argument("family", choices=sorted(_CLEANUP_FAMILIES), help="Cleanup family to run")
     parser.add_argument("target", nargs="?", default=".", help="Project root or file path")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
+    parser.add_argument(
+        "--format",
+        choices=["json"],
+        help="Structured output format alias (currently supports: json)",
+    )
     parser.add_argument("--output", "-o", help="Write report to file")
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
@@ -345,6 +375,12 @@ def _emit_command_payload(args, payload: dict) -> int:
     else:
         print(output)
     return 0
+
+
+def _normalize_format_args(args) -> None:
+    """Map format aliases onto existing boolean output flags."""
+    if getattr(args, "format", None) == "json":
+        args.json = True
 
 
 def _build_fallback_project_analysis(
@@ -446,6 +482,7 @@ def _run_operations_command(command: str, argv: list[str]) -> int:
     from slop_detector.cli_commands import _run_autofix
 
     args = _build_operations_parser(command).parse_args(argv)
+    _normalize_format_args(args)
     setup_logging(args.verbose)
 
     if command == "explain":
@@ -518,6 +555,7 @@ def _run_operations_command(command: str, argv: list[str]) -> int:
 def _run_sweep_command(argv: list[str]) -> int:
     """Execute canonical cleanup sweep surface."""
     args = _build_sweep_parser().parse_args(argv)
+    _normalize_format_args(args)
     forwarded = [args.target]
     if getattr(args, "json", False):
         forwarded.append("--json")
@@ -684,6 +722,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         argv_list = argv_list[1:]
 
     args = _build_arg_parser().parse_args(argv_list)
+    _normalize_format_args(args)
     setup_logging(args.verbose)
 
     if getattr(args, "history_trends", False):
