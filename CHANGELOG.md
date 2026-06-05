@@ -49,6 +49,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an agent workflow guide covering JSON-first review, cleanup, health,
   and MCP-assisted usage patterns.
 
+**Local impact and opt-in telemetry**
+
+- Added repo-local impact tracking commands:
+  - `slop-detector impact enable`
+  - `slop-detector impact`
+  - `slop-detector impact disable`
+- Impact snapshots are stored in gitignored `.slop-detector/impact.json` and
+  summarize trend deltas across repeated runs.
+- Added telemetry control commands:
+  - `slop-detector telemetry status`
+  - `slop-detector telemetry enable`
+  - `slop-detector telemetry disable`
+  - `slop-detector telemetry inspect --example`
+- Added anonymized telemetry payload construction and local queueing.
+- Added inspect-first telemetry mode:
+  - `AI_SLOP_DETECTOR_TELEMETRY=inspect`
+  - prints a real payload without queueing or sending it
+
 ### Changed
 
 - Adaptive suggestions stay conservative and evidence-backed:
@@ -61,6 +79,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   adaptive preview, and explicit merge as distinct flows.
 - npm wrapper documentation now states explicitly that Node is a transport
   surface over the Python core, not a second implementation.
+- Impact and telemetry surfaces are kept out of the scoring path:
+  scoring remains deterministic, while adoption observability is opt-in and
+  separately controlled.
 
 ---
 

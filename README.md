@@ -27,6 +27,7 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 - Previous stable tag: `v3.8.0`
 - `v3.8.0` establishes the canonical `scan / review / pulse / sweep` CLI surface and hardens dogfood operation paths used by `health` and `audit`.
 - `v3.8.1` adds confidence-ranked cleanup plans, manifest hygiene, and opt-in layered architecture review.
+- Unreleased work adds repo-local impact tracking and default-off telemetry controls.
 
 ---
 
@@ -127,6 +128,14 @@ import type { ReviewOutput, ScanOutput } from "ai-slop-detector/types"
 # Programmatic Node API
 import { scanProject, reviewChanges, computeHealth, runCleanupFamily } from "ai-slop-detector"
 
+# Local impact story
+slop-detector impact enable .
+slop-detector impact .
+
+# Telemetry controls (default: off)
+slop-detector telemetry status
+slop-detector telemetry inspect --example
+
 # Local wrapper development
 cd npm-wrapper
 node ./bin/ai-slop-detector.js --version
@@ -212,6 +221,14 @@ slop-detector mcp
 # or
 slop-mcp
 ```
+
+Adoption and observability surfaces are intentionally separate from scoring:
+
+- `slop-detector impact` tracks local, gitignored repository progress in
+  `.slop-detector/impact.json`
+- `slop-detector telemetry` stays default-off and only builds anonymized
+  payloads; `AI_SLOP_DETECTOR_TELEMETRY=inspect` prints a real payload without
+  queueing it
 
 ---
 

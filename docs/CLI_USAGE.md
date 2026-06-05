@@ -312,6 +312,37 @@ slop-detector --export-history history.jsonl
 slop-detector mycode.py --no-history
 ```
 
+## Local Impact & Telemetry
+
+```bash
+# Enable repo-local impact tracking (.slop-detector/impact.json)
+slop-detector impact enable .
+
+# Show local impact summary
+slop-detector impact .
+slop-detector impact --json
+
+# Telemetry stays off by default
+slop-detector telemetry status
+
+# Inspect an example anonymized payload
+slop-detector telemetry inspect --example
+
+# Inspect a live payload without queueing it
+AI_SLOP_DETECTOR_TELEMETRY=inspect slop-detector review . --format json
+
+# Opt in to local telemetry queueing
+slop-detector telemetry enable
+slop-detector telemetry disable
+```
+
+Contracts:
+
+- `impact` is repository-local and gitignored
+- telemetry is default-off
+- telemetry payloads are anonymized and keyed by `project_id`, not path names
+- inspect mode prints a real payload without appending to the telemetry queue
+
 ---
 
 ## CI/CD Integration
