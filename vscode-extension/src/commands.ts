@@ -1,11 +1,8 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import * as path from 'path';
 import { statusBarItem, outputChannel, updateFileResult } from './state';
 import { analyzeDocument, extractJson } from './analyzer';
-
-const execAsync = promisify(exec);
+import * as client from './client';
 
 export async function analyzeCurrentFile(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
@@ -18,16 +15,10 @@ export async function analyzeWorkspace(): Promise<void> {
     if (!folders) { vscode.window.showWarningMessage('[!] No workspace folder open'); return; }
 
     const rootPath   = folders[0].uri.fsPath;
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
 
     statusBarItem.text = '$(sync~spin) SLOP: Analyzing workspace...';
     try {
-        const { stdout } = await execAsync(
-            `${pythonPath} -m slop_detector.cli "${rootPath}" --project --json`,
-            { maxBuffer: 50 * 1024 * 1024, cwd: rootPath }
-        );
-        const result = extractJson(stdout);
+        const result = await client.scanProject(rootPath);
         for (const f of result.file_results ?? []) { updateFileResult(f.file_path, f); }
         const icon = result.overall_status === 'clean' ? '$(check)' : '$(warning)';
         statusBarItem.text = `${icon} SLOP: ${result.avg_deficit_score.toFixed(1)} avg (${result.total_files} files)`;
@@ -78,15 +69,13 @@ export async function showFileHistory(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) { vscode.window.showWarningMessage('[!] No active file'); return; }
 
-    const filePath   = editor.document.uri.fsPath;
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
+    const filePath = editor.document.uri.fsPath;
 
     try {
-        const { stdout } = await execAsync(
-            `${pythonPath} -m slop_detector.cli "${filePath}" --show-history --json`
+        const history = await client.runRaw<any[]>(
+            [filePath, '--show-history', '--json'],
+            path.dirname(filePath),
         );
-        const history = JSON.parse(stdout);
         if (history.length === 0) {
             vscode.window.showInformationMessage('[+] No history found for this file'); return;
         }
@@ -105,12 +94,8 @@ export async function installGitHook(): Promise<void> {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders) { vscode.window.showWarningMessage('[!] No workspace folder open'); return; }
 
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
     try {
-        await execAsync(`${pythonPath} -m slop_detector.cli --install-git-hook`, {
-            cwd: folders[0].uri.fsPath,
-        });
+        await client.runText(['--install-git-hook'], folders[0].uri.fsPath);
         vscode.window.showInformationMessage('[+] Git pre-commit hook installed successfully!');
     } catch (error) {
         vscode.window.showErrorMessage(`[-] Failed to install hook: ${error}`);
@@ -121,15 +106,12 @@ export async function runCrossFileAnalysis(): Promise<void> {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders) { vscode.window.showWarningMessage('[!] No workspace folder open'); return; }
 
-    const rootPath   = folders[0].uri.fsPath;
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
+    const rootPath = folders[0].uri.fsPath;
 
     statusBarItem.text = '$(sync~spin) SLOP: Cross-file analysis...';
     try {
-        const { stdout } = await execAsync(
-            `${pythonPath} -m slop_detector.cli "${rootPath}" --project --cross-file`,
-            { maxBuffer: 20 * 1024 * 1024, cwd: rootPath }
+        const { stdout } = await client.runText(
+            [rootPath, '--project', '--cross-file'], rootPath,
         );
         outputChannel.appendLine('[Cross-File Analysis]');
         outputChannel.appendLine(stdout);
@@ -143,15 +125,11 @@ export async function runCrossFileAnalysis(): Promise<void> {
 }
 
 export async function showHistoryTrends(): Promise<void> {
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
+    const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '.';
 
     statusBarItem.text = '$(sync~spin) SLOP: Loading trends...';
     try {
-        const { stdout } = await execAsync(
-            `${pythonPath} -m slop_detector.cli --history-trends --json`,
-            { maxBuffer: 5 * 1024 * 1024 }
-        );
+        const { stdout } = await client.runText(['--history-trends', '--json'], rootPath);
         const trends = extractJson(stdout);
         const files: any[] = Array.isArray(trends)
             ? trends : trends.files ?? Object.values(trends);
@@ -198,15 +176,11 @@ export async function exportHistory(): Promise<void> {
     });
     if (!saveUri) { return; }
 
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
+    const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '.';
 
     statusBarItem.text = '$(sync~spin) SLOP: Exporting...';
     try {
-        await execAsync(
-            `${pythonPath} -m slop_detector.cli --export-history "${saveUri.fsPath}"`,
-            { maxBuffer: 50 * 1024 * 1024 }
-        );
+        await client.runText(['--export-history', saveUri.fsPath], rootPath);
         vscode.window.showInformationMessage(`[+] History exported to ${saveUri.fsPath}`);
         statusBarItem.text = '$(check) SLOP: Ready';
     } catch (error) {

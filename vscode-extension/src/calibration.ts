@@ -1,10 +1,8 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import * as path from 'path';
 import { statusBarItem, outputChannel } from './state';
 import { analyzeDocument } from './analyzer';
-
-const execAsync = promisify(exec);
+import * as client from './client';
 
 export async function autoFixCurrentFile(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
@@ -16,21 +14,19 @@ export async function autoFixCurrentFile(): Promise<void> {
         return;
     }
 
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
-    const choice     = await vscode.window.showInformationMessage(
+    const choice = await vscode.window.showInformationMessage(
         'Auto-Fix: Apply fixes to detected slop patterns?',
         'Preview (dry-run)', 'Apply Fixes', 'Cancel'
     );
     if (!choice || choice === 'Cancel') { return; }
 
-    const dryRunFlag = choice === 'Preview (dry-run)' ? '--dry-run' : '';
-    const command    = `${pythonPath} -m slop_detector.cli "${filePath}" --fix ${dryRunFlag}`.trim();
+    const args = [filePath, '--fix'];
+    if (choice === 'Preview (dry-run)') { args.push('--dry-run'); }
 
-    outputChannel.appendLine(`[*] Auto-Fix: ${command}`);
+    outputChannel.appendLine(`[*] Auto-Fix: ${filePath} --fix`);
     statusBarItem.text = '$(sync~spin) SLOP: Fixing...';
     try {
-        const { stdout, stderr } = await execAsync(command, { maxBuffer: 10 * 1024 * 1024 });
+        const { stdout, stderr } = await client.runText(args, path.dirname(filePath));
         outputChannel.appendLine(stdout);
         if (stderr) { outputChannel.appendLine(stderr); }
         const label = choice === 'Preview (dry-run)' ? 'Preview complete' : 'Fixes applied';
@@ -48,17 +44,14 @@ export async function showGateDecision(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) { vscode.window.showWarningMessage('[!] No active file'); return; }
 
-    const filePath   = editor.document.uri.fsPath;
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
+    const filePath = editor.document.uri.fsPath;
 
     try {
-        const { stdout } = await execAsync(
-            `${pythonPath} -m slop_detector.cli "${filePath}" --gate --json`,
-            { maxBuffer: 5 * 1024 * 1024 }
+        const result = await client.runRaw<any>(
+            [filePath, '--gate', '--json'],
+            path.dirname(filePath),
         );
-        const result = JSON.parse(stdout);
-        const gate   = result.gate_decision;
+        const gate = result.gate_decision;
         if (gate) {
             const status = gate.allowed ? '[PASS]' : '[HALT]';
             const msg    =
@@ -70,7 +63,7 @@ export async function showGateDecision(): Promise<void> {
                 ? vscode.window.showInformationMessage(msg)
                 : vscode.window.showWarningMessage(`${msg}\n${gate.halt_reason || ''}`);
         } else {
-            outputChannel.appendLine(stdout);
+            outputChannel.appendLine(JSON.stringify(result, null, 2));
             outputChannel.show(false);
         }
     } catch (error) {
@@ -82,9 +75,8 @@ export async function initConfig(): Promise<void> {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders) { vscode.window.showWarningMessage('[!] No workspace folder open'); return; }
 
-    const rootPath   = folders[0].uri.fsPath;
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
+    const rootPath = folders[0].uri.fsPath;
+    const config   = vscode.workspace.getConfiguration('slopDetector');
 
     const existing = await vscode.workspace.findFiles(
         new vscode.RelativePattern(folders[0], '.slopconfig.yaml'), undefined, 1
@@ -98,11 +90,11 @@ export async function initConfig(): Promise<void> {
 
     statusBarItem.text = '$(sync~spin) SLOP: Initializing config...';
     try {
-        const forceFlag = existing.length > 0 ? ' --force-init' : '';
-        const { stdout, stderr } = await execAsync(
-            `${pythonPath} -m slop_detector.cli --init "${rootPath}"${forceFlag}`,
-            { maxBuffer: 10 * 1024 * 1024, cwd: rootPath }
-        );
+        const args = ['--init', rootPath];
+        if (existing.length > 0) { args.push('--force-init'); }
+        const domain = config.get<string>('domain', 'auto');
+        if (domain && domain !== 'auto') { args.push('--domain', domain); }
+        const { stdout, stderr } = await client.runText(args, rootPath);
         outputChannel.clear();
         outputChannel.appendLine('=== SLOP Detector: Init Config ===');
         outputChannel.appendLine(stdout);
@@ -120,15 +112,10 @@ export async function initConfig(): Promise<void> {
 export async function selfCalibrate(): Promise<void> {
     const folders    = vscode.workspace.workspaceFolders;
     const rootPath   = folders?.[0]?.uri.fsPath ?? '.';
-    const config     = vscode.workspace.getConfiguration('slopDetector');
-    const pythonPath = config.get('pythonPath', 'python');
 
     statusBarItem.text = '$(sync~spin) SLOP: Calibrating...';
     try {
-        const { stdout, stderr } = await execAsync(
-            `${pythonPath} -m slop_detector.cli --self-calibrate`,
-            { maxBuffer: 10 * 1024 * 1024, cwd: rootPath }
-        );
+        const { stdout, stderr } = await client.runText(['--self-calibrate'], rootPath);
         outputChannel.clear();
         outputChannel.appendLine('=== SLOP Detector: Self-Calibration (LEDA) ===');
         outputChannel.appendLine(stdout);
@@ -147,9 +134,8 @@ export async function selfCalibrate(): Promise<void> {
                 'Apply', 'View Only'
             );
             if (choice === 'Apply') {
-                const { stdout: applyOut } = await execAsync(
-                    `${pythonPath} -m slop_detector.cli --self-calibrate --apply-calibration`,
-                    { maxBuffer: 10 * 1024 * 1024, cwd: rootPath }
+                const { stdout: applyOut } = await client.runText(
+                    ['--self-calibrate', '--apply-calibration'], rootPath,
                 );
                 outputChannel.appendLine('\n--- Apply Calibration ---');
                 outputChannel.appendLine(applyOut);

@@ -9,18 +9,19 @@
  */
 
 // ---------------------------------------------------------------------------
-// Public interfaces — mirror FileAnalysis.to_dict() in models.py
+// Public types — the data contract is owned by the `ai-slop-detector` npm
+// package (types.d.ts, generated from models.py). We re-export it here rather
+// than hand-maintaining a parallel copy that can drift.
 // ---------------------------------------------------------------------------
 
-export type SlopStatus =
-    | 'clean'
-    | 'suspicious'
-    | 'inflated_signal'
-    | 'dependency_noise'
-    | 'critical_deficit';
+import type { FileAnalysisOutput, SlopStatus as NpmSlopStatus } from 'ai-slop-detector';
 
+export type SlopStatus = NpmSlopStatus;
 export type IssueSeverity = 'critical' | 'high' | 'medium' | 'low';
 
+/** The extension's stronger view of a pattern issue. The npm contract types
+ *  `pattern_issues` loosely (JsonObject | string); this is what the renderers
+ *  actually read. */
 export interface ISlopPattern {
     pattern_id:  string;
     severity:    IssueSeverity;
@@ -33,55 +34,7 @@ export interface ISlopPattern {
     suggestion?: string | null;
 }
 
-export interface ILdrResult {
-    ldr_score:        number;
-    total_lines:      number;
-    logic_lines:      number;
-    empty_lines:      number;
-    grade:            string;
-    is_abc_interface: boolean;
-    is_type_stub:     boolean;
-    is_packaging_init: boolean;
-}
-
-export interface IInflationResult {
-    inflation_score:  number;
-    jargon_count:     number;
-    avg_complexity:   number;
-    status:           string;
-    jargon_found:     string[];
-    jargon_details:   unknown[];
-    justified_jargon: string[];
-    is_config_file:   boolean;
-}
-
-export interface IDdcResult {
-    usage_ratio:           number;
-    grade:                 string;
-    imported:              string[];
-    actually_used:         string[];
-    unused:                string[];
-    fake_imports:          string[];
-    type_checking_imports: string[];
-}
-
-export interface ISlopReport {
-    file_path:      string;
-    deficit_score:  number;
-    status:         SlopStatus;
-    ldr:            ILdrResult;
-    inflation:      IInflationResult;
-    ddc:            IDdcResult;
-    warnings:       string[];
-    pattern_issues: ISlopPattern[];
-    // Optional — present only when non-empty
-    docstring_inflation?: unknown;
-    hallucination_deps?:  unknown;
-    context_jargon?:      unknown;
-    ignored_functions?:   unknown[];
-    ml_score?:            { slop_probability: number; label: string; [k: string]: unknown };
-    dcf?:                 Record<string, number>;
-}
+export type ISlopReport = FileAnalysisOutput;
 
 // ---------------------------------------------------------------------------
 // Parse result — discriminated union (no exceptions thrown by parseSlopReport)

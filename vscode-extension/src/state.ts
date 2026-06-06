@@ -29,6 +29,12 @@ export function setCodeLensRefreshCallback(cb: () => void): void { _codeLensRefr
 
 export function updateFileResult(filePath: string, result: any): void {
     fileResults.set(filePath, result);
+    // Drive state-aware UI (viewsWelcome + view/title menus). A file counts as
+    // flagged at the SUSPICIOUS band (deficit >= 30); see the severity tokens
+    // in the presentation contract.
+    const flagged = [...fileResults.values()].some((r) => (r.deficit_score || 0) >= 30);
+    void vscode.commands.executeCommand('setContext', 'slop.hasAnalyzed', true);
+    void vscode.commands.executeCommand('setContext', 'slop.isClean', !flagged);
     _treeRefresh?.();
     _codeLensRefresh?.();
 }

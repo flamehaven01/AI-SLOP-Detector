@@ -7,6 +7,10 @@ import {
 } from './commands';
 import { autoFixCurrentFile, showGateDecision, initConfig, selfCalibrate } from './calibration';
 import { SlopCodeActionProvider, addFileToIgnore, addModuleToAllowlist } from './codeActions';
+import { showBreakdownPanel } from './breakdownPanel';
+import { showCleanupPanel } from './cleanupPanel';
+import { showPulsePanel } from './pulsePanel';
+import { showReviewPanel } from './reviewPanel';
 import { outputChannel } from './state';
 import { SlopTreeProvider } from './treeview';
 import { SlopCodeLensProvider } from './codelens';
@@ -20,6 +24,8 @@ export function activate(context: vscode.ExtensionContext): void {
     bar.show();
 
     initState(collection, bar, channel);
+    // Start in the pre-analysis state so viewsWelcome shows Get Started / Analyze.
+    void vscode.commands.executeCommand('setContext', 'slop.hasAnalyzed', false);
     channel.appendLine('[*] AI SLOP Detector v3.7.5 activated');
 
     context.subscriptions.push(collection, bar, channel);
@@ -59,6 +65,10 @@ export function activate(context: vscode.ExtensionContext): void {
         ['slop-detector.selfCalibrate',      selfCalibrate],
         // P2: Code Action helpers
         ['slop-detector.showOutput',              () => outputChannel.show(true)],
+        ['slop-detector.showBreakdown',           showBreakdownPanel],
+        ['slop-detector.showCleanupPlan',         showCleanupPanel],
+        ['slop-detector.showPulse',               showPulsePanel],
+        ['slop-detector.showReview',              showReviewPanel],
         ['slop-detector.addFileToIgnore',         (relPath: string) => addFileToIgnore(relPath)],
         ['slop-detector.addModuleToAllowlist',    (mod: string) => addModuleToAllowlist(mod)],
         // P3: TreeView refresh
