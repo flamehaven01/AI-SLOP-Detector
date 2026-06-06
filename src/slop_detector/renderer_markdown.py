@@ -5,7 +5,16 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
+from slop_detector.renderer_glossary import (
+    DEFICIT_BANDS,
+    file_metric_rows,
+    next_steps,
+    project_metric_rows,
+)
+
+# Health icons emitted into Markdown output, written as ASCII source escapes
+# (CLAUDE.md: Python source stays ASCII for cp949 safety).
+_MD_HEALTH_ICON = {"good": "\u2705", "warn": "\u26a0\ufe0f", "bad": "\U0001f6a8"}
 
 _PRODUCTION_CLAIMS_CLI: frozenset = frozenset(
     {
@@ -116,7 +125,7 @@ def _md_project_metrics_section(result) -> list:
     """Friendly project metrics table: value, healthy direction, plain meaning."""
     # Emoji emitted into the Markdown output, written as ASCII source escapes
     # (CLAUDE.md: Python source stays ASCII for cp949 safety).
-    health_icon = {"good": "\u2705", "warn": "\u26a0\ufe0f", "bad": "\U0001f6a8"}
+    health_icon = _MD_HEALTH_ICON
     lines = [
         "## Project Metrics",
         "| Metric | Value | Healthy Direction | What It Means |",
@@ -124,6 +133,22 @@ def _md_project_metrics_section(result) -> list:
     ]
     for r in project_metric_rows(result):
         icon = health_icon.get(r["health"], "")
+        lines.append(
+            f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |"
+        )
+    lines += ["", f"_Deficit bands: {DEFICIT_BANDS}_", ""]
+    return lines
+
+
+def _md_file_metrics_section(fr) -> list:
+    """Friendly per-file metrics table (single-file reports)."""
+    lines = [
+        "## File Metrics",
+        "| Metric | Value | Healthy Direction | What It Means |",
+        "| :--- | ---: | :---: | :--- |",
+    ]
+    for r in file_metric_rows(fr):
+        icon = _MD_HEALTH_ICON.get(r["health"], "")
         lines.append(
             f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |"
         )
@@ -329,6 +354,7 @@ def generate_markdown_report(result) -> str:
         lines += _md_test_evidence_section(result)
         lines += _md_priority_hotspots_section(result)
     else:
+        lines += _md_file_metrics_section(result)
         lines += _md_suppression_section(result)
 
     if is_project:

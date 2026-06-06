@@ -15,6 +15,11 @@ from typing import Any, Dict, List
 # Deficit bands mirror the scoring model in README / SlopStatus.
 DEFICIT_BANDS = "CLEAN <30  |  SUSPICIOUS 30-50  |  INFLATED 50-70  |  CRITICAL >=70"
 
+# Plain-language meanings shared by project- and file-level metric rows.
+_MEANS_LDR = "Share of code lines that contain real implementation."
+_MEANS_ICR = "Unjustified jargon compared with average cyclomatic complexity."
+_MEANS_DDC = "Imported libraries that are referenced by runtime code."
+
 
 def _deficit_health(value: float) -> str:
     # Lower is better. Bands follow the status thresholds.
@@ -62,21 +67,57 @@ def project_metric_rows(result: Any) -> List[Dict[str, str]]:
             "value": f"{result.avg_ldr:.2%}",
             "direction": "Higher",
             "health": _ldr_health(result.avg_ldr),
-            "means": "Share of code lines that contain real implementation.",
+            "means": _MEANS_LDR,
         },
         {
             "label": "Inflation-to-Code Ratio (ICR)",
             "value": f"{result.avg_inflation:.2f}x",
             "direction": "Lower",
             "health": _icr_health(result.avg_inflation),
-            "means": "Unjustified jargon compared with average cyclomatic complexity.",
+            "means": _MEANS_ICR,
         },
         {
             "label": "Dependency Usage Ratio (DDC)",
             "value": f"{result.avg_ddc:.2%}",
             "direction": "Higher",
             "health": _ddc_health(result.avg_ddc),
-            "means": "Imported libraries that are referenced by runtime code.",
+            "means": _MEANS_DDC,
+        },
+    ]
+
+
+def file_metric_rows(fr: Any) -> List[Dict[str, str]]:
+    """Per-file metric descriptors (reuses the project-level health bands and
+    meanings). A single file has no weighted aggregate, so only the four core
+    dimensions are reported."""
+    return [
+        {
+            "label": "Deficit Score",
+            "value": f"{fr.deficit_score:.1f}/100",
+            "direction": "Lower",
+            "health": _deficit_health(fr.deficit_score),
+            "means": "This file's risk; 0 is clean, 100 is severe.",
+        },
+        {
+            "label": "Logic Density Ratio (LDR)",
+            "value": f"{fr.ldr.ldr_score:.2%}",
+            "direction": "Higher",
+            "health": _ldr_health(fr.ldr.ldr_score),
+            "means": _MEANS_LDR,
+        },
+        {
+            "label": "Inflation-to-Code Ratio (ICR)",
+            "value": f"{fr.inflation.inflation_score:.2f}x",
+            "direction": "Lower",
+            "health": _icr_health(fr.inflation.inflation_score),
+            "means": _MEANS_ICR,
+        },
+        {
+            "label": "Dependency Usage Ratio (DDC)",
+            "value": f"{fr.ddc.usage_ratio:.2%}",
+            "direction": "Higher",
+            "health": _ddc_health(fr.ddc.usage_ratio),
+            "means": _MEANS_DDC,
         },
     ]
 

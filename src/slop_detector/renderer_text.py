@@ -4,8 +4,28 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
+from slop_detector.renderer_glossary import (
+    DEFICIT_BANDS,
+    file_metric_rows,
+    next_steps,
+    project_metric_rows,
+)
 from slop_detector.renderer_markdown import _collect_test_evidence_stats
+
+
+def _text_metric_block(rows) -> list:
+    """Aligned Metric / Value / Healthy / What It Means table (shared by the
+    project and single-file sections)."""
+    label_w = max(len(r["label"]) for r in rows)
+    val_w = max(len(r["value"]) for r in rows)
+    header = f"  {'Metric':<{label_w}}  {'Value':>{val_w}}  {'Healthy':<7} What It Means"
+    lines = [header, "  " + "-" * (len(header) - 2)]
+    for r in rows:
+        lines.append(
+            f"  {r['label']:<{label_w}}  {r['value']:>{val_w}}  "
+            f"{r['direction']:<7} {r['means']}"
+        )
+    return lines
 
 
 def _text_file_lines(fr) -> list:
@@ -41,17 +61,7 @@ def _text_project_section(result) -> list:
         "",
         "Project Metrics:",
     ]
-    rows = project_metric_rows(result)
-    label_w = max(len(r["label"]) for r in rows)
-    val_w = max(len(r["value"]) for r in rows)
-    header = f"  {'Metric':<{label_w}}  {'Value':>{val_w}}  {'Healthy':<7} What It Means"
-    lines.append(header)
-    lines.append("  " + "-" * (len(header) - 2))
-    for r in rows:
-        lines.append(
-            f"  {r['label']:<{label_w}}  {r['value']:>{val_w}}  "
-            f"{r['direction']:<7} {r['means']}"
-        )
+    lines += _text_metric_block(project_metric_rows(result))
     lines.append("")
     lines.append(f"  Deficit bands: {DEFICIT_BANDS}")
     lines.append("")
@@ -129,12 +139,13 @@ def _text_single_file_section(result) -> list:
     lines = [
         f"File: {result.file_path}",
         f"Status: {result.status.upper()}",
-        f"Deficit Score: {result.deficit_score:.1f}/100",
         "",
-        f"LDR: {result.ldr.ldr_score:.2%} ({result.ldr.grade})",
-        f"ICR: {result.inflation.inflation_score:.2f} ({result.inflation.status})",
-        f"DDC: {result.ddc.usage_ratio:.2%} ({result.ddc.grade})",
+        "File Metrics:",
     ]
+    lines += _text_metric_block(file_metric_rows(result))
+    lines.append("")
+    lines.append(f"  Deficit bands: {DEFICIT_BANDS}")
+    lines.append("")
     suppression_ledger = getattr(result, "suppression_ledger", [])
     if suppression_ledger:
         lines += ["", "Inline Suppressions:"]

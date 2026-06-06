@@ -2,7 +2,12 @@
 
 from types import SimpleNamespace
 
-from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
+from slop_detector.renderer_glossary import (
+    DEFICIT_BANDS,
+    file_metric_rows,
+    next_steps,
+    project_metric_rows,
+)
 
 
 def _result(**overrides):
@@ -80,6 +85,21 @@ def test_next_steps_deficit_recommends_dead_code_sweep():
     assert steps[0].startswith("Top concern: Average Deficit Score")
     assert any("sweep dead-code" in s for s in steps)
     assert any("worst.py" in s for s in steps)
+
+
+def test_file_metric_rows_shape_and_shared_bands():
+    fr = SimpleNamespace(
+        deficit_score=72.0,
+        ldr=SimpleNamespace(ldr_score=0.30),
+        inflation=SimpleNamespace(inflation_score=2.0),
+        ddc=SimpleNamespace(usage_ratio=0.30),
+    )
+    rows = file_metric_rows(fr)
+    assert [r["label"] for r in rows][0] == "Deficit Score"
+    assert {"Logic Density Ratio (LDR)", "Inflation-to-Code Ratio (ICR)",
+            "Dependency Usage Ratio (DDC)"} <= {r["label"] for r in rows}
+    # Same health classifiers as the project rows -> all bad for these values.
+    assert all(r["health"] == "bad" for r in rows)
 
 
 def test_next_steps_ddc_concern_recommends_unused_deps():

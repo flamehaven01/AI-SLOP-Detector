@@ -6,7 +6,12 @@ from pathlib import Path
 
 from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
-from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
+from slop_detector.renderer_glossary import (
+    DEFICIT_BANDS,
+    file_metric_rows,
+    next_steps,
+    project_metric_rows,
+)
 
 try:
     from rich import box
@@ -271,34 +276,38 @@ def _build_header_table(result) -> "Table":
 
 
 def _build_metrics_table(result) -> "Table":
-    """Build Panel 2: LDR / ICR / DDC / Justification Ratio with right-aligned values."""
-    t = Table(box=None, show_header=False, padding=(0, 2), expand=True)
-    t.add_column("key", style="cyan", no_wrap=True)
-    t.add_column("val", justify="right", no_wrap=True)
+    """Build Panel 2: friendly core metrics (value / healthy direction / meaning).
 
-    ldr = result.ldr.ldr_score
-    ldr_color = "green" if ldr >= 0.7 else "yellow" if ldr >= 0.4 else "red"
-    t.add_row("LDR (Logic Density):", f"[{ldr_color}]{ldr:.2%} ({result.ldr.grade})[/{ldr_color}]")
-
-    icr = result.inflation.inflation_score
-    icr_color = "red" if icr >= 1.0 else "yellow" if icr >= 0.5 else "green"
-    t.add_row(
-        "ICR (Inflation Check):",
-        f"[{icr_color}]{icr:.2f} ({result.inflation.status})[/{icr_color}]",
-    )
-
-    ddc = result.ddc.usage_ratio
-    ddc_color = "red" if ddc < 0.3 else "yellow" if ddc < 0.7 else "green"
-    t.add_row(
-        "DDC (Dependency Check):", f"[{ddc_color}]{ddc:.2%} ({result.ddc.grade})[/{ddc_color}]"
-    )
+    Deficit Score is omitted here because it headlines Panel 1.
+    """
+    t = Table(box=None, show_header=True, header_style="bold cyan", padding=(0, 2), expand=True)
+    t.add_column("Metric", style="cyan", no_wrap=True)
+    t.add_column("Value", justify="right")
+    t.add_column("Healthy", justify="center", style="dim")
+    t.add_column("What It Means", style="dim")
+    health_color = {"good": "green", "warn": "yellow", "bad": "red"}
+    for row in file_metric_rows(result):
+        if row["label"] == "Deficit Score":
+            continue
+        color = health_color.get(row["health"], "white")
+        t.add_row(
+            row["label"],
+            f"[{color}]{row['value']}[/{color}]",
+            row["direction"],
+            row["means"],
+        )
 
     total_j = len(result.inflation.jargon_details)
     if total_j > 0:
         justified = sum(1 for d in result.inflation.jargon_details if d.get("justified"))
         ratio = justified / total_j
         jr_color = "green" if ratio >= 0.7 else "yellow" if ratio >= 0.3 else "red"
-        t.add_row("Justification Ratio:", f"[{jr_color}]{ratio:.0%} evidence[/{jr_color}]")
+        t.add_row(
+            "Justification Ratio",
+            f"[{jr_color}]{ratio:.0%}[/{jr_color}]",
+            "Higher",
+            "Share of flagged jargon backed by real complexity.",
+        )
 
     ml = getattr(result, "ml_score", None)
     if ml is not None:
@@ -308,8 +317,10 @@ def _build_metrics_table(result) -> "Table":
             else "yellow" if ml.slop_probability >= 0.40 else "green"
         )
         t.add_row(
-            "ML Slop Probability:",
+            "ML Slop Probability",
             f"[{ml_color}]{ml.slop_probability:.1%} [{ml.label.upper()}][/{ml_color}]",
+            "Lower",
+            "Optional ML secondary signal.",
         )
 
     clone_issues = [
@@ -421,6 +432,7 @@ def _render_rich_single_file(console, result) -> None:
             box=box.ROUNDED,
         )
     )
+    console.print(f"[dim]Deficit bands:[/dim] {DEFICIT_BANDS}")
     console.print()
     questions = QuestionGenerator().generate_questions(result)
     if questions:
