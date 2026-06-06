@@ -10,6 +10,7 @@ import { SlopCodeActionProvider, addFileToIgnore, addModuleToAllowlist } from '.
 import { showBreakdownPanel } from './breakdownPanel';
 import { showCleanupPanel } from './cleanupPanel';
 import { showPulsePanel } from './pulsePanel';
+import { showReviewPanel } from './reviewPanel';
 import { outputChannel } from './state';
 import { SlopTreeProvider } from './treeview';
 import { SlopCodeLensProvider } from './codelens';
@@ -67,6 +68,7 @@ export function activate(context: vscode.ExtensionContext): void {
         ['slop-detector.showBreakdown',           showBreakdownPanel],
         ['slop-detector.showCleanupPlan',         showCleanupPanel],
         ['slop-detector.showPulse',               showPulsePanel],
+        ['slop-detector.showReview',              showReviewPanel],
         ['slop-detector.addFileToIgnore',         (relPath: string) => addFileToIgnore(relPath)],
         ['slop-detector.addModuleToAllowlist',    (mod: string) => addModuleToAllowlist(mod)],
         // P3: TreeView refresh

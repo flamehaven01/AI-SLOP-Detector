@@ -120,6 +120,12 @@
         "title": "Show Pulse Dashboard (health + hotspots)",
         "category": "SLOP Detector",
         "icon": "$(pulse)"
+      },
+      {
+        "command": "slop-detector.showReview",
+        "title": "Show Changed-Code Review (diff-aware)",
+        "category": "SLOP Detector",
+        "icon": "$(git-compare)"
       }
     ],
     "viewsContainers": {

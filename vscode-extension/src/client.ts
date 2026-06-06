@@ -9,13 +9,18 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { runJsonCommand, runTextCommand, runCleanupFamily, computeHealth } from 'ai-slop-detector';
+import {
+    runJsonCommand, runTextCommand, runCleanupFamily, computeHealth, reviewChanges,
+} from 'ai-slop-detector';
 import type {
     RunOptions, FileAnalysisOutput, ScanOutput, SweepOutput, CleanupIssue,
-    HealthOutput, PriorityHotspot, TextResult,
+    HealthOutput, PriorityHotspot, ReviewOutput, AuditAction, TextResult,
 } from 'ai-slop-detector';
 
-export type { FileAnalysisOutput, ScanOutput, SweepOutput, CleanupIssue, HealthOutput, PriorityHotspot };
+export type {
+    FileAnalysisOutput, ScanOutput, SweepOutput, CleanupIssue, HealthOutput,
+    PriorityHotspot, ReviewOutput, AuditAction,
+};
 
 function pythonCandidate(): RunOptions['candidate'] {
     const pythonPath = vscode.workspace
@@ -56,6 +61,10 @@ export function sweep(family: string, root: string): Promise<SweepOutput> {
 
 export function pulse(root: string): Promise<HealthOutput> {
     return computeHealth(root, options(root));
+}
+
+export function review(root: string, base?: string): Promise<ReviewOutput> {
+    return reviewChanges(root, { ...options(root), ...(base ? { base } : {}) });
 }
 
 /**
