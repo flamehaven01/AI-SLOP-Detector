@@ -198,12 +198,12 @@
         },
         "slopDetector.failThreshold": {
           "type": "number",
-          "default": 50.0,
+          "default": 50,
           "description": "Slop score threshold for errors (0-100)"
         },
         "slopDetector.warnThreshold": {
           "type": "number",
-          "default": 30.0,
+          "default": 30,
           "description": "Slop score threshold for warnings (0-100)"
         },
         "slopDetector.pythonPath": {
@@ -260,7 +260,9 @@
         },
         "slopDetector.phantomImportAllowlist": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Module names to skip in phantom_import detection (e.g. project-local flat modules). Mirrors phantom_import_allowlist in .slopconfig.yaml — entries here are shown in QuickFix suggestions."
         }
@@ -276,37 +278,53 @@
             "id": "slop.gettingStarted.scan",
             "title": "Run your first scan",
             "description": "Analyze the workspace for structural risk.\n\n[Analyze Workspace](command:slop-detector.analyzeWorkspace)",
-            "media": { "markdown": "media/step-scan.md" },
-            "completionEvents": ["onCommand:slop-detector.analyzeWorkspace"]
+            "media": {
+              "markdown": "media/step-scan.md"
+            },
+            "completionEvents": [
+              "onCommand:slop-detector.analyzeWorkspace"
+            ]
           },
           {
             "id": "slop.gettingStarted.diagnose",
             "title": "Read the score",
             "description": "Each file attributes its deficit score back to four dimensions so you can see the top driver.\n\n[Show Output](command:slop-detector.showOutput)",
-            "media": { "markdown": "media/step-diagnose.md" }
+            "media": {
+              "markdown": "media/step-diagnose.md"
+            }
           },
           {
             "id": "slop.gettingStarted.fix",
             "title": "Patch the findings",
             "description": "Apply safe fixes and use the QuickFix lightbulb on phantom imports and god functions.\n\n[Auto-Fix](command:slop-detector.autoFix)",
-            "media": { "markdown": "media/step-fix.md" },
-            "completionEvents": ["onCommand:slop-detector.autoFix"]
+            "media": {
+              "markdown": "media/step-fix.md"
+            },
+            "completionEvents": [
+              "onCommand:slop-detector.autoFix"
+            ]
           },
           {
             "id": "slop.gettingStarted.gate",
             "title": "Gate, then calibrate",
             "description": "Turn a one-off scan into a standing quality signal.\n\n[Show Gate](command:slop-detector.showGate) · [Self-Calibrate](command:slop-detector.selfCalibrate)",
-            "media": { "markdown": "media/step-gate.md" },
-            "completionEvents": ["onCommand:slop-detector.showGate"]
+            "media": {
+              "markdown": "media/step-gate.md"
+            },
+            "completionEvents": [
+              "onCommand:slop-detector.showGate"
+            ]
           }
         ]
       }
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run bundle",
+    "bundle": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --platform=node --format=cjs",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "check": "tsc -p ./ --noEmit",
+    "watch": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --platform=node --format=cjs --watch",
     "lint": "eslint src --ext ts",
     "package": "vsce package"
   },
@@ -319,6 +337,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vscode/vsce": "^2.20.0",
+    "esbuild": "^0.28.0",
     "eslint": "^8.0.0",
     "typescript": "^5.0.0"
   },
