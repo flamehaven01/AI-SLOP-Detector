@@ -222,6 +222,53 @@ def test_unused_deps_includes_python_manifest_hygiene(tmp_path):
     assert ("undeclared_import", "rich") in issue_types
 
 
+def test_unused_deps_excludes_stdlib_and_dev_extras(tmp_path):
+    project = tmp_path / "pyproj_fp"
+    project.mkdir()
+    (project / "module.py").write_text(
+        "import collections\nimport yaml\n\n\n"
+        "def run():\n    return collections.OrderedDict(), yaml.__name__\n",
+        encoding="utf-8",
+    )
+    (project / "pyproject.toml").write_text(
+        "[project]\nname='demo'\nversion='0.1.0'\ndependencies=['pyyaml>=6.0']\n"
+        "[project.optional-dependencies]\ndev=['black>=24.0','pytest>=8.0']\n",
+        encoding="utf-8",
+    )
+    detector = SlopDetector()
+    file_result = detector.analyze_file(str(project / "module.py"))
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=1,
+        deficit_files=0,
+        clean_files=1,
+        avg_deficit_score=file_result.deficit_score,
+        weighted_deficit_score=file_result.deficit_score,
+        avg_ldr=file_result.ldr.ldr_score,
+        avg_inflation=file_result.inflation.inflation_score,
+        avg_ddc=file_result.ddc.usage_ratio,
+        overall_status=file_result.status,
+        file_results=[file_result],
+    )
+    output_file = tmp_path / "fp_check.json"
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch.object(
+            sys,
+            "argv",
+            ["slop-detector", "unused-deps", str(project), "--json", "-o", str(output_file)],
+        ):
+            assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    deps = [(i.get("issue_type"), i.get("dependency")) for i in payload["issues"]]
+    # stdlib import must NOT be flagged as undeclared
+    assert not any(t == "undeclared_import" and d == "collections" for t, d in deps)
+    # dev/optional extras must NOT be flagged as unused
+    assert not any(t == "manifest_unused_dependency" and "black" in (d or "") for t, d in deps)
+    assert not any(t == "manifest_unused_dependency" and "pytest" in (d or "") for t, d in deps)
+
+
 def test_unused_deps_includes_package_json_hygiene(tmp_path):
     project = tmp_path / "jsproj"
     project.mkdir()

@@ -376,6 +376,13 @@ def _module_to_distribution(module_name: str) -> str:
     return canonical
 
 
+# Python standard library + built-in module names. Imports of these never need a
+# declared dependency, so they must not surface as undeclared_import findings.
+_STDLIB_MODULES: frozenset = frozenset(getattr(sys, "stdlib_module_names", ())) | frozenset(
+    sys.builtin_module_names
+)
+
+
 def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, Any]]:
     pyproject = project_path / "pyproject.toml"
     if not pyproject.exists():
@@ -387,15 +394,28 @@ def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, 
         return []
 
     project_data = data.get("project", {})
-    declared_raw = _collect_python_declared_dependencies(project_data)
-    declared = {_pep508_name(spec): spec for spec in declared_raw if _pep508_name(spec)}
-    if not declared:
+    declared_main = {
+        _pep508_name(spec): spec
+        for spec in (project_data.get("dependencies", []) or [])
+        if _pep508_name(spec)
+    }
+    declared_all = {
+        _pep508_name(spec): spec
+        for spec in _collect_python_declared_dependencies(project_data)
+        if _pep508_name(spec)
+    }
+    if not declared_all:
         return []
 
     imported_dists = _collect_python_imported_distributions(project_path, result)
     issues: List[Dict[str, Any]] = []
-    issues.extend(_build_python_unused_declared_issues(declared, imported_dists))
-    issues.extend(_build_python_undeclared_issues(declared, imported_dists))
+    # Unused check covers main runtime dependencies only. optional-dependencies
+    # (dev/test extras like black, mypy, pytest) are opt-in tools that are not
+    # expected to appear in analyzed imports, so flagging them is a false positive.
+    issues.extend(_build_python_unused_declared_issues(declared_main, imported_dists))
+    # Undeclared check compares imports against ALL declared deps (main + optional)
+    # so an import satisfied by an extra is not flagged.
+    issues.extend(_build_python_undeclared_issues(declared_all, imported_dists))
     return issues
 
 
@@ -415,6 +435,8 @@ def _collect_python_imported_distributions(project_path: Path, result) -> set[st
     for fr in list(getattr(result, "file_results", []) or []):
         for imported in list(getattr(fr.ddc, "imported", []) or []):
             top_level = imported.split(".", 1)[0]
+            if top_level in _STDLIB_MODULES:
+                continue
             if _canonical_dep_name(top_level) in internal_packages:
                 continue
             imported_modules.add(top_level)
