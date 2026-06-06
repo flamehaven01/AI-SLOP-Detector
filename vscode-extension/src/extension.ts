@@ -20,6 +20,8 @@ export function activate(context: vscode.ExtensionContext): void {
     bar.show();
 
     initState(collection, bar, channel);
+    // Start in the pre-analysis state so viewsWelcome shows Get Started / Analyze.
+    void vscode.commands.executeCommand('setContext', 'slop.hasAnalyzed', false);
     channel.appendLine('[*] AI SLOP Detector v3.7.5 activated');
 
     context.subscriptions.push(collection, bar, channel);

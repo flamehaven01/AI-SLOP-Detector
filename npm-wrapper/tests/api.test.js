@@ -9,6 +9,7 @@ const {
   reviewChanges,
   runCleanupFamily,
   runJsonCommand,
+  runTextCommand,
   scanProject,
 } = require("../lib/api");
 
@@ -41,6 +42,62 @@ test("runJsonCommand parses backend JSON output", async () => {
   });
 
   assert.deepEqual(result, payload);
+});
+
+test("runJsonCommand forwards cwd to the spawned backend", async () => {
+  const payload = { command: "scan", project_path: "/repo" };
+  const result = await runJsonCommand(["scan", "/repo", "--format", "json"], {
+    cwd: "/repo",
+    candidate: { command: "ai-slop-detector", args: [] },
+    spawnImpl(_command, _args, options) {
+      assert.equal(options.cwd, "/repo");
+      return createChild({ stdout: JSON.stringify(payload) });
+    },
+  });
+
+  assert.equal(result.project_path, "/repo");
+});
+
+test("runJsonCommand omits cwd when not provided", async () => {
+  await runJsonCommand(["scan", ".", "--format", "json"], {
+    candidate: { command: "ai-slop-detector", args: [] },
+    spawnImpl(_command, _args, options) {
+      assert.equal("cwd" in options, false);
+      return createChild({ stdout: JSON.stringify({ command: "scan" }) });
+    },
+  });
+});
+
+test("runTextCommand returns raw stdout/stderr without parsing", async () => {
+  const result = await runTextCommand(["--self-calibrate"], {
+    cwd: "/repo",
+    candidate: { command: "ai-slop-detector", args: [] },
+    spawnImpl(_command, args, options) {
+      assert.deepEqual(args, ["--self-calibrate"]);
+      assert.equal(options.cwd, "/repo");
+      return createChild({ stdout: "not-json: human report", stderr: "warn line" });
+    },
+  });
+
+  assert.equal(result.stdout, "not-json: human report");
+  assert.equal(result.stderr, "warn line");
+  assert.equal(result.code, 0);
+});
+
+test("runTextCommand rejects on non-zero exit", async () => {
+  await assert.rejects(
+    runTextCommand(["--init", "."], {
+      candidate: { command: "ai-slop-detector", args: [] },
+      spawnImpl() {
+        return createChild({ code: 2, stderr: "boom" });
+      },
+    }),
+    (error) => {
+      assert.equal(error.code, 2);
+      assert.match(error.message, /boom/);
+      return true;
+    },
+  );
 });
 
 test("reviewChanges forwards base ref and returns parsed payload", async () => {

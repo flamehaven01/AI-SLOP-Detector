@@ -254,3 +254,56 @@ export type CommandOutput =
 export type ReviewOutput = AuditOutput;
 export type PulseOutput = HealthOutput;
 export type SweepOutput = CleanupOutput;
+
+export interface BackendCandidate {
+  kind?: "direct" | "module";
+  command: string;
+  args?: string[];
+  label?: string;
+}
+
+export interface RunOptions {
+  /** Working directory for the backend process. Keeps config discovery and
+   *  history project_id (sha256 of cwd) correct. */
+  cwd?: string;
+  /** Git ref for `reviewChanges`; forwarded as `--base`. */
+  base?: string;
+  /** Explicit backend candidate; bypasses auto-discovery. */
+  candidate?: BackendCandidate;
+  /** Environment used for backend discovery. */
+  env?: Record<string, string | undefined>;
+  /** Platform override for discovery (defaults to process.platform). */
+  platform?: string;
+  /** Injection points for tests. */
+  spawnImpl?: (command: string, args: string[], options: Record<string, unknown>) => unknown;
+  probeImpl?: (command: string, args: string[], options: Record<string, unknown>) => unknown;
+}
+
+export function scanProject(root?: string, options?: RunOptions): Promise<ScanOutput>;
+export function scanFile(filePath: string, options?: RunOptions): Promise<FileAnalysisOutput>;
+export function reviewChanges(root?: string, options?: RunOptions): Promise<ReviewOutput>;
+export function computeHealth(root?: string, options?: RunOptions): Promise<PulseOutput>;
+export function runCleanupFamily(
+  family: string,
+  root?: string,
+  options?: RunOptions,
+): Promise<SweepOutput>;
+export function explain(identifier: string, options?: RunOptions): Promise<ExplainOutput>;
+export function runJsonCommand<T = CommandOutput>(
+  forwardedArgs: string[],
+  options?: RunOptions,
+): Promise<T>;
+
+export interface TextResult {
+  stdout: string;
+  stderr: string;
+  code: number;
+}
+
+/** Run a backend command and capture raw stdout/stderr without JSON parsing.
+ *  For text-output commands (fix, init, calibrate) and JSON commands that emit
+ *  leading log lines the caller wants to strip itself. Rejects on non-zero exit. */
+export function runTextCommand(
+  forwardedArgs: string[],
+  options?: RunOptions,
+): Promise<TextResult>;

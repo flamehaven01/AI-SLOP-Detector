@@ -35,13 +35,10 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
             .filter(([, r]) => (r.deficit_score || 0) >= 0)
             .sort(([, a], [, b]) => (b.deficit_score || 0) - (a.deficit_score || 0));
 
+        // Empty -> return [] so the declarative viewsWelcome (with Get Started
+        // and Analyze actions) renders instead of an inert placeholder row.
         if (entries.length === 0) {
-            const placeholder = new SlopItem(
-                'Run "Analyze File" or "Analyze Workspace" to see results.',
-                vscode.TreeItemCollapsibleState.None, 'empty',
-            );
-            placeholder.iconPath = new vscode.ThemeIcon('info');
-            return [placeholder];
+            return [];
         }
 
         return entries.map(([fp, r]) => this._fileItem(fp, r));

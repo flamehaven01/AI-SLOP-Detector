@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import { statusBarItem, outputChannel, updateFileResult } from './state';
 import { updateDiagnostics } from './diagnostics';
 import { updateStatusBar } from './statusbar';
 import { parseSlopReport, ISlopReport } from './schema';
-
-const execAsync = promisify(exec);
+import * as client from './client';
 
 /** Extract first JSON object/array from stdout, ignoring leading [INFO] log lines. */
 export function extractJson(stdout: string): any {
@@ -15,23 +12,9 @@ export function extractJson(stdout: string): any {
     return JSON.parse(stdout);
 }
 
-export async function runSlopDetector(
-    filePath: string,
-    config: vscode.WorkspaceConfiguration,
-): Promise<ISlopReport> {
-    const pythonPath    = config.get('pythonPath', 'python');
-    const configPath    = config.get('configPath', '');
-    const recordHistory = config.get('recordHistory', true);
-
-    let command = `${pythonPath} -m slop_detector.cli "${filePath}" --json`;
-    if (configPath)      { command += ` --config "${configPath}"`; }
-    if (!recordHistory)  { command += ' --no-history'; }
-
-    outputChannel.appendLine(`[*] Running: ${command}`);
-    const { stdout, stderr } = await execAsync(command, { maxBuffer: 10 * 1024 * 1024 });
-    if (stderr) { outputChannel.appendLine(`[!] stderr: ${stderr}`); }
-
-    const raw    = extractJson(stdout);
+export async function runSlopDetector(filePath: string): Promise<ISlopReport> {
+    outputChannel.appendLine(`[*] scan ${filePath}`);
+    const raw    = await client.scanFile(filePath);
     const parsed = parseSlopReport(raw);
     if (!parsed.ok) {
         const { field, expected, got } = parsed.error;
@@ -55,7 +38,7 @@ export async function analyzeDocument(document: vscode.TextDocument): Promise<vo
     statusBarItem.text = '$(sync~spin) SLOP: Analyzing...';
 
     try {
-        const result = await runSlopDetector(filePath, config);
+        const result = await runSlopDetector(filePath);
         updateDiagnostics(document.uri, result);
         updateStatusBar(result);
         updateFileResult(filePath, result);

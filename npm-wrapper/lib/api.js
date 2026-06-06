@@ -31,9 +31,13 @@ function runJsonCommand(forwardedArgs, options = {}) {
   const invocation = buildInvocation(candidate, forwardedArgs);
 
   return new Promise((resolve, reject) => {
-    const child = spawnImpl(invocation.command, invocation.args, {
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    const spawnOptions = { stdio: ["ignore", "pipe", "pipe"] };
+    if (options.cwd) {
+      // Run the backend in the caller's project root so config discovery
+      // (.slopconfig.yaml) and history project_id (sha256 of cwd) stay correct.
+      spawnOptions.cwd = options.cwd;
+    }
+    const child = spawnImpl(invocation.command, invocation.args, spawnOptions);
 
     const stdoutChunks = [];
     const stderrChunks = [];
@@ -66,6 +70,47 @@ function runJsonCommand(forwardedArgs, options = {}) {
         parseError.stderr = stderr;
         reject(parseError);
       }
+    });
+  });
+}
+
+function runTextCommand(forwardedArgs, options = {}) {
+  const spawnImpl = options.spawnImpl || spawn;
+  const candidate = options.candidate || discoverBackend(options);
+  if (!candidate) {
+    return Promise.reject(_createBackendNotFoundError());
+  }
+
+  const invocation = buildInvocation(candidate, forwardedArgs);
+
+  return new Promise((resolve, reject) => {
+    const spawnOptions = { stdio: ["ignore", "pipe", "pipe"] };
+    if (options.cwd) {
+      spawnOptions.cwd = options.cwd;
+    }
+    const child = spawnImpl(invocation.command, invocation.args, spawnOptions);
+
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    _collectText(child.stdout, stdoutChunks);
+    _collectText(child.stderr, stderrChunks);
+
+    child.on("error", reject);
+    child.on("exit", (code, signal) => {
+      const stdout = stdoutChunks.join("");
+      const stderr = stderrChunks.join("");
+      if (signal || code !== 0) {
+        const error = new Error(
+          stderr.trim() ||
+            `ai-slop-detector backend exited with code ${typeof code === "number" ? code : 1}`,
+        );
+        error.code = typeof code === "number" ? code : 1;
+        error.stdout = stdout;
+        error.stderr = stderr;
+        reject(error);
+        return;
+      }
+      resolve({ stdout, stderr, code: 0 });
     });
   });
 }
@@ -104,6 +149,7 @@ module.exports = {
   reviewChanges,
   runCleanupFamily,
   runJsonCommand,
+  runTextCommand,
   scanFile,
   scanProject,
 };

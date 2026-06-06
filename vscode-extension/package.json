@@ -125,17 +125,29 @@
     "menus": {
       "view/title": [
         {
-          "command": "slop-detector.refreshTree",
-          "when": "view == slopDetector.fileTree",
+          "command": "slop-detector.analyzeWorkspace",
+          "when": "view == slopDetector.fileTree && !slop.hasAnalyzed",
           "group": "navigation"
         },
         {
-          "command": "slop-detector.analyzeWorkspace",
-          "when": "view == slopDetector.fileTree",
+          "command": "slop-detector.refreshTree",
+          "when": "view == slopDetector.fileTree && slop.hasAnalyzed",
           "group": "navigation"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "slopDetector.fileTree",
+        "contents": "No analysis results yet.\n[$(search) Analyze Workspace](command:slop-detector.analyzeWorkspace)\nAI-SLOP Detector measures structural risk in AI-generated code — stubs, phantom imports, clone clusters, and inflated docs.\n[Get Started](command:workbench.action.openWalkthrough?%22Flamehaven.vscode-slop-detector%23slop.gettingStarted%22)",
+        "when": "!slop.hasAnalyzed"
+      },
+      {
+        "view": "slopDetector.fileTree",
+        "contents": "$(check) No structural risk found.\n[$(refresh) Re-scan](command:slop-detector.refreshTree)",
+        "when": "slop.hasAnalyzed && slop.isClean"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "AI SLOP Detector",
@@ -195,6 +207,33 @@
           "default": true,
           "description": "Show inline SLOP score and issue hints above functions (CodeLens)"
         },
+        "slopDetector.domain": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "general",
+            "scientific/ml",
+            "scientific/numerical",
+            "web/api",
+            "library/sdk",
+            "cli/tool",
+            "bio",
+            "finance"
+          ],
+          "enumDescriptions": [
+            "Auto-detect the domain from project file patterns (default)",
+            "General-purpose code; balanced 4D weights",
+            "Machine-learning / AI projects",
+            "Numerical and scientific computing",
+            "Web services and HTTP APIs",
+            "Reusable libraries and SDKs",
+            "Command-line tools and scripts",
+            "Bioinformatics pipelines",
+            "Financial / quantitative code"
+          ],
+          "markdownDescription": "Domain profile used by **Bootstrap .slopconfig.yaml** (`--init`). `auto` lets the detector infer the domain from file patterns; any other value is forwarded as `--domain`."
+        },
         "slopDetector.phantomImportAllowlist": {
           "type": "array",
           "items": { "type": "string" },
@@ -202,7 +241,43 @@
           "description": "Module names to skip in phantom_import detection (e.g. project-local flat modules). Mirrors phantom_import_allowlist in .slopconfig.yaml — entries here are shown in QuickFix suggestions."
         }
       }
-    }
+    },
+    "walkthroughs": [
+      {
+        "id": "slop.gettingStarted",
+        "title": "Get Started with AI-SLOP Detector",
+        "description": "Measure structural risk in AI-generated code, read the score, patch findings, then gate and self-calibrate.",
+        "steps": [
+          {
+            "id": "slop.gettingStarted.scan",
+            "title": "Run your first scan",
+            "description": "Analyze the workspace for structural risk.\n\n[Analyze Workspace](command:slop-detector.analyzeWorkspace)",
+            "media": { "markdown": "media/step-scan.md" },
+            "completionEvents": ["onCommand:slop-detector.analyzeWorkspace"]
+          },
+          {
+            "id": "slop.gettingStarted.diagnose",
+            "title": "Read the score",
+            "description": "Each file attributes its deficit score back to four dimensions so you can see the top driver.\n\n[Show Output](command:slop-detector.showOutput)",
+            "media": { "markdown": "media/step-diagnose.md" }
+          },
+          {
+            "id": "slop.gettingStarted.fix",
+            "title": "Patch the findings",
+            "description": "Apply safe fixes and use the QuickFix lightbulb on phantom imports and god functions.\n\n[Auto-Fix](command:slop-detector.autoFix)",
+            "media": { "markdown": "media/step-fix.md" },
+            "completionEvents": ["onCommand:slop-detector.autoFix"]
+          },
+          {
+            "id": "slop.gettingStarted.gate",
+            "title": "Gate, then calibrate",
+            "description": "Turn a one-off scan into a standing quality signal.\n\n[Show Gate](command:slop-detector.showGate) · [Self-Calibrate](command:slop-detector.selfCalibrate)",
+            "media": { "markdown": "media/step-gate.md" },
+            "completionEvents": ["onCommand:slop-detector.showGate"]
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -210,6 +285,9 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "package": "vsce package"
+  },
+  "dependencies": {
+    "ai-slop-detector": "file:../npm-wrapper"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
