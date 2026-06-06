@@ -114,6 +114,12 @@
         "title": "Show Cleanup Plan (dead-code / dupes / unused-deps ...)",
         "category": "SLOP Detector",
         "icon": "$(checklist)"
+      },
+      {
+        "command": "slop-detector.showPulse",
+        "title": "Show Pulse Dashboard (health + hotspots)",
+        "category": "SLOP Detector",
+        "icon": "$(pulse)"
       }
     ],
     "viewsContainers": {

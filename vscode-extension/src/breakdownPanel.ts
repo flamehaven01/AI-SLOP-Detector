@@ -9,31 +9,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as client from './client';
 import type { FileAnalysisOutput } from './client';
-import { escapeHtml as esc, nonce as makeNonce } from './webviewUtil';
-
-interface SeverityToken {
-    glyph: string;
-    label: string;
-    color: string; // a --vscode-* variable reference
-}
-
-// Single source for severity tokens (mirrors the frozen presentation contract).
-function severityToken(status: string): SeverityToken {
-    switch (status) {
-        case 'clean':
-            return { glyph: '✓', label: 'CLEAN', color: 'var(--vscode-charts-green)' };
-        case 'suspicious':
-            return { glyph: '!', label: 'SUSPICIOUS', color: 'var(--vscode-editorWarning-foreground)' };
-        case 'inflated_signal':
-            return { glyph: '~', label: 'INFLATED', color: 'var(--vscode-charts-orange)' };
-        case 'dependency_noise':
-            return { glyph: 'd', label: 'DEP-NOISE', color: 'var(--vscode-charts-purple)' };
-        case 'critical_deficit':
-            return { glyph: '×', label: 'CRITICAL', color: 'var(--vscode-errorForeground)' };
-        default:
-            return { glyph: '?', label: status.toUpperCase(), color: 'var(--vscode-foreground)' };
-    }
-}
+import { escapeHtml as esc, nonce as makeNonce, severityToken } from './webviewUtil';
 
 interface PenaltyRow {
     label: string;

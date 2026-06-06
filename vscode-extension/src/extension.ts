@@ -9,6 +9,7 @@ import { autoFixCurrentFile, showGateDecision, initConfig, selfCalibrate } from 
 import { SlopCodeActionProvider, addFileToIgnore, addModuleToAllowlist } from './codeActions';
 import { showBreakdownPanel } from './breakdownPanel';
 import { showCleanupPanel } from './cleanupPanel';
+import { showPulsePanel } from './pulsePanel';
 import { outputChannel } from './state';
 import { SlopTreeProvider } from './treeview';
 import { SlopCodeLensProvider } from './codelens';
@@ -65,6 +66,7 @@ export function activate(context: vscode.ExtensionContext): void {
         ['slop-detector.showOutput',              () => outputChannel.show(true)],
         ['slop-detector.showBreakdown',           showBreakdownPanel],
         ['slop-detector.showCleanupPlan',         showCleanupPanel],
+        ['slop-detector.showPulse',               showPulsePanel],
         ['slop-detector.addFileToIgnore',         (relPath: string) => addFileToIgnore(relPath)],
         ['slop-detector.addModuleToAllowlist',    (mod: string) => addModuleToAllowlist(mod)],
         // P3: TreeView refresh
