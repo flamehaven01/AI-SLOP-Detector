@@ -378,9 +378,30 @@ def _module_to_distribution(module_name: str) -> str:
 
 # Python standard library + built-in module names. Imports of these never need a
 # declared dependency, so they must not surface as undeclared_import findings.
-_STDLIB_MODULES: frozenset = frozenset(getattr(sys, "stdlib_module_names", ())) | frozenset(
-    sys.builtin_module_names
-)
+def _compute_stdlib_modules() -> frozenset:
+    names: set = set(getattr(sys, "stdlib_module_names", ())) | set(sys.builtin_module_names)
+    if not getattr(sys, "stdlib_module_names", None):
+        # Python 3.8/3.9 have no sys.stdlib_module_names; derive the top-level
+        # names from the runtime's stdlib directory so pure-Python stdlib modules
+        # (abc, collections, ast, ...) are still excluded, not just C built-ins.
+        try:
+            import sysconfig
+
+            stdlib_dir = sysconfig.get_paths().get("stdlib")
+            if stdlib_dir:
+                stdlib_path = Path(stdlib_dir)
+                if stdlib_path.is_dir():
+                    for entry in stdlib_path.iterdir():
+                        if entry.suffix == ".py":
+                            names.add(entry.stem)
+                        elif entry.is_dir() and entry.name.isidentifier():
+                            names.add(entry.name)
+        except Exception:
+            pass
+    return frozenset(names)
+
+
+_STDLIB_MODULES: frozenset = _compute_stdlib_modules()
 
 
 def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, Any]]:

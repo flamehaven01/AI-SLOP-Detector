@@ -222,6 +222,22 @@ def test_unused_deps_includes_python_manifest_hygiene(tmp_path):
     assert ("undeclared_import", "rich") in issue_types
 
 
+def test_stdlib_modules_cover_common_names():
+    from slop_detector.operations import _STDLIB_MODULES
+
+    assert {"abc", "ast", "collections", "json", "os", "re", "sys"} <= _STDLIB_MODULES
+
+
+def test_stdlib_fallback_discovers_from_sysconfig(monkeypatch):
+    import slop_detector.operations as ops
+
+    # Simulate Python 3.8/3.9 where sys.stdlib_module_names does not exist.
+    monkeypatch.delattr(sys, "stdlib_module_names", raising=False)
+    names = ops._compute_stdlib_modules()
+    # Pure-Python stdlib modules must still be discovered via sysconfig.
+    assert {"abc", "collections", "json"} <= names
+
+
 def test_unused_deps_excludes_stdlib_and_dev_extras(tmp_path):
     project = tmp_path / "pyproj_fp"
     project.mkdir()
