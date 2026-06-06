@@ -9,6 +9,7 @@ ASCII-only (cp949 safety): no emoji or non-ASCII characters in this module.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict, List
 
 # Deficit bands mirror the scoring model in README / SlopStatus.
@@ -78,3 +79,62 @@ def project_metric_rows(result: Any) -> List[Dict[str, str]]:
             "means": "Imported libraries that are referenced by runtime code.",
         },
     ]
+
+
+def next_steps(result: Any) -> List[str]:
+    """Deterministic, 1-3 actionable next steps based on the metrics.
+
+    Turns analysis into action: name the top concern, recommend the matching
+    cleanup command, then point at where to start. Rule-based, not heuristic
+    guessing, so the same result always yields the same advice.
+    """
+    rows = project_metric_rows(result)
+    bad = [r for r in rows if r["health"] == "bad"]
+    warn = [r for r in rows if r["health"] == "warn"]
+    deficit_files = getattr(result, "deficit_files", 0) or 0
+    hotspots = getattr(result, "priority_hotspots", []) or []
+
+    if not bad and not warn and deficit_files == 0:
+        return [
+            "All metrics are healthy - no action needed. "
+            "Add `slop-detector --project . --ci-mode hard` to CI to keep it that way."
+        ]
+
+    steps: List[str] = []
+    concern = (bad or warn)[0]
+    label = concern["label"]
+    steps.append(
+        f"Top concern: {label} = {concern['value']} "
+        f"({concern['direction']} is healthier). {concern['means']}"
+    )
+
+    if "Dependency Usage" in label:
+        steps.append(
+            "Run `slop-detector sweep unused-deps .` to list imports and "
+            "dependencies that are declared but never used."
+        )
+    elif "Inflation" in label:
+        steps.append(
+            "High jargon density has no auto-fix: open the top file below and "
+            "replace marketing terms with concrete behavior."
+        )
+    else:  # deficit or logic-density concern
+        steps.append(
+            "Run `slop-detector sweep dead-code .` for placeholder/dead files, "
+            "then `slop-detector sweep dupes .` for duplicated logic."
+        )
+
+    if hotspots:
+        top = hotspots[0]
+        steps.append(
+            f"Start with `{Path(top.file_path).name}` (deficit "
+            f"{getattr(top, 'deficit_score', 0.0):.1f}); use `slop-detector review .` "
+            "to scope this to changed code only."
+        )
+    elif deficit_files > 0:
+        steps.append(
+            "Run `slop-detector review .` to focus on slop introduced in your "
+            "changed files only."
+        )
+
+    return steps[:3]

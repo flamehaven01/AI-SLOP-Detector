@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from slop_detector.renderer_glossary import DEFICIT_BANDS, project_metric_rows
+from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
 
 _PRODUCTION_CLAIMS_CLI: frozenset = frozenset(
     {
@@ -128,6 +128,18 @@ def _md_project_metrics_section(result) -> list:
             f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |"
         )
     lines += ["", f"_Deficit bands: {DEFICIT_BANDS}_", ""]
+    return lines
+
+
+def _md_next_steps_section(result) -> list:
+    """Deterministic 'what to do now' guidance derived from the metrics."""
+    steps = next_steps(result)
+    if not steps:
+        return []
+    lines = ["## Next Steps"]
+    for idx, step in enumerate(steps, 1):
+        lines.append(f"{idx}. {step}")
+    lines.append("")
     return lines
 
 
@@ -311,6 +323,7 @@ def generate_markdown_report(result) -> str:
 
     if is_project:
         lines += _md_project_metrics_section(result)
+        lines += _md_next_steps_section(result)
         lines += _md_structural_coherence_section(result)
         lines += _md_suppression_section(result)
         lines += _md_test_evidence_section(result)

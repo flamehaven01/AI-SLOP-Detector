@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from slop_detector.renderer_glossary import DEFICIT_BANDS, project_metric_rows
+from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
 from slop_detector.renderer_markdown import _collect_test_evidence_stats
 
 
@@ -55,6 +55,12 @@ def _text_project_section(result) -> list:
     lines.append("")
     lines.append(f"  Deficit bands: {DEFICIT_BANDS}")
     lines.append("")
+    steps = next_steps(result)
+    if steps:
+        lines.append("Next Steps:")
+        for idx, step in enumerate(steps, 1):
+            lines.append(f"  {idx}. {step}")
+        lines.append("")
     coherence_level = getattr(result, "coherence_level", "none")
     if coherence_level != "none":
         label = (

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
-from slop_detector.renderer_glossary import DEFICIT_BANDS, project_metric_rows
+from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
 
 try:
     from rich import box
@@ -162,6 +162,11 @@ def _render_rich_project(console, result) -> None:
     console.print(metrics_table)
     console.print(f"[dim]Deficit bands:[/dim] {DEFICIT_BANDS}")
     console.print()
+    steps = next_steps(result)
+    if steps:
+        body = "\n".join(f"{i}. {s}" for i, s in enumerate(steps, 1))
+        console.print(Panel(body, title="Next Steps", border_style="cyan", title_align="left"))
+        console.print()
     suppression_ledger = getattr(result, "suppression_ledger", [])
     if suppression_ledger:
         sup_table = Table(

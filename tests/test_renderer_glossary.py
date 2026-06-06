@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from slop_detector.renderer_glossary import DEFICIT_BANDS, project_metric_rows
+from slop_detector.renderer_glossary import DEFICIT_BANDS, next_steps, project_metric_rows
 
 
 def _result(**overrides):
@@ -57,3 +57,33 @@ def test_health_bands_good_and_bad():
 def test_deficit_bands_legend_is_ascii():
     assert DEFICIT_BANDS.isascii()
     assert "CLEAN" in DEFICIT_BANDS and "CRITICAL" in DEFICIT_BANDS
+
+
+def test_next_steps_clean_project_says_no_action():
+    steps = next_steps(_result(deficit_files=0, priority_hotspots=[]))
+    assert len(steps) == 1
+    assert "no action needed" in steps[0]
+
+
+def test_next_steps_deficit_recommends_dead_code_sweep():
+    hot = SimpleNamespace(file_path="x/worst.py", deficit_score=72.0)
+    steps = next_steps(
+        _result(
+            avg_deficit_score=72.0,
+            weighted_deficit_score=72.0,
+            avg_ldr=0.3,
+            deficit_files=4,
+            priority_hotspots=[hot],
+        )
+    )
+    assert 1 <= len(steps) <= 3
+    assert steps[0].startswith("Top concern: Average Deficit Score")
+    assert any("sweep dead-code" in s for s in steps)
+    assert any("worst.py" in s for s in steps)
+
+
+def test_next_steps_ddc_concern_recommends_unused_deps():
+    steps = next_steps(
+        _result(avg_ddc=0.30, deficit_files=1, priority_hotspots=[])
+    )
+    assert any("unused-deps" in s for s in steps)
