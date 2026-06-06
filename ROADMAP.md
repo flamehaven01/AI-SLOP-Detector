@@ -65,18 +65,6 @@ Move the core docs into a dedicated public docs surface:
 Target outcome: the project is understandable without reading the repository in
 chronological order.
 
-### Coverage climb to 90%+
-
-Lift test depth where product risk is highest:
-
-- `operations.py`
-- `cli.py`
-- governance verification
-- MCP wrapper
-- Rust scan adapter
-
-Target outcome: higher confidence for release gating and self-dogfood changes.
-
 ---
 
 ## Next

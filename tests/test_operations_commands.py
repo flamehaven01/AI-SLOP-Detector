@@ -155,6 +155,31 @@ def test_dead_code_high_churn_lowers_confidence(tmp_path):
     assert issue["evidence"]["churn_score"] == 1.0
 
 
+def test_dead_code_excludes_high_deficit_non_dead_file():
+    from slop_detector.operations import _should_include_dead_code_candidate
+
+    class _P:
+        def __init__(self, pid):
+            self.pattern_id = pid
+
+    class _FR:
+        def __init__(self, deficit, patterns):
+            self.deficit_score = deficit
+            self.pattern_issues = patterns
+
+    # High deficit (low LDR / inflation) with no placeholder and no dead-code
+    # patterns must NOT be classified as dead code.
+    non_dead = _FR(72.0, [_P("god_function"), _P("deep_nesting")])
+    assert _should_include_dead_code_candidate(non_dead, placeholder=False) is False
+
+    # A real dead-code pattern qualifies even at low deficit.
+    dead = _FR(12.0, [_P("pass_placeholder")])
+    assert _should_include_dead_code_candidate(dead, placeholder=False) is True
+
+    # Placeholder-only files always qualify.
+    assert _should_include_dead_code_candidate(_FR(0.0, []), placeholder=True) is True
+
+
 def test_unused_deps_includes_python_manifest_hygiene(tmp_path):
     project = tmp_path / "pyproj"
     project.mkdir()

@@ -667,6 +667,16 @@ def _run_init(args: argparse.Namespace) -> int:
         _print_skip_existing_config(needs_adaptive, preview_text)
         return 0
 
+    # Capture any hand-written config BEFORE a possible template overwrite so
+    # --apply-init-suggestions never loses user settings, even when --force-init
+    # is also set. (force + apply previously overwrote then merged onto the
+    # template, dropping hand-written keys.)
+    preexisting_data = (
+        _load_existing_init_yaml(config_path)
+        if config_exists and init_options["apply_init_suggestions"]
+        else None
+    )
+
     if config_exists and not init_options["force"] and init_options["apply_init_suggestions"]:
         print("[*] Existing .slopconfig.yaml detected. Applying adaptive suggestions only.")
     else:
@@ -680,7 +690,13 @@ def _run_init(args: argparse.Namespace) -> int:
         )
 
     if init_options["apply_init_suggestions"]:
-        current_data = _load_existing_init_yaml(config_path)
+        # Merge onto the original hand-written config when it existed; fall back
+        # to the freshly written template only for a brand-new config.
+        current_data = (
+            preexisting_data
+            if preexisting_data is not None
+            else _load_existing_init_yaml(config_path)
+        )
         if current_data is None:
             return 1
         merged = _merge_adaptive_init_suggestions(current_data, suggestions)

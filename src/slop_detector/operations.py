@@ -1028,10 +1028,33 @@ def _collect_dead_code_issues(result) -> List[Dict[str, Any]]:
     return issues
 
 
-def _should_include_dead_code_candidate(fr, placeholder: bool) -> bool:
-    return bool(
-        getattr(fr, "pattern_issues", []) or getattr(fr, "deficit_score", 0.0) >= 30 or placeholder
+# Pattern ids that actually indicate dead / unimplemented code. A generic high
+# deficit_score (low logic density, inflation) is NOT dead code and must not pull
+# a normal file into the dead-code family.
+_DEAD_CODE_PATTERN_IDS = frozenset(
+    {
+        "dead_code",
+        "not_implemented",
+        "pass_placeholder",
+        "ellipsis_placeholder",
+        "return_none_placeholder",
+        "return_constant_stub",
+        "interface_only_class",
+    }
+)
+
+
+def _has_dead_code_patterns(fr) -> bool:
+    return any(
+        getattr(p, "pattern_id", "") in _DEAD_CODE_PATTERN_IDS
+        for p in getattr(fr, "pattern_issues", [])
     )
+
+
+def _should_include_dead_code_candidate(fr, placeholder: bool) -> bool:
+    # Require real dead-code evidence: a placeholder-only file or dead-code
+    # patterns. Deficit score alone does not qualify.
+    return bool(placeholder or _has_dead_code_patterns(fr))
 
 
 def _collect_duplicate_issues(result, cross) -> List[Dict[str, Any]]:
