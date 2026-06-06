@@ -102,6 +102,12 @@
         "command": "slop-detector.addModuleToAllowlist",
         "title": "Add Module to phantom_import_allowlist",
         "category": "SLOP Detector"
+      },
+      {
+        "command": "slop-detector.showBreakdown",
+        "title": "Show 4D Breakdown (why not 0.0)",
+        "category": "SLOP Detector",
+        "icon": "$(graph)"
       }
     ],
     "viewsContainers": {
