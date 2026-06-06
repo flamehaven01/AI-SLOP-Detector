@@ -5,6 +5,8 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from slop_detector.renderer_glossary import DEFICIT_BANDS, project_metric_rows
+
 _PRODUCTION_CLAIMS_CLI: frozenset = frozenset(
     {
         "production-ready",
@@ -108,6 +110,25 @@ def _md_summary_section(avg_deficit: float, avg_inflation: float, status) -> lis
         f"| **Inflation (Jargon)** | {avg_inflation:.2f} | - | Density of non-functional 'marketing' terms. |",
         "",
     ]
+
+
+def _md_project_metrics_section(result) -> list:
+    """Friendly project metrics table: value, healthy direction, plain meaning."""
+    # Emoji emitted into the Markdown output, written as ASCII source escapes
+    # (CLAUDE.md: Python source stays ASCII for cp949 safety).
+    health_icon = {"good": "\u2705", "warn": "\u26a0\ufe0f", "bad": "\U0001f6a8"}
+    lines = [
+        "## Project Metrics",
+        "| Metric | Value | Healthy Direction | What It Means |",
+        "| :--- | ---: | :---: | :--- |",
+    ]
+    for r in project_metric_rows(result):
+        icon = health_icon.get(r["health"], "")
+        lines.append(
+            f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |"
+        )
+    lines += ["", f"_Deficit bands: {DEFICIT_BANDS}_", ""]
+    return lines
 
 
 def _md_structural_coherence_section(result) -> list:
@@ -289,6 +310,7 @@ def generate_markdown_report(result) -> str:
     lines += _md_summary_section(avg_deficit, avg_inflation, status)
 
     if is_project:
+        lines += _md_project_metrics_section(result)
         lines += _md_structural_coherence_section(result)
         lines += _md_suppression_section(result)
         lines += _md_test_evidence_section(result)

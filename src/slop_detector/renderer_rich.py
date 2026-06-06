@@ -6,6 +6,7 @@ from pathlib import Path
 
 from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
+from slop_detector.renderer_glossary import DEFICIT_BANDS, project_metric_rows
 
 try:
     from rich import box
@@ -100,14 +101,20 @@ def _build_rich_summary_tables(result):
         summary_table.add_row("Coherence", f"{result.structural_coherence:.4f}")
         summary_table.add_row("Coherence Mode", f"{coherence_level} ({mode})")
 
-    metrics_table = Table(title="Average Metrics", box=box.ROUNDED, header_style="bold cyan")
-    metrics_table.add_column("Metric", style="cyan")
-    metrics_table.add_column("Score", justify="right")
-    metrics_table.add_row("Deficit Score", f"{result.avg_deficit_score:.1f}/100")
-    metrics_table.add_row("Weighted Score", f"{result.weighted_deficit_score:.1f}/100")
-    metrics_table.add_row("LDR (Logic)", f"{result.avg_ldr:.2%}")
-    metrics_table.add_row("ICR (Inflation)", f"{result.avg_inflation:.2f}")
-    metrics_table.add_row("DDC (Deps)", f"{result.avg_ddc:.2%}")
+    metrics_table = Table(title="Project Metrics", box=box.ROUNDED, header_style="bold cyan")
+    metrics_table.add_column("Metric", style="cyan", no_wrap=True)
+    metrics_table.add_column("Value", justify="right")
+    metrics_table.add_column("Healthy", justify="center", style="dim")
+    metrics_table.add_column("What It Means", style="dim")
+    health_color = {"good": "green", "warn": "yellow", "bad": "red"}
+    for row in project_metric_rows(result):
+        color = health_color.get(row["health"], "white")
+        metrics_table.add_row(
+            row["label"],
+            f"[{color}]{row['value']}[/{color}]",
+            row["direction"],
+            row["means"],
+        )
     return summary_table, metrics_table
 
 
@@ -153,6 +160,7 @@ def _render_rich_project(console, result) -> None:
     console.print(summary_table)
     console.print()
     console.print(metrics_table)
+    console.print(f"[dim]Deficit bands:[/dim] {DEFICIT_BANDS}")
     console.print()
     suppression_ledger = getattr(result, "suppression_ledger", [])
     if suppression_ledger:

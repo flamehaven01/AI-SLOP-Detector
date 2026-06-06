@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from slop_detector.renderer_glossary import DEFICIT_BANDS, project_metric_rows
 from slop_detector.renderer_markdown import _collect_test_evidence_stats
 
 
@@ -38,14 +39,22 @@ def _text_project_section(result) -> list:
         f"Deficit Files: {result.deficit_files}",
         f"Overall Status: {result.overall_status.upper()}",
         "",
-        "Average Metrics:",
-        f"  Deficit Score: {result.avg_deficit_score:.1f}/100",
-        f"  Weighted Deficit Score: {result.weighted_deficit_score:.1f}/100",
-        f"  Logic Density (LDR): {result.avg_ldr:.2%}",
-        f"  Inflation Ratio (ICR): {result.avg_inflation:.2f}",
-        f"  Dependency Usage (DDC): {result.avg_ddc:.2%}",
-        "",
+        "Project Metrics:",
     ]
+    rows = project_metric_rows(result)
+    label_w = max(len(r["label"]) for r in rows)
+    val_w = max(len(r["value"]) for r in rows)
+    header = f"  {'Metric':<{label_w}}  {'Value':>{val_w}}  {'Healthy':<7} What It Means"
+    lines.append(header)
+    lines.append("  " + "-" * (len(header) - 2))
+    for r in rows:
+        lines.append(
+            f"  {r['label']:<{label_w}}  {r['value']:>{val_w}}  "
+            f"{r['direction']:<7} {r['means']}"
+        )
+    lines.append("")
+    lines.append(f"  Deficit bands: {DEFICIT_BANDS}")
+    lines.append("")
     coherence_level = getattr(result, "coherence_level", "none")
     if coherence_level != "none":
         label = (
