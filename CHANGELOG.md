@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+**Human-friendly output (analysis -> action)**
+
+- Project and per-file reports now render a metrics table with `Value`,
+  `Healthy Direction`, and `What It Means` columns plus a deficit-band legend
+  (`CLEAN <30 | SUSPICIOUS 30-50 | INFLATED 50-70 | CRITICAL >=70`), so scores
+  are interpretable without prior knowledge (addresses the "no way to gauge the
+  scores" feedback).
+- Deterministic, rule-based `Next Steps`: each report names the top concern,
+  recommends the matching cleanup command (`sweep unused-deps` / `dead-code` +
+  `dupes`), and points at the highest-priority file plus `review` scoping.
+- A single `renderer_glossary` module is the source of truth for metric labels,
+  healthy direction, plain-language meaning, and health bands; the rich, text,
+  and markdown renderers all consume it for identical wording.
+
+**VS Code extension**
+
+- Data layer now consumes the `ai-slop-detector` npm wrapper API and typed
+  contracts instead of hand-rolled `child_process` calls; all backend execution
+  flows through the wrapper (`scan` / `review` / `pulse` / `sweep`).
+- New webview panels: 4D + `deficit_breakdown` (why-not-0.0), confidence-ranked
+  cleanup plan, pulse health dashboard, and diff-aware changed-code review.
+- Getting-started walkthrough, state-aware empty states, context-key view menus,
+  and a domain-profile setting with `enumDescriptions`.
+- npm wrapper gained `options.cwd`, `runTextCommand`, and typed function
+  declarations so editor/agent consumers are fully typed.
+
 ### Changed
 
 **P0 self-dogfood debt reduction**
@@ -45,6 +73,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `operations.py` no longer imports `tomli` directly in the scoring surface;
   runtime import fallback is now used to avoid phantom-import findings on the
   compatibility path.
+
+**Dead-code family semantics**
+
+- `sweep dead-code` now requires real dead-code evidence (a placeholder file or
+  a dead-code pattern such as `pass_placeholder` / `not_implemented` /
+  `interface_only_class`) instead of any high `deficit_score >= 30`. Live
+  high-deficit files (e.g. `analysis_cache.py`, `api/server.py`) are no longer
+  mislabeled; self-dogfood dead-code dropped from 58 to 10 candidates.
+
+**Adaptive init no longer drops hand-written config**
+
+- `--force-init` combined with `--apply-init-suggestions` previously overwrote
+  `.slopconfig.yaml` with the template and then merged onto that template,
+  losing hand-written keys. The pre-existing config is now captured before any
+  overwrite and used as the adaptive merge base.
+
+**`unused-deps` false positives**
+
+- Standard-library modules (`abc`, `ast`, `collections`, ...) are no longer
+  reported as `undeclared_import`. Detection uses `sys.stdlib_module_names` with
+  a `sysconfig`-based discovery fallback for Python 3.8 / 3.9.
+- The unused-dependency check now covers main `[project.dependencies]` only;
+  `optional-dependencies` (dev/test tools like `black`, `mypy`, `pytest`) are no
+  longer flagged as unused. Self-dogfood `unused-deps` dropped from 64 to 20.
 
 ---
 

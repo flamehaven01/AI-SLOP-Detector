@@ -563,6 +563,39 @@ slop-detector --project . --output audit.html
 slop-detector --project . --config strict.yaml
 ```
 
+## Interpreting the report
+
+Project and single-file reports are designed to be read without prior knowledge
+of the scoring model. Each metric is shown with three aids:
+
+- **Value** - the measured number (e.g. `36.4/100`, `95.36%`, `0.00x`).
+- **Healthy Direction** - whether `Lower` or `Higher` is better. Deficit and ICR
+  are better low; LDR and DDC are better high.
+- **What It Means** - a one-line plain-language description.
+
+A deficit-band legend interprets the headline score:
+
+```
+Deficit bands: CLEAN <30 | SUSPICIOUS 30-50 | INFLATED 50-70 | CRITICAL >=70
+```
+
+In rich (color) output the value is tinted green / yellow / red by its health
+band; the text and markdown renderers show the same rows without color.
+
+### Next Steps
+
+Every report ends with up to three deterministic, rule-based next steps:
+
+1. **Top concern** - the worst metric, with its value and meaning.
+2. **Recommended command** - the matching cleanup family (`sweep unused-deps`
+   for dependency concerns, `sweep dead-code` + `sweep dupes` for density /
+   deficit concerns), or jargon-review guidance for inflation.
+3. **Where to start** - the highest-priority hotspot file and a `review` command
+   to scope the work to changed code only.
+
+A clean project instead prints a single "no action needed" line and suggests
+wiring `--ci-mode hard` into CI.
+
 ## See Also
 
 - [Configuration](CONFIGURATION.md) - Customize thresholds and patterns

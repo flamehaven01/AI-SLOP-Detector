@@ -350,6 +350,27 @@ Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
 
 Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
+### Readable, actionable output
+
+Scores are not a black box. Every project and file report renders each metric
+with its **value**, **healthy direction**, and a one-line **what it means**, plus
+a deficit-band legend:
+
+```
+Project Metrics
+  Metric                          Value     Healthy   What It Means
+  Average Deficit Score           6.1/100   Lower     Mean file risk; 0 is clean, 100 is severe.
+  Logic Density Ratio (LDR)       95.36%    Higher    Share of code lines that contain real implementation.
+  Inflation-to-Code Ratio (ICR)   0.00x     Lower     Unjustified jargon vs. average cyclomatic complexity.
+  Dependency Usage Ratio (DDC)    86.00%    Higher    Imported libraries referenced by runtime code.
+  Deficit bands: CLEAN <30 | SUSPICIOUS 30-50 | INFLATED 50-70 | CRITICAL >=70
+```
+
+Each report ends with deterministic **Next Steps** — the top concern, the
+recommended `sweep` command, and the highest-priority file to open — so analysis
+turns directly into action. The same wording is shared by the rich, text, and
+markdown renderers.
+
 ### Per-file `deficit_breakdown` (v3.7.6)
 
 Every per-file result in the JSON output also carries a `deficit_breakdown`
@@ -734,6 +755,10 @@ Real-time inline diagnostics, debounced lint-on-type, ML score and purity signal
 |---|---|
 | Analyze Current File | On-demand single-file scan |
 | Analyze Workspace | Project-wide scan, populates TreeView |
+| Show 4D Breakdown | Webview: penalty attribution — why a file is not 0.0 |
+| Show Cleanup Plan | Webview: confidence-ranked `sweep` family (safe/needs/unsafe) |
+| Show Pulse Dashboard | Webview: project health + priority hotspots |
+| Show Changed-Code Review | Webview: diff-aware review, new-vs-inherited slop |
 | Auto-Fix Detected Issues | Apply (or dry-run preview) auto-fixable patterns |
 | Show Gate Decision (SNP) | PASS/HALT with sr9/di2/jsd/ove metrics |
 | Run Cross-File Analysis | Dependency + clone graph across project |

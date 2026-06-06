@@ -111,12 +111,29 @@ warning during self-dogfood:
 
 ### Report surface expansion
 
-Keep markdown as the canonical report, then add archival and presentation
-surfaces:
+Done: project and file reports now explain every metric (value / healthy
+direction / meaning) with a deficit-band legend and deterministic Next Steps,
+shared across the rich / text / markdown renderers.
+
+Still open:
 
 - stronger markdown packet
 - PDF export
 - HTML only when an interactive workflow is clearly justified
+
+### VS Code extension
+
+Shipped: the extension consumes the `ai-slop-detector` npm API + typed contracts
+(no hand-rolled subprocess calls), a getting-started walkthrough, state-aware
+empty states, and four webview surfaces — 4D `deficit_breakdown`, confidence-
+ranked cleanup plan, pulse health dashboard, and diff-aware changed-code review.
+
+Still open:
+
+- per-pattern / per-category mute UX (suppression policy + editor action +
+  affordance — its own chapter)
+- schema-driven TypeScript codegen and a test suite (vitest + test-electron)
+- optional LSP server for real-time push diagnostics
 
 ---
 
