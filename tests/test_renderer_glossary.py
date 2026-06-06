@@ -70,6 +70,14 @@ def test_next_steps_clean_project_says_no_action():
     assert "no action needed" in steps[0]
 
 
+def test_next_steps_healthy_averages_with_flagged_files_does_not_crash():
+    # Regression: project averages all healthy (no bad/warn metric) but some
+    # files are flagged (deficit_files > 0) must not IndexError on (bad or warn)[0].
+    steps = next_steps(_result(deficit_files=3, priority_hotspots=[]))
+    assert 1 <= len(steps) <= 3
+    assert any("flagged" in s for s in steps)
+
+
 def test_next_steps_deficit_recommends_dead_code_sweep():
     hot = SimpleNamespace(file_path="x/worst.py", deficit_score=72.0)
     steps = next_steps(

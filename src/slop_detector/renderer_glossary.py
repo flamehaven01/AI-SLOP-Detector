@@ -142,28 +142,41 @@ def next_steps(result: Any) -> List[str]:
         ]
 
     steps: List[str] = []
-    concern = (bad or warn)[0]
-    label = concern["label"]
-    steps.append(
-        f"Top concern: {label} = {concern['value']} "
-        f"({concern['direction']} is healthier). {concern['means']}"
-    )
+    concern = (bad or warn)[0] if (bad or warn) else None
 
-    if "Dependency Usage" in label:
+    if concern is None:
+        # Project averages are all healthy, but some individual files are flagged
+        # (deficit_files > 0). Point at those files rather than a project metric.
+        label = ""
         steps.append(
-            "Run `slop-detector sweep unused-deps .` to list imports and "
-            "dependencies that are declared but never used."
+            f"Project averages are healthy, but {deficit_files} file(s) are "
+            "flagged. The hotspots below are pulling specific files down."
         )
-    elif "Inflation" in label:
-        steps.append(
-            "High jargon density has no auto-fix: open the top file below and "
-            "replace marketing terms with concrete behavior."
-        )
-    else:  # deficit or logic-density concern
         steps.append(
             "Run `slop-detector sweep dead-code .` for placeholder/dead files, "
             "then `slop-detector sweep dupes .` for duplicated logic."
         )
+    else:
+        label = concern["label"]
+        steps.append(
+            f"Top concern: {label} = {concern['value']} "
+            f"({concern['direction']} is healthier). {concern['means']}"
+        )
+        if "Dependency Usage" in label:
+            steps.append(
+                "Run `slop-detector sweep unused-deps .` to list imports and "
+                "dependencies that are declared but never used."
+            )
+        elif "Inflation" in label:
+            steps.append(
+                "High jargon density has no auto-fix: open the top file below and "
+                "replace marketing terms with concrete behavior."
+            )
+        else:  # deficit or logic-density concern
+            steps.append(
+                "Run `slop-detector sweep dead-code .` for placeholder/dead files, "
+                "then `slop-detector sweep dupes .` for duplicated logic."
+            )
 
     if hotspots:
         top = hotspots[0]
