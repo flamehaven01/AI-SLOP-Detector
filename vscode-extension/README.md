@@ -1,8 +1,43 @@
-# AI SLOP Detector — VS Code Extension v3.7.5
+# AI SLOP Detector — VS Code Extension v3.9.0
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, clone detection,
-and actionable diagnostics without leaving your editor.
+interactive webview reports, and actionable diagnostics without leaving your
+editor.
+
+---
+
+## What's New in v3.9.0 — Webview Surfaces + Typed npm Data Layer
+
+### Four interactive webview panels
+
+The extension moves beyond text diagnostics with theme-aware webviews (styled
+with VS Code CSS variables only — no external UI dependencies):
+
+| Command | What it shows |
+|---|---|
+| **Show 4D Breakdown** | Penalty attribution — *why* a file's deficit is not 0.0, top driver first |
+| **Show Cleanup Plan** | Confidence-ranked `sweep` family (`safe` / `needs` / `unsafe`) with evidence |
+| **Show Pulse Dashboard** | Project health header + priority hotspots (deficit x churn x coverage) |
+| **Show Changed-Code Review** | Diff-aware review — introduced-vs-inherited slop, recommended actions |
+
+### Typed npm data layer
+
+Analysis no longer shells out by hand. The extension consumes the
+`ai-slop-detector` npm package's runtime API and TypeScript contracts, so
+results are typed end-to-end and the modern `scan / review / pulse / sweep`
+command surface is used throughout. The hand-written output schema was retired
+in favour of the package's generated types.
+
+### Onboarding + state-aware UI
+
+- **Getting-started walkthrough** mapped to `scan -> diagnose -> patch -> gate -> calibrate`
+- **State-aware empty states** with actionable links (`Get Started`, `Analyze`)
+- **Context-key view menus** — Analyze before the first run, Refresh after
+- **`slopDetector.domain` setting** (8 profiles) wired into config bootstrap
+
+> Note: the extension now depends on the `ai-slop-detector` npm package; see
+> [Requirements](#requirements).
 
 ---
 
@@ -239,6 +274,10 @@ Click any entry to open the file directly in the editor.
 |---|---|
 | SLOP Detector: Analyze Current File | Run analysis on active file |
 | SLOP Detector: Analyze Workspace | Scan workspace, open QuickPick of deficit files |
+| SLOP Detector: Show 4D Breakdown | **[v3.9.0]** Webview: penalty attribution (why not 0.0) |
+| SLOP Detector: Show Cleanup Plan | **[v3.9.0]** Webview: confidence-ranked sweep family |
+| SLOP Detector: Show Pulse Dashboard | **[v3.9.0]** Webview: health + priority hotspots |
+| SLOP Detector: Show Changed-Code Review | **[v3.9.0]** Webview: diff-aware review |
 | SLOP Detector: Auto-Fix Issues | Apply or preview (dry-run) auto-fixable patterns |
 | SLOP Detector: Show Gate Decision (SNP) | Display SNP gate result |
 | SLOP Detector: Run Cross-File Analysis | Detect cycles, duplicates, hotspots |
@@ -264,7 +303,7 @@ ext install Flamehaven.vscode-slop-detector
 ### From VSIX (Local)
 
 ```bash
-code --install-extension vscode-slop-detector-3.5.0.vsix
+code --install-extension vscode-slop-detector-3.9.0.vsix
 ```
 
 ---
@@ -282,8 +321,10 @@ pip install "ai-slop-detector[go]"    # + Go analysis (v3.5.0)
 pip install "ai-slop-detector[full]"  # everything
 ```
 
-The extension invokes `python -m slop_detector.cli <file> --json` internally.
-Set `slopDetector.pythonPath` if your Python interpreter is not on `PATH`.
+Since v3.9.0 the extension consumes the **`ai-slop-detector` npm package** as its
+data layer; it is bundled with the extension and delegates to the Python backend
+above (it does not reimplement analysis). Set `slopDetector.pythonPath` if your
+Python interpreter is not on `PATH`.
 
 ---
 
@@ -399,6 +440,8 @@ Press **F5** to open Extension Development Host. The Output panel channel
 ## Changelog
 
 See the [full CHANGELOG](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md).
+
+**v3.9.0:** Four interactive webview panels (4D breakdown, cleanup plan, pulse dashboard, diff-aware review); typed `ai-slop-detector` npm data layer replacing hand-rolled subprocess calls; getting-started walkthrough, state-aware empty states, context-key menus, and `slopDetector.domain` setting.
 
 **v3.7.5:** `phantom_import` FP fix for flat-module projects (sibling discovery + allowlist wired); new `addModuleToAllowlist` QuickFix action; `slopDetector.phantomImportAllowlist` setting.
 
