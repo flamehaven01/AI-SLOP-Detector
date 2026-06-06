@@ -133,9 +133,7 @@ def _md_project_metrics_section(result) -> list:
     ]
     for r in project_metric_rows(result):
         icon = health_icon.get(r["health"], "")
-        lines.append(
-            f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |"
-        )
+        lines.append(f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |")
     lines += ["", f"_Deficit bands: {DEFICIT_BANDS}_", ""]
     return lines
 
@@ -149,9 +147,7 @@ def _md_file_metrics_section(fr) -> list:
     ]
     for r in file_metric_rows(fr):
         icon = _MD_HEALTH_ICON.get(r["health"], "")
-        lines.append(
-            f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |"
-        )
+        lines.append(f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |")
     lines += ["", f"_Deficit bands: {DEFICIT_BANDS}_", ""]
     return lines
 

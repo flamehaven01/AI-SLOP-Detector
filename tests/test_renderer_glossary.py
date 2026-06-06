@@ -96,14 +96,15 @@ def test_file_metric_rows_shape_and_shared_bands():
     )
     rows = file_metric_rows(fr)
     assert [r["label"] for r in rows][0] == "Deficit Score"
-    assert {"Logic Density Ratio (LDR)", "Inflation-to-Code Ratio (ICR)",
-            "Dependency Usage Ratio (DDC)"} <= {r["label"] for r in rows}
+    assert {
+        "Logic Density Ratio (LDR)",
+        "Inflation-to-Code Ratio (ICR)",
+        "Dependency Usage Ratio (DDC)",
+    } <= {r["label"] for r in rows}
     # Same health classifiers as the project rows -> all bad for these values.
     assert all(r["health"] == "bad" for r in rows)
 
 
 def test_next_steps_ddc_concern_recommends_unused_deps():
-    steps = next_steps(
-        _result(avg_ddc=0.30, deficit_files=1, priority_hotspots=[])
-    )
+    steps = next_steps(_result(avg_ddc=0.30, deficit_files=1, priority_hotspots=[]))
     assert any("unused-deps" in s for s in steps)
