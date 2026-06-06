@@ -155,6 +155,31 @@ def test_dead_code_high_churn_lowers_confidence(tmp_path):
     assert issue["evidence"]["churn_score"] == 1.0
 
 
+def test_dead_code_excludes_high_deficit_non_dead_file():
+    from slop_detector.operations import _should_include_dead_code_candidate
+
+    class _P:
+        def __init__(self, pid):
+            self.pattern_id = pid
+
+    class _FR:
+        def __init__(self, deficit, patterns):
+            self.deficit_score = deficit
+            self.pattern_issues = patterns
+
+    # High deficit (low LDR / inflation) with no placeholder and no dead-code
+    # patterns must NOT be classified as dead code.
+    non_dead = _FR(72.0, [_P("god_function"), _P("deep_nesting")])
+    assert _should_include_dead_code_candidate(non_dead, placeholder=False) is False
+
+    # A real dead-code pattern qualifies even at low deficit.
+    dead = _FR(12.0, [_P("pass_placeholder")])
+    assert _should_include_dead_code_candidate(dead, placeholder=False) is True
+
+    # Placeholder-only files always qualify.
+    assert _should_include_dead_code_candidate(_FR(0.0, []), placeholder=True) is True
+
+
 def test_unused_deps_includes_python_manifest_hygiene(tmp_path):
     project = tmp_path / "pyproj"
     project.mkdir()
@@ -195,6 +220,69 @@ def test_unused_deps_includes_python_manifest_hygiene(tmp_path):
     issue_types = {(item.get("issue_type"), item.get("dependency")) for item in payload["issues"]}
     assert ("manifest_unused_dependency", "jinja2>=3.1") in issue_types
     assert ("undeclared_import", "rich") in issue_types
+
+
+def test_stdlib_modules_cover_common_names():
+    from slop_detector.operations import _STDLIB_MODULES
+
+    assert {"abc", "ast", "collections", "json", "os", "re", "sys"} <= _STDLIB_MODULES
+
+
+def test_stdlib_fallback_discovers_from_sysconfig(monkeypatch):
+    import slop_detector.operations as ops
+
+    # Simulate Python 3.8/3.9 where sys.stdlib_module_names does not exist.
+    monkeypatch.delattr(sys, "stdlib_module_names", raising=False)
+    names = ops._compute_stdlib_modules()
+    # Pure-Python stdlib modules must still be discovered via sysconfig.
+    assert {"abc", "collections", "json"} <= names
+
+
+def test_unused_deps_excludes_stdlib_and_dev_extras(tmp_path):
+    project = tmp_path / "pyproj_fp"
+    project.mkdir()
+    (project / "module.py").write_text(
+        "import collections\nimport yaml\n\n\n"
+        "def run():\n    return collections.OrderedDict(), yaml.__name__\n",
+        encoding="utf-8",
+    )
+    (project / "pyproject.toml").write_text(
+        "[project]\nname='demo'\nversion='0.1.0'\ndependencies=['pyyaml>=6.0']\n"
+        "[project.optional-dependencies]\ndev=['black>=24.0','pytest>=8.0']\n",
+        encoding="utf-8",
+    )
+    detector = SlopDetector()
+    file_result = detector.analyze_file(str(project / "module.py"))
+    analysis = ProjectAnalysis(
+        project_path=str(project),
+        total_files=1,
+        deficit_files=0,
+        clean_files=1,
+        avg_deficit_score=file_result.deficit_score,
+        weighted_deficit_score=file_result.deficit_score,
+        avg_ldr=file_result.ldr.ldr_score,
+        avg_inflation=file_result.inflation.inflation_score,
+        avg_ddc=file_result.ddc.usage_ratio,
+        overall_status=file_result.status,
+        file_results=[file_result],
+    )
+    output_file = tmp_path / "fp_check.json"
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch.object(
+            sys,
+            "argv",
+            ["slop-detector", "unused-deps", str(project), "--json", "-o", str(output_file)],
+        ):
+            assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    deps = [(i.get("issue_type"), i.get("dependency")) for i in payload["issues"]]
+    # stdlib import must NOT be flagged as undeclared
+    assert not any(t == "undeclared_import" and d == "collections" for t, d in deps)
+    # dev/optional extras must NOT be flagged as unused
+    assert not any(t == "manifest_unused_dependency" and "black" in (d or "") for t, d in deps)
+    assert not any(t == "manifest_unused_dependency" and "pytest" in (d or "") for t, d in deps)
 
 
 def test_unused_deps_includes_package_json_hygiene(tmp_path):

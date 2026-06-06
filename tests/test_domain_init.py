@@ -319,6 +319,48 @@ class TestInitIdempotency:
         assert merged["architecture"]["preset"] == "layered"
         assert merged["patterns"]["god_function"]["domain_overrides"]
 
+    def test_force_init_with_apply_suggestions_preserves_handwritten(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        from argparse import Namespace
+
+        from slop_detector.cli_commands import _run_init
+
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "src").mkdir()
+        _write_py(
+            tmp_path / "src",
+            "app.py",
+            "import os\n\n\ndef main():\n    return os.getcwd()\n",
+        )
+        existing = {
+            "version": "2.0",
+            "patterns": {
+                "god_function": {
+                    "complexity_threshold": 10,
+                    "lines_threshold": 50,
+                    "domain_overrides": [],
+                }
+            },
+            "custom_section": {"keep_me": True},
+        }
+        (tmp_path / ".slopconfig.yaml").write_text(yaml.safe_dump(existing, sort_keys=False))
+
+        # force + apply must NOT wipe hand-written config (the adaptive safety model).
+        args = Namespace(
+            force_init=True,
+            domain=None,
+            adaptive_init=True,
+            init_preview=False,
+            apply_init_suggestions=True,
+        )
+        rc = _run_init(args)
+
+        assert rc == 0
+        merged = yaml.safe_load((tmp_path / ".slopconfig.yaml").read_text(encoding="utf-8"))
+        assert merged["custom_section"]["keep_me"] is True
+        assert merged["patterns"]["god_function"]["complexity_threshold"] == 10
+
 
 class TestAdaptiveInitSignals:
     def test_collect_init_signals_includes_manifests_and_counts(self, tmp_path):

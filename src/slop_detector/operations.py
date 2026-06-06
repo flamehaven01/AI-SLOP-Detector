@@ -376,6 +376,34 @@ def _module_to_distribution(module_name: str) -> str:
     return canonical
 
 
+# Python standard library + built-in module names. Imports of these never need a
+# declared dependency, so they must not surface as undeclared_import findings.
+def _compute_stdlib_modules() -> frozenset:
+    names: set = set(getattr(sys, "stdlib_module_names", ())) | set(sys.builtin_module_names)
+    if not getattr(sys, "stdlib_module_names", None):
+        # Python 3.8/3.9 have no sys.stdlib_module_names; derive the top-level
+        # names from the runtime's stdlib directory so pure-Python stdlib modules
+        # (abc, collections, ast, ...) are still excluded, not just C built-ins.
+        try:
+            import sysconfig
+
+            stdlib_dir = sysconfig.get_paths().get("stdlib")
+            if stdlib_dir:
+                stdlib_path = Path(stdlib_dir)
+                if stdlib_path.is_dir():
+                    for entry in stdlib_path.iterdir():
+                        if entry.suffix == ".py":
+                            names.add(entry.stem)
+                        elif entry.is_dir() and entry.name.isidentifier():
+                            names.add(entry.name)
+        except Exception:
+            pass
+    return frozenset(names)
+
+
+_STDLIB_MODULES: frozenset = _compute_stdlib_modules()
+
+
 def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, Any]]:
     pyproject = project_path / "pyproject.toml"
     if not pyproject.exists():
@@ -387,15 +415,28 @@ def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, 
         return []
 
     project_data = data.get("project", {})
-    declared_raw = _collect_python_declared_dependencies(project_data)
-    declared = {_pep508_name(spec): spec for spec in declared_raw if _pep508_name(spec)}
-    if not declared:
+    declared_main = {
+        _pep508_name(spec): spec
+        for spec in (project_data.get("dependencies", []) or [])
+        if _pep508_name(spec)
+    }
+    declared_all = {
+        _pep508_name(spec): spec
+        for spec in _collect_python_declared_dependencies(project_data)
+        if _pep508_name(spec)
+    }
+    if not declared_all:
         return []
 
     imported_dists = _collect_python_imported_distributions(project_path, result)
     issues: List[Dict[str, Any]] = []
-    issues.extend(_build_python_unused_declared_issues(declared, imported_dists))
-    issues.extend(_build_python_undeclared_issues(declared, imported_dists))
+    # Unused check covers main runtime dependencies only. optional-dependencies
+    # (dev/test extras like black, mypy, pytest) are opt-in tools that are not
+    # expected to appear in analyzed imports, so flagging them is a false positive.
+    issues.extend(_build_python_unused_declared_issues(declared_main, imported_dists))
+    # Undeclared check compares imports against ALL declared deps (main + optional)
+    # so an import satisfied by an extra is not flagged.
+    issues.extend(_build_python_undeclared_issues(declared_all, imported_dists))
     return issues
 
 
@@ -415,6 +456,8 @@ def _collect_python_imported_distributions(project_path: Path, result) -> set[st
     for fr in list(getattr(result, "file_results", []) or []):
         for imported in list(getattr(fr.ddc, "imported", []) or []):
             top_level = imported.split(".", 1)[0]
+            if top_level in _STDLIB_MODULES:
+                continue
             if _canonical_dep_name(top_level) in internal_packages:
                 continue
             imported_modules.add(top_level)
@@ -1028,10 +1071,33 @@ def _collect_dead_code_issues(result) -> List[Dict[str, Any]]:
     return issues
 
 
-def _should_include_dead_code_candidate(fr, placeholder: bool) -> bool:
-    return bool(
-        getattr(fr, "pattern_issues", []) or getattr(fr, "deficit_score", 0.0) >= 30 or placeholder
+# Pattern ids that actually indicate dead / unimplemented code. A generic high
+# deficit_score (low logic density, inflation) is NOT dead code and must not pull
+# a normal file into the dead-code family.
+_DEAD_CODE_PATTERN_IDS = frozenset(
+    {
+        "dead_code",
+        "not_implemented",
+        "pass_placeholder",
+        "ellipsis_placeholder",
+        "return_none_placeholder",
+        "return_constant_stub",
+        "interface_only_class",
+    }
+)
+
+
+def _has_dead_code_patterns(fr) -> bool:
+    return any(
+        getattr(p, "pattern_id", "") in _DEAD_CODE_PATTERN_IDS
+        for p in getattr(fr, "pattern_issues", [])
     )
+
+
+def _should_include_dead_code_candidate(fr, placeholder: bool) -> bool:
+    # Require real dead-code evidence: a placeholder-only file or dead-code
+    # patterns. Deficit score alone does not qualify.
+    return bool(placeholder or _has_dead_code_patterns(fr))
 
 
 def _collect_duplicate_issues(result, cross) -> List[Dict[str, Any]]:
