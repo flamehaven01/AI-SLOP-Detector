@@ -139,3 +139,7 @@ remotion/.remotion/
 
 # E2E test generated data (regenerated on every test run — not source)
 tests/e2e_v321/data/
+
+# Internal upgrade/working notes — checklists, blueprints, absorption reports.
+# Not part of the shipped product; kept local for development only.
+sovereign_upgrade/
