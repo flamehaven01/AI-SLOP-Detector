@@ -350,5 +350,21 @@
   },
   "homepage": "https://github.com/flamehaven01/AI-SLOP-Detector#readme",
   "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "badges": [
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/v/Flamehaven.vscode-slop-detector",
+      "href": "https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector",
+      "description": "VS Marketplace version"
+    },
+    {
+      "url": "https://img.shields.io/pypi/v/ai-slop-detector.svg",
+      "href": "https://pypi.org/project/ai-slop-detector/",
+      "description": "Python backend version"
+    }
+  ],
   "license": "MIT"
 }
