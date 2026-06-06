@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as client from './client';
 import type { FileAnalysisOutput } from './client';
+import { escapeHtml as esc, nonce as makeNonce } from './webviewUtil';
 
 interface SeverityToken {
     glyph: string;
@@ -59,12 +60,6 @@ function buildRows(result: FileAnalysisOutput): { rows: PenaltyRow[]; total: num
         { label: 'pattern hits', penalty: bd.pattern_hits ?? 0, raw: `${(result.pattern_issues ?? []).length} findings` },
     ];
     return { rows, total, hasBreakdown };
-}
-
-function esc(s: string): string {
-    return s.replace(/[&<>"']/g, (c) => (
-        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string
-    ));
 }
 
 function renderHtml(result: FileAnalysisOutput, nonce: string): string {
@@ -150,8 +145,7 @@ export async function showBreakdownPanel(): Promise<void> {
 
     try {
         const result = await client.scanFile(filePath);
-        const nonce = Math.random().toString(36).slice(2);
-        panel.webview.html = renderHtml(result, nonce);
+        panel.webview.html = renderHtml(result, makeNonce());
     } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`[-] 4D Breakdown failed: ${msg}`);

@@ -108,6 +108,12 @@
         "title": "Show 4D Breakdown (why not 0.0)",
         "category": "SLOP Detector",
         "icon": "$(graph)"
+      },
+      {
+        "command": "slop-detector.showCleanupPlan",
+        "title": "Show Cleanup Plan (dead-code / dupes / unused-deps ...)",
+        "category": "SLOP Detector",
+        "icon": "$(checklist)"
       }
     ],
     "viewsContainers": {
