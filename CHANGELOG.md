@@ -11,6 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.4] - 2026-06-07 — Plain-Language Documentation Entry Point
+
+### Changed
+
+- **README entry point rewritten benefit-first**: a three-line value proposition
+  with no internal mechanism, a de-jargoned "What Is It?" list (technical terms
+  kept in parentheses), plus two new sections — "Why Not Just Use a Linter?"
+  (honest comparison table vs ruff / pylint / ESLint / SonarQube, with `Partial`
+  marked where they overlap) and "When NOT to Use This".
+- **`docs/HOW_IT_WORKS.md`**: added a "What the Acronyms Mean" glossary that
+  decodes every diagram (LDR, Inflation/ICR, DDC, Purity, GQG, Deficit Score,
+  SR9), reusing the exact wordings the CLI prints (`renderer_glossary.py`).
+- **`docs/CONFIGURATION.md`**: added plain-language comments to every key in the
+  `advanced:` block and glossed GQG / LEDA in the config-validation section.
+
+### Notes
+
+- Documentation only. No code, scoring math, public API, MCP, or npm typed
+  contracts were changed. `MATH_MODELS.md` (intentionally technical) was left
+  as-is.
+
+---
+
 ## [3.8.3] - 2026-06-06 — Readable Output, Next Steps, VS Code Surfaces
 
 ### Added
