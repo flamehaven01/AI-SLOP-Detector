@@ -15,11 +15,11 @@
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
 </p>
 
-<p align="center"><b>Not a style linter. A structural-risk scanner for AI-assisted code.</b></p>
+<p align="center"><b>Find AI-generated code that looks finished but isn't.</b></p>
 
 <p align="center">
-Detects unimplemented stubs, phantom imports, disconnected pipelines, clone clusters, and inflated documentation.<br/>
-File-level evidence. Machine-readable output. No LLM in the scoring path.
+Catches what a normal linter passes over: empty functions with real-looking bodies, imports of things that don't exist, pipelines wired to nothing, copy-pasted logic, and docs that oversell what the code actually does.<br/>
+<b>Runs fully offline &middot; deterministic core scoring &middot; no API key, no model download, nothing leaves your machine.</b>
 </p>
 
 **Release track**
@@ -32,6 +32,8 @@ File-level evidence. Machine-readable output. No LLM in the scoring path.
 
 **Navigation:**
 [What Is It?](#what-is-ai-slop-detector) •
+[Why Not a Linter?](#why-not-just-use-a-linter) •
+[When Not to Use](#when-not-to-use-this) •
 [Quick Start](#quick-start) •
 [Verification](#verification-path) •
 [Boundaries](#scope-and-boundaries) •
@@ -58,15 +60,39 @@ AI-SLOP Detector is an **evidence-based static analyzer** that targets the speci
 
 General linters flag style and convention. This tool flags structural risk.
 
-- **27 adversarial pattern checks** — stubs, phantom imports, disconnected pipelines, buzzword inflation, clone clusters
-- **4D scoring model** — LDR (logic density), ICR (inflation), DDC (dependency coupling), Purity (critical severity) combined via geometric mean
-- **Self-calibrating** — every scan is recorded per-project; at every 10 multi-run files milestone the calibration check fires automatically; weights update only when 5 improvement events and 5 fp_candidate events have accumulated per class (project-scoped, domain-anchored grid search, no manual command required)
-- **Git-aware noise filter** — uses commit SHA to distinguish real improvements from measurement noise
-- **Domain-aware bootstrap** — `--init` auto-detects project domain (8 profiles: `general`, `scientific/ml`, `scientific/numerical`, `web/api`, `library/sdk`, `cli/tool`, `bio`, `finance`) and pre-seeds weights accordingly; override with `--domain`
-- **JS/TS analysis** — optional `[js]` extra activates JSAnalyzer v2.8.0 with tree-sitter AST + regex fallback for `.js/.jsx/.ts/.tsx` files
-- **Go analysis** — optional `[go]` extra activates GoAnalyzer v1.0.0 with regex-based detection for `.go` files; detects empty funcs, panic-as-error, fmt.Print debug, ignored errors
-- **CI/CD gates** — soft / hard / quarantine modes; GitHub Actions ready
-- **VS Code extension** — real-time inline diagnostics, debounced lint-on-type, ML score in status bar
+- **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, dead pipelines, copy-paste clones, and buzzword-padded docs
+- **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
+- **Gets more accurate the more you use it** — learns from your git history which findings you actually fix versus ignore, and tunes itself per project; no manual training step (kicks in automatically after ~10 multi-run files)
+- **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
+- **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general) and picks sensible defaults; override with `--domain`
+- **Python first, JS/TS and Go optional** — install the `[js]` or `[go]` extra to scan those files too
+- **Drops into CI** — soft / hard / quarantine gates, GitHub Actions ready
+- **VS Code extension** — inline warnings as you type, score in the status bar
+
+---
+
+## Why Not Just Use a Linter?
+
+Ruff, pylint, ESLint, and SonarQube primarily check syntax, style, and general static-quality rules. They'll happily pass code that follows every rule and still does nothing — which is exactly what AI assistants tend to produce. This tool checks the other half: **does the code actually do what it claims?**
+
+| Can it catch... | ruff / pylint / SonarQube | AI-SLOP Detector |
+|---|---|---|
+| Style, formatting, syntax | Yes | No (not its job) |
+| An empty function with a real-looking body or fake return | No | Yes |
+| A module imported but never actually used downstream | Partial (unused-import) | Yes (usage ratio) |
+| A handler or pipeline that's defined but never wired in | No | Yes |
+| Docs or comments that oversell what the code does | No | Yes |
+| Copy-pasted duplicate functions across files | Partial | Partial (exact duplicates) |
+| Runs offline, no API key, deterministic core score | Yes | Yes |
+
+Use a linter for correctness-of-form. Use this for "is this code real, or just plausible-looking." The two are complementary — run both.
+
+## When NOT to Use This
+
+- **You want style or formatting enforcement** — use ruff / black / ESLint. This tool ignores style on purpose.
+- **You need a runtime correctness guarantee** — a low score means cleaner structure, not that the code works. Keep your tests.
+- **Your code isn't Python, JS/TS, or Go** — other languages aren't analyzed yet.
+- **You expect zero false positives on day one** — the first runs are un-calibrated and learn your project over ~10 multi-run files. Treat early findings as leads, not verdicts.
 
 ---
 

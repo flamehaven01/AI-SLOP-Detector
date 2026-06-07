@@ -42,11 +42,17 @@ ignore:
   - ".venv/"
 
 advanced:
+  # Cross-file structure ("coherence") is measured exactly up to this many files.
   exact_topology_ceiling: 300
+  # Past that ceiling, fall back to deterministic sampling. Set "exact" to force full analysis.
   topology_mode_above_ceiling: deterministic_approximate
+  # Reuse analysis results for unchanged files between runs, so re-scans are faster.
   analysis_cache_enabled: true
+  # How many recent commits to read when judging how often a file changes (churn).
   churn_commit_window: 200
+  # Optional coverage file; when present, low-coverage files rank higher as hotspots.
   coverage_data_file: ".coverage"
+  # Max number of priority "hotspot" files listed in the report.
   hotspot_limit: 10
 
 architecture:
@@ -62,7 +68,8 @@ import cycles only.
 
 `.slopconfig.yaml` is validated by Pydantic v2 schemas before merging into the
 default config. Invalid values raise `ValueError` with the exact field path —
-before they can reach the GQG formula or the LEDA calibration grid search.
+before they can reach the GQG formula (the weighted score combiner) or the
+LEDA calibration (the engine that auto-tunes the weights from your history).
 
 ### Validated Sections
 

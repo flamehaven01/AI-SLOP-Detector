@@ -4,6 +4,24 @@ Visual guide to understanding the AI-SLOP detection process.
 
 ---
 
+## What the Acronyms Mean
+
+Every diagram below uses the same short names. Here is what each one actually measures, in plain language — the technical name is kept so it lines up with the code and [docs/MATH_MODELS.md](MATH_MODELS.md). These wordings match what the CLI prints (`renderer_glossary.py`).
+
+| Short name | What it measures (plain language) | Healthy direction |
+|---|---|---|
+| **LDR** (Logic Density Ratio) | Share of code lines that contain real implementation, not stubs / `pass` / `TODO`. | Higher |
+| **Inflation / ICR** | How much buzzword and jargon the text carries relative to how complex the code actually is. | Lower |
+| **DDC** (Dependency Usage) | Of the libraries you import, how many are actually referenced by runtime code. | Higher |
+| **Purity** | A penalty that drops sharply each time a *critical*-severity pattern is found. | Higher |
+| **GQG** (weighted geometric mean) | How the four numbers above are blended: one very low score drags the whole result down, so a serious problem can't be averaged away. | combiner |
+| **Deficit Score** | The final 0-100 risk number for a file. 0 is clean, 100 is severe. | Lower |
+| **SR9** (project aggregation) | The project score leans on the worst file, not just the average (`0.6 x worst + 0.4 x mean`), so a few bad files can't hide behind many clean ones. | Lower |
+
+Bands: **CLEAN < 30  |  SUSPICIOUS 30-50  |  INFLATED 50-70  |  CRITICAL >= 70**.
+
+---
+
 ## System Overview
 
 ```mermaid
