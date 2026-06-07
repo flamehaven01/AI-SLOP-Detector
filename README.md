@@ -23,10 +23,10 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.8.4`
-- Previous stable tag: `v3.8.3`
-- `v3.8.3` adds human-friendly metric output (value / healthy direction / what it means + deficit bands), deterministic Next Steps, and the VS Code webview surfaces; fixes dead-code semantics, adaptive-init config preservation, and `unused-deps` stdlib / dev-tool false positives.
+- Stable tag: `v3.8.5`
+- Previous stable tag: `v3.8.4`
 - `v3.8.4` rewrites the documentation entry point in plain language (benefit-first README, "Why Not Just Use a Linter?" / "When NOT to Use This" sections, an acronym glossary in HOW_IT_WORKS, plain-meaning comments in CONFIGURATION) without changing any code or contracts.
+- `v3.8.5` makes output dual-audience: the human summary hides internal algorithm names (no more `vr_structural (exact MST)`), while the JSON / agent / MCP output gains `next_steps` and `metric_guide` so AI agents receive the same actionable plan and metric semantics. JSON `coherence_level` is unchanged; new keys are additive.
 
 ---
 

@@ -11,6 +11,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.5] - 2026-06-07 — Dual-Audience Output (Plain for Humans, Actionable for Machines)
+
+### Changed
+
+- **Human summary hides internal algorithm names.** The Project Summary
+  coherence row no longer leaks `vr_structural (exact MST)`; it now reads
+  `Structure Coherence: 85% (Higher is more cohesive)` with a plain coverage
+  note (`full` / `sampled (large project)`) across the rich, text, and markdown
+  renderers. Centralized in `renderer_glossary.coherence_display()` (OSOT).
+
+### Added
+
+- **Machine output is now patch-complete (AI-agent friendly).** Project-level
+  JSON / agent route / MCP output gains two additive keys:
+  - `next_steps` — the same deterministic, prioritized action plan humans see
+    (top concern, recommended sweep command, file to start with).
+  - `metric_guide` — per-metric `value` / healthy `direction` / plain `means`,
+    so an agent reading JSON gets the same semantics as a human reader.
+
+### Notes
+
+- The JSON `coherence_level` value (`vr_structural` / `vr_structural_approx`)
+  is unchanged — only the human-facing label was translated. New keys are
+  additive and backward-compatible; no existing key was renamed or removed.
+
+---
+
 ## [3.8.4] - 2026-06-07 — Plain-Language Documentation Entry Point
 
 ### Changed
