@@ -331,6 +331,12 @@ class ProjectAnalysis:
     coverage_analysis_available: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
+        # Local import keeps the data model free of presentation deps at module
+        # load. next_steps / project_metric_rows are pure semantic helpers (no
+        # rich/markdown) so machine consumers (JSON, agent route, MCP) receive
+        # the same actionable plan and metric semantics a human reader gets.
+        from slop_detector.renderer_glossary import next_steps, project_metric_rows
+
         return {
             "project_path": self.project_path,
             "total_files": self.total_files,
@@ -349,6 +355,11 @@ class ProjectAnalysis:
             "priority_hotspots": [h.to_dict() for h in self.priority_hotspots],
             "churn_analysis_available": self.churn_analysis_available,
             "coverage_analysis_available": self.coverage_analysis_available,
+            # Machine-readable guidance (same source as the human report; OSOT):
+            # next_steps = deterministic prioritized action plan,
+            # metric_guide = per-metric value/healthy-direction/plain meaning.
+            "next_steps": next_steps(self),
+            "metric_guide": project_metric_rows(self),
             "file_results": [r.to_dict() for r in self.file_results],
             "js_file_results": [
                 r.to_dict() if hasattr(r, "to_dict") else r for r in self.js_file_results
