@@ -20,6 +20,15 @@ _MEANS_LDR = "Share of code lines that contain real implementation."
 _MEANS_ICR = "Unjustified jargon compared with average cyclomatic complexity."
 _MEANS_DDC = "Imported libraries that are referenced by runtime code."
 
+# Plain-language view of structural coherence. The internal algorithm name
+# (the coherence_level value "vr_structural" / "vr_structural_approx") is kept
+# in the JSON output for tooling and audit, but hidden from the human-facing
+# summary so a first-time reader is not shown unexplained internals.
+_MEANS_COHERENCE = (
+    "How structurally connected the project's files are to each other; "
+    "higher means more cohesive."
+)
+
 
 def _deficit_health(value: float) -> str:
     # Lower is better. Bands follow the status thresholds.
@@ -120,6 +129,26 @@ def file_metric_rows(fr: Any) -> List[Dict[str, str]]:
             "means": _MEANS_DDC,
         },
     ]
+
+
+def coherence_display(result: Any) -> Dict[str, str]:
+    """Human-friendly view of the structural-coherence summary row.
+
+    Returns an empty dict when coherence was not computed. Hides the internal
+    algorithm name (MST / the `vr_structural*` level) from the default output;
+    the exact `coherence_level` stays in the JSON contract for tooling/audit.
+    """
+    level = getattr(result, "coherence_level", "none")
+    if level == "none":
+        return {}
+    coverage = "sampled (large project)" if level == "vr_structural_approx" else "full"
+    return {
+        "label": "Structure Coherence",
+        "value": f"{getattr(result, 'structural_coherence', 1.0):.0%}",
+        "direction": "Higher",
+        "coverage": coverage,
+        "means": _MEANS_COHERENCE,
+    }
 
 
 def next_steps(result: Any) -> List[str]:

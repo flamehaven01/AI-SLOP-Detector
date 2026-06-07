@@ -6,6 +6,7 @@ from pathlib import Path
 
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
+    coherence_display,
     file_metric_rows,
     next_steps,
     project_metric_rows,
@@ -71,17 +72,13 @@ def _text_project_section(result) -> list:
         for idx, step in enumerate(steps, 1):
             lines.append(f"  {idx}. {step}")
         lines.append("")
-    coherence_level = getattr(result, "coherence_level", "none")
-    if coherence_level != "none":
-        label = (
-            "deterministic approximation"
-            if coherence_level == "vr_structural_approx"
-            else "exact MST"
-        )
+    coh = coherence_display(result)
+    if coh:
         lines += [
             "Structural Coherence:",
-            f"  Score: {result.structural_coherence:.4f}",
-            f"  Mode: {coherence_level} ({label})",
+            f"  Score: {coh['value']} ({coh['direction']} is more cohesive)",
+            f"  Checked: {coh['coverage']}",
+            f"  {coh['means']}",
             "",
         ]
     suppression_ledger = getattr(result, "suppression_ledger", [])

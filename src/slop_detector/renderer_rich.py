@@ -8,6 +8,7 @@ from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
+    coherence_display,
     file_metric_rows,
     next_steps,
     project_metric_rows,
@@ -96,15 +97,10 @@ def _build_rich_summary_tables(result):
     )
     sc = "red" if result.overall_status != "clean" else "green"
     summary_table.add_row("Overall Status", f"[{sc}]{result.overall_status.upper()}[/{sc}]")
-    coherence_level = getattr(result, "coherence_level", "none")
-    if coherence_level != "none":
-        mode = (
-            "deterministic approximation"
-            if coherence_level == "vr_structural_approx"
-            else "exact MST"
-        )
-        summary_table.add_row("Coherence", f"{result.structural_coherence:.4f}")
-        summary_table.add_row("Coherence Mode", f"{coherence_level} ({mode})")
+    coh = coherence_display(result)
+    if coh:
+        summary_table.add_row(coh["label"], f"{coh['value']} ({coh['direction']} is more cohesive)")
+        summary_table.add_row("Coherence Check", coh["coverage"])
 
     metrics_table = Table(title="Project Metrics", box=box.ROUNDED, header_style="bold cyan")
     metrics_table.add_column("Metric", style="cyan", no_wrap=True)

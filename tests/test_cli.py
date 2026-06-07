@@ -151,8 +151,11 @@ def test_generate_text_report_project_shows_approximate_coherence():
 
     report = generate_text_report(result)
     assert "Structural Coherence:" in report
-    assert "vr_structural_approx" in report
-    assert "deterministic approximation" in report
+    # Internal algorithm name is hidden from human output (kept only in JSON).
+    assert "vr_structural" not in report
+    assert "MST" not in report
+    assert "sampled" in report  # large-project coverage shown in plain words
+    assert "81%" in report
 
 
 def test_generate_text_report_project_shows_priority_hotspots():
@@ -322,7 +325,9 @@ def test_generate_markdown_report_project_shows_approximate_coherence():
 
     report = generate_markdown_report(result)
     assert "## Structural Coherence" in report
-    assert "vr_structural_approx" in report
+    # Internal algorithm name is hidden from human output (kept only in JSON).
+    assert "vr_structural" not in report
+    assert "sampled" in report
 
 
 def test_generate_markdown_report_project_shows_suppression_ledger():
