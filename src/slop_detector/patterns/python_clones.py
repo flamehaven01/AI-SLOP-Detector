@@ -56,7 +56,11 @@ def _is_dispatcher_pattern(tree: ast.AST, clone_names: List[str]) -> bool:
 
 
 def _iter_function_nodes(tree: ast.AST) -> List[ast.FunctionDef | ast.AsyncFunctionDef]:
-    return [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    return [
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+    ]
 
 
 def _collect_local_name_mapping(
@@ -132,7 +136,9 @@ def _find_exact_duplicate_groups(
     groups: Dict[str, List[Tuple[str, int, int]]] = {}
     for func in _iter_function_nodes(tree):
         signature, node_count = _normalized_function_signature(func)
-        groups.setdefault(signature, []).append((func.name, getattr(func, "lineno", 1), node_count))
+        groups.setdefault(signature, []).append(
+            (func.name, getattr(func, "lineno", 1), node_count)
+        )
 
     duplicates: List[Tuple[List[str], List[int]]] = []
     for entries in groups.values():
