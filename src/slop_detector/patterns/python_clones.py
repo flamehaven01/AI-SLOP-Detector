@@ -72,11 +72,10 @@ def _collect_local_name_mapping(
         if name and name not in mapping:
             mapping[name] = f"{prefix}{len(mapping)}"
 
-    all_args = (
-        list(func.args.posonlyargs)
-        + list(func.args.args)
-        + list(func.args.kwonlyargs)
-    )
+    all_args = []
+    all_args.extend(func.args.posonlyargs)
+    all_args.extend(func.args.args)
+    all_args.extend(func.args.kwonlyargs)
     for arg in all_args:
         _bind(arg.arg, "a")
     if func.args.vararg:
@@ -139,8 +138,8 @@ def _find_exact_duplicate_groups(
     groups: Dict[str, List[Tuple[str, int, int]]] = {}
     for func in _iter_function_nodes(tree):
         signature, node_count = _normalized_function_signature(func)
-        group_entries = groups.setdefault(signature, [])
-        group_entries.append((func.name, getattr(func, "lineno", 1), node_count))
+        entry = (func.name, getattr(func, "lineno", 1), node_count)
+        groups.setdefault(signature, []).append(entry)
 
     duplicates: List[Tuple[List[str], List[int]]] = []
     for entries in groups.values():
@@ -150,12 +149,8 @@ def _find_exact_duplicate_groups(
             continue
         duplicate_names = [name for name, _, _ in entries]
         duplicate_lines = [lineno for _, lineno, _ in entries]
-        duplicates.append(
-            (
-                duplicate_names,
-                duplicate_lines,
-            )
-        )
+        duplicate_group = (duplicate_names, duplicate_lines)
+        duplicates.append(duplicate_group)
     return duplicates
 
 
