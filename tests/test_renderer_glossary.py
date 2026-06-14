@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
+    clone_metric_row,
     file_metric_rows,
     next_steps,
     project_metric_rows,
@@ -101,6 +102,7 @@ def test_file_metric_rows_shape_and_shared_bands():
         ldr=SimpleNamespace(ldr_score=0.30),
         inflation=SimpleNamespace(inflation_score=2.0),
         ddc=SimpleNamespace(usage_ratio=0.30),
+        pattern_issues=[],
     )
     rows = file_metric_rows(fr)
     assert [r["label"] for r in rows][0] == "Deficit Score"
@@ -111,6 +113,30 @@ def test_file_metric_rows_shape_and_shared_bands():
     } <= {r["label"] for r in rows}
     # Same health classifiers as the project rows -> all bad for these values.
     assert all(r["health"] == "bad" for r in rows)
+
+
+def test_clone_metric_row_distinguishes_exact_duplicate_pair():
+    issue = SimpleNamespace(
+        pattern_id="exact_duplicate_pair",
+        severity=SimpleNamespace(value="high"),
+    )
+    row = clone_metric_row(SimpleNamespace(pattern_issues=[issue]))
+    assert row is not None
+    assert row["label"] == "Clone Detection"
+    assert "exact duplicate functions" in row["value"]
+    assert "normalizing local names" in row["means"]
+
+
+def test_clone_metric_row_distinguishes_clone_cluster():
+    issue = SimpleNamespace(
+        pattern_id="function_clone_cluster",
+        severity=SimpleNamespace(value="critical"),
+    )
+    row = clone_metric_row(SimpleNamespace(pattern_issues=[issue]))
+    assert row is not None
+    assert "near-identical function cluster" in row["value"]
+    assert "AST structure" in row["means"]
+    assert row["health"] == "bad"
 
 
 def test_next_steps_ddc_concern_recommends_unused_deps():

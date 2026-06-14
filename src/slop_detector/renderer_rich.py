@@ -8,6 +8,7 @@ from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
+    clone_metric_row,
     coherence_display,
     file_metric_rows,
     next_steps,
@@ -319,23 +320,22 @@ def _build_metrics_table(result) -> "Table":
             "Optional ML secondary signal.",
         )
 
-    clone_pattern_ids = {"function_clone_cluster", "exact_duplicate_pair"}
-    clone_issues = [
-        i
-        for i in getattr(result, "pattern_issues", [])
-        if getattr(i, "pattern_id", None) in clone_pattern_ids
-    ]
-    if clone_issues:
-        top = clone_issues[0]
-        sev = getattr(top, "severity", None)
-        sev_val = sev.value if sev is not None else ""
-        clone_color = "red" if sev_val == "critical" else "yellow"
+    clone_row = clone_metric_row(result)
+    if clone_row:
+        clone_color = "red" if clone_row["health"] == "bad" else "yellow"
         t.add_row(
             "Clone Detection:",
-            f"[{clone_color}]{sev_val.upper()} — structural duplicates detected[/{clone_color}]",
+            f"[{clone_color}]{clone_row['value']}[/{clone_color}]",
+            clone_row["direction"],
+            clone_row["means"],
         )
     else:
-        t.add_row("Clone Detection:", "[green]PASS[/green]")
+        t.add_row(
+            "Clone Detection:",
+            "[green]PASS[/green]",
+            "Lower",
+            "No exact duplicate pair or near-identical function cluster was detected.",
+        )
 
     return t
 

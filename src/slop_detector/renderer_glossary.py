@@ -28,6 +28,14 @@ _MEANS_COHERENCE = (
     "How structurally connected the project's files are to each other; "
     "higher means more cohesive."
 )
+_MEANS_EXACT_DUPLICATE = (
+    "Two or more functions in this file are exact duplicates after normalizing "
+    "local names and parameters."
+)
+_MEANS_CLONE_CLUSTER = (
+    "Several functions in this file share almost the same AST structure and "
+    "should be reviewed for copy-paste fragmentation."
+)
 
 
 def _deficit_health(value: float) -> str:
@@ -99,7 +107,7 @@ def file_metric_rows(fr: Any) -> List[Dict[str, str]]:
     """Per-file metric descriptors (reuses the project-level health bands and
     meanings). A single file has no weighted aggregate, so only the four core
     dimensions are reported."""
-    return [
+    rows = [
         {
             "label": "Deficit Score",
             "value": f"{fr.deficit_score:.1f}/100",
@@ -129,6 +137,45 @@ def file_metric_rows(fr: Any) -> List[Dict[str, str]]:
             "means": _MEANS_DDC,
         },
     ]
+    clone_row = clone_metric_row(fr)
+    if clone_row:
+        rows.append(clone_row)
+    return rows
+
+
+def clone_metric_row(fr: Any) -> Dict[str, str] | None:
+    clone_issues = [
+        issue
+        for issue in getattr(fr, "pattern_issues", []) or []
+        if getattr(issue, "pattern_id", None) in {"function_clone_cluster", "exact_duplicate_pair"}
+    ]
+    if not clone_issues:
+        return None
+
+    top = max(clone_issues, key=_clone_issue_rank)
+    pattern_id = getattr(top, "pattern_id", "")
+    severity = str(getattr(getattr(top, "severity", None), "value", "warning")).lower()
+    health = "bad" if severity == "critical" else "warn"
+    if pattern_id == "exact_duplicate_pair":
+        value = f"{severity.upper()} - exact duplicate functions"
+        means = _MEANS_EXACT_DUPLICATE
+    else:
+        value = f"{severity.upper()} - near-identical function cluster"
+        means = _MEANS_CLONE_CLUSTER
+    return {
+        "label": "Clone Detection",
+        "value": value,
+        "direction": "Lower",
+        "health": health,
+        "means": means,
+    }
+
+
+def _clone_issue_rank(issue: Any) -> tuple[int, int]:
+    severity = str(getattr(getattr(issue, "severity", None), "value", "")).lower()
+    severity_rank = {"critical": 2, "high": 1}.get(severity, 0)
+    pattern_rank = 1 if getattr(issue, "pattern_id", "") == "exact_duplicate_pair" else 0
+    return severity_rank, pattern_rank
 
 
 def coherence_display(result: Any) -> Dict[str, str]:

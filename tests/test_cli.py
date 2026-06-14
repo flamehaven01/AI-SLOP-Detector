@@ -80,6 +80,7 @@ def test_generate_text_report_single_file():
         deficit_score=25.0,
         status=SlopStatus.CLEAN,
         warnings=["Test warning"],
+        pattern_issues=[],
     )
 
     report = generate_text_report(result)
@@ -250,6 +251,58 @@ def test_generate_markdown_report_single_file():
     report = generate_markdown_report(result)
     assert "# AI Code Quality Audit Report" in report
     assert "file.py" in report
+
+
+def test_generate_text_report_single_file_shows_exact_duplicate_clone_row():
+    result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 80, 20, 0.80, "A"),
+        inflation=InflationResult(5, 2.0, 0.5, "PASS", ["neural"], []),
+        ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=25.0,
+        status=SlopStatus.CLEAN,
+        warnings=[],
+        pattern_issues=[
+            type(
+                "Issue",
+                (),
+                {
+                    "pattern_id": "exact_duplicate_pair",
+                    "severity": type("Severity", (), {"value": "high"})(),
+                },
+            )()
+        ],
+    )
+
+    report = generate_text_report(result)
+    assert "Clone Detection" in report
+    assert "exact duplicate functions" in report
+
+
+def test_generate_markdown_report_single_file_shows_clone_cluster_row():
+    result = FileAnalysis(
+        file_path="/test/file.py",
+        ldr=LDRResult(100, 80, 20, 0.80, "A"),
+        inflation=InflationResult(5, 2.0, 0.5, "PASS", ["neural"], []),
+        ddc=DDCResult(["numpy"], ["numpy"], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=25.0,
+        status=SlopStatus.CLEAN,
+        warnings=[],
+        pattern_issues=[
+            type(
+                "Issue",
+                (),
+                {
+                    "pattern_id": "function_clone_cluster",
+                    "severity": type("Severity", (), {"value": "critical"})(),
+                },
+            )()
+        ],
+    )
+
+    report = generate_markdown_report(result)
+    assert "Clone Detection" in report
+    assert "near-identical function cluster" in report
 
 
 def test_generate_markdown_report_project():
