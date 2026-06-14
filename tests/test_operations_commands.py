@@ -180,6 +180,39 @@ def test_dead_code_excludes_high_deficit_non_dead_file():
     assert _should_include_dead_code_candidate(_FR(0.0, []), placeholder=True) is True
 
 
+def test_dead_code_uses_dead_patterns_only_for_reason_and_count():
+    from slop_detector.operations import _collect_dead_code_issues
+
+    class _P:
+        def __init__(self, pid):
+            self.pattern_id = pid
+
+    class _FR:
+        def __init__(self, file_path, deficit, patterns):
+            self.file_path = file_path
+            self.deficit_score = deficit
+            self.pattern_issues = patterns
+
+    class _R:
+        def __init__(self, file_results):
+            self.file_results = file_results
+            self.priority_hotspots = []
+
+    file_result = _FR(
+        "fake.py",
+        54.0,
+        [_P("god_function"), _P("pass_placeholder"), _P("deep_nesting")],
+    )
+
+    with patch("slop_detector.operations._looks_like_dead_code", return_value=False):
+        issues = _collect_dead_code_issues(_R([file_result]))
+
+    assert len(issues) == 1
+    assert issues[0]["pattern_count"] == 1
+    assert issues[0]["reason"] == "dead-code pattern detected"
+    assert issues[0]["evidence"]["rule_inputs"]["counts_dead_code_patterns_only"] is True
+
+
 def test_dupes_includes_same_file_exact_duplicate_pair(tmp_path):
     project = tmp_path / "dup_proj"
     project.mkdir()

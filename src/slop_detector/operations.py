@@ -798,6 +798,7 @@ def _score_dead_code_confidence(
     evidence["rule_inputs"] = {
         "pattern_count": pattern_count,
         "placeholder": placeholder,
+        "counts_dead_code_patterns_only": True,
     }
     return {
         "confidence": confidence,
@@ -1069,20 +1070,21 @@ def _collect_dead_code_issues(result) -> List[Dict[str, Any]]:
     issues: List[Dict[str, Any]] = []
     for fr in result.file_results:
         placeholder = _looks_like_dead_code(fr.file_path)
+        dead_pattern_ids = _dead_code_pattern_ids(fr)
         if not _should_include_dead_code_candidate(fr, placeholder):
             continue
         ranking = _score_dead_code_confidence(
             result,
             fr.file_path,
-            len(getattr(fr, "pattern_issues", [])),
+            len(dead_pattern_ids),
             placeholder,
         )
         issues.append(
             {
                 "file_path": fr.file_path,
                 "deficit_score": getattr(fr, "deficit_score", 0.0),
-                "pattern_count": len(getattr(fr, "pattern_issues", [])),
-                "reason": "dead code placeholder",
+                "pattern_count": len(dead_pattern_ids),
+                "reason": _dead_code_reason(placeholder, dead_pattern_ids),
                 **ranking,
             }
         )
@@ -1105,11 +1107,28 @@ _DEAD_CODE_PATTERN_IDS = frozenset(
 )
 
 
-def _has_dead_code_patterns(fr) -> bool:
-    return any(
-        getattr(p, "pattern_id", "") in _DEAD_CODE_PATTERN_IDS
-        for p in getattr(fr, "pattern_issues", [])
+def _dead_code_pattern_ids(fr) -> List[str]:
+    return sorted(
+        {
+            getattr(p, "pattern_id", "")
+            for p in getattr(fr, "pattern_issues", [])
+            if getattr(p, "pattern_id", "") in _DEAD_CODE_PATTERN_IDS
+        }
     )
+
+
+def _has_dead_code_patterns(fr) -> bool:
+    return bool(_dead_code_pattern_ids(fr))
+
+
+def _dead_code_reason(placeholder: bool, dead_pattern_ids: List[str]) -> str:
+    if placeholder and dead_pattern_ids:
+        return "placeholder-only file with dead-code patterns"
+    if placeholder:
+        return "placeholder-only file"
+    if dead_pattern_ids:
+        return "dead-code pattern detected"
+    return "dead-code candidate"
 
 
 def _should_include_dead_code_candidate(fr, placeholder: bool) -> bool:
