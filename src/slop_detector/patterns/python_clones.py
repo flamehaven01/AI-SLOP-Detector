@@ -56,11 +56,7 @@ def _is_dispatcher_pattern(tree: ast.AST, clone_names: List[str]) -> bool:
 
 
 def _iter_function_nodes(tree: ast.AST) -> List[ast.FunctionDef | ast.AsyncFunctionDef]:
-    return [
-        n
-        for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-    ]
+    return [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
 
 
 def _collect_local_name_mapping(

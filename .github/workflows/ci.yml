@@ -26,9 +26,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e ".[dev]"
+          pip install black==25.1.0
           
       - name: Run Black
-        run: black --check src/ tests/
+        run: python -m black --check src/ tests/
         
       - name: Run Ruff
         run: ruff check src/ tests/
