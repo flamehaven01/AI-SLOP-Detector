@@ -72,11 +72,7 @@ def _collect_local_name_mapping(
         if name and name not in mapping:
             mapping[name] = f"{prefix}{len(mapping)}"
 
-    for arg in (
-        list(func.args.posonlyargs)
-        + list(func.args.args)
-        + list(func.args.kwonlyargs)
-    ):
+    for arg in list(func.args.posonlyargs) + list(func.args.args) + list(func.args.kwonlyargs):
         _bind(arg.arg, "a")
     if func.args.vararg:
         _bind(func.args.vararg.arg, "a")
@@ -146,9 +142,7 @@ def _find_exact_duplicate_groups(
             continue
         if max(node_count for _, _, node_count in entries) < 12:
             continue
-        duplicates.append(
-            ([name for name, _, _ in entries], [lineno for _, lineno, _ in entries])
-        )
+        duplicates.append(([name for name, _, _ in entries], [lineno for _, lineno, _ in entries]))
     return duplicates
 
 
