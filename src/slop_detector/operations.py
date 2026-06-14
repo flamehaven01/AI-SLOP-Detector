@@ -406,25 +406,10 @@ _STDLIB_MODULES: frozenset = _compute_stdlib_modules()
 
 def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, Any]]:
     pyproject = project_path / "pyproject.toml"
-    if not pyproject.exists():
+    project_data = _load_python_project_data(pyproject)
+    if not project_data:
         return []
-
-    try:
-        data = _toml_loader.loads(pyproject.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-
-    project_data = data.get("project", {})
-    declared_main = {
-        _pep508_name(spec): spec
-        for spec in (project_data.get("dependencies", []) or [])
-        if _pep508_name(spec)
-    }
-    declared_all = {
-        _pep508_name(spec): spec
-        for spec in _collect_python_declared_dependencies(project_data)
-        if _pep508_name(spec)
-    }
+    declared_main, declared_all = _build_python_declared_dependency_sets(project_data)
     if not declared_all:
         return []
 
@@ -438,6 +423,33 @@ def _scan_python_manifest_hygiene(project_path: Path, result) -> List[Dict[str, 
     # so an import satisfied by an extra is not flagged.
     issues.extend(_build_python_undeclared_issues(declared_all, imported_dists))
     return issues
+
+
+def _load_python_project_data(pyproject: Path) -> Dict[str, Any]:
+    if not pyproject.exists():
+        return {}
+    try:
+        data = _toml_loader.loads(pyproject.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    project_data = data.get("project", {})
+    return project_data if isinstance(project_data, dict) else {}
+
+
+def _build_python_declared_dependency_sets(
+    project_data: Dict[str, Any],
+) -> tuple[Dict[str, str], Dict[str, str]]:
+    declared_main = {
+        _pep508_name(spec): spec
+        for spec in (project_data.get("dependencies", []) or [])
+        if _pep508_name(spec)
+    }
+    declared_all = {
+        _pep508_name(spec): spec
+        for spec in _collect_python_declared_dependencies(project_data)
+        if _pep508_name(spec)
+    }
+    return declared_main, declared_all
 
 
 def _collect_python_declared_dependencies(project_data: Dict[str, Any]) -> List[str]:
@@ -510,12 +522,8 @@ def _build_python_undeclared_issues(
 
 def _scan_js_manifest_hygiene(project_path: Path) -> List[Dict[str, Any]]:
     package_json = project_path / "package.json"
-    if not package_json.exists():
-        return []
-
-    try:
-        data = json.loads(package_json.read_text(encoding="utf-8"))
-    except Exception:
+    data = _load_package_json_data(package_json)
+    if not data:
         return []
 
     declared = _collect_js_declared_dependencies(data)
@@ -528,6 +536,16 @@ def _scan_js_manifest_hygiene(project_path: Path) -> List[Dict[str, Any]]:
     issues.extend(_build_js_unused_declared_issues(declared, imported_modules))
     issues.extend(_build_js_undeclared_issues(declared, imported_modules))
     return issues
+
+
+def _load_package_json_data(package_json: Path) -> Dict[str, Any]:
+    if not package_json.exists():
+        return {}
+    try:
+        data = json.loads(package_json.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def _collect_js_declared_dependencies(data: Dict[str, Any]) -> Dict[str, str]:
@@ -1103,17 +1121,25 @@ def _should_include_dead_code_candidate(fr, placeholder: bool) -> bool:
 def _collect_duplicate_issues(result, cross) -> List[Dict[str, Any]]:
     issues: List[Dict[str, Any]] = []
     for dup in cross.duplicates:
-        ranking = _score_duplicate_confidence(result, dup.file_a, dup.file_b, dup.similarity)
-        issues.append(
-            {
-                "file_a": dup.file_a,
-                "file_b": dup.file_b,
-                "func_a": dup.func_a,
-                "func_b": dup.func_b,
-                "similarity": dup.similarity,
-                **ranking,
-            }
-        )
+        issues.append(_build_cross_file_duplicate_issue(result, dup))
+    issues.extend(_collect_same_file_duplicate_issues(result))
+    return issues
+
+
+def _build_cross_file_duplicate_issue(result, dup) -> Dict[str, Any]:
+    ranking = _score_duplicate_confidence(result, dup.file_a, dup.file_b, dup.similarity)
+    return {
+        "file_a": dup.file_a,
+        "file_b": dup.file_b,
+        "func_a": dup.func_a,
+        "func_b": dup.func_b,
+        "similarity": dup.similarity,
+        **ranking,
+    }
+
+
+def _collect_same_file_duplicate_issues(result) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
     for fr in list(getattr(result, "file_results", []) or []):
         file_path = str(getattr(fr, "file_path", ""))
         if not file_path:
@@ -1121,45 +1147,54 @@ def _collect_duplicate_issues(result, cross) -> List[Dict[str, Any]]:
         for issue in list(getattr(fr, "pattern_issues", []) or []):
             if getattr(issue, "pattern_id", "") != "exact_duplicate_pair":
                 continue
-            ranking = _score_duplicate_confidence(result, file_path, file_path, 1.0)
-            issues.append(
-                {
-                    "issue_type": "same_file_exact_duplicate",
-                    "file_a": file_path,
-                    "file_b": file_path,
-                    "func_a": getattr(issue, "code", "") or None,
-                    "func_b": getattr(issue, "code", "") or None,
-                    "similarity": 1.0,
-                    "line": getattr(issue, "line", 1),
-                    "display": getattr(issue, "message", ""),
-                    **ranking,
-                }
-            )
+            issues.append(_build_same_file_duplicate_issue(result, file_path, issue))
     return issues
 
 
+def _build_same_file_duplicate_issue(result, file_path: str, issue) -> Dict[str, Any]:
+    ranking = _score_duplicate_confidence(result, file_path, file_path, 1.0)
+    return {
+        "issue_type": "same_file_exact_duplicate",
+        "file_a": file_path,
+        "file_b": file_path,
+        "func_a": getattr(issue, "code", "") or None,
+        "func_b": getattr(issue, "code", "") or None,
+        "similarity": 1.0,
+        "line": getattr(issue, "line", 1),
+        "display": getattr(issue, "message", ""),
+        **ranking,
+    }
+
+
 def _collect_unused_dependency_issues(result, project_path: Path) -> List[Dict[str, Any]]:
+    issues = _collect_file_unused_dependency_issues(result)
+    issues.extend(_scan_python_manifest_hygiene(project_path, result))
+    issues.extend(_scan_js_manifest_hygiene(project_path))
+    return issues
+
+
+def _collect_file_unused_dependency_issues(result) -> List[Dict[str, Any]]:
     issues: List[Dict[str, Any]] = []
     for fr in result.file_results:
         if not getattr(fr.ddc, "unused", []):
             continue
-        ranking = _score_unused_dep_confidence(
-            result,
-            fr.file_path,
-            len(getattr(fr.ddc, "unused", [])),
-            getattr(fr.ddc, "usage_ratio", 0.0),
-        )
-        issues.append(
-            {
-                "file_path": fr.file_path,
-                "usage_ratio": fr.ddc.usage_ratio,
-                "unused": list(fr.ddc.unused),
-                **ranking,
-            }
-        )
-    issues.extend(_scan_python_manifest_hygiene(project_path, result))
-    issues.extend(_scan_js_manifest_hygiene(project_path))
+        issues.append(_build_file_unused_dependency_issue(result, fr))
     return issues
+
+
+def _build_file_unused_dependency_issue(result, fr) -> Dict[str, Any]:
+    ranking = _score_unused_dep_confidence(
+        result,
+        fr.file_path,
+        len(getattr(fr.ddc, "unused", [])),
+        getattr(fr.ddc, "usage_ratio", 0.0),
+    )
+    return {
+        "file_path": fr.file_path,
+        "usage_ratio": fr.ddc.usage_ratio,
+        "unused": list(fr.ddc.unused),
+        **ranking,
+    }
 
 
 def _collect_stale_suppression_issues(result) -> List[Dict[str, Any]]:
