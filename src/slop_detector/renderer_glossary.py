@@ -12,6 +12,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
+from slop_detector.clone_signals import (
+    is_clone_pattern,
+    is_exact_duplicate_pair,
+)
+
 # Deficit bands mirror the scoring model in README / SlopStatus.
 DEFICIT_BANDS = "CLEAN <30  |  SUSPICIOUS 30-50  |  INFLATED 50-70  |  CRITICAL >=70"
 
@@ -145,18 +150,15 @@ def file_metric_rows(fr: Any) -> List[Dict[str, str]]:
 
 def clone_metric_row(fr: Any) -> Dict[str, str] | None:
     clone_issues = [
-        issue
-        for issue in getattr(fr, "pattern_issues", []) or []
-        if getattr(issue, "pattern_id", None) in {"function_clone_cluster", "exact_duplicate_pair"}
+        issue for issue in getattr(fr, "pattern_issues", []) or [] if is_clone_pattern(issue)
     ]
     if not clone_issues:
         return None
 
     top = max(clone_issues, key=_clone_issue_rank)
-    pattern_id = getattr(top, "pattern_id", "")
     severity = str(getattr(getattr(top, "severity", None), "value", "warning")).lower()
     health = "bad" if severity == "critical" else "warn"
-    if pattern_id == "exact_duplicate_pair":
+    if is_exact_duplicate_pair(top):
         value = f"{severity.upper()} - exact duplicate functions"
         means = _MEANS_EXACT_DUPLICATE
     else:
@@ -174,7 +176,7 @@ def clone_metric_row(fr: Any) -> Dict[str, str] | None:
 def _clone_issue_rank(issue: Any) -> tuple[int, int]:
     severity = str(getattr(getattr(issue, "severity", None), "value", "")).lower()
     severity_rank = {"critical": 2, "high": 1}.get(severity, 0)
-    pattern_rank = 1 if getattr(issue, "pattern_id", "") == "exact_duplicate_pair" else 0
+    pattern_rank = 1 if is_exact_duplicate_pair(issue) else 0
     return severity_rank, pattern_rank
 
 

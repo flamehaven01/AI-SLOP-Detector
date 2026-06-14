@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 from slop_detector.analysis.cross_file import CrossFileAnalyzer
 from slop_detector.ci_gate import CIGate
+from slop_detector.clone_signals import EXACT_DUPLICATE_PAIR_ID
 from slop_detector.gate.models import GateMode
 from slop_detector.patterns.python_imports import _discover_project_packages, _find_project_root
 from slop_detector.renderer_markdown import get_mitigation
@@ -1164,7 +1165,7 @@ def _collect_same_file_duplicate_issues(result) -> List[Dict[str, Any]]:
         if not file_path:
             continue
         for issue in list(getattr(fr, "pattern_issues", []) or []):
-            if getattr(issue, "pattern_id", "") != "exact_duplicate_pair":
+            if getattr(issue, "pattern_id", "") != EXACT_DUPLICATE_PAIR_ID:
                 continue
             issues.append(_build_same_file_duplicate_issue(result, file_path, issue))
     return issues

@@ -7,6 +7,7 @@ import copy
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from slop_detector.clone_signals import EXACT_DUPLICATE_PAIR_ID, FUNCTION_CLONE_CLUSTER_ID
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
 
@@ -153,7 +154,7 @@ def _find_exact_duplicate_groups(
 class ExactDuplicatePairPattern(BasePattern):
     """Detect exact same-file duplicate functions after local-name normalization."""
 
-    id = "exact_duplicate_pair"
+    id = EXACT_DUPLICATE_PAIR_ID
     severity = Severity.HIGH
     axis = Axis.STRUCTURE
 
@@ -202,7 +203,7 @@ class FunctionClonePattern(BasePattern):
       >= 4 clones: HIGH
     """
 
-    id = "function_clone_cluster"
+    id = FUNCTION_CLONE_CLUSTER_ID
     severity = Severity.HIGH
     axis = Axis.STRUCTURE
 
