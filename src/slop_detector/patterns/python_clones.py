@@ -128,7 +128,9 @@ def _normalized_function_signature(
     mapping = _collect_local_name_mapping(cloned)
     normalized = _LocalNameNormalizer(mapping).visit(cloned)
     ast.fix_missing_locations(normalized)
-    return ast.dump(normalized, include_attributes=False), sum(1 for _ in ast.walk(normalized))
+    normalized_dump = ast.dump(normalized, include_attributes=False)
+    normalized_node_count = sum(1 for _ in ast.walk(normalized))
+    return normalized_dump, normalized_node_count
 
 
 def _find_exact_duplicate_groups(
@@ -137,9 +139,8 @@ def _find_exact_duplicate_groups(
     groups: Dict[str, List[Tuple[str, int, int]]] = {}
     for func in _iter_function_nodes(tree):
         signature, node_count = _normalized_function_signature(func)
-        groups.setdefault(signature, []).append(
-            (func.name, getattr(func, "lineno", 1), node_count)
-        )
+        group_entries = groups.setdefault(signature, [])
+        group_entries.append((func.name, getattr(func, "lineno", 1), node_count))
 
     duplicates: List[Tuple[List[str], List[int]]] = []
     for entries in groups.values():
@@ -149,7 +150,12 @@ def _find_exact_duplicate_groups(
             continue
         duplicate_names = [name for name, _, _ in entries]
         duplicate_lines = [lineno for _, lineno, _ in entries]
-        duplicates.append((duplicate_names, duplicate_lines))
+        duplicates.append(
+            (
+                duplicate_names,
+                duplicate_lines,
+            )
+        )
     return duplicates
 
 
