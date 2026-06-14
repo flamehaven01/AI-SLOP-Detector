@@ -51,7 +51,10 @@ def get_all_patterns(
         TodoCommentPattern,
         XXXCommentPattern,
     )
-    from slop_detector.patterns.python_clones import FunctionClonePattern
+    from slop_detector.patterns.python_clones import (
+        ExactDuplicatePairPattern,
+        FunctionClonePattern,
+    )
     from slop_detector.patterns.python_complexity import (
         DeadCodePattern,
         DeepNestingPattern,
@@ -109,7 +112,8 @@ def get_all_patterns(
         LintEscapePattern(),
         # v2.9.0
         PhantomImportPattern(allowlist=phantom_import_allowlist or []),
-        # v3.1.0
+        # v3.1.0+
+        ExactDuplicatePairPattern(),
         FunctionClonePattern(),
         PlaceholderVariableNamingPattern(),
     ]

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import ast
+import copy
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Dict, List, Tuple
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -52,6 +53,137 @@ def _is_dispatcher_pattern(tree: ast.AST, clone_names: List[str]) -> bool:
                     return True
 
     return False
+
+
+def _iter_function_nodes(tree: ast.AST) -> List[ast.FunctionDef | ast.AsyncFunctionDef]:
+    return [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+
+
+def _collect_local_name_mapping(
+    func: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> Dict[str, str]:
+    mapping: Dict[str, str] = {}
+
+    def _bind(name: str, prefix: str = "v") -> None:
+        if name and name not in mapping:
+            mapping[name] = f"{prefix}{len(mapping)}"
+
+    for arg in (
+        list(func.args.posonlyargs)
+        + list(func.args.args)
+        + list(func.args.kwonlyargs)
+    ):
+        _bind(arg.arg, "a")
+    if func.args.vararg:
+        _bind(func.args.vararg.arg, "a")
+    if func.args.kwarg:
+        _bind(func.args.kwarg.arg, "a")
+
+    for node in ast.walk(func):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
+            _bind(node.id, "v")
+        elif isinstance(node, ast.ExceptHandler) and isinstance(node.name, str):
+            _bind(node.name, "e")
+
+    return mapping
+
+
+class _LocalNameNormalizer(ast.NodeTransformer):
+    def __init__(self, mapping: Dict[str, str]):
+        self.mapping = mapping
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
+        node.name = "__func__"
+        return self.generic_visit(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
+        node.name = "__func__"
+        return self.generic_visit(node)
+
+    def visit_arg(self, node: ast.arg) -> ast.AST:
+        if node.arg in self.mapping:
+            node.arg = self.mapping[node.arg]
+        return self.generic_visit(node)
+
+    def visit_Name(self, node: ast.Name) -> ast.AST:
+        if node.id in self.mapping:
+            node.id = self.mapping[node.id]
+        return node
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> ast.AST:
+        if isinstance(node.name, str) and node.name in self.mapping:
+            node.name = self.mapping[node.name]
+        return self.generic_visit(node)
+
+
+def _normalized_function_signature(
+    func: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> Tuple[str, int]:
+    cloned = copy.deepcopy(func)
+    mapping = _collect_local_name_mapping(cloned)
+    normalized = _LocalNameNormalizer(mapping).visit(cloned)
+    ast.fix_missing_locations(normalized)
+    return ast.dump(normalized, include_attributes=False), sum(1 for _ in ast.walk(normalized))
+
+
+def _find_exact_duplicate_groups(
+    tree: ast.AST,
+) -> List[Tuple[List[str], List[int]]]:
+    groups: Dict[str, List[Tuple[str, int, int]]] = {}
+    for func in _iter_function_nodes(tree):
+        signature, node_count = _normalized_function_signature(func)
+        groups.setdefault(signature, []).append((func.name, getattr(func, "lineno", 1), node_count))
+
+    duplicates: List[Tuple[List[str], List[int]]] = []
+    for entries in groups.values():
+        if len(entries) < 2:
+            continue
+        if max(node_count for _, _, node_count in entries) < 12:
+            continue
+        duplicates.append(
+            ([name for name, _, _ in entries], [lineno for _, lineno, _ in entries])
+        )
+    return duplicates
+
+
+class ExactDuplicatePairPattern(BasePattern):
+    """Detect exact same-file duplicate functions after local-name normalization."""
+
+    id = "exact_duplicate_pair"
+    severity = Severity.HIGH
+    axis = Axis.STRUCTURE
+
+    def check(self, tree: ast.AST, file: Any, content: str) -> List[Issue]:
+        duplicate_groups = _find_exact_duplicate_groups(tree)
+        if not duplicate_groups:
+            return []
+
+        issues: List[Issue] = []
+        for names, lines in duplicate_groups:
+            preview = ", ".join(names[:6])
+            if len(names) > 6:
+                preview += f", ... (+{len(names) - 6} more)"
+            sev = Severity.CRITICAL if len(names) >= 4 else Severity.HIGH
+            issues.append(
+                Issue(
+                    pattern_id=self.id,
+                    severity=sev,
+                    axis=self.axis,
+                    file=Path(str(file)) if file else Path(),
+                    line=min(lines) if lines else 1,
+                    column=0,
+                    message=(
+                        f"{len(names)} exact duplicate functions detected after normalizing "
+                        f"local names and parameters: {preview}. Review for copy-paste logic "
+                        f"that should be extracted or consolidated."
+                    ),
+                    suggestion=(
+                        "Extract the shared logic into one helper or keep one public function "
+                        "and route aliases to it explicitly."
+                    ),
+                )
+            )
+        return issues
 
 
 class FunctionClonePattern(BasePattern):

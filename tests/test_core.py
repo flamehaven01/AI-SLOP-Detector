@@ -128,6 +128,51 @@ def bad_default(items=[]):  # Mutable default!
     assert any("bare except" in issue.message.lower() for issue in result.pattern_issues)
 
 
+def test_analyze_file_flags_exact_duplicate_pair(detector, temp_python_file):
+    """Same-file alpha-renamed duplicate functions must not pass as CLEAN."""
+    code = """
+def score_route(readings, offset):
+    tally = offset
+    for reading in readings:
+        tally = (tally * 31 + reading) % 1_000_003
+    return tally
+
+
+def blend_samples(bucket, origin):
+    marker = origin
+    for sample in bucket:
+        marker = (marker * 31 + sample) % 1_000_003
+    return marker
+"""
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    clone_ids = {issue.pattern_id for issue in result.pattern_issues}
+    assert "exact_duplicate_pair" in clone_ids
+    assert result.deficit_score > 0.0
+
+
+def test_analyze_file_does_not_flag_tiny_duplicate_wrappers(detector, temp_python_file):
+    """Tiny one-line wrappers should not trigger the strict exact-duplicate pair path."""
+    code = """
+def first(items):
+    return items[0]
+
+
+def second(values):
+    return values[0]
+"""
+    temp_python_file.write(code)
+    temp_python_file.flush()
+
+    result = detector.analyze_file(temp_python_file.name)
+
+    clone_ids = {issue.pattern_id for issue in result.pattern_issues}
+    assert "exact_duplicate_pair" not in clone_ids
+
+
 def test_analyze_file_syntax_error(detector, temp_python_file):
     """Test handling syntax errors gracefully."""
     code = '''

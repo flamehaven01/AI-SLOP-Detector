@@ -319,10 +319,11 @@ def _build_metrics_table(result) -> "Table":
             "Optional ML secondary signal.",
         )
 
+    clone_pattern_ids = {"function_clone_cluster", "exact_duplicate_pair"}
     clone_issues = [
         i
         for i in getattr(result, "pattern_issues", [])
-        if getattr(i, "pattern_id", None) == "function_clone_cluster"
+        if getattr(i, "pattern_id", None) in clone_pattern_ids
     ]
     if clone_issues:
         top = clone_issues[0]
