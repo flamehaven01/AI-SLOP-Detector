@@ -1114,6 +1114,27 @@ def _collect_duplicate_issues(result, cross) -> List[Dict[str, Any]]:
                 **ranking,
             }
         )
+    for fr in list(getattr(result, "file_results", []) or []):
+        file_path = str(getattr(fr, "file_path", ""))
+        if not file_path:
+            continue
+        for issue in list(getattr(fr, "pattern_issues", []) or []):
+            if getattr(issue, "pattern_id", "") != "exact_duplicate_pair":
+                continue
+            ranking = _score_duplicate_confidence(result, file_path, file_path, 1.0)
+            issues.append(
+                {
+                    "issue_type": "same_file_exact_duplicate",
+                    "file_a": file_path,
+                    "file_b": file_path,
+                    "func_a": getattr(issue, "code", "") or None,
+                    "func_b": getattr(issue, "code", "") or None,
+                    "similarity": 1.0,
+                    "line": getattr(issue, "line", 1),
+                    "display": getattr(issue, "message", ""),
+                    **ranking,
+                }
+            )
     return issues
 
 

@@ -26,7 +26,7 @@ from typing import Dict, FrozenSet, List, Set, Tuple
 
 @dataclass
 class DuplicateBlock:
-    """Two code blocks that are near-identical."""
+    """Two code blocks that are exact cross-file duplicates."""
 
     file_a: str
     file_b: str
@@ -335,7 +335,7 @@ class CrossFileAnalyzer:
         func_cache: Dict[str, List[Tuple[str, int, str]]],
         py_files: List[Path],
     ) -> List[DuplicateBlock]:
-        """Detect near-identical functions across files."""
+        """Detect exact duplicate functions across files."""
         hash_index: Dict[str, List[Tuple[str, str, int]]] = defaultdict(list)
         for fpath, funcs in func_cache.items():
             for fname, lineno, bhash in funcs:

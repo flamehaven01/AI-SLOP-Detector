@@ -180,6 +180,54 @@ def test_dead_code_excludes_high_deficit_non_dead_file():
     assert _should_include_dead_code_candidate(_FR(0.0, []), placeholder=True) is True
 
 
+def test_dupes_includes_same_file_exact_duplicate_pair(tmp_path):
+    project = tmp_path / "dup_proj"
+    project.mkdir()
+    (project / "dups.py").write_text(
+        """
+def score_route(readings, offset):
+    tally = offset
+    for reading in readings:
+        tally = (tally * 31 + reading) % 1_000_003
+    return tally
+
+
+def blend_samples(bucket, origin):
+    marker = origin
+    for sample in bucket:
+        marker = (marker * 31 + sample) % 1_000_003
+    return marker
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    (project / "helper.py").write_text("def ok():\n    return 1\n", encoding="utf-8")
+
+    detector = SlopDetector()
+    analysis = detector.analyze_project(str(project))
+    output_file = tmp_path / "dupes.json"
+
+    with patch("slop_detector.cli.SlopDetector.analyze_project", return_value=analysis):
+        with patch.object(
+            sys,
+            "argv",
+            ["slop-detector", "dupes", str(project), "--json", "-o", str(output_file)],
+        ):
+            assert main() == 0
+
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    assert payload["command"] == "dupes"
+    assert payload["issues"]
+    exact_dupes = [
+        issue
+        for issue in payload["issues"]
+        if issue.get("issue_type") == "same_file_exact_duplicate"
+    ]
+    assert exact_dupes
+    assert exact_dupes[0]["file_a"].endswith("dups.py")
+    assert exact_dupes[0]["similarity"] == 1.0
+
+
 def test_unused_deps_includes_python_manifest_hygiene(tmp_path):
     project = tmp_path / "pyproj"
     project.mkdir()

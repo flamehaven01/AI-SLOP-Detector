@@ -181,6 +181,7 @@ class ExactDuplicatePairPattern(BasePattern):
                         f"local names and parameters: {preview}. Review for copy-paste logic "
                         f"that should be extracted or consolidated."
                     ),
+                    code=preview,
                     suggestion=(
                         "Extract the shared logic into one helper or keep one public function "
                         "and route aliases to it explicitly."
