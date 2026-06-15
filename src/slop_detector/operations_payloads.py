@@ -115,7 +115,7 @@ def build_audit_payload(
 ) -> Dict[str, Any]:
     """Build the changed-code audit JSON contract."""
     gate_result = CIGate(mode=GateMode.HARD).evaluate(result)
-    changed = set(get_changed_files_func(project_path, base_ref=base_ref))
+    changed = set(get_changed_files_func(project_path, base_ref))
     file_results = list(getattr(result, "file_results", []) or [])
     introduced = []
     inherited = []
