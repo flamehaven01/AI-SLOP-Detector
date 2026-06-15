@@ -88,47 +88,60 @@ git push origin feature/amazing-feature
 AI-SLOP-Detector/
 ├── src/slop_detector/
 │   ├── __init__.py
-│   ├── core.py              # Main detector logic + math.isfinite() inflation filter
-│   ├── models.py            # Data models
-│   ├── config.py            # Configuration + domain profile loading
-│   ├── cli.py               # CLI interface (allow_nan=False, tuple sanitizer)
-│   ├── cli_commands.py      # Command handlers: --init, --self-calibrate,
-│   │                        # _compute_project_id(), _check_calibration_hint()
-│   ├── question_generator.py # Review questions
-│   ├── ci_gate.py           # CI/CD enforcement
-│   ├── history.py           # SQLite history tracker (Schema v5, project_id)
-│   ├── metrics/             # Analysis metrics
-│   │   ├── ldr.py          # Logic Density Ratio
-│   │   ├── inflation.py    # Jargon detection (max cap 10.0, no float inf)
-│   │   ├── ddc.py          # Dependency check
-│   │   ├── context_jargon.py # Evidence validation
+│   ├── core.py                    # Main detector logic
+│   ├── models.py                  # Data models
+│   ├── config.py                  # Configuration + domain profile loading
+│   ├── cli.py                     # Thin CLI entrypoint / dispatch
+│   ├── cli_parsers.py             # CLI argument surface
+│   ├── cli_handlers.py            # Command routing and execution
+│   ├── cli_analysis.py            # Analysis orchestration
+│   ├── cli_output.py              # Text / JSON / markdown output routing
+│   ├── cli_history.py             # History and calibration helpers
+│   ├── cli_init.py                # Init + adaptive-init flow
+│   ├── cli_observability.py       # Impact / telemetry hooks
+│   ├── operations.py              # Thin façade for operational helper surface
+│   ├── operations_payloads.py     # review / pulse / cleanup payload builders
+│   ├── operations_cleanup.py      # cleanup-family collection + confidence
+│   ├── operations_architecture.py # layer/boundary review helpers
+│   ├── operations_manifest.py     # manifest hygiene helpers
+│   ├── operations_render.py       # explain / text / markdown operational rendering
+│   ├── clone_signals.py           # shared clone signal identifiers
+│   ├── impact.py                  # Repo-local impact tracking
+│   ├── telemetry.py               # Opt-in telemetry surface
+│   ├── question_generator.py      # Review questions
+│   ├── ci_gate.py                 # CI/CD enforcement
+│   ├── metrics/                   # Analysis metrics
+│   │   ├── ldr.py                 # Logic Density Ratio
+│   │   ├── inflation.py           # Jargon detection
+│   │   ├── ddc.py                 # Dependency check
+│   │   ├── context_jargon.py      # Evidence validation
 │   │   ├── docstring_inflation.py
 │   │   └── hallucination_deps.py
-│   ├── patterns/            # Pattern detection (27+ patterns)
+│   ├── patterns/                  # Pattern detection
 │   │   ├── base.py
 │   │   ├── placeholder.py
-│   │   ├── structural.py    # god_function, nested_complexity
+│   │   ├── structural.py          # god_function, nested_complexity
 │   │   ├── cross_language.py
-│   │   └── clone_detector.py # function_clone_cluster (v3.1.0)
-│   ├── languages/           # Language-specific analyzers (v3.4.0+)
+│   │   └── python_clones.py       # exact_duplicate_pair + function_clone_cluster
+│   ├── ml/                        # Self-calibration engine
 │   │   ├── __init__.py
-│   │   ├── python_analyzer.py
-│   │   ├── js_analyzer.py   # JS/TS patterns (v3.4.0)
-│   │   └── go_analyzer.py   # Go patterns (v3.5.0)
-│   ├── ml/                  # Self-calibration engine (v3.2.0+)
-│   │   ├── __init__.py
-│   │   └── self_calibrator.py  # SelfCalibrator, CalibrationResult
-│   └── auth/                # Enterprise features
+│   │   └── self_calibrator.py
+│   ├── mcp/
+│   │   └── server.py              # MCP stdio tool surface
+│   └── auth/                      # Enterprise features
 ├── tests/                   # Test suite (308 tests)
 │   ├── test_core.py
 │   ├── test_metrics.py
 │   ├── test_patterns.py
 │   ├── test_ci_gate.py
-│   ├── test_calibration_patches.py  # 16 P1–P4 unit tests (v3.5.0)
+│   ├── test_calibration_patches.py
+│   ├── test_operations_commands.py
+│   ├── test_cli.py
 │   └── e2e_v321/            # End-to-end tests
 │       └── test_e2e_v321.py
 ├── docs/                    # Documentation
 ├── vscode-extension/        # VS Code extension (v3.5.0)
+├── npm-wrapper/             # Thin Node distribution over Python core
 ├── pyproject.toml          # Project metadata
 ├── .slopconfig.example.yaml # Config template
 └── README.md

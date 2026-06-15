@@ -513,27 +513,27 @@ the training signal for ML self-calibration.
 
 ```bash
 cp -r claude-skills/slop-detector ~/.claude/skills/
-# restart Claude Code, then use /slop, /slop-file, /slop-gate, /slop-delta, /slop-spar
+# restart Claude Code, then use the canonical review surfaces below
 ```
 
-Adds a persistent `scan → diagnose → patch → re-scan → gate → calibrate` quality loop inside Claude Code.
+Adds a persistent JSON-first review loop inside Claude Code:
+`review → inspect evidence → apply bounded fixes → pulse/sweep → human handoff`.
 
 | Command | What it does |
 |---|---|
-| `/slop` | **3-Phase**: Triage table → Confidence-Routed deep-dive → Action Plan with `→ Next:` guidance |
-| `/slop-file [path]` | Single file: status, 4D metrics, per-pattern fix guidance |
-| `/slop-gate` | CI-style PASS/FAIL — Path A (SNP gate) or Path B (hard CI mode) |
-| `/slop-delta` | Before/after comparison table against session baseline; flags regressions |
-| `/slop-spar` | Adversarial calibration validation via `fhval spar` (3 layers) |
+| `slop-detector review . --format json` | Changed-code review with verdict, attribution, targets, actions, and findings |
+| `slop-detector pulse . --format json` | Health summary plus hotspot prioritization |
+| `slop-detector sweep <family> . --format json` | Cleanup planning for dead code, duplication, deps, stale suppressions, or boundaries |
+| `slop-detector scan . --format json` | Full baseline analysis when the agent needs the complete core report |
+| `slop-detector verify-governance <artifact>` | Governance artifact verification kept separate from score output |
 
-**Confidence Routing** (controls Phase 2 depth in `/slop`):
+Recommended use:
 
-| Status | Score | Action |
-|---|---|---|
-| `CRITICAL_DEFICIT` | ≥ 70 | Immediate deep-dive — full patch guidance |
-| `INFLATED_SIGNAL` | 50–70 | Full deep-dive — action required before merge |
-| `SUSPICIOUS` | 30–50 | Run `/slop-file` on top 2 files first; confirm before escalating |
-| `CLEAN` | < 30 | Skip Phase 2 — report clean, propose gate |
+- start with `review` for PR-like work
+- use `pulse` to decide what to fix next
+- use `sweep` only for bounded cleanup families
+- re-run after each patch instead of assuming the first diagnosis still holds
+- escalate to a human with evidence, not just a score
 
 [Skill source →](claude-skills/slop-detector/SKILL.md) · [Full docs →](docs/CLAUDE_CODE_SKILL.md)
 

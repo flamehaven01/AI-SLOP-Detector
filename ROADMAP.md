@@ -1,6 +1,6 @@
 # AI-SLOP Detector Roadmap
 
-> Last updated: 2026-06-05
+> Last updated: 2026-06-15
 
 This roadmap tracks the path that matters for `AI-SLOP-DETECTOR`.
 The goal is not feature parity theater. The goal is a cleaner, more governable,
@@ -17,6 +17,16 @@ Concrete work scoped to the next one or two minor releases.
 The current bottleneck is no longer product surface availability. It is the
 truthfulness and maintainability of the analyzer against its own codebase.
 
+Recent 3.8.6-progress work already closed:
+
+- strict same-file duplicate detection now reaches cleanup output
+- dead-code cleanup semantics now require real dead-code evidence
+- clone wording is aligned across code, output, and docs
+- `operations.py` has been split into payload / cleanup / architecture /
+  manifest / render modules
+- Claude skill guidance has been refreshed to the canonical CLI and JSON-first
+  agent loop
+
 Immediate targets:
 
 - reduce remaining top self-dogfood hotspots:
@@ -27,9 +37,12 @@ Immediate targets:
   - `cli_history.py`
   - `core.py`
 - keep shrinking monolithic helpers in:
-  - `operations.py`
   - `cli_history.py`
   - `core.py`
+- complete `3.8.6` strictness stabilization:
+  - clone-family threshold review
+  - cleanup-family confidence review
+  - remaining wording drift cleanup
 - narrow dead-code false positives in `scripts/`
 - investigate persistent ML loader warning:
   - `[MLScorer] Failed to load model: 'model_type'`
