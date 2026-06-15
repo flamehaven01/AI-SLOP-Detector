@@ -122,7 +122,8 @@ Python / universal:
 - `mutable_default_arg` - Mutable defaults
 - `star_import` - Star imports
 - `interface_only_class` - Interface classes
-- `function_clone_cluster` *(v3.1.0)* - Near-duplicate function bodies (CRITICAL)
+- `exact_duplicate_pair` *(v3.8.5)* - Exact same-file duplicate functions after local-name normalization
+- `function_clone_cluster` *(v3.1.0)* - Near-identical function clusters via AST JSD (CRITICAL)
 - `placeholder_variable_naming` *(v3.1.0)* - Variables named `x`, `tmp`, `dummy` in production
 - `return_constant_stub` *(v3.1.0)* - Functions that always return a constant (stub pattern)
 - `phantom_import` - Imported but never used module (unused dependency)

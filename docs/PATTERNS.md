@@ -49,7 +49,8 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 | `deep_nesting` | HIGH | Python Advanced | Control-flow depth > 4 |
 | `lint_escape` | HIGH/MED/LOW | Python Advanced | `# noqa`, `# type: ignore`, `# pylint: disable` |
 | `phantom_import` | **CRITICAL** | **v2.9.0** | Import targets a non-existent package (extras specifiers stripped) |
-| `function_clone_cluster` | **CRITICAL** | **v3.1.0** | Near-duplicate function bodies via AST JSD (skips `@abstractmethod`, FastAPI routers) |
+| `exact_duplicate_pair` | **HIGH** | **v3.8.5** | Exact same-file duplicate functions after normalizing local names and parameters |
+| `function_clone_cluster` | **CRITICAL** | **v3.1.0** | Near-identical function clusters via AST JSD (skips `@abstractmethod`, FastAPI routers) |
 | `placeholder_variable_naming` | HIGH | v3.1.0 | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
 | `return_constant_stub` | HIGH | v3.1.0 | Function always returns the same constant (stub pattern) |
 | `nested_complexity` | HIGH | v3.1.0 | Control-flow nesting depth ≥ 4 |
@@ -789,6 +790,7 @@ detector.pattern_registry.register(GlobalVariablePattern())
 | JS Array Length | `javascript_array_length` | High | Cross-Lang | Yes* |
 | Java Equals | `java_equals_method` | High | Cross-Lang | Yes* |
 | Java ToString | `java_tostring_method` | High | Cross-Lang | Yes* |
+| Exact Duplicate Pair | `exact_duplicate_pair` | High | v3.8.5 | No |
 | Function Clone Cluster | `function_clone_cluster` | Critical | v3.1.0 | No |
 | Placeholder Naming | `placeholder_variable_naming` | High | v3.1.0 | No |
 | Return Constant Stub | `return_constant_stub` | High | v3.1.0 | No |
@@ -928,11 +930,22 @@ See [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) for full specification.
 
 *Added: v3.1.0*
 
+### exact_duplicate_pair
+
+**Severity:** HIGH | **Axis:** STRUCTURE
+
+Detects exact duplicate functions inside the same file after normalizing local
+variable names and parameter names. This catches copy-paste logic even when the
+author renamed `tally` to `marker` or `readings` to `bucket`.
+
+This is a strict detector. It does **not** try to infer semantic similarity, and
+it skips tiny trivial wrappers to reduce noise.
+
 ### function_clone_cluster
 
 **Severity:** CRITICAL | **Axis:** QUALITY
 
-Detects clusters of near-duplicate function bodies — the most common structural
+Detects clusters of near-identical function bodies — the most common structural
 sign of AI-generated code that was copy-pasted instead of abstracted.
 
 Detection uses 30-dim normalized AST node-type histograms and Jensen-Shannon
