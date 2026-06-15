@@ -5,6 +5,54 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.8.6 — 2026-06-15
+
+### Summary
+
+This release stabilizes the analyzer after the 3.8.5 output and workflow work.
+The focus is stricter duplicate detection, tighter cleanup-family semantics,
+coherent wording across code/output/docs, and reducing the `operations.py`
+bottleneck by splitting it into focused helper modules.
+
+### Added
+
+**Stricter duplicate coverage**
+- same-file exact duplicates now surface in cleanup output as
+  `same_file_exact_duplicate`
+- four-function near-identical clone clusters no longer evade detection due to
+  the previous minimum-function mismatch
+
+### Changed
+
+**Cleanup semantics**
+- `sweep dead-code` now requires real dead-code evidence rather than generic
+  high-deficit files
+
+**Code structure**
+- `operations.py` split into:
+  - `operations_payloads.py`
+  - `operations_cleanup.py`
+  - `operations_architecture.py`
+- existing `operations_manifest.py` and `operations_render.py` remain in place
+- `slop_detector.operations` remains as the compatibility façade for callers
+  and tests
+
+**Coherence cleanup**
+- clone wording now matches across code, renderers, cleanup payloads, and docs
+- Claude Code skill docs now reflect the canonical `scan / review / pulse /
+  sweep / explain / verify-governance / mcp` workflow instead of the historical
+  `/slop*` framing
+
+### Validation
+
+- `python -m pytest tests/test_operations_commands.py tests/test_cli.py -q -W error::ResourceWarning`
+- `python -m pytest tests/test_core.py -k "exact_duplicate_pair or tiny_duplicate_wrappers or stub_density_detects_four_function_clone_cluster" -q -W error::ResourceWarning`
+- `python -m pytest tests/test_fp_reduction.py -k "clone_cluster or dispatcher or abstractmethod or router" -q -W error::ResourceWarning`
+- `python -m ruff check src/slop_detector/operations.py src/slop_detector/operations_architecture.py src/slop_detector/operations_cleanup.py src/slop_detector/operations_payloads.py src/slop_detector/metrics/stub_density.py tests/test_operations_commands.py tests/test_cli.py tests/test_core.py`
+- `python -m black --check src/slop_detector/operations.py src/slop_detector/operations_architecture.py src/slop_detector/operations_cleanup.py src/slop_detector/operations_payloads.py src/slop_detector/metrics/stub_density.py tests/test_core.py`
+
+---
+
 ## v3.8.2 — 2026-06-05
 
 ### Summary

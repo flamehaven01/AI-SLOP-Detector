@@ -9,15 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [3.8.6] - 2026-06-15 — Strictness Stabilization, Coherence Cleanup, and Operations Split
+
 ### Added
 
 - Strict same-file duplicate detection now surfaces in cleanup output as
   `same_file_exact_duplicate`, so `sweep dupes` and cleanup JSON can catch the
   exact-duplicate blind spot fixed in issue `#45`.
+- The clone metric now detects files with exactly four near-identical helper
+  functions instead of silently skipping them due to the previous
+  `MIN_FUNCTIONS_FOR_CLONE=5` threshold mismatch.
 
 ### Changed
 
-- Clone wording is now consistent across code, renderers, and docs:
+- Dead-code cleanup semantics now require real dead-code evidence
+  (placeholder-only file or explicit dead-code pattern) instead of using
+  generic high-deficit files as dead-code candidates.
+- Clone wording is now consistent across code, renderers, cleanup output, and
+  docs:
   - `exact_duplicate_pair` = exact same-file duplicates after local-name
     normalization
   - `function_clone_cluster` = near-identical function clusters
@@ -25,12 +36,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `operations_payloads.py`
   - `operations_cleanup.py`
   - `operations_architecture.py`
-  while keeping `slop_detector.operations` as a compatibility façade.
+  - with the earlier `operations_manifest.py` and `operations_render.py`
+  - while keeping `slop_detector.operations` as a compatibility façade.
 - Claude Code skill guidance now uses the canonical product surface:
   `scan`, `review`, `pulse`, `sweep`, `explain`, `verify-governance`, and
   `mcp`, instead of the older `/slop*`-centric workflow framing.
-
----
+- README, roadmap, and development docs now reflect the current clone surfaces,
+  operations split, and agent workflow model.
 
 ## [3.8.5] - 2026-06-07 — Dual-Audience Output (Plain for Humans, Actionable for Machines)
 
