@@ -35,8 +35,10 @@ from typing import Dict, List, Optional, Tuple, Union
 # Constants
 # ---------------------------------------------------------------------------
 
-# Minimum functions before clone detection is meaningful
-_MIN_FUNCTIONS_FOR_CLONE = 5
+# Minimum functions before clone detection is meaningful.
+# Keep this aligned with the smallest actionable clone-group threshold so a file
+# with exactly four near-identical functions does not silently evade detection.
+_MIN_FUNCTIONS_FOR_CLONE = 4
 
 # Two functions are "clones" if JSD of their AST vectors < this threshold
 _CLONE_JSD_THRESHOLD = 0.05

@@ -173,6 +173,57 @@ def second(values):
     assert "exact_duplicate_pair" not in clone_ids
 
 
+def test_stub_density_detects_four_function_clone_cluster():
+    """The clone metric must not skip a file with exactly four near-identical helpers."""
+    from slop_detector.metrics.stub_density import calculate_stub_density
+
+    code = """
+def build_a(values):
+    total = 0
+    for item in values:
+        if item % 2 == 0:
+            total += item * 2
+        else:
+            total += item + 3
+    return total
+
+
+def build_b(values):
+    tally = 1
+    for sample in values:
+        if sample % 2 == 0:
+            tally += sample * 3
+        else:
+            tally += sample + 5
+    return tally
+
+
+def build_c(values):
+    score = 10
+    for reading in values:
+        if reading % 3 == 0:
+            score += reading * 4
+        else:
+            score += reading + 7
+    return score
+
+
+def build_d(values):
+    acc = -1
+    for point in values:
+        if point % 5 == 0:
+            acc += point * 6
+        else:
+            acc += point + 9
+    return acc
+"""
+    result = calculate_stub_density(code)
+
+    assert result is not None
+    assert result.total_functions == 4
+    assert result.max_clone_group == 4
+
+
 def test_analyze_file_syntax_error(detector, temp_python_file):
     """Test handling syntax errors gracefully."""
     code = '''
