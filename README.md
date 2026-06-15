@@ -101,7 +101,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.8.2"
+pip install "ai-slop-detector>=3.8.6"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -114,7 +114,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.8.2"
+pip install "ai-slop-detector>=3.8.6"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -813,6 +813,9 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.8.6** | strictness stabilization + coherence cleanup: same-file exact duplicates now surface in cleanup output, four-function clone clusters no longer evade detection, dead-code cleanup requires real dead-code evidence, `operations.py` is split into payload/cleanup/architecture helpers, and Claude skill/docs now match the canonical `scan` / `review` / `pulse` / `sweep` surface |
+| **v3.8.5** | dual-audience output: human summaries hide internal algorithm names while JSON / agent / MCP output gains deterministic `next_steps` and `metric_guide`; no breaking JSON key changes |
+| **v3.8.4** | plain-language documentation entry point: benefit-first README, honest “Why Not Just Use a Linter?” / “When NOT to Use This”, acronym glossary in HOW_IT_WORKS, and plain-meaning config guidance without changing code or contracts |
 | **v3.8.3** | human-friendly metric output (value / healthy direction / what it means + deficit bands) and deterministic Next Steps across rich/text/markdown; VS Code webview surfaces (4D breakdown, cleanup plan, pulse, diff-aware review); fixes for dead-code semantics, adaptive-init config preservation, and `unused-deps` stdlib / dev-tool false positives |
 | **v3.8.2** | adaptive `--init` adds bounded repo-signal suggestions and preview/merge flows; npm wrapper adds typed contracts, Node API, and agent workflow docs; local impact tracking and opt-in telemetry become first-class observability surfaces |
 | **v3.8.1** | cleanup-family outputs become confidence-ranked action plans; `unused-deps` grows manifest hygiene for `pyproject.toml` / `package.json`; `boundary-violations` gains opt-in layered architecture review with explicit rule evidence |
