@@ -62,7 +62,7 @@ General linters flag style and convention. This tool flags structural risk.
 
 - **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, dead pipelines, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
-- **Gets more accurate the more you use it** — learns from your git history which findings you actually fix versus ignore, and tunes itself per project; no manual training step (kicks in automatically after ~10 multi-run files)
+- **Can tune itself to one repository over time** — repeated scan/edit history becomes a project-scoped calibration signal, so review sensitivity can adapt without a separate training workflow (kicks in automatically after ~10 multi-run files). This is operational calibration, not external validation.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
 - **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general) and picks sensible defaults; override with `--domain`
 - **Python first, JS/TS and Go optional** — install the `[js]` or `[go]` extra to scan those files too
@@ -92,7 +92,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 - **You want style or formatting enforcement** — use ruff / black / ESLint. This tool ignores style on purpose.
 - **You need a runtime correctness guarantee** — a low score means cleaner structure, not that the code works. Keep your tests.
 - **Your code isn't Python, JS/TS, or Go** — other languages aren't analyzed yet.
-- **You expect zero false positives on day one** — the first runs are un-calibrated and learn your project over ~10 multi-run files. Treat early findings as leads, not verdicts.
+- **You expect calibrated thresholds on day one** — the first runs are un-calibrated and only begin to accumulate repository-specific calibration evidence after ~10 multi-run files. Treat early findings as leads, not verdicts.
 
 ---
 
@@ -480,20 +480,22 @@ Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error h
 
 ---
 
-**Self-Calibration** — the tool learns your codebase
+**Self-Calibration** — repository-local weight tuning
 ```bash
 slop-detector . --self-calibrate               # see what your history recommends
 slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yaml
 ```
-4D grid-search (ldr / inflation / ddc / purity) over your run history.
-Optimizes all four weight dimensions simultaneously.
+4D grid-search (ldr / inflation / ddc / purity) over repository-local run
+history. This is an **operational calibration** layer: it tunes review
+sensitivity to observed edit/review behaviour in one project. It is not an
+independent external validation of the score or a governance control by itself.
 - **Project-scoped** — `history.db` tags every record with a `project_id` (sha256 of cwd); calibration signal never mixes across different projects
 - **Domain-anchored** — grid search is constrained to ±0.15 around the current domain weights, preventing drift outside the domain's meaningful weight region
 - **Drift warnings** — `CalibrationResult.warnings` flags any dimension that shifted > 0.25 from the anchor
 - Only applies when confidence gap between top two candidates exceeds 0.10
 - Milestone is triggered by files re-scanned (not raw record count), avoiding false triggers on first-time project scans
 
-[docs/SELF_CALIBRATION.md →](docs/SELF_CALIBRATION.md)
+[docs/SELF_CALIBRATION.md →](docs/SELF_CALIBRATION.md) · [Validation boundary →](docs/VALIDATION.md)
 
 ---
 
@@ -504,7 +506,7 @@ slop-detector --history-trends           # 7-day project aggregate
 slop-detector --export-history data.jsonl
 ```
 Every run auto-recorded to `~/.slop-detector/history.db`. The history database is
-the training signal for ML self-calibration.
+the repository-local signal source for operational calibration and trend review.
 [docs/HISTORY_TRACKING.md →](docs/HISTORY_TRACKING.md)
 
 ---
@@ -541,7 +543,12 @@ Recommended use:
 
 ## Empirical Weight Calibration (LEDA)
 
-Most static analyzers ship with hand-tuned thresholds — or none at all. AI-SLOP Detector's 4D weights are **empirically synthesized**, not guessed. The oracle is human `git` behavior: a developer committing a flagged fix is an improvement signal; ignoring a flag is a false-positive candidate. Because LDR, DDC, and cyclomatic complexity are AST-derived structural facts, the calibration loop cannot hallucinate its way to a better score — **AI measures, the human judges.**
+Most static analyzers ship with hand-tuned thresholds — or none at all. AI-SLOP
+Detector can tune its 4D weights from repository-local review/edit history
+instead of forcing one fixed profile everywhere. That makes the calibration
+path reproducible and auditable, but it does **not** make the score externally
+validated by itself. The current claim is narrower: the tool can adapt its
+review sensitivity to one repository's observed behavior using explicit rules.
 
 ```mermaid
 flowchart TD
@@ -557,9 +564,13 @@ flowchart TD
 ```
 
 1. **Dogfooding** — `leda_turbo.bat` runs a `Scan → Auto-Fix → Rescan` loop over diverse external codebases, safely applying patterns like `bare_except` and `mutable_default_arg`.
-2. **Event Labeling** — deficit drop + git commit = `improvement_event`; flagged and ignored = `fp_candidate`.
+2. **Event Labeling** — deficit drop + git commit = `improvement_event`; a stable unchanged file after a prior flag = `fp_candidate`.
 3. **Self-Calibration** — 4D grid search (±0.15 domain-anchored). Weights update only when the `confidence_gap` between improvement events and FP candidates exceeds **0.10**.
 4. **Global Synthesis** — `global_injector.py` harvests signals across all dogfooding repos, synthesizes a vote-weighted optimal profile, and injects it into `DOMAIN_PROFILES["general"]`.
+
+Use this as an internal calibration aid, not as proof that the score measures a
+single externally validated latent condition. See [docs/VALIDATION.md](docs/VALIDATION.md)
+for the current validation boundary.
 
 [LEDA Calibration Docs →](docs/LEDA_CALIBRATION.md) · [Turbo Protocol →](docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md)
 

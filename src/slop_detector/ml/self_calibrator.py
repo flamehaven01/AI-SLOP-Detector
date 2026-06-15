@@ -1,5 +1,5 @@
 """
-Self-Calibration Engine — adaptive weight optimization from usage history.
+Self-Calibration Engine — repository-local operational weight tuning from usage history.
 
 Algorithm (LEDA MetaLearning pattern + Copilot Guardian confidence gap):
 
@@ -7,18 +7,19 @@ Algorithm (LEDA MetaLearning pattern + Copilot Guardian confidence gap):
    deficit, timestamp)
 2. Extract two event types per unique file:
    - improvement_event: deficit > SLOP_FLOOR in run[i], dropped > FIX_DELTA in run[i+1]
-     -> current weights caught real slop (true positive candidate)
+     -> previously flagged file was later changed (operational improvement signal)
    - fp_candidate: deficit > SLOP_FLOOR in run[i], same file_hash in run[i+1], no change
-     -> user never fixed it; may be a false positive for this codebase's style
+     -> previously flagged file stayed stable (candidate noisy alert for this codebase)
 3. Grid search over 4D weight simplex {w_ldr + w_inf + w_ddc + w_pur = 1.0, wi >= MIN_W}
 4. For each candidate weights, recompute base_deficit (metric-only, no pattern penalties)
    including purity = exp(-0.5 * n_critical_patterns) for the purity dimension,
-   and score: FN_rate (missed real slops) + FP_rate (unnecessary alerts)
+   and score: FN_rate (missed improvement signals) + FP_rate (persistently noisy alerts)
 5. Copilot Guardian-style confidence gap: if winner margin < CONFIDENCE_GAP, more data needed
 6. Return CalibrationResult; optionally write to .slopconfig.yaml via --apply-calibration
 
-Labels are derived from USER BEHAVIOUR (did they edit the file?), not from formula outputs.
-This breaks the tautology that afflicts the ML classifier.
+Labels are derived from OBSERVED REPOSITORY BEHAVIOUR (was the file changed later?),
+not from formula outputs. This reduces the circularity that afflicts classifier-derived
+labels, but it does not create independent external validation.
 """
 
 from __future__ import annotations
@@ -47,8 +48,8 @@ CONFIDENCE_GAP: float = 0.10  # min score gap between #1 and #2 candidate (Guard
 # v3.2.1: per-class minimums replace single MIN_EVENTS=20.
 # 4D model (+ continuous tiebreak) resolves candidates with fewer events than 3D binary-only.
 # Safety gates (CONFIDENCE_GAP + no_change margin) prevent premature calibration.
-MIN_IMPROVEMENTS: int = 5  # improvement events required (true positive class)
-MIN_FP_CANDIDATES: int = 5  # fp_candidate events required (false positive class)
+MIN_IMPROVEMENTS: int = 5  # improvement events required (changed-after-flag class)
+MIN_FP_CANDIDATES: int = 5  # fp_candidate events required (stable-after-flag class)
 CALIBRATION_MILESTONE: int = MIN_IMPROVEMENTS + MIN_FP_CANDIDATES  # = 10
 MIN_RULE_OCCURRENCES: int = 3  # min times a rule must fire to appear in per_rule_fp_rates
 DOMAIN_TOLERANCE: float = 0.15  # P3: max per-dimension deviation from domain anchor in grid search
@@ -62,7 +63,7 @@ DOMAIN_DRIFT_LIMIT: float = 0.25  # P4: warn when optimal weight drifts this far
 
 @dataclass
 class CalibrationEvent:
-    """A single labeled training event derived from history."""
+    """A single labeled calibration event derived from repository history."""
 
     file_path: str
     ldr: float
@@ -89,7 +90,7 @@ class WeightCandidate:
 
 @dataclass
 class CalibrationResult:
-    """Output of the self-calibration run."""
+    """Output of a repository-local self-calibration run."""
 
     status: str  # "ok" | "insufficient_data" | "no_change"
     unique_files: int = 0
@@ -135,8 +136,8 @@ def _parse_fired_rules(fired_rules_json: Optional[str]) -> List[str]:
 
 class SelfCalibrator:
     """
-    Reads history.db and finds optimal ldr/inflation/ddc weights
-    for the user's specific codebase via grid search over the weight simplex.
+    Reads history.db and finds repository-specific ldr/inflation/ddc weights
+    via grid search over the weight simplex.
     """
 
     DEFAULT_DB = Path.home() / ".slop-detector" / "history.db"
@@ -157,7 +158,9 @@ class SelfCalibrator:
             Dict[str, float]
         ] = None,  # P3: constrain grid to ±DOMAIN_TOLERANCE of anchor
     ) -> CalibrationResult:
-        """Run self-calibration. Returns CalibrationResult with optimal weights.
+        """Run repository-local self-calibration.
+
+        Returns CalibrationResult with optimal weights.
 
         v3.2.1: per-class minimums replace total MIN_EVENTS threshold.
         min_events sets the per-class floor (applied independently to improvements and fp_candidates).
@@ -331,8 +334,8 @@ class SelfCalibrator:
         """
         Emit CalibrationEvents for consecutive run pairs on one file.
 
-        improvement: deficit dropped > FIX_DELTA -> user edited the file (true positive)
-        fp_candidate: same hash, score stable -> user ignored warning (false positive candidate)
+        improvement: deficit dropped > FIX_DELTA -> previously flagged file was changed
+        fp_candidate: same hash, score stable -> previously flagged file stayed stable
         Each file contributes at most one fp_candidate to prevent consecutive-run bias.
         """
         if len(runs) < 2:
@@ -453,9 +456,9 @@ class SelfCalibrator:
         Score a weight set (4D). Returns (fn_rate, fp_rate, tiebreak_score).
 
         fn_rate: fraction of improvement events where new weights score < SLOP_FLOOR (missed)
-        fp_rate: fraction of fp_candidates where new weights still score >= SLOP_FLOOR (FP)
+        fp_rate: fraction of fp_candidates where new weights still score >= SLOP_FLOOR
         tiebreak_score: continuous secondary metric for breaking ties in (fn+fp) rate.
-            = avg recomputed deficit on FP candidates (lower = better, fewer over-detections)
+            = avg recomputed deficit on FP candidates (lower = better, fewer noisy alerts)
               - avg margin above SLOP_FLOOR on improvement events (higher margin = better coverage)
             Combined: fp_avg_deficit - tp_avg_margin (lower = better)
         """
@@ -518,7 +521,7 @@ class SelfCalibrator:
             fp_rate_X = (fp_candidate events where X fired) / (all events where X fired)
 
         Only rules appearing in >= MIN_RULE_OCCURRENCES events are included.
-        A rule with fp_rate >= 0.7 fires mostly on false positives for this codebase
+        A rule with fp_rate >= 0.7 fires mostly on stable/noisy alerts for this codebase
         and is a candidate for suppression via .slopconfig.yaml.
         """
         rule_fp: Dict[str, int] = {}

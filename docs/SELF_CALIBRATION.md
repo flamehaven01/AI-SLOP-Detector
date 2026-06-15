@@ -1,6 +1,6 @@
 # Self-Calibration Engine
 
-> **The tool learns your codebase. The longer you use it, the better it fits.**
+> **Self-calibration collects repository-specific tuning evidence over time.**
 
 ---
 
@@ -32,14 +32,36 @@ weights:
 These numbers were tuned against Flamehaven's internal codebase and hardcoded.
 They work well for what we build. For a framework like Django or Spring — where
 boilerplate is structurally required, not developer-chosen — the `ldr` weight
-of 0.40 will generate false positives on legitimate code.
+of 0.40 can generate noisy findings on legitimate code.
 
 The mitigation exists: `.slopconfig.yaml` lets you adjust weights per project.
 But the burden was on the user to know they need to, and to know what to set.
 
-**Self-calibration removes that burden.** It reads your actual usage history and
-finds the weights that minimize both missed detections and unnecessary alerts —
-for your codebase specifically.
+**Self-calibration can reduce that burden.** It reads repository-local usage
+history and searches for weights that reduce both missed improvement signals and
+persistently noisy alerts for one codebase.
+
+---
+
+## Validation Boundary
+
+Self-calibration is **operational calibration**, not independent external
+validation.
+
+What it does:
+
+- tunes the 4D weights from repository-local run history
+- keeps that tuning project-scoped and domain-anchored
+- returns a reproducible recommendation from explicit rules and thresholds
+
+What it does **not** do:
+
+- prove that `deficit_score` measures one validated latent condition
+- act as an external governance control by itself
+- replace blinded review, out-of-sample benchmarking, or independent validation
+
+Use calibrated weights as a repository-specific review aid. Do not treat them
+as proof that the score is universally validated.
 
 ---
 
@@ -62,31 +84,35 @@ The calibration engine extracts two event types from consecutive run pairs
 for each unique file:
 
 **`improvement_event`** — deficit was high, next run it dropped significantly.
-The user edited the file after being warned. This is confirmed real slop.
+The user edited the file after a prior flagged run. This is an operational
+signal that the earlier warning was followed by a meaningful change.
 
 ```
 run[i]:   deficit=47, file_hash=abc123
 run[i+1]: deficit=12, file_hash=def456   <- different hash = user edited it
 ```
-→ Label: `improvement` (true positive — current weights correctly flagged it)
+→ Label: `improvement` (calibration signal for a previously flagged file that was changed)
 
 **`fp_candidate`** — deficit was high, but the next run shows the same file
-hash and no meaningful score change. The user saw the warning and ignored it.
+hash and no meaningful score change. The file stayed stable after the prior
+flagged run.
 
 ```
 run[i]:   deficit=38, file_hash=abc123
 run[i+1]: deficit=36, file_hash=abc123   <- same hash = file untouched
 ```
-→ Label: `fp_candidate` (likely false positive for this codebase's style)
+→ Label: `fp_candidate` (candidate noisy alert for this codebase's style)
 
-**Why this breaks the tautology:**
+**Why this reduces circularity:**
 
 The ML classifier had a circular labeling problem: labels were derived from
 `deficit_score >= 30`, and features were the components of `deficit_score`.
-The model learned to approximate the formula, not to detect anything independently.
+The model learned to approximate the formula, not to add an independent signal.
 
-Self-calibration labels come from **user behaviour** — did they edit the file?
-This signal is completely independent of the formula's output.
+Self-calibration labels come from **observed repository behaviour** — was the
+flagged file changed, or did it remain stable? That breaks the direct
+label-from-score loop, but it still remains an internal operational signal, not
+external validation.
 
 ### 3. Grid Search over the Weight Simplex
 
@@ -108,8 +134,8 @@ For each candidate weight set, two rates are computed:
 
 | Rate | Definition |
 |---|---|
-| **FN rate** | Fraction of `improvement_event` files that the new weights would score below the slop floor — missed real slop |
-| **FP rate** | Fraction of `fp_candidate` files that the new weights still score above the slop floor — unnecessary alerts |
+| **FN rate** | Fraction of `improvement_event` files that the new weights would score below the slop floor — missed improvement signals |
+| **FP rate** | Fraction of `fp_candidate` files that the new weights still score above the slop floor — persistently noisy alerts |
 
 Optimization target: minimize `FN_rate + FP_rate`.
 
@@ -125,7 +151,7 @@ tiebreak = avg_deficit(fp_candidates) − avg_margin_above_floor(improvement_eve
 ```
 
 - Lower `avg_deficit` on FP candidates → fewer over-detections
-- Higher margin on improvement events → clearer signal on true positives
+- Higher margin on improvement events → clearer signal on files that were changed after a prior flag
 
 Sort key: `(combined_score, tiebreak_score)` — lower is better.
 
@@ -158,7 +184,7 @@ stores them alongside each file result. The calibration engine uses this as a
 When `git_commit` is `NULL` (non-git projects), the original hash-based heuristic
 applies unchanged. Backward compatible.
 
-**Result:** Fewer labeled events, but higher-fidelity signal. This is critical for
+**Result:** Fewer labeled events, but higher-fidelity operational signal. This is critical for
 the 5+5 per-class threshold (see below) to remain statistically sound.
 
 ---
@@ -231,8 +257,8 @@ Output:
 │ Metric                               │  Value │
 ├──────────────────────────────────────┼────────┤
 │ Unique files in history              │    180 │
-│ Improvement events (true positives)  │     62 │
-│ FP candidates (flagged, never fixed) │    176 │
+│ Improvement events (flag followed by change) │     62 │
+│ FP candidates (flag followed by stable file) │    176 │
 │ Confidence gap                       │ 0.1088 │
 └──────────────────────────────────────┴────────┘
 ┌───────────┬─────────┬─────────┬───────┐
@@ -303,7 +329,7 @@ improvement/FP events can exist yet.
 
 | Status | Meaning |
 |---|---|
-| `ok` | Calibration succeeded with confident winner. `--apply-calibration` will write. |
+| `ok` | Calibration produced a confident repository-local recommendation. `--apply-calibration` will write. |
 | `no_change` | Current weights are already near-optimal (improvement margin < 2%). No write. |
 | `insufficient_data` | Too few events, or confidence gap below threshold. No write. |
 
@@ -360,7 +386,7 @@ ldr:  0.40 → 0.10   (-0.30)
 ddc:  0.30 → 0.65   (+0.35)
 ```
 
-This means the codebase has many files with low LDR that users never fixed
+This means the codebase has many files with low LDR that remained unchanged
 (FP candidates). The tool was over-penalizing low logic density in this
 context — possibly because the codebase uses a framework with structural
 boilerplate, or because the coding style is comment-heavy and documentation-rich.
@@ -378,6 +404,8 @@ dependency usage ratio is a stronger quality signal here than logic density.
   analysis, not on metric weights.
 - It does not override `patterns.disabled` in your config. Pattern suppression
   remains under manual control via `.slopconfig.yaml`.
+- It does not prove that the score is an externally validated governance
+  control. Calibration only tunes repository-local review sensitivity.
 - It does not guarantee universal validity. Calibrated weights are optimized
   for *your* history. If your team's style changes significantly, recalibrate.
 
@@ -459,3 +487,4 @@ Full specification: [docs/SCHEMA_VALIDATION.md](SCHEMA_VALIDATION.md)
 - [Scoring Model](MATH_MODELS.md) — mathematical specification of the deficit formula
 - [Schema Validation](SCHEMA_VALIDATION.md) — three-layer runtime guards that protect calibration input
 - [ML Pipeline](HOW_IT_WORKS.md) — how the experimental ML layer relates to calibration
+- [Validation Boundary](VALIDATION.md) — what the tool does and does not claim today

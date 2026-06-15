@@ -48,7 +48,7 @@ def _check_calibration_hint(args) -> None:
                 result.optimal_weights, config_path=config_path
             )
             print(
-                f"\n[*] Auto-calibration ({run_count} multi-run files): weights updated -> {written}",
+                f"\n[*] Auto-calibration ({run_count} multi-run files): repository-local weights updated -> {written}",
                 file=_sys.stderr,
             )
             for key in ("ldr", "inflation", "ddc", "purity"):
@@ -58,7 +58,7 @@ def _check_calibration_hint(args) -> None:
                     print(f"    {key}: {old_value:.2f} -> {new_value:.2f}", file=_sys.stderr)
         elif result.status == "no_change":
             print(
-                f"\n[*] Calibration milestone ({run_count} multi-run files): weights already optimal.",
+                f"\n[*] Calibration milestone ({run_count} multi-run files): repository-local weights already near-optimal.",
                 file=_sys.stderr,
             )
         else:
@@ -199,7 +199,7 @@ def _export_history(output_path: str) -> None:
 
 
 def _run_self_calibration(args: argparse.Namespace) -> int:
-    """Run self-calibration and optionally apply results to .slopconfig.yaml."""
+    """Run repository-local self-calibration and optionally apply results to .slopconfig.yaml."""
     from slop_detector.config import Config
     from slop_detector.ml.self_calibrator import SelfCalibrator
 
@@ -235,8 +235,10 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         table.add_column("Metric", style="cyan")
         table.add_column("Value", justify="right")
         table.add_row("Unique files in history", str(result.unique_files))
-        table.add_row("Improvement events (true positives)", str(result.improvement_events))
-        table.add_row("FP candidates (flagged, never fixed)", str(result.fp_candidates))
+        table.add_row(
+            "Improvement events (flag followed by change)", str(result.improvement_events)
+        )
+        table.add_row("FP candidates (flag followed by stable file)", str(result.fp_candidates))
         table.add_row("Confidence gap", f"{result.confidence_gap:.4f}")
         console.print(table)
 
@@ -278,17 +280,17 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
                 box=box.ROUNDED,
                 show_header=True,
                 header_style="bold cyan",
-                title="Per-Rule FP Rates (>= 50%)",
+                title="Per-Rule Noisy-Alert Rates (>= 50%)",
             )
             rule_table.add_column("Rule ID", style="cyan")
             rule_table.add_column("FP Rate", justify="right")
             rule_table.add_column("Signal", justify="right")
             for rule_id, rate in high_fp.items():
-                signal = "[red]HIGH FP[/red]" if rate >= 0.7 else "[yellow]MOD FP[/yellow]"
+                signal = "[red]HIGH NOISE[/red]" if rate >= 0.7 else "[yellow]MOD NOISE[/yellow]"
                 rule_table.add_row(rule_id, f"{rate:.0%}", signal)
             console.print(rule_table)
             console.print(
-                "[dim]Rules with HIGH FP (>=70%) are candidates for suppression"
+                "[dim]Rules with HIGH NOISE (>=70%) are candidates for suppression"
                 " via .slopconfig.yaml exclude_rules[/dim]"
             )
 
@@ -313,7 +315,7 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
                 if rate >= 0.5
             }
             if high_fp_plain:
-                print("  per_rule_fp_rates (>=50%):")
+                print("  per_rule_noisy_alert_rates (>=50%):")
                 for rule_id, rate in high_fp_plain.items():
                     print(f"    {rule_id}: {rate:.0%}")
         for warning in result.warnings:

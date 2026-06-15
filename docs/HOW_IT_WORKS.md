@@ -307,8 +307,10 @@ flowchart TD
     style F fill:#fff3cd
 ```
 
-Weights are auto-tuned by the self-calibrator. Project-level aggregation
-uses SR9 conservative weighting: `0.6 × min_file + 0.4 × mean`.
+Weights can be auto-tuned by the self-calibrator using repository-local history.
+This improves project-specific review sensitivity, but it is not independent
+external validation of the score. Project-level aggregation uses SR9
+conservative weighting: `0.6 × min_file + 0.4 × mean`.
 
 ---
 
@@ -394,9 +396,11 @@ graph TB
 
 ## Self-Calibration Flow
 
-Every scan is auto-recorded to `~/.slop-detector/history.db`. At every
-`CALIBRATION_MILESTONE` (= 10) multiple of total records, the self-calibrator
-runs automatically — no manual command required.
+Every scan is auto-recorded to `~/.slop-detector/history.db`. Once enough
+repeat-file history exists, the self-calibrator can run automatically to tune
+repository-local weights. This is an operational calibration pass: it helps one
+project adapt review sensitivity, but it does not by itself externally validate
+the underlying score.
 
 ```mermaid
 flowchart TD

@@ -187,7 +187,10 @@ sent to stderr.
 
 ### LEDA Self-Evolving Configuration Loop
 
-The biggest addition: the extension now exposes the **LEDA calibration loop** — the engine that learns your codebase's unique coding style and automatically tunes its own detection weights.
+The biggest addition: the extension now exposes the **LEDA calibration loop** —
+the engine that can tune detection weights from repository-local run history.
+This is operational calibration for one codebase, not an externally validated
+control.
 
 - **Bootstrap Config** (`slop-detector.initConfig`): Generates a `.slopconfig.yaml`
   in your workspace root with domain-specific overrides and secure `.gitignore` injection.
@@ -197,9 +200,10 @@ The biggest addition: the extension now exposes the **LEDA calibration loop** �
   the result in the Output panel, and offers a one-click **Apply** button to write
   the optimal weights back to `.slopconfig.yaml`.
 
-> **The more you use it, the smarter it gets.** After 10+ analyses the LEDA engine
-> reverse-engineers your team's past behavior and Git history to derive mathematically
-> optimal weights. Run self-calibrate periodically — it evolves with your codebase.
+> **The more repeated history you have, the more repository-specific evidence it
+> can use.** After 10+ multi-run files the LEDA engine can recommend weights from
+> observed edit/review behavior and Git history. Run self-calibrate periodically
+> if you want that repository-local tuning signal refreshed over time.
 
 ### Purity Dimension (4D Scoring)
 
