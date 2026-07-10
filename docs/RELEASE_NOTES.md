@@ -5,6 +5,50 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.8.8 — 2026-07-10
+
+### Summary
+
+This release is an operational follow-through on the 3.8.7 false-positive
+reduction pass. It does not change the detector's core scoring model. Instead
+it tightens packaging metadata and fixes the VS Code extension's workflow so
+the UI reflects the current backend contract more faithfully.
+
+### Changed
+
+**Packaging metadata**
+- `pyproject.toml` now uses SPDX string form for the license field
+- deprecated MIT license classifier was removed to align with current
+  setuptools guidance
+
+**VS Code extension workflow**
+- `Refresh Issues` now performs a real workspace re-scan instead of only
+  repainting the tree view
+- workspace re-analysis now replaces stale in-memory file results, so removed
+  or renamed files do not linger in the sidebar
+- workspace issue selection now opens the exact file path rather than matching
+  by basename only
+- command/view activation now wakes the extension reliably from the Command
+  Palette and sidebar before a supported editor is open
+
+### Fixed
+
+**VS Code Quick Fix application**
+- `ignore` suggestions now write directly into `.slopconfig.yaml`
+- `phantom_import_allowlist` suggestions now write directly into
+  `.slopconfig.yaml`
+- duplicate-entry protection prevents repeated writes of the same file/module
+
+### Validation
+
+- `python -m black --check src/ tests/`
+- `python -m ruff check src/ tests/`
+- `python -m mypy src`
+- `npm run check` (in `vscode-extension`)
+- `npm run package` (in `vscode-extension`)
+
+---
+
 ## v3.8.7 — 2026-07-10
 
 ### Summary

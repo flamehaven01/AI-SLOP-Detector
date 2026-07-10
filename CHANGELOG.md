@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [3.8.8] - 2026-07-10 — VS Code Workflow Tightening and Packaging Metadata Cleanup
+
 - Packaging metadata cleanup:
   - `pyproject.toml` now uses SPDX string form (`license = "MIT"`)
   - deprecated license classifier removed to match current setuptools guidance
@@ -18,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - workspace issue selection now opens the exact file path rather than matching by basename only
   - Quick Fix actions now write `ignore` and `phantom_import_allowlist` entries into `.slopconfig.yaml` with duplicate-entry protection
   - command/view activation was expanded so the extension wakes reliably from the Command Palette and sidebar before a supported editor is open
-
----
 
 ## [3.8.7] - 2026-07-10 — False-Positive Reduction Pack and Self-Dogfood Tightening
 

@@ -1,6 +1,6 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 3.8.7
+**Version:** 3.8.8
 **Last Updated:** 2026-07-10
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.

@@ -1,4 +1,4 @@
-# AI SLOP Detector — VS Code Extension v3.8.7
+# AI SLOP Detector — VS Code Extension v3.8.8
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, clone detection,
@@ -7,9 +7,9 @@ editor.
 
 ---
 
-## What's New in v3.8.7 — Workflow Correctness + Safer Quick Fixes
+## What's New in v3.8.8 — Workflow Correctness + Safer Quick Fixes
 
-### 3.8.7 extension reliability
+### 3.8.8 extension reliability
 
 This patch upgrades the extension's runtime workflow instead of only refreshing
 docs:

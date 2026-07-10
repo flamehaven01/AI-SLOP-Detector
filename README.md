@@ -23,10 +23,10 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.8.7`
-- Previous stable tag: `v3.8.6`
-- `v3.8.7` is a false-positive reduction pass: `.claude/**` worktrees are ignored by default, JS/TS fallback callback-hell detection no longer confuses JSX or object-literal braces for nested callbacks, phantom-import resolution now understands monorepo package roots plus aliases like `grpcio -> grpc`, clone grouping uses a stricter clique+size model with property-accessor exemptions, and self-dogfood weighted deficit improves from `9.3892` to `6.4186`.
-- `v3.8.6` tightened strictness and coherence: same-file exact duplicates reached cleanup output, four-function clone clusters no longer evaded detection, dead-code cleanup semantics now require real dead-code evidence, `operations.py` is split into focused helper modules, and the Claude Code skill/docs now match the canonical `scan / review / pulse / sweep` surface.
+- Stable tag: `v3.8.8`
+- Previous stable tag: `v3.8.7`
+- `v3.8.8` tightens operational reliability: packaging metadata now uses SPDX string form, the VS Code extension's `Refresh Issues` command performs a real workspace re-scan, sidebar results no longer linger after files are renamed or removed, exact file-path selection avoids basename collisions, and Quick Fixes now write `ignore` / `phantom_import_allowlist` entries into `.slopconfig.yaml` with duplicate protection.
+- `v3.8.7` was the false-positive reduction pass: `.claude/**` worktrees are ignored by default, JS/TS fallback callback-hell detection no longer confuses JSX or object-literal braces for nested callbacks, phantom-import resolution now understands monorepo package roots plus aliases like `grpcio -> grpc`, clone grouping uses a stricter clique+size model with property-accessor exemptions, and self-dogfood weighted deficit improves from `9.3892` to `6.4186`.
 
 ---
 
@@ -101,7 +101,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.8.7"
+pip install "ai-slop-detector>=3.8.8"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -114,7 +114,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.8.7"
+pip install "ai-slop-detector>=3.8.8"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -824,6 +824,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.8.8** | packaging metadata cleanup plus VS Code workflow tightening: SPDX string license metadata, real workspace re-scan from `Refresh Issues`, stale sidebar results cleared on re-analysis, exact-path issue selection, and Quick Fix writes for `ignore` / `phantom_import_allowlist` with duplicate protection |
 | **v3.8.7** | false-positive reduction pack: default `.claude/**` ignore, runtime-only DDC accounting, quoted vocabulary tables no longer counted as inflation, monorepo + alias-aware phantom import detection, clique+size clone grouping with property-accessor exemption, JS/TS fallback callback-hell no longer confused by JSX/object literals, tiny helper docstrings ignored, and self-dogfood weighted deficit improved from `9.3892` to `6.4186` |
 | **v3.8.6** | strictness stabilization + coherence cleanup: same-file exact duplicates now surface in cleanup output, four-function clone clusters no longer evade detection, dead-code cleanup requires real dead-code evidence, `operations.py` is split into payload/cleanup/architecture helpers, and Claude skill/docs now match the canonical `scan` / `review` / `pulse` / `sweep` surface |
 | **v3.8.5** | dual-audience output: human summaries hide internal algorithm names while JSON / agent / MCP output gains deterministic `next_steps` and `metric_guide`; no breaking JSON key changes |
