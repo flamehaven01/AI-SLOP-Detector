@@ -14,6 +14,120 @@ function _extractModuleName(message: string): string | undefined {
     return m ? m[1].split('.')[0] : undefined;
 }
 
+function _yamlQuote(value: string): string {
+    return JSON.stringify(value.replace(/\r\n/g, '\n'));
+}
+
+function _topLevelSectionRange(
+    doc: vscode.TextDocument,
+    key: string,
+): { headerLine: number; startLine: number; endLine: number } | undefined {
+    const headerLine = [...Array(doc.lineCount).keys()].find(
+        i => doc.lineAt(i).text.trimStart().startsWith(`${key}:`)
+    );
+    if (headerLine === undefined) {
+        return undefined;
+    }
+
+    let endLine = headerLine + 1;
+    while (endLine < doc.lineCount) {
+        const text = doc.lineAt(endLine).text;
+        const trimmed = text.trim();
+        if (trimmed === '') {
+            endLine += 1;
+            continue;
+        }
+        const indent = text.length - text.trimStart().length;
+        if (indent === 0) {
+            break;
+        }
+        endLine += 1;
+    }
+
+    return { headerLine, startLine: headerLine + 1, endLine };
+}
+
+function _parseYamlScalar(raw: string): string {
+    const trimmed = raw.trim();
+    if (
+        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))
+    ) {
+        try {
+            return JSON.parse(trimmed);
+        } catch {
+            return trimmed.slice(1, -1);
+        }
+    }
+    return trimmed;
+}
+
+function _sectionContainsValue(doc: vscode.TextDocument, key: string, value: string): boolean {
+    const range = _topLevelSectionRange(doc, key);
+    if (!range) {
+        return false;
+    }
+
+    for (let i = range.startLine; i < range.endLine; i++) {
+        const trimmed = doc.lineAt(i).text.trim();
+        if (!trimmed.startsWith('- ')) {
+            continue;
+        }
+        const current = _parseYamlScalar(trimmed.slice(2));
+        if (current === value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+async function _appendListEntry(
+    doc: vscode.TextDocument,
+    editor: vscode.TextEditor,
+    key: string,
+    value: string,
+): Promise<'added' | 'exists'> {
+    if (_sectionContainsValue(doc, key, value)) {
+        return 'exists';
+    }
+
+    const quoted = _yamlQuote(value);
+    const section = _topLevelSectionRange(doc, key);
+    if (section) {
+        const insertPos = new vscode.Position(section.endLine, 0);
+        await editor.edit(eb => eb.insert(insertPos, `  - ${quoted}\n`));
+        editor.selection = new vscode.Selection(insertPos, insertPos);
+        editor.revealRange(new vscode.Range(insertPos, insertPos));
+        return 'added';
+    }
+
+    const eof = doc.lineAt(doc.lineCount - 1).range.end;
+    const prefix = doc.getText().endsWith('\n') ? '\n' : '\n\n';
+    await editor.edit(eb => eb.insert(eof, `${prefix}${key}:\n  - ${quoted}\n`));
+    editor.revealRange(new vscode.Range(eof, eof));
+    return 'added';
+}
+
+async function _openPrimaryConfig(): Promise<vscode.TextEditor | undefined> {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders) {
+        return undefined;
+    }
+
+    const configFiles = await vscode.workspace.findFiles(
+        new vscode.RelativePattern(folders[0], '.slopconfig.yaml'), undefined, 1
+    );
+    if (configFiles.length === 0) {
+        vscode.window.showWarningMessage(
+            '[!] No .slopconfig.yaml found. Run "Bootstrap .slopconfig.yaml" first.'
+        );
+        return undefined;
+    }
+
+    const doc = await vscode.workspace.openTextDocument(configFiles[0]);
+    return vscode.window.showTextDocument(doc);
+}
+
 export class SlopCodeActionProvider implements vscode.CodeActionProvider {
     static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
@@ -88,77 +202,42 @@ export class SlopCodeActionProvider implements vscode.CodeActionProvider {
 }
 
 export async function addModuleToAllowlist(moduleName: string): Promise<void> {
-    const folders = vscode.workspace.workspaceFolders;
-    if (!folders) { return; }
-
-    const configFiles = await vscode.workspace.findFiles(
-        new vscode.RelativePattern(folders[0], '.slopconfig.yaml'), undefined, 1
-    );
-    if (configFiles.length === 0) {
-        vscode.window.showWarningMessage(
-            '[!] No .slopconfig.yaml found. Run "Bootstrap .slopconfig.yaml" first.'
-        );
+    const editor = await _openPrimaryConfig();
+    if (!editor) {
         return;
     }
 
-    const doc    = await vscode.workspace.openTextDocument(configFiles[0]);
-    const editor = await vscode.window.showTextDocument(doc);
-    const lines  = [...Array(doc.lineCount).keys()];
-
-    const allowlistIdx = lines.find(
-        i => doc.lineAt(i).text.trimStart().startsWith('phantom_import_allowlist:')
+    const result = await _appendListEntry(
+        editor.document,
+        editor,
+        'phantom_import_allowlist',
+        moduleName,
     );
-
-    if (allowlistIdx !== undefined) {
-        const insertPos = new vscode.Position(allowlistIdx + 1, 0);
-        await editor.edit(eb => eb.insert(insertPos, `  - ${moduleName}\n`));
-        editor.selection = new vscode.Selection(insertPos, insertPos);
-        editor.revealRange(new vscode.Range(insertPos, insertPos));
+    if (result === 'exists') {
         vscode.window.showInformationMessage(
-            `[+] '${moduleName}' added to phantom_import_allowlist`
-        );
-    } else {
-        const endPos = new vscode.Position(doc.lineCount, 0);
-        await editor.edit(eb =>
-            eb.insert(endPos, `\nphantom_import_allowlist:\n  - ${moduleName}\n`)
-        );
-        editor.revealRange(new vscode.Range(endPos, endPos));
-        vscode.window.showInformationMessage(
-            `[+] phantom_import_allowlist created with '${moduleName}'`
-        );
-    }
-}
-
-export async function addFileToIgnore(relPath: string): Promise<void> {
-    const folders = vscode.workspace.workspaceFolders;
-    if (!folders) { return; }
-
-    const configFiles = await vscode.workspace.findFiles(
-        new vscode.RelativePattern(folders[0], '.slopconfig.yaml'), undefined, 1
-    );
-
-    if (configFiles.length === 0) {
-        vscode.window.showWarningMessage(
-            '[!] No .slopconfig.yaml found. Run "Bootstrap .slopconfig.yaml" first.'
+            `[=] '${moduleName}' is already present in phantom_import_allowlist`
         );
         return;
-    }
-
-    // Open the file and show the line to add — safe, no YAML mutation
-    const doc = await vscode.workspace.openTextDocument(configFiles[0]);
-    const editor = await vscode.window.showTextDocument(doc);
-
-    const ignoreLineIdx = [...Array(doc.lineCount).keys()].find(
-        i => doc.lineAt(i).text.trimStart().startsWith('ignore:')
-    );
-
-    if (ignoreLineIdx !== undefined) {
-        const pos = new vscode.Position(ignoreLineIdx + 1, 0);
-        editor.selection = new vscode.Selection(pos, pos);
-        editor.revealRange(new vscode.Range(pos, pos));
     }
 
     vscode.window.showInformationMessage(
-        `Add this line under "ignore:" in .slopconfig.yaml:\n  - "${relPath}"`
+        `[+] '${moduleName}' added to phantom_import_allowlist`
+    );
+}
+
+export async function addFileToIgnore(relPath: string): Promise<void> {
+    const editor = await _openPrimaryConfig();
+    if (!editor) {
+        return;
+    }
+
+    const result = await _appendListEntry(editor.document, editor, 'ignore', relPath);
+    if (result === 'exists') {
+        vscode.window.showInformationMessage(`[=] "${relPath}" is already present under ignore`);
+        return;
+    }
+
+    vscode.window.showInformationMessage(
+        `[+] "${relPath}" added to .slopconfig.yaml ignore`
     );
 }

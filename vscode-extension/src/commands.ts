@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { statusBarItem, outputChannel, updateFileResult } from './state';
+import { statusBarItem, outputChannel, replaceFileResults } from './state';
 import { analyzeDocument, extractJson } from './analyzer';
 import * as client from './client';
+
+interface ResultQuickPickItem extends vscode.QuickPickItem {
+    filePath?: string;
+}
 
 export async function analyzeCurrentFile(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
@@ -19,11 +23,11 @@ export async function analyzeWorkspace(): Promise<void> {
     statusBarItem.text = '$(sync~spin) SLOP: Analyzing workspace...';
     try {
         const result = await client.scanProject(rootPath);
-        for (const f of result.file_results ?? []) { updateFileResult(f.file_path, f); }
+        replaceFileResults(result.file_results ?? []);
         const icon = result.overall_status === 'clean' ? '$(check)' : '$(warning)';
         statusBarItem.text = `${icon} SLOP: ${result.avg_deficit_score.toFixed(1)} avg (${result.total_files} files)`;
 
-        const items: vscode.QuickPickItem[] = [];
+        const items: ResultQuickPickItem[] = [];
         items.push({
             label: `$(graph) ${result.overall_status.toUpperCase()} — ${result.total_files} files, avg deficit ${result.avg_deficit_score.toFixed(1)}`,
             kind: vscode.QuickPickItemKind.Separator,
@@ -39,6 +43,7 @@ export async function analyzeWorkspace(): Promise<void> {
                 label: `${fIcon} ${path.basename(f.file_path)}`,
                 description: `${f.deficit_score.toFixed(1)}/100 — ${f.status.toUpperCase()}`,
                 detail: `LDR: ${(f.ldr?.ldr_score ?? 0).toFixed(2)}  Inflation: ${(f.inflation?.inflation_score ?? 0).toFixed(2)}  DDC: ${(f.ddc?.usage_ratio ?? 0).toFixed(2)}`,
+                filePath: f.file_path,
             });
         }
         if (deficitFiles.length === 0) {
@@ -49,15 +54,9 @@ export async function analyzeWorkspace(): Promise<void> {
             placeHolder: `Workspace: ${result.project_path} — click a file to open`,
             matchOnDescription: true, matchOnDetail: true,
         });
-        if (selected && !selected.label.includes('All files') && selected.kind !== vscode.QuickPickItemKind.Separator) {
-            const fileName = selected.label.replace(/^\$\([^)]+\)\s*/, '');
-            const matched = (result.file_results ?? []).find(
-                (f: any) => path.basename(f.file_path) === fileName
-            );
-            if (matched) {
-                const doc = await vscode.workspace.openTextDocument(matched.file_path);
-                await vscode.window.showTextDocument(doc);
-            }
+        if (selected?.filePath) {
+            const doc = await vscode.workspace.openTextDocument(selected.filePath);
+            await vscode.window.showTextDocument(doc);
         }
     } catch (error) {
         vscode.window.showErrorMessage(`[-] Workspace analysis failed: ${error}`);

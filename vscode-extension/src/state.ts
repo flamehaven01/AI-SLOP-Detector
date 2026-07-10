@@ -27,14 +27,32 @@ let _codeLensRefresh: (() => void) | undefined;
 export function setTreeRefreshCallback(cb: () => void): void     { _treeRefresh = cb; }
 export function setCodeLensRefreshCallback(cb: () => void): void { _codeLensRefresh = cb; }
 
+export function isFlaggedResult(result: any): boolean {
+    return (result?.deficit_score || 0) >= 30 || result?.status !== 'clean';
+}
+
+function syncUiContext(): void {
+    const flagged = [...fileResults.values()].some((r) => isFlaggedResult(r));
+    const analyzed = fileResults.size > 0;
+    void vscode.commands.executeCommand('setContext', 'slop.hasAnalyzed', analyzed);
+    void vscode.commands.executeCommand('setContext', 'slop.isClean', analyzed && !flagged);
+}
+
 export function updateFileResult(filePath: string, result: any): void {
     fileResults.set(filePath, result);
-    // Drive state-aware UI (viewsWelcome + view/title menus). A file counts as
-    // flagged at the SUSPICIOUS band (deficit >= 30); see the severity tokens
-    // in the presentation contract.
-    const flagged = [...fileResults.values()].some((r) => (r.deficit_score || 0) >= 30);
-    void vscode.commands.executeCommand('setContext', 'slop.hasAnalyzed', true);
-    void vscode.commands.executeCommand('setContext', 'slop.isClean', !flagged);
+    syncUiContext();
+    _treeRefresh?.();
+    _codeLensRefresh?.();
+}
+
+export function replaceFileResults(results: any[]): void {
+    fileResults.clear();
+    for (const result of results) {
+        if (result?.file_path) {
+            fileResults.set(result.file_path, result);
+        }
+    }
+    syncUiContext();
     _treeRefresh?.();
     _codeLensRefresh?.();
 }

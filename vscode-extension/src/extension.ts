@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext): void {
     initState(collection, bar, channel);
     // Start in the pre-analysis state so viewsWelcome shows Get Started / Analyze.
     void vscode.commands.executeCommand('setContext', 'slop.hasAnalyzed', false);
-    channel.appendLine('[*] AI SLOP Detector v3.8.3 activated');
+    channel.appendLine('[*] AI SLOP Detector v3.8.7 activated');
 
     context.subscriptions.push(collection, bar, channel);
 
@@ -72,7 +72,7 @@ export function activate(context: vscode.ExtensionContext): void {
         ['slop-detector.addFileToIgnore',         (relPath: string) => addFileToIgnore(relPath)],
         ['slop-detector.addModuleToAllowlist',    (mod: string) => addModuleToAllowlist(mod)],
         // P3: TreeView refresh
-        ['slop-detector.refreshTree',        () => treeProvider.refresh()],
+        ['slop-detector.refreshTree',        analyzeWorkspace],
     ];
     for (const [id, handler] of cmds) {
         context.subscriptions.push(vscode.commands.registerCommand(id, handler));

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { fileResults } from './state';
+import { fileResults, isFlaggedResult } from './state';
 
 type ItemType = 'empty' | 'file' | 'metric' | 'issue';
 
@@ -32,11 +32,11 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
 
     private _rootItems(): SlopItem[] {
         const entries = [...fileResults.entries()]
-            .filter(([, r]) => (r.deficit_score || 0) >= 0)
+            .filter(([, r]) => isFlaggedResult(r))
             .sort(([, a], [, b]) => (b.deficit_score || 0) - (a.deficit_score || 0));
 
-        // Empty -> return [] so the declarative viewsWelcome (with Get Started
-        // and Analyze actions) renders instead of an inert placeholder row.
+        // Empty -> return [] so the declarative viewsWelcome renders the
+        // pre-scan or clean-workspace state instead of inert placeholder rows.
         if (entries.length === 0) {
             return [];
         }

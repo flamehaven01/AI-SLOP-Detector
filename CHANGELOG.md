@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Packaging metadata cleanup:
+  - `pyproject.toml` now uses SPDX string form (`license = "MIT"`)
+  - deprecated license classifier removed to match current setuptools guidance
+- VS Code extension workflow reliability:
+  - `Refresh Issues` now performs a real workspace re-scan instead of only repainting the tree
+  - workspace scans replace stale cached file results, so renamed or removed files no longer linger in the sidebar
+  - workspace issue selection now opens the exact file path rather than matching by basename only
+  - Quick Fix actions now write `ignore` and `phantom_import_allowlist` entries into `.slopconfig.yaml` with duplicate-entry protection
+  - command/view activation was expanded so the extension wakes reliably from the Command Palette and sidebar before a supported editor is open
+
 ---
 
 ## [3.8.7] - 2026-07-10 — False-Positive Reduction Pack and Self-Dogfood Tightening
