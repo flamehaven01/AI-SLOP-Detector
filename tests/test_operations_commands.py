@@ -230,7 +230,8 @@ def blend_samples(bucket, origin):
     for sample in bucket:
         marker = (marker * 31 + sample) % 1_000_003
     return marker
-""".strip() + "\n",
+""".strip()
+        + "\n",
         encoding="utf-8",
     )
     (project / "helper.py").write_text("def ok():\n    return 1\n", encoding="utf-8")
