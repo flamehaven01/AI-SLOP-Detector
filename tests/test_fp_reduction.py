@@ -37,16 +37,14 @@ def ddc():
 # ① Annotation-only import — argparse.Namespace style FP
 # ---------------------------------------------------------------------------
 
-ANNOTATION_ONLY_SRC = textwrap.dedent(
-    """
+ANNOTATION_ONLY_SRC = textwrap.dedent("""
     import argparse
     import os
 
     def run(ns: argparse.Namespace) -> None:
         path = os.path.join("/tmp", "out")
         print(path)
-"""
-).strip()
+""").strip()
 
 
 def test_annotation_only_import_not_flagged_as_unused(ddc):
@@ -77,14 +75,12 @@ def test_annotation_only_file_is_clean(detector):
 # ② noqa: F401 — re-export pattern
 # ---------------------------------------------------------------------------
 
-NOQA_REEXPORT_SRC = textwrap.dedent(
-    """
+NOQA_REEXPORT_SRC = textwrap.dedent("""
     from slop_detector.models import FileAnalysis  # noqa: F401
     from slop_detector.models import SlopStatus  # noqa: F401
 
     __version__ = "1.0.0"
-"""
-).strip()
+""").strip()
 
 
 def test_noqa_f401_imports_not_flagged(ddc):
@@ -104,15 +100,13 @@ def test_noqa_f401_usage_ratio_is_perfect(ddc):
 # ③ __all__ re-export module
 # ---------------------------------------------------------------------------
 
-ALL_REEXPORT_SRC = textwrap.dedent(
-    """
+ALL_REEXPORT_SRC = textwrap.dedent("""
     from slop_detector.models import FileAnalysis
     from slop_detector.models import SlopStatus
     from slop_detector.models import ProjectAnalysis
 
     __all__ = ["FileAnalysis", "SlopStatus", "ProjectAnalysis"]
-"""
-).strip()
+""").strip()
 
 
 def test_all_reexport_imports_not_flagged(ddc):
@@ -134,16 +128,14 @@ def test_all_reexport_file_is_clean(detector):
 # ④ __init__.py — LDR + DDC checks suppressed
 # ---------------------------------------------------------------------------
 
-INIT_SRC = textwrap.dedent(
-    """
+INIT_SRC = textwrap.dedent("""
     from .core import SlopDetector
     from .models import FileAnalysis, SlopStatus
     from .config import Config
 
     __all__ = ["SlopDetector", "FileAnalysis", "SlopStatus", "Config"]
     __version__ = "3.3.0"
-"""
-).strip()
+""").strip()
 
 
 def test_init_file_classified_as_init():
@@ -164,8 +156,7 @@ def test_init_file_is_clean(detector):
 # ⑤ File Role Classifier
 # ---------------------------------------------------------------------------
 
-DATACLASS_SRC = textwrap.dedent(
-    """
+DATACLASS_SRC = textwrap.dedent("""
     from dataclasses import dataclass, field
     from typing import List
 
@@ -179,8 +170,7 @@ DATACLASS_SRC = textwrap.dedent(
     class GateThresholds:
         max_deficit: float = 30.0
         min_ldr: float = 0.40
-"""
-).strip()
+""").strip()
 
 
 def test_dataclass_file_classified_as_model():
@@ -189,15 +179,13 @@ def test_dataclass_file_classified_as_model():
     assert role == FileRole.MODEL
 
 
-CORPUS_SRC = textwrap.dedent(
-    """
+CORPUS_SRC = textwrap.dedent("""
     # intentional slop for testing
     def foo():
         pass
     def bar():
         pass
-"""
-).strip()
+""").strip()
 
 
 def test_corpus_file_classified_as_corpus():
@@ -207,15 +195,13 @@ def test_corpus_file_classified_as_corpus():
 
 
 def test_regular_source_classified_as_source():
-    src = textwrap.dedent(
-        """
+    src = textwrap.dedent("""
         import os
         import sys
 
         def compute(x: int) -> int:
             return x * os.getpid() + sys.maxsize
-    """
-    ).strip()
+    """).strip()
     tree = ast.parse(src)
     role = classify_file("src/mymodule/logic.py", src, tree)
     assert role == FileRole.SOURCE
@@ -225,8 +211,7 @@ def test_regular_source_classified_as_source():
 # ⑥ Protocol / ABC stub file — STUB role (v3.4.1)
 # ---------------------------------------------------------------------------
 
-PROTOCOL_STUB_SRC = textwrap.dedent(
-    """
+PROTOCOL_STUB_SRC = textwrap.dedent("""
     from typing import Any, Protocol
 
     class BuilderA(Protocol):
@@ -237,8 +222,7 @@ PROTOCOL_STUB_SRC = textwrap.dedent(
 
     class Checker(Protocol):
         def __call__(self, text: str) -> tuple[int, list[str]]: ...
-"""
-).strip()
+""").strip()
 
 
 def test_protocol_stub_classified_as_stub():
@@ -276,7 +260,9 @@ def test_monorepo_backend_package_not_flagged_as_phantom(tmp_path):
     """A package rooted under a first-level monorepo directory (e.g. backend/app) must resolve."""
     from slop_detector.patterns.python_imports import PhantomImportPattern
 
-    (tmp_path / "pyproject.toml").write_text("[project]\nname='demo'\nversion='0.1.0'\n", encoding="utf-8")
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname='demo'\nversion='0.1.0'\n", encoding="utf-8"
+    )
     package_root = tmp_path / "backend" / "app"
     service_dir = package_root / "services"
     service_dir.mkdir(parents=True)
@@ -331,12 +317,7 @@ def test_declared_grpcio_extra_satisfies_grpc_import(tmp_path):
         ),
         encoding="utf-8",
     )
-    src = (
-        "try:\n"
-        "    import grpc\n"
-        "except ImportError:\n"
-        "    grpc = None\n"
-    )
+    src = "try:\n" "    import grpc\n" "except ImportError:\n" "    grpc = None\n"
     target = tmp_path / "adapter.py"
     target.write_text(src, encoding="utf-8")
 
@@ -377,8 +358,7 @@ def test_protocol_stub_is_clean(detector):
 # ⑦ Domain terminology — proof/lemma/theorem are math vocabulary, not slop
 # ---------------------------------------------------------------------------
 
-PROOF_DOMAIN_SRC = textwrap.dedent(
-    """
+PROOF_DOMAIN_SRC = textwrap.dedent("""
     from __future__ import annotations
     from pathlib import Path
     import json
@@ -399,8 +379,7 @@ PROOF_DOMAIN_SRC = textwrap.dedent(
     def emit_theorem_record(theorem_id: str, proof: dict) -> dict:
         \"\"\"Emit an audit record for a verified theorem.\"\"\"
         return {"id": theorem_id, "proof": proof}
-"""
-).strip()
+""").strip()
 
 
 def test_proof_domain_terms_not_flagged_as_jargon():
@@ -424,13 +403,11 @@ def test_proof_filename_in_comment_not_matched():
     from slop_detector.config import Config
     from slop_detector.metrics.inflation import InflationCalculator
 
-    src = textwrap.dedent(
-        """
+    src = textwrap.dedent("""
         # Imported by proof_audit_probe.py and tap_autoloop.py
         README_CANDIDATES = ["README.md", "docs/index.md"]
         PROOF_DIR = "proofs"
-    """
-    ).strip()
+    """).strip()
     tree = _ast.parse(src)
     calc = InflationCalculator(Config())
     result = calc.calculate("shared.py", src, tree)
@@ -444,8 +421,7 @@ def test_proof_filename_in_comment_not_matched():
 # ⑧ CLI dispatcher — cmd_* functions with dispatch table must not clone-flag
 # ---------------------------------------------------------------------------
 
-CLI_DISPATCHER_SRC = textwrap.dedent(
-    """
+CLI_DISPATCHER_SRC = textwrap.dedent("""
     import argparse
 
     def cmd_init(args: argparse.Namespace) -> int:
@@ -491,8 +467,7 @@ CLI_DISPATCHER_SRC = textwrap.dedent(
             "release": cmd_release,
         }
         return dispatch[args.command](args)
-"""
-).strip()
+""").strip()
 
 
 def test_cli_dispatcher_not_flagged_as_clone_cluster():
@@ -514,8 +489,7 @@ def test_cli_dispatcher_not_flagged_as_clone_cluster():
 # ⑨ Argparse god function — declarative setup with complexity < 4 must not fire
 # ---------------------------------------------------------------------------
 
-ARGPARSE_MAIN_SRC = textwrap.dedent(
-    """
+ARGPARSE_MAIN_SRC = textwrap.dedent("""
     import argparse
     import sys
 
@@ -561,8 +535,7 @@ ARGPARSE_MAIN_SRC = textwrap.dedent(
 
     if __name__ == "__main__":
         sys.exit(main())
-"""
-).strip()
+""").strip()
 
 
 def test_argparse_main_not_flagged_as_god_function():
@@ -585,8 +558,7 @@ def test_argparse_main_not_flagged_as_god_function():
 # ⑩ ABC / abstract method FP suite (v3.7.4)
 # ---------------------------------------------------------------------------
 
-ABC_STUB_SRC = textwrap.dedent(
-    """
+ABC_STUB_SRC = textwrap.dedent("""
     from abc import ABC, abstractmethod
     from typing import Optional
 
@@ -614,8 +586,7 @@ ABC_STUB_SRC = textwrap.dedent(
 
         def find_docs(self, store_name: str, query: dict) -> list:
             return []
-"""
-).strip()
+""").strip()
 
 
 def test_abstract_ellipsis_not_flagged_as_ellipsis_placeholder():
@@ -670,8 +641,7 @@ def test_abstract_methods_excluded_from_clone_cluster():
 
     from slop_detector.patterns.python_clones import FunctionClonePattern
 
-    src = textwrap.dedent(
-        """
+    src = textwrap.dedent("""
         from abc import ABC, abstractmethod
 
         class BigInterface(ABC):
@@ -698,8 +668,7 @@ def test_abstract_methods_excluded_from_clone_cluster():
             for i in range(x):
                 total += i * i
             return total
-    """
-    ).strip()
+    """).strip()
 
     tree = _ast.parse(src)
     pattern = FunctionClonePattern()
@@ -716,8 +685,7 @@ def test_fastapi_router_not_flagged_as_clone_cluster():
 
     from slop_detector.patterns.python_clones import FunctionClonePattern
 
-    src = textwrap.dedent(
-        """
+    src = textwrap.dedent("""
         from fastapi import APIRouter, HTTPException
 
         router = APIRouter()
@@ -763,8 +731,7 @@ def test_fastapi_router_not_flagged_as_clone_cluster():
                 return {"created": True}
             except Exception:
                 raise HTTPException(status_code=400)
-    """
-    ).strip()
+    """).strip()
 
     tree = _ast.parse(src)
     pattern = FunctionClonePattern()
@@ -781,8 +748,7 @@ def test_property_accessors_not_flagged_as_clone_cluster():
 
     from slop_detector.patterns.python_clones import FunctionClonePattern
 
-    src = textwrap.dedent(
-        """
+    src = textwrap.dedent("""
         from dataclasses import dataclass, field
 
         @dataclass
@@ -804,8 +770,7 @@ def test_property_accessors_not_flagged_as_clone_cluster():
             @property
             def degraded(self) -> int:
                 return sum(1 for status in self.checks.values() if status == "DEGRADED_PASS")
-        """
-    ).strip()
+        """).strip()
 
     tree = _ast.parse(src)
     pattern = FunctionClonePattern()
@@ -822,8 +787,7 @@ def test_mixed_size_verifier_helpers_not_flagged_as_clone_cluster():
 
     from slop_detector.patterns.python_clones import FunctionClonePattern
 
-    src = textwrap.dedent(
-        """
+    src = textwrap.dedent("""
         import argparse
 
         def evaluate_receipt_signature(payload: dict, keyring: dict | None) -> dict:
@@ -911,8 +875,7 @@ def test_mixed_size_verifier_helpers_not_flagged_as_clone_cluster():
             if args.require_authenticity and args.profile == "baseline":
                 return 1
             return 0
-    """
-    ).strip()
+    """).strip()
 
     tree = _ast.parse(src)
     pattern = FunctionClonePattern()
