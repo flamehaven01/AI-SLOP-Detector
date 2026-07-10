@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+import slop_detector.languages.js_analyzer as js_analyzer_module
 from slop_detector.languages.js_analyzer import JSAnalyzer, JSFileAnalysis
 
 # ---------------------------------------------------------------------------
@@ -67,6 +68,45 @@ EMPTY_ARROWS = """\
 const a = () => {};
 const b = () => {};
 const c = () => {};
+"""
+
+TSX_RENDER_TREE = """\
+import { useState } from "react";
+
+export default function Widget() {
+    const [tab, setTab] = useState("overview");
+    return (
+        <div className="card">
+            {["overview", "signals", "risk"].map((item) => (
+                <button
+                    key={item}
+                    onClick={() => setTab(item)}
+                    style={{ borderColor: tab === item ? "#111" : "#ccc" }}
+                >
+                    {item}
+                </button>
+            ))}
+        </div>
+    );
+}
+"""
+
+NESTED_CALLBACKS = """\
+function run(queue) {
+    queue.forEach((item) => {
+        if (item.ready) {
+            item.tasks.forEach((task) => {
+                if (task.enabled) {
+                    task.steps.forEach((step) => {
+                        if (step.active) {
+                            console.log(step.name);
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
 """
 
 
@@ -212,6 +252,22 @@ class TestIssueDetectionRegex:
             assert "severity" in d
             assert "line" in d
             assert "message" in d
+
+    def test_tsx_render_tree_does_not_trigger_callback_hell_in_regex_mode(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setattr(js_analyzer_module, "_TS_AVAILABLE", False)
+        path = _write_js(tmp_path, "Widget.tsx", TSX_RENDER_TREE)
+        result = JSAnalyzer().analyze(path)
+        assert all(issue.pattern_id != "js_callback_hell" for issue in result.issues)
+
+    def test_nested_callbacks_still_trigger_callback_hell_in_regex_mode(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setattr(js_analyzer_module, "_TS_AVAILABLE", False)
+        path = _write_js(tmp_path, "queue.js", NESTED_CALLBACKS)
+        result = JSAnalyzer().analyze(path)
+        assert any(issue.pattern_id == "js_callback_hell" for issue in result.issues)
 
 
 # ---------------------------------------------------------------------------

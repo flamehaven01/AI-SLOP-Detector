@@ -272,6 +272,28 @@ def test_sibling_module_not_flagged_as_phantom(tmp_path):
     assert not phantom_ids, f"Sibling module 'my_helper' must not be a phantom: {issues}"
 
 
+def test_monorepo_backend_package_not_flagged_as_phantom(tmp_path):
+    """A package rooted under a first-level monorepo directory (e.g. backend/app) must resolve."""
+    from slop_detector.patterns.python_imports import PhantomImportPattern
+
+    (tmp_path / "pyproject.toml").write_text("[project]\nname='demo'\nversion='0.1.0'\n", encoding="utf-8")
+    package_root = tmp_path / "backend" / "app"
+    service_dir = package_root / "services"
+    service_dir.mkdir(parents=True)
+    (package_root / "__init__.py").write_text("", encoding="utf-8")
+    (service_dir / "__init__.py").write_text("", encoding="utf-8")
+    (service_dir / "jobs.py").write_text("def run(): return 1\n", encoding="utf-8")
+
+    src = "from app.services.jobs import run\n\ndef main():\n    return run()\n"
+    target = package_root / "main.py"
+    target.write_text(src, encoding="utf-8")
+
+    tree = ast.parse(src)
+    issues = PhantomImportPattern().check(tree, target, src)
+    phantom_ids = [i.pattern_id for i in issues if i.pattern_id == "phantom_import"]
+    assert not phantom_ids, f"Monorepo package 'app' must not be a phantom: {issues}"
+
+
 def test_phantom_import_allowlist_respected(tmp_path):
     """Modules in the allowlist must never be flagged as phantom imports."""
     from slop_detector.patterns.python_imports import PhantomImportPattern
@@ -291,6 +313,37 @@ def test_phantom_import_allowlist_respected(tmp_path):
     assert any(
         "another_fake_pkg" in m for m in flagged_names
     ), "Non-allowlisted phantom must still be flagged"
+
+
+def test_declared_grpcio_extra_satisfies_grpc_import(tmp_path):
+    """A declared grpcio extra must satisfy guarded `import grpc` usage."""
+    from slop_detector.patterns.python_imports import PhantomImportPattern
+
+    (tmp_path / "pyproject.toml").write_text(
+        "\n".join(
+            [
+                "[project]",
+                "name = 'demo'",
+                "version = '0.1.0'",
+                "[project.optional-dependencies]",
+                "alphagenome = ['grpcio>=1.74']",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    src = (
+        "try:\n"
+        "    import grpc\n"
+        "except ImportError:\n"
+        "    grpc = None\n"
+    )
+    target = tmp_path / "adapter.py"
+    target.write_text(src, encoding="utf-8")
+
+    tree = ast.parse(src)
+    issues = PhantomImportPattern().check(tree, target, src)
+    phantom_ids = [i.pattern_id for i in issues if i.pattern_id == "phantom_import"]
+    assert not phantom_ids, f"Declared grpcio extra must satisfy `import grpc`: {issues}"
 
 
 def test_discover_sibling_modules_returns_stems(tmp_path):
@@ -720,6 +773,154 @@ def test_fastapi_router_not_flagged_as_clone_cluster():
     assert (
         clone_issues == []
     ), f"FastAPI router wrongly flagged as clone cluster: {[i.message for i in clone_issues]}"
+
+
+def test_property_accessors_not_flagged_as_clone_cluster():
+    """Read-only summary properties must not be treated as fragmented clone logic."""
+    import ast as _ast
+
+    from slop_detector.patterns.python_clones import FunctionClonePattern
+
+    src = textwrap.dedent(
+        """
+        from dataclasses import dataclass, field
+
+        @dataclass
+        class Summary:
+            checks: dict[str, str] = field(default_factory=dict)
+
+            @property
+            def passed(self) -> int:
+                return sum(1 for status in self.checks.values() if status == "PASS")
+
+            @property
+            def failed(self) -> int:
+                return sum(1 for status in self.checks.values() if status == "FAIL")
+
+            @property
+            def skipped(self) -> int:
+                return sum(1 for status in self.checks.values() if status == "SKIPPED")
+
+            @property
+            def degraded(self) -> int:
+                return sum(1 for status in self.checks.values() if status == "DEGRADED_PASS")
+        """
+    ).strip()
+
+    tree = _ast.parse(src)
+    pattern = FunctionClonePattern()
+    issues = pattern.check(tree, "results.py", src)
+    clone_issues = [i for i in issues if i.pattern_id == "function_clone_cluster"]
+    assert (
+        clone_issues == []
+    ), f"Property accessors wrongly flagged as clone cluster: {[i.message for i in clone_issues]}"
+
+
+def test_mixed_size_verifier_helpers_not_flagged_as_clone_cluster():
+    """Verifier files with similar control flow but very different function sizes must not chain into a clone cluster."""
+    import ast as _ast
+
+    from slop_detector.patterns.python_clones import FunctionClonePattern
+
+    src = textwrap.dedent(
+        """
+        import argparse
+
+        def evaluate_receipt_signature(payload: dict, keyring: dict | None) -> dict:
+            algorithm = payload.get("algorithm")
+            signature = payload.get("signature")
+            public_key = payload.get("public_key")
+            key_id = payload.get("key_id")
+            if not all(isinstance(item, str) and item.strip() for item in (algorithm, signature, public_key)):
+                return {"trust": "NO_SIGNATURE", "valid": None, "key_id": None}
+            if algorithm != "Ed25519":
+                return {"trust": "ALGO_UNSUPPORTED", "valid": False, "key_id": key_id}
+            if keyring is None:
+                return {"trust": "NO_KEYRING_SELF_ATTESTED", "valid": True, "key_id": key_id}
+            if not key_id:
+                return {"trust": "KEYRING_UNKNOWN", "valid": None, "key_id": None}
+            entry = keyring.get(key_id)
+            if entry is None:
+                return {"trust": "KEYRING_UNKNOWN", "valid": None, "key_id": key_id}
+            if entry.get("status") == "revoked":
+                return {"trust": "KEYRING_REVOKED", "valid": None, "key_id": key_id}
+            trusted_pub = entry.get("public_key")
+            if trusted_pub != public_key:
+                return {"trust": "KEY_BINDING_MISMATCH", "valid": False, "key_id": key_id}
+            return {"trust": "KEYRING_TRUSTED", "valid": True, "key_id": key_id}
+
+        def evaluate_governance_attestation(payload: dict, keyring: dict | None) -> dict:
+            algorithm = payload.get("algorithm")
+            signature = payload.get("signature")
+            public_key = payload.get("public_key")
+            key_id = payload.get("key_id")
+            root_ok = payload.get("root_ok") is True
+            if not all(isinstance(item, str) and item.strip() for item in (algorithm, signature, public_key)):
+                return {"trust": "NO_SIGNATURE", "valid": None, "key_id": None, "root_ok": root_ok}
+            if algorithm != "Ed25519":
+                return {"trust": "ALGO_UNSUPPORTED", "valid": False, "key_id": key_id, "root_ok": root_ok}
+            if keyring is None:
+                return {"trust": "NO_KEYRING_SELF_ATTESTED", "valid": True, "key_id": key_id, "root_ok": root_ok}
+            if not key_id:
+                return {"trust": "KEYRING_UNKNOWN", "valid": None, "key_id": None, "root_ok": root_ok}
+            entry = keyring.get(key_id)
+            if entry is None:
+                return {"trust": "KEYRING_UNKNOWN", "valid": None, "key_id": key_id, "root_ok": root_ok}
+            if entry.get("status") == "revoked":
+                return {"trust": "KEYRING_REVOKED", "valid": None, "key_id": key_id, "root_ok": root_ok}
+            role = entry.get("role")
+            if isinstance(role, str) and role.strip() and role != "governance":
+                return {"trust": "ROLE_MISMATCH", "valid": None, "key_id": key_id, "root_ok": root_ok}
+            trusted_pub = entry.get("public_key")
+            if trusted_pub != public_key:
+                return {"trust": "KEY_BINDING_MISMATCH", "valid": False, "key_id": key_id, "root_ok": root_ok}
+            return {"trust": "KEYRING_TRUSTED", "valid": True, "key_id": key_id, "root_ok": root_ok}
+
+        def verify_audit_chain(lines: list[str]) -> tuple[bool, list[str]]:
+            breaks = []
+            expected_prev = None
+            strict_seen = False
+            for raw_line in lines:
+                if not raw_line.strip():
+                    continue
+                entry = {"index": 1, "prev_hash": "a", "anchor_hash": "b", "verification_backend_mode": raw_line}
+                if expected_prev is not None and entry["prev_hash"] != expected_prev:
+                    breaks.append("prev hash mismatch")
+                mode = entry.get("verification_backend_mode")
+                if isinstance(mode, str) and mode.strip():
+                    normalized_mode = mode.strip()
+                    if strict_seen and normalized_mode == "STRUCTURAL_ONLY_SANDBOX":
+                        breaks.append("downgrade")
+                    if normalized_mode == "STRICT_EXTERNAL":
+                        strict_seen = True
+                expected_prev = entry["anchor_hash"]
+            return len(breaks) == 0, breaks
+
+        def main() -> int:
+            parser = argparse.ArgumentParser()
+            parser.add_argument("--artifacts", required=True)
+            parser.add_argument("--trusted-keys")
+            parser.add_argument("--require-authenticity", action="store_true")
+            parser.add_argument("--require-governance", action="store_true")
+            parser.add_argument("--require-external-anchor", action="store_true")
+            parser.add_argument("--profile", choices=("baseline", "strict-partner"), default="baseline")
+            parser.add_argument("--pretty", action="store_true")
+            args = parser.parse_args()
+            if args.pretty:
+                return 0
+            if args.require_authenticity and args.profile == "baseline":
+                return 1
+            return 0
+    """
+    ).strip()
+
+    tree = _ast.parse(src)
+    pattern = FunctionClonePattern()
+    issues = pattern.check(tree, "verifier.py", src)
+    clone_issues = [i for i in issues if i.pattern_id == "function_clone_cluster"]
+    assert (
+        clone_issues == []
+    ), f"Verifier-like mixed-size helpers wrongly triggered clone cluster: {[i.message for i in clone_issues]}"
 
 
 def test_extras_declared_optional_dep_not_flagged_as_phantom():

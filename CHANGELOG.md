@@ -11,6 +11,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.7] - 2026-07-10 — False-Positive Reduction Pack and Self-Dogfood Tightening
+
+### Changed
+
+- Default ignore coverage now skips Claude worktree snapshots under `.claude/**`
+  so transient agent scratch trees do not pollute project scans.
+- DDC runtime accounting now computes the numerator from runtime-visible usage
+  only, so a library imported at runtime is not undercounted just because the
+  same package also appears in a `TYPE_CHECKING` block.
+- Inflation jargon scanning now ignores standalone quoted literals inside
+  vocabulary tables and constant lists; storing a buzzword lexicon is no longer
+  treated as rhetorical inflation.
+- JS/TS fallback callback-hell detection now counts structural control-flow /
+  function blocks instead of raw braces, and AST depth now ignores object/array
+  literals. React / TSX render trees and style objects are no longer treated as
+  nested callbacks.
+- `nested_complexity` now fires only when both depth and cyclomatic complexity
+  exceed their thresholds, matching the strictness semantics used elsewhere.
+- Tiny one-line helpers with a one-line noun-phrase docstring are now treated as
+  neutral rather than docstring inflation.
+
+### Fixed
+
+- Phantom-import discovery now scans first-level monorepo package roots (for
+  layouts like `backend/app/...`) and understands package/import alias pairs
+  such as `grpcio -> grpc` and `pyyaml -> yaml`.
+- Clone detection now requires a mutual-similarity clique plus a bounded size
+  ratio instead of using a looser connected-component chain, reducing verifier /
+  orchestrator false positives.
+- Property-only accessor groups (`@property` summary getters) are exempted from
+  clone-cluster findings.
+- Self-dogfood hotspot pressure dropped materially after the boundary fixes:
+  `AI-SLOP-DETECTOR` self-scan moved from `deficit_files = 8` to `3`, and
+  `weighted_deficit_score` improved from `9.3892` to `6.4186`.
+
+### Validation
+
+- `python -m pytest tests/test_docstring_inflation.py tests/test_patterns/test_patterns.py tests/test_fp_reduction.py tests/test_js_analyzer.py tests/test_ddc.py tests/test_inflation.py tests/test_core.py -q`
+- `python -m slop_detector.cli scan D:\\Sanctum\\AI-SLOP-DETECTOR --project --json`
+- `python -m slop_detector.cli scan D:\\Sanctum\\alecta-stock --json`
+
 ## [3.8.6] - 2026-06-15 — Strictness Stabilization, Coherence Cleanup, and Operations Split
 
 ### Added

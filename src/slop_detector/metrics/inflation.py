@@ -125,6 +125,8 @@ class InflationCalculator:
         func_scopes = self._build_function_scopes(tree, lines)
 
         for line_idx, line in enumerate(lines, 1):
+            if self._is_data_literal_entry(line):
+                continue
             line_lower = line.lower()
             for category, words in self.JARGON.items():
                 for word in words:
@@ -145,6 +147,12 @@ class InflationCalculator:
                             }
                         )
         return jargon_found, justified_jargon, jargon_details
+
+    @staticmethod
+    def _is_data_literal_entry(line: str) -> bool:
+        """Return True for standalone quoted literals inside list-like vocab tables."""
+        stripped = line.strip()
+        return bool(re.fullmatch(r"[rubfRUBF]{0,2}([\"\']).*?\1,?", stripped))
 
     # Minimum denominator for jargon density: prevents single hits in tiny files
     # (e.g. a 7-line constants file) from producing disproportionately high scores.

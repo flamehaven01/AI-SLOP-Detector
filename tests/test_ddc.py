@@ -445,6 +445,26 @@ def env(key: str) -> Optional[str]:
     assert (
         result.usage_ratio == 1.0
     ), f"Expected 1.0 but got {result.usage_ratio} — annotation modules may be inflating denominator"
+
+
+def test_runtime_import_not_lost_when_same_lib_appears_in_type_checking(ddc_calc):
+    """A runtime import must still count when the same library also appears under TYPE_CHECKING."""
+    code = """
+from typing import TYPE_CHECKING
+import cryptography.hazmat.primitives.serialization as serialization  # noqa: F401
+
+if TYPE_CHECKING:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+def export_public_bytes(pub):
+    return serialization.Encoding.Raw
+"""
+    tree = ast.parse(code)
+    result = ddc_calc.calculate("test.py", code, tree)
+
+    assert "cryptography" in result.imported
+    assert "cryptography" in result.actually_used
+    assert result.usage_ratio == 1.0
     assert result.grade == "EXCELLENT"
 
 

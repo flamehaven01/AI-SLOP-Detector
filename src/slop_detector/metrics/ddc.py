@@ -87,8 +87,9 @@ class DDCCalculator:
         # are excluded from BOTH numerator and denominator — they are not "unused",
         # they are simply not expected to have a runtime footprint.
         runtime_imports = all_imported_libs - excluded
+        runtime_used = actually_used & runtime_imports
         total_runtime = len(runtime_imports)
-        usage_ratio = len(actually_used) / total_runtime if total_runtime > 0 else 1.0
+        usage_ratio = len(runtime_used) / total_runtime if total_runtime > 0 else 1.0
 
         # Determine grade
         if usage_ratio >= 0.90:

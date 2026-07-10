@@ -23,10 +23,10 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.8.6`
-- Previous stable tag: `v3.8.5`
-- `v3.8.5` makes output dual-audience: the human summary hides internal algorithm names (no more `vr_structural (exact MST)`), while the JSON / agent / MCP output gains `next_steps` and `metric_guide` so AI agents receive the same actionable plan and metric semantics. JSON `coherence_level` is unchanged; new keys are additive.
-- `v3.8.6` tightens strictness and coherence: same-file exact duplicates now reach cleanup output, four-function clone clusters no longer evade detection, dead-code cleanup semantics require real dead-code evidence, `operations.py` is split into focused helper modules, and the Claude Code skill/docs now match the canonical `scan / review / pulse / sweep` surface.
+- Stable tag: `v3.8.7`
+- Previous stable tag: `v3.8.6`
+- `v3.8.7` is a false-positive reduction pass: `.claude/**` worktrees are ignored by default, JS/TS fallback callback-hell detection no longer confuses JSX or object-literal braces for nested callbacks, phantom-import resolution now understands monorepo package roots plus aliases like `grpcio -> grpc`, clone grouping uses a stricter clique+size model with property-accessor exemptions, and self-dogfood weighted deficit improves from `9.3892` to `6.4186`.
+- `v3.8.6` tightened strictness and coherence: same-file exact duplicates reached cleanup output, four-function clone clusters no longer evaded detection, dead-code cleanup semantics now require real dead-code evidence, `operations.py` is split into focused helper modules, and the Claude Code skill/docs now match the canonical `scan / review / pulse / sweep` surface.
 
 ---
 
@@ -101,7 +101,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.8.6"
+pip install "ai-slop-detector>=3.8.7"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -114,7 +114,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.8.6"
+pip install "ai-slop-detector>=3.8.7"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -824,6 +824,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.8.7** | false-positive reduction pack: default `.claude/**` ignore, runtime-only DDC accounting, quoted vocabulary tables no longer counted as inflation, monorepo + alias-aware phantom import detection, clique+size clone grouping with property-accessor exemption, JS/TS fallback callback-hell no longer confused by JSX/object literals, tiny helper docstrings ignored, and self-dogfood weighted deficit improved from `9.3892` to `6.4186` |
 | **v3.8.6** | strictness stabilization + coherence cleanup: same-file exact duplicates now surface in cleanup output, four-function clone clusters no longer evade detection, dead-code cleanup requires real dead-code evidence, `operations.py` is split into payload/cleanup/architecture helpers, and Claude skill/docs now match the canonical `scan` / `review` / `pulse` / `sweep` surface |
 | **v3.8.5** | dual-audience output: human summaries hide internal algorithm names while JSON / agent / MCP output gains deterministic `next_steps` and `metric_guide`; no breaking JSON key changes |
 | **v3.8.4** | plain-language documentation entry point: benefit-first README, honest “Why Not Just Use a Linter?” / “When NOT to Use This”, acronym glossary in HOW_IT_WORKS, and plain-meaning config guidance without changing code or contracts |

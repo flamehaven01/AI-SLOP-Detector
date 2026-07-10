@@ -39,6 +39,7 @@ from slop_detector.suppression_handler import SuppressionHandler
 
 logger = logging.getLogger(__name__)
 DEFAULT_EXCLUDE_PARTS = {
+    ".claude",
     ".venv",
     "venv",
     "site-packages",
@@ -95,7 +96,6 @@ class SlopDetector:
                 phantom_import_allowlist=self.config.get_phantom_import_allowlist(),
             )
         )
-
         # Disable patterns from config
         disabled = self.config.get("patterns.disabled", [])
         for pattern_id in disabled:

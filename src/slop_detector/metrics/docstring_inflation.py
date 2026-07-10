@@ -153,6 +153,7 @@ class DocstringInflationDetector:
         self, node: DocstringNode, content: str
     ) -> Optional[DocstringInflationDetail]:
         """Analyze a function or class for docstring inflation."""
+        del content
         docstring = ast.get_docstring(node)
         if not docstring:
             return None
@@ -164,6 +165,11 @@ class DocstringInflationDetector:
 
         if impl_lines == 0:
             # Special case: interface-only (handled by placeholder patterns)
+            return None
+
+        # Tiny helpers often need a short noun-phrase docstring even when the
+        # implementation is a single return/raise line; treat those as neutral.
+        if docstring_lines <= 1 and impl_lines <= 2:
             return None
 
         ratio = docstring_lines / impl_lines

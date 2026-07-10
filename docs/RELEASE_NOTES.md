@@ -5,6 +5,69 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.8.7 — 2026-07-10
+
+### Summary
+
+This release is a focused false-positive reduction pass driven by cross-domain
+dogfooding and then verified against the detector's own repository. The work
+ narrows several boundary conditions where structurally valid code was being
+ misread as slop: TSX render trees vs callback hell, vocabulary tables vs
+ jargon inflation, runtime imports vs `TYPE_CHECKING`, monorepo package roots
+ vs phantom imports, and tiny helper docstrings vs inflation.
+
+### Changed
+
+**Default ignore boundary**
+- `.claude/**` is now ignored by default so agent worktree snapshots do not
+  count as project code.
+
+**Metric semantics**
+- DDC now computes runtime usage ratio from runtime-visible imports only.
+- Inflation now skips standalone quoted literals in list/table data.
+- Docstring inflation ignores trivial one-line helper + one-line docstring
+  pairs.
+- `nested_complexity` now requires both dimensions to exceed, not merely meet,
+  the configured thresholds.
+
+**JS/TS fallback analysis**
+- regex-mode callback-hell inference now counts structural control-flow and
+  function blocks instead of raw braces
+- AST depth ignores object / array literals when computing nesting
+- React / TSX render trees no longer trip callback-hell just because they
+  contain JSX or style-object braces
+
+### Fixed
+
+**Phantom import detection**
+- first-level monorepo package roots are now scanned during local package
+  discovery
+- dependency/import aliases such as `grpcio -> grpc` and `pyyaml -> yaml` are
+  now treated as satisfied
+
+**Clone detection**
+- clone grouping now requires a maximal mutual-similarity clique plus a
+  size-ratio cap
+- property accessor clusters are exempted from clone warnings
+
+**Self-dogfood result**
+- self-scan deficit files improved from `8` to `3`
+- self-scan weighted deficit score improved from `9.3892` to `6.4186`
+- removed hotspot set includes:
+  - `analysis/cross_file.py`
+  - `ml/pipeline.py`
+  - `ignore_handler.py`
+  - `patterns/python_clones.py`
+  - `scripts/leda_helper.py`
+
+### Validation
+
+- `python -m pytest tests/test_docstring_inflation.py tests/test_patterns/test_patterns.py tests/test_fp_reduction.py tests/test_js_analyzer.py tests/test_ddc.py tests/test_inflation.py tests/test_core.py -q`
+- `python -m slop_detector.cli scan D:\\Sanctum\\AI-SLOP-DETECTOR --project --json`
+- `python -m slop_detector.cli scan D:\\Sanctum\\alecta-stock --json`
+
+---
+
 ## v3.8.6 — 2026-06-15
 
 ### Summary

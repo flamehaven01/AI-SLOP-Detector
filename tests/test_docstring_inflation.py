@@ -65,3 +65,18 @@ import os
     # Docstring is 3 lines -> ratio 3.0 -> critical/warning
     assert len(result.details) > 0
     assert result.details[0].type == "module"
+
+
+def test_trivial_one_line_helper_docstring_is_not_flagged(detector):
+    """A one-line helper with a one-line docstring should not count as inflation."""
+    code = '''
+def _log_likelihood(x):
+    """Gaussian log-likelihood."""
+    return x
+'''
+    tree = ast.parse(code)
+    result = detector.analyze("test.py", code, tree)
+
+    assert result.inflated_count == 0
+    assert result.details == []
+    assert result.status == "PASS"

@@ -316,7 +316,7 @@ class NestedComplexityPattern(BasePattern):
             depth = _max_nesting_depth(node)
             cc = _cyclomatic_complexity(node)
             depth_limit, cc_limit = self._thresholds_for(node.name)
-            if depth >= depth_limit and cc >= cc_limit:
+            if depth > depth_limit and cc > cc_limit:
                 issues.append(
                     self.create_issue(
                         file=file,

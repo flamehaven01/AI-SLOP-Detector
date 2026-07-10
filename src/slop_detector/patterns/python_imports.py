@@ -91,6 +91,11 @@ def _find_project_root(file_path: Path) -> Optional[Path]:
 
 _EXTRAS_RE = re.compile(r"\[.*?\]")
 
+_PACKAGE_IMPORT_ALIASES: Dict[str, FrozenSet[str]] = {
+    "grpcio": frozenset({"grpc"}),
+    "pyyaml": frozenset({"yaml"}),
+}
+
 
 def _add_dep_names(dep_list: List[str], packages: set) -> None:
     """Parse PEP-508 dependency strings and add canonical names.
@@ -104,6 +109,8 @@ def _add_dep_names(dep_list: List[str], packages: set) -> None:
             continue
         canon = name.replace("-", "_").lower()
         packages.add(canon)
+        for alias in _PACKAGE_IMPORT_ALIASES.get(canon, frozenset()):
+            packages.add(alias)
         for prefix in ("flamehaven_", "flame_", "py", "python_"):
             if canon.startswith(prefix) and len(canon) > len(prefix) + 1:
                 packages.add(canon[len(prefix) :])
@@ -168,6 +175,16 @@ def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
     if src_dir.is_dir():
         _scan_dir(src_dir)
     _scan_dir(project_root)
+    try:
+        for child in project_root.iterdir():
+            if (
+                child.is_dir()
+                and child.name not in _SKIP_LAYOUT_DIRS
+                and not child.name.startswith(".")
+            ):
+                _scan_dir(child)
+    except OSError as exc:
+        logger.debug("Cannot iterate project root %s: %s", project_root, exc)
     _augment_from_pyproject(project_root, packages, _scan_dir)
 
     result = frozenset(packages)

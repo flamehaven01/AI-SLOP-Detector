@@ -14,6 +14,13 @@ test fixtures — does not constitute validation. The benchmark artifacts and th
 tool share the same author, the same assumptions, and the same definition of what
 "slop" looks like. That circularity cannot be resolved from the inside.
 
+What self-dogfooding *does* provide is regression detection. For example, the
+v3.8.7 false-positive reduction pass intentionally used self-scan only as an
+operational sanity check: hotspot count, weighted deficit score, and specific
+file-level findings were expected to move in a direction consistent with the
+boundary fixes, but that movement is still not evidence of independent
+validation.
+
 ---
 
 ## What Independent Validation Requires

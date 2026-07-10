@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.8.6
-**Last Updated:** 2026-06-16
+**Version:** 3.8.7
+**Last Updated:** 2026-07-10
 
 ---
 
@@ -876,5 +876,5 @@ slop-detector scan ./src --format json
 
 ---
 
-**Last Updated:** 2026-06-05
-**Version:** 3.8.2
+**Last Updated:** 2026-07-10
+**Version:** 3.8.7

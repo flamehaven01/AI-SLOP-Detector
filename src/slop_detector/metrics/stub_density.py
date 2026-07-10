@@ -7,7 +7,7 @@ Two orthogonal measures of code structural quality derived from AST analysis:
    Extends placeholder pattern detection to the file level.
    (See also: patterns/placeholder.py ReturnConstantStubPattern)
 
-2. function_clone_count: largest group of functions with near-identical
+2. function_clone_count: largest clique of functions with near-identical
    AST node-type distributions, computed via Jensen-Shannon Divergence.
 
    Addresses the complexity_hidden_in_helpers evasion (SPAR A4):
@@ -19,7 +19,8 @@ Algorithm (adapted from Protocol-ReGenesis math_models.py, which ports
 Flamehaven-TOE v4.5.0 toe/math/di2.py):
   - ast_node_histogram(func_node) -> normalized 30-dim vector
   - jsd(p, q) -> [0, 1] (0 = identical distributions)
-  - clone group: set of functions where all pairwise JSD < CLONE_JSD_THRESHOLD
+  - clone group: maximal clique of functions with JSD < CLONE_JSD_THRESHOLD
+    and size ratio <= CLONE_SIZE_RATIO_THRESHOLD
 
 Zero external dependencies (pure Python + ast stdlib).
 """
@@ -42,6 +43,11 @@ _MIN_FUNCTIONS_FOR_CLONE = 4
 
 # Two functions are "clones" if JSD of their AST vectors < this threshold
 _CLONE_JSD_THRESHOLD = 0.05
+
+# Clone candidates must also be of comparable size. This prevents a large
+# verifier/orchestrator and a smaller CLI entrypoint from being chained into
+# one clone cluster by coarse histogram similarity alone.
+_CLONE_SIZE_RATIO_THRESHOLD = 1.5
 
 # Clone group size thresholds
 _CLONE_HIGH_THRESHOLD = 6  # >= 6 clones -> HIGH
@@ -209,7 +215,7 @@ def _is_stub_body(func: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
 def _find_largest_clone_group(
     funcs: List[Union[ast.FunctionDef, ast.AsyncFunctionDef]],
 ) -> Tuple[int, List[str]]:
-    """Find the largest group of near-identical functions by AST JSD.
+    """Find the largest clique of near-identical functions by AST JSD.
 
     Two functions are clones if JSD(histogram_A, histogram_B) < threshold.
     Returns (group_size, list_of_names).
@@ -222,37 +228,47 @@ def _find_largest_clone_group(
         return 0, []
 
     histograms = [_node_histogram(f) for f in funcs]
+    node_counts = [sum(1 for _ in ast.walk(f)) for f in funcs]
 
-    # Build adjacency: clone_of[i] = set of j that are clones of i
-    clone_edges: List[List[int]] = [[] for _ in range(n)]
+    # Build adjacency for mutually clone-like functions.
+    clone_edges: List[set[int]] = [set() for _ in range(n)]
     for i in range(n):
         for j in range(i + 1, n):
-            if _jsd(histograms[i], histograms[j]) < _CLONE_JSD_THRESHOLD:
-                clone_edges[i].append(j)
-                clone_edges[j].append(i)
+            smaller = min(node_counts[i], node_counts[j])
+            larger = max(node_counts[i], node_counts[j])
+            size_ratio = larger / max(1, smaller)
+            if (
+                _jsd(histograms[i], histograms[j]) < _CLONE_JSD_THRESHOLD
+                and size_ratio <= _CLONE_SIZE_RATIO_THRESHOLD
+            ):
+                clone_edges[i].add(j)
+                clone_edges[j].add(i)
 
-    # Find largest connected component (BFS)
-    visited = [False] * n
-    best_size, best_group = 0, []
+    # Find largest clique (Bron-Kerbosch). Connected components are too weak:
+    # A~B and B~C should not imply A,B,C is a clone cluster when A and C are
+    # not mutually similar.
+    best_group: List[int] = []
 
-    for start in range(n):
-        if visited[start]:
-            continue
-        queue = [start]
-        component = []
-        while queue:
-            node = queue.pop()
-            if visited[node]:
-                continue
-            visited[node] = True
-            component.append(node)
-            queue.extend(clone_edges[node])
-        if len(component) > best_size:
-            best_size = len(component)
-            best_group = component
+    def _search_clique(r: set[int], p: set[int], x: set[int]) -> None:
+        nonlocal best_group
+        if not p and not x:
+            if len(r) > len(best_group):
+                best_group = sorted(r)
+            return
+        if len(r) + len(p) <= len(best_group):
+            return
+
+        pivot = max(p | x, key=lambda idx: len(clone_edges[idx]), default=None)
+        candidates = p - (clone_edges[pivot] if pivot is not None else set())
+        for v in list(candidates):
+            _search_clique(r | {v}, p & clone_edges[v], x & clone_edges[v])
+            p.remove(v)
+            x.add(v)
+
+    _search_clique(set(), set(range(n)), set())
 
     names = [funcs[i].name for i in best_group]
-    return best_size, names
+    return len(best_group), names
 
 
 # ---------------------------------------------------------------------------

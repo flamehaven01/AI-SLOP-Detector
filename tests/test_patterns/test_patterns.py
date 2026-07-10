@@ -10,6 +10,7 @@ from slop_detector.patterns.cross_language import (
     JavaScriptPushPattern,
 )
 from slop_detector.patterns.placeholder import PassPlaceholderPattern, TodoCommentPattern
+from slop_detector.patterns.python_complexity import NestedComplexityPattern
 from slop_detector.patterns.structural import (
     BareExceptPattern,
     MutableDefaultArgPattern,
@@ -146,6 +147,24 @@ def good_function(items=None):
     for pattern in patterns:
         issues = pattern.check(tree, Path("test.py"), good_code)
         assert len(issues) == 0, f"False positive from {pattern.id}"
+
+
+def test_nested_complexity_requires_exceeding_thresholds():
+    """Exact threshold matches should not trigger the composite critical finding."""
+    code = """
+def boundary_case(flag, xs):
+    if flag:
+        for x in xs:
+            if x > 0:
+                if x % 2:
+                    return x
+    return None
+"""
+    tree = ast.parse(code)
+    pattern = NestedComplexityPattern(depth_threshold=4, cc_threshold=5)
+    issues = pattern.check(tree, Path("test.py"), code)
+
+    assert issues == []
 
 
 if __name__ == "__main__":

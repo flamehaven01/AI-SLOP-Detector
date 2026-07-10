@@ -242,6 +242,13 @@ _RE_CONSOLE_LOG = re.compile(r"\bconsole\.(log|warn|error|info)\s*\(")
 _RE_ANY_TYPE = re.compile(r":\s*any\b")
 _RE_EMPTY_ARROW = re.compile(r"=>\s*\{\s*\}")
 _RE_DOUBLE_EQUALS = re.compile(r"(?<![=!<>])==(?!=)")
+_RE_CONTROL_BLOCK_OPEN = re.compile(
+    r"^\s*(?:if|else(?:\s+if)?|for|while|switch|try|catch|finally|do)\b[^{]*\{\s*$"
+)
+_RE_FUNCTION_BLOCK_OPEN = re.compile(
+    r"(?:\bfunction\b[^{]*\{\s*$|=>\s*\{\s*$|^\s*(?!(?:if|else|for|while|switch|catch|try|finally|do)\b)(?:async\s+)?[A-Za-z_$][\w$]*\s*\([^)]*\)\s*\{\s*$)"
+)
+_RE_LEADING_CLOSES = re.compile(r"^\s*(\}+)")
 
 
 # ------------------------------------------------------------------
@@ -265,12 +272,31 @@ def _node_complexity(node: Any) -> int:
 
 def _node_max_depth(node: Any, current: int = 0) -> int:
     """Compute maximum scope nesting depth within a node."""
-    if node.type in ("statement_block", "object", "array"):
+    if node.type == "statement_block":
         current += 1
     mx = current
     for child in node.children:
         mx = max(mx, _node_max_depth(child, current))
     return mx
+
+
+def _regex_structural_open_count(line: str) -> int:
+    """Approximate control-flow / callback nesting without counting literal braces."""
+    stripped = line.strip()
+    if not stripped or "{" not in stripped:
+        return 0
+    open_count = 0
+    if _RE_CONTROL_BLOCK_OPEN.search(stripped):
+        open_count += stripped.count("{")
+    if _RE_FUNCTION_BLOCK_OPEN.search(stripped) and "=> (" not in stripped:
+        open_count += stripped.count("{")
+    return open_count
+
+
+def _regex_leading_close_count(line: str) -> int:
+    """Count block-closing braces that begin a line, ignoring inline object literals."""
+    match = _RE_LEADING_CLOSES.match(line)
+    return len(match.group(1)) if match else 0
 
 
 def _find_dead_code(node: Any) -> List[Tuple[int, int]]:
@@ -620,7 +646,8 @@ class JSAnalyzer:
                 continue
 
             code += 1
-            depth += line.count("{") - line.count("}")
+            depth = max(0, depth - _regex_leading_close_count(line))
+            depth += _regex_structural_open_count(line)
             max_depth = max(max_depth, depth)
 
             if _RE_VAR.search(line):

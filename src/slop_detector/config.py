@@ -123,6 +123,8 @@ class Config:
             ".next/**",
             "**/htmlcov/**",
             "htmlcov/**",
+            "**/.claude/**",
+            ".claude/**",
         ],
         "exceptions": {
             "abc_interface": {"enabled": True, "penalty_reduction": 0.5},

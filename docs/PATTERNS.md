@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 3.7.4
-**Last Updated:** 2026-05-19
+**Version:** 3.8.7
+**Last Updated:** 2026-07-10
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -53,7 +53,7 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 | `function_clone_cluster` | **CRITICAL** | **v3.1.0** | Near-identical function clusters via AST JSD (skips `@abstractmethod`, FastAPI routers) |
 | `placeholder_variable_naming` | HIGH | v3.1.0 | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
 | `return_constant_stub` | HIGH | v3.1.0 | Function always returns the same constant (stub pattern) |
-| `nested_complexity` | HIGH | v3.1.0 | Control-flow nesting depth ≥ 4 |
+| `nested_complexity` | CRITICAL | v3.1.0 | Composite: control-flow depth and cyclomatic complexity both exceed thresholds |
 | `console_log_debug` | MEDIUM | v3.4.0 | `console.log` debug output in JS/TS |
 | `any_type_cast` | HIGH | v3.4.0 | TypeScript `as any` / `: any` type erasure |
 | `disabled_test` | HIGH | v3.4.0 | `.skip` / `.todo` / `.xtest` in JS/TS test files |
@@ -794,7 +794,7 @@ detector.pattern_registry.register(GlobalVariablePattern())
 | Function Clone Cluster | `function_clone_cluster` | Critical | v3.1.0 | No |
 | Placeholder Naming | `placeholder_variable_naming` | High | v3.1.0 | No |
 | Return Constant Stub | `return_constant_stub` | High | v3.1.0 | No |
-| Nested Complexity | `nested_complexity` | High | v3.1.0 | No |
+| Nested Complexity | `nested_complexity` | Critical | v3.1.0 | No |
 | Console Log Debug | `console_log_debug` | Medium | JS/TS v3.4.0 | No |
 | Any Type Cast | `any_type_cast` | High | JS/TS v3.4.0 | No |
 | Disabled Test | `disabled_test` | High | JS/TS v3.4.0 | No |

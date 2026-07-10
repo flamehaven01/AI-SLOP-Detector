@@ -33,7 +33,7 @@ from slop_detector.models import (
 )
 from slop_detector.patterns.base import Axis, Issue, Severity
 
-CACHE_ENGINE_VERSION = "analysis-cache-v1"
+CACHE_ENGINE_VERSION = "analysis-cache-v8"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 

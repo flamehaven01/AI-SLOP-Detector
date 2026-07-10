@@ -56,6 +56,36 @@ def _is_dispatcher_pattern(tree: ast.AST, clone_names: List[str]) -> bool:
     return False
 
 
+def _is_property_accessor_cluster(tree: ast.AST, clone_names: List[str]) -> bool:
+    """Return True when the clone group consists only of simple @property accessors."""
+    if not clone_names:
+        return False
+
+    clone_set = set(clone_names)
+    matched = 0
+    for node in _iter_function_nodes(tree):
+        if node.name not in clone_set:
+            continue
+        decorators = node.decorator_list
+        if not any(isinstance(d, ast.Name) and d.id == "property" for d in decorators):
+            return False
+
+        body = [
+            stmt
+            for stmt in node.body
+            if not (
+                isinstance(stmt, ast.Expr)
+                and isinstance(stmt.value, ast.Constant)
+                and isinstance(stmt.value.value, str)
+            )
+        ]
+        if len(body) != 1 or not isinstance(body[0], ast.Return):
+            return False
+        matched += 1
+
+    return matched == len(clone_set)
+
+
 def _iter_function_nodes(tree: ast.AST) -> List[ast.FunctionDef | ast.AsyncFunctionDef]:
     return [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
 
@@ -223,6 +253,9 @@ class FunctionClonePattern(BasePattern):
             return []
 
         if _is_dispatcher_pattern(tree, result.clone_group_names):
+            return []
+
+        if _is_property_accessor_cluster(tree, result.clone_group_names):
             return []
 
         clone_size = result.max_clone_group

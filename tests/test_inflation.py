@@ -386,3 +386,23 @@ async def async_process():
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+def test_vocabulary_table_entries_do_not_count_as_jargon(bcr_calc):
+    """Quoted vocabulary table entries should not be treated as rhetorical inflation."""
+    code = """
+BUZZWORDS = [
+    \"byzantine\",
+    \"fault-tolerant\",
+    \"state-of-the-art\",
+    \"cutting-edge\",
+]
+
+def use_table():
+    return BUZZWORDS[0]
+"""
+    tree = ast.parse(code)
+    result = bcr_calc.calculate("test.py", code, tree)
+
+    assert result.jargon_count == 0
+    assert result.inflation_score == 0.0

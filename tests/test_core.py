@@ -585,6 +585,14 @@ def test_should_ignore(detector):
     assert detector._should_ignore(build_path, ignore_patterns) is True
 
 
+
+def test_should_ignore_claude_worktrees(detector):
+    """Claude worktree snapshots should be ignored by default."""
+    claude_path = Path("project/.claude/worktrees/session/src/module.py")
+
+    assert detector._should_ignore(claude_path, []) is True
+
+
 def test_should_ignore_with_project_root_absolute_path(detector, tmp_path):
     """Repo-relative ignore globs must still work for absolute paths."""
     test_path = tmp_path / "tests" / "test_main.py"
