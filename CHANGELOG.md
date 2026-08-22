@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Split the Python analysis core into focused scoring, topology, and project
+  aggregation modules while preserving the existing CLI and result contracts.
+
 ---
 
 ## [3.8.9] - 2026-08-22 — Trust Boundaries, Scan Evidence, and Strictness Controls
