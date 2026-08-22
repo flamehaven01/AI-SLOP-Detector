@@ -2,12 +2,15 @@
 
 import logging as _logging
 import os
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
 
 _logger = _logging.getLogger(__name__)
+
+DEFAULT_TEST_IGNORE_PATTERNS = frozenset({"tests/**", "**/*_test.py", "**/test_*.py"})
 
 # ---------------------------------------------------------------------------
 # Runtime schema guards for .slopconfig.yaml user input.
@@ -177,7 +180,10 @@ class Config:
 
     def __init__(self, config_path: Optional[str] = None):
         """Initialize config from file or use defaults."""
-        self.config: Dict[str, Any] = self.DEFAULT_CONFIG.copy()
+        # Runtime CLI overrides must not mutate nested default lists/dicts shared
+        # by future detector instances in the same process.
+        self.config: Dict[str, Any] = deepcopy(self.DEFAULT_CONFIG)
+        self._custom_ignore_patterns = False
 
         # Try loading from environment variable
         env_config = os.getenv("SLOP_CONFIG")
@@ -193,6 +199,7 @@ class Config:
     def _merge_config(self, custom: Dict[str, Any]) -> None:
         """Deep merge custom config into defaults (validated before merge)."""
         _validate_yaml_config(custom)
+        self._custom_ignore_patterns = "ignore" in custom
         self._deep_update(self.config, custom)
 
     def _deep_update(self, base: Dict[str, Any], update: Dict[str, Any]) -> None:
@@ -232,6 +239,17 @@ class Config:
     def get_ignore_patterns(self) -> List[str]:
         """Get file patterns to ignore."""
         return self.get("ignore", [])
+
+    def include_default_tests(self) -> bool:
+        """Remove only built-in test ignores; preserve explicit user policy."""
+        if self._custom_ignore_patterns:
+            return False
+        self.config["ignore"] = [
+            pattern
+            for pattern in self.get_ignore_patterns()
+            if pattern not in DEFAULT_TEST_IGNORE_PATTERNS
+        ]
+        return True
 
     def is_abc_exception_enabled(self) -> bool:
         """Check if ABC interface exception is enabled."""

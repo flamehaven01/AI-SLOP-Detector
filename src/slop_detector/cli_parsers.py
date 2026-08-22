@@ -43,6 +43,11 @@ Examples:
         help="Path to Python file or project directory (default: current directory)",
     )
     parser.add_argument("--project", action="store_true", help="Analyze entire project")
+    parser.add_argument(
+        "--include-tests",
+        action="store_true",
+        help="Include files excluded only by the built-in test-file defaults",
+    )
     parser.add_argument("--output", "-o", help="Output file (txt, json, or html)")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument(

@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector.config import Config
 from slop_detector.file_role import classify_file
+from slop_detector.finding_summary import build_finding_summary
 from slop_detector.ignore_handler import IgnoreHandler
 from slop_detector.masking import FrameworkMasker
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
@@ -51,6 +52,31 @@ DEFAULT_EXCLUDE_PARTS = {
     ".tox",
     ".next",
     "htmlcov",
+}
+_COVERAGE_FILE_DETAIL_LIMIT = 200
+_SUPPORTED_SOURCE_EXTENSIONS = {
+    ".py": "python",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".ts": "javascript",
+    ".tsx": "javascript",
+    ".go": "go",
+}
+_UNSUPPORTED_SOURCE_EXTENSIONS = {
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cs",
+    ".h",
+    ".java",
+    ".kt",
+    ".kts",
+    ".php",
+    ".rb",
+    ".rs",
+    ".scala",
+    ".sh",
+    ".swift",
 }
 
 
@@ -101,13 +127,14 @@ class SlopDetector:
         for pattern_id in disabled:
             self.pattern_registry.disable(pattern_id)
 
-        # v2.8.0: Optional ML scorer — loads silently, fails silently
+        # Optional ML scorer: unavailable capability is carried into reports.
         from pathlib import Path as _Path
 
         from slop_detector.ml.scorer import MLScorer as _MLScorer
 
         _mp = _Path(model_path) if model_path else _Path("models/slop_classifier.pkl")
-        self._ml_scorer = _MLScorer.from_model(_mp)
+        self._ml_scorer, availability = _MLScorer.from_model_with_status(_mp)
+        self._ml_scoring = availability.to_dict()
 
         # Phase 3b: JS/TS analyzer (lazy — only instantiated when needed)
         self._js_analyzer = None
@@ -180,6 +207,12 @@ class SlopDetector:
             )
             if cached is not None:
                 logger.debug("File analysis cache hit: %s", file_path)
+                # Capability belongs to this execution environment, not the
+                # cached file content. Never surface a historical ML score when
+                # the current run cannot load its model.
+                cached.ml_scoring = self._ml_scoring
+                if self._ml_scorer is None:
+                    cached.ml_score = None
                 return cached
 
         # Parse AST once
@@ -233,22 +266,13 @@ class SlopDetector:
         """
         project_path_obj = Path(project_path)
         ignore_patterns = self.config.get_ignore_patterns()
+        scan_coverage = self._collect_project_scan_coverage(project_path_obj, ignore_patterns)
 
-        # Find Python files
-        python_files = discover_project_files(project_path_obj, [pattern], ignore_patterns)
-        if python_files is None:
-            python_files = []
-            for file_path in project_path_obj.glob(pattern):
-                # Check ignore patterns
-                if self._should_ignore(file_path, ignore_patterns, root=project_path_obj):
-                    continue
-                python_files.append(file_path)
-        else:
-            python_files = [
-                file_path
-                for file_path in python_files
-                if not self._should_ignore(file_path, ignore_patterns, root=project_path_obj)
-            ]
+        # Rust discovery is optional acceleration, not the source of truth. Its
+        # paths must agree with root-relative Python discovery before use.
+        python_files = self._discover_supported_files(
+            project_path_obj, [pattern], {".py"}, ignore_patterns
+        )
 
         logger.info(f"Found {len(python_files)} Python files in {project_path}")
 
@@ -267,12 +291,15 @@ class SlopDetector:
         go_results = self._analyze_go_files(project_path_obj, ignore_patterns)
 
         all_results = results + js_results + go_results
+        self._set_analyzed_scan_counts(scan_coverage, results, js_results, go_results)
 
         if not all_results:
             logger.warning("No files analyzed")
             pa = self._create_empty_project_analysis(str(project_path))
             pa.js_file_results = js_results
             pa.go_file_results = go_results
+            pa.scan_coverage = scan_coverage
+            pa.ml_scoring = self._ml_scoring
             return pa
 
         # Calculate aggregated metrics
@@ -347,6 +374,9 @@ class SlopDetector:
             coverage_analysis_available=coverage_available,
             js_file_results=js_results,
             go_file_results=go_results,
+            finding_summary=build_finding_summary(all_results),
+            scan_coverage=scan_coverage,
+            ml_scoring=self._ml_scoring,
         )
 
     def _build_file_analysis(self, file_path: str, content: str, tree: ast.AST) -> FileAnalysis:
@@ -408,27 +438,56 @@ class SlopDetector:
 
         if self._ml_scorer is not None:
             result.ml_score = self._ml_scorer.score(result)
+        result.ml_scoring = self._ml_scoring
 
         return result
 
     _JS_EXTENSIONS = frozenset({".js", ".jsx", ".ts", ".tsx"})
 
+    def _discover_supported_files(
+        self,
+        project_path: Path,
+        include_patterns: Sequence[str],
+        extensions: set[str] | frozenset[str],
+        ignore_patterns: List[str],
+    ) -> List[Path]:
+        """Use Rust discovery only when it matches root-relative fallback results."""
+        fallback = [
+            path
+            for include_pattern in include_patterns
+            for path in project_path.glob(include_pattern)
+            if path.suffix.lower() in extensions
+            and not self._should_ignore(path, ignore_patterns, root=project_path)
+        ]
+        discovered = discover_project_files(project_path, include_patterns, ignore_patterns)
+        if discovered is None:
+            return fallback
+
+        accelerated = [
+            path
+            for path in discovered
+            if path.suffix.lower() in extensions
+            and not self._should_ignore(path, ignore_patterns, root=project_path)
+        ]
+        fallback_keys = {path.resolve() for path in fallback}
+        accelerated_keys = {path.resolve() for path in accelerated}
+        if accelerated_keys != fallback_keys:
+            logger.warning(
+                "Rust file discovery disagreed with root-relative discovery for %s; "
+                "using the verified fallback",
+                project_path,
+            )
+            return fallback
+        return accelerated
+
     def _analyze_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
         """Scan and analyze JS/TS files in project_path_obj (Phase 3b)."""
-        discovered = discover_project_files(
+        js_files = self._discover_supported_files(
             project_path_obj,
             [f"**/*{ext}" for ext in self._JS_EXTENSIONS],
+            self._JS_EXTENSIONS,
             ignore_patterns,
         )
-        if discovered is None:
-            js_files = [
-                fp
-                for fp in project_path_obj.rglob("*")
-                if fp.suffix.lower() in self._JS_EXTENSIONS
-                and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
-            ]
-        else:
-            js_files = [fp for fp in discovered if fp.suffix.lower() in self._JS_EXTENSIONS]
         if not js_files:
             return []
         analyzer = self._get_js_analyzer()
@@ -449,20 +508,12 @@ class SlopDetector:
 
     def _analyze_go_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
         """Scan and analyze Go files in project_path_obj (Phase 3c)."""
-        discovered = discover_project_files(
+        go_files = self._discover_supported_files(
             project_path_obj,
             [f"**/*{ext}" for ext in self._GO_EXTENSIONS],
+            self._GO_EXTENSIONS,
             ignore_patterns,
         )
-        if discovered is None:
-            go_files = [
-                fp
-                for fp in project_path_obj.rglob("*")
-                if fp.suffix.lower() in self._GO_EXTENSIONS
-                and not self._should_ignore(fp, ignore_patterns, root=project_path_obj)
-            ]
-        else:
-            go_files = [fp for fp in discovered if fp.suffix.lower() in self._GO_EXTENSIONS]
         if not go_files:
             return []
         analyzer = self._get_go_analyzer()
@@ -893,9 +944,16 @@ class SlopDetector:
         self, file_path: Path, patterns: List[str], root: Optional[Path] = None
     ) -> bool:
         """Check if file matches any ignore pattern."""
+        return self._ignore_reason(file_path, patterns, root=root) is not None
+
+    def _ignore_reason(
+        self, file_path: Path, patterns: List[str], root: Optional[Path] = None
+    ) -> Optional[str]:
+        """Return the exclusion source so project scope can be reported honestly."""
         lowered_parts = {part.lower() for part in file_path.parts}
-        if lowered_parts & DEFAULT_EXCLUDE_PARTS:
-            return True
+        default_parts = lowered_parts & DEFAULT_EXCLUDE_PARTS
+        if default_parts:
+            return f"directory:{sorted(default_parts)[0]}"
 
         normalized_paths = set()
         if root is not None:
@@ -909,12 +967,78 @@ class SlopDetector:
             pat = str(pattern).replace("\\", "/")
             for normalized in normalized_paths:
                 if Path(normalized).match(pat):
-                    return True
+                    return f"pattern:{pat}"
                 if fnmatch.fnmatch(normalized, pat):
-                    return True
+                    return f"pattern:{pat}"
                 if pat.startswith("**/") and fnmatch.fnmatch(normalized, pat[3:]):
-                    return True
-        return False
+                    return f"pattern:{pat}"
+        return None
+
+    def _collect_project_scan_coverage(
+        self, project_path: Path, ignore_patterns: List[str]
+    ) -> Dict[str, Any]:
+        """Report supported exclusions and known-but-unsupported source files."""
+        excluded: List[Dict[str, str]] = []
+        unsupported: List[Dict[str, str]] = []
+        excluded_by_reason: Counter[str] = Counter()
+        unsupported_count = 0
+        try:
+            paths = project_path.rglob("*")
+            for path in paths:
+                if not path.is_file():
+                    continue
+                suffix = path.suffix.lower()
+                reason = self._ignore_reason(path, ignore_patterns, root=project_path)
+                if suffix in _SUPPORTED_SOURCE_EXTENSIONS and reason is not None:
+                    excluded_by_reason[reason] += 1
+                    if len(excluded) < _COVERAGE_FILE_DETAIL_LIMIT:
+                        excluded.append(
+                            {
+                                "path": str(path.relative_to(project_path)).replace("\\", "/"),
+                                "language": _SUPPORTED_SOURCE_EXTENSIONS[suffix],
+                                "reason": reason,
+                            }
+                        )
+                    continue
+                if suffix in _UNSUPPORTED_SOURCE_EXTENSIONS and reason is None:
+                    unsupported_count += 1
+                    if len(unsupported) < _COVERAGE_FILE_DETAIL_LIMIT:
+                        unsupported.append(
+                            {
+                                "path": str(path.relative_to(project_path)).replace("\\", "/"),
+                                "extension": suffix,
+                            }
+                        )
+        except OSError as exc:
+            logger.debug("Could not collect full scan coverage for %s: %s", project_path, exc)
+
+        return {
+            "analyzed": {"total": 0, "python": 0, "javascript": 0, "go": 0},
+            "excluded": {
+                "total": sum(excluded_by_reason.values()),
+                "files": excluded,
+                "omitted_file_details": max(0, sum(excluded_by_reason.values()) - len(excluded)),
+                "by_reason": dict(sorted(excluded_by_reason.items())),
+            },
+            "unsupported": {
+                "total": unsupported_count,
+                "files": unsupported,
+                "omitted_file_details": max(0, unsupported_count - len(unsupported)),
+            },
+        }
+
+    @staticmethod
+    def _set_analyzed_scan_counts(
+        scan_coverage: Dict[str, Any],
+        python_results: List[Any],
+        js_results: List[Any],
+        go_results: List[Any],
+    ) -> None:
+        analyzed = scan_coverage["analyzed"]
+        analyzed["python"] = len(python_results)
+        analyzed["javascript"] = len(js_results)
+        analyzed["go"] = len(go_results)
+        analyzed["total"] = len(python_results) + len(js_results) + len(go_results)
 
     def _create_error_analysis(self, file_path: str, error: str) -> FileAnalysis:
         """Create minimal analysis for files with errors."""

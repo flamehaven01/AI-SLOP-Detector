@@ -21,6 +21,14 @@ file-level findings were expected to move in a direction consistent with the
 boundary fixes, but that movement is still not evidence of independent
 validation.
 
+### v3.8.9 Dogfooding Boundary
+
+The v3.8.9 CuraFrame run was used to find and then regression-test reporting,
+coverage, dependency-evidence, clone, and placeholder boundaries. CuraFrame's
+isolated suite passed `186` tests, but that confirms the target test environment
+only. It does not convert the reviewed subset into an aggregate precision,
+success-rate, or external-validation claim.
+
 ---
 
 ## What Independent Validation Requires

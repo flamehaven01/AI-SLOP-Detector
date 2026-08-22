@@ -184,8 +184,27 @@ class EllipsisPlaceholderPattern(ASTPattern):
     axis = Axis.QUALITY
     message = "Empty function with only ... - placeholder not implemented"
 
+    def check(self, tree: ast.AST, file, content) -> List[Issue]:
+        protocol_lines: set[int] = set()
+        for class_node in (node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)):
+            if any(
+                isinstance(base, ast.Name) and base.id == "Protocol" for base in class_node.bases
+            ):
+                protocol_lines.update(
+                    method.lineno
+                    for method in class_node.body
+                    if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef))
+                )
+        self._protocol_method_lines = protocol_lines
+        try:
+            return super().check(tree, file, content)
+        finally:
+            self._protocol_method_lines = set()
+
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
         if not isinstance(node, ast.FunctionDef):
+            return None
+        if node.lineno in getattr(self, "_protocol_method_lines", set()):
             return None
         if _has_abstractmethod(node):
             return None
@@ -380,7 +399,7 @@ class ReturnConstantStubPattern(ASTPattern):
             return None
 
         # Skip dunder methods that legitimately return constants
-        if node.name in self._DUNDER_CONSTANT_OK:
+        if node.name in self._DUNDER_CONSTANT_OK or node.name == "__exit__":
             return None
 
         # Skip @abstractmethod

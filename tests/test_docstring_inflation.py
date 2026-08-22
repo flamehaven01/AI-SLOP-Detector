@@ -80,3 +80,12 @@ def _log_likelihood(x):
     assert result.inflated_count == 0
     assert result.details == []
     assert result.status == "PASS"
+
+
+def test_docstring_severity_uses_strict_documented_boundaries(detector):
+    """Equal documentation is not "more" documentation."""
+    assert detector._get_severity(0.5) == "info"
+    assert detector._get_severity(1.0) == "info"
+    assert detector._get_severity(1.25) == "warning"
+    assert detector._get_severity(2.0) == "warning"
+    assert detector._get_severity(2.25) == "critical"

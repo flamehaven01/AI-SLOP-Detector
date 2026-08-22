@@ -307,9 +307,10 @@ flowchart TD
     style F fill:#fff3cd
 ```
 
-Weights can be auto-tuned by the self-calibrator using repository-local history.
-This improves project-specific review sensitivity, but it is not independent
-external validation of the score. Project-level aggregation uses SR9
+Repository-local history can tune weights through the self-calibrator. A
+confident milestone result may update an existing local config; this improves
+project-specific review sensitivity but is not independent external validation
+of the score. Project-level aggregation uses SR9
 conservative weighting: `0.6 × min_file + 0.4 × mean`.
 
 ---
@@ -397,16 +398,16 @@ graph TB
 ## Self-Calibration Flow
 
 Every scan is auto-recorded to `~/.slop-detector/history.db`. Once enough
-repeat-file history exists, the self-calibrator can run automatically to tune
-repository-local weights. This is an operational calibration pass: it helps one
-project adapt review sensitivity, but it does not by itself externally validate
-the underlying score.
+repeat-file history exists, the local milestone path can tune weights in an
+existing config when its confidence guard passes. This is an operational
+calibration pass: it helps one project adapt review sensitivity, but it does
+not externally validate the underlying score or export history.
 
 ```mermaid
 flowchart TD
     A[Scan Completes] --> B[Record to history.db<br/>git commit + branch tag]
     B --> GUARD[HistoryEntry.__post_init__<br/>v3.7.2 — clamp 6 fields<br/>fired_rules JSON validated]
-    GUARD --> C{Total records<br/>multiple of 10?}
+    GUARD --> C{10 project-scoped<br/>multi-run files?}
     C -->|No| END[Done]
     C -->|Yes| D[Extract Events<br/>improvement / fp_candidate pairs]
     D --> E{Per-class min met?<br/>5 improvements + 5 fp_candidates}
@@ -414,10 +415,12 @@ flowchart TD
     E -->|Yes| G[4D Grid Search<br/>ldr × inflation × ddc × purity]
     G --> H{Confidence gap<br/>> 0.10?}
     H -->|No| I[Print: already optimal]
-    H -->|Yes| J[Apply to .slopconfig.yaml]
-    J --> K[Print: weights updated]
+    H -->|Yes| J{Existing config?}
+    J -->|Yes| K[Apply local .slopconfig.yaml]
+    J -->|No| L[Print: local status hint]
+    K --> M[Print: weights updated]
 
-    style J fill:#c8e6c9
+    style K fill:#c8e6c9
     style G fill:#fff3cd
     style F fill:#e1f5ff
 ```

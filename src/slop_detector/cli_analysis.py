@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from slop_detector.core import SlopDetector
+from slop_detector.finding_summary import build_finding_summary
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
 
 
@@ -86,6 +87,8 @@ def _build_fallback_project_analysis(
     priority_hotspots, churn_available, coverage_available = (
         detector.project_prioritizer.prioritize_project(str(scan_root), all_results)
     )
+    scan_coverage = detector._collect_project_scan_coverage(scan_root, ignore_patterns)
+    detector._set_analyzed_scan_counts(scan_coverage, file_results, js_results, go_results)
 
     return ProjectAnalysis(
         project_path=str(scan_root),
@@ -106,6 +109,9 @@ def _build_fallback_project_analysis(
         priority_hotspots=priority_hotspots,
         churn_analysis_available=churn_available,
         coverage_analysis_available=coverage_available,
+        finding_summary=build_finding_summary(all_results),
+        scan_coverage=scan_coverage,
+        ml_scoring=detector._ml_scoring,
     )
 
 
@@ -122,6 +128,12 @@ def _run_analysis_phase(args, detector):
 def _apply_runtime_overrides(args, detector) -> None:
     """Apply CLI overrides onto detector config before analysis."""
     advanced = detector.config.config.setdefault("advanced", {})
+    if getattr(args, "include_tests", False):
+        if not detector.config.include_default_tests():
+            raise ValueError(
+                "--include-tests cannot override explicit ignore rules in .slopconfig.yaml; "
+                "remove the test pattern from that config to opt in."
+            )
     if getattr(args, "topology_ceiling", None) is not None:
         advanced["exact_topology_ceiling"] = args.topology_ceiling
     if getattr(args, "topology_mode", None) is not None:

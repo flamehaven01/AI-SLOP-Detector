@@ -90,6 +90,61 @@ def _iter_function_nodes(tree: ast.AST) -> List[ast.FunctionDef | ast.AsyncFunct
     return [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
 
 
+def _qualified_clone_names(tree: ast.AST, clone_names: List[str]) -> List[str]:
+    """Render clone evidence with owning classes so repeated overrides are reviewable."""
+    names = set(clone_names)
+    qualified: List[str] = []
+
+    class _Collector(ast.NodeVisitor):
+        def __init__(self) -> None:
+            self.class_stack: List[str] = []
+
+        def visit_ClassDef(self, node: ast.ClassDef) -> None:
+            self.class_stack.append(node.name)
+            self.generic_visit(node)
+            self.class_stack.pop()
+
+        def _visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+            if node.name in names:
+                owner = ".".join(self.class_stack)
+                qualified.append(f"{owner}.{node.name}" if owner else node.name)
+            self.generic_visit(node)
+
+        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+            self._visit_function(node)
+
+        def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+            self._visit_function(node)
+
+    _Collector().visit(tree)
+    return qualified
+
+
+def _semantic_signature(node: ast.FunctionDef | ast.AsyncFunctionDef) -> tuple[str, ...]:
+    """Capture values erased by the coarse AST histogram without using local names."""
+    tokens: List[str] = []
+    for child in ast.walk(node):
+        if isinstance(child, ast.Constant) and child.value is not Ellipsis:
+            tokens.append(f"constant:{child.value!r}")
+        elif isinstance(child, ast.Attribute):
+            tokens.append(f"attribute:{child.attr}")
+        elif isinstance(child, ast.Call):
+            if isinstance(child.func, ast.Name):
+                tokens.append(f"call:{child.func.id}")
+            elif isinstance(child.func, ast.Attribute):
+                tokens.append(f"call:{child.func.attr}")
+        elif isinstance(child, ast.cmpop):
+            tokens.append(f"compare:{type(child).__name__}")
+    return tuple(sorted(set(tokens)))
+
+
+def _has_distinct_semantic_signatures(tree: ast.AST, clone_names: List[str]) -> bool:
+    names = set(clone_names)
+    candidates = [node for node in _iter_function_nodes(tree) if node.name in names]
+    signatures = [_semantic_signature(node) for node in candidates]
+    return bool(signatures) and all(signatures) and len(set(signatures)) == len(signatures)
+
+
 def _collect_local_name_mapping(
     func: ast.FunctionDef | ast.AsyncFunctionDef,
 ) -> Dict[str, str]:
@@ -258,10 +313,14 @@ class FunctionClonePattern(BasePattern):
         if _is_property_accessor_cluster(tree, result.clone_group_names):
             return []
 
+        if _has_distinct_semantic_signatures(tree, result.clone_group_names):
+            return []
+
         clone_size = result.max_clone_group
-        names_preview = ", ".join(result.clone_group_names[:6])
-        if len(result.clone_group_names) > 6:
-            names_preview += f", ... (+{len(result.clone_group_names) - 6} more)"
+        qualified_names = _qualified_clone_names(tree, result.clone_group_names)
+        names_preview = ", ".join(qualified_names[:6])
+        if len(qualified_names) > 6:
+            names_preview += f", ... (+{len(qualified_names) - 6} more)"
 
         if clone_size >= _CLONE_HIGH_THRESHOLD:
             sev = Severity.CRITICAL

@@ -65,7 +65,7 @@ class DocstringInflationDetector:
     """Detects when docstrings are disproportionately long compared to implementation."""
 
     # Thresholds for individual functions/classes
-    CRITICAL_RATIO = 2.0  # Docstring 2x longer than implementation
+    CRITICAL_RATIO = 2.0  # Docstring more than 2x implementation
     WARNING_RATIO = 1.0  # Docstring longer than implementation
     INFO_RATIO = 0.5  # Substantial docstring
 
@@ -264,9 +264,9 @@ class DocstringInflationDetector:
 
     def _get_severity(self, ratio: float) -> str:
         """Determine severity based on ratio."""
-        if ratio >= self.CRITICAL_RATIO:
+        if ratio > self.CRITICAL_RATIO:
             return "critical"
-        elif ratio >= self.WARNING_RATIO:
+        elif ratio > self.WARNING_RATIO:
             return "warning"
         else:
             return "info"

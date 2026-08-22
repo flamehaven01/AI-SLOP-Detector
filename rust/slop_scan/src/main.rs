@@ -98,7 +98,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         if !include_set.is_match(&rel_str) {
             continue;
         }
-        files.push(path.to_string_lossy().to_string());
+        // The Python wrapper owns absolute-path normalization. Returning paths
+        // relative to --root avoids Windows extended-path representation drift.
+        files.push(rel_str);
     }
 
     files.sort();

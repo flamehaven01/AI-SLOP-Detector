@@ -5,6 +5,60 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.8.9 — 2026-08-22
+
+### Summary
+
+v3.8.9 is a trust-and-measurement release. It does not claim that the
+deterministic structural-risk score is independently validated. Instead, it
+makes scan scope, independent findings, unavailable capabilities, and
+false-positive boundaries visible to the reviewer.
+
+### Changed
+
+**Report evidence**
+- Project JSON, text, Markdown, and Rich reports now disclose finding totals,
+  severity counts, scan coverage, and ML capability state.
+- `overall_status=clean` remains a weighted deficit classification. It is not
+  a claim that no independent findings were emitted or that every language was
+  analyzed.
+- Excluded supported files retain exact totals and reason counts; detailed path
+  evidence is bounded to 200 entries. Known unsupported source types are
+  disclosed separately.
+
+**Strictness and discovery**
+- `--include-tests` opts into only built-in test exclusions.
+- Rust discovery emits root-relative paths and is checked against Python
+  discovery before it is trusted.
+- Clone and placeholder rules are constrained by a labeled strictness corpus,
+  preserving true copied-code detection while avoiding covered intentional
+  comparator, factory, Protocol, and context-manager patterns.
+
+**Capability and calibration boundaries**
+- Incompatible ML model artifacts now surface as `ml_scoring=unavailable` with
+  schema evidence. The deterministic core continues without treating ML as an
+  active capability.
+- Self-calibration remains local to repository history. Its milestone-based
+  update of an existing config is operational adaptation, not external
+  validation or a governance-control claim.
+
+### Validation
+
+- AI-SLOP-Detector: `472 passed`, Black, mypy, Rust fmt/test, and output
+  contract checks.
+- CuraFrame dogfooding: `186 passed in 17.02s` in an isolated environment;
+  target-side FastAPI deprecation warnings remain visible as target warnings.
+
+### What This Release Does Not Claim
+
+- No aggregate accuracy, success-rate, or external-validation claim is made
+  from the CuraFrame audit subset.
+- The bundled ML artifact was not retrained in this release.
+- Low weighted deficit does not replace runtime tests, human review, or
+  independent validation.
+
+---
+
 ## v3.8.8 — 2026-07-10
 
 ### Summary

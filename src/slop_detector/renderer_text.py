@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from slop_detector.finding_summary import get_finding_summary
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
     coherence_display,
@@ -53,15 +54,48 @@ def _text_file_lines(fr) -> list:
 
 
 def _text_project_section(result) -> list:
+    findings = get_finding_summary(result)
+    scan_coverage = getattr(result, "scan_coverage", {})
+    excluded = scan_coverage.get("excluded", {})
+    unsupported = scan_coverage.get("unsupported", {})
+    ml_scoring = getattr(result, "ml_scoring", {})
     lines = [
         f"Project: {result.project_path}",
         f"Total Files: {result.total_files}",
         f"Clean Files: {result.clean_files}",
         f"Deficit Files: {result.deficit_files}",
         f"Overall Status: {result.overall_status.upper()}",
+        (
+            "Finding Summary: "
+            f"{findings['total']} across {findings['affected_files']} files "
+            "(independent of weighted deficit status)"
+        ),
+        (
+            "  Severity: "
+            f"critical={findings['severity']['critical']}, "
+            f"high={findings['severity']['high']}, "
+            f"medium={findings['severity']['medium']}, "
+            f"low={findings['severity']['low']}"
+        ),
         "",
         "Project Metrics:",
     ]
+    if scan_coverage:
+        lines += [
+            (
+                "Scan Coverage: "
+                f"analyzed={scan_coverage['analyzed']['total']}, "
+                f"excluded={excluded['total']} supported source files, "
+                f"unsupported={unsupported.get('total', 0)}"
+            ),
+            "  Excluded paths and matching rules are available in JSON output.",
+            "",
+        ]
+    if ml_scoring:
+        lines += [f"ML Scoring: {ml_scoring['status'].upper()} (optional secondary signal)"]
+        if ml_scoring.get("reason"):
+            lines.append(f"  Reason: {ml_scoring['reason']}")
+        lines.append("")
     lines += _text_metric_block(project_metric_rows(result))
     lines.append("")
     lines.append(f"  Deficit bands: {DEFICIT_BANDS}")
@@ -140,6 +174,11 @@ def _text_single_file_section(result) -> list:
         "File Metrics:",
     ]
     lines += _text_metric_block(file_metric_rows(result))
+    ml_scoring = getattr(result, "ml_scoring", {})
+    if ml_scoring:
+        lines += ["", f"ML Scoring: {ml_scoring['status'].upper()} (optional secondary signal)"]
+        if ml_scoring.get("reason"):
+            lines.append(f"  Reason: {ml_scoring['reason']}")
     lines.append("")
     lines.append(f"  Deficit bands: {DEFICIT_BANDS}")
     lines.append("")

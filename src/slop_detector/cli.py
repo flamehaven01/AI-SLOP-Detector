@@ -314,7 +314,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"[!] Failed to initialize detector: {e}", file=sys.stderr)
         return 1
 
-    _apply_runtime_overrides(args, detector)
+    try:
+        _apply_runtime_overrides(args, detector)
+    except ValueError as e:
+        print(f"[!] Invalid runtime override: {e}", file=sys.stderr)
+        return 2
 
     try:
         result, score = _run_analysis_phase(args, detector)

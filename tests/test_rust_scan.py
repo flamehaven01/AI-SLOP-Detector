@@ -22,6 +22,20 @@ def test_discover_project_files_uses_rust_scan_contract(tmp_path, monkeypatch):
     assert files == [file_path]
 
 
+def test_discover_project_files_resolves_root_relative_rust_paths(tmp_path, monkeypatch):
+    project = tmp_path / "proj"
+    (project / "src").mkdir(parents=True)
+    file_path = project / "src" / "app.py"
+    file_path.write_text("def ok():\n    return 1\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "slop_detector.rust_scan._run_rust_scan",
+        lambda root, include_patterns, ignore_patterns: ["src/app.py"],
+    )
+
+    assert discover_project_files(project, ["**/*.py"], []) == [file_path]
+
+
 def test_analyze_project_uses_rust_file_discovery(tmp_path, monkeypatch):
     project = tmp_path / "proj"
     project.mkdir()

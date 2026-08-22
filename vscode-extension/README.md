@@ -1,4 +1,4 @@
-# AI SLOP Detector — VS Code Extension v3.8.8
+# AI SLOP Detector — VS Code Extension v3.8.9
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, clone detection,
@@ -7,23 +7,18 @@ editor.
 
 ---
 
-## What's New in v3.8.8 — Workflow Correctness + Safer Quick Fixes
+## What's New in v3.8.9 — Core Trust and Measurement Alignment
 
-### 3.8.8 extension reliability
+### 3.8.9 extension alignment
 
-This patch upgrades the extension's runtime workflow instead of only refreshing
-docs:
+This extension package is version-aligned with the 3.8.9 core trust release.
+It does not introduce a separate extension workflow change. Existing views and
+diagnostics now consume a backend that discloses project finding totals, scan
+coverage, and ML capability state rather than allowing a `clean` weighted score
+to imply an empty finding set.
 
-- `Refresh Issues` now performs a real workspace re-scan instead of only
-  repainting the tree view
-- workspace scans replace stale in-memory results, so removed or renamed files
-  do not linger in the sidebar
-- issue selection no longer relies on basename matching, avoiding collisions
-  across same-named files in different folders
-- Quick Fix actions now patch `.slopconfig.yaml` directly for `ignore` and
-  `phantom_import_allowlist`, with duplicate-entry protection
-- activation is command-aware, so the extension can wake from the Command
-  Palette or sidebar even before a supported file is open
+The prior `Refresh Issues`, exact-path selection, and Quick Fix reliability
+changes remain part of v3.8.8.
 
 ## What's New in v3.8.3 — Webview Surfaces + Typed npm Data Layer
 

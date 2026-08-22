@@ -47,6 +47,28 @@ def test_cache_round_trip_preserves_file_analysis_contract(tmp_path):
     assert restored.suppression_ledger == result.suppression_ledger
     assert restored.masked_issues == result.masked_issues
     assert restored.dcf == result.dcf
+    assert restored.ml_scoring == result.ml_scoring
+
+
+def test_cache_hit_uses_current_ml_capability(tmp_path, monkeypatch):
+    detector = SlopDetector()
+    detector._analysis_cache = FileAnalysisCache(tmp_path / "analysis_cache.db")
+    file_path = tmp_path / "sample.py"
+    file_path.write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
+
+    detector.analyze_file(str(file_path))
+    detector._ml_scorer = None
+    detector._ml_scoring = {
+        "status": "unavailable",
+        "reason": "test capability change",
+        "model_path": None,
+    }
+    monkeypatch.setattr(detector.ldr_calc, "calculate", lambda *args: None)
+
+    cached = detector.analyze_file(str(file_path))
+
+    assert cached.ml_score is None
+    assert cached.ml_scoring["status"] == "unavailable"
 
 
 def test_analyze_file_invalidates_cache_when_file_changes(tmp_path, monkeypatch):

@@ -217,6 +217,7 @@ class FileAnalysis:
     suppression_ledger: List[SuppressionLedgerEntry] = field(default_factory=list)
     masked_issues: List[MaskedIssue] = field(default_factory=list)
     ml_score: Any = None  # v2.8.0: Optional ML secondary signal (MLScore | None)
+    ml_scoring: Dict[str, Any] = field(default_factory=dict)
     # v3.0: Distributional Code Fingerprint — P(node_type | file) over AST node types.
     # Genuine probability distribution. Used for information-theoretic slop distance (CQMS Level 2).
     dcf: Dict[str, float] = field(default_factory=dict)
@@ -270,6 +271,8 @@ class FileAnalysis:
             result["ml_score"] = (
                 self.ml_score.to_dict() if hasattr(self.ml_score, "to_dict") else self.ml_score
             )
+        if self.ml_scoring:
+            result["ml_scoring"] = self.ml_scoring
         if self.dcf:
             result["dcf"] = self.dcf
         if self.deficit_breakdown:
@@ -329,6 +332,13 @@ class ProjectAnalysis:
     priority_hotspots: List[PriorityHotspot] = field(default_factory=list)
     churn_analysis_available: bool = False
     coverage_analysis_available: bool = False
+    # Pattern findings are evidence independent of the weighted deficit status.
+    # This prevents a clean aggregate score from being read as a zero-finding scan.
+    finding_summary: Dict[str, Any] = field(default_factory=dict)
+    # Discovery scope is separate from analysis quality: users need to know
+    # which candidate files were analyzed or excluded before reading a score.
+    scan_coverage: Dict[str, Any] = field(default_factory=dict)
+    ml_scoring: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         # Local import keeps the data model free of presentation deps at module
@@ -336,6 +346,8 @@ class ProjectAnalysis:
         # rich/markdown) so machine consumers (JSON, agent route, MCP) receive
         # the same actionable plan and metric semantics a human reader gets.
         from slop_detector.renderer_glossary import next_steps, project_metric_rows
+
+        from slop_detector.finding_summary import get_finding_summary
 
         return {
             "project_path": self.project_path,
@@ -355,6 +367,9 @@ class ProjectAnalysis:
             "priority_hotspots": [h.to_dict() for h in self.priority_hotspots],
             "churn_analysis_available": self.churn_analysis_available,
             "coverage_analysis_available": self.coverage_analysis_available,
+            "finding_summary": get_finding_summary(self),
+            "scan_coverage": self.scan_coverage,
+            "ml_scoring": self.ml_scoring,
             # Machine-readable guidance (same source as the human report; OSOT):
             # next_steps = deterministic prioritized action plan,
             # metric_guide = per-metric value/healthy-direction/plain meaning.

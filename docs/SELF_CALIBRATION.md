@@ -1,6 +1,7 @@
 # Self-Calibration Engine
 
-> **Self-calibration collects repository-specific tuning evidence over time.**
+> **Self-calibration uses repository-local history to tune review sensitivity.**
+> It is operational adaptation, not independent external validation.
 
 ---
 
@@ -77,6 +78,11 @@ file_path | file_hash | timestamp | deficit_score | ldr_score | inflation_score 
 ```
 
 This accumulates silently as you use the tool. No configuration required.
+
+This history stays on the local machine unless a user separately exports it.
+It can contain repository-relative file paths and git context, so treat the
+database as local operational metadata on shared machines. It is not uploaded
+or used as evidence of external validity.
 
 ### 2. Label Derivation from User Behaviour
 
@@ -297,10 +303,10 @@ Total minimum is 10 records (5+5). The 4D model's continuous tiebreak signal
 makes 5+5 statistically reliable; 3D required 10+10 (binary-only scoring).
 Increase `--min-history` for stricter confidence requirements.
 
-### Auto-calibration at milestone (v3.5.0)
+### Local milestone application (v3.5.0)
 
-Starting from v3.2.1, calibration runs **automatically** after each scan.
-v3.5.0 tightened the trigger condition:
+After each scan, the CLI checks whether enough repeat-file history exists.
+v3.5.0 tightened the local trigger condition:
 
 | Version | Trigger condition |
 |---|---|
@@ -309,7 +315,9 @@ v3.5.0 tightened the trigger condition:
 
 This prevents the common false trigger where scanning a 50-file project for the
 first time records 50 rows (50 % 10 == 0) but zero repeat-file pairs — no
-improvement/FP events can exist yet.
+improvement/FP events can exist yet. When the local result is confident and an
+existing `.slopconfig.yaml` is present, the milestone path can update that
+local config. Otherwise it prints a local status hint.
 
 ```
 [*] Auto-calibration (10 repeat-file pairs, project abc123def456): weights updated -> .slopconfig.yaml
@@ -321,7 +329,9 @@ improvement/FP events can exist yet.
 - Only writes when `.slopconfig.yaml` already exists in the project (no silent creation).
 - Prints exactly what changed for full auditability.
 - Calibration hint and warnings go to **stderr** — `--json` stdout is never contaminated.
-- Manual `--self-calibrate --apply-calibration` still available for explicit control.
+- Manual `--self-calibrate --apply-calibration` remains available when you want
+  to inspect the recommendation and apply it explicitly.
+- Neither path exports history or turns local behavior into external validation.
 
 ---
 

@@ -29,6 +29,7 @@ from slop_detector.models import (
     SlopStatus,
     SuppressionLedgerEntry,
 )
+from slop_detector.patterns.base import Axis, Issue, Severity
 
 
 def test_setup_logging_default():
@@ -121,6 +122,150 @@ def test_generate_text_report_project():
     assert "/test/project" in report
     assert "Total Files: 10" in report
     assert "SUSPICIOUS" in report
+
+
+def test_project_finding_summary_is_visible_when_weighted_status_is_clean():
+    """A clean weighted score must not hide critical pattern evidence."""
+    file_result = FileAnalysis(
+        file_path="/test/clean_score.py",
+        ldr=LDRResult(10, 10, 0, 1.0, "A"),
+        inflation=InflationResult(0, 1.0, 0.0, "PASS", [], []),
+        ddc=DDCResult([], [], [], [], [], 1.0, "EXCELLENT"),
+        deficit_score=0.0,
+        status=SlopStatus.CLEAN,
+        pattern_issues=[
+            Issue(
+                pattern_id="critical_example",
+                severity=Severity.CRITICAL,
+                axis=Axis.STRUCTURE,
+                file=None,
+                line=1,
+                column=0,
+                message="Critical evidence remains visible.",
+                suggestion="Review it.",
+            )
+        ],
+    )
+    result = ProjectAnalysis(
+        project_path="/test/project",
+        total_files=1,
+        deficit_files=0,
+        clean_files=1,
+        avg_deficit_score=0.0,
+        weighted_deficit_score=0.0,
+        avg_ldr=1.0,
+        avg_inflation=0.0,
+        avg_ddc=1.0,
+        overall_status=SlopStatus.CLEAN,
+        file_results=[file_result],
+    )
+
+    payload = result.to_dict()
+    text_report = generate_text_report(result)
+    markdown_report = generate_markdown_report(result)
+
+    assert payload["overall_status"] == "clean"
+    assert payload["finding_summary"] == {
+        "total": 1,
+        "affected_files": 1,
+        "severity": {"critical": 1, "high": 0, "medium": 0, "low": 0},
+        "has_critical": True,
+        "score_semantics": "independent_of_weighted_deficit_status",
+    }
+    assert "Finding Summary: 1 across 1 files" in text_report
+    assert "critical=1" in text_report
+    assert "## Finding Summary" in markdown_report
+    assert "| 1 | 1 | 1 | 0 | 0 | 0 |" in markdown_report
+
+
+def test_project_reports_default_test_exclusions_and_can_include_tests(tmp_path):
+    """Default test scope remains opt-out, but its boundary is inspectable."""
+    source = tmp_path / "module.py"
+    source.write_text("def run():\n    return 1\n", encoding="utf-8")
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    test_file = tests_dir / "test_module.py"
+    test_file.write_text("def test_run():\n    assert True\n", encoding="utf-8")
+
+    detector = SlopDetector()
+    default_result = detector.analyze_project(str(tmp_path))
+    default_coverage = default_result.to_dict()["scan_coverage"]
+
+    assert default_coverage["analyzed"]["python"] == 1
+    assert default_coverage["excluded"] == {
+        "total": 1,
+        "files": [
+            {
+                "path": "tests/test_module.py",
+                "language": "python",
+                "reason": "pattern:tests/**",
+            }
+        ],
+        "omitted_file_details": 0,
+        "by_reason": {"pattern:tests/**": 1},
+    }
+    assert default_coverage["unsupported"] == {
+        "total": 0,
+        "files": [],
+        "omitted_file_details": 0,
+    }
+    assert "Scan Coverage: analyzed=1, excluded=1" in generate_text_report(default_result)
+    assert "## Scan Coverage" in generate_markdown_report(default_result)
+
+    assert detector.config.include_default_tests() is True
+    included_result = detector.analyze_project(str(tmp_path))
+    included_coverage = included_result.to_dict()["scan_coverage"]
+    assert included_coverage["analyzed"]["python"] == 2
+    assert included_coverage["excluded"]["total"] == 0
+
+
+def test_project_coverage_bounds_excluded_details_and_reports_unsupported_files(tmp_path):
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    for index in range(201):
+        (tests_dir / f"test_{index}.py").write_text("pass\n", encoding="utf-8")
+    (tmp_path / "native.rs").write_text("fn main() {}\n", encoding="utf-8")
+
+    coverage = SlopDetector().analyze_project(str(tmp_path)).to_dict()["scan_coverage"]
+
+    assert coverage["excluded"]["total"] == 201
+    assert len(coverage["excluded"]["files"]) == 200
+    assert coverage["excluded"]["omitted_file_details"] == 1
+    assert coverage["excluded"]["by_reason"] == {"pattern:tests/**": 201}
+    assert coverage["unsupported"] == {
+        "total": 1,
+        "files": [{"path": "native.rs", "extension": ".rs"}],
+        "omitted_file_details": 0,
+    }
+
+
+def test_ml_capability_is_rendered_separately_from_core_score():
+    result = ProjectAnalysis(
+        project_path="/test/project",
+        total_files=0,
+        deficit_files=0,
+        clean_files=0,
+        avg_deficit_score=0.0,
+        weighted_deficit_score=0.0,
+        avg_ldr=0.0,
+        avg_inflation=0.0,
+        avg_ddc=0.0,
+        overall_status=SlopStatus.CLEAN,
+        ml_scoring={
+            "status": "unavailable",
+            "reason": "ML model could not be loaded: incompatible schema",
+            "model_path": "models/slop_classifier.pkl",
+        },
+    )
+
+    payload = result.to_dict()
+    text_report = generate_text_report(result)
+    markdown_report = generate_markdown_report(result)
+
+    assert payload["overall_status"] == "clean"
+    assert payload["ml_scoring"]["status"] == "unavailable"
+    assert "ML Scoring: UNAVAILABLE" in text_report
+    assert "## ML Scoring Capability" in markdown_report
 
 
 def test_generate_text_report_project_shows_approximate_coherence():

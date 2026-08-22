@@ -35,6 +35,9 @@ def _run_gate(result) -> None:
         decision = gate.evaluate_from_file_analysis(result)
 
     print("\n[Gate Decision]")
+    ml_scoring = getattr(result, "ml_scoring", {})
+    if ml_scoring and ml_scoring.get("status") != "available":
+        print(f"  Capability: PARTIAL (ML scoring {ml_scoring.get('status')})")
     print(f"  Status   : {decision.status}")
     print(f"  Allowed  : {decision.allowed}")
     m = decision.metrics_snapshot

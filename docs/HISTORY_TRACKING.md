@@ -134,8 +134,9 @@ See [docs/SCHEMA_VALIDATION.md](SCHEMA_VALIDATION.md) for the full Layer 3 spec.
 
 ## Why This Matters
 
-The history log is the foundation for **independent ML training data** and
-**behavior-based self-calibration** (see [SELF_CALIBRATION.md](SELF_CALIBRATION.md)).
+The history log is a foundation for **repository-local operational
+calibration** (see [SELF_CALIBRATION.md](SELF_CALIBRATION.md)). It is not
+independent ML training data and it is not external validation.
 
 The current ML pipeline uses rule-based `deficit_score` to generate training
 labels — creating a circular dependency where the ML model just learns the rules.
@@ -145,20 +146,20 @@ The history tracker breaks this cycle:
 Daily runs accumulate history (per project via project_id)
     ↓
 Files that score 42 → 18 → 0 across runs
-    = user actually fixed them
-    = those were real slop signals
+    = a flagged file was changed and its local score moved
+    = operational evidence for local review tuning, not confirmed ground truth
     ↓
 Longitudinal label: "this file improved" = confirmed slop
 Files that stay at 8 across 50 runs
-    = stable, possibly rule false-positive
+    = stable, possibly a locally noisy alert
     ↓
-Independent signal for ML training and self-calibration
+Repository-local signal for calibration only
 ```
 
-False positive detection is now automatic via behavior-based calibration:
-`--self-calibrate` reads this history (filtered by `project_id`) and finds
-weight combinations that minimize both missed detections and unnecessary alerts
-for your codebase specifically.
+The local milestone path and `--self-calibrate` read this history (filtered by
+`project_id`) to find weights that reduce missed improvement signals and
+unnecessary alerts for one codebase. They do not establish false-positive rates
+or generalize beyond that calibration loop.
 
 ---
 

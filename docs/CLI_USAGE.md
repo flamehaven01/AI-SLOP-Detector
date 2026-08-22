@@ -437,7 +437,7 @@ For end-to-end AI-agent usage patterns, see
 ## Complete CLI Reference
 
 ```
-usage: slop-detector [-h] [--project] [--output OUTPUT] [--json] [--verbose]
+usage: slop-detector [-h] [--project] [--include-tests] [--output OUTPUT] [--json] [--verbose]
                      [--topology-ceiling N]
                      [--topology-mode {exact,deterministic_approximate}]
                      [--config CONFIG] [--list-patterns]
@@ -460,6 +460,7 @@ positional arguments:
 optional arguments:
   -h, --help            Show this help message and exit
   --project             Analyze entire project (directory)
+  --include-tests       Include files excluded only by built-in test defaults
   --output OUTPUT       Output file path (.json, .md, .html)
   --json                Output as JSON (diagnostics go to stderr)
   --verbose             Show detailed progress
@@ -503,6 +504,22 @@ CI/CD Options:
 Structural topology notes:
 - Exact structural coherence uses the full MST path up to the configured ceiling.
 - Above that ceiling, `deterministic_approximate` keeps output stable while avoiding repeated quadratic cost.
+
+### Scan Scope and Finding Status
+
+Project reports expose three independent facts:
+
+- `overall_status` is the weighted deficit band; `clean` does not mean zero
+  pattern findings.
+- `finding_summary` contains aggregate finding count, affected-file count, and
+  severity totals across the project.
+- `scan_coverage` distinguishes analyzed files, intentionally excluded
+  supported files, and known unsupported source files. Exclusion totals and
+  reason counts are exact; detailed paths are capped at 200 entries.
+
+`--include-tests` removes only the built-in test-file exclusions. It does not
+override a user-configured ignore, dependency directory, or build-artifact
+exclusion.
 - JSON output exposes this through `coherence_level`, and plain-text / markdown output prints the same mode directly.
 
 Priority hotspot notes:

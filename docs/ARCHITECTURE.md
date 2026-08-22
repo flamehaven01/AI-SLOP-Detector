@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Architecture Documentation
 
-**Version:** 3.8.8
-**Last Updated:** 2026-07-10
+**Version:** 3.8.9
+**Last Updated:** 2026-08-22
 
 ---
 
@@ -721,7 +721,7 @@ detector.pattern_registry.disable("todo_comment")
 2. **Efficient pattern matching**
    - Compiled regex patterns
    - Early exit conditions
-   - Optional Rust helper accelerates file walking and glob matching when built; scoring and policy remain in Python
+   - Optional Rust helper accelerates file walking and glob matching when built; it returns root-relative paths and is parity-checked against Python discovery before use. Scoring and policy remain in Python.
 
 3. **Smart caching**
    - Config cached after first load
@@ -877,4 +877,4 @@ slop-detector scan ./src --format json
 ---
 
 **Last Updated:** 2026-07-10
-**Version:** 3.8.8
+**Version:** 3.8.9

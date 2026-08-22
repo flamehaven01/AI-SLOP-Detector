@@ -8,7 +8,7 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional
+from typing import Any, Dict, FrozenSet, List, Mapping, Optional
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -27,6 +27,8 @@ _RESOLVABLE_MODULES_STORE: Dict[str, FrozenSet[str]] = {}
 _PROJECT_PACKAGES_CACHE: Dict[str, FrozenSet[str]] = {}
 
 _SIBLING_MODULES_CACHE: Dict[str, FrozenSet[str]] = {}
+
+_DECLARED_DEPENDENCY_SOURCES_CACHE: Dict[str, Mapping[str, FrozenSet[str]]] = {}
 
 
 def _discover_sibling_modules(file_path: Path) -> FrozenSet[str]:
@@ -77,7 +79,7 @@ _IMPORT_GUARD_EXC_NAMES: FrozenSet[str] = frozenset(
 
 def _find_project_root(file_path: Path) -> Optional[Path]:
     """Walk up directory tree to find project root by standard markers."""
-    markers = {"pyproject.toml", "setup.py", "setup.cfg", ".git"}
+    markers = {"pyproject.toml", "requirements.txt", "setup.py", "setup.cfg", ".git"}
     current = file_path.parent
     for _ in range(12):
         if any((current / m).exists() for m in markers):
@@ -97,23 +99,31 @@ _PACKAGE_IMPORT_ALIASES: Dict[str, FrozenSet[str]] = {
 }
 
 
+def _dependency_import_names(dependency: str) -> FrozenSet[str]:
+    """Return likely import names for a dependency declaration."""
+    dependency = dependency.split("#", 1)[0].strip()
+    if not dependency or dependency.startswith(("-", "git+", "http://", "https://")):
+        return frozenset()
+    name = re.split(r"[>=<!~;\s]", _EXTRAS_RE.sub("", dependency).strip())[0].strip()
+    if not name:
+        return frozenset()
+    canon = name.replace("-", "_").lower()
+    names = {canon}
+    names.update(_PACKAGE_IMPORT_ALIASES.get(canon, frozenset()))
+    for prefix in ("flamehaven_", "flame_", "py", "python_"):
+        if canon.startswith(prefix) and len(canon) > len(prefix) + 1:
+            names.add(canon[len(prefix) :])
+    return frozenset(names)
+
+
 def _add_dep_names(dep_list: List[str], packages: set) -> None:
-    """Parse PEP-508 dependency strings and add canonical names.
+    """Parse PEP-508 dependency strings and add likely import names.
 
     Strips extras specifiers (e.g. psycopg[binary]) before canonicalisation
     so that `import psycopg` matches `psycopg[binary]>=3.1.0` in optional-deps.
     """
     for dep in dep_list:
-        name = re.split(r"[>=<!~;\s]", _EXTRAS_RE.sub("", dep).strip())[0].strip()
-        if not name:
-            continue
-        canon = name.replace("-", "_").lower()
-        packages.add(canon)
-        for alias in _PACKAGE_IMPORT_ALIASES.get(canon, frozenset()):
-            packages.add(alias)
-        for prefix in ("flamehaven_", "flame_", "py", "python_"):
-            if canon.startswith(prefix) and len(canon) > len(prefix) + 1:
-                packages.add(canon[len(prefix) :])
+        packages.update(_dependency_import_names(dep))
 
 
 def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) -> None:
@@ -141,13 +151,69 @@ def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) 
         find_cfg = data.get("tool", {}).get("setuptools", {}).get("packages", {}).get("find", {})
         for where in find_cfg.get("where", []):
             scan_dir_fn(project_root / where)
-        dep_lists: List[List[str]] = [data.get("project", {}).get("dependencies", [])]
-        for extras in data.get("project", {}).get("optional-dependencies", {}).values():
-            dep_lists.append(extras)
-        for dep_list in dep_lists:
-            _add_dep_names(dep_list, packages)
     except Exception as exc:  # noqa: BLE001
         logger.debug("Failed to parse pyproject.toml for package augmentation: %s", exc)
+
+
+def _load_pyproject_dependency_lists(project_root: Path) -> List[List[str]]:
+    """Load project and optional dependency lists without making tomllib mandatory."""
+    pyproject = project_root / "pyproject.toml"
+    if not pyproject.exists():
+        return []
+    try:
+        try:
+            import tomllib  # type: ignore[import-not-found]
+        except ImportError:
+            import tomli as tomllib  # type: ignore[import-not-found,import]
+        with pyproject.open("rb") as handle:
+            data = tomllib.load(handle)
+        project = data.get("project", {})
+        dependency_lists = [project.get("dependencies", [])]
+        dependency_lists.extend(project.get("optional-dependencies", {}).values())
+        return [list(items) for items in dependency_lists if isinstance(items, list)]
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("Failed to parse dependency declarations in pyproject.toml: %s", exc)
+        return []
+
+
+def _read_requirements_file(requirements: Path) -> List[str]:
+    """Read direct requirements entries; nested includes are intentionally not followed."""
+    try:
+        return requirements.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        logger.debug("Cannot read requirements file %s: %s", requirements, exc)
+        return []
+
+
+def _discover_declared_dependency_sources(project_root: Path) -> Mapping[str, FrozenSet[str]]:
+    """Map import names to the declaration files that justify them."""
+    root_key = str(project_root)
+    cached = _DECLARED_DEPENDENCY_SOURCES_CACHE.get(root_key)
+    if cached is not None:
+        return cached
+
+    sources: Dict[str, set[str]] = {}
+
+    def _record(dependencies: List[str], source: str) -> None:
+        for dependency in dependencies:
+            for import_name in _dependency_import_names(dependency):
+                sources.setdefault(import_name, set()).add(source)
+
+    for dependency_list in _load_pyproject_dependency_lists(project_root):
+        _record(dependency_list, "pyproject.toml")
+    requirement_files = [project_root / "requirements.txt"]
+    requirements_dir = project_root / "requirements"
+    if requirements_dir.is_dir():
+        requirement_files.extend(sorted(requirements_dir.glob("*.txt")))
+    for requirements in requirement_files:
+        if requirements.exists():
+            _record(
+                _read_requirements_file(requirements), str(requirements.relative_to(project_root))
+            )
+
+    result = {name: frozenset(locations) for name, locations in sources.items()}
+    _DECLARED_DEPENDENCY_SOURCES_CACHE[root_key] = result
+    return result
 
 
 def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
@@ -257,12 +323,11 @@ def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
 
 
 class PhantomImportPattern(BasePattern):
-    """Detect imports that reference non-existent packages (phantom/hallucinated imports).
+    """Classify unresolved imports without confusing runtime and metadata evidence.
 
-    Three-tier classification:
-      CRITICAL  Unguarded unresolvable import — hard runtime crash, likely AI hallucination.
-      MEDIUM    Guarded with try/except ImportError — undeclared optional dependency.
-      (skip)    Internal project package, resolvable in environment, or in allowlist.
+    `phantom_import` is reserved for imports with no local declaration and no
+    runtime resolution. Declared-but-unavailable imports and requirements-only
+    declarations use distinct pattern IDs so they can be reviewed separately.
     """
 
     id = "phantom_import"
@@ -280,6 +345,10 @@ class PhantomImportPattern(BasePattern):
         internal_packages = (
             _discover_project_packages(project_root) if project_root else frozenset()
         )
+        declared_sources = (
+            _discover_declared_dependency_sources(project_root) if project_root else {}
+        )
+        has_pyproject = bool(project_root and (project_root / "pyproject.toml").exists())
         # Always include sibling .py files — handles flat-module projects without pyproject.toml
         sibling_modules = _discover_sibling_modules(file)
         skip_names = internal_packages | sibling_modules | self._allowlist
@@ -289,18 +358,29 @@ class PhantomImportPattern(BasePattern):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     top = alias.name.split(".")[0]
-                    if top in skip_names or _module_exists(top):
+                    if top in skip_names:
                         continue
                     lineno = getattr(node, "lineno", 0)
-                    issues.append(
-                        self._make_issue(
-                            file,
-                            lineno,
-                            getattr(node, "col_offset", 0),
-                            alias.name,
-                            lineno in guarded_lines,
+                    sources = declared_sources.get(top, frozenset())
+                    if _module_exists(top):
+                        continue
+                    if self._is_requirements_only_metadata_gap(sources, has_pyproject):
+                        issues.append(
+                            self._make_metadata_gap_issue(
+                                file, lineno, getattr(node, "col_offset", 0), alias.name, sources
+                            )
                         )
-                    )
+                    else:
+                        issues.append(
+                            self._make_issue(
+                                file,
+                                lineno,
+                                getattr(node, "col_offset", 0),
+                                alias.name,
+                                lineno in guarded_lines,
+                                sources,
+                            )
+                        )
 
             elif isinstance(node, ast.ImportFrom):
                 if node.level and node.level > 0:
@@ -308,26 +388,64 @@ class PhantomImportPattern(BasePattern):
                 if not node.module:
                     continue
                 top = node.module.split(".")[0]
-                if top in skip_names or _module_exists(top):
+                if top in skip_names:
                     continue
                 lineno = getattr(node, "lineno", 0)
-                issues.append(
-                    self._make_issue(
-                        file,
-                        lineno,
-                        getattr(node, "col_offset", 0),
-                        node.module,
-                        lineno in guarded_lines,
+                sources = declared_sources.get(top, frozenset())
+                if _module_exists(top):
+                    continue
+                if self._is_requirements_only_metadata_gap(sources, has_pyproject):
+                    issues.append(
+                        self._make_metadata_gap_issue(
+                            file, lineno, getattr(node, "col_offset", 0), node.module, sources
+                        )
                     )
-                )
+                else:
+                    issues.append(
+                        self._make_issue(
+                            file,
+                            lineno,
+                            getattr(node, "col_offset", 0),
+                            node.module,
+                            lineno in guarded_lines,
+                            sources,
+                        )
+                    )
 
         return issues
 
     def _make_issue(
-        self, file: Path, line: int, column: int, module_name: str, is_guarded: bool
+        self,
+        file: Path,
+        line: int,
+        column: int,
+        module_name: str,
+        is_guarded: bool,
+        declared_sources: FrozenSet[str],
     ) -> Issue:
+        if declared_sources:
+            locations = ", ".join(sorted(declared_sources))
+            return Issue(
+                pattern_id="runtime_unavailable_dependency",
+                severity=Severity.MEDIUM,
+                axis=self.axis,
+                file=file,
+                line=line,
+                column=column,
+                message=(
+                    f"Declared dependency '{module_name}' is unavailable in the analyzer runtime "
+                    f"(declared in {locations})."
+                ),
+                suggestion=(
+                    "Install the declared dependency in the analysis environment, then rerun. "
+                    "This is environment evidence, not proof of a phantom package."
+                ),
+            )
         if is_guarded:
-            return self.create_issue(
+            return Issue(
+                pattern_id="undeclared_optional_dependency",
+                severity=Severity.MEDIUM,
+                axis=self.axis,
                 file=file,
                 line=line,
                 column=column,
@@ -340,7 +458,6 @@ class PhantomImportPattern(BasePattern):
                     f"[project.optional-dependencies.<group>] in pyproject.toml so "
                     f"users know this feature requires an extra install."
                 ),
-                severity_override=Severity.MEDIUM,
             )
         return self.create_issue(
             file=file,
@@ -357,4 +474,36 @@ class PhantomImportPattern(BasePattern):
                 f"package names."
             ),
             severity_override=Severity.CRITICAL,
+        )
+
+    @staticmethod
+    def _is_requirements_only_metadata_gap(
+        declared_sources: FrozenSet[str], has_pyproject: bool
+    ) -> bool:
+        return has_pyproject and bool(declared_sources) and "pyproject.toml" not in declared_sources
+
+    def _make_metadata_gap_issue(
+        self,
+        file: Path,
+        line: int,
+        column: int,
+        module_name: str,
+        declared_sources: FrozenSet[str],
+    ) -> Issue:
+        locations = ", ".join(sorted(declared_sources))
+        return Issue(
+            pattern_id="declared_outside_primary_metadata",
+            severity=Severity.LOW,
+            axis=self.axis,
+            file=file,
+            line=line,
+            column=column,
+            message=(
+                f"Dependency '{module_name}' is declared in {locations} but not in "
+                "pyproject.toml project metadata."
+            ),
+            suggestion=(
+                "Keep dependency declarations aligned with pyproject.toml so package "
+                "installation and analysis use the same contract."
+            ),
         )

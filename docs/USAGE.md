@@ -625,10 +625,9 @@ slop-detector --version
 
 ## Examples
 
-See [docs/examples/](examples/) for complete examples:
-- `basic_usage.py` - Simple API usage
-- `custom_config.py` - Configuration examples
-- `batch_analysis.py` - Analyzing multiple files
+For executable command examples, see [CLI Usage](CLI_USAGE.md). For
+project-level settings and domain profiles, see
+[Configuration](CONFIGURATION.md).
 - `ci_integration.py` - CI/CD integration script
 
 ---

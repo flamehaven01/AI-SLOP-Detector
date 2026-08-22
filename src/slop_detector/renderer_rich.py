@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from slop_detector.finding_summary import get_finding_summary
 from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
 from slop_detector.renderer_glossary import (
@@ -98,6 +99,38 @@ def _build_rich_summary_tables(result):
     )
     sc = "red" if result.overall_status != "clean" else "green"
     summary_table.add_row("Overall Status", f"[{sc}]{result.overall_status.upper()}[/{sc}]")
+    findings = get_finding_summary(result)
+    severity = findings["severity"]
+    summary_table.add_row(
+        "Pattern Findings",
+        f"{findings['total']} across {findings['affected_files']} files",
+    )
+    summary_table.add_row(
+        "Finding Severity",
+        (
+            f"critical={severity['critical']}, high={severity['high']}, "
+            f"medium={severity['medium']}, low={severity['low']}"
+        ),
+    )
+    scan_coverage = getattr(result, "scan_coverage", {})
+    if scan_coverage:
+        analyzed = scan_coverage["analyzed"]
+        excluded = scan_coverage["excluded"]
+        unsupported = scan_coverage.get("unsupported", {})
+        summary_table.add_row(
+            "Scan Coverage",
+            (
+                f"analyzed={analyzed['total']}, excluded={excluded['total']} supported source files, "
+                f"unsupported={unsupported.get('total', 0)}"
+            ),
+        )
+    ml_scoring = getattr(result, "ml_scoring", {})
+    if ml_scoring:
+        style = "green" if ml_scoring["status"] == "available" else "yellow"
+        summary_table.add_row(
+            "ML Scoring",
+            f"[{style}]{ml_scoring['status'].upper()}[/{style}] (optional secondary signal)",
+        )
     coh = coherence_display(result)
     if coh:
         summary_table.add_row(coh["label"], f"{coh['value']} ({coh['direction']} is more cohesive)")

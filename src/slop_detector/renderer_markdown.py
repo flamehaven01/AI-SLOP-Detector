@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from slop_detector.finding_summary import get_finding_summary
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
     coherence_display,
@@ -136,6 +137,61 @@ def _md_project_metrics_section(result) -> list:
         icon = health_icon.get(r["health"], "")
         lines.append(f"| {r['label']} | {icon} {r['value']} | {r['direction']} | {r['means']} |")
     lines += ["", f"_Deficit bands: {DEFICIT_BANDS}_", ""]
+    return lines
+
+
+def _md_finding_summary_section(result) -> list:
+    """Render aggregate findings even when no file crosses the score threshold."""
+    summary = get_finding_summary(result)
+    severity = summary["severity"]
+    return [
+        "## Finding Summary",
+        "| Total | Affected Files | Critical | High | Medium | Low |",
+        "| ---: | ---: | ---: | ---: | ---: | ---: |",
+        (
+            f"| {summary['total']} | {summary['affected_files']} | "
+            f"{severity['critical']} | {severity['high']} | "
+            f"{severity['medium']} | {severity['low']} |"
+        ),
+        "",
+        "_Finding totals are evidence independent of the weighted deficit status._",
+        "",
+    ]
+
+
+def _md_scan_coverage_section(result) -> list:
+    coverage = getattr(result, "scan_coverage", {})
+    if not coverage:
+        return []
+    analyzed = coverage["analyzed"]
+    excluded = coverage["excluded"]
+    unsupported = coverage.get("unsupported", {})
+    return [
+        "## Scan Coverage",
+        "| Analyzed | Python | JS/TS | Go | Excluded Supported Source Files | Unsupported Source Files |",
+        "| ---: | ---: | ---: | ---: | ---: | ---: |",
+        (
+            f"| {analyzed['total']} | {analyzed['python']} | "
+            f"{analyzed['javascript']} | {analyzed['go']} | {excluded['total']} | "
+            f"{unsupported.get('total', 0)} |"
+        ),
+        "",
+        "_JSON output includes each excluded path and its matching ignore rule._",
+        "",
+    ]
+
+
+def _md_ml_scoring_section(result) -> list:
+    ml_scoring = getattr(result, "ml_scoring", {})
+    if not ml_scoring:
+        return []
+    lines = ["## ML Scoring Capability", f"- **Status:** `{ml_scoring['status']}`"]
+    if ml_scoring.get("reason"):
+        lines.append(f"- **Reason:** {ml_scoring['reason']}")
+    lines += [
+        "- ML scoring is an optional secondary signal; core scoring remains deterministic.",
+        "",
+    ]
     return lines
 
 
@@ -343,6 +399,9 @@ def generate_markdown_report(result) -> str:
 
     if is_project:
         lines += _md_project_metrics_section(result)
+        lines += _md_finding_summary_section(result)
+        lines += _md_scan_coverage_section(result)
+        lines += _md_ml_scoring_section(result)
         lines += _md_next_steps_section(result)
         lines += _md_structural_coherence_section(result)
         lines += _md_suppression_section(result)
@@ -350,6 +409,7 @@ def generate_markdown_report(result) -> str:
         lines += _md_priority_hotspots_section(result)
     else:
         lines += _md_file_metrics_section(result)
+        lines += _md_ml_scoring_section(result)
         lines += _md_suppression_section(result)
 
     if is_project:

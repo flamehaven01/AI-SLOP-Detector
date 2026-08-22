@@ -74,6 +74,9 @@ class ModelMetrics:
 class SlopClassifier:
     """ML-based slop classifier with ensemble support."""
 
+    MODEL_SCHEMA_VERSION = 1
+    REQUIRED_MODEL_KEYS = frozenset({"model_type", "rf_model", "xgb_model", "feature_names"})
+
     FEATURE_NAMES = [
         # Core metrics (v2.8.0 formula)
         "ldr_score",
@@ -309,6 +312,7 @@ class SlopClassifier:
             raise RuntimeError("Model not trained")
 
         model_data = {
+            "schema_version": self.MODEL_SCHEMA_VERSION,
             "model_type": self.model_type,
             "rf_model": self.rf_model,
             "xgb_model": self.xgb_model,
@@ -324,6 +328,19 @@ class SlopClassifier:
         """Load trained model from disk."""
         with open(model_path, "rb") as f:
             model_data = pickle.load(f)
+
+        if not isinstance(model_data, dict):
+            raise ValueError(
+                "Incompatible ML model artifact: expected a classifier metadata mapping"
+            )
+        missing = self.REQUIRED_MODEL_KEYS - set(model_data)
+        if missing:
+            expected = ", ".join(sorted(self.REQUIRED_MODEL_KEYS))
+            found = ", ".join(sorted(str(key) for key in model_data))
+            raise ValueError(
+                "Incompatible ML model artifact: expected classifier keys "
+                f"[{expected}]; missing [{', '.join(sorted(missing))}]; found [{found}]"
+            )
 
         self.model_type = model_data["model_type"]
         self.rf_model = model_data["rf_model"]

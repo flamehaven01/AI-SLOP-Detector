@@ -23,10 +23,10 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.8.8`
-- Previous stable tag: `v3.8.7`
-- `v3.8.8` tightens operational reliability: packaging metadata now uses SPDX string form, the VS Code extension's `Refresh Issues` command performs a real workspace re-scan, sidebar results no longer linger after files are renamed or removed, exact file-path selection avoids basename collisions, and Quick Fixes now write `ignore` / `phantom_import_allowlist` entries into `.slopconfig.yaml` with duplicate protection.
-- `v3.8.7` was the false-positive reduction pass: `.claude/**` worktrees are ignored by default, JS/TS fallback callback-hell detection no longer confuses JSX or object-literal braces for nested callbacks, phantom-import resolution now understands monorepo package roots plus aliases like `grpcio -> grpc`, clone grouping uses a stricter clique+size model with property-accessor exemptions, and self-dogfood weighted deficit improves from `9.3892` to `6.4186`.
+- Stable tag: `v3.8.9`
+- Previous stable tag: `v3.8.8`
+- `v3.8.9` makes the analysis boundary inspectable: project reports now show finding totals, severity, scan coverage, and ML capability state; `--include-tests` is explicit; strictness controls reduce covered intentional clone/placeholder false positives; and Rust discovery is parity-checked against Python discovery.
+- `v3.8.8` tightened packaging metadata and VS Code workflow reliability.
 
 ---
 
@@ -62,7 +62,7 @@ General linters flag style and convention. This tool flags structural risk.
 
 - **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, dead pipelines, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
-- **Can tune itself to one repository over time** — repeated scan/edit history becomes a project-scoped calibration signal, so review sensitivity can adapt without a separate training workflow (kicks in automatically after ~10 multi-run files). This is operational calibration, not external validation.
+- **Can adapt review sensitivity locally** — repository-scoped history can tune weights after 10 multi-run files when the confidence guard passes and an existing config is present. This is operational calibration, not external validation.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
 - **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general) and picks sensible defaults; override with `--domain`
 - **Python first, JS/TS and Go optional** — install the `[js]` or `[go]` extra to scan those files too
@@ -101,20 +101,22 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.8.8"
+pip install "ai-slop-detector>=3.8.9"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
 
-Expected output for a healthy project: `clean 0.0` to `clean 30.0`. Anything
-above `30.0` is a real finding worth reading in `slop.json`. The `--output`
+Expected output for a healthy project: `clean 0.0` to `clean 30.0`. `clean`
+describes the weighted deficit band only; inspect `finding_summary`,
+`scan_coverage`, and `ml_scoring` before treating it as a complete project
+assessment. The `--output`
 form writes UTF-8 (no BOM) directly to disk, so it is safe under Windows
 PowerShell — prefer it to `> slop.json` redirection.
 
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.8.8"
+pip install "ai-slop-detector>=3.8.9"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -127,6 +129,7 @@ slop-detector --init --adaptive-init --init-preview
 slop-detector --init --adaptive-init --apply-init-suggestions
 slop-detector mycode.py                    # single file
 slop-detector --project ./src             # entire project
+slop-detector --project . --include-tests # include only default-excluded test files
 slop-detector --project . --json --output slop.json   # machine-readable output (Windows-safe)
 slop-detector --project . --ci-mode hard --ci-report  # CI gate
 
@@ -486,9 +489,11 @@ slop-detector . --self-calibrate               # see what your history recommend
 slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yaml
 ```
 4D grid-search (ldr / inflation / ddc / purity) over repository-local run
-history. This is an **operational calibration** layer: it tunes review
-sensitivity to observed edit/review behaviour in one project. It is not an
-independent external validation of the score or a governance control by itself.
+history. At the milestone, a confident recommendation can update an existing
+`.slopconfig.yaml`; use `--self-calibrate` to inspect it and
+`--apply-calibration` for an explicit write. This is an **operational
+calibration** layer, not independent external validation or a governance
+control by itself.
 - **Project-scoped** — `history.db` tags every record with a `project_id` (sha256 of cwd); calibration signal never mixes across different projects
 - **Domain-anchored** — grid search is constrained to ±0.15 around the current domain weights, preventing drift outside the domain's meaningful weight region
 - **Drift warnings** — `CalibrationResult.warnings` flags any dimension that shifted > 0.25 from the anchor
@@ -824,6 +829,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.8.9** | trust-and-measurement release: finding/severity summaries, coverage and ML capability disclosure, explicit `--include-tests`, root-relative Rust discovery parity checks, strictness-corpus controls, and no aggregate accuracy claim from dogfooding |
 | **v3.8.8** | packaging metadata cleanup plus VS Code workflow tightening: SPDX string license metadata, real workspace re-scan from `Refresh Issues`, stale sidebar results cleared on re-analysis, exact-path issue selection, and Quick Fix writes for `ignore` / `phantom_import_allowlist` with duplicate protection |
 | **v3.8.7** | false-positive reduction pack: default `.claude/**` ignore, runtime-only DDC accounting, quoted vocabulary tables no longer counted as inflation, monorepo + alias-aware phantom import detection, clique+size clone grouping with property-accessor exemption, JS/TS fallback callback-hell no longer confused by JSX/object literals, tiny helper docstrings ignored, and self-dogfood weighted deficit improved from `9.3892` to `6.4186` |
 | **v3.8.6** | strictness stabilization + coherence cleanup: same-file exact duplicates now surface in cleanup output, four-function clone clusters no longer evade detection, dead-code cleanup requires real dead-code evidence, `operations.py` is split into payload/cleanup/architecture helpers, and Claude skill/docs now match the canonical `scan` / `review` / `pulse` / `sweep` surface |

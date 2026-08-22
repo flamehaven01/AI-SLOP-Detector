@@ -24,7 +24,7 @@ import logging
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,22 @@ class MLScore:
         if self.slop_probability >= 0.40:
             return "uncertain"
         return "clean"
+
+
+@dataclass(frozen=True)
+class MLScoringAvailability:
+    """Capability state for the optional ML secondary scorer."""
+
+    status: str  # "available" | "disabled" | "unavailable"
+    reason: Optional[str] = None
+    model_path: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Optional[str]]:
+        return {
+            "status": self.status,
+            "reason": self.reason,
+            "model_path": self.model_path,
+        }
 
 
 def _extract_features_from_analysis(file_analysis: Any) -> Dict[str, float]:
@@ -124,19 +140,26 @@ class MLScorer:
 
     @classmethod
     def from_model(cls, model_path: Path) -> Optional["MLScorer"]:
+        """Compatibility loader that preserves the original optional return type."""
+        scorer, _ = cls.from_model_with_status(model_path)
+        return scorer
+
+    @classmethod
+    def from_model_with_status(
+        cls, model_path: Path
+    ) -> Tuple[Optional["MLScorer"], MLScoringAvailability]:
         """
         Load a trained model from disk.
 
-        Returns None (not an exception) if:
-          - scikit-learn is not installed
-          - model file does not exist
-          - model file is corrupt / incompatible
-
-        This ensures SlopDetector works without ML deps installed.
+        Return both the optional scorer and an explicit capability state.
         """
         if not model_path.exists():
             logger.debug("[MLScorer] Model not found: %s — ML scoring disabled", model_path)
-            return None
+            return None, MLScoringAvailability(
+                status="disabled",
+                reason="No ML model artifact was configured for this run.",
+                model_path=str(model_path),
+            )
 
         try:
             from slop_detector.ml.classifier import SlopClassifier
@@ -144,13 +167,21 @@ class MLScorer:
             clf = SlopClassifier.__new__(SlopClassifier)
             clf.load(model_path)
             logger.info("[MLScorer] Loaded model from %s", model_path)
-            return cls(clf)
-        except ImportError:
+            return cls(clf), MLScoringAvailability(status="available", model_path=str(model_path))
+        except ImportError as exc:
             logger.debug("[MLScorer] scikit-learn not installed — ML scoring disabled")
-            return None
+            return None, MLScoringAvailability(
+                status="unavailable",
+                reason=f"ML dependency unavailable: {exc}",
+                model_path=str(model_path),
+            )
         except Exception as e:
             logger.warning("[MLScorer] Failed to load model: %s", e)
-            return None
+            return None, MLScoringAvailability(
+                status="unavailable",
+                reason=f"ML model could not be loaded: {e}",
+                model_path=str(model_path),
+            )
 
     def score(self, file_analysis: Any) -> Optional[MLScore]:
         """

@@ -33,7 +33,7 @@ from slop_detector.models import (
 )
 from slop_detector.patterns.base import Axis, Issue, Severity
 
-CACHE_ENGINE_VERSION = "analysis-cache-v8"
+CACHE_ENGINE_VERSION = "analysis-cache-v11"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 
@@ -178,6 +178,7 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
         ],
         masked_issues=[MaskedIssue(**item) for item in data.get("masked_issues", [])],
         ml_score=_restore_ml_score(data.get("ml_score")),
+        ml_scoring=data.get("ml_scoring", {}),
         dcf=data.get("dcf", {}),
         deficit_breakdown=data.get("deficit_breakdown", {}),
     )

@@ -1,11 +1,28 @@
 """Tests for ML pipeline sample lifecycle and reporting."""
 
+import pickle
 import sys
 from types import ModuleType, SimpleNamespace
 
 import pytest
 
 from slop_detector.ml.pipeline import MLPipeline, TrainingSample
+from slop_detector.ml.scorer import MLScorer
+
+
+def test_incompatible_model_reports_explicit_unavailable_capability(tmp_path):
+    """A legacy artifact must not silently disappear from the result contract."""
+    model_path = tmp_path / "legacy_model.pkl"
+    with model_path.open("wb") as handle:
+        pickle.dump({"type": "legacy_statistics", "features": []}, handle)
+
+    scorer, availability = MLScorer.from_model_with_status(model_path)
+
+    assert scorer is None
+    assert availability.status == "unavailable"
+    assert availability.reason is not None
+    assert "expected classifier keys" in availability.reason
+    assert "model_type" in availability.reason
 
 
 def test_generate_samples_preserves_generated_code(tmp_path):

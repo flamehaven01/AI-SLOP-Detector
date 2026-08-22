@@ -11,6 +11,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.9] - 2026-08-22 — Trust Boundaries, Scan Evidence, and Strictness Controls
+
+### Added
+
+- Project reports now expose a finding summary, severity distribution, and
+  scan coverage envelope in JSON, text, Markdown, and Rich output.
+- `--include-tests` explicitly includes only the built-in test-file exclusions;
+  user-configured ignores and artifact exclusions remain intact.
+- Known source files outside Python, JS/TS, and Go are reported as
+  `unsupported` coverage rather than silently disappearing from scope.
+- A labeled strictness corpus covers true alpha-renamed copies, symmetric
+  comparators, declarative factories, Protocol markers, and valid context
+  manager semantics.
+
+### Changed
+
+- Rust discovery now emits root-relative paths and is parity-checked against
+  Python discovery before use on Windows and other platforms.
+- Excluded-file evidence preserves exact totals and reason counts while capping
+  detailed paths at 200 entries, preventing dependency trees from inflating
+  machine-readable reports.
+- Self-calibration documentation now states the actual boundary: history and
+  automatic milestone application are repository-local operational adaptation,
+  not independent external validation.
+
+### Fixed
+
+- Incompatible ML artifacts now report an explicit `ml_scoring=unavailable`
+  capability state with schema evidence instead of failing silently.
+- Dependency hygiene distinguishes undeclared imports, requirements-only
+  declarations, optional imports, and unavailable runtime dependencies.
+- Clone and placeholder checks no longer flag the covered intentional patterns;
+  true copied logic remains detectable.
+- A `clean` weighted deficit status no longer hides independent pattern
+  findings from project-level human-readable output.
+
+### Validation
+
+- `472 passed` in the AI-SLOP-Detector Python suite.
+- CuraFrame dogfooding: `186 passed in 17.02s` in an isolated environment.
+- P4 output-contract scripts for test exclusion, coverage, and finding
+  visibility all pass. These checks do not establish an aggregate accuracy
+  rate or independent external validation.
+
+---
+
 ## [3.8.8] - 2026-07-10 — VS Code Workflow Tightening and Packaging Metadata Cleanup
 
 - Packaging metadata cleanup:

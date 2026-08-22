@@ -343,6 +343,44 @@ def test_declared_grpcio_extra_satisfies_grpc_import(tmp_path):
     assert not phantom_ids, f"Declared grpcio extra must satisfy `import grpc`: {issues}"
 
 
+def test_requirements_only_declaration_is_metadata_gap_not_phantom(tmp_path):
+    """requirements.txt evidence must not be presented as a made-up package."""
+    from slop_detector.patterns.python_imports import PhantomImportPattern
+
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname='demo'\nversion='0.1.0'\n", encoding="utf-8"
+    )
+    (tmp_path / "requirements.txt").write_text("declared_only_demo_pkg>=1\n", encoding="utf-8")
+    source = "import declared_only_demo_pkg\n"
+    target = tmp_path / "module.py"
+    target.write_text(source, encoding="utf-8")
+
+    issues = PhantomImportPattern().check(ast.parse(source), target, source)
+
+    assert [issue.pattern_id for issue in issues] == ["declared_outside_primary_metadata"]
+    assert issues[0].severity.value == "low"
+    assert "requirements.txt" in issues[0].message
+
+
+def test_declared_unavailable_dependency_is_not_phantom(tmp_path):
+    """A pyproject declaration and a missing local install are different evidence."""
+    from slop_detector.patterns.python_imports import PhantomImportPattern
+
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname='demo'\nversion='0.1.0'\ndependencies=['missing_demo_pkg>=1']\n",
+        encoding="utf-8",
+    )
+    source = "import missing_demo_pkg\n"
+    target = tmp_path / "module.py"
+    target.write_text(source, encoding="utf-8")
+
+    issues = PhantomImportPattern().check(ast.parse(source), target, source)
+
+    assert [issue.pattern_id for issue in issues] == ["runtime_unavailable_dependency"]
+    assert issues[0].severity.value == "medium"
+    assert "pyproject.toml" in issues[0].message
+
+
 def test_discover_sibling_modules_returns_stems(tmp_path):
     """_discover_sibling_modules returns stem names of sibling .py files."""
     from slop_detector.patterns.python_imports import _discover_sibling_modules
