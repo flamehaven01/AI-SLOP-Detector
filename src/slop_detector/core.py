@@ -3,19 +3,43 @@
 from __future__ import annotations
 
 import ast
-import fnmatch
 import hashlib
 import logging
-import math
-from collections import Counter
-from math import exp, log, sqrt
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional
 
 from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector.config import Config
+from slop_detector.core_project import (
+    build_project_analysis,
+    collect_project_scan_coverage,
+    create_empty_project_analysis,
+    create_error_analysis,
+    discover_supported_files,
+    ignore_reason,
+    is_result_non_clean,
+    result_ldr_score,
+    result_slop_score,
+    result_status_value,
+    result_total_lines,
+    set_analyzed_scan_counts,
+    should_ignore,
+)
+from slop_detector.core_scoring import (
+    build_metric_warnings,
+    calculate_pattern_penalty,
+    calculate_slop_status,
+    compute_deficit_breakdown,
+    compute_gqg,
+)
+from slop_detector.core_topology import (
+    compute_coherence_vr,
+    compute_coherence_vr_exact,
+    compute_dcf,
+    deterministic_sample_indices,
+    js_divergence,
+)
 from slop_detector.file_role import classify_file
-from slop_detector.finding_summary import build_finding_summary
 from slop_detector.ignore_handler import IgnoreHandler
 from slop_detector.masking import FrameworkMasker
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
@@ -39,58 +63,6 @@ from slop_detector.rust_scan import discover_project_files
 from slop_detector.suppression_handler import SuppressionHandler
 
 logger = logging.getLogger(__name__)
-DEFAULT_EXCLUDE_PARTS = {
-    ".claude",
-    ".venv",
-    "venv",
-    "site-packages",
-    "node_modules",
-    "__pycache__",
-    ".git",
-    "build",
-    "dist",
-    ".tox",
-    ".next",
-    "htmlcov",
-}
-_COVERAGE_FILE_DETAIL_LIMIT = 200
-_SUPPORTED_SOURCE_EXTENSIONS = {
-    ".py": "python",
-    ".js": "javascript",
-    ".jsx": "javascript",
-    ".ts": "javascript",
-    ".tsx": "javascript",
-    ".go": "go",
-}
-_UNSUPPORTED_SOURCE_EXTENSIONS = {
-    ".c",
-    ".cc",
-    ".cpp",
-    ".cs",
-    ".h",
-    ".java",
-    ".kt",
-    ".kts",
-    ".php",
-    ".rb",
-    ".rs",
-    ".scala",
-    ".sh",
-    ".swift",
-}
-
-
-class _SkipProxy:
-    """Thin proxy that overrides specific metric attributes for role-based skip logic."""
-
-    def __init__(self, wrapped, **overrides):
-        self._wrapped = wrapped
-        self._overrides = overrides
-
-    def __getattr__(self, name: str):
-        if name in self._overrides:
-            return self._overrides[name]
-        return getattr(self._wrapped, name)
 
 
 class SlopDetector:
@@ -165,15 +137,8 @@ class SlopDetector:
 
     @staticmethod
     def _compute_dcf(tree: ast.AST) -> Dict[str, float]:
-        """Compute DCF (Distributional Code Fingerprint) from a parsed AST.
-
-        Returns P(node_type | file) = count(node_type) / total_nodes.
-        Genuine probability distribution: values in [0,1], sum to 1.
-        Used for information-theoretic slop distance (CQMS Level 2).
-        """
-        counts = Counter(type(node).__name__ for node in ast.walk(tree))
-        total = sum(counts.values()) or 1
-        return {k: v / total for k, v in counts.items()}
+        """Backward-compatible facade for structural fingerprint calculation."""
+        return compute_dcf(tree)
 
     def analyze_file(self, file_path: str) -> FileAnalysis:
         """
@@ -289,94 +254,20 @@ class SlopDetector:
         js_results = self._analyze_js_files(project_path_obj, ignore_patterns)
         # Phase 3c: Go analysis is independent of Python — run before early return
         go_results = self._analyze_go_files(project_path_obj, ignore_patterns)
-
-        all_results = results + js_results + go_results
-        self._set_analyzed_scan_counts(scan_coverage, results, js_results, go_results)
-
-        if not all_results:
+        if not results and not js_results and not go_results:
             logger.warning("No files analyzed")
-            pa = self._create_empty_project_analysis(str(project_path))
-            pa.js_file_results = js_results
-            pa.go_file_results = go_results
-            pa.scan_coverage = scan_coverage
-            pa.ml_scoring = self._ml_scoring
-            return pa
 
-        # Calculate aggregated metrics
-        total_files = len(all_results)
-        slop_files = sum(1 for r in all_results if self._is_result_non_clean(r))
-        clean_files = total_files - slop_files
-
-        # Simple average for deficit score across all supported languages.
-        avg_deficit_score = sum(self._result_slop_score(r) for r in all_results) / total_files
-
-        # v2.8.0: SR9-inspired conservative LDR aggregation across all languages.
-        # Prevents bad files from being diluted by the average.
-        ldr_scores = [self._result_ldr_score(r) for r in all_results]
-        avg_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / total_files)
-        avg_inflation = sum(
-            r.inflation.inflation_score
-            for r in results
-            if math.isfinite(r.inflation.inflation_score)
-        ) / max(1, sum(1 for r in results if math.isfinite(r.inflation.inflation_score)))
-        avg_ddc = sum(r.ddc.usage_ratio for r in results) / max(1, len(results))
-
-        # Weighted average (by LOC)
-        if self.config.use_weighted_analysis():
-            total_loc = sum(self._result_total_lines(r) for r in all_results)
-            weighted_deficit_score = (
-                sum(
-                    self._result_slop_score(r) * (self._result_total_lines(r) / total_loc)
-                    for r in all_results
-                )
-                if total_loc > 0
-                else avg_deficit_score
-            )
-        else:
-            weighted_deficit_score = avg_deficit_score
-
-        # Determine overall status
-        if weighted_deficit_score >= 50:
-            overall_status = SlopStatus.CRITICAL_DEFICIT
-        elif weighted_deficit_score >= 30:
-            overall_status = SlopStatus.SUSPICIOUS
-        else:
-            overall_status = SlopStatus.CLEAN
-
-        # v3.0: VR structural coherence — MST H0 persistence over file DCFs
-        file_dcfs = [r.dcf for r in results if r.dcf]
-        structural_coherence, coherence_level = self._compute_coherence_vr(file_dcfs)
-        suppression_ledger = [
-            entry for result in results for entry in getattr(result, "suppression_ledger", [])
-        ]
-        priority_hotspots, churn_available, coverage_available = (
-            self.project_prioritizer.prioritize_project(str(project_path_obj), results)
-        )
-
-        return ProjectAnalysis(
-            project_path=str(project_path),
-            total_files=total_files,
-            deficit_files=slop_files,
-            clean_files=clean_files,
-            avg_deficit_score=avg_deficit_score,
-            weighted_deficit_score=weighted_deficit_score,
-            avg_ldr=avg_ldr,
-            avg_inflation=avg_inflation,
-            avg_ddc=avg_ddc,
-            overall_status=overall_status,
-            file_results=results,
-            structural_coherence=structural_coherence,
-            coherence_level=coherence_level,
-            suppressed_issue_count=len(suppression_ledger),
-            suppression_ledger=suppression_ledger,
-            priority_hotspots=priority_hotspots,
-            churn_analysis_available=churn_available,
-            coverage_analysis_available=coverage_available,
-            js_file_results=js_results,
-            go_file_results=go_results,
-            finding_summary=build_finding_summary(all_results),
-            scan_coverage=scan_coverage,
-            ml_scoring=self._ml_scoring,
+        return build_project_analysis(
+            str(project_path),
+            str(project_path_obj),
+            results,
+            js_results,
+            go_results,
+            scan_coverage,
+            self.config.use_weighted_analysis(),
+            self._compute_coherence_vr,
+            self.project_prioritizer.prioritize_project,
+            self._ml_scoring,
         )
 
     def _build_file_analysis(self, file_path: str, content: str, tree: ast.AST) -> FileAnalysis:
@@ -447,38 +338,18 @@ class SlopDetector:
     def _discover_supported_files(
         self,
         project_path: Path,
-        include_patterns: Sequence[str],
+        include_patterns: List[str],
         extensions: set[str] | frozenset[str],
         ignore_patterns: List[str],
     ) -> List[Path]:
-        """Use Rust discovery only when it matches root-relative fallback results."""
-        fallback = [
-            path
-            for include_pattern in include_patterns
-            for path in project_path.glob(include_pattern)
-            if path.suffix.lower() in extensions
-            and not self._should_ignore(path, ignore_patterns, root=project_path)
-        ]
-        discovered = discover_project_files(project_path, include_patterns, ignore_patterns)
-        if discovered is None:
-            return fallback
-
-        accelerated = [
-            path
-            for path in discovered
-            if path.suffix.lower() in extensions
-            and not self._should_ignore(path, ignore_patterns, root=project_path)
-        ]
-        fallback_keys = {path.resolve() for path in fallback}
-        accelerated_keys = {path.resolve() for path in accelerated}
-        if accelerated_keys != fallback_keys:
-            logger.warning(
-                "Rust file discovery disagreed with root-relative discovery for %s; "
-                "using the verified fallback",
-                project_path,
-            )
-            return fallback
-        return accelerated
+        """Backward-compatible facade for verified source discovery."""
+        return discover_supported_files(
+            project_path,
+            include_patterns,
+            extensions,
+            ignore_patterns,
+            rust_discoverer=discover_project_files,
+        )
 
     def _analyze_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
         """Scan and analyze JS/TS files in project_path_obj (Phase 3b)."""
@@ -587,49 +458,13 @@ class SlopDetector:
         return IgnoreHandler.is_line_in_ignored_range(line, ranges)
 
     def _compute_gqg(self, ldr, inflation_normalized: float, ddc, purity: float) -> float:
-        """Geometric quality gate — weighted geometric mean of four dimensions.
-
-        Formula: exp(sum(w_i * ln(max(1e-4, v_i))) / sum(w_i))
-        Dimensions: ldr_score, 1-inflation_normalized, ddc.usage_ratio, purity.
-        """
-        weights = self.config.get_weights()
-        w_ldr = weights.get("ldr", 0.40)
-        w_inf = weights.get("inflation", 0.30)
-        w_ddc = weights.get("ddc", 0.20)
-        w_pur = weights.get("purity", 0.10)
-        total_w = w_ldr + w_inf + w_ddc + w_pur
-        return exp(
-            (
-                w_ldr * log(max(1e-4, ldr.ldr_score))
-                + w_inf * log(max(1e-4, 1.0 - inflation_normalized))
-                + w_ddc * log(max(1e-4, ddc.usage_ratio))
-                + w_pur * log(max(1e-4, purity))
-            )
-            / total_w
-        )
+        """Backward-compatible facade for the geometric quality gate."""
+        return compute_gqg(self.config.get_weights(), ldr, inflation_normalized, ddc, purity)
 
     @staticmethod
     def _build_metric_warnings(ldr, inflation, ddc, skip: frozenset = frozenset()) -> List[str]:
-        """Generate per-metric threshold warnings for ldr, inflation, and ddc."""
-        warnings: List[str] = []
-        if "ldr" not in skip:
-            if ldr.ldr_score < 0.30:
-                warnings.append(f"CRITICAL: Logic density only {ldr.ldr_score:.2%}")
-            elif ldr.ldr_score < 0.60:
-                warnings.append(f"WARNING: Low logic density {ldr.ldr_score:.2%}")
-        if "inflation" not in skip:
-            if inflation.inflation_score > 1.0:
-                warnings.append(f"CRITICAL: Inflation ratio {inflation.inflation_score:.2f}")
-            elif inflation.inflation_score > 0.5:
-                warnings.append(f"WARNING: High inflation ratio {inflation.inflation_score:.2f}")
-        if "ddc" not in skip:
-            if ddc.usage_ratio < 0.50:
-                warnings.append(f"CRITICAL: Only {ddc.usage_ratio:.2%} of imports used")
-            elif ddc.usage_ratio < 0.70:
-                warnings.append(f"WARNING: Low import usage {ddc.usage_ratio:.2%}")
-            if ddc.fake_imports:
-                warnings.append(f"FAKE IMPORTS: {', '.join(ddc.fake_imports)}")
-        return warnings
+        """Backward-compatible facade for metric threshold warnings."""
+        return build_metric_warnings(ldr, inflation, ddc, skip=skip)
 
     def _calculate_slop_status(
         self,
@@ -639,91 +474,10 @@ class SlopDetector:
         pattern_issues: Optional[List[Issue]] = None,
         skip: frozenset = frozenset(),
     ) -> tuple[float, SlopStatus, List[str], Dict[str, float]]:
-        """
-        Calculate slop score using weighted formula + pattern penalties.
-
-        v2.1: Includes pattern-based scoring.
-        v3.3.0: ``skip`` frozenset suppresses specific checks for file roles
-                (e.g. INIT files skip 'ldr' and 'ddc').
-        v3.7.6 (SLOP-003): also returns deficit_breakdown — per-dimension
-                penalty attribution so a non-zero score on a "clean" file
-                can be explained without reading raw findings.
-        """
-        pattern_issues = pattern_issues or []
-
-        # Normalize Inflation (cap at 2.0, treat inf as 2.0)
-        inflation_normalized = (
-            min(inflation.inflation_score, 2.0) / 2.0
-            if inflation.inflation_score != float("inf")
-            else 1.0
+        """Backward-compatible facade for deterministic score calculation."""
+        return calculate_slop_status(
+            self.config.get_weights(), ldr, inflation, ddc, pattern_issues, skip=skip
         )
-        if "inflation" in skip:
-            inflation_normalized = 0.0  # treat as perfect
-
-        # purity = exp(-0.5 * n_critical): GQG AND-gate dimension for pattern severity
-        n_critical = len([i for i in pattern_issues if i.severity.value == "critical"])
-        purity = exp(-0.5 * n_critical)
-
-        # Build effective ldr/ddc scores respecting skip
-        effective_ldr = _SkipProxy(ldr, ldr_score=1.0) if "ldr" in skip else ldr
-        effective_ddc = _SkipProxy(ddc, usage_ratio=1.0) if "ddc" in skip else ddc
-
-        gqg = self._compute_gqg(effective_ldr, inflation_normalized, effective_ddc, purity)
-        base_deficit_score = 100 * (1 - gqg)
-        pattern_penalty = self._calculate_pattern_penalty(pattern_issues)
-        deficit_score = min(base_deficit_score + pattern_penalty, 100.0)
-
-        deficit_breakdown = self._compute_deficit_breakdown(
-            effective_ldr,
-            inflation_normalized,
-            effective_ddc,
-            purity,
-            base_deficit_score,
-            pattern_penalty,
-            deficit_score,
-        )
-
-        warnings = self._build_metric_warnings(ldr, inflation, ddc, skip=skip)
-
-        # v2.1: Add pattern warnings
-        critical_patterns = [i for i in pattern_issues if i.severity.value == "critical"]
-        high_patterns = [i for i in pattern_issues if i.severity.value == "high"]
-
-        if critical_patterns:
-            warnings.append(f"PATTERNS: {len(critical_patterns)} critical issues found")
-        if high_patterns:
-            warnings.append(f"PATTERNS: {len(high_patterns)} high-severity issues found")
-
-        # v2.8.0: Monotonic single-axis status determination (TOE gate principle)
-        # Primary axis: deficit_score is the authoritative measure.
-        # Supplementary overrides are explicit, documented, and threshold-gated.
-        if deficit_score >= 70:
-            status = SlopStatus.CRITICAL_DEFICIT
-        elif deficit_score >= 50:
-            status = SlopStatus.INFLATED_SIGNAL
-        elif deficit_score >= 30:
-            status = SlopStatus.SUSPICIOUS
-        else:
-            status = SlopStatus.CLEAN
-
-        # Supplementary override 1: extreme critical pattern density
-        # 5+ critical patterns is unambiguous slop regardless of score
-        if len(critical_patterns) >= 5 and status == SlopStatus.CLEAN:
-            status = SlopStatus.SUSPICIOUS
-
-        # Supplementary override 2: near-zero import usage (structural issue)
-        # DEPENDENCY_NOISE applies when DDC < 20% is the *primary* failure mode.
-        # GQG collapses on near-zero DDC, but the label should reflect root cause.
-        # Guard: skip if critical patterns, high inflation, or role-based DDC skip.
-        if (
-            ddc.usage_ratio < 0.20
-            and "ddc" not in skip
-            and not critical_patterns
-            and inflation.inflation_score <= 1.0
-        ):
-            status = SlopStatus.DEPENDENCY_NOISE
-
-        return deficit_score, status, warnings, deficit_breakdown
 
     def _compute_deficit_breakdown(
         self,
@@ -735,297 +489,80 @@ class SlopDetector:
         pattern_penalty: float,
         deficit_score: float,
     ) -> Dict[str, float]:
-        """Attribute deficit_score to its source dimensions (SLOP-003).
-
-        The GQG geometric mean cannot be decomposed linearly, but we can
-        attribute the *log loss* contribution of each dimension and then
-        scale to the realised base_deficit_score. The fields sum to total
-        within 0.01 (when not capped at 100) — see test_deficit_breakdown.
-
-        Returns absolute "points-of-deficit" per dimension, plus the
-        pattern_penalty actually applied (post-cap, post-floor).
-        """
-        weights = self.config.get_weights()
-        w_ldr = weights.get("ldr", 0.40)
-        w_inf = weights.get("inflation", 0.30)
-        w_ddc = weights.get("ddc", 0.20)
-        w_pur = weights.get("purity", 0.10)
-        total_w = w_ldr + w_inf + w_ddc + w_pur
-
-        # Log-loss per dimension (negative since values are in (0,1]).
-        # Matches the same clamp used in _compute_gqg.
-        ldr_loss = -w_ldr * log(max(1e-4, ldr.ldr_score))
-        inf_loss = -w_inf * log(max(1e-4, 1.0 - inflation_normalized))
-        ddc_loss = -w_ddc * log(max(1e-4, ddc.usage_ratio))
-        pur_loss = -w_pur * log(max(1e-4, purity))
-        total_loss = (ldr_loss + inf_loss + ddc_loss + pur_loss) / total_w
-
-        # Share-based attribution: distributes base_deficit_score across
-        # dimensions in proportion to each one's log-loss share.
-        if total_loss > 1e-9:
-            ldr_share = (ldr_loss / total_w) / total_loss
-            inf_share = (inf_loss / total_w) / total_loss
-            ddc_share = (ddc_loss / total_w) / total_loss
-            pur_share = (pur_loss / total_w) / total_loss
-        else:
-            ldr_share = inf_share = ddc_share = pur_share = 0.0
-
-        # Effective pattern contribution after the 100-cap on total.
-        # When base + pattern_penalty <= 100, pattern_hits == pattern_penalty.
-        # When capped, the cap eats into the pattern contribution first.
-        effective_pattern = max(0.0, deficit_score - base_deficit_score)
-
-        return {
-            "ldr_penalty": round(ldr_share * base_deficit_score, 4),
-            "inflation_penalty": round(inf_share * base_deficit_score, 4),
-            "ddc_penalty": round(ddc_share * base_deficit_score, 4),
-            "purity_penalty": round(pur_share * base_deficit_score, 4),
-            "pattern_hits": round(effective_pattern, 4),
-            "total": round(deficit_score, 4),
-        }
+        """Backward-compatible facade for deficit attribution."""
+        del pattern_penalty
+        return compute_deficit_breakdown(
+            self.config.get_weights(),
+            ldr,
+            inflation_normalized,
+            ddc,
+            purity,
+            base_deficit_score,
+            deficit_score,
+        )
 
     def _js_divergence(self, p: List[float], q: List[float]) -> float:
-        """Jensen-Shannon divergence between two probability vectors.
-
-        Returns JSD in [0, 1] (log base 2 convention, then normalized to [0,1]).
-        Both p and q must have equal length and sum to ~1.
-        """
-        m = [(pi + qi) / 2.0 for pi, qi in zip(p, q)]
-        eps = 1e-12
-
-        def kl(a: List[float], b: List[float]) -> float:
-            return sum(ai * log(ai / bi) for ai, bi in zip(a, b) if ai > eps and bi > eps)
-
-        jsd = 0.5 * kl(p, m) + 0.5 * kl(q, m)
-        return max(0.0, min(1.0, jsd))
+        """Backward-compatible facade for Jensen-Shannon divergence."""
+        return js_divergence(p, q)
 
     @staticmethod
     def _deterministic_sample_indices(total: int, sample_size: int) -> List[int]:
-        """Pick a stable spread of indices across an ordered sequence."""
-        if sample_size >= total:
-            return list(range(total))
-        if sample_size <= 1:
-            return [0]
+        """Backward-compatible facade for deterministic sampling."""
+        return deterministic_sample_indices(total, sample_size)
 
-        last = total - 1
-        raw = [round(i * last / (sample_size - 1)) for i in range(sample_size)]
-        indices: List[int] = []
-        seen = set()
-
-        for idx in raw:
-            candidate = int(idx)
-            while candidate in seen and candidate < total - 1:
-                candidate += 1
-            while candidate in seen and candidate > 0:
-                candidate -= 1
-            if candidate not in seen:
-                indices.append(candidate)
-                seen.add(candidate)
-
-        for candidate in range(total):
-            if len(indices) >= sample_size:
-                break
-            if candidate not in seen:
-                indices.append(candidate)
-                seen.add(candidate)
-
-        return sorted(indices)
-
-    def _compute_coherence_vr_exact(self, file_dcfs: Sequence[Dict[str, float]]) -> float:
-        """MST H0 persistent homology coherence over file DCFs.
-
-        coherence = 1 - max_mst_edge
-        where max_mst_edge is the longest edge in the minimum spanning tree
-        of pairwise sqrt-JSD distances between file DCFs.
-
-        Properties:
-        - epsilon-free (no threshold parameter)
-        - 1.0: all files structurally uniform
-        - 0.0: maximally distinct structural clusters
-        - Equivalent to maximum H0 persistence in the Vietoris-Rips filtration
-        """
-        n = len(file_dcfs)
-        if n <= 1:
-            return 1.0
-
-        # Build pairwise sqrt-JSD distance matrix
-        dist = [[0.0] * n for _ in range(n)]
-        for i in range(n):
-            for j in range(i + 1, n):
-                all_keys = sorted(set(file_dcfs[i]) | set(file_dcfs[j]))
-                p = [file_dcfs[i].get(k, 0.0) for k in all_keys]
-                q = [file_dcfs[j].get(k, 0.0) for k in all_keys]
-                jsd = self._js_divergence(p, q)
-                d = sqrt(jsd)
-                dist[i][j] = dist[j][i] = d
-
-        # Prim's MST — O(n^2), ε-free
-        in_mst = [False] * n
-        min_edge = [float("inf")] * n
-        min_edge[0] = 0.0
-        mst_edge_weights: List[float] = []
-
-        for _ in range(n):
-            u = min((v for v in range(n) if not in_mst[v]), key=lambda v: min_edge[v])
-            in_mst[u] = True
-            if min_edge[u] > 0.0:
-                mst_edge_weights.append(min_edge[u])
-            for v in range(n):
-                if not in_mst[v] and dist[u][v] < min_edge[v]:
-                    min_edge[v] = dist[u][v]
-
-        max_persistence = max(mst_edge_weights) if mst_edge_weights else 0.0
-        return max(0.0, 1.0 - max_persistence)
+    def _compute_coherence_vr_exact(self, file_dcfs) -> float:
+        """Backward-compatible facade for exact coherence calculation."""
+        return compute_coherence_vr_exact(file_dcfs)
 
     def _compute_coherence_vr(self, file_dcfs: List[Dict[str, float]]) -> tuple[float, str]:
-        """Compute structural coherence with an exact ceiling and deterministic fallback."""
-        n = len(file_dcfs)
-        if n <= 1:
-            return 1.0, "none"
-
-        exact_ceiling = self.config.get_exact_topology_ceiling()
-        mode = self.config.get_topology_mode_above_ceiling()
-
-        if n <= exact_ceiling or mode == "exact":
-            return self._compute_coherence_vr_exact(file_dcfs), "vr_structural"
-
-        sample_indices = self._deterministic_sample_indices(n, exact_ceiling)
-        sampled_dcfs = [file_dcfs[idx] for idx in sample_indices]
-        return self._compute_coherence_vr_exact(sampled_dcfs), "vr_structural_approx"
+        """Backward-compatible facade for configured coherence calculation."""
+        return compute_coherence_vr(
+            file_dcfs,
+            self.config.get_exact_topology_ceiling(),
+            self.config.get_topology_mode_above_ceiling(),
+            exact_calculator=self._compute_coherence_vr_exact,
+        )
 
     def _calculate_pattern_penalty(self, issues: List[Issue]) -> float:
-        """
-        Calculate penalty from pattern issues.
-
-        v2.1: Pattern-based scoring.
-        """
-        severity_weights = {
-            "critical": 10.0,
-            "high": 5.0,
-            "medium": 2.0,
-            "low": 1.0,
-        }
-
-        penalty = 0.0
-        for issue in issues:
-            weight = severity_weights.get(issue.severity.value, 1.0)
-            penalty += weight
-
-        # Cap pattern penalty at 50 points
-        return min(penalty, 50.0)
+        """Backward-compatible facade for pattern penalty calculation."""
+        return calculate_pattern_penalty(issues)
 
     @staticmethod
     def _result_status_value(result: Any) -> str:
-        status = getattr(result, "status", SlopStatus.CLEAN)
-        return status.value if isinstance(status, SlopStatus) else str(status)
+        return result_status_value(result)
 
     def _is_result_non_clean(self, result: Any) -> bool:
-        return self._result_status_value(result) != SlopStatus.CLEAN.value
+        return is_result_non_clean(result)
 
     @staticmethod
     def _result_slop_score(result: Any) -> float:
-        if hasattr(result, "deficit_score"):
-            return float(result.deficit_score)
-        return float(getattr(result, "slop_score", 0.0))
+        return result_slop_score(result)
 
     @staticmethod
     def _result_total_lines(result: Any) -> int:
-        if hasattr(result, "ldr"):
-            return int(getattr(result.ldr, "total_lines", 0))
-        return int(getattr(result, "total_lines", 0))
+        return result_total_lines(result)
 
     @staticmethod
     def _result_ldr_score(result: Any) -> float:
-        if hasattr(result, "ldr"):
-            return float(getattr(result.ldr, "ldr_score", 0.0))
-        return float(getattr(result, "ldr_equivalent", 0.0))
+        return result_ldr_score(result)
 
     def _should_ignore(
         self, file_path: Path, patterns: List[str], root: Optional[Path] = None
     ) -> bool:
-        """Check if file matches any ignore pattern."""
-        return self._ignore_reason(file_path, patterns, root=root) is not None
+        """Backward-compatible facade for project exclusion checks."""
+        return should_ignore(file_path, patterns, root=root)
 
     def _ignore_reason(
         self, file_path: Path, patterns: List[str], root: Optional[Path] = None
     ) -> Optional[str]:
-        """Return the exclusion source so project scope can be reported honestly."""
-        lowered_parts = {part.lower() for part in file_path.parts}
-        default_parts = lowered_parts & DEFAULT_EXCLUDE_PARTS
-        if default_parts:
-            return f"directory:{sorted(default_parts)[0]}"
-
-        normalized_paths = set()
-        if root is not None:
-            try:
-                normalized_paths.add(str(file_path.relative_to(root)).replace("\\", "/"))
-            except ValueError:
-                normalized_paths.add(str(file_path).replace("\\", "/"))
-        else:
-            normalized_paths.add(str(file_path).replace("\\", "/"))
-        for pattern in patterns:
-            pat = str(pattern).replace("\\", "/")
-            for normalized in normalized_paths:
-                if Path(normalized).match(pat):
-                    return f"pattern:{pat}"
-                if fnmatch.fnmatch(normalized, pat):
-                    return f"pattern:{pat}"
-                if pat.startswith("**/") and fnmatch.fnmatch(normalized, pat[3:]):
-                    return f"pattern:{pat}"
-        return None
+        """Backward-compatible facade for exclusion reporting."""
+        return ignore_reason(file_path, patterns, root=root)
 
     def _collect_project_scan_coverage(
         self, project_path: Path, ignore_patterns: List[str]
     ) -> Dict[str, Any]:
-        """Report supported exclusions and known-but-unsupported source files."""
-        excluded: List[Dict[str, str]] = []
-        unsupported: List[Dict[str, str]] = []
-        excluded_by_reason: Counter[str] = Counter()
-        unsupported_count = 0
-        try:
-            paths = project_path.rglob("*")
-            for path in paths:
-                if not path.is_file():
-                    continue
-                suffix = path.suffix.lower()
-                reason = self._ignore_reason(path, ignore_patterns, root=project_path)
-                if suffix in _SUPPORTED_SOURCE_EXTENSIONS and reason is not None:
-                    excluded_by_reason[reason] += 1
-                    if len(excluded) < _COVERAGE_FILE_DETAIL_LIMIT:
-                        excluded.append(
-                            {
-                                "path": str(path.relative_to(project_path)).replace("\\", "/"),
-                                "language": _SUPPORTED_SOURCE_EXTENSIONS[suffix],
-                                "reason": reason,
-                            }
-                        )
-                    continue
-                if suffix in _UNSUPPORTED_SOURCE_EXTENSIONS and reason is None:
-                    unsupported_count += 1
-                    if len(unsupported) < _COVERAGE_FILE_DETAIL_LIMIT:
-                        unsupported.append(
-                            {
-                                "path": str(path.relative_to(project_path)).replace("\\", "/"),
-                                "extension": suffix,
-                            }
-                        )
-        except OSError as exc:
-            logger.debug("Could not collect full scan coverage for %s: %s", project_path, exc)
-
-        return {
-            "analyzed": {"total": 0, "python": 0, "javascript": 0, "go": 0},
-            "excluded": {
-                "total": sum(excluded_by_reason.values()),
-                "files": excluded,
-                "omitted_file_details": max(0, sum(excluded_by_reason.values()) - len(excluded)),
-                "by_reason": dict(sorted(excluded_by_reason.items())),
-            },
-            "unsupported": {
-                "total": unsupported_count,
-                "files": unsupported,
-                "omitted_file_details": max(0, unsupported_count - len(unsupported)),
-            },
-        }
+        """Backward-compatible facade for project scope reporting."""
+        return collect_project_scan_coverage(project_path, ignore_patterns)
 
     @staticmethod
     def _set_analyzed_scan_counts(
@@ -1034,45 +571,12 @@ class SlopDetector:
         js_results: List[Any],
         go_results: List[Any],
     ) -> None:
-        analyzed = scan_coverage["analyzed"]
-        analyzed["python"] = len(python_results)
-        analyzed["javascript"] = len(js_results)
-        analyzed["go"] = len(go_results)
-        analyzed["total"] = len(python_results) + len(js_results) + len(go_results)
+        set_analyzed_scan_counts(scan_coverage, python_results, js_results, go_results)
 
     def _create_error_analysis(self, file_path: str, error: str) -> FileAnalysis:
-        """Create minimal analysis for files with errors."""
-        from slop_detector.models import DDCResult, InflationResult, LDRResult
-
-        # 999.0 sentinel instead of float("inf") — inf serializes as "Infinity"
-        # which violates RFC 8259 and is rejected by jq/most JSON parsers.
-        return FileAnalysis(
-            file_path=file_path,
-            ldr=LDRResult(0, 0, 0, 0.0, "N/A"),
-            inflation=InflationResult(0, 0.0, 999.0, "error", []),
-            ddc=DDCResult([], [], [], [], [], 0.0, "N/A"),
-            deficit_score=100.0,  # CRITICAL: Syntax errors are severe
-            status=SlopStatus.CRITICAL_DEFICIT,
-            warnings=[f"Parse error: {error}"],
-        )
+        """Backward-compatible facade for parse-error results."""
+        return create_error_analysis(file_path, error)
 
     def _create_empty_project_analysis(self, project_path: str) -> ProjectAnalysis:
-        """Create empty project analysis."""
-        return ProjectAnalysis(
-            project_path=project_path,
-            total_files=0,
-            deficit_files=0,
-            clean_files=0,
-            avg_deficit_score=0.0,
-            weighted_deficit_score=0.0,
-            avg_ldr=0.0,
-            avg_inflation=0.0,
-            avg_ddc=0.0,
-            overall_status=SlopStatus.CLEAN,
-            file_results=[],
-            suppressed_issue_count=0,
-            suppression_ledger=[],
-            priority_hotspots=[],
-            churn_analysis_available=False,
-            coverage_analysis_available=False,
-        )
+        """Backward-compatible facade for an empty project result."""
+        return create_empty_project_analysis(project_path)
