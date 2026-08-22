@@ -21,8 +21,13 @@ def test_incompatible_model_reports_explicit_unavailable_capability(tmp_path):
     assert scorer is None
     assert availability.status == "unavailable"
     assert availability.reason is not None
-    assert "expected classifier keys" in availability.reason
-    assert "model_type" in availability.reason
+    if availability.reason.startswith("ML dependency unavailable:"):
+        # Core installs intentionally omit optional ML dependencies. The
+        # capability contract must remain explicit in that supported mode.
+        assert "numpy" in availability.reason
+    else:
+        assert "expected classifier keys" in availability.reason
+        assert "model_type" in availability.reason
 
 
 def test_generate_samples_preserves_generated_code(tmp_path):

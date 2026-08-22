@@ -345,9 +345,8 @@ class ProjectAnalysis:
         # load. next_steps / project_metric_rows are pure semantic helpers (no
         # rich/markdown) so machine consumers (JSON, agent route, MCP) receive
         # the same actionable plan and metric semantics a human reader gets.
-        from slop_detector.renderer_glossary import next_steps, project_metric_rows
-
         from slop_detector.finding_summary import get_finding_summary
+        from slop_detector.renderer_glossary import next_steps, project_metric_rows
 
         return {
             "project_path": self.project_path,
