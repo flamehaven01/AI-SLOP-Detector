@@ -168,9 +168,10 @@ deficit_score = base_deficit + pattern_penalty
 
 `w_ldr + w_inflation + w_ddc + w_purity = 1.00`.
 `total_w` normalises the geometric mean, so weights need not sum to any fixed value.
-These are the `DEFAULT_CONFIG` canonical fallback values. The LEDA engine's
-dogfooding-calibrated weights live in `DOMAIN_PROFILES["general"]` and differ
-significantly (ddc ≈ 0.62, ldr ≈ 0.15) — see `docs/LEDA_CALIBRATION.md §4.3`.
+These are the `DEFAULT_CONFIG` canonical fallback values. Domain profiles are
+shipped configuration defaults; they are not evidence that one global weight
+set has been externally validated. Local self-calibration is repository-scoped
+and separately bounded; see [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
 ### Pattern Severity Penalties (added after weighted sum, before x100)
 
@@ -481,7 +482,7 @@ score takes precedence.
 | 0.70–0.90  | Moderate certainty                                    |
 | < 0.70     | Low certainty — borderline case, rule-based is primary|
 
-### Synthetic Training Data (v2.8.0 Generator)
+### Historical Synthetic Training Data (Not a Product Accuracy Claim)
 
 The built-in `synthetic_generator.py` produces labelled samples for bootstrap
 training without requiring a real codebase:
@@ -498,14 +499,15 @@ training without requiring a real codebase:
 - All imports used, meaningful docstrings only where warranted
 - Complexity <= 5, nesting depth <= 3, no dead code
 
-**Reported accuracy on synthetic set (600 samples, 70/30 split):**
+**Historical result on a synthetic set (600 samples, 70/30 split):**
 - Random Forest: 1.000 train / ~0.98 test
 - Top discriminating features: `deep_nesting_count` (#1), `ldr_score` (#2),
   `dead_code_count` (#5)
 
-> **Warning:** Models trained exclusively on synthetic data will overfit to
-> synthetic patterns. For production use, supplement with real codebase samples
-> via the manual label pipeline (`pipeline.py`).
+> **Boundary:** This result describes synthetic-data separation only. It is not
+> an accuracy claim for real repositories, a validation result, or proof that
+> the optional ML signal is available at runtime. Inspect `ml_scoring` in the
+> report for the current capability state.
 
 ---
 

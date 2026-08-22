@@ -69,7 +69,8 @@ import cycles only.
 `.slopconfig.yaml` is validated by Pydantic v2 schemas before merging into the
 default config. Invalid values raise `ValueError` with the exact field path —
 before they can reach the GQG formula (the weighted score combiner) or the
-LEDA calibration (the engine that auto-tunes the weights from your history).
+local self-calibration (a repository-scoped review-sensitivity aid based on
+your local history, not external validation).
 
 ### Validated Sections
 

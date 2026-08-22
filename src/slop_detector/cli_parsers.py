@@ -11,7 +11,7 @@ from slop_detector import __version__
 def _build_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser."""
     parser = argparse.ArgumentParser(
-        description="AI SLOP Detector v4.0 - Sovereign Gate Edition",
+        description=f"AI SLOP Detector v{__version__}",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

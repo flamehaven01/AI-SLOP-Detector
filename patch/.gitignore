@@ -1,3 +1,0 @@
-# Generated command output is reproducible and can be large; keep the audited
-# plans and repro scripts in version control instead.
-artifacts/

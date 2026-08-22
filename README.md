@@ -321,8 +321,6 @@ Use the docs by task, not by chronology:
 
 **Calibration and history**
 - [docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md)
-- [docs/LEDA_CALIBRATION.md](docs/LEDA_CALIBRATION.md)
-- [docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md](docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md)
 - [docs/HISTORY_TRACKING.md](docs/HISTORY_TRACKING.md)
 - [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
 
@@ -331,6 +329,7 @@ Use the docs by task, not by chronology:
 - [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
 - [docs/CONFIG_EXAMPLES.md](docs/CONFIG_EXAMPLES.md)
 - [docs/CLAUDE_CODE_SKILL.md](docs/CLAUDE_CODE_SKILL.md)
+- [docs/API.md](docs/API.md)
 
 ---
 
@@ -546,38 +545,18 @@ Recommended use:
 
 ---
 
-## Empirical Weight Calibration (LEDA)
+## Local Calibration
 
-Most static analyzers ship with hand-tuned thresholds — or none at all. AI-SLOP
-Detector can tune its 4D weights from repository-local review/edit history
-instead of forcing one fixed profile everywhere. That makes the calibration
-path reproducible and auditable, but it does **not** make the score externally
-validated by itself. The current claim is narrower: the tool can adapt its
-review sensitivity to one repository's observed behavior using explicit rules.
+AI-SLOP Detector can adjust review sensitivity from history held inside one
+repository environment. This is a local operational aid: it is not a
+multi-repository data collection channel, a global profile injector, or
+evidence that the score is externally validated.
 
-```mermaid
-flowchart TD
-    A[External Repositories\nDogfooding] --> B[LEDA Turbo Protocol\nScan → Auto-Fix → Rescan]
-    B --> C{Measure Delta}
-    C -->|Git Commit Accepted| D[Improvement Event]
-    C -->|Flagged but Ignored| E[False Positive Candidate]
-    D --> F[Self-Calibrator\n4D Grid Search]
-    E --> F
-    F --> G{Confidence Gap ≥ 0.10?}
-    G -->|Yes| H[Global Injector\nSynthesizes Weights]
-    H --> I[DOMAIN_PROFILES Updated]
-```
-
-1. **Dogfooding** — `leda_turbo.bat` runs a `Scan → Auto-Fix → Rescan` loop over diverse external codebases, safely applying patterns like `bare_except` and `mutable_default_arg`.
-2. **Event Labeling** — deficit drop + git commit = `improvement_event`; a stable unchanged file after a prior flag = `fp_candidate`.
-3. **Self-Calibration** — 4D grid search (±0.15 domain-anchored). Weights update only when the `confidence_gap` between improvement events and FP candidates exceeds **0.10**.
-4. **Global Synthesis** — `global_injector.py` harvests signals across all dogfooding repos, synthesizes a vote-weighted optimal profile, and injects it into `DOMAIN_PROFILES["general"]`.
-
-Use this as an internal calibration aid, not as proof that the score measures a
-single externally validated latent condition. See [docs/VALIDATION.md](docs/VALIDATION.md)
-for the current validation boundary.
-
-[LEDA Calibration Docs →](docs/LEDA_CALIBRATION.md) · [Turbo Protocol →](docs/LEDA_TURBO_PROTOCOL_DOGFOODING.md)
+The local calibration path is bounded by project scoping, minimum-history and
+confidence checks, and the existing configuration boundary. Review the proposed
+change before relying on it for a team workflow. See
+[docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md) for the supported flow and
+[docs/VALIDATION.md](docs/VALIDATION.md) for the validation boundary.
 
 ---
 

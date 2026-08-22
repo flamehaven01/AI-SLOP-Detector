@@ -51,6 +51,12 @@ For changed-code review, agents should prioritize:
 - `actions`
 - `findings`
 
+For a baseline `scan`, inspect the report boundary before acting:
+
+- `finding_summary` for aggregate finding counts and severities
+- `scan_coverage` for analyzed, excluded, and unsupported files
+- `ml_scoring` for the optional ML capability state
+
 For cleanup workflows, inspect:
 
 - `issues`
@@ -180,6 +186,8 @@ Best when:
   correct.
 - Do not infer that `clean` means “complete” or “safe”; it only means the
   measured structural signals are currently acceptable.
+- Use `--include-tests` only when test-file findings are relevant; it does not
+  override user ignores or build-artifact exclusions.
 
 ---
 

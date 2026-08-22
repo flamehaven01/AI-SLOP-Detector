@@ -96,6 +96,10 @@ Inspect first:
 - `actions`
 - `findings`
 
+For a baseline `scan`, also inspect `finding_summary`, `scan_coverage`, and
+`ml_scoring`. A `clean` weighted score is not a claim that no independent
+pattern findings exist or that all files were analyzed.
+
 Use this when the task is:
 - PR review
 - patch validation
@@ -176,6 +180,7 @@ Unsafe without human confirmation:
 - rewriting architectural boundaries
 - removing files based only on low coverage or low churn
 - interpreting `clean` as “works correctly”
+- treating an unavailable ML capability as a passing ML signal
 
 The product is deterministic in its core scoring path, but the skill must still
 respect the difference between:
@@ -184,6 +189,10 @@ respect the difference between:
 - **governance**
 
 Those are separate layers by design.
+
+Use `--include-tests` only when test-file findings are in scope. It includes
+the built-in test-file exclusions only; configured ignores and artifact
+exclusions remain in force.
 
 ---
 

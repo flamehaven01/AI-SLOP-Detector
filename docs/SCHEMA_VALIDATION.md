@@ -1,7 +1,7 @@
 # Runtime Schema Validation — Technical Reference
 
-> **Version:** 3.7.3
-> **Last Updated:** 2026-05-04
+> **Version:** 3.8.9
+> **Last Reviewed:** 2026-08-22
 
 Three independent validation layers protect the analysis pipeline from malformed data
 propagating silently into the GQG scorer, the LEDA calibration grid search, or the

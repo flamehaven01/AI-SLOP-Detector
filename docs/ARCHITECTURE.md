@@ -876,5 +876,5 @@ slop-detector scan ./src --format json
 
 ---
 
-**Last Updated:** 2026-07-10
+**Last Updated:** 2026-08-22
 **Version:** 3.8.9

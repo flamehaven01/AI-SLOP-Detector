@@ -125,20 +125,22 @@ repos:
       # - id: slop-detector-patterns  # fast per-file pattern scan
 ```
 
-### Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`)
+### Historical Claude Code Skill Note
 
-Install the skill and get four agentic commands inside Claude Code:
+The old `/slop*` labels were host-specific aliases, not a separate product
+surface. Install the current skill and use the canonical `review`, `pulse`,
+`sweep`, and `scan` workflow:
 
 ```bash
 cp -r claude-skills/slop-detector ~/.claude/skills/slop-detector
 ```
 
-| Command | What it does |
+| Canonical surface | Use it for |
 |---|---|
-| `/slop` | Full project scan + interpretation + patch suggestions |
-| `/slop-file [path]` | Per-file deep-dive with fix guidance |
-| `/slop-gate` | CI PASS/FAIL decision with metric breakdown |
-| `/slop-spar` | Adversarial validation — challenges "clean" findings |
+| `review` | Changed-code evidence |
+| `pulse` | Hotspot prioritization |
+| `sweep` | Bounded cleanup planning |
+| `scan` | Full baseline analysis |
 
 See [`docs/CLAUDE_CODE_SKILL.md`](../docs/CLAUDE_CODE_SKILL.md) for full reference.
 
@@ -320,14 +322,14 @@ ext install Flamehaven.vscode-slop-detector
 ### From VSIX (Local)
 
 ```bash
-code --install-extension vscode-slop-detector-3.8.3.vsix
+code --install-extension vscode-slop-detector-3.8.9.vsix
 ```
 
 ---
 
 ## Requirements
 
-- **Python 3.9+**
+- **Python 3.8+**
 - `ai-slop-detector` installed in the Python environment VS Code uses:
 
 ```bash
@@ -392,7 +394,11 @@ Recommended: `warnThreshold: 30`, `failThreshold: 50` (defaults).
 
 ---
 
-## Pattern Reference (v3.5.0 — 33 patterns)
+## Pattern Reference
+
+The maintained, language-aware catalog is
+[docs/PATTERNS.md](../docs/PATTERNS.md). The abbreviated list below is a
+convenience overview, not a version-pinned pattern count.
 
 Use the `pattern_id` as a Problems panel filter code.
 
@@ -457,6 +463,10 @@ Press **F5** to open Extension Development Host. The Output panel channel
 ## Changelog
 
 See the [full CHANGELOG](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md).
+
+**v3.8.9:** Extension package aligned with the core evidence boundary. Backend
+results now expose finding totals, scan coverage, and ML capability state, so a
+weighted `clean` status is not presented as an empty finding set.
 
 **v3.8.3:** Four interactive webview panels (4D breakdown, cleanup plan, pulse dashboard, diff-aware review); typed `ai-slop-detector` npm data layer replacing hand-rolled subprocess calls; getting-started walkthrough, state-aware empty states, context-key menus, and `slopDetector.domain` setting.
 

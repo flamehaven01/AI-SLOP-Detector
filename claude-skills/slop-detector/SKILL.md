@@ -59,6 +59,11 @@ Use when you need:
 - baseline structural metrics
 - complete pattern output
 
+Before acting on a project scan, inspect:
+- `finding_summary` for total and severity counts
+- `scan_coverage` for analyzed, excluded, and unsupported files
+- `ml_scoring` for the optional ML capability state
+
 ### `review`
 
 ```bash
@@ -159,6 +164,12 @@ Unsafe without human confirmation:
 - deleting `needs_review` cleanup findings automatically
 - changing architecture boundaries
 - removing high-churn files solely from cleanup heuristics
+- treating `clean` as proof that no findings exist or all files were analyzed
+- treating an unavailable ML capability as a passing ML signal
+
+Use `--include-tests` only when test-file findings are in scope. It includes
+built-in test-file exclusions only; configured ignores and artifacts remain
+excluded.
 
 ### 3. Use cleanup families intentionally
 

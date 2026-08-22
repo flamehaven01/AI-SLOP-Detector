@@ -434,8 +434,8 @@ cross-language aggregation and ML reproducibility fixes.
 
 ### Tag
 
-- Latest stable tag: `v3.8.2`
-- Previous stable tag: `v3.8.1`
+- Latest stable tag: `v3.8.9`
+- Previous stable tag: `v3.8.8`
 
 ## v3.7.4 — 2026-05-19
 
