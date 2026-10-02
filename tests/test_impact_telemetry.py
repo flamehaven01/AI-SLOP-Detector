@@ -106,9 +106,7 @@ def test_cli_telemetry_enable_and_inspect_json(tmp_path: Path, monkeypatch, caps
     assert inspect_out["event"] == "analysis_run"
 
 
-def test_read_only_does_not_touch_enabled_impact_or_telemetry(
-    tmp_path: Path, monkeypatch, capsys
-):
+def test_read_only_does_not_touch_enabled_impact_or_telemetry(tmp_path: Path, monkeypatch, capsys):
     project = tmp_path / "project"
     project.mkdir()
     (project / "example.py").write_text("def value():\n    return 1\n", encoding="utf-8")
