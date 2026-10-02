@@ -104,3 +104,41 @@ def test_cli_telemetry_enable_and_inspect_json(tmp_path: Path, monkeypatch, caps
     assert main(["telemetry", "inspect", "--example", "--json"]) == 0
     inspect_out = json.loads(capsys.readouterr().out)
     assert inspect_out["event"] == "analysis_run"
+
+
+def test_read_only_does_not_touch_enabled_impact_or_telemetry(
+    tmp_path: Path, monkeypatch, capsys
+):
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "example.py").write_text("def value():\n    return 1\n", encoding="utf-8")
+
+    impact = ImpactTracker(project)
+    impact.enable()
+    impact_before = impact.impact_path.read_bytes()
+
+    telemetry_home = tmp_path / "telemetry-home"
+    monkeypatch.setenv("AI_SLOP_DETECTOR_HOME", str(telemetry_home))
+    telemetry = TelemetryManager()
+    telemetry.enable()
+    telemetry_queue = telemetry.queue_path
+    assert telemetry_queue is not None
+    assert not telemetry_queue.exists()
+
+    assert (
+        main(
+            [
+                "scan",
+                str(project),
+                "--project",
+                "--json",
+                "--no-history",
+                "--read-only",
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+
+    assert impact.impact_path.read_bytes() == impact_before
+    assert not telemetry_queue.exists()

@@ -144,6 +144,15 @@ Examples:
         help="Skip recording this run to history (~/.slop-detector/history.db)",
     )
     parser.add_argument(
+        "--read-only",
+        action="store_true",
+        help=(
+            "Analyze without changing the project or the detector's own state: no "
+            "history, impact, telemetry, or analysis cache. Refuses write-capable "
+            "options (--output, --fix, --init, ...)."
+        ),
+    )
+    parser.add_argument(
         "--show-history", action="store_true", help="Show trend history for the given file and exit"
     )
     parser.add_argument(

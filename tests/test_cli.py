@@ -935,6 +935,61 @@ def test_main_emit_leda_yaml(tmp_path):
             assert data["analysis"]["mode"] == "project"
 
 
+def test_read_only_suppresses_all_persistent_observability(tmp_path):
+    target = tmp_path / "target.py"
+    target.write_text("def value():\n    return 1\n", encoding="utf-8")
+
+    with patch("slop_detector.cli._record_optional_impact") as impact, patch(
+        "slop_detector.cli._capture_optional_telemetry"
+    ) as telemetry, patch("slop_detector.cli._record_history") as history, patch(
+        "slop_detector.cli._check_calibration_hint"
+    ) as calibration_hint:
+        result = main(
+            [
+                "scan",
+                str(target),
+                "--json",
+                "--no-history",
+                "--read-only",
+                "--no-color",
+            ]
+        )
+
+    assert result == 0
+    impact.assert_not_called()
+    telemetry.assert_not_called()
+    history.assert_not_called()
+    calibration_hint.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "conflicting_args",
+    [
+        ["--fix"],
+        ["--governance"],
+        ["--emit-leda-yaml"],
+        ["--output", "report.json"],
+        ["--ci-mode", "soft"],
+    ],
+)
+def test_read_only_rejects_write_or_stateful_options(tmp_path, capsys, conflicting_args):
+    target = tmp_path / "target.py"
+    target.write_text("def value():\n    return 1\n", encoding="utf-8")
+
+    result = main(
+        [
+            "scan",
+            str(target),
+            "--json",
+            "--read-only",
+            *conflicting_args,
+        ]
+    )
+
+    assert result == 2
+    assert "--read-only is incompatible with" in capsys.readouterr().err
+
+
 def test_main_fail_threshold(tmp_path):
     """Test main with fail threshold."""
     test_file = tmp_path / "test.py"

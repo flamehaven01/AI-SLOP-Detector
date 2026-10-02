@@ -1,4 +1,4 @@
-"""Import edges with resolution evidence (docs/GRAPH_STRUCTURE_UPDATE_PLAN.md, Phase 0B).
+"""Import edges with resolution evidence (docs/IMPORT_GRAPH.md).
 
 Each import alias yields edges to its most specific target. Observation
 (statement shape), addressing (absolute/relative), outcome (resolution_state)
@@ -316,7 +316,7 @@ class _Resolver:
 
 
 def _classify_name(bindings: _InitBindings, name: str, has_submodule: bool) -> str:
-    """Plan Phase 0 rule: attribute first, then submodule; undecidable -> ambiguous."""
+    """CPython order: attribute first, then submodule; undecidable -> ambiguous."""
     if name in bindings.member and name not in bindings.submodule:
         return "member"
     if name in bindings.submodule and has_submodule:
@@ -335,7 +335,7 @@ def _replace_kind(edge: ImportEdge, kind: str) -> ImportEdge:
 def _relative_location(
     index: ProjectModuleIndex, importer: Path, level: int, module: Optional[str]
 ):
-    """Climb the package hierarchy, not the filesystem (R6-02).
+    """Climb the package hierarchy, not the filesystem.
 
     Every directory climbed through, from the importer's own directory up to the
     base, must be a package; otherwise CPython raises "attempted relative import
@@ -431,7 +431,7 @@ def hard_graph(edges: Sequence[ImportEdge], exclude_type_only: bool = False) -> 
 
     `exclude_type_only` drops `if TYPE_CHECKING:` edges, which never execute.
     Deferred (function-level) edges are kept: they execute when the function is
-    called (R6-04). An import-time-only view is Phase 1 work.
+    called. Per-phase views live in graph_metrics.
     """
     graph: Dict[str, set] = {}
     for edge in edges:
@@ -453,7 +453,7 @@ def coverage(edges: Sequence[ImportEdge]) -> Dict[str, int]:
     return counts
 
 
-# Internal imports that were seen but are not hard graph edges (R6-03).
+# Internal imports that were seen but are not hard graph edges.
 UNCHECKED_STATES: Tuple[str, ...] = ("conditional_internal", "ambiguous", "unresolved_internal")
 
 

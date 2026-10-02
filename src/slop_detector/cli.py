@@ -238,6 +238,42 @@ def _emit_leda_yaml(args, result) -> None:
     print(f"[+] LEDA injection YAML saved to {written}")
 
 
+def _activate_read_only(args) -> Optional[str]:
+    """Apply the read-only contract or return a conflict message.
+
+    Read-only means the run leaves no change in the analyzed project and creates
+    or modifies none of the detector's own state (history, impact, telemetry,
+    analysis cache). Write-capable options are refused.
+    """
+    if not getattr(args, "read_only", False):
+        return None
+
+    incompatible = {
+        "--output": bool(getattr(args, "output", None)),
+        "--fix": bool(getattr(args, "fix", False)),
+        "--dry-run": bool(getattr(args, "dry_run", False)),
+        "--governance": bool(getattr(args, "governance", False)),
+        "--emit-leda-yaml": bool(getattr(args, "emit_leda_yaml", False)),
+        "--show-history": bool(getattr(args, "show_history", False)),
+        "--history-trends": bool(getattr(args, "history_trends", False)),
+        "--export-history": bool(getattr(args, "export_history", None)),
+        "--self-calibrate": bool(getattr(args, "self_calibrate", False)),
+        "--apply-calibration": bool(getattr(args, "apply_calibration", None)),
+        "--init": bool(getattr(args, "init", False)),
+        "--force-init": bool(getattr(args, "force_init", False)),
+        "--adaptive-init": bool(getattr(args, "adaptive_init", False)),
+        "--apply-init-suggestions": bool(getattr(args, "apply_init_suggestions", False)),
+        "--ci-mode": bool(getattr(args, "ci_mode", None)),
+        "--ci-report": bool(getattr(args, "ci_report", False)),
+    }
+    conflicts = sorted(name for name, enabled in incompatible.items() if enabled)
+    if conflicts:
+        return "--read-only is incompatible with: " + ", ".join(conflicts)
+
+    args.no_history = True
+    return None
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """CLI entry point."""
     argv_list = list(sys.argv[1:] if argv is None else argv)
@@ -276,6 +312,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     _normalize_format_args(args)
     setup_logging(args.verbose)
 
+    read_only_conflict = _activate_read_only(args)
+    if read_only_conflict:
+        print(f"[!] {read_only_conflict}", file=sys.stderr)
+        return 2
+
     if getattr(args, "history_trends", False):
         _show_trends()
         return 0
@@ -309,7 +350,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     try:
-        detector = SlopDetector(config_path=args.config)
+        detector = SlopDetector(
+            config_path=args.config, read_only=getattr(args, "read_only", False)
+        )
     except Exception as e:
         print(f"[!] Failed to initialize detector: {e}", file=sys.stderr)
         return 1
@@ -344,8 +387,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     _run_optional_features(args, result)
 
-    _record_optional_impact("scan", result)
-    _capture_optional_telemetry("scan", result)
+    if not getattr(args, "read_only", False):
+        _record_optional_impact("scan", result)
+        _capture_optional_telemetry("scan", result)
 
     if not getattr(args, "no_history", False):
         _record_history(result)

@@ -19,13 +19,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Set, Tuple
 
-from slop_detector.analysis.graph_metrics import build_graph_metrics
-from slop_detector.analysis.import_graph import (
-    ImportEdge,
-    build_import_edges,
-    coverage,
-    hard_graph,
-)
+from slop_detector.analysis.import_graph import ImportEdge, build_import_edges, hard_graph
+from slop_detector.analysis.structure_evidence import build_structure_evidence
 
 # ------------------------------------------------------------------
 # Data classes
@@ -77,8 +72,7 @@ class CrossFileReport:
     slop_propagation: Dict[str, List[str]] = field(default_factory=dict)
     import_graph: Dict[str, List[str]] = field(default_factory=dict)
     import_edges: List[ImportEdge] = field(default_factory=list)
-    graph_coverage: Dict[str, int] = field(default_factory=dict)
-    graph_metrics: Dict[str, Any] = field(default_factory=dict)
+    structure_evidence: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def risk_score(self) -> float:
@@ -120,8 +114,7 @@ class CrossFileReport:
             "slop_propagation": self.slop_propagation,
             "import_graph": self.import_graph,
             "import_edges": [edge.to_dict() for edge in self.import_edges],
-            "graph_coverage": dict(self.graph_coverage),
-            "graph_metrics": dict(self.graph_metrics),
+            "structure_evidence": dict(self.structure_evidence),
         }
 
 
@@ -211,7 +204,7 @@ class CrossFileAnalyzer:
     DUPLICATE_THRESHOLD = 0.85  # similarity >= this -> duplicate
     HOTSPOT_SLOP_THRESHOLD = 40.0  # slop_score >= this -> hotspot candidate
     HOTSPOT_IMPORT_MIN = 2  # imported by >= this many files
-    GRAPH_TOP_N = 10  # rows kept per graph measure (fan-in, fan-out, blast radius)
+    GRAPH_TOP_N = 10  # rows kept per structure_evidence list
 
     def analyze(
         self,
@@ -241,7 +234,7 @@ class CrossFileAnalyzer:
 
         tree_cache, func_cache = _parse_files(py_files)
 
-        # Import graph: only resolved, file-backed edges (plan Phase 0B).
+        # Import graph: only resolved, file-backed edges.
         import_edges = build_import_edges(root, py_files, tree_cache)
         import_graph: Dict[str, Set[str]] = {str(fpath): set() for fpath in py_files}
         for importer, targets in hard_graph(import_edges).items():
@@ -262,8 +255,7 @@ class CrossFileAnalyzer:
         )
         report.import_graph = {key: sorted(value) for key, value in import_graph.items()}
         report.import_edges = import_edges
-        report.graph_coverage = coverage(import_edges)
-        report.graph_metrics = build_graph_metrics(import_edges, self.GRAPH_TOP_N)
+        report.structure_evidence = build_structure_evidence(import_edges, self.GRAPH_TOP_N)
 
         return report
 

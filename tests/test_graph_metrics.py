@@ -53,13 +53,13 @@ def _edge(
 
 
 def _section(metrics, key):
-    assert isinstance(metrics, dict) and key in metrics, f"graph_metrics lacks {key!r}"
+    assert isinstance(metrics, dict) and key in metrics, f"block lacks {key!r}"
     return metrics[key]
 
 
 def _metrics_of(report):
-    metrics = getattr(report, "graph_metrics", None)
-    assert metrics, "CrossFileReport.graph_metrics is not implemented"
+    metrics = getattr(report, "structure_evidence", None)
+    assert metrics, "CrossFileReport.structure_evidence is not implemented"
     return metrics
 
 
@@ -114,7 +114,7 @@ def test_scc_merges_cycles_that_share_a_node_unlike_import_cycles(tmp_path):
     report = _analyze(tmp_path)
     legacy = sorted(sorted(Path(p).name for p in c.cycle) for c in report.import_cycles)
     assert legacy == [["a.py", "b.py"], ["b.py", "c.py"]]
-    components = _section(_metrics_of(report), "strongly_connected_components")
+    components = _section(_metrics_of(report), "circular_groups")
     assert [sorted(Path(p).name for p in c["files"]) for c in components] == [
         ["a.py", "b.py", "c.py"]
     ]
@@ -324,7 +324,7 @@ def test_graph_metrics_is_additive_and_leaves_existing_outputs_unchanged(tmp_pat
     assert len(report.import_cycles) == 1
     assert report.risk_score == 0.10  # one cycle * 0.10; SCC output adds nothing
     payload = report.to_dict()
-    assert "graph_metrics" in payload
+    assert "structure_evidence" in payload
     assert {"import_cycles", "risk_score", "import_graph"} <= set(payload)
     assert [p for p in payload["import_cycles"]] == [
         {"cycle": list(c.cycle), "display": str(c)} for c in report.import_cycles
@@ -373,7 +373,7 @@ def _cycle_project(root: Path) -> None:
     _write(root, "pkg/b.py", "from pkg import a\n")
 
 
-def test_sweep_boundary_summary_carries_graph_metrics_only_for_that_family(tmp_path, monkeypatch):
+def test_sweep_boundary_summary_carries_the_circular_group(tmp_path, monkeypatch):
     monkeypatch.delenv("SLOP_CONFIG", raising=False)
     _cycle_project(tmp_path)
 
@@ -385,9 +385,8 @@ def test_sweep_boundary_summary_carries_graph_metrics_only_for_that_family(tmp_p
         return json.loads(out.read_text(encoding="utf-8"))["summary"]
 
     boundary = summary("boundary-violations")
-    components = _section(boundary.get("graph_metrics"), "strongly_connected_components")
+    components = _section(boundary.get("structure_evidence"), "circular_groups")
     assert components and components[0]["size"] == 2
-    assert "graph_metrics" not in summary("dupes")
 
 
 def test_cross_file_text_prints_a_component_summary(tmp_path, capsys):
@@ -450,7 +449,7 @@ def test_to_dict_carries_the_computed_block_not_an_empty_one(tmp_path):
     _write(tmp_path, "pkg/__init__.py")
     _write(tmp_path, "pkg/a.py", "from pkg import b\n")
     _write(tmp_path, "pkg/b.py", "from pkg import a\n")
-    block = _analyze(tmp_path).to_dict()["graph_metrics"]
+    block = _analyze(tmp_path).to_dict().get("structure_evidence", {})
     assert block.get("totals", {}).get("components") == 1
 
 

@@ -9,22 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added (import graph structure measures)
+### Added (import graph structure evidence)
 
 See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
-- `CrossFileReport.graph_metrics` (`analysis/graph_metrics.py`, standard library
-  only, no new dependency): `strongly_connected_components` (sets of files that
-  import each other, each with an `execution_phase` of `import_time`,
-  `deferred_runtime`, or `type_only` that applies to the whole group, plus
-  `inner_cycles` for stronger cycles inside a mixed group), top `fan_in` /
-  `fan_out`, and
-  `blast_radius` (transitive dependents with depth, via, and edge phase for the
-  most imported files). These describe structure; they do not enter
-  `risk_score` or any slop score, and `import_cycles` is unchanged.
-- `--cross-file` prints circular groups and the most imported file;
-  `sweep boundary-violations` carries `summary.graph_metrics`. Other sweep
-  families and the default `scan` output are unchanged.
+- `CrossFileReport.structure_evidence` and `summary.structure_evidence` in every
+  `sweep` family: one block with `evidence_complete`, `coverage` (counts per
+  resolution state), `unknowns` (internal imports that could not be checked),
+  `circular_groups` (files that import each other in a loop, with the
+  `execution_phase` of the whole group and stronger `inner_cycles`),
+  `dependency_hubs` / `dependency_load` (fan-in / fan-out), `change_reach`
+  (transitive dependents of the most imported files), `totals`, and `guide`.
+  Standard library only, no new dependency.
+- Every row is classified. A circular group whose loop runs (`import_time` or
+  `deferred_runtime`) is `finding` with `finding_kind: "import_cycle"`: the
+  structural view of a cycle `import_cycles` already reports, not a second
+  finding. Type-checking-only loops, hubs, load, and reach are `context`;
+  unchecked imports are `unknown`. `score_effect` is `"none"`: `risk_score`,
+  `import_cycles`, sweep `verdict`, and `issues` do not depend on this block.
+- `--cross-file` prints circular groups and the most imported file. The default
+  `scan` output is unchanged.
+- `scan --read-only`: analyze without changing the project or the detector's
+  own state. No history, impact, telemetry, or analysis cache (the cache
+  database is not opened or created). Options that write or open stored state
+  are refused with exit code 2: `--output`, `--fix`, `--dry-run`, `--governance`,
+  `--emit-leda-yaml`, `--show-history`, `--history-trends`, `--export-history`,
+  `--self-calibrate`, `--apply-calibration`, `--init` and its write variants,
+  `--ci-mode`, `--ci-report`.
 
 ### Changed
 
@@ -56,13 +67,12 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 ### Added
 
 - `CrossFileReport.import_edges` (per-import evidence: addressing, outcome,
-  root authority, target kind, `type_only`, `deferred`) and
-  `CrossFileReport.graph_coverage` (counts per resolution state). Additive;
-  `import_graph` keeps its shape.
-- `sweep` summaries include `graph_coverage` and `graph_evidence_complete`
-  (`false` when any internal import is conditional, ambiguous, or unresolved;
-  `verdict` keeps its meaning), and `--cross-file` prints how many imports were
-  resolved, conditional, ambiguous, or unresolved.
+  root authority, target kind, `type_only`, `deferred`). Additive;
+  `import_graph` keeps its shape. Counts per resolution state and the
+  completeness flag are in `structure_evidence` (above).
+- `--cross-file` prints how many imports were resolved, conditional,
+  ambiguous, or unresolved, and says so instead of reporting a clean result
+  when some internal imports were not checked.
 
 ### Fixed
 
@@ -88,7 +98,8 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
   `import_cycle` and `layer_boundary_violation` findings, and
   `sweep boundary-violations` can return `verdict: fail` with no change in the
   project's code. The process exit code is unchanged (0). Check
-  `summary.graph_coverage` before suppressing a new finding.
+  `summary.structure_evidence.evidence_complete` and `coverage` before
+  suppressing a new finding.
 - Imports that resolve only under a first-level child without a declared root
   (`backend/app/...`) are `conditional_internal`: `phantom_import` stays silent
   (v3.8.7 behaviour), but they are not graph edges until the root is declared.

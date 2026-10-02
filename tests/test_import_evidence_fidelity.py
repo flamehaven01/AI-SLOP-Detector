@@ -367,8 +367,8 @@ def test_import_graph_shape_is_unchanged_and_coverage_is_additive(tmp_path):
     assert isinstance(report.import_graph, dict)
     assert all(isinstance(v, list) for v in report.import_graph.values())
     payload = report.to_dict()
-    assert "graph_coverage" in payload and "import_edges" in payload, "additive keys missing"
-    assert payload["graph_coverage"]["conditional_internal"] == 1
+    assert "structure_evidence" in payload and "import_edges" in payload, "additive keys missing"
+    assert payload["structure_evidence"]["coverage"]["conditional_internal"] == 1
     assert isinstance(payload["import_edges"], list)
 
 
@@ -417,7 +417,7 @@ def test_cross_file_text_reports_conditional_imports_instead_of_bare_clean(tmp_p
     assert "declare" in out.lower()
 
 
-def test_sweep_payload_reports_graph_coverage(tmp_path, monkeypatch):
+def test_sweep_payload_reports_import_coverage(tmp_path, monkeypatch):
     monkeypatch.delenv("SLOP_CONFIG", raising=False)
     _monorepo(tmp_path, _PYPROJECT)
     out = tmp_path / "sweep.json"
@@ -425,8 +425,9 @@ def test_sweep_payload_reports_graph_coverage(tmp_path, monkeypatch):
     with patch.object(sys, "argv", argv):
         assert main() == 0
     summary = json.loads(out.read_text(encoding="utf-8"))["summary"]
-    assert "graph_coverage" in summary, "sweep summary does not disclose import resolution"
-    assert summary["graph_coverage"]["conditional_internal"] == 1
+    evidence = summary.get("structure_evidence", {})
+    assert "coverage" in evidence, "sweep summary does not disclose import resolution"
+    assert evidence["coverage"]["conditional_internal"] == 1
 
 
 # ---------------------------------------------------------------------------
@@ -477,15 +478,15 @@ def test_sweep_summary_flags_graph_evidence_completeness(tmp_path, monkeypatch):
         argv = ["slop-detector", "boundary-violations", str(project), "--json", "-o", str(out)]
         with patch.object(sys, "argv", argv):
             assert main() == 0
-        return json.loads(out.read_text(encoding="utf-8"))["summary"]
+        return json.loads(out.read_text(encoding="utf-8"))["summary"].get("structure_evidence", {})
 
     incomplete, complete = tmp_path / "mono", tmp_path / "flat"
     _monorepo(incomplete, _PYPROJECT)
     _write(complete, "pkg/__init__.py")
     _write(complete, "pkg/b.py", "B = 1\n")
     _write(complete, "pkg/a.py", "from pkg import b\n")
-    assert summary_for(incomplete).get("graph_evidence_complete") is False
-    assert summary_for(complete).get("graph_evidence_complete") is True
+    assert summary_for(incomplete).get("evidence_complete") is False
+    assert summary_for(complete).get("evidence_complete") is True
 
 
 def test_cycle_closed_by_function_level_import_is_reported(tmp_path):

@@ -2,7 +2,7 @@
 
 These describe how files depend on each other. They are context for a reader
 and never feed a slop score: a widely imported module is not a defective one
-(docs/GRAPH_STRUCTURE_UPDATE_PLAN.md, Phase 1).
+(docs/IMPORT_GRAPH.md).
 
 Edge phases, strongest first:
     import_time       runs when the importer module is imported
@@ -284,7 +284,7 @@ def _guide(
 
 
 def build_graph_metrics(edges: Sequence[ImportEdge], top_n: int = DEFAULT_TOP_N) -> Dict[str, Any]:
-    """All Phase 1 measures for one set of import edges (additive report block)."""
+    """All structure measures for one set of import edges (graph-theory names)."""
     phases = pair_phases(edges)
     views = _PhaseViews(phases)
     components = _components(views)

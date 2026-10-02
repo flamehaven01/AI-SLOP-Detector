@@ -1,7 +1,7 @@
 """Project module-root discovery and module location, shared by patterns and analysis.
 
 One source of truth for "what is an internal module". Roots carry an authority
-tier (docs/GRAPH_STRUCTURE_UPDATE_PLAN.md, Phase 0):
+tier (docs/IMPORT_GRAPH.md):
 
     E1 DECLARED      [tool.setuptools.packages.find] where = [...]
     E2 CONVENTIONAL  <project>/src with Python sources and no src/__init__.py
@@ -135,7 +135,7 @@ def is_regular_package(path: Path) -> bool:
 
 
 def _holds_python_sources(directory: Path) -> bool:
-    """True if a .py file exists anywhere below `directory` (R7-02: no depth limit).
+    """True if a .py file exists anywhere below `directory` (no depth limit).
 
     Skip and hidden directories are pruned; the walk stops at the first .py file.
     """
@@ -238,8 +238,8 @@ def _find_spec(name: str, search: Sequence[Path]) -> Optional[Tuple[str, List[Pa
 
     Per directory a regular package wins over a module file. Namespace portions
     are collected across the whole search path and used only when no directory
-    provides a module or package (R7-01). Any directory is a portion; no content
-    or depth heuristic applies (R6-05).
+    provides a module or package. Any directory is a portion; no content
+    or depth heuristic applies.
     """
     portions: List[Path] = []
     for directory in search:
@@ -254,7 +254,7 @@ def _find_spec(name: str, search: Sequence[Path]) -> Optional[Tuple[str, List[Pa
 
 
 def _resolve_chain(parts: Sequence[str], search: Sequence[Path]):
-    """Import `a.b.c` one segment at a time; every parent must be a package (R7-01).
+    """Import `a.b.c` one segment at a time; every parent must be a package.
 
     Returns (kind, paths) for the last segment, or None.
     """
@@ -333,7 +333,7 @@ class ProjectModuleIndex:
         )
 
     def is_package_dir(self, path: Path) -> bool:
-        """Can `path` hold a relative import? (R6-02)
+        """Can `path` hold a relative import?
 
         A regular package, or a namespace directory strictly inside a module root.
         A module root is never a package: a relative import cannot climb out of

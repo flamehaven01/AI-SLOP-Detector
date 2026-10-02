@@ -68,7 +68,12 @@ logger = logging.getLogger(__name__)
 class SlopDetector:
     """Main SLOP detection engine with v2.1 pattern support."""
 
-    def __init__(self, config_path: Optional[str] = None, model_path: Optional[str] = None):
+    def __init__(
+        self,
+        config_path: Optional[str] = None,
+        model_path: Optional[str] = None,
+        read_only: bool = False,
+    ):
         """Initialize detector with config.
 
         Args:
@@ -76,6 +81,8 @@ class SlopDetector:
             model_path:  Path to trained ML model .pkl (optional).
                          Defaults to "models/slop_classifier.pkl" if not specified.
                          ML scoring is silently disabled when the file is absent.
+            read_only:   Build no analysis cache (not even an empty database), so the
+                         detector creates and changes none of its own state.
         """
         self.config = Config(config_path)
         self.ldr_calc = LDRCalculator(self.config)
@@ -114,7 +121,7 @@ class SlopDetector:
         self._go_analyzer = None
         self._analysis_cache = (
             FileAnalysisCache(self.config.get_analysis_cache_db())
-            if self.config.use_analysis_cache()
+            if self.config.use_analysis_cache() and not read_only
             else None
         )
         self.project_prioritizer = ProjectPrioritizer(self.config)

@@ -130,14 +130,15 @@ def _run_cross_file(result) -> None:
 
     print("\n[Cross-File Analysis]")
     print(f"  Files: {report.total_files}  Risk Score: {report.risk_score:.2f}")
-    _print_import_resolution(report.graph_coverage)
+    evidence = report.structure_evidence
+    _print_import_resolution(evidence["coverage"])
 
     if report.import_cycles:
         print(f"\n  Import Cycles ({len(report.import_cycles)}):")
         for cycle in report.import_cycles[:5]:
             print(f"    {cycle}")
 
-    _print_graph_structure(report.graph_metrics)
+    _print_graph_structure(evidence)
 
     if report.duplicates:
         print(f"\n  Duplicate Functions ({len(report.duplicates)}):")
@@ -154,7 +155,7 @@ def _run_cross_file(result) -> None:
             )
 
     if not report.import_cycles and not report.duplicates and not report.hotspots:
-        _print_no_issue_verdict(report.graph_coverage)
+        _print_no_issue_verdict(evidence["coverage"])
 
 
 _PHASE_WORDS = {
@@ -167,9 +168,9 @@ _PHASE_WORDS = {
 _INNER_WORDS = {"import_time": "import-time", "deferred_runtime": "function-level"}
 
 
-def _print_graph_structure(metrics) -> None:
-    """Structure context, not findings: circular groups and the most imported file."""
-    groups = metrics.get("strongly_connected_components", [])
+def _print_graph_structure(evidence) -> None:
+    """Circular groups and the most imported file, from structure_evidence."""
+    groups = evidence.get("circular_groups", [])
     if groups:
         print(f"\n  Circular Groups ({len(groups)}):")
         for group in groups[:5]:
@@ -181,7 +182,7 @@ def _print_graph_structure(metrics) -> None:
                 kind = _INNER_WORDS.get(inner["execution_phase"], inner["execution_phase"])
                 inner_names = ", ".join(Path(f).name for f in inner["files"][:4])
                 print(f"      inner {kind} cycle: {inner_names}")
-    busiest = (metrics.get("fan_in") or [None])[0]
+    busiest = (evidence.get("dependency_hubs") or [None])[0]
     if busiest:
         print(f"  Most imported: {Path(busiest['file']).name} ({busiest['count']} files)")
 

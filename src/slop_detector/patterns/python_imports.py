@@ -146,7 +146,7 @@ def _discover_declared_dependency_sources(project_root: Path) -> Mapping[str, Fr
 def _resolves_in_project(
     index: Optional[ProjectModuleIndex], dotted: str, names: Sequence[str] = ()
 ) -> bool:
-    """Exact-path resolution under the project's module roots, with no depth limit (R6-05)."""
+    """Exact-path resolution under the project's module roots, with no depth limit."""
     return index is not None and index.resolves(dotted, names)
 
 

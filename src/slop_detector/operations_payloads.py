@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List
 
 from slop_detector.analysis.cross_file import CrossFileAnalyzer
-from slop_detector.analysis.import_graph import unchecked_imports
 from slop_detector.ci_gate import CIGate
 from slop_detector.gate.models import GateMode
 from slop_detector.operations_cleanup import _collect_cleanup_issues
@@ -209,11 +208,7 @@ def build_cleanup_payload(
         "project_path": result.project_path,
         "issue_count": len(issues),
         "overall_status": getattr(result.overall_status, "value", str(result.overall_status)),
-        "graph_coverage": dict(cross.graph_coverage),
-        # verdict reflects issues found; this says whether every internal import was checked
-        "graph_evidence_complete": unchecked_imports(cross.graph_coverage) == 0,
+        # Evidence and context only; verdict comes from issues, never from this block.
+        "structure_evidence": dict(cross.structure_evidence),
     }
-    if kind == "boundary-violations":
-        # Structure context for the family about dependencies; never a verdict input.
-        summary["graph_metrics"] = dict(cross.graph_metrics)
     return {"command": kind, "verdict": verdict, "summary": summary, "issues": issues}
