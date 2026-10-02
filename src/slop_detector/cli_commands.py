@@ -130,6 +130,7 @@ def _run_cross_file(result) -> None:
 
     print("\n[Cross-File Analysis]")
     print(f"  Files: {report.total_files}  Risk Score: {report.risk_score:.2f}")
+    _print_import_resolution(report.graph_coverage)
 
     if report.import_cycles:
         print(f"\n  Import Cycles ({len(report.import_cycles)}):")
@@ -151,7 +152,35 @@ def _run_cross_file(result) -> None:
             )
 
     if not report.import_cycles and not report.duplicates and not report.hotspots:
+        _print_no_issue_verdict(report.graph_coverage)
+
+
+def _print_import_resolution(coverage) -> None:
+    print(
+        f"  Imports: {coverage.get('resolved', 0)} resolved, "
+        f"{coverage.get('conditional_internal', 0)} conditional, "
+        f"{coverage.get('ambiguous', 0)} ambiguous, "
+        f"{coverage.get('unresolved_internal', 0)} unresolved internal"
+    )
+
+
+def _print_no_issue_verdict(coverage) -> None:
+    """A clean result covers resolved imports only; say what was not checked."""
+    from slop_detector.analysis.import_graph import unchecked_imports
+
+    unchecked = unchecked_imports(coverage)
+    if not unchecked:
         print("  [+] No cross-file issues detected.")
+        return
+    print(
+        f"  [!] No cross-file issues among resolved imports; {unchecked} internal imports "
+        "(conditional, ambiguous or unresolved) were not checked."
+    )
+    if coverage.get("conditional_internal", 0):
+        print(
+            "      To include conditional ones, declare the module roots in pyproject.toml: "
+            "[tool.setuptools.packages.find] where = [...]"
+        )
 
 
 def _run_governance(path: str, result) -> None:

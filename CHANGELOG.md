@@ -13,6 +13,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Split the Python analysis core into focused scoring, topology, and project
   aggregation modules while preserving the existing CLI and result contracts.
+- Import evidence fidelity (Phase 0 of `docs/GRAPH_STRUCTURE_UPDATE_PLAN.md`):
+  internal-module resolution now lives in one shared module
+  (`project_resolution.py`) used by `phantom_import`, manifest hygiene, and the
+  cross-file import graph. Module roots carry an authority tier: declared in
+  `pyproject.toml`, conventional `src/` (without `src/__init__.py`), flat
+  project root, or conditional first-level child.
+- The cross-file import graph resolves `src/`-layout projects from the project
+  root, relative imports against the importer's package, `import a.b`
+  statements, `from pkg import name` (package attribute before submodule, as
+  CPython does), and PEP 420 namespace packages including multi-root portions
+  at any depth. Relative imports climb the package hierarchy, so an import
+  beyond the top-level package (an `ImportError` in CPython) is not an edge.
+  Dotted names are resolved one segment at a time over the module roots in
+  CPython finder order (regular package, then module; namespace portions only
+  when no root provides either), so `foo.py` shadows a `foo/` directory and a
+  module on any root beats namespace portions on others.
+  Measured on this repository: 1 edge before, 285 after from the project root.
+- Import cycles exclude edges inside `if TYPE_CHECKING:`, which never execute.
+  Function-level imports still count: they execute when the function is called.
+- Core dependency `tomli` on Python < 3.11, so `pyproject.toml` (declared module
+  roots) is readable on 3.8-3.10 without dev extras; a missing TOML reader is now
+  logged instead of silently ignoring declared roots.
+
+### Added
+
+- `CrossFileReport.import_edges` (per-import evidence: addressing, outcome,
+  root authority, target kind, `type_only`, `deferred`) and
+  `CrossFileReport.graph_coverage` (counts per resolution state). Additive;
+  `import_graph` keeps its shape.
+- `sweep` summaries include `graph_coverage` and `graph_evidence_complete`
+  (`false` when any internal import is conditional, ambiguous, or unresolved;
+  `verdict` keeps its meaning), and `--cross-file` prints how many imports were
+  resolved, conditional, ambiguous, or unresolved.
+
+### Fixed
+
+- `phantom_import` (CRITICAL) no longer fires on working imports of PEP 420
+  namespace packages (`src/ns_pkg/` without `__init__.py`, a namespace split
+  across roots declared in `[tool.setuptools.packages.find] where`, or a
+  namespace whose first `.py` is deeply nested), nor on a top-level module file
+  of a module root imported from another directory (`src/helpers.py` used as
+  `import helpers` from `src/pkg/`). Imports of names that exist under no module
+  root are still reported.
+- Manifest hygiene no longer reports a deeply nested namespace package as an
+  `undeclared_import`.
+- A clean `--cross-file` result no longer reads as complete when imports could
+  not be checked: conditional, ambiguous, and unresolved internal imports are
+  counted, and the output says how to declare module roots.
+- `operations_manifest` no longer depends on `tomli` being installed by some
+  other package on Python 3.8-3.10 (it imported it unconditionally at module
+  import); `tomli` is now a declared dependency there.
+
+### Behaviour changes to note
+
+- Projects whose graph was effectively empty (most `src/` layouts) can now get
+  `import_cycle` and `layer_boundary_violation` findings, and
+  `sweep boundary-violations` can return `verdict: fail` with no change in the
+  project's code. The process exit code is unchanged (0). Check
+  `summary.graph_coverage` before suppressing a new finding.
+- Imports that resolve only under a first-level child without a declared root
+  (`backend/app/...`) are `conditional_internal`: `phantom_import` stays silent
+  (v3.8.7 behaviour), but they are not graph edges until the root is declared.
 
 ---
 

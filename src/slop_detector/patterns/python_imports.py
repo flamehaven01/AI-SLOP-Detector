@@ -8,9 +8,16 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Mapping, Optional
+from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
+from slop_detector.project_resolution import (
+    ProjectModuleIndex,
+    discover_project_packages,
+    find_project_root,
+    get_module_index,
+    load_pyproject,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +30,6 @@ _RESOLVABLE_MODULES_STORE: Dict[str, FrozenSet[str]] = {}
 # ------------------------------------------------------------------
 # Project-local package discovery
 # ------------------------------------------------------------------
-
-_PROJECT_PACKAGES_CACHE: Dict[str, FrozenSet[str]] = {}
 
 _SIBLING_MODULES_CACHE: Dict[str, FrozenSet[str]] = {}
 
@@ -46,49 +51,9 @@ def _discover_sibling_modules(file_path: Path) -> FrozenSet[str]:
     return result
 
 
-_SKIP_LAYOUT_DIRS: FrozenSet[str] = frozenset(
-    {
-        "tests",
-        "test",
-        "docs",
-        "doc",
-        "examples",
-        "scripts",
-        "tools",
-        ".venv",
-        "venv",
-        "env",
-        "build",
-        "dist",
-        ".git",
-        "__pycache__",
-        "node_modules",
-        "site-packages",
-        ".mypy_cache",
-        ".ruff_cache",
-        ".pytest_cache",
-        ".tox",
-        "htmlcov",
-    }
-)
-
 _IMPORT_GUARD_EXC_NAMES: FrozenSet[str] = frozenset(
     {"ImportError", "ModuleNotFoundError", "Exception", "BaseException"}
 )
-
-
-def _find_project_root(file_path: Path) -> Optional[Path]:
-    """Walk up directory tree to find project root by standard markers."""
-    markers = {"pyproject.toml", "requirements.txt", "setup.py", "setup.cfg", ".git"}
-    current = file_path.parent
-    for _ in range(12):
-        if any((current / m).exists() for m in markers):
-            return current
-        parent = current.parent
-        if parent == current:
-            break
-        current = parent
-    return None
 
 
 _EXTRAS_RE = re.compile(r"\[.*?\]")
@@ -126,54 +91,16 @@ def _add_dep_names(dep_list: List[str], packages: set) -> None:
         packages.update(_dependency_import_names(dep))
 
 
-def _augment_from_pyproject(project_root: Any, packages: set, scan_dir_fn: Any) -> None:
-    """Read pyproject.toml and augment packages with layout dirs + dep names."""
-    pyproject = project_root / "pyproject.toml"
-    if not pyproject.exists():
-        return
-    try:
-        toml_mod: Any = None
-        try:
-            import tomllib  # type: ignore[import-not-found]
-
-            toml_mod = tomllib
-        except ImportError:
-            try:
-                import tomli  # type: ignore[import-not-found,import]
-
-                toml_mod = tomli
-            except ImportError:
-                pass
-        if toml_mod is None:
-            return
-        with open(pyproject, "rb") as fh:
-            data = toml_mod.load(fh)
-        find_cfg = data.get("tool", {}).get("setuptools", {}).get("packages", {}).get("find", {})
-        for where in find_cfg.get("where", []):
-            scan_dir_fn(project_root / where)
-    except Exception as exc:  # noqa: BLE001
-        logger.debug("Failed to parse pyproject.toml for package augmentation: %s", exc)
-
-
 def _load_pyproject_dependency_lists(project_root: Path) -> List[List[str]]:
     """Load project and optional dependency lists without making tomllib mandatory."""
-    pyproject = project_root / "pyproject.toml"
-    if not pyproject.exists():
+    project = load_pyproject(project_root).get("project", {})
+    if not isinstance(project, dict):
         return []
-    try:
-        try:
-            import tomllib  # type: ignore[import-not-found]
-        except ImportError:
-            import tomli as tomllib  # type: ignore[import-not-found,import]
-        with pyproject.open("rb") as handle:
-            data = tomllib.load(handle)
-        project = data.get("project", {})
-        dependency_lists = [project.get("dependencies", [])]
-        dependency_lists.extend(project.get("optional-dependencies", {}).values())
-        return [list(items) for items in dependency_lists if isinstance(items, list)]
-    except Exception as exc:  # noqa: BLE001
-        logger.debug("Failed to parse dependency declarations in pyproject.toml: %s", exc)
-        return []
+    dependency_lists = [project.get("dependencies", [])]
+    optional = project.get("optional-dependencies", {})
+    if isinstance(optional, dict):
+        dependency_lists.extend(optional.values())
+    return [list(items) for items in dependency_lists if isinstance(items, list)]
 
 
 def _read_requirements_file(requirements: Path) -> List[str]:
@@ -216,48 +143,11 @@ def _discover_declared_dependency_sources(project_root: Path) -> Mapping[str, Fr
     return result
 
 
-def _discover_project_packages(project_root: Path) -> FrozenSet[str]:
-    """Discover internal Python package names via filesystem scan (cached)."""
-    root_key = str(project_root)
-    if root_key in _PROJECT_PACKAGES_CACHE:
-        return _PROJECT_PACKAGES_CACHE[root_key]
-
-    packages: set[str] = set()
-
-    def _scan_dir(search: Path) -> None:
-        try:
-            for item in search.iterdir():
-                if (
-                    item.is_dir()
-                    and item.name not in _SKIP_LAYOUT_DIRS
-                    and not item.name.startswith(".")
-                    and (item / "__init__.py").exists()
-                ):
-                    packages.add(item.name)
-        except OSError as exc:
-            logger.debug("Cannot iterate directory %s: %s", search, exc)
-
-    src_dir = project_root / "src"
-    if src_dir.is_dir():
-        _scan_dir(src_dir)
-    _scan_dir(project_root)
-    try:
-        for child in project_root.iterdir():
-            if (
-                child.is_dir()
-                and child.name not in _SKIP_LAYOUT_DIRS
-                and not child.name.startswith(".")
-            ):
-                _scan_dir(child)
-    except OSError as exc:
-        logger.debug("Cannot iterate project root %s: %s", project_root, exc)
-    _augment_from_pyproject(project_root, packages, _scan_dir)
-
-    result = frozenset(packages)
-    _PROJECT_PACKAGES_CACHE[root_key] = result
-    if result:
-        logger.debug("Internal packages at %s: %s", project_root, result)
-    return result
+def _resolves_in_project(
+    index: Optional[ProjectModuleIndex], dotted: str, names: Sequence[str] = ()
+) -> bool:
+    """Exact-path resolution under the project's module roots, with no depth limit (R6-05)."""
+    return index is not None and index.resolves(dotted, names)
 
 
 def _get_resolvable_modules() -> FrozenSet[str]:
@@ -341,10 +231,8 @@ class PhantomImportPattern(BasePattern):
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
 
-        project_root = _find_project_root(file)
-        internal_packages = (
-            _discover_project_packages(project_root) if project_root else frozenset()
-        )
+        project_root = find_project_root(file)
+        internal_packages = discover_project_packages(project_root) if project_root else frozenset()
         declared_sources = (
             _discover_declared_dependency_sources(project_root) if project_root else {}
         )
@@ -353,12 +241,13 @@ class PhantomImportPattern(BasePattern):
         sibling_modules = _discover_sibling_modules(file)
         skip_names = internal_packages | sibling_modules | self._allowlist
         guarded_lines = _collect_import_guard_lines(tree)
+        index = get_module_index(project_root) if project_root else None
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     top = alias.name.split(".")[0]
-                    if top in skip_names:
+                    if top in skip_names or _resolves_in_project(index, alias.name):
                         continue
                     lineno = getattr(node, "lineno", 0)
                     sources = declared_sources.get(top, frozenset())
@@ -388,7 +277,8 @@ class PhantomImportPattern(BasePattern):
                 if not node.module:
                     continue
                 top = node.module.split(".")[0]
-                if top in skip_names:
+                names = [alias.name for alias in node.names]
+                if top in skip_names or _resolves_in_project(index, node.module, names):
                     continue
                 lineno = getattr(node, "lineno", 0)
                 sources = declared_sources.get(top, frozenset())

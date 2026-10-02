@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from slop_detector.patterns.python_imports import _discover_project_packages, _find_project_root
+from slop_detector.project_resolution import discover_project_packages, find_project_root
 
 if sys.version_info >= (3, 11):
     import tomllib as _toml_loader  # type: ignore[import-not-found]
@@ -156,7 +156,7 @@ def _collect_python_declared_dependencies(project_data: Dict[str, Any]) -> List[
 
 def _collect_python_imported_distributions(project_path: Path, result) -> set[str]:
     internal_packages = (
-        _discover_project_packages(_find_project_root(project_path / "dummy.py") or project_path)
+        discover_project_packages(find_project_root(project_path / "dummy.py") or project_path)
         or frozenset()
     )
     imported_modules = set()

@@ -19,6 +19,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, FrozenSet, List, Set, Tuple
 
+from slop_detector.analysis.import_graph import (
+    ImportEdge,
+    build_import_edges,
+    coverage,
+    hard_graph,
+)
+
 # ------------------------------------------------------------------
 # Data classes
 # ------------------------------------------------------------------
@@ -68,6 +75,8 @@ class CrossFileReport:
     hotspots: List[SlopHotspot] = field(default_factory=list)
     slop_propagation: Dict[str, List[str]] = field(default_factory=dict)
     import_graph: Dict[str, List[str]] = field(default_factory=dict)
+    import_edges: List[ImportEdge] = field(default_factory=list)
+    graph_coverage: Dict[str, int] = field(default_factory=dict)
 
     @property
     def risk_score(self) -> float:
@@ -108,31 +117,14 @@ class CrossFileReport:
             ],
             "slop_propagation": self.slop_propagation,
             "import_graph": self.import_graph,
+            "import_edges": [edge.to_dict() for edge in self.import_edges],
+            "graph_coverage": dict(self.graph_coverage),
         }
 
 
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
-
-
-def _extract_imports(tree: ast.AST, file_path: Path, root: Path) -> Set[str]:
-    """
-    Extract imported local module paths from an AST.
-    Returns absolute file paths where resolvable.
-    """
-    imported: Set[str] = set()
-    for node in ast.walk(tree):
-        if not (isinstance(node, ast.ImportFrom) and node.module):
-            continue
-        candidate = root / Path(*node.module.split("."))
-        py_path = candidate.with_suffix(".py")
-        if py_path.exists():
-            imported.add(str(py_path.resolve()))
-        init_path = candidate / "__init__.py"
-        if init_path.exists():
-            imported.add(str(init_path.resolve()))
-    return imported
 
 
 def _hash_function_body(func_node: ast.AST) -> str:
@@ -181,6 +173,24 @@ def _levenshtein_ratio(a: str, b: str) -> float:
     return round(1.0 - dist / max(la, lb), 4)
 
 
+def _parse_files(
+    py_files: List[Path],
+) -> Tuple[Dict[str, ast.AST], Dict[str, List[Tuple[str, int, str]]]]:
+    """Parse each file once; unparsable files are skipped."""
+    tree_cache: Dict[str, ast.AST] = {}
+    func_cache: Dict[str, List[Tuple[str, int, str]]] = {}
+    for fpath in py_files:
+        try:
+            tree = ast.parse(
+                fpath.read_text(encoding="utf-8", errors="ignore"), filename=str(fpath)
+            )
+        except Exception:
+            continue
+        tree_cache[str(fpath)] = tree
+        func_cache[str(fpath)] = _extract_functions(tree)
+    return tree_cache, func_cache
+
+
 # ------------------------------------------------------------------
 # Analyzer
 # ------------------------------------------------------------------
@@ -225,32 +235,30 @@ class CrossFileAnalyzer:
             for fa in file_analyses
         }
 
-        # Build import graph
-        import_graph: Dict[str, Set[str]] = {}
-        tree_cache: Dict[str, ast.AST] = {}
-        func_cache: Dict[str, List[Tuple[str, int, str]]] = {}
+        tree_cache, func_cache = _parse_files(py_files)
 
-        for fpath in py_files:
-            try:
-                content = fpath.read_text(encoding="utf-8", errors="ignore")
-                tree = ast.parse(content, filename=str(fpath))
-                tree_cache[str(fpath)] = tree
-                func_cache[str(fpath)] = _extract_functions(tree)
-                import_graph[str(fpath)] = _extract_imports(tree, fpath, root)
-            except Exception:
-                import_graph[str(fpath)] = set()
+        # Import graph: only resolved, file-backed edges (plan Phase 0B).
+        import_edges = build_import_edges(root, py_files, tree_cache)
+        import_graph: Dict[str, Set[str]] = {str(fpath): set() for fpath in py_files}
+        for importer, targets in hard_graph(import_edges).items():
+            import_graph.setdefault(importer, set()).update(targets)
+        # Cycles exclude only `if TYPE_CHECKING:` edges, which never execute;
+        # function-level imports run when called and still close a cycle.
+        runtime_graph = hard_graph(import_edges, exclude_type_only=True)
 
         report = CrossFileReport(
             project_path=project_path,
             total_files=len(py_files),
         )
 
-        report.import_cycles = self._detect_cycles(import_graph)
+        report.import_cycles = self._detect_cycles(runtime_graph)
         report.duplicates = self._detect_duplicates(func_cache, py_files)
         report.hotspots, report.slop_propagation = self._detect_hotspots(
             import_graph, score_map, slop_threshold
         )
         report.import_graph = {key: sorted(value) for key, value in import_graph.items()}
+        report.import_edges = import_edges
+        report.graph_coverage = coverage(import_edges)
 
         return report
 
