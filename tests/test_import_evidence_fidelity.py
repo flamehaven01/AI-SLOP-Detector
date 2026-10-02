@@ -1,6 +1,6 @@
-"""Phase 0 controls: import evidence fidelity (docs/GRAPH_STRUCTURE_UPDATE_PLAN.md).
+"""Controls for import resolution (see docs/IMPORT_GRAPH.md).
 
-Written before the implementation. Each test is one row of the Phase 0 fixture
+Written before the implementation. Each test is one row of the fixture
 matrix. Tests marked PRESERVATION pass on the old code and must keep passing;
 every other test failed on the old code by assertion.
 """
@@ -183,7 +183,7 @@ def test_from_package_import_submodule_when_init_is_empty(tmp_path):
     _write(tmp_path, "pkg/name.py", "X = 1\n")
     _write(tmp_path, "user.py", "from pkg import name\n")
     targets = _graph(tmp_path, _analyze(tmp_path)).get("user.py", [])
-    # Ancestor __init__ is implicit (plan, Phase 0 implementation notes).
+    # An ancestor package's __init__ is implicit, not a dependency link of its own.
     assert targets == ["pkg/name.py"]
 
 
@@ -430,12 +430,13 @@ def test_sweep_payload_reports_graph_coverage(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Revision 6 controls (one owner per finding, written before the fix)
+# Relative-import bounds, unresolved-import disclosure, deferred imports,
+# deep namespaces, dynamic package attributes, TOML reader (one owner each)
 # ---------------------------------------------------------------------------
 
 
 def test_relative_import_beyond_top_level_package_is_not_an_edge(tmp_path):
-    """R6-02: CPython raises here; a project-root decoy must not become an edge."""
+    """CPython raises here; a project-root decoy must not become an edge."""
     _write(tmp_path, "pkg/__init__.py")
     _write(tmp_path, "pkg/a.py", "from .. import x\n")
     _write(tmp_path, "x.py", "X = 1\n")
@@ -446,7 +447,7 @@ def test_relative_import_beyond_top_level_package_is_not_an_edge(tmp_path):
 
 
 def test_relative_import_two_levels_inside_package_resolves(tmp_path):
-    """R6-02 PRESERVATION (positive control): climbing inside the package is valid."""
+    """PRESERVATION (positive control): climbing inside the package is valid."""
     _write(tmp_path, "pkg/__init__.py")
     _write(tmp_path, "pkg/sub/__init__.py")
     _write(tmp_path, "pkg/sub/b.py", "from .. import y\n")
@@ -455,7 +456,7 @@ def test_relative_import_two_levels_inside_package_resolves(tmp_path):
 
 
 def test_cross_file_text_counts_unresolved_internal_as_unchecked(tmp_path, capsys):
-    """R6-03: an unresolved internal import must not read as a clean result."""
+    """an unresolved internal import must not read as a clean result."""
     _write(tmp_path, "pyproject.toml", _PYPROJECT)
     _write(tmp_path, "pkg/__init__.py")
     _write(tmp_path, "pkg/a.py", "from pkg import missing_mod\n")
@@ -468,7 +469,7 @@ def test_cross_file_text_counts_unresolved_internal_as_unchecked(tmp_path, capsy
 
 
 def test_sweep_summary_flags_graph_evidence_completeness(tmp_path, monkeypatch):
-    """R6-03: verdict semantics unchanged; completeness is disclosed separately."""
+    """verdict semantics unchanged; completeness is disclosed separately."""
     monkeypatch.delenv("SLOP_CONFIG", raising=False)
 
     def summary_for(project: Path) -> dict:
@@ -488,7 +489,7 @@ def test_sweep_summary_flags_graph_evidence_completeness(tmp_path, monkeypatch):
 
 
 def test_cycle_closed_by_function_level_import_is_reported(tmp_path):
-    """R6-04: a deferred import runs when the function is called; the cycle is real."""
+    """a deferred import runs when the function is called; the cycle is real."""
     _write(tmp_path, "pkg/__init__.py")
     _write(tmp_path, "pkg/a.py", "from pkg import b\n")
     _write(tmp_path, "pkg/b.py", "def f():\n    from pkg import a\n    return a\n")
@@ -497,7 +498,7 @@ def test_cycle_closed_by_function_level_import_is_reported(tmp_path):
 
 
 def test_deep_namespace_package_is_resolved_without_depth_limit(tmp_path):
-    """R6-05: CPython has no depth limit for namespace portions; neither may we."""
+    """CPython has no depth limit for namespace portions; neither may we."""
     _write(tmp_path, "pyproject.toml", _pyproject_where("src"))
     _write(tmp_path, "src/ns/a/b/c/d/e/mod.py", "X = 1\n")
     _write(tmp_path, "src/app/__init__.py")
@@ -510,7 +511,7 @@ def test_deep_namespace_package_is_resolved_without_depth_limit(tmp_path):
 
 
 def test_dynamic_getattr_without_submodule_is_ambiguous(tmp_path):
-    """R6-06: the package __init__ runs (resolved); the requested name is undecidable."""
+    """the package __init__ runs (resolved); the requested name is undecidable."""
     _write(tmp_path, "pkg/__init__.py", "def __getattr__(n):\n    return n\n")
     _write(tmp_path, "user.py", "from pkg import thing\n")
     report = _analyze(tmp_path)
@@ -520,7 +521,7 @@ def test_dynamic_getattr_without_submodule_is_ambiguous(tmp_path):
 
 
 def test_tomli_is_declared_for_python_below_311():
-    """R6-01: declared module roots need a TOML reader on Python 3.8-3.10."""
+    """declared module roots need a TOML reader on Python 3.8-3.10."""
     from slop_detector.project_resolution import load_pyproject
 
     repo_root = Path(__file__).resolve().parents[1]
@@ -544,12 +545,12 @@ def test_namespace_package_is_listed_as_internal_name(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Revision 7 controls (written before the fix)
+# Module shadowing, root precedence, and unbounded namespace depth
 # ---------------------------------------------------------------------------
 
 
 def test_intermediate_module_shadows_directory(tmp_path):
-    """R7-01: `foo.py` beats `foo/` (no __init__); `import foo.bar` fails in CPython."""
+    """`foo.py` beats `foo/` (no __init__); `import foo.bar` fails in CPython."""
     _write(tmp_path, "pyproject.toml", _PYPROJECT)
     _write(tmp_path, "foo.py", "F = 1\n")
     _write(tmp_path, "foo/bar.py", "B = 1\n")
@@ -561,7 +562,7 @@ def test_intermediate_module_shadows_directory(tmp_path):
 
 
 def test_module_on_later_root_beats_namespace_portion(tmp_path):
-    """R7-01: namespace portions count only when no root provides a module or package."""
+    """namespace portions count only when no root provides a module or package."""
     _write(tmp_path, "pyproject.toml", _pyproject_where("root_a", "root_b"))
     _write(tmp_path, "root_a/ns/x.py", "X = 1\n")
     _write(tmp_path, "root_b/ns.py", "N = 1\n")
@@ -575,7 +576,7 @@ def test_module_on_later_root_beats_namespace_portion(tmp_path):
 
 
 def test_src_holding_only_a_deep_namespace_is_a_module_root(tmp_path):
-    """R7-02: the source scan that decides E2 has no depth limit."""
+    """the source scan that decides E2 has no depth limit."""
     _write(tmp_path, "pyproject.toml", _PYPROJECT)
     _write(tmp_path, "src/ns/a/b/c/d/e/mod.py", "def run():\n    return 1\n")
     use = _write(
@@ -589,7 +590,7 @@ def test_src_holding_only_a_deep_namespace_is_a_module_root(tmp_path):
 
 
 def test_deep_namespace_is_not_an_undeclared_dependency(tmp_path, monkeypatch):
-    """R7-02: manifest hygiene must see a deep namespace as internal."""
+    """manifest hygiene must see a deep namespace as internal."""
     monkeypatch.delenv("SLOP_CONFIG", raising=False)
     _write(tmp_path, "pyproject.toml", _PYPROJECT + 'dependencies = ["pyyaml>=6"]\n')
     _write(tmp_path, "src/ns/a/b/c/d/e/mod.py", "def run():\n    return 1\n")

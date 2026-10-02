@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added (Phase 1, structural measures)
+### Added (import graph structure measures)
+
+See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 - `CrossFileReport.graph_metrics` (`analysis/graph_metrics.py`, standard library
   only, no new dependency): `strongly_connected_components` (sets of files that
@@ -28,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Split the Python analysis core into focused scoring, topology, and project
   aggregation modules while preserving the existing CLI and result contracts.
-- Import evidence fidelity (Phase 0 of `docs/GRAPH_STRUCTURE_UPDATE_PLAN.md`):
+- Import resolution (see [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md)):
   internal-module resolution now lives in one shared module
   (`project_resolution.py`) used by `phantom_import`, manifest hygiene, and the
   cross-file import graph. Module roots carry an authority tier: declared in

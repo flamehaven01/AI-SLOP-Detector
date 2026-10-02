@@ -70,6 +70,7 @@ docs/ENTERPRISE_GUIDE.md
 tests/corpus/DETECTION_REPORT.md
 
 # Internal Design & Strategy Documents (not for public repo)
+docs/GRAPH_STRUCTURE_UPDATE_PLAN.md
 SIDRCE_SLOP_*.md
 DESIGN_CONSENT_*.md
 ROADMAP_v*.md
@@ -85,6 +86,11 @@ project_structure.txt
 
 # Experimental prototype UI
 dashboard/
+
+# Consumer-side audit artifacts: generated outside this repository by tools that
+# use the detector. Local only; never committed.
+ENGINE_EXECUTION_*.json
+TOOL_REGISTRY.yaml
 
 # CI/CD Gate Reports
 gate_report.md

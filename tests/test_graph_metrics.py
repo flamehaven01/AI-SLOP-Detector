@@ -1,6 +1,6 @@
-"""Phase 1 controls: structural measures over the import graph.
+"""Controls for the structure measures over the import graph.
 
-Written before the implementation (docs/GRAPH_STRUCTURE_UPDATE_PLAN.md, Phase 1).
+Written before the implementation (see docs/IMPORT_GRAPH.md).
 Graph measures are structure descriptors; none of them may enter a slop score.
 """
 
@@ -164,7 +164,7 @@ def test_type_checking_inside_a_function_counts_as_type_only():
 
 
 def test_mixed_component_takes_the_phase_of_the_whole_not_of_a_part():
-    """P1-R1: `c` is in no import-time cycle, so {a,b,c} is not an import-time group.
+    """`c` is in no import-time cycle, so {a,b,c} is not an import-time group.
 
     Structural SCC {a,b,c}; import-time SCC {a,b}. The parent is type_only: linking
     all three needs the TYPE_CHECKING edge. The inner cycle is reported separately.
