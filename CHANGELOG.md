@@ -39,6 +39,14 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 ### Changed
 
+- The optional ML classifier (numpy, scikit-learn) is imported only for a model
+  artifact with the classifier shape. An artifact of another shape, or an
+  unreadable one, is rejected before that import: a scan from this repository,
+  whose tracked `models/slop_classifier.pkl` has another shape, went from 5.96 s
+  to 2.33 s (median of 5 runs, one file, `--read-only`). No artifact, and a valid
+  classifier artifact, behave as before. Where numpy is not installed, an
+  artifact of another shape is now reported as an incompatible artifact instead
+  of a missing dependency.
 - Split the Python analysis core into focused scoring, topology, and project
   aggregation modules while preserving the existing CLI and result contracts.
 - Import resolution (see [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md)):

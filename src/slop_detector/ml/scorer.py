@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import logging
 import math
+import pickle
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
@@ -128,6 +129,33 @@ def _extract_features_from_analysis(file_analysis: Any) -> Dict[str, float]:
     }
 
 
+# Keys every SlopClassifier artifact carries (written by SlopClassifier.save).
+MODEL_ARTIFACT_KEYS = frozenset({"model_type", "rf_model", "xgb_model", "feature_names"})
+
+
+def read_model_artifact(model_path: Path) -> Dict[str, Any]:
+    """Unpickle a model artifact and check its shape.
+
+    Lives outside the classifier module so an artifact of another shape is
+    rejected without importing numpy and scikit-learn. A real classifier
+    artifact still imports them while unpickling its fitted models.
+    """
+    with open(model_path, "rb") as f:
+        model_data = pickle.load(f)
+
+    if not isinstance(model_data, dict):
+        raise ValueError("Incompatible ML model artifact: expected a classifier metadata mapping")
+    missing = MODEL_ARTIFACT_KEYS - set(model_data)
+    if missing:
+        expected = ", ".join(sorted(MODEL_ARTIFACT_KEYS))
+        found = ", ".join(sorted(str(key) for key in model_data))
+        raise ValueError(
+            "Incompatible ML model artifact: expected classifier keys "
+            f"[{expected}]; missing [{', '.join(sorted(missing))}]; found [{found}]"
+        )
+    return model_data
+
+
 class MLScorer:
     """
     Wraps a trained SlopClassifier and scores FileAnalysis objects.
@@ -162,10 +190,11 @@ class MLScorer:
             )
 
         try:
+            model_data = read_model_artifact(model_path)
             from slop_detector.ml.classifier import SlopClassifier
 
             clf = SlopClassifier.__new__(SlopClassifier)
-            clf.load(model_path)
+            clf.load_artifact(model_data)
             logger.info("[MLScorer] Loaded model from %s", model_path)
             return cls(clf), MLScoringAvailability(status="available", model_path=str(model_path))
         except ImportError as exc:
