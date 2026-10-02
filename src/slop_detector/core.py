@@ -78,9 +78,8 @@ class SlopDetector:
 
         Args:
             config_path: Path to .slopconfig.yaml (optional).
-            model_path:  Path to trained ML model .pkl (optional).
-                         Defaults to "models/slop_classifier.pkl" if not specified.
-                         ML scoring is silently disabled when the file is absent.
+            model_path:  Path to a JSON threshold model (optional). No default:
+                         without it no model is read and ML scoring is disabled.
             read_only:   Build no analysis cache (not even an empty database), so the
                          detector creates and changes none of its own state.
         """
@@ -111,7 +110,7 @@ class SlopDetector:
 
         from slop_detector.ml.scorer import MLScorer as _MLScorer
 
-        _mp = _Path(model_path) if model_path else _Path("models/slop_classifier.pkl")
+        _mp = _Path(model_path) if model_path else None
         self._ml_scorer, availability = _MLScorer.from_model_with_status(_mp)
         self._ml_scoring = availability.to_dict()
 

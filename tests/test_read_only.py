@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import hashlib
 import inspect
+import json
 import os
+import pickle
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import pytest
 
@@ -37,7 +39,7 @@ def _state(*roots: Path) -> State:
     return snapshot
 
 
-def _cli(home: Path, *args: str) -> subprocess.CompletedProcess:
+def _cli(home: Path, *args: str, cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
     """Run the CLI in a child process whose HOME is `home` (state paths bind at import)."""
     env = dict(os.environ, HOME=str(home), USERPROFILE=str(home), PYTHONPATH=REPO_SRC)
     return subprocess.run(
@@ -46,6 +48,7 @@ def _cli(home: Path, *args: str) -> subprocess.CompletedProcess:
         text=True,
         env=env,
         timeout=180,
+        cwd=str(cwd) if cwd else None,
     )
 
 
@@ -111,6 +114,30 @@ def test_read_only_scan_leaves_existing_state_untouched_even_for_a_new_file(tmp_
     )
     assert result.returncode == 0, result.stderr[-400:]
     assert _diff(before, _state(home, project)) == []
+
+
+class _Marker:
+    """Unpickling this creates a file inside the project."""
+
+    def __init__(self, target: str) -> None:
+        self.target = target
+
+    def __reduce__(self):
+        return (open, (self.target, "w"))
+
+
+def test_read_only_scan_of_an_untrusted_repo_deserializes_nothing(tmp_path):
+    """A model file planted in the scanned repo is never read: no file appears, ML is off."""
+    home, project = tmp_path / "home", _project(tmp_path / "proj")
+    home.mkdir()
+    (project / "models").mkdir()
+    marker = project / "PICKLE_RAN"
+    (project / "models" / "slop_classifier.pkl").write_bytes(pickle.dumps(_Marker(str(marker))))
+    before = _state(home, project)
+    result = _cli(home, "scan", "m.py", "--read-only", "--json", cwd=project)
+    assert result.returncode == 0, result.stderr[-400:]
+    assert _diff(before, _state(home, project)) == []
+    assert json.loads(result.stdout)["ml_scoring"]["status"] == "disabled"
 
 
 def test_without_the_flag_the_same_run_does_write_state(tmp_path):

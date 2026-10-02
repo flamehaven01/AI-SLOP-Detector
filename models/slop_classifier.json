@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "model_type": "threshold_classifier_gaussian_nb",
+  "features": [
+    "ldr_score",
+    "inflation_score",
+    "ddc_score",
+    "pattern_count_critical",
+    "pattern_count_high",
+    "pattern_count_medium",
+    "pattern_count_low",
+    "god_function_count",
+    "dead_code_count",
+    "deep_nesting_count",
+    "avg_complexity",
+    "cross_language_patterns",
+    "hallucination_count",
+    "total_lines",
+    "logic_lines",
+    "empty_lines"
+  ],
+  "class_priors": {
+    "good": 0.5,
+    "bad": 0.5
+  },
+  "class_stats": {
+    "good": {
+      "ldr_score": {
+        "mean": 0.9771931716769825,
+        "stdev": 0.05926813169274032
+      },
+      "inflation_score": {
+        "mean": 0.015578695018670223,
+        "stdev": 0.09999973809095908
+      },
+      "ddc_score": {
+        "mean": 1.0064224837662339,
+        "stdev": 0.09887874501847371
+      },
+      "pattern_count_critical": {
+        "mean": 0.3181818181818182,
+        "stdev": 0.5452818512772063
+      },
+      "pattern_count_high": {
+        "mean": 0.4005681818181818,
+        "stdev": 0.7558318116695854
+      },
+      "pattern_count_medium": {
+        "mean": 0.3210227272727273,
+        "stdev": 0.8315783774080455
+      },
+      "pattern_count_low": {
+        "mean": 0.13636363636363635,
+        "stdev": 0.4251848783554994
+      },
+      "god_function_count": {
+        "mean": 0.20454545454545456,
+        "stdev": 0.5680795038674804
+      },
+      "dead_code_count": {
+        "mean": 0.005681818181818182,
+        "stdev": 0.07527038372182425
+      },
+      "deep_nesting_count": {
+        "mean": 0.06534090909090909,
+        "stdev": 0.2898922045993826
+      },
+      "avg_complexity": {
+        "mean": 3.0563242653143927,
+        "stdev": 2.6154836483923605
+      },
+      "cross_language_patterns": {
+        "mean": 0.0,
+        "stdev": 1e-06
+      },
+      "hallucination_count": {
+        "mean": 0.0,
+        "stdev": 1e-06
+      },
+      "total_lines": {
+        "mean": 128.02272727272728,
+        "stdev": 167.99971016612682
+      },
+      "logic_lines": {
+        "mean": 125.71306818181819,
+        "stdev": 167.8878171428034
+      },
+      "empty_lines": {
+        "mean": 2.309659090909091,
+        "stdev": 9.889884780222213
+      }
+    },
+    "bad": {
+      "ldr_score": {
+        "mean": 0.9589670837451387,
+        "stdev": 0.13551151124211427
+      },
+      "inflation_score": {
+        "mean": 4.788619934712388,
+        "stdev": 67.88702828771795
+      },
+      "ddc_score": {
+        "mean": 0.9854859978417543,
+        "stdev": 0.1578931165070602
+      },
+      "pattern_count_critical": {
+        "mean": 4.613425925925926,
+        "stdev": 4.387400789031637
+      },
+      "pattern_count_high": {
+        "mean": 2.6597222222222223,
+        "stdev": 4.435403644664818
+      },
+      "pattern_count_medium": {
+        "mean": 2.3472222222222223,
+        "stdev": 5.383207685076354
+      },
+      "pattern_count_low": {
+        "mean": 0.2986111111111111,
+        "stdev": 0.7980241939163203
+      },
+      "god_function_count": {
+        "mean": 1.5532407407407407,
+        "stdev": 3.421908214803623
+      },
+      "dead_code_count": {
+        "mean": 0.020833333333333332,
+        "stdev": 0.2300635441323703
+      },
+      "deep_nesting_count": {
+        "mean": 1.4398148148148149,
+        "stdev": 3.442748586675494
+      },
+      "avg_complexity": {
+        "mean": 4.171569174548895,
+        "stdev": 4.468295889925166
+      },
+      "cross_language_patterns": {
+        "mean": 0.0,
+        "stdev": 1e-06
+      },
+      "hallucination_count": {
+        "mean": 0.0,
+        "stdev": 1e-06
+      },
+      "total_lines": {
+        "mean": 393.31944444444446,
+        "stdev": 487.3715617983949
+      },
+      "logic_lines": {
+        "mean": 387.71064814814815,
+        "stdev": 483.0861318075924
+      },
+      "empty_lines": {
+        "mean": 5.608796296296297,
+        "stdev": 13.891432417264252
+      }
+    }
+  },
+  "thresholds": {
+    "ldr_score": 0.9681,
+    "inflation_score": 2.4021,
+    "ddc_score": 0.996,
+    "pattern_count_critical": 2.4658,
+    "pattern_count_high": 1.5301,
+    "pattern_count_medium": 1.3341,
+    "pattern_count_low": 0.2175,
+    "god_function_count": 0.8789,
+    "dead_code_count": 0.0133,
+    "deep_nesting_count": 0.7526,
+    "avg_complexity": 3.6139,
+    "cross_language_patterns": 0.0,
+    "hallucination_count": 0.0,
+    "total_lines": 260.6711,
+    "logic_lines": 256.7119,
+    "empty_lines": 3.9592
+  },
+  "feature_importance": {
+    "ldr_score": 0.093573,
+    "inflation_score": 0.070205,
+    "ddc_score": 0.081537,
+    "pattern_count_critical": 0.870772,
+    "pattern_count_high": 0.435186,
+    "pattern_count_medium": 0.326029,
+    "pattern_count_low": 0.132641,
+    "god_function_count": 0.33802,
+    "dead_code_count": 0.049623,
+    "deep_nesting_count": 0.368231,
+    "avg_complexity": 0.157436,
+    "cross_language_patterns": 0.0,
+    "hallucination_count": 0.0,
+    "total_lines": 0.404804,
+    "logic_lines": 0.40247,
+    "empty_lines": 0.138728
+  }
+}

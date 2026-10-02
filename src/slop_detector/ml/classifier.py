@@ -29,8 +29,6 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from slop_detector.ml.scorer import MODEL_ARTIFACT_KEYS, read_model_artifact
-
 try:
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.metrics import (
@@ -77,7 +75,7 @@ class SlopClassifier:
     """ML-based slop classifier with ensemble support."""
 
     MODEL_SCHEMA_VERSION = 1
-    REQUIRED_MODEL_KEYS = MODEL_ARTIFACT_KEYS
+    REQUIRED_MODEL_KEYS = frozenset({"model_type", "rf_model", "xgb_model", "feature_names"})
 
     FEATURE_NAMES = [
         # Core metrics (v2.8.0 formula)
@@ -328,15 +326,28 @@ class SlopClassifier:
 
     def load(self, model_path: Path):
         """Load trained model from disk."""
-        self.load_artifact(read_model_artifact(model_path))
-        logger.info(f"Model loaded from {model_path}")
+        with open(model_path, "rb") as f:
+            model_data = pickle.load(f)
 
-    def load_artifact(self, model_data: Dict) -> None:
-        """Apply an artifact already checked by read_model_artifact()."""
+        if not isinstance(model_data, dict):
+            raise ValueError(
+                "Incompatible ML model artifact: expected a classifier metadata mapping"
+            )
+        missing = self.REQUIRED_MODEL_KEYS - set(model_data)
+        if missing:
+            expected = ", ".join(sorted(self.REQUIRED_MODEL_KEYS))
+            found = ", ".join(sorted(str(key) for key in model_data))
+            raise ValueError(
+                "Incompatible ML model artifact: expected classifier keys "
+                f"[{expected}]; missing [{', '.join(sorted(missing))}]; found [{found}]"
+            )
+
         self.model_type = model_data["model_type"]
         self.rf_model = model_data["rf_model"]
         self.xgb_model = model_data["xgb_model"]
         self.is_trained = True
+
+        logger.info(f"Model loaded from {model_path}")
 
 
 if __name__ == "__main__":

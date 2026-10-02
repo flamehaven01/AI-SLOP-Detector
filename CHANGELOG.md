@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- A scan no longer reads a model from the working directory. Before, every
+  `SlopDetector` without an explicit model path opened
+  `models/slop_classifier.pkl` relative to the current directory and unpickled
+  it, so scanning from inside an untrusted repository could run code from that
+  file, including with `--read-only`. Now no model is read unless a path is
+  given, and nothing is ever unpickled (only `.json` models are read). Present
+  since the default model path was introduced; confirmed at `ff04e37`, not
+  introduced by the ML loading change in `ae4daa1`.
+
 ### Added (import graph structure evidence)
 
 See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
@@ -39,14 +50,19 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 ### Changed
 
-- The optional ML classifier (numpy, scikit-learn) is imported only for a model
-  artifact with the classifier shape. An artifact of another shape, or an
-  unreadable one, is rejected before that import: a scan from this repository,
-  whose tracked `models/slop_classifier.pkl` has another shape, went from 5.96 s
-  to 2.33 s (median of 5 runs, one file, `--read-only`). No artifact, and a valid
-  classifier artifact, behave as before. Where numpy is not installed, an
-  artifact of another shape is now reported as an incompatible artifact instead
-  of a missing dependency.
+- ML scoring has one model contract: a versioned JSON threshold classifier
+  (`schema_version` 1, `model_type: threshold_classifier_gaussian_nb`, the 16
+  features in order, per-class priors and statistics), defined in
+  `ml/threshold_model.py` and used by both `scripts/retrain_model.py` and the
+  runtime. A model is read only when a path is given (`SlopDetector(model_path=
+  ...)`) and must be a `.json` file; it is validated field by field and any
+  invalid model is reported as `unavailable`. The tracked model is now
+  `models/slop_classifier.json` (converted from `slop_classifier.pkl`, which is
+  removed; predictions identical). Training and scoring now compute features with
+  the same function: before, the runtime halved `inflation_score`, defaulted
+  missing `avg_complexity` and `ddc_score` to 1.0, and counted cross-language and
+  nesting patterns differently from training. No scan reads numpy or
+  scikit-learn any more; the sklearn `SlopClassifier` training tool is unchanged.
 - Split the Python analysis core into focused scoring, topology, and project
   aggregation modules while preserving the existing CLI and result contracts.
 - Import resolution (see [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md)):
