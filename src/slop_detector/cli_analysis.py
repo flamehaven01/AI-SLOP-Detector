@@ -138,3 +138,19 @@ def _apply_runtime_overrides(args, detector) -> None:
         advanced["exact_topology_ceiling"] = args.topology_ceiling
     if getattr(args, "topology_mode", None) is not None:
         advanced["topology_mode_above_ceiling"] = args.topology_mode
+    if getattr(args, "patterns_only", False):
+        advanced["patterns_only"] = True
+    _apply_disabled_patterns(getattr(args, "disable", None) or [], detector)
+
+
+def _apply_disabled_patterns(pattern_ids, detector) -> None:
+    """Disable patterns by ID; an unknown ID is an error. Recorded in config (cache key)."""
+    unknown = sorted({pid for pid in pattern_ids if detector.pattern_registry.get(pid) is None})
+    if unknown:
+        raise ValueError(f"--disable: unknown pattern id {', '.join(unknown)}; see --list-patterns")
+    if not pattern_ids:
+        return
+    patterns = detector.config.config.setdefault("patterns", {})
+    patterns["disabled"] = sorted(set(patterns.get("disabled") or []) | set(pattern_ids))
+    for pid in pattern_ids:
+        detector.pattern_registry.disable(pid)

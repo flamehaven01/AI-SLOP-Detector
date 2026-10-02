@@ -151,6 +151,7 @@ class Config:
             "topology_mode_above_ceiling": "deterministic_approximate",
             "analysis_cache_enabled": True,
             "analysis_cache_db": "",
+            "patterns_only": False,
             "churn_commit_window": 200,
             "coverage_data_file": ".coverage",
             "hotspot_limit": 10,
@@ -287,6 +288,10 @@ class Config:
             if value in {"deterministic_approximate", "exact"}
             else "deterministic_approximate"
         )
+
+    def patterns_only(self) -> bool:
+        """Score pattern findings only: LDR, inflation and DDC are reported but not scored."""
+        return bool(self.get("advanced.patterns_only", False))
 
     def use_analysis_cache(self) -> bool:
         """Check if repeated-run file analysis cache is enabled."""

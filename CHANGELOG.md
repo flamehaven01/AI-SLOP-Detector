@@ -100,6 +100,16 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 ### Fixed
 
+- `--patterns-only` and `--disable` now take effect; before, both were parsed
+  and ignored, so the `slop-detector-patterns` pre-commit hook scored the full
+  metric set. `--patterns-only` keeps reporting LDR, inflation and DDC but leaves
+  them out of `deficit_score`, which then comes from pattern findings alone (one
+  HIGH finding scores 5.0). `--disable ID` (repeatable) stops that pattern from
+  running; an unknown ID is an error (exit 2) instead of a silent no-op. Both are
+  recorded in the configuration, so they are part of the analysis cache key.
+  Known limit: the `slop-detector-patterns` hook passes every changed file, and
+  the CLI accepts one path, so it fails with "unrecognized arguments" when more
+  than one file changes.
 - The REST API no longer reports work it does not do. `POST /webhook/github`
   answered `{"status": "accepted"}` and scheduled a background task whose body
   was `pass`; `GET /status/project/{project_id}` returned nothing (a 500 error,

@@ -65,6 +65,10 @@ from slop_detector.suppression_handler import SuppressionHandler
 logger = logging.getLogger(__name__)
 
 
+# Metrics left out of deficit_score under --patterns-only (advanced.patterns_only).
+PATTERNS_ONLY_SKIP = frozenset({"ldr", "inflation", "ddc"})
+
+
 class SlopDetector:
     """Main SLOP detection engine with v2.1 pattern support."""
 
@@ -281,7 +285,9 @@ class SlopDetector:
         from slop_detector.file_role import ROLE_SKIP
 
         role = classify_file(file_path, content, tree)  # type: ignore[arg-type]
-        skip = ROLE_SKIP[role]
+        skip = ROLE_SKIP[role] | (
+            PATTERNS_ONLY_SKIP if self.config.patterns_only() else frozenset()
+        )
 
         ldr = self.ldr_calc.calculate(file_path, content, tree)
         inflation = self.inflation_calc.calculate(file_path, content, tree)

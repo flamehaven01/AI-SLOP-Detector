@@ -122,7 +122,9 @@ Examples:
         help="Disable specific pattern by ID (can be repeated)",
     )
     parser.add_argument(
-        "--patterns-only", action="store_true", help="Only run pattern detection (skip metrics)"
+        "--patterns-only",
+        action="store_true",
+        help="Score pattern findings only: LDR, inflation and DDC are reported but not scored",
     )
     parser.add_argument(
         "--list-patterns", action="store_true", help="List all available patterns and exit"
