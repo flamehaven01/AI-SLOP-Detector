@@ -76,6 +76,12 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 ### Fixed
 
+- `import_cycles` is deterministic. Files are visited in sorted order, each cycle
+  starts at its smallest path (direction kept), and the list is sorted before the
+  cap of 20. Before, the order, the rotation and, when cycles share files, which
+  cycle was reported could change with `PYTHONHASHSEED` (for example `a -> b -> c`
+  in one run and `a -> c` in the next). Counts and `risk_score` are unchanged on
+  projects where the old output did not vary.
 - `phantom_import` (CRITICAL) no longer fires on working imports of PEP 420
   namespace packages (`src/ns_pkg/` without `__init__.py`, a namespace split
   across roots declared in `[tool.setuptools.packages.find] where`, or a

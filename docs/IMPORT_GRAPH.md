@@ -122,6 +122,8 @@ Lists keep the top 10 rows. High fan-in is normal for a core module.
 
 `import_cycles` is unchanged: an ordered path such as `a.py -> b.py -> a.py`, built from
 imports that actually run (it leaves out `type_only` links; function-level imports are included).
+It is deterministic: each cycle starts at its smallest path and keeps its direction, the list is
+sorted, and at most 20 cycles are kept.
 
 ## Classification
 

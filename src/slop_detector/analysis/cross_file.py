@@ -169,6 +169,12 @@ def _levenshtein_ratio(a: str, b: str) -> float:
     return round(1.0 - dist / max(la, lb), 4)
 
 
+def canonical_cycle(cycle: Tuple[str, ...]) -> Tuple[str, ...]:
+    """Rotate a directed cycle to start at its smallest path; direction is kept."""
+    start = cycle.index(min(cycle))
+    return tuple(cycle[start:]) + tuple(cycle[:start])
+
+
 def _parse_files(
     py_files: List[Path],
 ) -> Tuple[Dict[str, ast.AST], Dict[str, List[Tuple[str, int, str]]]]:
@@ -272,7 +278,7 @@ class CrossFileAnalyzer:
         visited.add(node)
         rec_stack.add(node)
         path.append(node)
-        for neighbor in graph.get(node, set()):
+        for neighbor in sorted(graph.get(node, set())):
             if neighbor not in visited:
                 self._dfs(neighbor, graph, visited, rec_stack, path, cycles)
             elif neighbor in rec_stack:
@@ -283,12 +289,17 @@ class CrossFileAnalyzer:
         rec_stack.discard(node)
 
     def _detect_cycles(self, graph: Dict[str, Set[str]]) -> List[ImportCycle]:
-        """DFS-based cycle detection in import graph."""
+        """DFS-based cycle detection in import graph.
+
+        Nodes and neighbors are visited in sorted order, so the same graph gives
+        the same cycles under any hash seed. One cycle per set of files, written
+        from its smallest path; the list is sorted before the cap.
+        """
         visited: Set[str] = set()
         rec_stack: Set[str] = set()
         cycles: List[ImportCycle] = []
         path: List[str] = []
-        for node in list(graph.keys()):
+        for node in sorted(graph):
             if node not in visited:
                 self._dfs(node, graph, visited, rec_stack, path, cycles)
         seen: Set[FrozenSet[str]] = set()
@@ -297,7 +308,8 @@ class CrossFileAnalyzer:
             key = frozenset(c.cycle)
             if key not in seen:
                 seen.add(key)
-                unique.append(c)
+                unique.append(ImportCycle(cycle=canonical_cycle(c.cycle)))
+        unique.sort(key=lambda c: c.cycle)
         return unique[:20]
 
     def _build_exact_duplicate_pairs(
