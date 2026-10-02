@@ -100,6 +100,13 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 ### Fixed
 
+- The REST API no longer reports work it does not do. `POST /webhook/github`
+  answered `{"status": "accepted"}` and scheduled a background task whose body
+  was `pass`; `GET /status/project/{project_id}` returned nothing (a 500 error,
+  since nothing matched its declared response). Both now answer
+  `501 Not Implemented`, and the webhook schedules nothing. The empty helper and
+  the unused `ProjectStatus` model are removed. Found by the async placeholder
+  check below on this repository's own code.
 - Placeholder patterns now check `async def` the same way as `def`:
   `pass_placeholder`, `ellipsis_placeholder`, `not_implemented`,
   `return_none_placeholder`, and `return_constant_stub` only looked at sync

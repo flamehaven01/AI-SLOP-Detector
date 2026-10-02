@@ -24,7 +24,6 @@ from .models import (
     AgentSurfaceManifest,
     AnalysisRequest,
     AnalysisResponse,
-    ProjectStatus,
     TrendResponse,
     WebhookPayload,
 )
@@ -225,21 +224,16 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         trends = history.get_project_trends(days=days)
         return TrendResponse.from_history(project_path, trends)
 
-    @app.post("/webhook/github")
-    async def github_webhook(
-        payload: WebhookPayload,
-        background_tasks: BackgroundTasks,
-    ):
-        """Handle GitHub push webhook"""
-        # Validate signature in production
-        background_tasks.add_task(_analyze_github_push, payload)
-        return {"status": "accepted", "job_id": payload.after[:8]}
+    # Routes kept so clients get an explicit answer; no work is done or queued.
+    @app.post("/webhook/github", status_code=501)
+    async def github_webhook(payload: WebhookPayload):
+        """GitHub push analysis is not implemented: answers 501 and schedules nothing."""
+        raise HTTPException(status_code=501, detail="GitHub push analysis is not implemented.")
 
-    @app.get("/status/project/{project_id}")
-    async def get_project_status(project_id: str) -> ProjectStatus:
-        """Get current project quality status"""
-        # Implementation depends on dashboard backend
-        pass
+    @app.get("/status/project/{project_id}", status_code=501)
+    async def get_project_status(project_id: str):
+        """Project status is not implemented: answers 501."""
+        raise HTTPException(status_code=501, detail="Project status backend is not implemented.")
 
     return app
 
@@ -255,12 +249,6 @@ async def _save_project_history(results: List[Any], project_path: Path, metadata
             git_branch=metadata.get("branch"),
             project_id=project_id,
         )
-
-
-async def _analyze_github_push(payload: WebhookPayload):
-    """Analyze files from GitHub push event"""
-    # Clone repo, analyze changed files, post status
-    pass
 
 
 def run_server(

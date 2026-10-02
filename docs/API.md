@@ -14,7 +14,8 @@ This server is not a hardened public or multi-tenant deployment surface:
 
 - authentication and request authorization are not built in
 - the default CORS middleware permits all origins
-- webhook and project-status routes are not documented as supported
+- `POST /webhook/github` and `GET /status/project/{project_id}` are not
+  implemented: they answer `501 Not Implemented` and do no work
 
 Do not expose it directly to an untrusted network. Put authentication,
 authorization, network policy, and request limits in front of any deployment.

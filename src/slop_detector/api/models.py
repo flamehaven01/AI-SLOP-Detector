@@ -207,20 +207,6 @@ class WebhookPayload(BaseModel):
         return [f for f in files if f.endswith(".py")]
 
 
-class ProjectStatus(BaseModel):
-    """Current project quality status."""
-
-    project_id: str
-    project_name: str
-    overall_score: float
-    grade: str
-    total_files: int
-    files_analyzed: int
-    last_analysis: str
-    trend: str  # "improving" | "stable" | "degrading"
-    alerts: List[str]
-
-
 class TrendResponse(BaseModel):
     """Quality trends over time."""
 
