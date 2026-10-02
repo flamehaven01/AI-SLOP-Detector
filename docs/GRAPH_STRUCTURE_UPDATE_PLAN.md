@@ -1,7 +1,9 @@
 # Import Evidence Fidelity and Graph-Structure Plan (Proposal)
 
-> Status: **Phase 0 implemented in the working tree (not committed, not released)**;
-> Phases 1-3 remain proposals. Implementation record: end of Phase 0 in Section 5.
+> Status: **Phase 0 CLOSED** at commit `8be1e73` (pushed to `main`; CI/CD Pipeline
+> run 36980062239 and AI Code Quality Gate run 36980062288 both `success`, Python
+> 3.8-3.12). **Not a release**: no version bump or tag. Phases 1-3 remain
+> proposals. Implementation and closure record: end of Phase 0 in Section 5.
 > Drafted: 2026-10-01 against AI-SLOP-Detector `3.8.9` (+ unreleased core split)
 > and graphify `0.9.73` (`Graphify-Labs/graphify`, branch `v8`, commit `ef4450d`, 2026-09-30).
 > Revised: 2026-10-02 after a full read of README, `docs/*`, and the graph, cleanup,
@@ -538,7 +540,7 @@ controls in `tests/test_import_evidence_fidelity.py`; `CHANGELOG.md`
 | Cost | `CrossFileAnalyzer` on this repo: 3.08 s (HEAD) -> 3.22 s median of 3; 2.56 s in a later run after Revision 6 (run-to-run variance on this machine is of the same size; read as "no measurable increase", not as a speed-up) |
 | Self-dogfood | `import_graph.py` 0.0 clean (was 54.5 before the refactor below); `project_resolution.py` 7.0; `python_imports.py` 42.0 -> 9.0; no new findings in the other changed files |
 | Style | ruff clean; black clean on all owned files (only owned files formatted, by path) |
-| Python 3.8 | syntax checked with `ast.parse(feature_version=(3, 8))` on all changed files; runtime exercised on 3.12 and 3.14 only. **3.8-3.11 runtime is unverified until CI** |
+| Python 3.8 | syntax checked with `ast.parse(feature_version=(3, 8))` on all changed files; runtime exercised on 3.12 and 3.14 only locally. **3.8-3.11 runtime was unverified until CI; CI later passed on 3.8-3.12 (closure record)** |
 
 Found while doing it:
 
@@ -558,14 +560,16 @@ Deviations from this plan, stated rather than hidden:
 
 1. **0C scan envelope not wired.** `--cross-file` and `sweep` disclose
    `graph_coverage`; a default `scan` does not, because it does not build the
-   graph and adding that would change default scan cost. Open item.
+   graph and adding that would change default scan cost. *Decision at closure:
+   leave as is; this is an observability enhancement, not a Phase 0 defect.*
 2. **`module_roots` config key deferred.** Promotion of an E4 root works through
-   packaging declaration (`[tool.setuptools.packages.find] where`); the
-   analyzer-config route needs the new key plus schema and docs in one commit.
-   Open item.
+   packaging declaration (`[tool.setuptools.packages.find] where`), which is
+   tested (control: declared E4 root promoted to a hard edge). *Decision at
+   closure: do not add the key until a user needs a route that packaging
+   metadata cannot express; each new key adds schema and docs surface.*
 3. **Docs not updated where the working tree already had uncommitted edits**
    (`PHANTOM_IMPORT.md`, `ARCHITECTURE.md`, `CLI_USAGE.md`), to avoid mixing
-   with those changes. To do once they are committed.
+   with those changes. *Still open: do once those edits are committed.*
 
 ### Phase 1 - Tier-1 measures, standard library only (RECOMMENDED)
 
@@ -1107,4 +1111,29 @@ Found while verifying Revision 7, both now with owner controls:
 | Mutation | 23 mutants; 22 killed by declared owners, 1 (exact-path off) re-owned by the new control and confirmed killed by it |
 | Self-scan, this repo | 285 edges, 0 cycles, coverage complete |
 | External repo (graphify, 429 files, flat layout) | 806 edges (HEAD 743), 4 cycles, `ambiguous` 85 (dynamic `__getattr__` exports), 1 `unresolved_internal`. Time 17.43 s HEAD -> 18.75 s; about 90 % of it is the pre-existing duplicate-function hashing, not import resolution |
-| Python 3.8 / 3.10 clean install | still unverified locally; CI |
+| Python 3.8 / 3.10 clean install | unverified locally at this point; **verified in CI after push, see Phase 0 closure record** |
+
+### Phase 0 closure record (2026-10-02)
+
+| Item | Value |
+|---|---|
+| Commit | `8be1e73f1c3fa18e6c7754e804668b7cbd3f41ff` on `main` (parent `81219d2`) |
+| CI/CD Pipeline, run 36980062239 | `completed / success`: Tests on Python 3.8, 3.9, 3.10, 3.11, 3.12; Black, Ruff, MyPy; Self SLOP Detection; JS/TS, Go, Rust, NPM wrapper; Docker build |
+| AI Code Quality Gate (Fixed), run 36980062288 | `completed / success`: Quality Check (Basic), Quality Gate (Threshold), PR Analysis Comment |
+| Pre-push check | the same 11 files on a clean HEAD worktree: 512 passed, 4 skipped, ruff and black clean (the working tree's 519 includes 7 tests from unrelated uncommitted edits) |
+| Revisions closed | R2-R7 (review verdict tables in Appendix C and in the Revision sections) |
+| Release | **none**. No version bump, no tag. Behaviour changes are recorded in CHANGELOG `[Unreleased]` |
+
+What the CI gate settled: the `tomli` declaration for Python < 3.11 works on
+clean 3.8 and 3.10 installs, declared multi-portion namespace roots resolve
+there, and `operations_manifest` imports without an undeclared `tomli`.
+
+Non-blocking deferred items after Phase 0 closure: the three deviations above;
+none re-opens the Phase 0 gate. Items 1 and 2 are recorded decisions to leave
+as they are; only item 3 (three documents) is unfinished work. Not covered by
+CI or by any test: real-world layouts beyond the fixtures and the two
+repositories measured.
+
+Policy recorded with this closure: a review that repeats findings already closed
+at a newer commit is checked against the current commit and hash once; it is not
+re-opened unless the code bytes or the evidence changed.
