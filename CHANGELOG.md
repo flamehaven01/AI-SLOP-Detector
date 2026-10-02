@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `phantom_member` (HIGH): an import names a module or attribute that an
+  installed package does not define, such as `from json import parse` or
+  `import json.this_api_does_not_exist`. `phantom_import` keeps its meaning (the
+  package itself is not installed). The check reads the installed package's
+  source only: the target is located with `importlib.util.find_spec` (which does
+  not run it) and is never imported. The message names what it was checked
+  against (installed version or Python version), since a name can be missing
+  from the installed version without being invented.
+- `unverified_imports` on every file result: imports of installed packages
+  whose existence cannot be shown statically, each with a `reason`
+  (`no_python_source`, `module_getattr`, `star_reexport`,
+  `conditional_definition`, `dynamic_namespace`, `declared_in_all_only`,
+  `runtime_dependent_alias`, `namespace_portion_not_installed`,
+  `type_checking_only`), `evidence_state: "unknown"`, and
+  `score_effect: "none"`. They are never findings and never scored.
+- Not checked: relative imports, the project's own packages and sibling
+  modules, `phantom_import_allowlist` entries, imports in a `try` body guarded
+  by `ImportError`, and imports in an `except` branch (version fallbacks).
+- On 10 codebases (1,959 files) it reports 3 findings: `json.parse` and
+  `json.stringify` in sloppylint's hallucinated-import corpus, and one name
+  missing from the installed `transformers` 4.57.6 in code written for v5. The
+  first version reported 26; 23 were namespace-package portions from
+  distributions that are not installed and version fallbacks in `except`
+  branches, which are now `unknown` or skipped.
+- Cost: about 6 to 8 percent of analysis CPU time with a cold cache (CPU time,
+  `time.process_time`; 5.8 % on this repository's `src`, 7.8 % on
+  `unstructured`). Parsed package sources are cached per file and modification
+  time, and package lookups per `sys.path`.
+- The analysis cache version moves to `analysis-cache-v13`.
+
 ## [3.9.0] - 2026-10-03
 
 ### Security

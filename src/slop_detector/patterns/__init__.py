@@ -63,6 +63,7 @@ def get_all_patterns(
     )
     from slop_detector.patterns.python_imports import PhantomImportPattern
     from slop_detector.patterns.python_lint import LintEscapePattern
+    from slop_detector.patterns.python_members import PhantomMemberPattern
     from slop_detector.patterns.python_naming import PlaceholderVariableNamingPattern
     from slop_detector.patterns.structural import (
         BareExceptPattern,
@@ -112,6 +113,7 @@ def get_all_patterns(
         LintEscapePattern(),
         # v2.9.0
         PhantomImportPattern(allowlist=phantom_import_allowlist or []),
+        PhantomMemberPattern(allowlist=phantom_import_allowlist or []),
         # v3.1.0+
         ExactDuplicatePairPattern(),
         FunctionClonePattern(),

@@ -226,6 +226,9 @@ class FileAnalysis:
     # Fields: ldr_penalty, inflation_penalty, ddc_penalty, purity_penalty,
     # pattern_hits, total. Sum of penalty fields equals total within 0.01.
     deficit_breakdown: Dict[str, float] = field(default_factory=dict)
+    # Imports of installed packages whose existence could not be shown statically
+    # (phantom_member's unknowns). Evidence only: never scored.
+    unverified_imports: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -277,6 +280,7 @@ class FileAnalysis:
             result["dcf"] = self.dcf
         if self.deficit_breakdown:
             result["deficit_breakdown"] = self.deficit_breakdown
+        result["unverified_imports"] = list(self.unverified_imports)
         return result
 
 

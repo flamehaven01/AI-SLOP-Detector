@@ -313,6 +313,12 @@ class SlopDetector:
         slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
             ldr, inflation, ddc, pattern_issues, skip=skip
         )
+        member_pattern = self.pattern_registry.get("phantom_member")
+        unverified_imports = (
+            member_pattern.take_unknowns(Path(file_path))  # type: ignore[attr-defined]
+            if member_pattern is not None and "patterns" not in skip
+            else []
+        )
 
         result = FileAnalysis(
             file_path=file_path,
@@ -332,6 +338,7 @@ class SlopDetector:
             masked_issues=masked_issues,
             dcf=dcf,
             deficit_breakdown=deficit_breakdown,
+            unverified_imports=unverified_imports,
         )
 
         if len(suppression_ledger) >= 5 or len(suppression_directives) >= 3:

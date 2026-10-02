@@ -277,7 +277,7 @@ Adoption and observability surfaces are intentionally separate from scoring:
 flowchart LR
     A[📄 Source File] --> R[FileRole\nClassifier]
     R --> B[AST Parser]
-    B --> C[30 Pattern Checks]
+    B --> C[31 Pattern Checks]
     B --> D[LDR · ICR · DDC\n+ Purity Metrics]
     C --> E[GQG Scorer\nWeighted Geometric Mean]
     D --> E
@@ -291,7 +291,7 @@ flowchart LR
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 30 pattern checks. Results are combined via a **weighted
+Purity) **and** 31 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to history (per project); at every
 10 multi-run files milestone the calibrator fires — weights apply only when >= 5 improvement
@@ -345,7 +345,7 @@ dependency, and language-specific signals.** Full catalog:
 | **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement` | Anti-patterns |
 | **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_println`, `csharp_length`, `php_strlen` | Wrong-language syntax |
 | **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `nested_complexity`, `lint_escape`, `exact_duplicate_pair`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
-| **Phantom** | `phantom_import` | Hallucinated packages |
+| **Phantom** | `phantom_import`, `phantom_member` | Hallucinated packages, and names an installed package does not define |
 
 **Four metric axes per file:**
 

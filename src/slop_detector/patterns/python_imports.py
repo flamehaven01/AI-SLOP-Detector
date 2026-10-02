@@ -8,7 +8,7 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence
+from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
 
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 from slop_detector.project_resolution import (
@@ -185,6 +185,21 @@ def _module_exists(name: str) -> bool:
         return True
 
 
+def project_skip_context(
+    file: Path, allowlist: FrozenSet[str]
+) -> Tuple[FrozenSet[str], Optional[ProjectModuleIndex]]:
+    """Top-level names that belong to the project (never checked as installed packages).
+
+    Internal packages, sibling .py files (flat-module projects without pyproject.toml),
+    and the allowlist; plus the project's module index for exact-path resolution.
+    """
+    project_root = find_project_root(file)
+    internal_packages = discover_project_packages(project_root) if project_root else frozenset()
+    skip_names = internal_packages | _discover_sibling_modules(file) | allowlist
+    index = get_module_index(project_root) if project_root else None
+    return frozenset(skip_names), index
+
+
 def _handler_is_import_guard(handler: ast.ExceptHandler) -> bool:
     """Return True if this except handler would catch an ImportError."""
     if handler.type is None:
@@ -232,16 +247,12 @@ class PhantomImportPattern(BasePattern):
         issues: list[Issue] = []
 
         project_root = find_project_root(file)
-        internal_packages = discover_project_packages(project_root) if project_root else frozenset()
         declared_sources = (
             _discover_declared_dependency_sources(project_root) if project_root else {}
         )
         has_pyproject = bool(project_root and (project_root / "pyproject.toml").exists())
-        # Always include sibling .py files — handles flat-module projects without pyproject.toml
-        sibling_modules = _discover_sibling_modules(file)
-        skip_names = internal_packages | sibling_modules | self._allowlist
+        skip_names, index = project_skip_context(file, self._allowlist)
         guarded_lines = _collect_import_guard_lines(tree)
-        index = get_module_index(project_root) if project_root else None
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
