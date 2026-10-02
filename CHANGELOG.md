@@ -107,9 +107,12 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
   HIGH finding scores 5.0). `--disable ID` (repeatable) stops that pattern from
   running; an unknown ID is an error (exit 2) instead of a silent no-op. Both are
   recorded in the configuration, so they are part of the analysis cache key.
-  Known limit: the `slop-detector-patterns` hook passes every changed file, and
-  the CLI accepts one path, so it fails with "unrecognized arguments" when more
-  than one file changes.
+- The `slop-detector-patterns` pre-commit hook works when more than one file
+  changes. pre-commit passes every changed file and `scan` takes one path, so the
+  hook failed with "unrecognized arguments". Its entry is now
+  `python -m slop_detector.precommit`, which runs the unchanged `scan` once per
+  file, in input order, with the hook's flags, and returns the worst exit code;
+  it has no analysis or scoring of its own, and the `scan` CLI is unchanged.
 - The REST API no longer reports work it does not do. `POST /webhook/github`
   answered `{"status": "accepted"}` and scheduled a background task whose body
   was `pass`; `GET /status/project/{project_id}` returned nothing (a 500 error,

@@ -26,9 +26,10 @@
 - id: slop-detector-patterns
   name: AI-SLOP Detector (Patterns Only)
   description: >
-    Pattern-only scoring: LDR/ICR/DDC are reported but do not count toward
-    deficit_score. Fails if deficit_score exceeds 50.
-  entry: python -m slop_detector.cli
+    Pattern-only scoring of each changed file: LDR/ICR/DDC are reported but
+    do not count toward deficit_score. Fails if any file's deficit_score
+    exceeds 50.
+  entry: python -m slop_detector.precommit
   language: python
   types: [python]
   pass_filenames: true
