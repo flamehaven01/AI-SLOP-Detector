@@ -147,7 +147,27 @@ def test_tracked_report_matches_the_contract():
     assert len(report["training_repositories"]) == 7
 
 
+def _close(a, b, path="model"):
+    """Equal structure and values; floats to a relative 1e-9.
+
+    Python 3.12 made sum() of floats compensated, so a fit on 3.8-3.11 differs
+    from one on 3.12+ in the last bits (about 5e-15 relative on this data).
+    """
+    if isinstance(a, dict):
+        assert isinstance(b, dict) and set(a) == set(b), path
+        for key in a:
+            _close(a[key], b[key], f"{path}.{key}")
+    elif isinstance(a, list):
+        assert isinstance(b, list) and len(a) == len(b), path
+        for i, (x, y) in enumerate(zip(a, b)):
+            _close(x, y, f"{path}[{i}]")
+    elif isinstance(a, float) or isinstance(b, float):
+        assert a == pytest.approx(b, rel=1e-9, abs=1e-12), path
+    else:
+        assert a == b, path
+
+
 def test_tracked_model_is_the_full_fit_of_the_tracked_data():
     data = json.loads((REPO / "models" / "training_data.json").read_text(encoding="utf-8"))
     model = json.loads((REPO / "models" / "slop_classifier.json").read_text(encoding="utf-8"))
-    assert ThresholdClassifier().fit(data["good"], data["bad"]).to_dict() == model
+    _close(ThresholdClassifier().fit(data["good"], data["bad"]).to_dict(), model)

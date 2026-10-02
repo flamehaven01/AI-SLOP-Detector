@@ -105,7 +105,9 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
   figures published with v3.7.1 (`accuracy=0.7962`, `precision=0.9524`,
   `recall=0.6742`) were not held-out. It now splits before fitting and also runs
   leave-one-repository-out over the 7 source repositories; the final model is
-  fit on all samples afterwards (unchanged, byte for byte). Random holdout:
+  fit on all samples afterwards (unchanged, byte for byte, when retrained on
+  Python 3.12+; on 3.8-3.11 `sum()` is not compensated and the fit differs by
+  about 5e-15 relative). Random holdout:
   accuracy 0.8535; leave-one-repository-out pooled: accuracy 0.7972, per
   repository 0.29 to 1.00; always predicting "bad": 0.551. The labels are the
   detector's own `deficit_score >= 25` on the same scans, so these figures
