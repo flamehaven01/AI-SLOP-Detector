@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Phase 1, structural measures)
+
+- `CrossFileReport.graph_metrics` (`analysis/graph_metrics.py`, standard library
+  only, no new dependency): `strongly_connected_components` (sets of files that
+  import each other, each with an `execution_phase` of `import_time`,
+  `deferred_runtime`, or `type_only` that applies to the whole group, plus
+  `inner_cycles` for stronger cycles inside a mixed group), top `fan_in` /
+  `fan_out`, and
+  `blast_radius` (transitive dependents with depth, via, and edge phase for the
+  most imported files). These describe structure; they do not enter
+  `risk_score` or any slop score, and `import_cycles` is unchanged.
+- `--cross-file` prints circular groups and the most imported file;
+  `sweep boundary-violations` carries `summary.graph_metrics`. Other sweep
+  families and the default `scan` output are unchanged.
+
 ### Changed
 
 - Split the Python analysis core into focused scoring, topology, and project

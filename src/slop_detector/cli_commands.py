@@ -137,6 +137,8 @@ def _run_cross_file(result) -> None:
         for cycle in report.import_cycles[:5]:
             print(f"    {cycle}")
 
+    _print_graph_structure(report.graph_metrics)
+
     if report.duplicates:
         print(f"\n  Duplicate Functions ({len(report.duplicates)}):")
         for dup in report.duplicates[:5]:
@@ -153,6 +155,35 @@ def _run_cross_file(result) -> None:
 
     if not report.import_cycles and not report.duplicates and not report.hotspots:
         _print_no_issue_verdict(report.graph_coverage)
+
+
+_PHASE_WORDS = {
+    "import_time": "import-time",
+    "deferred_runtime": "only when a function runs",
+    "type_only": "type-checking only",
+}
+
+
+_INNER_WORDS = {"import_time": "import-time", "deferred_runtime": "function-level"}
+
+
+def _print_graph_structure(metrics) -> None:
+    """Structure context, not findings: circular groups and the most imported file."""
+    groups = metrics.get("strongly_connected_components", [])
+    if groups:
+        print(f"\n  Circular Groups ({len(groups)}):")
+        for group in groups[:5]:
+            names = ", ".join(Path(f).name for f in group["files"][:4])
+            more = f" +{group['size'] - 4} more" if group["size"] > 4 else ""
+            phase = _PHASE_WORDS.get(group["execution_phase"], group["execution_phase"])
+            print(f"    {group['size']} files, {phase}: {names}{more}")
+            for inner in group.get("inner_cycles", [])[:2]:
+                kind = _INNER_WORDS.get(inner["execution_phase"], inner["execution_phase"])
+                inner_names = ", ".join(Path(f).name for f in inner["files"][:4])
+                print(f"      inner {kind} cycle: {inner_names}")
+    busiest = (metrics.get("fan_in") or [None])[0]
+    if busiest:
+        print(f"  Most imported: {Path(busiest['file']).name} ({busiest['count']} files)")
 
 
 def _print_import_resolution(coverage) -> None:

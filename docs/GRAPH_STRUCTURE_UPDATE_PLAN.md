@@ -1137,3 +1137,97 @@ repositories measured.
 Policy recorded with this closure: a review that repeats findings already closed
 at a newer commit is checked against the current commit and hash once; it is not
 re-opened unless the code bytes or the evidence changed.
+
+### Phase 1 implementation record (2026-10-02)
+
+Lineage: starts after the Phase 0 closure commit `8338d76`. Files: new
+`src/slop_detector/analysis/graph_metrics.py` and `tests/test_graph_metrics.py`;
+changed `analysis/cross_file.py`, `cli_commands.py`, `operations_payloads.py`,
+`CHANGELOG.md`. Not committed at the time of writing.
+
+What it does: SCC (iterative Tarjan, deterministic order) over resolved file
+links, each component classified by the strongest phase in which it still forms a
+cycle (`import_time`, `deferred_runtime`, `type_only`; **wording corrected in
+P1-R1 below: the strongest phase in which the WHOLE component is still one
+cycle group**); fan-in / fan-out as
+distinct file counts; reverse breadth-first blast radius with `depth`, `via` and
+the connecting edge's phase. `import_cycles` (ordered path) is unchanged and
+still feeds `risk_score`; the new output enters no score.
+
+Decisions taken, within the plan:
+
+- **Channel:** `CrossFileReport.to_dict()`, the `--cross-file` text, and
+  `sweep boundary-violations` summary only. Default `scan` JSON, `pulse` and MCP
+  are untouched (a `graph` block in `scan --json` would change default cost and
+  shape; deferred, as recorded in the Phase 0 closure).
+- **No prioritization input.** Nothing reads these measures yet, so the
+  `hotspot_weights` centrality weight from the plan was not added (it would be a
+  parameter with no consumer). Revisit only with a consumer.
+- **Fan counts use all resolved links** (the same set as `import_graph`),
+  including type-only and deferred ones: they measure coupling, not execution.
+- **No noise filters on the lists.** The plan mentioned filters (graphify strips
+  file hubs and builtins). Here every node is a project file, and a package
+  `__init__.py` with high fan-in is real coupling, so nothing is hidden; the
+  guide text says a high count is normal for a core module.
+
+| Check | Result |
+|---|---|
+| Controls written first | 24, with a stub so they fail by assertion. The first RED run had 11 `KeyError` / `AttributeError` failures; those were rewritten to assert key presence so failures read as assertions |
+| Controls total | **28** at first; **35** after P1-R1 (4 added after the first mutation run, each closing a measured gap; 6 added and 1 redefined for P1-R1, then 1 ordering control after a surviving mutant) |
+| Full suite | 547 at first; **554 passed, 4 skipped** in the working tree after P1-R1, **547 passed, 4 skipped** on a clean HEAD worktree with only the Phase 1 files (the 7 difference are unrelated uncommitted tests; Phase 0 close: 519) |
+| Mutation | 25 mutants; the first run showed 6 not killed as declared: 3 test gaps (result ordering, strongest-phase order independence, a cycle away from the blast-radius target), 2 wrongly declared owners, 1 badly designed mutant. After fixing, **25 / 25 killed by declared owners**, again after the refactor below |
+| Differential check against networkx (not a repo dependency; scratch) | 300 random graphs x 2 seeds: SCC sets, blast-radius sets and depths equal, 0 mismatches. This repository and graphify (429 files): SCC sets, blast-radius sizes and `execution_phase` equal. Caveat: the `execution_phase` reference reuses the same classification rule on networkx SCCs, so it checks the SCC arithmetic, not the rule |
+| Cost | `build_graph_metrics`: 1.9 ms on this repository, 5.7 ms on graphify (median of 5) |
+| Self-dogfood | `graph_metrics.py` 24.9 (`nested_complexity` CRITICAL, `god_function`) -> **0.0** after splitting Tarjan into a small class, not by adding overrides; other changed files: no new findings |
+| Dependencies | `pyproject.toml` unchanged |
+
+What the measures show on real code (context, not findings): graphify has 4
+circular groups, all `deferred_runtime` (they close only through function-level
+imports), so a tool that dropped deferred edges would have shown none; this
+repository has none. `extract.py` is imported by 149 files and reaches 196
+dependents transitively, which is size of coupling, not a defect.
+
+### Phase 1 review P1-R1 (post-implementation)
+
+Identity check: cited SHA-256 for `graph_metrics.py` (`60d420aa...`) and
+`test_graph_metrics.py` (`81de4eef...`) matched the working tree. The review
+re-ran the 28 controls and 57 related tests (pass) and held the commit for one
+finding.
+
+| # | Claim | Verdict | Evidence from this pass |
+|---|---|---|---|
+| P1-R1 | `_component_phase` promotes a whole structural SCC to a stronger phase when any smaller SCC inside it has that phase (`issuperset`); the control `test_import_time_wins_when_both_paths_exist` pins that | ACCEPT | Reproduced: `a<->b` import-time, `a->c` import-time, `c->a` type-only. Structural SCC `{a,b,c}`; import-time SCC and runtime SCC are both `{a,b}`; reported `{a,b,c}` as `import_time`. `c` is not in any import-time cycle |
+| P1-R1a | Phase wording in this plan was ambiguous ("it still forms a cycle") | ACCEPT, my misreading | Contract fixed below |
+| P1-R1b | `edge_phase` docstring says "neither ever executes" about function-level imports | ACCEPT (wording) | A function-level import runs when called. Only `if TYPE_CHECKING:` never runs. Code was right, comment was not |
+| P1-R1c | Differential check could not catch this | ACCEPT | Already recorded as a caveat: the reference reused the same rule |
+| P1-R1d | (added in this pass) With the whole-component rule alone, `{a,b,c}` reads `type_only` and a reader of `graph_metrics` loses the real import-time cycle `{a,b}` inside it | ACCEPT as a requirement | The review proposed nested evidence "later"; it is added now, as a separate field, so the parent's phase is never promoted |
+| P1-R1e | (added in this pass) The guide's "(K at import time)" counted groups, so a mixed group would be undercounted | REQUIREMENT | Count import-time cycle groups (SCCs of the import-time view), not parent groups |
+
+**Contract (replaces the earlier wording).** For a structural SCC `S`:
+
+```text
+execution_phase(S) = import_time        if S is itself one SCC using import-time links only
+                   = deferred_runtime   else if S is itself one SCC using import-time + function-level links
+                   = type_only          else (linking all of S needs a TYPE_CHECKING link)
+inner_cycles(S)    = SCCs of the stronger views that are strictly inside S, each labelled by the same rule
+```
+
+`inner_cycles` is evidence, not a promotion: the parent keeps its phase.
+Controls are rewritten before the fix; `test_import_time_wins_when_both_paths_exist`
+is redefined (not deleted) to pin the corrected meaning, while the pair-level
+rule (strongest edge phase per file pair) keeps its own control.
+
+Outcome (P1-R1): fixed. `_PhaseViews.phase_of` classifies a component by whether
+ALL its files are one SCC in the import-time view, then the runtime view, else
+`type_only`; `inner_cycles` lists the stronger SCCs strictly inside, each labelled
+the same way, and never changes the parent's phase. The guide counts import-time
+cycle groups (`totals.import_time_components`), `--cross-file` prints an
+`inner ... cycle:` line, and the `edge_phase` docstring was corrected.
+
+| Check | Result after P1-R1 |
+|---|---|
+| Controls | 35 / 35 (7 failed by assertion before the fix; one `KeyError` among them was rewritten first) |
+| Mutation | 39 mutants including the original defect (a part promotes the whole) and one per new rule; one survived (inner-cycle ordering: the control compared dicts, so order was untested); fixed with an ordering control; **all killed by declared owners** |
+| Verification independent of the rule | The earlier networkx check reused the classification rule, which is why it could not see this. Replaced by a reference that restates the contract with networkx subgraph SCCs and set algebra (equality to a view's SCC, strict subset for inner cycles): 600 random graphs, 179 of them with an inner cycle, **0 mismatches**; this repository and graphify equal |
+| graphify result | unchanged: 4 groups, all `deferred_runtime`, no inner cycles |
+| Self-dogfood | `graph_metrics.py` 0.0, test file 0.6 |

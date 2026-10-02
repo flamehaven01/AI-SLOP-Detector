@@ -205,16 +205,15 @@ def build_cleanup_payload(
     issues = collect_cleanup_issues_func(kind, result, project_path, cross, config)
 
     verdict = "fail" if issues else "pass"
-    return {
-        "command": kind,
-        "verdict": verdict,
-        "summary": {
-            "project_path": result.project_path,
-            "issue_count": len(issues),
-            "overall_status": getattr(result.overall_status, "value", str(result.overall_status)),
-            "graph_coverage": dict(cross.graph_coverage),
-            # verdict reflects issues found; this says whether every internal import was checked
-            "graph_evidence_complete": unchecked_imports(cross.graph_coverage) == 0,
-        },
-        "issues": issues,
+    summary: Dict[str, Any] = {
+        "project_path": result.project_path,
+        "issue_count": len(issues),
+        "overall_status": getattr(result.overall_status, "value", str(result.overall_status)),
+        "graph_coverage": dict(cross.graph_coverage),
+        # verdict reflects issues found; this says whether every internal import was checked
+        "graph_evidence_complete": unchecked_imports(cross.graph_coverage) == 0,
     }
+    if kind == "boundary-violations":
+        # Structure context for the family about dependencies; never a verdict input.
+        summary["graph_metrics"] = dict(cross.graph_metrics)
+    return {"command": kind, "verdict": verdict, "summary": summary, "issues": issues}
