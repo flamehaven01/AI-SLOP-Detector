@@ -1,26 +1,169 @@
 {
-  "version": "3.7.1",
-  "generated_at": "2026-05-01T09:53:51.574300+00:00",
+  "report_schema": 2,
+  "generated_at": "2026-10-02T13:43:25.058770+00:00",
+  "generated_by": "scripts/retrain_model.py",
   "data_source": "dogfooding_real",
   "n_samples": 784,
   "class_balance": {
     "good": 352,
     "bad": 432
   },
+  "training_repositories": {
+    "AI-Scientist": {
+      "good": 10,
+      "bad": 118
+    },
+    "LMCache": {
+      "good": 166,
+      "bad": 168
+    },
+    "minGPT": {
+      "good": 1,
+      "bad": 6
+    },
+    "OpenMythos": {
+      "good": 5,
+      "bad": 3
+    },
+    "sloppylint": {
+      "good": 11,
+      "bad": 3
+    },
+    "unsloth": {
+      "good": 57,
+      "bad": 103
+    },
+    "unstructured": {
+      "good": 102,
+      "bad": 31
+    }
+  },
+  "label_source": "the detector's own deficit_score on the same scans: >= 25.0 is bad, below is good",
+  "independent_ground_truth": false,
+  "model_role": "secondary_rule_distillation_signal",
+  "metrics_meaning": "agreement with labels derived from the detector's own deficit_score; not slop-detection accuracy",
   "model_type": "threshold_classifier_gaussian_nb",
+  "schema_version": 1,
+  "model_path": "models/slop_classifier.json",
   "model_params": {
     "type": "pure_python",
     "no_sklearn": true
   },
-  "metrics": {
-    "threshold_classifier": {
-      "accuracy": 0.7962,
-      "precision": 0.9524,
-      "recall": 0.6742,
-      "f1_score": 0.7895
-    }
+  "final_model": "fit on all samples, after evaluation",
+  "evaluation": {
+    "protocols": [
+      "random_holdout_split_before_fit",
+      "leave_one_repository_out"
+    ],
+    "random_holdout_split_before_fit": {
+      "seed": 42,
+      "test_fraction": 0.2,
+      "metrics": {
+        "n": 157,
+        "accuracy": 0.8535,
+        "precision": 0.9571,
+        "recall": 0.7701,
+        "f1_score": 0.8535,
+        "tp": 67,
+        "fp": 3,
+        "tn": 67,
+        "fn": 20
+      }
+    },
+    "leave_one_repository_out": {
+      "folds": {
+        "AI-Scientist": {
+          "n": 128,
+          "accuracy": 0.8125,
+          "precision": 1.0,
+          "recall": 0.7966,
+          "f1_score": 0.8868,
+          "tp": 94,
+          "fp": 0,
+          "tn": 10,
+          "fn": 24
+        },
+        "LMCache": {
+          "n": 334,
+          "accuracy": 0.7455,
+          "precision": 0.8807,
+          "recall": 0.5714,
+          "f1_score": 0.6931,
+          "tp": 96,
+          "fp": 13,
+          "tn": 153,
+          "fn": 72
+        },
+        "OpenMythos": {
+          "n": 8,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "tp": 3,
+          "fp": 0,
+          "tn": 5,
+          "fn": 0
+        },
+        "minGPT": {
+          "n": 7,
+          "accuracy": 0.2857,
+          "precision": 1.0,
+          "recall": 0.1667,
+          "f1_score": 0.2857,
+          "tp": 1,
+          "fp": 0,
+          "tn": 1,
+          "fn": 5
+        },
+        "sloppylint": {
+          "n": 14,
+          "accuracy": 0.8571,
+          "precision": 0.6,
+          "recall": 1.0,
+          "f1_score": 0.75,
+          "tp": 3,
+          "fp": 2,
+          "tn": 9,
+          "fn": 0
+        },
+        "unsloth": {
+          "n": 160,
+          "accuracy": 0.8313,
+          "precision": 0.88,
+          "recall": 0.8544,
+          "f1_score": 0.867,
+          "tp": 88,
+          "fp": 12,
+          "tn": 45,
+          "fn": 15
+        },
+        "unstructured": {
+          "n": 133,
+          "accuracy": 0.8797,
+          "precision": 0.7586,
+          "recall": 0.7097,
+          "f1_score": 0.7333,
+          "tp": 22,
+          "fp": 7,
+          "tn": 95,
+          "fn": 9
+        }
+      },
+      "pooled": {
+        "n": 784,
+        "accuracy": 0.7972,
+        "precision": 0.9003,
+        "recall": 0.7106,
+        "f1_score": 0.7943,
+        "tp": 307,
+        "fp": 34,
+        "tn": 318,
+        "fn": 125
+      }
+    },
+    "baseline_always_bad_accuracy": 0.551
   },
-  "model_path": "models\\slop_classifier.pkl",
   "feature_importance": [
     [
       "pattern_count_critical",

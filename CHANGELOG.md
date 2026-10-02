@@ -100,6 +100,19 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 ### Fixed
 
+- ML model evaluation and its description. `scripts/retrain_model.py` fitted the
+  model on all 784 samples and then scored 20% of those same samples, so the
+  figures published with v3.7.1 (`accuracy=0.7962`, `precision=0.9524`,
+  `recall=0.6742`) were not held-out. It now splits before fitting and also runs
+  leave-one-repository-out over the 7 source repositories; the final model is
+  fit on all samples afterwards (unchanged, byte for byte). Random holdout:
+  accuracy 0.8535; leave-one-repository-out pooled: accuracy 0.7972, per
+  repository 0.29 to 1.00; always predicting "bad": 0.551. The labels are the
+  detector's own `deficit_score >= 25` on the same scans, so these figures
+  measure agreement with the rule-based score, not slop-detection accuracy;
+  `models/pipeline_report.json` now says so (`independent_ground_truth: false`,
+  `model_role: secondary_rule_distillation_signal`) and points to
+  `models/slop_classifier.json`.
 - `import_cycles` is deterministic. Files are visited in sorted order, each cycle
   starts at its smallest path (direction kept), and the list is sorted before the
   cap of 20. Before, the order, the rotation and, when cycles share files, which

@@ -44,8 +44,8 @@ Immediate targets:
   - cleanup-family confidence review
   - remaining wording drift cleanup
 - narrow dead-code false positives in `scripts/`
-- investigate persistent ML loader warning:
-  - `[MLScorer] Failed to load model: 'model_type'`
+- ~~investigate persistent ML loader warning~~ closed by `5e8c7bc`: no model is
+  read unless a path is given, so self-dogfood no longer loads one
 
 Target outcome: self-dogfood becomes a reliable release gate rather than a
 noisy reminder that the analyzer still misreads parts of its own surface.
@@ -112,15 +112,13 @@ Grow from cycles + layered preset into broader system review:
 - custom layer policies
 - re-export chain visibility
 
-### Model loader hardening
+### Model loader hardening (closed)
 
-The scoring path itself is stable, but the optional ML path still emits a
-warning during self-dogfood:
-
-- normalize model metadata expectations
-- make missing / legacy model schemas degrade cleanly
-- decide whether the default path should silently disable ML scoring or
-  surface a structured warning in JSON outputs
+Closed by `5e8c7bc`: one JSON model contract (`ml/threshold_model.py`), read
+only from an explicit path, validated field by field (invalid models are
+`unavailable`); no default path, so ML scoring is `disabled` unless asked for.
+Model reports state that their numbers are agreement with the detector's own
+deficit-score labels, not independent accuracy.
 
 ### Report surface expansion
 

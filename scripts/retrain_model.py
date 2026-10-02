@@ -44,11 +44,14 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+import random
 from typing import Any, List, Tuple
 
 # One contract for training and scoring: features, classifier and artifact schema.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from slop_detector.ml.threshold_model import (  # noqa: E402
+    MODEL_TYPE,
+    SCHEMA_VERSION,
     ThresholdClassifier,
     features_from_result,
 )
@@ -104,12 +107,15 @@ def harvest_from_scan(scan_path: Path) -> Tuple[List[dict], List[dict]]:
     return good_vecs, bad_vecs
 
 
-def harvest_all(extra_repos: Path) -> Tuple[List[dict], List[dict]]:
-    """Harvest all scan_final.json / scan_1.json from Extra Repo subdirs."""
-    all_good, all_bad = [], []
+Row = Tuple[str, dict, int]  # (repository, feature vector, label: 1 = bad)
+
+
+def harvest_all(extra_repos: Path) -> List[Row]:
+    """Harvest scan_final.json / scan_1.json from Extra Repo subdirs, keeping each repository."""
+    rows: List[Row] = []
     if not extra_repos.exists():
         print(f"[!] Extra repos path not found: {extra_repos}")
-        return [], []
+        return rows
 
     for repo in sorted(extra_repos.iterdir()):
         if not repo.is_dir():
@@ -119,77 +125,123 @@ def harvest_all(extra_repos: Path) -> Tuple[List[dict], List[dict]]:
             if sf.exists():
                 g, b = harvest_from_scan(sf)
                 print(f"  {repo.name:<22} [{scan_name}]  good={len(g):>4}  bad={len(b):>4}")
-                all_good.extend(g)
-                all_bad.extend(b)
+                rows.extend((repo.name, v, 0) for v in g)
+                rows.extend((repo.name, v, 1) for v in b)
                 break
 
-    return all_good, all_bad
+    return rows
+
+
+def split_classes(rows: List[Row]) -> Tuple[List[dict], List[dict]]:
+    """(good, bad) vectors, in harvest order."""
+    return [v for _, v, y in rows if y == 0], [v for _, v, y in rows if y == 1]
 
 
 # ---------------------------------------------------------------------------
-# Evaluate
+# Evaluate: every fit here is scored only on rows it did not see
 # ---------------------------------------------------------------------------
 
-def evaluate(clf: ThresholdClassifier, good: List[dict], bad: List[dict]) -> dict:
-    """Compute accuracy, precision, recall, f1 on a held-out 20% split."""
-    import random
-    random.seed(42)
+def _fit(rows: List[Row]) -> ThresholdClassifier:
+    good, bad = split_classes(rows)
+    return ThresholdClassifier().fit(good, bad)
 
-    all_vecs = [(v, 0) for v in good] + [(v, 1) for v in bad]
-    random.shuffle(all_vecs)
 
-    split = int(len(all_vecs) * 0.8)
-    test  = all_vecs[split:]
+def _predictions(clf: ThresholdClassifier, rows: List[Row]) -> List[Tuple[bool, int]]:
+    return [(clf.predict(v) == "bad", y) for _, v, y in rows]
 
-    tp = fp = tn = fn = 0
-    for vec, true_label in test:
-        pred = 1 if clf.predict(vec) == "bad" else 0
-        if pred == 1 and true_label == 1:
-            tp += 1
-        elif pred == 1 and true_label == 0:
-            fp += 1
-        elif pred == 0 and true_label == 0:
-            tn += 1
-        else:
-            fn += 1
 
-    acc  = (tp + tn) / len(test) if test else 0.0
-    prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-    rec  = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    f1   = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
+def _metrics(pairs: List[Tuple[bool, int]]) -> dict:
+    tp = sum(1 for p, y in pairs if p and y)
+    fp = sum(1 for p, y in pairs if p and not y)
+    tn = sum(1 for p, y in pairs if not p and not y)
+    fn = sum(1 for p, y in pairs if not p and y)
+    n = len(pairs)
+    prec = tp / (tp + fp) if tp + fp else 0.0
+    rec = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
+    return {
+        "n": n,
+        "accuracy": round((tp + tn) / n, 4) if n else 0.0,
+        "precision": round(prec, 4),
+        "recall": round(rec, 4),
+        "f1_score": round(f1, 4),
+        "tp": tp, "fp": fp, "tn": tn, "fn": fn,
+    }
 
-    print(f"  accuracy={acc:.4f}  precision={prec:.4f}  recall={rec:.4f}  f1={f1:.4f}")
-    print(f"  tp={tp}  fp={fp}  tn={tn}  fn={fn}  test_n={len(test)}")
-    return {"accuracy": round(acc, 4), "precision": round(prec, 4),
-            "recall": round(rec, 4), "f1_score": round(f1, 4)}
+
+def evaluate_random_holdout(rows: List[Row], seed: int = 42, test_fraction: float = 0.2) -> dict:
+    """Shuffle, split, fit on the training part only, score the held-out part."""
+    order = list(rows)
+    random.Random(seed).shuffle(order)
+    cut = int(len(order) * (1 - test_fraction))
+    train_rows, test_rows = order[:cut], order[cut:]
+    clf = _fit(train_rows)
+    return {
+        "seed": seed,
+        "test_fraction": test_fraction,
+        "metrics": _metrics(_predictions(clf, test_rows)),
+        "test_rows": test_rows,
+    }
+
+
+def evaluate_leave_one_repository_out(rows: List[Row]) -> dict:
+    """One fold per repository: fit on the others, score that repository."""
+    folds = {}
+    pooled: List[Tuple[bool, int]] = []
+    for repo in sorted({r for r, _, _ in rows}):
+        clf = _fit([row for row in rows if row[0] != repo])
+        pairs = _predictions(clf, [row for row in rows if row[0] == repo])
+        folds[repo] = _metrics(pairs)
+        pooled.extend(pairs)
+    return {"folds": folds, "pooled": _metrics(pooled)}
 
 
 # ---------------------------------------------------------------------------
 # Train
 # ---------------------------------------------------------------------------
 
-def train(good: List[dict], bad: List[dict]) -> Tuple[ThresholdClassifier, dict]:
-    n_good = len(good)
-    n_bad  = len(bad)
-    print(f"\n  Training on {n_good + n_bad} samples  (good={n_good}, bad={n_bad})")
-    print(f"  Class balance: {n_bad / (n_good + n_bad):.1%} bad")
+def _repositories(rows: List[Row]) -> dict:
+    out: dict = {}
+    for repo, _, y in rows:
+        counts = out.setdefault(repo, {"good": 0, "bad": 0})
+        counts["bad" if y else "good"] += 1
+    return out
 
-    clf = ThresholdClassifier().fit(good, bad)
-    metrics = evaluate(clf, good, bad)
 
-    # Feature importance sorted
+def build_report(rows: List[Row], clf: ThresholdClassifier, holdout: dict, loro: dict) -> dict:
+    good, bad = split_classes(rows)
     fi_sorted = sorted(clf.feature_importance.items(), key=lambda x: -x[1])
-
-    report = {
-        "version":      "3.7.1",
+    return {
+        "report_schema": 2,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "data_source":  "dogfooding_real",
-        "n_samples":    n_good + n_bad,
-        "class_balance": {"good": n_good, "bad": n_bad},
-        "model_type":   "threshold_classifier_gaussian_nb",
+        "generated_by": "scripts/retrain_model.py",
+        "data_source": "dogfooding_real",
+        "n_samples": len(rows),
+        "class_balance": {"good": len(good), "bad": len(bad)},
+        "training_repositories": _repositories(rows),
+        "label_source": (
+            f"the detector's own deficit_score on the same scans: >= {SLOP_FLOOR} is bad, "
+            "below is good"
+        ),
+        "independent_ground_truth": False,
+        "model_role": "secondary_rule_distillation_signal",
+        "metrics_meaning": (
+            "agreement with labels derived from the detector's own deficit_score; "
+            "not slop-detection accuracy"
+        ),
+        "model_type": MODEL_TYPE,
+        "schema_version": SCHEMA_VERSION,
+        "model_path": "models/slop_classifier.json",
         "model_params": {"type": "pure_python", "no_sklearn": True},
-        "metrics":      {"threshold_classifier": metrics},
-        "model_path":   "models/slop_classifier.json",
+        "final_model": "fit on all samples, after evaluation",
+        "evaluation": {
+            "protocols": ["random_holdout_split_before_fit", "leave_one_repository_out"],
+            "random_holdout_split_before_fit": {
+                k: holdout[k] for k in ("seed", "test_fraction", "metrics")
+            },
+            "leave_one_repository_out": loro,
+            "baseline_always_bad_accuracy": round(len(bad) / len(rows), 4) if rows else 0.0,
+        },
         "feature_importance": [[k, v] for k, v in fi_sorted],
         "key_thresholds": {
             feat: clf.thresholds[feat]
@@ -198,7 +250,21 @@ def train(good: List[dict], bad: List[dict]) -> Tuple[ThresholdClassifier, dict]
         },
     }
 
-    return clf, report
+
+def train(rows: List[Row]) -> Tuple[ThresholdClassifier, dict]:
+    good, bad = split_classes(rows)
+    print(f"  Training on {len(rows)} samples  (good={len(good)}, bad={len(bad)})")
+
+    holdout = evaluate_random_holdout(rows)
+    loro = evaluate_leave_one_repository_out(rows)
+    m = holdout["metrics"]
+    print(f"  random holdout (split before fit): accuracy={m['accuracy']:.4f}  f1={m['f1_score']:.4f}")
+    m = loro["pooled"]
+    print(f"  leave-one-repository-out pooled:   accuracy={m['accuracy']:.4f}  f1={m['f1_score']:.4f}")
+    print("  (agreement with the detector's own deficit_score labels, not slop-detection accuracy)")
+
+    clf = ThresholdClassifier().fit(good, bad)  # final model: all rows, after evaluation
+    return clf, build_report(rows, clf, holdout, loro)
 
 
 # ---------------------------------------------------------------------------
@@ -206,17 +272,17 @@ def train(good: List[dict], bad: List[dict]) -> Tuple[ThresholdClassifier, dict]
 # ---------------------------------------------------------------------------
 
 def save_artifacts(
-    good: List[dict],
-    bad: List[dict],
+    rows: List[Row],
     clf: ThresholdClassifier,
     report: dict,
     dry_run: bool,
 ) -> None:
+    good, bad = split_classes(rows)
     training_data = {"good": good, "bad": bad}
 
     if dry_run:
-        print("\n[DRY-RUN] Would write:")
-        print(f"  {OUT_DATA}  ({len(good)+len(bad)} samples)")
+        print("[DRY-RUN] Would write:")
+        print(f"  {OUT_DATA}  ({len(rows)} samples)")
         print(f"  {OUT_REPORT}")
         print(f"  {OUT_MODEL}  (JSON threshold model)")
         for baseline in BASELINES_TO_REMOVE:
@@ -228,15 +294,15 @@ def save_artifacts(
         json.dumps(training_data, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    print(f"  [+] {OUT_DATA.name}  ({len(good)+len(bad)} samples)")
+    print(f"  [+] {OUT_DATA.name}  ({len(rows)} samples)")
 
     OUT_REPORT.write_text(
-        json.dumps(report, indent=2, ensure_ascii=False),
+        json.dumps(report, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     print(f"  [+] {OUT_REPORT.name}")
 
-    OUT_MODEL.write_text(json.dumps(clf.to_dict(), indent=2), encoding="utf-8")
+    OUT_MODEL.write_text(json.dumps(clf.to_dict(), indent=2) + "\n", encoding="utf-8")
     print(f"  [+] {OUT_MODEL.name}  (JSON threshold model, no pickle)")
 
     # Remove baseline files
@@ -265,7 +331,8 @@ def main() -> int:
 
     # Harvest
     print(f"\n[STEP 1] Harvesting from: {args.extra_repos}\n")
-    good, bad = harvest_all(args.extra_repos)
+    rows = harvest_all(args.extra_repos)
+    good, bad = split_classes(rows)
 
     if not good and not bad:
         print("[!] No data harvested. Ensure leda_turbo.bat has been run on repos.")
@@ -277,7 +344,7 @@ def main() -> int:
 
     # Train
     print(f"\n[STEP 2] Training ThresholdClassifier (Gaussian NB, pure-Python)...\n")
-    clf, report = train(good, bad)
+    clf, report = train(rows)
 
     # Top features
     print("\n  Top-5 discriminative features:")
@@ -292,18 +359,14 @@ def main() -> int:
 
     # Save
     print(f"\n[STEP 3] Saving artifacts {'[DRY-RUN]' if args.dry_run else '[LIVE]'}...\n")
-    save_artifacts(good, bad, clf, report, args.dry_run)
+    save_artifacts(rows, clf, report, args.dry_run)
 
     print()
     print("=" * 68)
     if args.dry_run:
         print("  [DRY-RUN] No files written. Remove --dry-run to apply.")
     else:
-        print("  [+] Model retrained on real Dogfooding data (v3.7.1).")
-        print("  Next steps:")
-        print("    git add models/ scripts/retrain_model.py")
-        print("    git commit -m 'feat(ml): retrain on real dogfooding data (v3.7.1)'")
-        print("    git tag v3.7.1")
+        print("  [+] Model retrained; review models/ and commit it with the script.")
     print("=" * 68)
     return 0
 
