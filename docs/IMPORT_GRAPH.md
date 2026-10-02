@@ -1,6 +1,6 @@
 # Import Graph
 
-**Current contract:** `main` after v3.8.9 (unreleased). This page describes what the
+**Current contract:** v3.9.0. This page describes what the
 cross-file import graph does today. It is not a benchmark and it makes no accuracy claim.
 
 ## What it is for

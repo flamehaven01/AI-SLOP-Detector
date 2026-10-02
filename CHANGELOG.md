@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-10-03
+
 ### Security
 
 - A scan no longer reads a model from the working directory. Before, every
@@ -17,29 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it, so scanning from inside an untrusted repository could run code from that
   file, including with `--read-only`. Now no model is read unless a path is
   given, and nothing is ever unpickled (only `.json` models are read). Present
-  since the default model path was introduced; confirmed at `ff04e37`, not
-  introduced by the ML loading change in `ae4daa1`.
+  since the default model path was introduced.
 
-### Added (import graph structure evidence)
+### Added
 
-See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
-
-- `CrossFileReport.structure_evidence` and `summary.structure_evidence` in every
-  `sweep` family: one block with `evidence_complete`, `coverage` (counts per
-  resolution state), `unknowns` (internal imports that could not be checked),
-  `circular_groups` (files that import each other in a loop, with the
-  `execution_phase` of the whole group and stronger `inner_cycles`),
-  `dependency_hubs` / `dependency_load` (fan-in / fan-out), `change_reach`
-  (transitive dependents of the most imported files), `totals`, and `guide`.
-  Standard library only, no new dependency.
-- Every row is classified. A circular group whose loop runs (`import_time` or
-  `deferred_runtime`) is `finding` with `finding_kind: "import_cycle"`: the
-  structural view of a cycle `import_cycles` already reports, not a second
-  finding. Type-checking-only loops, hubs, load, and reach are `context`;
-  unchecked imports are `unknown`. `score_effect` is `"none"`: `risk_score`,
-  `import_cycles`, sweep `verdict`, and `issues` do not depend on this block.
-- `--cross-file` prints circular groups and the most imported file. The default
-  `scan` output is unchanged.
 - `scan --read-only`: analyze without changing the project or the detector's
   own state. No history, impact, telemetry, or analysis cache (the cache
   database is not opened or created). Options that write or open stored state
@@ -47,6 +30,29 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
   `--emit-leda-yaml`, `--show-history`, `--history-trends`, `--export-history`,
   `--self-calibrate`, `--apply-calibration`, `--init` and its write variants,
   `--ci-mode`, `--ci-report`.
+- Import graph structure evidence (see [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md)):
+  `CrossFileReport.structure_evidence` and `summary.structure_evidence` in every
+  `sweep` family, one block with `evidence_complete`, `coverage` (counts per
+  resolution state), `unknowns` (internal imports that could not be checked),
+  `circular_groups` (files that import each other in a loop, with the
+  `execution_phase` of the whole group and stronger `inner_cycles`),
+  `dependency_hubs` / `dependency_load` (fan-in / fan-out), `change_reach`
+  (transitive dependents of the most imported files), `totals`, and `guide`.
+  Standard library only, no new dependency.
+- Every structure row is classified. A circular group whose loop runs
+  (`import_time` or `deferred_runtime`) is `finding` with
+  `finding_kind: "import_cycle"`: the structural view of a cycle `import_cycles`
+  already reports, not a second finding. Type-checking-only loops, hubs, load,
+  and reach are `context`; unchecked imports are `unknown`. `score_effect` is
+  `"none"`: `risk_score`, `import_cycles`, sweep `verdict`, and `issues` do not
+  depend on this block.
+- `CrossFileReport.import_edges` (per-import evidence: addressing, outcome,
+  root authority, target kind, `type_only`, `deferred`). Additive;
+  `import_graph` keeps its shape.
+- `--cross-file` prints circular groups, the most imported file, and how many
+  imports were resolved, conditional, ambiguous, or unresolved; it says so
+  instead of reporting a clean result when some internal imports were not
+  checked. The default `scan` output is unchanged.
 
 ### Changed
 
@@ -63,10 +69,7 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
   missing `avg_complexity` and `ddc_score` to 1.0, and counted cross-language and
   nesting patterns differently from training. No scan reads numpy or
   scikit-learn any more; the sklearn `SlopClassifier` training tool is unchanged.
-- Split the Python analysis core into focused scoring, topology, and project
-  aggregation modules while preserving the existing CLI and result contracts.
-- Import resolution (see [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md)):
-  internal-module resolution now lives in one shared module
+- Import resolution: internal-module resolution now lives in one shared module
   (`project_resolution.py`) used by `phantom_import`, manifest hygiene, and the
   cross-file import graph. Module roots carry an authority tier: declared in
   `pyproject.toml`, conventional `src/` (without `src/__init__.py`), flat
@@ -87,21 +90,28 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 - Core dependency `tomli` on Python < 3.11, so `pyproject.toml` (declared module
   roots) is readable on 3.8-3.10 without dev extras; a missing TOML reader is now
   logged instead of silently ignoring declared roots.
-
-### Added
-
-- `CrossFileReport.import_edges` (per-import evidence: addressing, outcome,
-  root authority, target kind, `type_only`, `deferred`). Additive;
-  `import_graph` keeps its shape. Counts per resolution state and the
-  completeness flag are in `structure_evidence` (above).
-- `--cross-file` prints how many imports were resolved, conditional,
-  ambiguous, or unresolved, and says so instead of reporting a clean result
-  when some internal imports were not checked.
+- Split the Python analysis core into focused scoring, topology, and project
+  aggregation modules while preserving the existing CLI and result contracts.
+- The analysis cache version is `analysis-cache-v12`; results cached by earlier
+  versions are not reused.
 
 ### Fixed
 
-- `--patterns-only` and `--disable` now take effect; before, both were parsed
-  and ignored, so the `slop-detector-patterns` pre-commit hook scored the full
+- Placeholder patterns check `async def` the same way as `def`:
+  `pass_placeholder`, `ellipsis_placeholder`, `not_implemented`,
+  `return_none_placeholder`, and `return_constant_stub` only looked at sync
+  functions, so `async def f(): pass` produced no finding. Every exemption that
+  applies to a sync function applies to its async twin (`@abstractmethod`,
+  methods of an `ABC` subclass, `Protocol` methods, dunder methods, and
+  `__aexit__` alongside `__exit__`). Sync findings are unchanged.
+- The REST API no longer reports work it does not do. `POST /webhook/github`
+  answered `{"status": "accepted"}` and scheduled a background task whose body
+  was `pass`; `GET /status/project/{project_id}` returned nothing (a 500 error,
+  since nothing matched its declared response). Both now answer
+  `501 Not Implemented`, and the webhook schedules nothing. Found by the async
+  placeholder check on this repository's own code.
+- `--patterns-only` and `--disable` take effect; before, both were parsed and
+  ignored, so the `slop-detector-patterns` pre-commit hook scored the full
   metric set. `--patterns-only` keeps reporting LDR, inflation and DDC but leaves
   them out of `deficit_score`, which then comes from pattern findings alone (one
   HIGH finding scores 5.0). `--disable ID` (repeatable) stops that pattern from
@@ -113,46 +123,6 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
   `python -m slop_detector.precommit`, which runs the unchanged `scan` once per
   file, in input order, with the hook's flags, and returns the worst exit code;
   it has no analysis or scoring of its own, and the `scan` CLI is unchanged.
-- The REST API no longer reports work it does not do. `POST /webhook/github`
-  answered `{"status": "accepted"}` and scheduled a background task whose body
-  was `pass`; `GET /status/project/{project_id}` returned nothing (a 500 error,
-  since nothing matched its declared response). Both now answer
-  `501 Not Implemented`, and the webhook schedules nothing. The empty helper and
-  the unused `ProjectStatus` model are removed. Found by the async placeholder
-  check below on this repository's own code.
-- Placeholder patterns now check `async def` the same way as `def`:
-  `pass_placeholder`, `ellipsis_placeholder`, `not_implemented`,
-  `return_none_placeholder`, and `return_constant_stub` only looked at sync
-  functions, so `async def f(): pass` produced no finding. Every exemption that
-  applies to a sync function applies to its async twin (`@abstractmethod`,
-  methods of an `ABC` subclass, `Protocol` methods, dunder methods, and
-  `__aexit__` alongside `__exit__`). Sync findings are unchanged. On this
-  repository it finds two real stubs: `GET /status/project/{project_id}` and
-  the GitHub push webhook's background task in `api/server.py` are `pass`. The
-  analysis cache version moves to `analysis-cache-v12`, so cached results from
-  before the change (including the import-resolution changes above) are not
-  reused.
-- ML model evaluation and its description. `scripts/retrain_model.py` fitted the
-  model on all 784 samples and then scored 20% of those same samples, so the
-  figures published with v3.7.1 (`accuracy=0.7962`, `precision=0.9524`,
-  `recall=0.6742`) were not held-out. It now splits before fitting and also runs
-  leave-one-repository-out over the 7 source repositories; the final model is
-  fit on all samples afterwards (unchanged, byte for byte, when retrained on
-  Python 3.12+; on 3.8-3.11 `sum()` is not compensated and the fit differs by
-  about 5e-15 relative). Random holdout:
-  accuracy 0.8535; leave-one-repository-out pooled: accuracy 0.7972, per
-  repository 0.29 to 1.00; always predicting "bad": 0.551. The labels are the
-  detector's own `deficit_score >= 25` on the same scans, so these figures
-  measure agreement with the rule-based score, not slop-detection accuracy;
-  `models/pipeline_report.json` now says so (`independent_ground_truth: false`,
-  `model_role: secondary_rule_distillation_signal`) and points to
-  `models/slop_classifier.json`.
-- `import_cycles` is deterministic. Files are visited in sorted order, each cycle
-  starts at its smallest path (direction kept), and the list is sorted before the
-  cap of 20. Before, the order, the rotation and, when cycles share files, which
-  cycle was reported could change with `PYTHONHASHSEED` (for example `a -> b -> c`
-  in one run and `a -> c` in the next). Counts and `risk_score` are unchanged on
-  projects where the old output did not vary.
 - `phantom_import` (CRITICAL) no longer fires on working imports of PEP 420
   namespace packages (`src/ns_pkg/` without `__init__.py`, a namespace split
   across roots declared in `[tool.setuptools.packages.find] where`, or a
@@ -160,17 +130,46 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
   of a module root imported from another directory (`src/helpers.py` used as
   `import helpers` from `src/pkg/`). Imports of names that exist under no module
   root are still reported.
+- `import_cycles` is deterministic. Files are visited in sorted order, each cycle
+  starts at its smallest path (direction kept), and the list is sorted before the
+  cap of 20. Before, the order, the rotation and, when cycles share files, which
+  cycle was reported could change with `PYTHONHASHSEED` (for example `a -> b -> c`
+  in one run and `a -> c` in the next). Counts and `risk_score` are unchanged on
+  projects where the old output did not vary.
+- ML model evaluation and its description. `scripts/retrain_model.py` fitted the
+  model on all 784 samples and then scored 20% of those same samples, so the
+  figures published with v3.7.1 (`accuracy=0.7962`, `precision=0.9524`,
+  `recall=0.6742`) were not held-out. It now splits before fitting and also runs
+  leave-one-repository-out over the 7 source repositories; the final model is
+  fit on all samples afterwards (unchanged, byte for byte, when retrained on
+  Python 3.12+; on 3.8-3.11 `sum()` is not compensated and the fit differs by
+  about 5e-15 relative). Random holdout: accuracy 0.8535; leave-one-repository-out
+  pooled: accuracy 0.7972, per repository 0.29 to 1.00; always predicting "bad":
+  0.551. The labels are the detector's own `deficit_score >= 25` on the same
+  scans, so these figures measure agreement with the rule-based score, not
+  slop-detection accuracy; `models/pipeline_report.json` now says so
+  (`independent_ground_truth: false`, `model_role:
+  secondary_rule_distillation_signal`) and points to `models/slop_classifier.json`.
 - Manifest hygiene no longer reports a deeply nested namespace package as an
   `undeclared_import`.
-- A clean `--cross-file` result no longer reads as complete when imports could
-  not be checked: conditional, ambiguous, and unresolved internal imports are
-  counted, and the output says how to declare module roots.
 - `operations_manifest` no longer depends on `tomli` being installed by some
   other package on Python 3.8-3.10 (it imported it unconditionally at module
   import); `tomli` is now a declared dependency there.
+- The package docstring and the Docker image label no longer claim
+  "Production-ready" (the project's status is Beta), and the image label carries
+  the package version instead of `2.0.0`.
 
 ### Behaviour changes to note
 
+- No ML model is loaded by default. Code that relied on
+  `models/slop_classifier.pkl` in the working directory now gets
+  `ml_scoring.status = "disabled"`; pass a JSON model explicitly with
+  `SlopDetector(model_path=...)`. `.pkl` models are refused.
+- Async code can get new placeholder findings (and a higher `deficit_score`)
+  where `async def` functions are stubs.
+- `--patterns-only` now changes the score: metrics are reported but not scored.
+- `POST /webhook/github` and `GET /status/project/{project_id}` answer `501`;
+  `slop_detector.api.models.ProjectStatus` is removed.
 - Projects whose graph was effectively empty (most `src/` layouts) can now get
   `import_cycle` and `layer_boundary_violation` findings, and
   `sweep boundary-violations` can return `verdict: fail` with no change in the

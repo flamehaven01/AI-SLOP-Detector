@@ -5,6 +5,93 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.9.0 — 2026-10-03
+
+### Summary
+
+v3.9.0 closes a security hole, makes import evidence trustworthy, and removes
+places where the tool, or code in this repository, reported work it did not
+do. Several fixes were found by running the detector on itself.
+
+### Security
+
+- A scan no longer reads a model from the working directory. Before, any scan
+  without an explicit model path unpickled `models/slop_classifier.pkl` from the
+  current directory, so scanning inside an untrusted repository could run code
+  from that file, even with `--read-only`. Now no model is read unless a path is
+  given, and only validated `.json` models are read; nothing is unpickled.
+
+### Added
+
+- `scan --read-only`: a scan that leaves no change in the analyzed project and
+  creates or modifies none of the detector's own state (history, impact,
+  telemetry, analysis cache). Write-capable options are refused.
+- Import graph structure evidence (`structure_evidence`): import-resolution
+  coverage, unchecked imports, circular groups, dependency hubs and load, and
+  change reach, every row classified as `finding`, `context`, or `unknown`, with
+  `score_effect: "none"`. See [IMPORT_GRAPH.md](IMPORT_GRAPH.md).
+
+### Fixed
+
+**Detection**
+- `async def` stubs (`pass`, `...`, `raise NotImplementedError`, `return None`,
+  `return <constant>`) get the same findings as `def` stubs, with the same
+  exemptions.
+- Import resolution follows CPython's rules for `src/` layouts, relative and
+  dotted imports, `from pkg import name`, and namespace packages, so
+  `phantom_import` stops firing on working namespace imports, and the import
+  graph of a `src/`-layout project is no longer nearly empty (1 edge before, 285
+  after, on this repository).
+- `import_cycles` is the same under every `PYTHONHASHSEED`.
+
+**Controls**
+- `--patterns-only` and `--disable` take effect (both were parsed and ignored).
+- The `slop-detector-patterns` pre-commit hook works when more than one file
+  changes.
+
+**Honest surfaces**
+- `POST /webhook/github` and `GET /status/project/{project_id}` answer
+  `501 Not Implemented`. The webhook used to answer "accepted" and schedule a
+  task whose body was `pass`.
+- The package docstring and Docker label no longer say "Production-ready"; the
+  project is Beta.
+- ML evaluation is split before fitting and leave-one-repository-out, and its
+  report states that the figures are agreement with the detector's own
+  rule-based labels.
+
+### Behaviour Changes
+
+- No ML model is loaded by default (`ml_scoring.status = "disabled"`); pass a
+  JSON model with `SlopDetector(model_path=...)`. `.pkl` models are refused.
+- Async code, `src/`-layout projects, and `--patterns-only` runs can score
+  differently than with v3.8.9. See the [Changelog](../CHANGELOG.md) for the
+  full list.
+
+### Validation
+
+- CI on the last code commit (`b0a90cc`): Python 3.8 to 3.12 each
+  `676 passed, 8 skipped`; Black 24.8.0, Ruff, MyPy (104 source files), self
+  scan (weighted deficit 6.56), Docker build, and the quality gate pass.
+  Coverage measured 87% (3.8) and 88% (3.9 to 3.12); publication to Codecov
+  was rate-limited (HTTP 429) and is not part of this evidence.
+- Each fix was written as failing controls first and checked against
+  deliberate mutations of the implementation.
+
+### What This Release Does Not Claim
+
+- It does not yet detect invented names inside real packages
+  (`from json import InventedThing`); only nonexistent top-level packages are
+  reported.
+- Evidence for capability claims ("scalable", "production-ready") is still
+  keyword- and complexity-based and can be gamed.
+- The ML figures (random holdout 0.8535, leave-one-repository-out 0.7972) are
+  agreement with the detector's own `deficit_score >= 25` labels, not
+  slop-detection accuracy. ML scoring is an optional secondary signal and off
+  by default.
+- The VS Code extension is not part of this release and stays at 3.8.9.
+
+---
+
 ## v3.8.9 — 2026-08-22
 
 ### Summary

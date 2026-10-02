@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.8.9" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.9.0" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
@@ -23,10 +23,10 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.8.9`
-- Previous stable tag: `v3.8.8`
+- Stable tag: `v3.9.0`
+- Previous stable tag: `v3.8.9`
+- `v3.9.0` closes a security hole (no model is read from the working directory, nothing is unpickled), makes import evidence follow CPython's resolution rules, and makes `async def` stubs, `--patterns-only`, `--disable`, and the multi-file pre-commit hook work as documented. See [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.8.9` makes the analysis boundary inspectable: project reports now show finding totals, severity, scan coverage, and ML capability state; `--include-tests` is explicit; strictness controls reduce covered intentional clone/placeholder false positives; and Rust discovery is parity-checked against Python discovery.
-- `v3.8.8` tightened packaging metadata and VS Code workflow reliability.
 
 ---
 
@@ -101,7 +101,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.8.9"
+pip install "ai-slop-detector>=3.9.0"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -116,7 +116,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.8.9"
+pip install "ai-slop-detector>=3.9.0"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -277,7 +277,7 @@ Adoption and observability surfaces are intentionally separate from scoring:
 flowchart LR
     A[📄 Source File] --> R[FileRole\nClassifier]
     R --> B[AST Parser]
-    B --> C[27 Pattern Checks]
+    B --> C[30 Pattern Checks]
     B --> D[LDR · ICR · DDC\n+ Purity Metrics]
     C --> E[GQG Scorer\nWeighted Geometric Mean]
     D --> E
@@ -291,7 +291,7 @@ flowchart LR
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 27 pattern checks. Results are combined via a **weighted
+Purity) **and** 30 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to history (per project); at every
 10 multi-run files milestone the calibrator fires — weights apply only when >= 5 improvement
@@ -335,14 +335,16 @@ Use the docs by task, not by chronology:
 
 ## What It Detects
 
-**27 patterns across 5 categories.** Full catalog: [docs/PATTERNS.md](docs/PATTERNS.md)
+**Registry and advanced pattern detectors across structural, placeholder, clone,
+dependency, and language-specific signals.** Full catalog:
+[docs/PATTERNS.md](docs/PATTERNS.md)
 
 | Category | Patterns | Signal |
 |---|---|---|
 | **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `return_constant_stub`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
 | **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement` | Anti-patterns |
-| **Cross-Language** | `javascript_array_push`, `java_equals_method`, `ruby_each`, `go_print`, `csharp_length`, `php_strlen` | Wrong-language syntax |
-| **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `lint_escape`, `exact_duplicate_pair`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
+| **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_println`, `csharp_length`, `php_strlen` | Wrong-language syntax |
+| **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `nested_complexity`, `lint_escape`, `exact_duplicate_pair`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
 | **Phantom** | `phantom_import` | Hallucinated packages |
 
 **Four metric axes per file:**
@@ -808,6 +810,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.9.0** | security and evidence release: no model is read from the working directory and nothing is unpickled; JSON ML model contract with one feature extractor for training and scoring; `scan --read-only`; import resolution that follows CPython (src layouts, namespace packages) with `structure_evidence`; `async def` placeholder findings; working `--patterns-only` / `--disable` and multi-file pre-commit hook; unimplemented API routes answer 501 |
 | **v3.8.9** | trust-and-measurement release: finding/severity summaries, coverage and ML capability disclosure, explicit `--include-tests`, root-relative Rust discovery parity checks, strictness-corpus controls, and no aggregate accuracy claim from dogfooding |
 | **v3.8.8** | packaging metadata cleanup plus VS Code workflow tightening: SPDX string license metadata, real workspace re-scan from `Refresh Issues`, stale sidebar results cleared on re-analysis, exact-path issue selection, and Quick Fix writes for `ignore` / `phantom_import_allowlist` with duplicate protection |
 | **v3.8.7** | false-positive reduction pack: default `.claude/**` ignore, runtime-only DDC accounting, quoted vocabulary tables no longer counted as inflation, monorepo + alias-aware phantom import detection, clique+size clone grouping with property-accessor exemption, JS/TS fallback callback-hell no longer confused by JSX/object literals, tiny helper docstrings ignored, and self-dogfood weighted deficit improved from `9.3892` to `6.4186` |

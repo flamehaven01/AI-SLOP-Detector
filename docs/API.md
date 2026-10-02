@@ -1,7 +1,7 @@
 # REST API Reference
 
-**Version:** 3.8.9
-**Last reviewed:** 2026-08-22
+**Version:** 3.9.0
+**Last reviewed:** 2026-10-02
 
 The optional FastAPI surface is a local integration layer over the Python core.
 It is useful when a trusted local service needs structured file or project
