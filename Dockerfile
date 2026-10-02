@@ -1,8 +1,8 @@
 FROM python:3.11-slim
 
 LABEL maintainer="Flamehaven Labs <info@flamehaven.space>"
-LABEL description="AI SLOP Detector - Production-ready code quality analyzer"
-LABEL version="2.0.0"
+LABEL description="AI SLOP Detector - static checks for empty, duplicated, phantom and over-claimed code"
+LABEL version="3.8.9"
 
 # Set working directory
 WORKDIR /app

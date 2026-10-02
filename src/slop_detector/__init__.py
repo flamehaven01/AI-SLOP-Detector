@@ -1,4 +1,4 @@
-"""AI SLOP Detector - Production-ready code quality analyzer."""
+"""AI SLOP Detector - static checks for empty, duplicated, phantom and over-claimed code."""
 
 from typing import Any
 

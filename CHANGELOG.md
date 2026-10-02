@@ -2581,6 +2581,4 @@ Special thanks to community feedback that drives these improvements. This releas
 
 ---
 
-**Last Updated**: 2026-03-15
-**Current Version**: 3.0.2
-**Status**: Production Ready
+The current version and development status are in `pyproject.toml`.
