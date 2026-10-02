@@ -9,9 +9,16 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ### Summary
 
-v3.9.0 closes a security hole, makes import evidence trustworthy, and removes
-places where the tool, or code in this repository, reported work it did not
-do. Several fixes were found by running the detector on itself.
+v3.9.0 is a checkpoint. It bundles the changes accumulated since v3.8.9 (34
+commits) into one version so that their regression risk is visible in one
+place and can be verified before further detector work builds on it. The
+[Regression Risk](#regression-risk) section lists, for each change, what can
+move for an existing user, how it was verified, and what is not verified.
+
+The changes close a security hole, make import evidence follow Python's own
+resolution rules, and remove places where the tool, or code in this
+repository, reported work it did not do. Several fixes were found by running
+the detector on itself.
 
 ### Security
 
@@ -67,10 +74,27 @@ do. Several fixes were found by running the detector on itself.
   differently than with v3.8.9. See the [Changelog](../CHANGELOG.md) for the
   full list.
 
+### Regression Risk
+
+What can change for an existing user, how it was verified, and what was not.
+
+| Change | What can move | Verified by | Not verified |
+|---|---|---|---|
+| Import resolution (`src/` layouts, namespace packages, relative and dotted imports) | New `import_cycle` / `layer_boundary_violation` findings; `sweep boundary-violations` can return `verdict: fail` on unchanged code; fewer `phantom_import` findings on namespace packages | Controls per resolution rule, written to fail first; differential checks against `networkx`; this repository's graph went from 1 edge to 285 | Imports made at run time (`importlib`, `sys.path` edits, plugins) are not modeled; undeclared monorepo roots stay `conditional` |
+| No default ML model | `ml_scoring.status` becomes `disabled` and `ml_score` disappears where `models/slop_classifier.pkl` used to be picked up from the working directory; `.pkl` models are refused | A planted pickle creates no file on scan (it did before); no-model, invalid-model, and valid-model paths each tested | No user-trained JSON models exist yet; the sklearn training tool still writes `.pkl` |
+| ML feature extraction unified | ML probabilities for an explicitly given model differ from the old runtime (which scaled features differently from training) | Matches the original training extractor on 103 real file results and 3,000 random cases; tracked model predictions unchanged (max difference 0.0) | The ML figures are agreement with the detector's own labels, not accuracy |
+| `async def` placeholder parity | Higher `deficit_score` and new findings in async code with stub bodies | Every placeholder body tested as `def` and `async def` twins; every exemption checked against a flagged non-exempt twin; this repository gained exactly 2 findings, both real stubs | Placeholder bodies beyond the eight tested forms rely on the shared sync logic |
+| `--patterns-only` / `--disable` take effect | Pipelines that pass these flags get different scores; a misspelled ID (including the three wrong IDs the README listed before this release) now exits 2 | Fixture with signal on every metric axis; cache-key test; unknown-ID test | Only `scan` takes these flags; `review`, `sweep`, and MCP use `patterns.disabled` in `.slopconfig.yaml` |
+| Pre-commit hook entry `python -m slop_detector.precommit` | The patterns hook now scans each changed file (it failed with more than one); about 0.13 s per extra file (10 files: 2.46 s, one project scan of the same files: 1.12 s) | The shipped hook's exact entry and args run on two files | Not run under the `pre-commit` tool itself |
+| API routes `POST /webhook/github`, `GET /status/project/{id}` | Answer `501`; `api.models.ProjectStatus` is removed | Route tests (skipped in CI, which has no FastAPI; run locally) | Clients of these routes were not surveyed |
+| `import_cycles` order | Order and rotation of cycles change once (now stable) | Same output under six hash seeds; same cycle sets as the old code on four trees | — |
+| Analysis cache `analysis-cache-v12` | The first run after upgrading re-analyzes every file | Cache-version test | — |
+| VS Code extension | Not released; stays 3.8.9 against core 3.9.0 | — | The extension was not run against v3.9.0 output |
+
 ### Validation
 
-- CI on the last code commit (`b0a90cc`): Python 3.8 to 3.12 each
-  `676 passed, 8 skipped`; Black 24.8.0, Ruff, MyPy (104 source files), self
+- CI on the release commit (`de2384e`): Python 3.8 to 3.12 each
+  `678 passed, 8 skipped`; Black 24.8.0, Ruff, MyPy (104 source files), self
   scan (weighted deficit 6.56), Docker build, and the quality gate pass.
   Coverage measured 87% (3.8) and 88% (3.9 to 3.12); publication to Codecov
   was rate-limited (HTTP 429) and is not part of this evidence.
