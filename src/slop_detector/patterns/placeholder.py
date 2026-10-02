@@ -94,7 +94,7 @@ class PassPlaceholderPattern(ASTPattern):
     message = "Empty function with only pass - placeholder not implemented"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if not isinstance(node, ast.FunctionDef):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return None
         if _has_abstractmethod(node):
             return None
@@ -202,7 +202,7 @@ class EllipsisPlaceholderPattern(ASTPattern):
             self._protocol_method_lines = set()
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if not isinstance(node, ast.FunctionDef):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return None
         if node.lineno in getattr(self, "_protocol_method_lines", set()):
             return None
@@ -232,7 +232,7 @@ class NotImplementedPattern(ASTPattern):
     message = "Function raises NotImplementedError - placeholder not implemented"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if not isinstance(node, ast.FunctionDef):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return None
         if _has_abstractmethod(node):
             return None
@@ -339,7 +339,7 @@ class ReturnNonePlaceholderPattern(ASTPattern):
     message = "Function only returns None - likely placeholder"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if not isinstance(node, ast.FunctionDef):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return None
         if node.name.startswith("__") and node.name.endswith("__"):
             return None
@@ -395,11 +395,11 @@ class ReturnConstantStubPattern(ASTPattern):
     )
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if not isinstance(node, ast.FunctionDef):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return None
 
-        # Skip dunder methods that legitimately return constants
-        if node.name in self._DUNDER_CONSTANT_OK or node.name == "__exit__":
+        # Skip dunder methods that legitimately return constants (and the async __aexit__)
+        if node.name in self._DUNDER_CONSTANT_OK or node.name in ("__exit__", "__aexit__"):
             return None
 
         # Skip @abstractmethod

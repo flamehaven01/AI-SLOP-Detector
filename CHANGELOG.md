@@ -100,6 +100,18 @@ See [docs/IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md).
 
 ### Fixed
 
+- Placeholder patterns now check `async def` the same way as `def`:
+  `pass_placeholder`, `ellipsis_placeholder`, `not_implemented`,
+  `return_none_placeholder`, and `return_constant_stub` only looked at sync
+  functions, so `async def f(): pass` produced no finding. Every exemption that
+  applies to a sync function applies to its async twin (`@abstractmethod`,
+  methods of an `ABC` subclass, `Protocol` methods, dunder methods, and
+  `__aexit__` alongside `__exit__`). Sync findings are unchanged. On this
+  repository it finds two real stubs: `GET /status/project/{project_id}` and
+  the GitHub push webhook's background task in `api/server.py` are `pass`. The
+  analysis cache version moves to `analysis-cache-v12`, so cached results from
+  before the change (including the import-resolution changes above) are not
+  reused.
 - ML model evaluation and its description. `scripts/retrain_model.py` fitted the
   model on all 784 samples and then scored 20% of those same samples, so the
   figures published with v3.7.1 (`accuracy=0.7962`, `precision=0.9524`,
