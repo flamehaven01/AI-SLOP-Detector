@@ -4,10 +4,9 @@ Cross-File Analysis Module
 Detects project-level slop patterns that single-file analysis misses:
 
 1. Slop Propagation  : file A imports from slop file B -> contamination flag
-2. Duplicate Code    : similar function bodies across files (Levenshtein ratio)
-3. Dead Exports      : defined in __all__ or exported but never imported elsewhere
-4. Import Cycles     : circular import detection via DFS
-5. Slop Hotspots     : files that are both heavily imported AND have high slop score
+2. Duplicate Code    : identical function bodies across files (SHA-256 of the body)
+3. Import Cycles     : circular import detection via DFS
+4. Slop Hotspots     : files that are both heavily imported AND have high slop score
 """
 
 from __future__ import annotations

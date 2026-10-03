@@ -135,6 +135,9 @@ proof that the claim is true.
 - Most claim-evidence collectors still read text and therefore report `weak`
   at best; structural support is not proof that a claim is true.
 - The tool does not detect whether code was written by an AI.
+- It does not detect disconnected implementations (handlers or pipelines that
+  are defined but never called or registered). `dead_code` covers only
+  statements after `return`, `raise`, `break`, or `continue`.
 - ML scoring is unchanged: an optional secondary signal, off by default.
 
 ---

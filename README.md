@@ -18,7 +18,7 @@
 <p align="center"><b>Find AI-generated code that looks finished but isn't.</b></p>
 
 <p align="center">
-Catches what a normal linter passes over: empty functions with real-looking bodies, imports of things that don't exist, pipelines wired to nothing, copy-pasted logic, and docs that oversell what the code actually does.<br/>
+Catches what a normal linter passes over: empty functions with real-looking bodies, imports of things that don't exist, copy-pasted logic, unreachable code, and docs that oversell what the code actually does.<br/>
 <b>Runs fully offline &middot; deterministic core scoring &middot; no API key, no model download, nothing leaves your machine.</b>
 </p>
 
@@ -60,7 +60,7 @@ AI-SLOP Detector is an **evidence-based static analyzer** that targets a defect 
 
 General linters flag style and convention. This tool flags structural risk.
 
-- **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, dead pipelines, copy-paste clones, and buzzword-padded docs
+- **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
 - **Can adapt review sensitivity locally** — repository-scoped history can tune weights after 10 multi-run files when the confidence guard passes and an existing config is present. This is operational calibration, not external validation.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
