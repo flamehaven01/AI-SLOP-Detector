@@ -1,13 +1,63 @@
 """Buzzword-to-Code Ratio (BCR) calculator with context awareness."""
 
 import ast
+import io
 import logging
 import re
+import tokenize
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 from slop_detector.models import InflationResult
 
 logger = logging.getLogger(__name__)
+
+# Token types whose text is prose (a place a claim can be written). Python 3.12+
+# splits f-strings (and 3.14 t-strings) into START/MIDDLE/END tokens.
+_PROSE_TOKENS = frozenset(
+    t
+    for t in (
+        tokenize.COMMENT,
+        tokenize.STRING,
+        getattr(tokenize, "FSTRING_MIDDLE", None),
+        getattr(tokenize, "TSTRING_MIDDLE", None),
+    )
+    if t is not None
+)
+
+Spans = Dict[int, List[Tuple[int, int]]]
+
+
+def _prose_spans(content: str) -> Optional[Spans]:
+    """Line -> column ranges covered by comments and string literals.
+
+    A jargon word only counts as a claim inside prose; in an import path,
+    attribute path, or identifier it is code. None when the source cannot be
+    tokenized, in which case every match counts (the previous behaviour).
+    """
+    spans: Spans = {}
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(content).readline))
+    except (tokenize.TokenError, IndentationError, SyntaxError):
+        return None
+    lines = content.splitlines()
+    for tok in tokens:
+        if tok.type not in _PROSE_TOKENS:
+            continue
+        (start_row, start_col), (end_row, end_col) = tok.start, tok.end
+        for row in range(start_row, end_row + 1):
+            width = len(lines[row - 1]) if row - 1 < len(lines) else 0
+            first = start_col if row == start_row else 0
+            last = end_col if row == end_row else width
+            spans.setdefault(row, []).append((first, last))
+    return spans
+
+
+def _in_prose(spans: Optional[Spans], row: int, start: int, end: int) -> bool:
+    if spans is None:
+        return True
+    return any(first <= start and end <= last for first, last in spans.get(row, ()))
+
 
 try:
     from radon.complexity import cc_visit
@@ -123,6 +173,10 @@ class InflationCalculator:
         justified_jargon = []
         jargon_details = []
         func_scopes = self._build_function_scopes(tree, lines)
+        # Tokenized at most once per file, and only once a jargon candidate is
+        # found: most files have none, and tokenizing them dominated the cost.
+        prose: Optional[Spans] = None
+        tokenized = False
 
         for line_idx, line in enumerate(lines, 1):
             if self._is_data_literal_entry(line):
@@ -130,8 +184,12 @@ class InflationCalculator:
             line_lower = line.lower()
             for category, words in self.JARGON.items():
                 for word in words:
-                    matches = re.findall(r"\b" + re.escape(word.lower()) + r"\b", line_lower)
-                    for _ in matches:
+                    pattern = r"\b" + re.escape(word.lower()) + r"\b"
+                    for match in re.finditer(pattern, line_lower):
+                        if not tokenized:
+                            prose, tokenized = _prose_spans(content), True
+                        if not _in_prose(prose, line_idx, match.start(), match.end()):
+                            continue  # import path, attribute, or identifier: code, not a claim
                         jargon_found.append(word)
                         is_justified = self._is_jargon_justified_scoped(
                             category, word, content, lines, line_idx, func_scopes

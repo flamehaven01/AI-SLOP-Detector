@@ -41,6 +41,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   time, and package lookups per `sys.path`.
 - The analysis cache version moves to `analysis-cache-v13`.
 
+### Changed
+
+- Inflation (jargon) counts a claim only where a claim can be written: in a
+  comment or a string literal (docstrings, log and error messages). The same
+  word inside an import path, an attribute path, or an identifier is code, not
+  a claim: `import torch.distributed`, `from x.distributed import y`,
+  `config.distributed`, `nn.Embedding`, and `class Transformer` no longer
+  count. If a file cannot be tokenized, every match counts as before. One-line
+  docstrings are still skipped by the scan (unchanged; tracked separately).
+- On 9 codebases (1,886 files; 2 of them have syntax errors and are excluded
+  from the cost figure below) jargon hits went from 1,332 to 479 and justified
+  hits from 855 to 254, with no new hits. All 853 removed hits were in code
+  (282 import statements, the rest identifiers and attribute paths); an
+  independent check found none inside a comment or string. 35 files got a
+  lower deficit score, none higher, and no file changed status. In LMCache all
+  277 removed hits were `distributed` in import paths and type annotations.
+- Cost: files are tokenized only once a jargon candidate is found. Inflation
+  CPU time on the same 1,884 files: 68.4 s before, 75.5 s after (86.9 s if
+  every file were tokenized); `time.process_time`, best of 3, one session.
+- The analysis cache version moves to `analysis-cache-v14`.
+
 ## [3.9.0] - 2026-10-03
 
 ### Security
