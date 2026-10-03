@@ -55,6 +55,7 @@ from slop_detector.models import (
     SuppressionDirective,
     SuppressionLedgerEntry,
 )
+from slop_detector.path_facts import PathFacts, facts_for, path_facts
 from slop_detector.patterns import get_all_patterns
 from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
@@ -150,17 +151,26 @@ class SlopDetector:
         """Backward-compatible facade for structural fingerprint calculation."""
         return compute_dcf(tree)
 
-    def analyze_file(self, file_path: str) -> FileAnalysis:
+    def analyze_file(self, file_path: str, root: Optional[str] = None) -> FileAnalysis:
         """
         Analyze a single Python file.
 
         Improvements in v2.1:
         - Pattern-based detection alongside metrics
         - Hybrid scoring (metrics + patterns)
+
+        Args:
+            file_path: The file to analyze.
+            root:      The scan root its path facts are relative to. Without it the
+                       nearest project marker is the root (slop_detector.path_facts).
         """
         path_obj = Path(file_path).resolve()
         file_path = str(path_obj)
         logger.info(f"Analyzing: {file_path}")
+        facts = facts_for(path_obj, root)
+        # Path facts depend on the root, so they are part of the cache key: the
+        # same file scanned under two roots must not reuse the other's result.
+        cache_fingerprint = f"{fingerprint_config(self.config.config)}|path:{facts.fingerprint()}"
 
         stat = path_obj.stat()
         try:
@@ -177,7 +187,7 @@ class SlopDetector:
                 file_size=stat.st_size,
                 mtime_ns=stat.st_mtime_ns,
                 content_hash=content_hash,
-                config_fingerprint=fingerprint_config(self.config.config),
+                config_fingerprint=cache_fingerprint,
                 engine_version=CACHE_ENGINE_VERSION,
             )
             if cached is not None:
@@ -198,14 +208,14 @@ class SlopDetector:
             # Return minimal analysis
             return self._create_error_analysis(file_path, str(e))
 
-        result = self._build_file_analysis(file_path, content, tree)
+        result = self._build_file_analysis(file_path, content, tree, facts)
         if self._analysis_cache is not None:
             self._analysis_cache.put(
                 file_path=file_path,
                 file_size=stat.st_size,
                 mtime_ns=stat.st_mtime_ns,
                 content_hash=content_hash,
-                config_fingerprint=fingerprint_config(self.config.config),
+                config_fingerprint=cache_fingerprint,
                 result=result,
                 engine_version=CACHE_ENGINE_VERSION,
             )
@@ -228,7 +238,7 @@ class SlopDetector:
             tree = ast.parse(content, filename=filename)
         except SyntaxError as e:
             return self._create_error_analysis(filename, str(e))
-        return self._build_file_analysis(filename, content, tree)
+        return self._build_file_analysis(filename, content, tree, path_facts(filename, None))
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """
@@ -255,7 +265,7 @@ class SlopDetector:
         results: List[FileAnalysis] = []
         for file_path in python_files:
             try:
-                result = self.analyze_file(str(file_path))
+                result = self.analyze_file(str(file_path), root=str(project_path_obj))
                 results.append(result)
             except Exception as e:
                 logger.error(f"Error analyzing {file_path}: {e}")
@@ -280,11 +290,14 @@ class SlopDetector:
             self._ml_scoring,
         )
 
-    def _build_file_analysis(self, file_path: str, content: str, tree: ast.AST) -> FileAnalysis:
+    def _build_file_analysis(
+        self, file_path: str, content: str, tree: ast.AST, facts: Optional[PathFacts] = None
+    ) -> FileAnalysis:
         """Build a FileAnalysis from already-read source and parsed AST."""
         from slop_detector.file_role import ROLE_SKIP
 
-        role = classify_file(file_path, content, tree)  # type: ignore[arg-type]
+        facts = facts if facts is not None else facts_for(file_path)
+        role = classify_file(file_path, content, tree, facts)  # type: ignore[arg-type]
         skip = ROLE_SKIP[role] | (
             PATTERNS_ONLY_SKIP if self.config.patterns_only() else frozenset()
         )
@@ -295,7 +308,9 @@ class SlopDetector:
         dcf = self._compute_dcf(tree)
         docstring_inflation = self.docstring_inflation_detector.analyze(file_path, content, tree)
         hallucination_deps = self.hallucination_deps_detector.analyze(file_path, content, tree, ddc)
-        context_jargon = self.context_jargon_detector.analyze(file_path, content, tree, inflation)
+        context_jargon = self.context_jargon_detector.analyze(
+            file_path, content, tree, inflation, facts
+        )
         ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
         suppression_directives = SuppressionHandler.parse_comment_suppressions(content)
         pattern_issues, suppression_ledger, masked_issues = (
@@ -307,6 +322,7 @@ class SlopDetector:
                 content,
                 ignored_functions,
                 suppression_directives=suppression_directives,
+                facts=facts,
             )
         )
 
@@ -427,6 +443,7 @@ class SlopDetector:
         content: str,
         ignored_functions: Optional[List[IgnoredFunction]] = None,
         suppression_directives: Optional[List[SuppressionDirective]] = None,
+        facts: Optional[PathFacts] = None,
     ) -> tuple[List[Issue], List[SuppressionLedgerEntry], List[MaskedIssue]]:
         """
         Run all enabled patterns on the file.
@@ -445,7 +462,7 @@ class SlopDetector:
             try:
                 pattern_issues = pattern.check(tree, file, content)
                 pattern_issues, pattern_masked = FrameworkMasker.apply_python_masking(
-                    file, content, tree, pattern_issues
+                    file, content, tree, pattern_issues, facts
                 )
                 masked_issues.extend(pattern_masked)
                 # v2.6.3: Filter issues in ignored functions

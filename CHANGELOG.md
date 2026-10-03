@@ -62,6 +62,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every file were tokenized); `time.process_time`, best of 3, one session.
 - The analysis cache version moves to `analysis-cache-v14`.
 
+### Fixed
+
+- A project whose checkout path contains a directory such as `build`, `dist`,
+  or `.venv` above the project (for example `D:/build/myproj`) was analyzed as
+  0 files, with no error: default exclusions were matched against the whole
+  absolute path. They now apply only below the scan root.
+- What a file's path says about it (test file, unit/integration/e2e, test
+  corpus, default exclusion) is decided in one place, relative to a root
+  (`slop_detector.path_facts`). Before, scan exclusion, file role, framework
+  masking, claim test evidence, and the Markdown/text test summary each had
+  their own rule, several of which looked at the whole absolute path, so a
+  `tests` directory above the project could make source files test files.
+  The root is the scan root for a project scan and the nearest project marker
+  (`pyproject.toml`, `setup.py`, `.git`, ...) for a single file; without one,
+  only the file name counts and directory facts are unknown.
+- Test files are `test_*.py`, `*_test.py`, `conftest.py`, and files under a
+  `tests`, `test`, or `__tests__` directory below the root. Integration and
+  e2e come from an `integration`, `integration_tests`, `it`, or `e2e`
+  directory or file name. The name hint `it_` was dropped: it matched any name
+  containing `it_` (`test_split_words.py` counted as an integration test).
+- `SlopDetector.analyze_file` takes an optional `root`. The analysis cache key
+  includes the file's path facts, so a file analyzed under two roots never
+  reuses the other's result. The cache version moves to `analysis-cache-v15`.
+- On 9 codebases (1,887 files), in both project-scan and single-file mode: no
+  score, status, pattern, masking, or `--ci-claims-strict` verdict changed.
+  Report-only changes: in unsloth, 4 helper files under `tests/utils/` now
+  count as unit-test evidence and one `test_e2e_*.py` file counts as e2e
+  rather than unit; the test summary drops 3 LMCache source files named
+  `check_mode_test_*.py` and 30 unstructured files that only had `test_` in a
+  directory name (`test_unstructured/`, which the score path never treated as
+  a test directory either).
+
 ## [3.9.0] - 2026-10-03
 
 ### Security

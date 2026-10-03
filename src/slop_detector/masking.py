@@ -8,10 +8,9 @@ from pathlib import Path
 from typing import Any, Iterable, List, Optional, Tuple
 
 from slop_detector.models import MaskedIssue
+from slop_detector.path_facts import PathFacts, facts_for
 from slop_detector.patterns.base import Issue, Severity
 
-_PYTHON_TEST_PATH_RE = re.compile(r"(^|[\\/])(tests?|__tests__)([\\/]|$)")
-_PYTHON_TEST_FILE_RE = re.compile(r"(^test_.*\.py$|.*_test\.py$)")
 _JS_TEST_PATH_RE = re.compile(r"(^|[\\/])(__tests__|tests)([\\/]|$)")
 _JS_TEST_FILE_RE = re.compile(r".*\.(test|spec)\.(js|jsx|ts|tsx)$")
 _JS_NOOP_HOOK_RE = re.compile(
@@ -37,14 +36,10 @@ class FrameworkMasker:
     """Masks a narrow set of deterministic framework boilerplate findings."""
 
     @staticmethod
-    def _is_python_test_file(file_path: Path) -> bool:
-        normalized = str(file_path).replace("\\", "/")
-        name = file_path.name
-        return bool(
-            file_path.name == "conftest.py"
-            or _PYTHON_TEST_PATH_RE.search(normalized)
-            or _PYTHON_TEST_FILE_RE.match(name)
-        )
+    def _is_python_test_file(file_path: Path, facts: Optional[PathFacts] = None) -> bool:
+        """Test identity from root-relative path facts (slop_detector.path_facts)."""
+        facts = facts if facts is not None else facts_for(file_path)
+        return bool(facts.is_test)
 
     @staticmethod
     def _is_js_test_file(file_path: Path) -> bool:
@@ -70,14 +65,19 @@ class FrameworkMasker:
 
     @classmethod
     def mask_python_issue(
-        cls, file_path: Path, issue: Issue, content: str, tree: ast.AST
+        cls,
+        file_path: Path,
+        issue: Issue,
+        content: str,
+        tree: ast.AST,
+        facts: Optional[PathFacts] = None,
     ) -> Optional[MaskedIssue]:
         del content
         if issue.severity == Severity.CRITICAL:
             return None
         if (
             issue.pattern_id == "pass_placeholder"
-            and cls._is_python_test_file(file_path)
+            and cls._is_python_test_file(file_path, facts)
             and cls._python_function_name_at_line(tree, issue.line) in _PYTEST_NOOP_HOOKS
         ):
             return MaskedIssue(
@@ -92,12 +92,17 @@ class FrameworkMasker:
 
     @classmethod
     def apply_python_masking(
-        cls, file_path: Path, content: str, tree: ast.AST, issues: Iterable[Issue]
+        cls,
+        file_path: Path,
+        content: str,
+        tree: ast.AST,
+        issues: Iterable[Issue],
+        facts: Optional[PathFacts] = None,
     ) -> Tuple[List[Issue], List[MaskedIssue]]:
         visible: List[Issue] = []
         masked: List[MaskedIssue] = []
         for issue in issues:
-            masked_issue = cls.mask_python_issue(file_path, issue, content, tree)
+            masked_issue = cls.mask_python_issue(file_path, issue, content, tree, facts)
             if masked_issue is not None:
                 masked.append(masked_issue)
                 continue

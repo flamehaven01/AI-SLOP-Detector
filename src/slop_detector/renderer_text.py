@@ -132,7 +132,9 @@ def _text_project_section(result) -> list:
             lines.append(f"  - ... and {len(suppression_ledger) - 10} more")
         lines.append("")
     if hasattr(result, "file_results"):
-        te = _collect_test_evidence_stats(result.file_results)
+        te = _collect_test_evidence_stats(
+            result.file_results, getattr(result, "project_path", None)
+        )
         if te["total_test_files"] > 0:
             lines += [
                 "Test Evidence:",

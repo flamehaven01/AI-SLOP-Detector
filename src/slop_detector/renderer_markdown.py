@@ -6,6 +6,7 @@ import ast
 from pathlib import Path
 
 from slop_detector.finding_summary import get_finding_summary
+from slop_detector.path_facts import facts_for
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
     coherence_display,
@@ -28,16 +29,6 @@ _PRODUCTION_CLAIMS_CLI: frozenset = frozenset(
         "fault-tolerant",
         "fault tolerant",
     }
-)
-
-_INTEGRATION_MARKERS = (
-    "integration",
-    "e2e",
-    "/it/",
-    "\\it\\",
-    "integration_tests",
-    "test_integration",
-    "integration_test",
 )
 
 
@@ -75,8 +66,12 @@ def _count_test_functions_ast(file_path: str) -> int:
         return 0
 
 
-def _collect_test_evidence_stats(file_results) -> dict:
-    """Collect test evidence statistics from file results."""
+def _collect_test_evidence_stats(file_results, project_root=None) -> dict:
+    """Collect test evidence statistics from file results.
+
+    Test identity and kind are root-relative path facts (slop_detector.path_facts),
+    relative to `project_root` (without it, each file's single-file root).
+    """
     stats = {
         "unit_test_files": 0,
         "integration_test_files": 0,
@@ -89,17 +84,11 @@ def _collect_test_evidence_stats(file_results) -> dict:
     for f_res in file_results:
         if _file_has_production_claims(f_res):
             stats["has_production_claims"] = True
-        file_path = str(f_res.file_path).lower()
-        is_test_file = (
-            "test_" in file_path
-            or "_test.py" in file_path
-            or "/tests/" in file_path
-            or "\\tests\\" in file_path
-        )
-        if not is_test_file:
+        facts = facts_for(f_res.file_path, project_root)
+        if not facts.is_test:
             continue
         stats["total_test_files"] += 1
-        is_integration = any(m in file_path for m in _INTEGRATION_MARKERS)
+        is_integration = facts.test_kind in ("integration", "e2e")
         fn_count = _count_test_functions_ast(str(f_res.file_path))
         if is_integration:
             stats["integration_test_files"] += 1
@@ -262,7 +251,9 @@ def _md_suppression_section(result) -> list:
 def _md_test_evidence_section(result) -> list:
     if not hasattr(result, "file_results"):
         return []
-    test_evidence = _collect_test_evidence_stats(result.file_results)
+    test_evidence = _collect_test_evidence_stats(
+        result.file_results, getattr(result, "project_path", None)
+    )
     if test_evidence["total_test_files"] == 0:
         return []
     lines = [

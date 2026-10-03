@@ -11,24 +11,11 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from slop_detector.finding_summary import build_finding_summary
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
+from slop_detector.path_facts import default_exclusion_reason, relative_to_root
 from slop_detector.rust_scan import discover_project_files
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_EXCLUDE_PARTS = {
-    ".claude",
-    ".venv",
-    "venv",
-    "site-packages",
-    "node_modules",
-    "__pycache__",
-    ".git",
-    "build",
-    "dist",
-    ".tox",
-    ".next",
-    "htmlcov",
-}
 _COVERAGE_FILE_DETAIL_LIMIT = 200
 _SUPPORTED_SOURCE_EXTENSIONS = {
     ".py": "python",
@@ -59,19 +46,18 @@ _UNSUPPORTED_SOURCE_EXTENSIONS = {
 def ignore_reason(
     file_path: Path, patterns: List[str], root: Optional[Path] = None
 ) -> Optional[str]:
-    """Return the exclusion source for a path, if any."""
-    lowered_parts = {part.lower() for part in file_path.parts}
-    default_parts = lowered_parts & DEFAULT_EXCLUDE_PARTS
-    if default_parts:
-        return f"directory:{sorted(default_parts)[0]}"
+    """Return the exclusion source for a path, if any.
 
-    if root is not None:
-        try:
-            normalized_paths = {str(file_path.relative_to(root)).replace("\\", "/")}
-        except ValueError:
-            normalized_paths = {str(file_path).replace("\\", "/")}
-    else:
-        normalized_paths = {str(file_path).replace("\\", "/")}
+    With a root only the part of the path below it is matched: a directory
+    above the root (the checkout living under `build/`) excludes nothing.
+    """
+    relative = relative_to_root(file_path, root) if root is not None else None
+    below_root = relative if relative is not None else file_path
+    default_reason = default_exclusion_reason(below_root.parts)
+    if default_reason:
+        return default_reason
+
+    normalized_paths = {str(below_root).replace("\\", "/")}
 
     for pattern in patterns:
         normalized_pattern = str(pattern).replace("\\", "/")

@@ -9,6 +9,9 @@ from __future__ import annotations
 import ast
 from enum import Enum
 from pathlib import Path
+from typing import Optional
+
+from slop_detector.path_facts import PathFacts, facts_for
 
 
 class FileRole(Enum):
@@ -36,21 +39,24 @@ ROLE_SKIP: dict[FileRole, frozenset[str]] = {
 }
 
 
-def classify_file(path: str, content: str, tree: ast.Module) -> FileRole:
-    """Classify *path* into a FileRole based on its name and AST structure.
+def classify_file(
+    path: str, content: str, tree: ast.Module, facts: Optional[PathFacts] = None
+) -> FileRole:
+    """Classify *path* into a FileRole from its path facts and AST structure.
 
-    The classification is purely structural and fast — no I/O beyond the
-    already-parsed tree.
+    Path decisions (corpus, test) come only from root-relative path facts
+    (slop_detector.path_facts); without `facts` they are derived under the
+    single-file root rule. The rest is structural, from the parsed tree.
     """
     p = Path(path)
-    parts = {part.lower() for part in p.parts}
+    facts = facts if facts is not None else facts_for(p)
 
     # Corpus: intentional slop living under tests/corpus/
-    if "corpus" in parts and ("test" in parts or "tests" in parts):
+    if facts.is_corpus:
         return FileRole.CORPUS
 
     # Test file
-    if p.name.startswith("test_") or p.name.endswith("_test.py") or "tests" in parts:
+    if facts.is_test:
         return FileRole.TEST
 
     # __init__.py — even if it has some logic, its primary role is re-export

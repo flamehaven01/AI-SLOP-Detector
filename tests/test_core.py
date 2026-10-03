@@ -646,7 +646,7 @@ def test_analyze_project_filters_rust_discovered_build_artifacts(detector, tmp_p
     monkeypatch.setattr(
         detector,
         "analyze_file",
-        lambda file_path: FileAnalysis(
+        lambda file_path, root=None: FileAnalysis(
             file_path=str(Path(file_path).resolve()),
             ldr=LDRResult(total_lines=2, logic_lines=1, empty_lines=0, ldr_score=0.8, grade="A"),
             inflation=InflationResult(
@@ -705,7 +705,7 @@ def test_analyze_project_includes_non_python_results_in_aggregate(detector, tmp_
         status="clean",
     )
     monkeypatch.setattr(detector.config, "get_ignore_patterns", lambda: [])
-    monkeypatch.setattr(detector, "analyze_file", lambda path: py_result)
+    monkeypatch.setattr(detector, "analyze_file", lambda path, root=None: py_result)
     monkeypatch.setattr(detector, "_analyze_js_files", lambda *args, **kwargs: [js_result])
     monkeypatch.setattr(detector, "_analyze_go_files", lambda *args, **kwargs: [go_result])
 

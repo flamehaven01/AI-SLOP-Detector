@@ -28,7 +28,7 @@ def _build_fallback_project_analysis(
     file_results = []
     for file_path in python_files:
         try:
-            file_results.append(detector.analyze_file(str(file_path)))
+            file_results.append(detector.analyze_file(str(file_path), root=str(scan_root)))
         except Exception:
             continue
 

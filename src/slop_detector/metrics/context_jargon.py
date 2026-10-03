@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from slop_detector.path_facts import PathFacts, facts_for
 
 
 @dataclass
@@ -61,10 +62,8 @@ class ContextJargonResult:
 class ContextJargonDetector:
     """Cross-validate jargon claims with actual codebase evidence."""
 
-    # Evidence requirements for each jargon category
-    # Integration test detection constants
-    INTEGRATION_PATH_PARTS = {"integration", "integration_tests", "e2e", "it"}
-    INTEGRATION_NAME_HINTS = ("integration_test", "test_integration", "it_")
+    # Integration test detection from file content. Path-based test identity and
+    # test kind come from root-relative path facts (slop_detector.path_facts).
     INTEGRATION_MARKERS = ("@pytest.mark.integration", "@pytest.mark.e2e")
     INTEGRATION_RUNTIME_SIGNALS = (
         "testcontainers",
@@ -144,7 +143,12 @@ class ContextJargonDetector:
         self.config = config
 
     def analyze(
-        self, file_path: str, content: str, tree: ast.AST, inflation_result: Any
+        self,
+        file_path: str,
+        content: str,
+        tree: ast.AST,
+        inflation_result: Any,
+        facts: Optional[PathFacts] = None,
     ) -> ContextJargonResult:
         """Analyze jargon with context-based evidence validation."""
         # Get jargon from inflation result
@@ -154,7 +158,7 @@ class ContextJargonDetector:
         jargon_details = inflation_result.jargon_details
 
         # Collect codebase evidence
-        evidence = self._collect_evidence(content, tree, file_path)
+        evidence = self._collect_evidence(content, tree, file_path, facts)
 
         # Validate each jargon claim
         evidence_results = []
@@ -222,8 +226,11 @@ class ContextJargonDetector:
             status=status,
         )
 
-    def _collect_evidence(self, content: str, tree: ast.AST, file_path: str) -> Dict[str, bool]:
+    def _collect_evidence(
+        self, content: str, tree: ast.AST, file_path: str, facts: Optional[PathFacts] = None
+    ) -> Dict[str, bool]:
         """Collect evidence from the codebase."""
+        facts = facts if facts is not None else facts_for(file_path)
         evidence = {}
 
         # Error handling
@@ -233,11 +240,11 @@ class ContextJargonDetector:
         evidence["logging"] = self._has_logging(tree, content)
 
         # Tests (DEPRECATED - kept for backward compatibility)
-        evidence["tests"] = self._has_tests(file_path, tree)
+        evidence["tests"] = self._has_tests(file_path, tree, facts)
 
         # NEW: Split tests into unit and integration
-        evidence["tests_unit"] = self._has_unit_tests(file_path, tree)
-        evidence["tests_integration"] = self._has_integration_tests(file_path, tree, content)
+        evidence["tests_unit"] = self._has_unit_tests(file_path, tree, facts)
+        evidence["tests_integration"] = self._has_integration_tests(file_path, tree, content, facts)
 
         # Input validation
         evidence["input_validation"] = self._has_input_validation(tree, content)
@@ -299,56 +306,43 @@ class ContextJargonDetector:
                             return True
         return False
 
-    def _has_tests(self, file_path: str, tree: ast.AST) -> bool:
-        """Check for test presence."""
-        # Check if this is a test file
-        if "test_" in str(file_path) or "_test" in str(file_path):
+    def _has_tests(self, file_path: str, tree: ast.AST, facts: Optional[PathFacts] = None) -> bool:
+        """Check for test presence: a test file by path facts, or test functions."""
+        facts = facts if facts is not None else facts_for(file_path)
+        if facts.is_test:
             return True
+        return self._is_real_test_file(tree)
 
-        # Check for test functions
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                if node.name.startswith("test_"):
-                    return True
-
-        # Check for test directory
-        path = Path(file_path)
-        if path.parent.name in ("tests", "test"):
-            return True
-
-        return False
-
-    def _has_unit_tests(self, file_path: str, tree: ast.AST) -> bool:
+    def _has_unit_tests(
+        self, file_path: str, tree: ast.AST, facts: Optional[PathFacts] = None
+    ) -> bool:
         """Detect unit tests (fast, isolated tests)."""
-        path = Path(str(file_path))
+        facts = facts if facts is not None else facts_for(file_path)
 
-        # Exclude integration/e2e directories from unit tests
-        if any(p in self.INTEGRATION_PATH_PARTS for p in path.parts):
+        # Exclude integration/e2e test files from unit tests
+        if facts.test_kind in ("integration", "e2e"):
             return False
 
-        # Reuse existing tests detection logic
-        return self._has_tests(file_path, tree)
+        return self._has_tests(file_path, tree, facts)
 
-    def _has_integration_tests(self, file_path: str, tree: ast.AST, content: str) -> bool:
+    def _has_integration_tests(
+        self, file_path: str, tree: ast.AST, content: str, facts: Optional[PathFacts] = None
+    ) -> bool:
         """Detect integration tests (tests that hit real deps)."""
-        path = Path(str(file_path))
+        facts = facts if facts is not None else facts_for(file_path)
 
-        # 1) Path-based detection
-        if any(p in self.INTEGRATION_PATH_PARTS for p in path.parts):
+        # 1) Path-based detection (directory or file name)
+        if facts.test_kind in ("integration", "e2e"):
             return self._is_real_test_file(tree)
 
-        # 2) File name-based detection
-        if any(hint in path.name for hint in self.INTEGRATION_NAME_HINTS):
-            return self._is_real_test_file(tree)
-
-        # 3) Pytest marker-based detection
+        # 2) Pytest marker-based detection
         if any(m in content for m in self.INTEGRATION_MARKERS):
             return self._is_real_test_file(tree)
 
-        # 4) Runtime signal-based detection
+        # 3) Runtime signal-based detection
         if self._has_integration_runtime_signals(content):
             # Runtime signals + test file = integration test
-            return self._has_tests(file_path, tree) and self._is_real_test_file(tree)
+            return self._has_tests(file_path, tree, facts) and self._is_real_test_file(tree)
 
         return False
 
