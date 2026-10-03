@@ -10,7 +10,20 @@ it does not redefine the bands. Orthogonal conditions are flags on the result
 
 from __future__ import annotations
 
-from slop_detector.models import SlopStatus
+from enum import Enum
+
+
+class SlopStatus(str, Enum):
+    """Detection status: the band of a deficit score."""
+
+    CLEAN = "clean"
+    SUSPICIOUS = "suspicious"
+    INFLATED_SIGNAL = "inflated_signal"
+    # No longer emitted: dependency noise is a flag beside the band. Kept for one
+    # release so code that compares against it still imports.
+    DEPENDENCY_NOISE = "dependency_noise"
+    CRITICAL_DEFICIT = "critical_deficit"
+
 
 SUSPICIOUS_AT = 30.0
 INFLATED_AT = 50.0

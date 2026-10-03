@@ -32,11 +32,8 @@ _score_boundary_confidence = _architecture._score_boundary_confidence
 
 _looks_like_dead_code = _cleanup._looks_like_dead_code
 _safe_parse_ast = _cleanup._safe_parse_ast
-_has_placeholder_markers = _cleanup._has_placeholder_markers
 _is_script_entrypoint = _cleanup._is_script_entrypoint
 _is_main_guard = _cleanup._is_main_guard
-_has_placeholder_only_body = _cleanup._has_placeholder_only_body
-_is_placeholder_expression = _cleanup._is_placeholder_expression
 _build_hotspot_index = _cleanup._build_hotspot_index
 _find_file_result = _cleanup._find_file_result
 _clamp_confidence = _cleanup._clamp_confidence

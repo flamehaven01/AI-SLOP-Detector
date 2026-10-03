@@ -2,20 +2,13 @@
 
 import logging as _logging
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
+# The status vocabulary lives with the bands that define it (diagnostic_bands);
+# re-exported here so `from slop_detector.models import SlopStatus` keeps working.
+from slop_detector.diagnostic_bands import SlopStatus  # noqa: F401
+
 _logger = _logging.getLogger(__name__)
-
-
-class SlopStatus(str, Enum):
-    """Detection status."""
-
-    CLEAN = "clean"
-    SUSPICIOUS = "suspicious"
-    INFLATED_SIGNAL = "inflated_signal"
-    DEPENDENCY_NOISE = "dependency_noise"
-    CRITICAL_DEFICIT = "critical_deficit"
 
 
 @dataclass

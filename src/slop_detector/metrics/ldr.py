@@ -25,6 +25,31 @@ def _is_ellipsis_stmt(node: ast.AST) -> bool:
     )
 
 
+def is_empty_function(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Whether a function is empty: only a docstring, pass, ..., or return None.
+
+    Only the leading docstring and `...` are dropped as non-statements; any other
+    expression statement (a call such as `register(x)`) is implementation.
+    """
+    body = list(func_node.body)
+    if body and _is_docstring_stmt(body[0]):
+        body = body[1:]
+    body = [n for n in body if not isinstance(n, ast.Pass) and not _is_ellipsis_stmt(n)]
+
+    if len(body) == 0:
+        return True
+
+    if len(body) == 1:
+        stmt = body[0]
+        if isinstance(stmt, ast.Return):
+            if stmt.value is None:
+                return True
+            if isinstance(stmt.value, ast.Constant) and stmt.value.value is None:
+                return True
+
+    return False
+
+
 class LDRCalculator:
     """Calculate Logic Density Ratio with smart exception handling."""
 
@@ -224,25 +249,5 @@ class LDRCalculator:
         return empty_lines
 
     def _is_truly_empty_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-        """Check if function is truly empty (docstring, pass, ..., or return None only).
-
-        Only the leading docstring and `...` are dropped as non-statements; any other
-        expression statement (a call such as `register(x)`) is implementation.
-        """
-        body = list(func_node.body)
-        if body and _is_docstring_stmt(body[0]):
-            body = body[1:]
-        body = [n for n in body if not isinstance(n, ast.Pass) and not _is_ellipsis_stmt(n)]
-
-        if len(body) == 0:
-            return True
-
-        if len(body) == 1:
-            stmt = body[0]
-            if isinstance(stmt, ast.Return):
-                if stmt.value is None:
-                    return True
-                if isinstance(stmt.value, ast.Constant) and stmt.value.value is None:
-                    return True
-
-        return False
+        """Check if function is truly empty (see is_empty_function)."""
+        return is_empty_function(func_node)

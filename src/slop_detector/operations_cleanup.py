@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from slop_detector.clone_signals import EXACT_DUPLICATE_PAIR_ID
+from slop_detector.metrics.ldr import is_empty_function
 from slop_detector.operations_architecture import (
     _detect_boundary_violations,
     _score_boundary_confidence,
@@ -30,19 +31,24 @@ _DEAD_CODE_PATTERN_IDS = frozenset(
 
 
 def _looks_like_dead_code(file_path: str) -> bool:
-    """Return True for obvious placeholder / dead-code only files."""
+    """Return True for a placeholder-only file: nothing is implemented.
+
+    Every function is an empty stub (logic-density rule: docstring, pass, ...,
+    return None, or a lone `raise NotImplementedError`) and nothing else in the
+    module runs. A TODO anywhere, one empty `except`, an interface method
+    (Protocol, ABC, @abstractmethod, @overload), or a call statement does not
+    make a file placeholder-only.
+    """
     path = Path(file_path)
     try:
         source = path.read_text(encoding="utf-8")
     except OSError:
         return False
 
-    if _is_script_entrypoint(tree := _safe_parse_ast(source, path)):
+    tree = _safe_parse_ast(source, path)
+    if tree is None or _is_script_entrypoint(tree):
         return False
-
-    if _has_placeholder_markers(source):
-        return True
-    return _has_placeholder_only_body(tree)
+    return _is_placeholder_only_module(tree)
 
 
 def _safe_parse_ast(source: str, path: Path) -> Optional[ast.AST]:
@@ -50,11 +56,6 @@ def _safe_parse_ast(source: str, path: Path) -> Optional[ast.AST]:
         return ast.parse(source, filename=str(path))
     except SyntaxError:
         return None
-
-
-def _has_placeholder_markers(source: str) -> bool:
-    markers = ("TODO", "FIXME", "NotImplementedError", "pass  # placeholder")
-    return any(marker in source for marker in markers)
 
 
 def _is_script_entrypoint(tree: Optional[ast.AST]) -> bool:
@@ -86,28 +87,71 @@ def _is_main_guard(node: ast.If) -> bool:
     )
 
 
-def _has_placeholder_only_body(tree: Optional[ast.AST]) -> bool:
-    if tree is None:
-        return False
-    for node in ast.walk(tree):
-        body = getattr(node, "body", None)
-        if not isinstance(body, list) or not body:
-            continue
-        if not all(isinstance(item, (ast.Pass, ast.Expr)) for item in body):
-            continue
-        if any(isinstance(item, ast.Pass) for item in body):
-            return True
-        if any(_is_placeholder_expression(item) for item in body):
-            return True
-    return False
+_INTERFACE_BASES = frozenset({"Protocol", "ABC", "ABCMeta"})
+_INTERFACE_DECORATORS = frozenset({"abstractmethod", "overload"})
+# Module-level statements that do not implement anything by themselves.
+_DECLARATIVE_STATEMENTS = (
+    ast.Import,
+    ast.ImportFrom,
+    ast.Assign,
+    ast.AnnAssign,
+    ast.Pass,
+    ast.ClassDef,
+    ast.FunctionDef,
+    ast.AsyncFunctionDef,
+)
 
 
-def _is_placeholder_expression(node: ast.AST) -> bool:
+def _name_of(node: ast.AST) -> str:
+    target = node.func if isinstance(node, ast.Call) else node
+    if isinstance(target, ast.Name):
+        return target.id
+    return getattr(target, "attr", "")
+
+
+def _is_interface_function(func: ast.AST, owner: Optional[ast.ClassDef]) -> bool:
+    """An interface declaration: neither a stub nor an implementation."""
+    if any(_name_of(d) in _INTERFACE_DECORATORS for d in getattr(func, "decorator_list", [])):
+        return True
+    return owner is not None and any(_name_of(base) in _INTERFACE_BASES for base in owner.bases)
+
+
+def _is_stub_function(func: ast.AST) -> bool:
+    if is_empty_function(func):  # type: ignore[arg-type]
+        return True
+    body = list(getattr(func, "body", []))
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+        body = body[1:]
     return (
-        isinstance(node, ast.Expr)
-        and isinstance(getattr(node, "value", None), ast.Constant)
-        and getattr(node.value, "value", None) in (Ellipsis, "")
+        len(body) == 1
+        and isinstance(body[0], ast.Raise)
+        and body[0].exc is not None
+        and _name_of(body[0].exc) == "NotImplementedError"
     )
+
+
+def _functions(nodes, owner: Optional[ast.ClassDef] = None):
+    for node in nodes:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            yield node, owner
+        elif isinstance(node, ast.ClassDef):
+            yield from _functions(node.body, node)
+
+
+def _is_placeholder_only_module(tree: ast.AST) -> bool:
+    body = list(getattr(tree, "body", []))
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+        body = body[1:]
+    if not all(isinstance(stmt, _DECLARATIVE_STATEMENTS) for stmt in body):
+        return False  # module-level code runs: something is implemented
+    stubs = 0
+    for func, owner in _functions(body):
+        if _is_interface_function(func, owner):
+            continue
+        if not _is_stub_function(func):
+            return False
+        stubs += 1
+    return stubs > 0
 
 
 def _build_hotspot_index(result) -> Dict[str, Any]:

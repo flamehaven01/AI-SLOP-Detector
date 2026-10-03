@@ -106,6 +106,39 @@ instead of re-judging metrics.
   analysis runs as before.
 - The analysis cache version moves to `analysis-cache-v18`.
 
+### Fixed (found by running the detector on its own repository)
+
+- A dict key and argparse `help=` / `description=` / `epilog=` / `usage=`
+  text are metadata, not claims. `--ci-claims-strict` failed this repository's
+  own source because the claim-evidence vocabulary table
+  (`"production-ready": [...]`) and the help text of `--ci-claims-strict` were
+  read as production claims. Comments, docstrings, log messages, assigned
+  strings, and dict values are still claims. On 9 codebases: 20 jargon hits
+  removed (16 in this repository; 4 elsewhere, all argparse help/description
+  text or a dict key), 0 added, 5 files score lower, no status change.
+- `sweep dead-code` reported 11 implemented files of this repository as
+  "placeholder-only" (for example `path_facts.py`): any `TODO`, `FIXME`, or
+  `NotImplementedError` text in the file, or any single block of only
+  `pass`/expression statements (one `except: pass`, one Protocol `...`), made
+  the whole file placeholder-only, and call statements counted as empty. A
+  file is now placeholder-only only when nothing at module level runs and
+  every function is an empty stub (the logic-density rule, or a lone `raise
+  NotImplementedError`); interface methods (Protocol, ABC, `@abstractmethod`,
+  `@overload`) are neither. Files with dead-code pattern findings are still
+  reported; the intentional placeholders in `tests/corpus` still are.
+- The status enum moved to `slop_detector.diagnostic_bands`, next to the bands
+  that define it; `from slop_detector.models import SlopStatus` still works.
+  This removes an import cycle (`diagnostic_bands -> models ->
+  renderer_glossary -> diagnostic_bands`) added with the band module, which
+  also made `sweep boundary-violations` fail on this repository.
+- The Markdown executive summary shows the score its status comes from: a
+  project's weighted deficit (the average is still in Project Metrics). It
+  showed the average next to a status derived from the weighted score.
+- Self-scan after these fixes: `--ci-claims-strict` fails no file, no import
+  cycle, `sweep dead-code` reports nothing, and every slop-corpus file is
+  still non-clean at the same score.
+- The analysis cache version moves to `analysis-cache-v19`.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in

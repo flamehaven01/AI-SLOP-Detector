@@ -92,12 +92,14 @@ def _collect_test_evidence_stats(file_results, project_root=None) -> dict:
     return stats
 
 
-def _md_summary_section(avg_deficit: float, avg_inflation: float, status) -> list:
+def _md_summary_section(score_label: str, score: float, avg_inflation: float, status) -> list:
+    # The status sits next to the score it was derived from (a project's status is
+    # the band of its weighted deficit; the average is in Project Metrics).
     return [
         "## 1. Executive Summary",
         "| Metric | Score | Status | Description |",
         "| :--- | :--- | :--- | :--- |",
-        f"| **Deficit Score** | {avg_deficit:.2f} | {status.value.upper()} | Closer to 0.0 is better. High score indicates low logic density. |",
+        f"| **{score_label}** | {score:.2f} | {status.value.upper()} | Closer to 0.0 is better. High score indicates low logic density. |",
         f"| **Inflation (Jargon)** | {avg_inflation:.2f} | - | Density of non-functional 'marketing' terms. |",
         "",
     ]
@@ -368,7 +370,8 @@ def generate_markdown_report(result) -> str:
     is_project = hasattr(result, "project_path")
     root_dir = result.project_path if is_project else str(Path(result.file_path).parent)
     status = result.overall_status if is_project else result.status
-    avg_deficit = result.avg_deficit_score if is_project else result.deficit_score
+    score_label = "Weighted Deficit Score" if is_project else "Deficit Score"
+    score = result.weighted_deficit_score if is_project else result.deficit_score
     avg_inflation = result.avg_inflation if is_project else result.inflation.inflation_score
     timestamp = getattr(result, "timestamp", None)
 
@@ -377,7 +380,7 @@ def generate_markdown_report(result) -> str:
         lines.append(f"**Date**: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
     lines += [f"**Target**: `{root_dir}`", f"**Status**: {status.value.upper()}", ""]
 
-    lines += _md_summary_section(avg_deficit, avg_inflation, status)
+    lines += _md_summary_section(score_label, score, avg_inflation, status)
 
     if is_project:
         lines += _md_project_metrics_section(result)

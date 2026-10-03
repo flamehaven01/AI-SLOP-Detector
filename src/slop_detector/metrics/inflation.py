@@ -106,6 +106,52 @@ def _prose_spans(content: str) -> Optional[Spans]:
     return spans
 
 
+# Strings whose role is metadata, not prose (claim-source boundary): keys of a
+# dict literal (vocabulary tables) and argparse help / description text.
+_CLI_TEXT_CALLS = frozenset(
+    {
+        "ArgumentParser",
+        "add_argument",
+        "add_parser",
+        "add_argument_group",
+        "add_mutually_exclusive_group",
+    }
+)
+_CLI_TEXT_KEYWORDS = frozenset({"help", "description", "epilog", "usage"})
+
+
+def _char_col(line: str, byte_col: int) -> int:
+    """AST columns count UTF-8 bytes; regex matches count characters."""
+    return len(line.encode("utf-8")[:byte_col].decode("utf-8", errors="ignore"))
+
+
+def _metadata_spans(tree: ast.AST, lines: List[str]) -> Spans:
+    """Line -> column ranges of strings that are metadata rather than claims."""
+    nodes: List[ast.expr] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Dict):
+            nodes.extend(key for key in node.keys if key is not None)
+        elif isinstance(node, ast.Call):
+            func = node.func
+            name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+            if name in _CLI_TEXT_CALLS:
+                nodes.extend(kw.value for kw in node.keywords if kw.arg in _CLI_TEXT_KEYWORDS)
+    spans: Spans = {}
+    for node in nodes:
+        is_text = isinstance(node, ast.JoinedStr) or (
+            isinstance(node, ast.Constant) and isinstance(node.value, str)
+        )
+        end_row, end_col = node.end_lineno, node.end_col_offset
+        if not is_text or end_row is None or end_col is None:
+            continue
+        for row in range(node.lineno, end_row + 1):
+            line = lines[row - 1] if row - 1 < len(lines) else ""
+            first = _char_col(line, node.col_offset) if row == node.lineno else 0
+            last = _char_col(line, end_col) if row == end_row else len(line)
+            spans.setdefault(row, []).append((first, last))
+    return spans
+
+
 def _in_prose(spans: Optional[Spans], row: int, start: int, end: int) -> bool:
     if spans is None:
         return True
@@ -285,6 +331,7 @@ class InflationCalculator:
         # Tokenized at most once per file, and only once a jargon candidate is
         # found: most files have none, and tokenizing them dominated the cost.
         prose: Optional[Spans] = None
+        metadata: Spans = {}
         justifiers: Dict[str, Set[int]] = {}
         tokenized = False
 
@@ -298,9 +345,12 @@ class InflationCalculator:
                     for match in re.finditer(pattern, line_lower):
                         if not tokenized:
                             prose, tokenized = _prose_spans(content), True
+                            metadata = _metadata_spans(tree, lines)
                             justifiers = justifier_lines(tree, self.JUSTIFICATIONS)
                         if not _in_prose(prose, line_idx, match.start(), match.end()):
                             continue  # import path, attribute, or identifier: code, not a claim
+                        if metadata and _in_prose(metadata, line_idx, match.start(), match.end()):
+                            continue  # dict key or CLI help text: metadata, not a claim
                         jargon_found.append(word)
                         is_justified = self._is_jargon_justified_scoped(
                             category, line_idx, func_scopes, justifiers
