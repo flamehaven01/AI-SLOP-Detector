@@ -5,9 +5,14 @@ from __future__ import annotations
 import ast
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Set
 
 logger = logging.getLogger(__name__)
+
+# The category map this check measures against. If it cannot be loaded, or is
+# not shaped as {categories: {name: [libraries]}}, the check is unmeasured.
+KNOWN_DEPS_PATH = Path(__file__).parent.parent / "config" / "known_deps.yaml"
 
 
 @dataclass
@@ -56,7 +61,10 @@ class HallucinationDepsResult:
     category_usage: List[CategoryUsage]
     hallucinated_deps: List[HallucinatedDependency]
     worst_category: str  # Category with most unused imports
-    status: str  # "PASS", "WARNING", "CRITICAL"
+    status: str  # "PASS", "WARNING", "CRITICAL", or "UNMEASURED"
+    # "measured", or "unmeasured" when the category map could not be loaded
+    # (then status is "UNMEASURED", never "PASS").
+    evidence_state: str = "measured"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -65,6 +73,7 @@ class HallucinationDepsResult:
             "hallucinated_deps": [h.to_dict() for h in self.hallucinated_deps],
             "worst_category": self.worst_category,
             "status": self.status,
+            "evidence_state": self.evidence_state,
         }
 
 
@@ -85,36 +94,48 @@ class HallucinationDepsDetector:
                 self.lib_to_categories[lib].add(category)
 
     def _load_known_deps(self):
-        """Load known dependencies from yaml config."""
-        from pathlib import Path
-
+        """Load the category map; on any failure the check is unavailable (unmeasured)."""
         import yaml
 
-        # Default fallback (if yaml load fails)
-        self.CATEGORY_MAP = {}
-        self.INTENT_PATTERNS = {}
-
+        self.CATEGORY_MAP: Dict[str, Set[str]] = {}
+        self.INTENT_PATTERNS: Dict[str, str] = {}
+        self.available = False
         try:
-            # Try to load from config dir relative to this file
-            current_dir = Path(__file__).parent.parent
-            config_path = current_dir / "config" / "known_deps.yaml"
-
-            if config_path.exists():
-                with open(config_path, "r", encoding="utf-8") as f:
-                    data = yaml.safe_load(f)
-                    self.CATEGORY_MAP = {k: set(v) for k, v in data.get("categories", {}).items()}
-                    self.INTENT_PATTERNS = data.get("intent_patterns", {})
-            else:
-                # If file not found, we could warn, but for now we'll just use empty or raise
-                # In a real app we might want hardcoded fallbacks here just in case
-                pass
-        except Exception as exc:
-            logger.debug("hallucination_deps: config load failed, using defaults: %s", exc)
+            data = yaml.safe_load(Path(KNOWN_DEPS_PATH).read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError) as exc:
+            logger.warning(
+                "hallucination_deps: %s not loaded (%s); check unmeasured", KNOWN_DEPS_PATH, exc
+            )
+            return
+        # Parsing is not shape: a list, or categories that are not name -> libraries,
+        # would otherwise measure nothing and report PASS.
+        categories = data.get("categories") if isinstance(data, dict) else None
+        if not isinstance(categories, dict) or not all(
+            isinstance(libs, list) and all(isinstance(lib, str) for lib in libs)
+            for libs in categories.values()
+        ):
+            logger.warning(
+                "hallucination_deps: %s has no categories map; check unmeasured", KNOWN_DEPS_PATH
+            )
+            return
+        intents = data.get("intent_patterns", {})
+        self.CATEGORY_MAP = {str(name): set(libs) for name, libs in categories.items()}
+        self.INTENT_PATTERNS = intents if isinstance(intents, dict) else {}
+        self.available = True
 
     def analyze(
         self, file_path: str, content: str, tree: ast.AST, ddc_result: Any
     ) -> HallucinationDepsResult:
         """Analyze for hallucinated dependencies."""
+        if not self.available:
+            return HallucinationDepsResult(
+                total_hallucinated=0,
+                category_usage=[],
+                hallucinated_deps=[],
+                worst_category="none",
+                status="UNMEASURED",
+                evidence_state="unmeasured",
+            )
         # Get unused imports from DDC
         unused_imports = set(ddc_result.unused)
 

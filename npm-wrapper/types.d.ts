@@ -105,6 +105,8 @@ export interface FileAnalysisOutput {
   skipped_metrics?: string[];
   /** Conditions beside the status band, e.g. "dependency_noise", "parse_error". */
   flags?: string[];
+  /** Patterns that raised on this file (not findings): {pattern_id, error_type, state}. */
+  pattern_errors?: Array<{ pattern_id: string; error_type: string; state: string }>;
 }
 
 export interface PolyglotFileOutput extends JsonObject {

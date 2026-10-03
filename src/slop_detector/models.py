@@ -236,6 +236,9 @@ class FileAnalysis:
     # Conditions reported beside the status band; they never replace it
     # (dependency_noise, parse_error).
     flags: List[str] = field(default_factory=list)
+    # Patterns that raised on this file: not findings, but the file was not
+    # fully measured ({pattern_id, error_type, state: "unmeasured"}).
+    pattern_errors: List[Dict[str, str]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -291,6 +294,7 @@ class FileAnalysis:
         result["file_role"] = self.file_role
         result["skipped_metrics"] = list(self.skipped_metrics)
         result["flags"] = list(self.flags)
+        result["pattern_errors"] = [dict(item) for item in self.pattern_errors]
         return result
 
 

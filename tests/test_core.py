@@ -432,8 +432,9 @@ def function_two():
 
     result = detector.analyze_file(temp_python_file.name)
 
-    # Larger files should still be analyzed correctly
-    assert result.ldr.total_lines > 50
+    # Larger files should still be analyzed correctly. Lines are code lines:
+    # docstrings are prose, like comments (4 code lines per repeat).
+    assert result.ldr.total_lines == 40
     assert result.deficit_score >= 0
 
 

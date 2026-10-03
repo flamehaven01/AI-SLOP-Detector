@@ -8,6 +8,23 @@ import re
 from slop_detector.models import LDRResult
 
 
+def _is_docstring_stmt(node: ast.AST) -> bool:
+    """A string expression statement (a docstring when it is a body's first statement)."""
+    return (
+        isinstance(node, ast.Expr)
+        and isinstance(node.value, ast.Constant)
+        and isinstance(node.value.value, str)
+    )
+
+
+def _is_ellipsis_stmt(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Expr)
+        and isinstance(node.value, ast.Constant)
+        and node.value.value is Ellipsis
+    )
+
+
 class LDRCalculator:
     """Calculate Logic Density Ratio with smart exception handling."""
 
@@ -32,9 +49,15 @@ class LDRCalculator:
         # Return perfect LDR so GQG is not penalised by ln(0).
         from pathlib import Path as _Path
 
+        # Docstrings are prose, treated exactly like comments: they count neither
+        # in the lines nor in the logic, so a docstring cannot change logic density.
+        docstring_lines = self._docstring_lines(tree)
+
         if _Path(file_path).name == "__init__.py":
             non_empty = [
-                ln for ln in content.splitlines() if ln.strip() and not ln.strip().startswith("#")
+                ln
+                for i, ln in enumerate(content.splitlines(), 1)
+                if ln.strip() and not ln.strip().startswith("#") and i not in docstring_lines
             ]
             if len(non_empty) == 0:
                 return LDRResult(
@@ -70,8 +93,8 @@ class LDRCalculator:
         for i, line in enumerate(lines, 1):
             stripped = line.strip()
 
-            # Skip completely empty lines and comment-only lines
-            if not stripped or stripped.startswith("#"):
+            # Skip empty lines, comment-only lines, and docstring lines
+            if not stripped or stripped.startswith("#") or i in docstring_lines:
                 continue
 
             total_lines += 1
@@ -112,6 +135,21 @@ class LDRCalculator:
             is_abc_interface=is_abc_interface,
             is_type_stub=is_type_stub,
         )
+
+    @staticmethod
+    def _docstring_lines(tree: ast.AST) -> set[int]:
+        """Line numbers of module, class, and function docstrings."""
+        rows: set[int] = set()
+        for node in ast.walk(tree):
+            if not isinstance(
+                node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+            ):
+                continue
+            body = node.body
+            if body and _is_docstring_stmt(body[0]):
+                end = getattr(body[0], "end_lineno", None) or body[0].lineno
+                rows.update(range(body[0].lineno, end + 1))
+        return rows
 
     @staticmethod
     def _is_abc_base(base: ast.expr) -> bool:
@@ -186,8 +224,15 @@ class LDRCalculator:
         return empty_lines
 
     def _is_truly_empty_function(self, func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-        """Check if function is truly empty (only pass or return None)."""
-        body = [n for n in func_node.body if not isinstance(n, (ast.Pass, ast.Expr))]
+        """Check if function is truly empty (docstring, pass, ..., or return None only).
+
+        Only the leading docstring and `...` are dropped as non-statements; any other
+        expression statement (a call such as `register(x)`) is implementation.
+        """
+        body = list(func_node.body)
+        if body and _is_docstring_stmt(body[0]):
+            body = body[1:]
+        body = [n for n in body if not isinstance(n, ast.Pass) and not _is_ellipsis_stmt(n)]
 
         if len(body) == 0:
             return True

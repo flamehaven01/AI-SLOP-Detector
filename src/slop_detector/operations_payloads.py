@@ -11,6 +11,7 @@ from slop_detector.ci_gate import CIGate
 from slop_detector.diagnostic_bands import SUSPICIOUS_AT
 from slop_detector.gate.models import GateMode
 from slop_detector.operations_cleanup import _collect_cleanup_issues
+from slop_detector.path_facts import relative_to_root
 
 
 def _run_git(args: List[str], cwd: Path) -> List[str]:
@@ -28,15 +29,19 @@ def _run_git(args: List[str], cwd: Path) -> List[str]:
 
 
 def get_changed_files(project_path: Path, base_ref: str = "HEAD") -> List[str]:
-    """Return repo-relative changed files for an audit baseline."""
+    """Return changed files relative to the project (not the repository root).
+
+    `--relative` keeps a project in a subdirectory (`--project src/`) comparable
+    with its own file results.
+    """
     root = project_path.resolve()
     diffs = _run_git(
-        ["diff", "--name-only", "--diff-filter=ACM", f"{base_ref}...HEAD"],
+        ["diff", "--name-only", "--relative", "--diff-filter=ACM", f"{base_ref}...HEAD"],
         cwd=root,
     )
     if diffs:
         return diffs
-    return _run_git(["diff", "--name-only", "--diff-filter=ACM"], cwd=root)
+    return _run_git(["diff", "--name-only", "--relative", "--diff-filter=ACM"], cwd=root)
 
 
 def _top_targets(result, limit: int = 10) -> List[Dict[str, Any]]:
@@ -103,11 +108,16 @@ def _find_findings(result, limit: int = 20) -> List[Dict[str, Any]]:
 
 
 def _relative_project_path(file_path: str, project_path: Path) -> str:
+    """The attribution key: a path relative to the project, POSIX-style.
+
+    Absolute paths are made project-relative; relative ones are taken as already
+    project-relative. A path outside the project keeps its own POSIX form.
+    """
     path_obj = Path(file_path)
-    try:
-        return str(path_obj.resolve().relative_to(project_path.resolve()))
-    except Exception:
-        return str(path_obj)
+    if not path_obj.is_absolute():
+        return path_obj.as_posix()
+    relative = relative_to_root(path_obj, project_path)
+    return relative.as_posix() if relative is not None else path_obj.as_posix()
 
 
 def build_audit_payload(
@@ -118,20 +128,18 @@ def build_audit_payload(
 ) -> Dict[str, Any]:
     """Build the changed-code audit JSON contract."""
     gate_result = CIGate(mode=GateMode.HARD).evaluate(result)
-    changed = set(get_changed_files_func(project_path, base_ref))
+    # One representation on both sides: the project-relative POSIX path. A file
+    # is introduced only when that exact path changed (no file-name matching).
+    changed = {
+        _relative_project_path(p, project_path)
+        for p in get_changed_files_func(project_path, base_ref)
+    }
     file_results = list(getattr(result, "file_results", []) or [])
     introduced = []
     inherited = []
     for fr in file_results:
         rel_path = _relative_project_path(fr.file_path, project_path)
-        abs_path = str(Path(fr.file_path).resolve())
-        changed_names = {Path(p).name for p in changed}
-        if (
-            rel_path in changed
-            or abs_path in changed
-            or Path(rel_path).name in changed_names
-            or Path(abs_path).name in changed_names
-        ):
+        if rel_path in changed:
             introduced.append(rel_path)
         else:
             inherited.append(rel_path)

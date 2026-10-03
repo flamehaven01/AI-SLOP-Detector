@@ -314,8 +314,8 @@ class SlopDetector:
         )
         ignored_functions = IgnoreHandler.collect_ignored_functions(tree)
         suppression_directives = SuppressionHandler.parse_comment_suppressions(content)
-        pattern_issues, suppression_ledger, masked_issues = (
-            ([], [], [])
+        pattern_issues, suppression_ledger, masked_issues, pattern_errors = (
+            ([], [], [], [])
             if "patterns" in skip
             else self._run_patterns(
                 tree,
@@ -360,6 +360,7 @@ class SlopDetector:
             file_role=role.value,
             skipped_metrics=sorted(skip),
             flags=flags,
+            pattern_errors=pattern_errors,
         )
 
         if len(suppression_ledger) >= 5 or len(suppression_directives) >= 3:
@@ -449,9 +450,13 @@ class SlopDetector:
         ignored_functions: Optional[List[IgnoredFunction]] = None,
         suppression_directives: Optional[List[SuppressionDirective]] = None,
         facts: Optional[PathFacts] = None,
-    ) -> tuple[List[Issue], List[SuppressionLedgerEntry], List[MaskedIssue]]:
+    ) -> tuple[List[Issue], List[SuppressionLedgerEntry], List[MaskedIssue], List[Dict[str, str]]]:
         """
         Run all enabled patterns on the file.
+
+        A pattern that raises is not a finding and does not stop the scan, but it
+        leaves a trace (pattern_errors, state "unmeasured") so "no findings" is
+        never read as a complete measurement.
 
         v2.1: New pattern-based detection.
         v2.6.3: Filters issues from @slop.ignore decorated functions.
@@ -459,6 +464,7 @@ class SlopDetector:
         issues = []
         suppression_ledger: List[SuppressionLedgerEntry] = []
         masked_issues: List[MaskedIssue] = []
+        pattern_errors: List[Dict[str, str]] = []
         ignored_functions = ignored_functions or []
         suppression_directives = suppression_directives or []
         ignored_ranges = IgnoreHandler.get_ignored_line_ranges(tree, ignored_functions)
@@ -483,8 +489,15 @@ class SlopDetector:
                     issues.append(issue)
             except Exception as e:
                 logger.warning(f"Pattern {pattern.id} failed: {e}")
+                pattern_errors.append(
+                    {
+                        "pattern_id": pattern.id,
+                        "error_type": type(e).__name__,
+                        "state": "unmeasured",
+                    }
+                )
 
-        return issues, suppression_ledger, masked_issues
+        return issues, suppression_ledger, masked_issues, pattern_errors
 
     # Backward-compat shims — delegate to IgnoreHandler
     def _collect_ignored_functions(self, tree: ast.AST) -> List[IgnoredFunction]:

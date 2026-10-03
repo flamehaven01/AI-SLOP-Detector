@@ -65,6 +65,47 @@ instead of re-judging metrics.
   - Go: 7 files go from `suspicious` to `inflated_signal` (50-70).
 - The analysis cache version moves to `analysis-cache-v17`.
 
+### Fixed (correctness)
+
+- Logic density (LDR) treats docstrings exactly like comments: a module,
+  class, or function docstring counts neither in the lines nor in the logic.
+  Before, docstring lines counted as logic, so a stub file scored 100 and the
+  same file with a 30-line module docstring scored 14.7 `clean`. A
+  docstring-only `__init__.py` is a packaging file, like an empty one.
+- A function made of calls is not empty. The empty-function check dropped
+  every expression statement, so `def configure(c): c.add(1); c.add(2)` counted
+  as an empty stub. Now only a leading docstring, `pass`, `...`, and
+  `return None` make a function empty. (Whether a bare string statement in the
+  middle of a function counts as logic is not settled yet.)
+- Measured on 9 codebases (1,888 files), each step separately:
+  - docstrings as comments: 439 files changed score (345 up, 94 down), 8
+    changed band (6 more severe, 2 cleaner);
+  - call statements are not empty: 269 files score lower, 12 changed band, all
+    cleaner (for example a `pytest_configure` that only registers markers:
+    56.5 -> 0.0);
+  - together: 479 files (181 up, 298 down), 15 band moves (12 cleaner, 3 more
+    severe: two all-`pass` no-op classes whose docstrings had raised their
+    density, and one `conftest.py` that holds only a docstring and now scores
+    like a comment-only file; it needs manual review, it is not a confirmed
+    defect).
+- A pattern that raises no longer disappears: the file result lists it in the
+  new `pattern_errors` (`pattern_id`, `error_type`, `state: "unmeasured"`). It
+  is not a finding and does not change the score.
+- Changed-code attribution (`review` / audit) compares one representation, the
+  project-relative path. A changed `models.py` also marked every other
+  `models.py` as introduced (file-name match), and changed paths were taken
+  relative to the repository root, so a project in a subdirectory matched only
+  by file name. Changed files now come from `git diff --relative`, and
+  attribution paths are POSIX-style on every platform. On this repository with
+  6 changed files, including one `models.py`: 8 files were reported as
+  introduced before (two other `models.py`), 6 now.
+- If `known_deps.yaml` is missing, cannot be parsed, or is not shaped as
+  `categories: {name: [libraries]}`, the hallucinated-dependency check reports
+  `status: "UNMEASURED"` and `evidence_state: "unmeasured"` (new field;
+  `measured` otherwise) instead of `PASS`, and logs a warning. The rest of the
+  analysis runs as before.
+- The analysis cache version moves to `analysis-cache-v18`.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in
