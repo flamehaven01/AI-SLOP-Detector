@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.1] - 2026-10-03
+
+A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in
+import paths, identifiers, and license notices no longer counts (lower scores),
+and jargon justified only by text no longer counts as justified (higher
+scores). On 9 codebases (1,887 files) none of the claim and path changes
+moved a file to another status (each step measured separately; the numbers
+are below and in docs/RELEASE_NOTES.md). The new `phantom_member` pattern adds
+findings (3 on 10 codebases); its effect on status was not measured as band
+moves. The analysis cache moves to `analysis-cache-v16`, so the
+first run re-analyzes every file.
+
 ### Added
 
 - `phantom_member` (HIGH): an import names a module or attribute that an

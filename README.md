@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.9.0" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.9.1" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
@@ -23,10 +23,10 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.9.0`
-- Previous stable tag: `v3.8.9`
+- Stable tag: `v3.9.1`
+- Previous stable tag: `v3.9.0`
+- `v3.9.1` makes claim checks count only real claims and real evidence: jargon in import paths, identifiers, and license notices is not a claim; a claim is supported only by code structure (a library named in a comment no longer counts); evidence that one file cannot show, such as tests that live elsewhere, is reported as unmeasured rather than missing. It also flags names a real package does not define (`phantom_member`) and decides test files and exclusions relative to the project root, so a checkout under a `build/` directory is no longer scanned as 0 files. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.0` closes a security hole (no model is read from the working directory, nothing is unpickled), makes import evidence follow CPython's resolution rules, and makes `async def` stubs, `--patterns-only`, `--disable`, and the multi-file pre-commit hook work as documented. See [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
-- `v3.8.9` makes the analysis boundary inspectable: project reports now show finding totals, severity, scan coverage, and ML capability state; `--include-tests` is explicit; strictness controls reduce covered intentional clone/placeholder false positives; and Rust discovery is parity-checked against Python discovery.
 
 ---
 
@@ -56,7 +56,7 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 
 ## What Is AI-SLOP Detector?
 
-AI-SLOP Detector is an **evidence-based static analyzer** that targets the specific defect class AI code generation reliably produces: structurally plausible code that is functionally empty, disconnected, or misleading.
+AI-SLOP Detector is an **evidence-based static analyzer** that targets a defect class common in AI-assisted code: structurally plausible code that is functionally empty, disconnected, or misleading. It does not tell whether code was written by an AI; it reports static signals in the code itself.
 
 General linters flag style and convention. This tool flags structural risk.
 
@@ -73,7 +73,7 @@ General linters flag style and convention. This tool flags structural risk.
 
 ## Why Not Just Use a Linter?
 
-Ruff, pylint, ESLint, and SonarQube primarily check syntax, style, and general static-quality rules. They'll happily pass code that follows every rule and still does nothing — which is exactly what AI assistants tend to produce. This tool checks the other half: **does the code actually do what it claims?**
+Ruff, pylint, ESLint, and SonarQube primarily check syntax, style, and general static-quality rules. They'll happily pass code that follows every rule and still does nothing — which is exactly what AI assistants tend to produce. This tool checks the other half: **does the code contain structural evidence for what it and its docs claim?** Structural evidence is not proof that a claim is true; the tool does not run your code.
 
 | Can it catch... | ruff / pylint / SonarQube | AI-SLOP Detector |
 |---|---|---|
@@ -101,7 +101,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.9.0"
+pip install "ai-slop-detector>=3.9.1"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -116,7 +116,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.9.0"
+pip install "ai-slop-detector>=3.9.1"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -810,6 +810,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.9.1** | claim and path checkpoint: jargon counted only in comments and strings, never in import paths, identifiers, or leading license notices; claim evidence states `structural` / `weak` / `absent` / `unmeasured` with a per-claim `support_level`; justification only by structural library use; test evidence unmeasured outside test files; `--ci-claims-strict` keeps failing unmeasured integration evidence; root-relative path facts (fixes 0-file scans under a `build/` checkout); `phantom_member` pattern |
 | **v3.9.0** | security and evidence release: no model is read from the working directory and nothing is unpickled; JSON ML model contract with one feature extractor for training and scoring; `scan --read-only`; import resolution that follows CPython (src layouts, namespace packages) with `structure_evidence`; `async def` placeholder findings; working `--patterns-only` / `--disable` and multi-file pre-commit hook; unimplemented API routes answer 501 |
 | **v3.8.9** | trust-and-measurement release: finding/severity summaries, coverage and ML capability disclosure, explicit `--include-tests`, root-relative Rust discovery parity checks, strictness-corpus controls, and no aggregate accuracy claim from dogfooding |
 | **v3.8.8** | packaging metadata cleanup plus VS Code workflow tightening: SPDX string license metadata, real workspace re-scan from `Refresh Issues`, stale sidebar results cleared on re-analysis, exact-path issue selection, and Quick Fix writes for `ignore` / `phantom_import_allowlist` with duplicate protection |

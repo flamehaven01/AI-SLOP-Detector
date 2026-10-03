@@ -5,6 +5,140 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.9.1 — 2026-10-03
+
+### Summary
+
+v3.9.1 is a checkpoint for the claim and path work done after v3.9.0 (four
+code commits). It fixes how the detector decides what counts as a claim, what
+counts as evidence for it, and what a file's path says about it, and it adds
+one pattern. Scores move in both directions; each step was measured
+separately on the same 9 codebases (1,887 files) so the movement can be
+attributed. The [Regression Risk](#regression-risk) section lists what can
+change for an existing user.
+
+What the detector is: a static analyzer that reports signals of code that
+looks finished but isn't, with the evidence for each signal. It does not tell
+whether code was written by an AI, and structural evidence for a claim is not
+proof that the claim is true.
+
+### What Counts as a Claim
+
+- Jargon counts only in comments and string literals. The same word in an
+  import path, attribute path, or identifier is code: `import torch.distributed`,
+  `nn.Embedding`, `config.distributed`, and `class Transformer` no longer count.
+  Measured: jargon hits 1,332 -> 479; all 853 removed hits were in code (282
+  import statements); an independent check found none inside a comment or
+  string; 35 files got a lower deficit score, none higher, no status change.
+- A license notice in a file's leading comments is not a claim. Leading
+  comments are split into paragraphs at blank lines; a paragraph is legal when
+  it has a strong legal marker (`SPDX-License-Identifier:`, `Copyright (c)`,
+  `Licensed under the Apache License`, `General Public License`, and a few
+  others) or directly continues one. The bare word "license" is not a marker.
+  Measured: 119 hits removed, all in leading notices (110 Apache "distributed
+  under the License", 9 GPL "This program is distributed"), no score change.
+- Files are tokenized only once a jargon candidate is found (inflation CPU on
+  1,884 parseable files: 68.4 s before, 75.5 s after; 86.9 s if every file
+  were tokenized).
+
+### What Counts as Evidence
+
+- Jargon is justified only by structure: a justifying library counts where
+  the code references a name imported from it (aliases included), plus cache
+  decorators and `.vectorize`. A library named in a comment, a string, or an
+  identifier no longer justifies, and `distributed` no longer justifies itself
+  (it was both a jargon word and a justifier).
+- Claim evidence has a state per requirement: `structural`, `weak` (only a
+  keyword or a class name), `absent` (measured, not there), `unmeasured` (no
+  collector at this scope). Each claim has a `support_level`; `is_justified`
+  means structurally supported and never that the claim is true.
+- Test evidence is measured only in test files. For a source file, unit and
+  integration tests are `unmeasured` rather than missing. Complexity is never
+  evidence.
+- `--ci-claims-strict` treats unmeasured integration evidence as not covered.
+  The gate and the Markdown report share one production-claim list. Review
+  questions keep unmeasured evidence out of "lacks".
+- Measured on top of the license-notice change: justified jargon hits
+  134 -> 100, structurally supported claims 16 -> 9, 17 files with a changed
+  deficit (15 higher, at most +11.45; 2 lower), no status change, no
+  `--ci-claims-strict` verdict change.
+- Found while measuring: without the license-notice change, the evidence
+  change moved 4 files up a status band, all because of the Apache notice line
+  that `distributed` self-justification had been hiding. Fixing one defect
+  exposed the one it was masking; the two are measured as separate steps.
+
+### What a Path Says About a File
+
+- Test identity (test file, unit / integration / e2e), test corpus, and
+  default exclusions are decided once, relative to a root
+  (`slop_detector.path_facts`), and used by scan exclusion, file role,
+  framework masking, claim evidence, and the Markdown/text test summary. The
+  root is the scan root for a project scan and the nearest project marker for
+  a single file; without one only the file name counts.
+- Fixed: a project checked out under a directory such as `build` or `dist`
+  was analyzed as 0 files with no error.
+- `SlopDetector.analyze_file` takes an optional `root`; the analysis cache key
+  includes the path facts.
+- Measured in project-scan and single-file mode: no score, status, pattern,
+  masking, or `--ci-claims-strict` verdict change. Report-only changes: in
+  unsloth, 4 helper files under `tests/utils/` now count as unit-test evidence
+  and one `test_e2e_*.py` file counts as e2e; the test summary drops 3 LMCache
+  source files named `check_mode_test_*.py` and 30 unstructured files that
+  only had `test_` in a directory name.
+
+### Added
+
+- `phantom_member` (HIGH): an import names a module or attribute that an
+  installed package does not define (`from json import parse`). Imports whose
+  existence cannot be shown statically are listed as `unverified_imports`
+  (`evidence_state: "unknown"`, never scored). On 10 codebases (1,959 files):
+  3 findings; the first version reported 26, of which 23 were namespace-package
+  portions and version fallbacks, now unknown or skipped. Cost: about 6 to 8
+  percent of analysis CPU time with a cold cache.
+
+### Regression Risk
+
+| Change | What can move | Verified by | Not verified |
+|---|---|---|---|
+| Jargon only in comments and strings | Lower inflation and deficit where jargon words appear in code | 9 codebases (above); independent check of removed hits | One-line docstrings are still not scanned |
+| Leading license notices | Fewer jargon hits in files with a license header | 119 removed hits, all in leading notices | License text after code or in a docstring still counts |
+| Structural-only justification | Higher inflation and deficit where jargon was justified only by text | 9 codebases: 17 files, no status change | — |
+| Claim evidence states | JSON: `found_evidence` holds structural evidence only and `missing_evidence` absent evidence only; new `support_level`, `weak_evidence`, `unmeasured_evidence`; fewer `is_justified` claims | Failing controls first, then mutations (13 of 14 killed, 1 equivalent) | The VS Code extension was not checked against the new fields |
+| `--ci-claims-strict` | No verdict change measured; unmeasured integration evidence fails | Preservation control | — |
+| Path facts | Projects under `build/`, `dist/`, ... are scanned; an outer `tests/` no longer makes source files test files; `test/`, `__tests__/`, and `conftest.py` are test files for every consumer; the `it_` file-name hint is gone | No score or status change on 9 codebases, both root modes; 13 of 13 mutations killed | JS and Go analyzers keep their own path rules |
+| `analyze_file(root=)` and cache key | One file analyzed under two roots is cached separately | Cache control | — |
+| `phantom_member` | New HIGH findings | 10 codebases: 3 findings | Status movement was not measured as band moves |
+| Analysis cache `analysis-cache-v16` | The first run after upgrading re-analyzes every file | Cache-version controls | — |
+| VS Code extension | Not released; stays 3.8.9 against core 3.9.1 | — | The extension was not run against v3.9.1 output |
+
+### Validation
+
+- Local suite on the release tree: `825 passed, 4 skipped` (Python 3.14).
+- CI on `921af85` (the last code commit) passes: Python 3.8 to 3.12, Black
+  24.8.0, Ruff, MyPy, self scan, Docker build, and the quality gate. Local self
+  scan: weighted deficit 5.78.
+- Each step was written as failing controls first and checked against
+  deliberate mutations of the implementation; the per-step 9-codebase
+  measurements compare exported trees of the previous commit with the change.
+
+### What This Release Does Not Claim
+
+- Scores and statuses are not yet consistent across surfaces. Known and next:
+  `--ci-mode` re-judges raw metrics with its own thresholds and ignores
+  role-based metric skips (5 of 1,884 files on the 9 codebases are `clean` but
+  fail the hard gate); any `@dataclass` in a file turns off its inflation
+  score; a file that fails to parse weighs 0 in the project score; the
+  `dependency_noise` status can hide a high deficit; file, project, JS, and Go
+  use different status bands.
+- Logic density counts docstring lines as logic.
+- One-line docstrings are not scanned for claims.
+- Most claim-evidence collectors still read text and therefore report `weak`
+  at best; structural support is not proof that a claim is true.
+- The tool does not detect whether code was written by an AI.
+- ML scoring is unchanged: an optional secondary signal, off by default.
+
+---
+
 ## v3.9.0 — 2026-10-03
 
 ### Summary
@@ -12,7 +146,7 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 v3.9.0 is a checkpoint. It bundles the changes accumulated since v3.8.9 (34
 commits) into one version so that their regression risk is visible in one
 place and can be verified before further detector work builds on it. The
-[Regression Risk](#regression-risk) section lists, for each change, what can
+[Regression Risk](#regression-risk-1) section lists, for each change, what can
 move for an existing user, how it was verified, and what is not verified.
 
 The changes close a security hole, make import evidence follow Python's own
