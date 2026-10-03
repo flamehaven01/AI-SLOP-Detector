@@ -6,7 +6,7 @@ import logging
 import re
 import tokenize
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
 from slop_detector.models import InflationResult
 
@@ -27,12 +27,62 @@ _PROSE_TOKENS = frozenset(
 
 Spans = Dict[int, List[Tuple[int, int]]]
 
+# Strong legal markers (matched case-insensitively, whitespace-normalized). The
+# bare words "license" or "copyright" are not markers.
+_LEGAL_MARKERS = tuple(
+    marker.casefold()
+    for marker in (
+        "SPDX-License-Identifier:",
+        "Copyright (c)",
+        "Copyright \u00a9",
+        "Licensed under the Apache License",
+        "Permission is hereby granted",
+        "General Public License",
+        "Mozilla Public License",
+        "Redistribution and use in source and binary forms",
+    )
+)
+# License-notice wording that makes the NEXT paragraph part of the same notice
+# (case-sensitive; only right after a legal paragraph).
+_LEGAL_CONTINUATION = ("the License", "WARRANTY", "WARRANTIES", "applicable law", "licenses/")
+
+
+def _legal_rows(tokens: List[tokenize.TokenInfo]) -> Set[int]:
+    """Rows of legal paragraphs in the leading comments (claim-source boundary A2).
+
+    Leading comments end at the first code token; a shebang or encoding cookie is
+    a comment and does not end them. Paragraphs are separated by blank lines. A
+    paragraph is legal when it carries a strong marker, or when it directly
+    follows a legal paragraph and continues the notice.
+    """
+    paragraphs: List[List[tokenize.TokenInfo]] = []
+    for tok in tokens:
+        if tok.type == tokenize.COMMENT:
+            if paragraphs and tok.start[0] == paragraphs[-1][-1].start[0] + 1:
+                paragraphs[-1].append(tok)
+            else:
+                paragraphs.append([tok])
+        elif tok.type not in (tokenize.NL, tokenize.NEWLINE, tokenize.ENCODING):
+            break
+    rows: Set[int] = set()
+    previous_legal = False
+    for paragraph in paragraphs:
+        text = " ".join(" ".join(tok.string.lstrip("#") for tok in paragraph).split())
+        legal = any(marker in text.casefold() for marker in _LEGAL_MARKERS) or (
+            previous_legal and any(word in text for word in _LEGAL_CONTINUATION)
+        )
+        if legal:
+            rows.update(tok.start[0] for tok in paragraph)
+        previous_legal = legal
+    return rows
+
 
 def _prose_spans(content: str) -> Optional[Spans]:
     """Line -> column ranges covered by comments and string literals.
 
     A jargon word only counts as a claim inside prose; in an import path,
-    attribute path, or identifier it is code. None when the source cannot be
+    attribute path, or identifier it is code. Legal paragraphs in the leading
+    comments are not claims either (_legal_rows). None when the source cannot be
     tokenized, in which case every match counts (the previous behaviour).
     """
     spans: Spans = {}
@@ -41,8 +91,11 @@ def _prose_spans(content: str) -> Optional[Spans]:
     except (tokenize.TokenError, IndentationError, SyntaxError):
         return None
     lines = content.splitlines()
+    legal = _legal_rows(tokens)
     for tok in tokens:
         if tok.type not in _PROSE_TOKENS:
+            continue
+        if tok.type == tokenize.COMMENT and tok.start[0] in legal:
             continue
         (start_row, start_col), (end_row, end_col) = tok.start, tok.end
         for row in range(start_row, end_row + 1):
@@ -57,6 +110,61 @@ def _in_prose(spans: Optional[Spans], row: int, start: int, end: int) -> bool:
     if spans is None:
         return True
     return any(first <= start and end <= last for first, last in spans.get(row, ()))
+
+
+# Decorators that are structural evidence of caching (and justify quality jargon).
+CACHE_DECORATORS = frozenset({"cache", "lru_cache"})
+
+
+def _import_aliases(tree: ast.AST) -> Dict[str, str]:
+    """Local name -> top-level module, for every absolute import in the file."""
+    aliases: Dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                aliases[alias.asname or top] = top
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            top = node.module.split(".")[0]
+            for alias in node.names:
+                aliases[alias.asname or alias.name] = top
+    return aliases
+
+
+def cache_decorator_lines(tree: ast.AST) -> Set[int]:
+    """Lines of `@cache` / `@lru_cache` decorators (bare, called, or qualified)."""
+    lines: Set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            for decorator in node.decorator_list:
+                target = decorator.func if isinstance(decorator, ast.Call) else decorator
+                name = target.id if isinstance(target, ast.Name) else getattr(target, "attr", "")
+                if name in CACHE_DECORATORS:
+                    lines.add(decorator.lineno)
+    return lines
+
+
+def justifier_lines(tree: ast.AST, modules: Mapping[str, Sequence[str]]) -> Dict[str, Set[int]]:
+    """Per category, the lines where code structurally uses a justifying library.
+
+    A library counts where the code references a name imported from it (aliases
+    included: `import torch as T` ... `T.nn`). Quality is also justified by cache
+    decorators and `.vectorize`. Comments, strings, identifier names, and the
+    claim word itself are never evidence.
+    """
+    aliases = _import_aliases(tree)
+    category_of = {module: category for category, mods in modules.items() for module in mods}
+    found: Dict[str, Set[int]] = {category: set() for category in modules}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            category = category_of.get(aliases.get(node.id, ""))
+            if category:
+                found[category].add(node.lineno)
+        elif isinstance(node, ast.Attribute) and node.attr == "vectorize" and "quality" in found:
+            found["quality"].add(node.lineno)
+    if "quality" in found:
+        found["quality"] |= cache_decorator_lines(tree)
+    return found
 
 
 try:
@@ -128,11 +236,12 @@ class InflationCalculator:
         ],
     }
 
-    # Libraries that justify jargon
+    # Libraries that justify jargon where the code uses them (justifier_lines).
+    # Quality is also justified by cache decorators and `.vectorize` calls.
     JUSTIFICATIONS = {
         "ai_ml": ["torch", "tensorflow", "keras", "jax", "transformers"],
-        "architecture": ["multiprocessing", "concurrent", "asyncio", "distributed"],
-        "quality": ["numba", "cython", "vectorized", "@cache", "@lru_cache"],
+        "architecture": ["multiprocessing", "concurrent", "asyncio"],
+        "quality": ["numba", "cython"],
     }
 
     def __init__(self, config):
@@ -176,6 +285,7 @@ class InflationCalculator:
         # Tokenized at most once per file, and only once a jargon candidate is
         # found: most files have none, and tokenizing them dominated the cost.
         prose: Optional[Spans] = None
+        justifiers: Dict[str, Set[int]] = {}
         tokenized = False
 
         for line_idx, line in enumerate(lines, 1):
@@ -188,11 +298,12 @@ class InflationCalculator:
                     for match in re.finditer(pattern, line_lower):
                         if not tokenized:
                             prose, tokenized = _prose_spans(content), True
+                            justifiers = justifier_lines(tree, self.JUSTIFICATIONS)
                         if not _in_prose(prose, line_idx, match.start(), match.end()):
                             continue  # import path, attribute, or identifier: code, not a claim
                         jargon_found.append(word)
                         is_justified = self._is_jargon_justified_scoped(
-                            category, word, content, lines, line_idx, func_scopes
+                            category, line_idx, func_scopes, justifiers
                         )
                         if is_justified:
                             justified_jargon.append(word)
@@ -302,39 +413,32 @@ class InflationCalculator:
     def _is_jargon_justified_scoped(
         self,
         category: str,
-        word: str,
-        content: str,
-        lines: list,
         line_idx: int,
         func_scopes: dict,
+        justifiers: Mapping[str, Set[int]],
     ) -> bool:
-        """Check if jargon is justified within its local function scope.
+        """Check if jargon is justified by structural use within its scope.
 
         v2.8.0: Function-scoped justification (TOE: measure at minimum relevant scope).
-        - If jargon is inside a function: justifier must appear in that function body
-        - If jargon is module-level: justifier may appear anywhere in file
+        - If jargon is inside a function: the library must be used in that function
+        - If jargon is module-level: the library may be used anywhere in the file
         """
-        if category not in self.JUSTIFICATIONS:
-            return False
-
-        justifiers = self.JUSTIFICATIONS[category]
+        lines = justifiers.get(category, set())
         scope = func_scopes.get(line_idx)
-
         if scope is None:
-            # Module-level: check full file (conservative — module-level jargon is rare)
-            scope_text = content
-        else:
-            start, end = scope
-            scope_text = "\n".join(lines[start - 1 : end])
-
-        return any(j in scope_text for j in justifiers)
+            return bool(lines)
+        start, end = scope
+        return any(start <= line <= end for line in lines)
 
     def _is_jargon_justified(self, category: str, word: str, content: str) -> bool:
         """Legacy file-scoped justification (kept for external callers)."""
         if category not in self.JUSTIFICATIONS:
             return False
-        justifiers = self.JUSTIFICATIONS[category]
-        return any(j in content for j in justifiers)
+        try:
+            tree = ast.parse(content)
+        except SyntaxError:
+            return False
+        return bool(justifier_lines(tree, self.JUSTIFICATIONS)[category])
 
     def _is_config_file(self, file_path: str, tree: ast.AST) -> bool:
         """Check if file is a configuration file."""

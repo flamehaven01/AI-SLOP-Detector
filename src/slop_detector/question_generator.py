@@ -353,23 +353,29 @@ class QuestionGenerator:
         # Individual unjustified jargon
         for evidence in ctx_jargon.evidence_details[:5]:  # Top 5
             if not evidence.is_justified and evidence.evidence_ratio < 0.3:
-                # Format evidence names for clarity
-                formatted_missing = [
-                    self._format_evidence_name(e) for e in evidence.missing_evidence[:3]
-                ]
-                missing_str = ", ".join(formatted_missing)
+                # Missing (measured, not there) and unmeasured (not visible from
+                # this file, e.g. tests in other files) are reported separately.
+                missing = list(evidence.missing_evidence)
+                unmeasured = list(getattr(evidence, "unmeasured_evidence", []))
+                parts = []
+                if missing:
+                    names = ", ".join(self._format_evidence_name(e) for e in missing[:3])
+                    parts.append(f"lacks: {names}.")
+                if unmeasured:
+                    names = ", ".join(self._format_evidence_name(e) for e in unmeasured[:3])
+                    parts.append(f"{names} cannot be measured from this file.")
 
                 # Special handling for integration test warnings
-                has_integration_missing = "tests_integration" in evidence.missing_evidence
+                has_integration_gap = "tests_integration" in missing + unmeasured
                 suffix = (
                     " (Note: Integration tests are critical for production claims.)"
-                    if has_integration_missing
+                    if has_integration_gap
                     else ""
                 )
 
                 questions.append(
                     Question(
-                        question=f"'{evidence.jargon}' claim at line {evidence.line} lacks: {missing_str}. "
+                        question=f"'{evidence.jargon}' claim at line {evidence.line} {' '.join(parts)} "
                         f"Only {evidence.evidence_ratio:.0%} of required evidence present.{suffix}",
                         severity="warning",
                         line=evidence.line,

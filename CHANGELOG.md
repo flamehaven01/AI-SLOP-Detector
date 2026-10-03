@@ -94,6 +94,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   directory name (`test_unstructured/`, which the score path never treated as
   a test directory either).
 
+### Changed (claim evidence)
+
+- A license notice in a file's leading comments is not a claim. Leading
+  comments (before the first code token; a shebang or encoding line does not
+  end them) are split into paragraphs at blank lines. A paragraph is legal
+  when it contains `SPDX-License-Identifier:`, `Copyright (c)`, `Copyright ©`,
+  `Licensed under the Apache License`, `Permission is
+  hereby granted`, `General Public License`, `Mozilla Public License`, or
+  `Redistribution and use in source and binary forms` (case-insensitive,
+  whitespace-normalized), or when it directly follows a legal paragraph and
+  continues it (`the License`, `WARRANTY`, `WARRANTIES`, `applicable law`, a
+  `licenses/` URL). The bare word "license" is not a marker, and license text
+  after the first code token is treated like any other comment. On 9
+  codebases this removes 119 jargon hits, all in leading notices (110 Apache
+  "distributed under the License", 9 GPL "This program is distributed"), with
+  no score or status change.
+- Jargon is justified only by structure. The score path counts a justifying
+  library where the code references a name imported from it (aliases
+  included: `import torch as T` ... `T.nn`), plus `@cache`/`@lru_cache` and
+  `.vectorize` for quality jargon. A library named in a comment, a string, or
+  an identifier no longer justifies, and `distributed` no longer justifies
+  itself (it was both a jargon word and a justifier). The function scope rule
+  is unchanged.
+- Claim evidence (`context_jargon`) has a state per requirement: `structural`
+  (seen in code structure), `weak` (only a keyword in text or a class name),
+  `absent` (measured, not there), `unmeasured` (no collector at this scope).
+  Each claim has `support_level` (`structural`, `weak`, `unsupported`,
+  `unmeasured`) and new `weak_evidence` / `unmeasured_evidence` lists;
+  `found_evidence` holds structural evidence only and `missing_evidence`
+  absent evidence only. `is_justified` is true only when structural evidence
+  covers at least half of the requirements (unmeasured ones count in the
+  denominator); it means "structurally supported", never "the claim is true".
+  New `ContextJargonDetector.evidence_states()`.
+- Test evidence is measured only in test files (path facts). For a source
+  file, unit and integration tests are `unmeasured` (they live in other files)
+  rather than reported missing. Complexity is never evidence:
+  `advanced_algorithms` is `unmeasured`. Input validation and logging are read
+  from the AST; a class named `...Factory` is a weak hint, not a design
+  pattern.
+- `--ci-claims-strict` treats unmeasured integration-test evidence as not
+  covered, so a production claim in a source file still fails it. The gate
+  and the Markdown report share one production-claim list
+  (`context_jargon.PRODUCTION_CLAIMS`). Review questions list missing evidence
+  as "lacks: ..." and unmeasured evidence as "... cannot be measured from this
+  file".
+- Measured on the same 9 codebases after the license-notice change: 34 fewer
+  justified jargon hits (134 -> 100), 7 fewer structurally supported claims
+  (16 -> 9), 17 files with a changed deficit score (15 higher, at most +11.45;
+  2 lower), no status change, no `--ci-claims-strict` verdict change.
+- The analysis cache version moves to `analysis-cache-v16`.
+
 ## [3.9.0] - 2026-10-03
 
 ### Security

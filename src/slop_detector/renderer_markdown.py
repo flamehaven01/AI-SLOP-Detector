@@ -6,6 +6,7 @@ import ast
 from pathlib import Path
 
 from slop_detector.finding_summary import get_finding_summary
+from slop_detector.metrics.context_jargon import PRODUCTION_CLAIMS
 from slop_detector.path_facts import facts_for
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
@@ -19,17 +20,7 @@ from slop_detector.renderer_glossary import (
 # (CLAUDE.md: Python source stays ASCII for cp949 safety).
 _MD_HEALTH_ICON = {"good": "\u2705", "warn": "\u26a0\ufe0f", "bad": "\U0001f6a8"}
 
-_PRODUCTION_CLAIMS_CLI: frozenset = frozenset(
-    {
-        "production-ready",
-        "production ready",
-        "enterprise-grade",
-        "enterprise grade",
-        "scalable",
-        "fault-tolerant",
-        "fault tolerant",
-    }
-)
+_PRODUCTION_CLAIMS_CLI: frozenset = PRODUCTION_CLAIMS
 
 
 def get_mitigation(issue_type: str, detail: str = "") -> str:

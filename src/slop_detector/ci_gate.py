@@ -14,6 +14,7 @@ from slop_detector.gate.models import (
     GateVerdict,
     QuarantineRecord,
 )
+from slop_detector.metrics.context_jargon import PRODUCTION_CLAIMS
 from slop_detector.models import FileAnalysis, ProjectAnalysis
 
 
@@ -200,25 +201,23 @@ class CIGate:
             pr_comment=pr_comment,
         )
 
-    _PRODUCTION_CLAIMS: frozenset = frozenset(
-        {
-            "production-ready",
-            "production ready",
-            "enterprise-grade",
-            "enterprise grade",
-            "scalable",
-            "fault-tolerant",
-            "fault tolerant",
-        }
-    )
+    _PRODUCTION_CLAIMS: frozenset = PRODUCTION_CLAIMS
 
     def _has_uncovered_production_claims(self, ctx_jargon: Any) -> bool:
-        """Return True if any production claim lacks integration test evidence."""
+        """Return True if any production claim lacks integration test evidence.
+
+        Unmeasured is not covered: a source file cannot show integration tests
+        that live in other files, and strict mode does not pass on what it
+        cannot see.
+        """
         if not hasattr(ctx_jargon, "evidence_details"):
             return False
         for evidence in ctx_jargon.evidence_details:
             if evidence.jargon.lower() in self._PRODUCTION_CLAIMS:
-                if "tests_integration" in evidence.missing_evidence:
+                uncovered = list(evidence.missing_evidence) + list(
+                    getattr(evidence, "unmeasured_evidence", [])
+                )
+                if "tests_integration" in uncovered:
                     return True
         return False
 
