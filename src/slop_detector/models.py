@@ -229,6 +229,13 @@ class FileAnalysis:
     # Imports of installed packages whose existence could not be shown statically
     # (phantom_member's unknowns). Evidence only: never scored.
     unverified_imports: List[Dict[str, Any]] = field(default_factory=list)
+    # Applicability: the file's role and the metrics its role (or --patterns-only)
+    # leaves out of deficit_score. Consumers must not re-judge a skipped metric.
+    file_role: str = "source"
+    skipped_metrics: List[str] = field(default_factory=list)
+    # Conditions reported beside the status band; they never replace it
+    # (dependency_noise, parse_error).
+    flags: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -281,6 +288,9 @@ class FileAnalysis:
         if self.deficit_breakdown:
             result["deficit_breakdown"] = self.deficit_breakdown
         result["unverified_imports"] = list(self.unverified_imports)
+        result["file_role"] = self.file_role
+        result["skipped_metrics"] = list(self.skipped_metrics)
+        result["flags"] = list(self.flags)
         return result
 
 
@@ -343,6 +353,9 @@ class ProjectAnalysis:
     # which candidate files were analyzed or excluded before reading a score.
     scan_coverage: Dict[str, Any] = field(default_factory=dict)
     ml_scoring: Dict[str, Any] = field(default_factory=dict)
+    # Python files that could not be parsed: scored 100, weighted by their line
+    # count, and left out of the metric averages.
+    parse_error_files: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         # Local import keeps the data model free of presentation deps at module
@@ -373,6 +386,7 @@ class ProjectAnalysis:
             "finding_summary": get_finding_summary(self),
             "scan_coverage": self.scan_coverage,
             "ml_scoring": self.ml_scoring,
+            "parse_error_files": self.parse_error_files,
             # Machine-readable guidance (same source as the human report; OSOT):
             # next_steps = deterministic prioritized action plan,
             # metric_guide = per-metric value/healthy-direction/plain meaning.

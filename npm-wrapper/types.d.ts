@@ -100,6 +100,11 @@ export interface FileAnalysisOutput {
   ml_score?: JsonValue;
   dcf?: Record<string, number>;
   deficit_breakdown?: Record<string, number>;
+  /** File role and the metrics it leaves out of deficit_score. */
+  file_role?: string;
+  skipped_metrics?: string[];
+  /** Conditions beside the status band, e.g. "dependency_noise", "parse_error". */
+  flags?: string[];
 }
 
 export interface PolyglotFileOutput extends JsonObject {
@@ -125,6 +130,8 @@ export interface ScanOutput {
   priority_hotspots: PriorityHotspot[];
   churn_analysis_available: boolean;
   coverage_analysis_available: boolean;
+  /** Python files that could not be parsed (scored 100, weighted by line count). */
+  parse_error_files?: number;
   file_results: FileAnalysisOutput[];
   js_file_results: PolyglotFileOutput[];
   go_file_results: PolyglotFileOutput[];

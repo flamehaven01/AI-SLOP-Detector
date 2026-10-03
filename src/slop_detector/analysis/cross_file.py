@@ -73,19 +73,10 @@ class CrossFileReport:
     import_edges: List[ImportEdge] = field(default_factory=list)
     structure_evidence: Dict[str, Any] = field(default_factory=dict)
 
-    @property
-    def risk_score(self) -> float:
-        """Aggregate project-level risk [0.0-1.0]."""
-        cycle_risk = min(len(self.import_cycles) * 0.10, 0.40)
-        dup_risk = min(len(self.duplicates) * 0.05, 0.30)
-        hotspot_risk = min(len(self.hotspots) * 0.08, 0.30)
-        return round(min(cycle_risk + dup_risk + hotspot_risk, 1.0), 4)
-
     def to_dict(self) -> dict:
         return {
             "project_path": self.project_path,
             "total_files": self.total_files,
-            "risk_score": self.risk_score,
             "import_cycles": [
                 {"cycle": list(c.cycle), "display": str(c)} for c in self.import_cycles
             ],

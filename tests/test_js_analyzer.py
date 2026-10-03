@@ -366,3 +366,29 @@ class TestSlopDetectorJSIntegration:
         project = detector.analyze_project(str(tmp_path))
         d = project.to_dict()
         assert "js_file_results" in d
+
+
+# ---------------------------------------------------------------------------
+# Status bands: both analysis modes classify through the canonical bands
+# ---------------------------------------------------------------------------
+
+
+class _BandMarker:
+    value = "band-marker"
+
+
+def _status_with_marker(tmp_path, monkeypatch):
+    monkeypatch.setattr(js_analyzer_module, "classify_deficit", lambda score: _BandMarker)
+    path = tmp_path / "x.js"
+    path.write_text("function f(x) {\n  return x;\n}\n", encoding="utf-8")
+    return JSAnalyzer().analyze(str(path)).status
+
+
+def test_regex_mode_status_comes_from_the_canonical_bands(tmp_path, monkeypatch):
+    monkeypatch.setattr(js_analyzer_module, "_TS_AVAILABLE", False)
+    assert _status_with_marker(tmp_path, monkeypatch) == "band-marker"
+
+
+@requires_ts
+def test_ast_mode_status_comes_from_the_canonical_bands(tmp_path, monkeypatch):
+    assert _status_with_marker(tmp_path, monkeypatch) == "band-marker"

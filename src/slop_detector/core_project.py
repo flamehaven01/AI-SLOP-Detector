@@ -9,6 +9,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
+from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_summary import build_finding_summary
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
 from slop_detector.path_facts import default_exclusion_reason, relative_to_root
@@ -212,19 +213,32 @@ def result_ldr_score(result: Any) -> float:
     return float(getattr(result, "ldr_equivalent", 0.0))
 
 
-def create_error_analysis(file_path: str, error: str) -> FileAnalysis:
-    """Create JSON-safe critical analysis for source that cannot parse."""
+def create_error_analysis(file_path: str, error: str, content: str = "") -> FileAnalysis:
+    """Create JSON-safe critical analysis for source that cannot parse.
+
+    The file keeps its weight in the project score: total_lines counts its
+    non-blank, non-comment lines (the rule LDR uses), so an unparseable file
+    cannot vanish from the weighted score. It is flagged `parse_error` and left
+    out of the project's metric averages.
+    """
     from slop_detector.models import DDCResult, InflationResult, LDRResult
 
+    lines = sum(1 for ln in content.splitlines() if ln.strip() and not ln.strip().startswith("#"))
     return FileAnalysis(
         file_path=file_path,
-        ldr=LDRResult(0, 0, 0, 0.0, "N/A"),
+        ldr=LDRResult(lines, 0, lines, 0.0, "N/A"),
         inflation=InflationResult(0, 0.0, 999.0, "error", []),
         ddc=DDCResult([], [], [], [], [], 0.0, "N/A"),
         deficit_score=100.0,
-        status=SlopStatus.CRITICAL_DEFICIT,
+        status=classify_deficit(100.0),
         warnings=[f"Parse error: {error}"],
+        flags=["parse_error"],
     )
+
+
+def is_parse_error(result: Any) -> bool:
+    """Whether a result stands for a Python file that could not be parsed."""
+    return "parse_error" in getattr(result, "flags", ())
 
 
 def create_empty_project_analysis(project_path: str) -> ProjectAnalysis:
@@ -275,16 +289,19 @@ def build_project_analysis(
     total_files = len(all_results)
     deficit_files = sum(1 for result in all_results if is_result_non_clean(result))
     average_deficit = sum(result_slop_score(result) for result in all_results) / total_files
-    ldr_scores = [result_ldr_score(result) for result in all_results]
-    average_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / total_files)
+    # Metric averages describe parsed code; a parse failure has no metrics.
+    measured = [result for result in all_results if not is_parse_error(result)]
+    measured_python = [result for result in python_results if not is_parse_error(result)]
+    ldr_scores = [result_ldr_score(result) for result in measured] or [0.0]
+    average_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / len(ldr_scores))
     finite_python_inflation = [
         result.inflation.inflation_score
-        for result in python_results
+        for result in measured_python
         if math.isfinite(result.inflation.inflation_score)
     ]
     average_inflation = sum(finite_python_inflation) / max(1, len(finite_python_inflation))
-    average_ddc = sum(result.ddc.usage_ratio for result in python_results) / max(
-        1, len(python_results)
+    average_ddc = sum(result.ddc.usage_ratio for result in measured_python) / max(
+        1, len(measured_python)
     )
 
     if use_weighted_analysis:
@@ -300,12 +317,7 @@ def build_project_analysis(
     else:
         weighted_deficit = average_deficit
 
-    if weighted_deficit >= 50:
-        overall_status = SlopStatus.CRITICAL_DEFICIT
-    elif weighted_deficit >= 30:
-        overall_status = SlopStatus.SUSPICIOUS
-    else:
-        overall_status = SlopStatus.CLEAN
+    overall_status = classify_deficit(weighted_deficit)
 
     structural_coherence, coherence_level = coherence_calculator(
         [result.dcf for result in python_results if result.dcf]
@@ -340,4 +352,5 @@ def build_project_analysis(
         finding_summary=build_finding_summary(all_results),
         scan_coverage=scan_coverage,
         ml_scoring=ml_scoring,
+        parse_error_files=sum(1 for result in python_results if is_parse_error(result)),
     )

@@ -29,6 +29,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from slop_detector.diagnostic_bands import classify_deficit
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -286,11 +288,7 @@ class GoAnalyzer:
         slop_score = self._calc_slop_score(
             ldr, empty_func, panic, fmt_print, ignored_err, god_count, total
         )
-        status = (
-            "critical_deficit"
-            if slop_score >= 70
-            else "suspicious" if slop_score >= 30 else "clean"
-        )
+        status = classify_deficit(slop_score).value
 
         return GoFileAnalysis(
             file_path=file_path,

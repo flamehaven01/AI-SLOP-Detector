@@ -19,7 +19,7 @@ class FileRole(Enum):
     INIT = "init"  # __init__.py — skip LDR, skip DDC
     RE_EXPORT = "re_export"  # module whose body is only imports + __all__ — skip DDC
     TEST = "test"  # test file — already excluded by .slopconfig; kept for API
-    MODEL = "model"  # dataclass-heavy, minimal function bodies — relax inflation
+    MODEL = "model"  # has a @dataclass; descriptive only, skips no metric
     CORPUS = "corpus"  # intentional slop corpus (tests/corpus/**) — skip all
     STUB = "stub"  # Protocol/ABC interface stubs — skip LDR (bodies are `...`)
 
@@ -31,7 +31,9 @@ ROLE_SKIP: dict[FileRole, frozenset[str]] = {
     FileRole.INIT: frozenset({"ldr", "ddc"}),
     FileRole.RE_EXPORT: frozenset({"ddc"}),
     FileRole.TEST: frozenset(),
-    FileRole.MODEL: frozenset({"inflation"}),
+    # MODEL skips nothing: jargon counts only in prose and is justified only by
+    # structure, so a dataclass is no reason to drop the inflation metric.
+    FileRole.MODEL: frozenset(),
     # CORPUS: analyzed normally — intentional slop fixtures are excluded during
     # self-scan via exclude_paths in .slopconfig.yaml ("tests/**").
     FileRole.CORPUS: frozenset(),

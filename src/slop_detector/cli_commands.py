@@ -129,7 +129,7 @@ def _run_cross_file(result) -> None:
     )
 
     print("\n[Cross-File Analysis]")
-    print(f"  Files: {report.total_files}  Risk Score: {report.risk_score:.2f}")
+    print(f"  Files: {report.total_files}")
     evidence = report.structure_evidence
     _print_import_resolution(evidence["coverage"])
 

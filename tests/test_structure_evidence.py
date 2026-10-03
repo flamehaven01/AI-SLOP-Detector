@@ -110,7 +110,7 @@ def test_report_has_one_structure_evidence_block_and_no_scattered_keys(tmp_path)
     assert "structure_evidence" in payload, "structure_evidence missing"
     assert set(payload["structure_evidence"]) == SECTIONS
     assert not OLD_KEYS & set(payload), f"old keys still present: {OLD_KEYS & set(payload)}"
-    assert {"import_graph", "import_edges", "import_cycles", "risk_score"} <= set(payload)
+    assert {"import_graph", "import_edges", "import_cycles"} <= set(payload)
 
 
 def test_score_effect_is_none(tmp_path):
@@ -163,7 +163,7 @@ def test_high_fan_in_alone_is_context_and_creates_no_finding(tmp_path):
         assert evidence[section], f"{section} is empty"
         assert {row["classification"] for row in evidence[section]} == {"context"}
     assert evidence["circular_groups"] == []
-    assert report.import_cycles == [] and report.risk_score == 0.0
+    assert report.import_cycles == []
 
 
 def test_unchecked_imports_are_unknowns_not_findings(tmp_path):

@@ -5,6 +5,7 @@ from __future__ import annotations
 from math import exp, log
 from typing import Any, Dict, List, Mapping, Optional
 
+from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.models import SlopStatus
 from slop_detector.patterns.base import Issue
 
@@ -161,23 +162,31 @@ def calculate_slop_status(
     if high_patterns:
         warnings.append(f"PATTERNS: {len(high_patterns)} high-severity issues found")
 
-    if deficit_score >= 70:
-        status = SlopStatus.CRITICAL_DEFICIT
-    elif deficit_score >= 50:
-        status = SlopStatus.INFLATED_SIGNAL
-    elif deficit_score >= 30:
-        status = SlopStatus.SUSPICIOUS
-    else:
-        status = SlopStatus.CLEAN
+    # The status is the canonical band of the score, nothing else; conditions
+    # such as dependency noise are flags beside it (diagnostic_flags).
+    status = classify_deficit(deficit_score)
+    return deficit_score, status, warnings, deficit_breakdown
 
-    if len(critical_patterns) >= 5 and status == SlopStatus.CLEAN:
-        status = SlopStatus.SUSPICIOUS
+
+def diagnostic_flags(
+    inflation: Any,
+    ddc: Any,
+    pattern_issues: Optional[List[Issue]] = None,
+    skip: frozenset = frozenset(),
+) -> List[str]:
+    """Orthogonal conditions reported beside the band; they never change it.
+
+    dependency_noise: almost no imports are used (DDC < 0.20) while there are no
+    critical findings and no inflation failure, so the score is mostly
+    dependency bookkeeping.
+    """
+    flags: List[str] = []
+    critical = any(issue.severity.value == "critical" for issue in pattern_issues or [])
     if (
-        ddc.usage_ratio < 0.20
-        and "ddc" not in skip
-        and not critical_patterns
+        "ddc" not in skip
+        and ddc.usage_ratio < 0.20
+        and not critical
         and inflation.inflation_score <= 1.0
     ):
-        status = SlopStatus.DEPENDENCY_NOISE
-
-    return deficit_score, status, warnings, deficit_breakdown
+        flags.append("dependency_noise")
+    return flags

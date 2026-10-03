@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from slop_detector.diagnostic_bands import CRITICAL_AT, SUSPICIOUS_AT
+
 
 class GateMode(str, Enum):
     """CI gate enforcement modes."""
@@ -28,8 +30,9 @@ class GateVerdict(str, Enum):
 class GateThresholds:
     """Configurable thresholds for gate decisions."""
 
-    deficit_fail: float = 70.0  # Fail if deficit score >= this
-    deficit_warn: float = 30.0  # Warn if deficit score >= this
+    # Defaults are the canonical bands; a CI policy may set them stricter.
+    deficit_fail: float = CRITICAL_AT  # Fail if deficit score >= this
+    deficit_warn: float = SUSPICIOUS_AT  # Warn if deficit score >= this
     critical_patterns_fail: int = 3  # Fail if critical patterns >= this
     high_patterns_warn: int = 5  # Warn if high patterns >= this
     inflation_fail: float = 1.5  # Fail if inflation score >= this

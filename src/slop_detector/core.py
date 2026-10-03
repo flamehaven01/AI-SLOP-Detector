@@ -31,6 +31,7 @@ from slop_detector.core_scoring import (
     calculate_slop_status,
     compute_deficit_breakdown,
     compute_gqg,
+    diagnostic_flags,
 )
 from slop_detector.core_topology import (
     compute_coherence_vr,
@@ -206,7 +207,7 @@ class SlopDetector:
         except SyntaxError as e:
             logger.warning(f"Syntax error in {file_path}: {e}")
             # Return minimal analysis
-            return self._create_error_analysis(file_path, str(e))
+            return create_error_analysis(file_path, str(e), content)
 
         result = self._build_file_analysis(file_path, content, tree, facts)
         if self._analysis_cache is not None:
@@ -237,7 +238,7 @@ class SlopDetector:
         try:
             tree = ast.parse(content, filename=filename)
         except SyntaxError as e:
-            return self._create_error_analysis(filename, str(e))
+            return create_error_analysis(filename, str(e), content)
         return self._build_file_analysis(filename, content, tree, path_facts(filename, None))
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
@@ -329,6 +330,7 @@ class SlopDetector:
         slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
             ldr, inflation, ddc, pattern_issues, skip=skip
         )
+        flags = diagnostic_flags(inflation, ddc, pattern_issues, skip=skip)
         member_pattern = self.pattern_registry.get("phantom_member")
         unverified_imports = (
             member_pattern.take_unknowns(Path(file_path))  # type: ignore[attr-defined]
@@ -355,6 +357,9 @@ class SlopDetector:
             dcf=dcf,
             deficit_breakdown=deficit_breakdown,
             unverified_imports=unverified_imports,
+            file_role=role.value,
+            skipped_metrics=sorted(skip),
+            flags=flags,
         )
 
         if len(suppression_ledger) >= 5 or len(suppression_directives) >= 3:

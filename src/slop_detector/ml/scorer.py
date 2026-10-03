@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
+from slop_detector.diagnostic_bands import SUSPICIOUS_AT
 from slop_detector.ml.threshold_model import (
     FEATURES,
     MODEL_TYPE,
@@ -140,7 +141,7 @@ class MLScorer:
                 return None
             proba = self._clf.predict_proba(features)
             slop_prob = proba["bad"]
-            rule_is_slop = getattr(file_analysis, "deficit_score", 0.0) >= 30.0
+            rule_is_slop = getattr(file_analysis, "deficit_score", 0.0) >= SUSPICIOUS_AT
             return MLScore(
                 slop_probability=round(slop_prob, 4),
                 confidence=round(max(proba.values()), 4),

@@ -9,6 +9,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (scoring and classification consistency)
+
+One analysis result now means the same thing on every surface. A status is
+always the band of the score; each consumer renders the canonical result
+instead of re-judging metrics.
+
+- One band set for every score on the 0-100 deficit scale, in one place
+  (`slop_detector.diagnostic_bands`): CLEAN <30, SUSPICIOUS 30-<50,
+  INFLATED_SIGNAL 50-<70, CRITICAL_DEFICIT >=70. Projects used >=50 as
+  CRITICAL and had no INFLATED_SIGNAL; JS used <20 clean and >=50 critical; Go
+  had no INFLATED_SIGNAL. The bands are product semantics, not configuration;
+  a stricter CI policy is set with the gate thresholds, whose defaults now come
+  from the same bands.
+- `dependency_noise` is a flag, not a status. A file whose imports are almost
+  all unused keeps its band (a 96-point score is `critical_deficit`, not
+  `dependency_noise`) and gets `"dependency_noise"` in the new `flags` list.
+  `SlopStatus.DEPENDENCY_NOISE` is no longer emitted (the enum member stays for
+  one release). The override "5 or more critical findings on a clean file ->
+  suspicious" was removed: 5 critical findings already add 50 points, so it
+  could not fire.
+- No file role skips inflation. A `@dataclass` anywhere in a file made it a
+  `model` file and removed inflation from its score (a jargon-heavy file went
+  from 93.7 to 0.0 by adding one dataclass). The role is kept as a
+  description.
+- Each file result reports `file_role` and `skipped_metrics` (the metrics its
+  role, or `--patterns-only`, leaves out of the score). The CI gate applies its
+  inflation and import-usage thresholds only to metrics that apply to the
+  file: an `__init__.py` with re-exported imports was `clean` but failed
+  `--ci-mode hard` on import usage.
+- A Python file that fails to parse keeps a weight in the project score (its
+  non-blank, non-comment line count) instead of 0, gets the `parse_error`
+  flag, and is left out of the metric averages; its placeholder inflation of
+  999 had been averaged into `avg_inflation`. New `parse_error_files` on the
+  project result.
+- The CLI's fallback project scan uses the same aggregation as
+  `analyze_project` (it had its own copy with the old project bands).
+- `--cross-file` no longer prints a "Risk Score", and `CrossFileReport` has no
+  `risk_score`. It added cycle, duplicate, and hotspot counts with weights
+  that had no derivation, beside structure evidence that is explicitly not
+  scored. Cycles, duplicates, and hotspots are still reported.
+- Measured with project scans of 9 Python codebases plus 4 more with JS and Go
+  (2,259 Python, 1,059 JS/TS, 110 Go files), old vs new code:
+  - Python: 63 files score higher (all from the dataclass rule, none moved
+    band); 2 files go from `dependency_noise` to `critical_deficit` (their
+    scores were above 70); 1 `__init__`/re-export file no longer fails the
+    hard CI gate.
+  - Projects: graphify (weighted 61.59) goes from `critical_deficit` to
+    `inflated_signal`; unsloth's `avg_inflation` goes from 12.5 to 0.012 once
+    its 2 unparseable files are left out, and its weighted score from 33.36 to
+    34.38 now that they count.
+  - JS: 21 files go from `suspicious` to `clean` (scores 20-30: 10 are 4- to
+    5-line barrel `index.ts` files, 9 have only style findings such as `any`
+    or `==`); 6 go from `critical_deficit` to `inflated_signal` (50-70).
+  - Go: 7 files go from `suspicious` to `inflated_signal` (50-70).
+- The analysis cache version moves to `analysis-cache-v17`.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in

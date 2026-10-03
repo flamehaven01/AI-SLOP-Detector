@@ -43,6 +43,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.masking import FrameworkMasker
 from slop_detector.models import MaskedIssue
 
@@ -406,11 +407,7 @@ class JSAnalyzer:
         ldr_equiv = round(code_lines / max(total, 1), 4)
         pattern_penalty = min(sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues), 50.0)
         slop_score = round(min(max(0.0, (0.70 - ldr_equiv) * 50) + pattern_penalty, 100.0), 2)
-        status = (
-            "critical_deficit"
-            if slop_score >= 50
-            else ("suspicious" if slop_score >= 20 else "clean")
-        )
+        status = classify_deficit(slop_score).value
 
         return JSFileAnalysis(
             file_path=file_path,
@@ -718,11 +715,7 @@ class JSAnalyzer:
         pattern_penalty = min(sum(self.SEVERITY_WEIGHTS.get(i.severity, 1.0) for i in issues), 50.0)
         ldr_deficit = max(0.0, (0.70 - ldr_equiv) * 50)
         slop_score = round(min(ldr_deficit + pattern_penalty, 100.0), 2)
-        status = (
-            "critical_deficit"
-            if slop_score >= 50
-            else "suspicious" if slop_score >= 20 else "clean"
-        )
+        status = classify_deficit(slop_score).value
 
         return JSFileAnalysis(
             file_path=file_path,

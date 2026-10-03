@@ -16,9 +16,10 @@ from slop_detector.clone_signals import (
     is_clone_pattern,
     is_exact_duplicate_pair,
 )
+from slop_detector.diagnostic_bands import bands_text
 
-# Deficit bands mirror the scoring model in README / SlopStatus.
-DEFICIT_BANDS = "CLEAN <30  |  SUSPICIOUS 30-50  |  INFLATED 50-70  |  CRITICAL >=70"
+# Deficit bands: the canonical bands (diagnostic_bands), rendered once.
+DEFICIT_BANDS = bands_text()
 
 # Plain-language meanings shared by project- and file-level metric rows.
 _MEANS_LDR = "Share of code lines that contain real implementation."

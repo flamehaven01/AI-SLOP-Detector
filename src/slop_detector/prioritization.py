@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
+from slop_detector.diagnostic_bands import CRITICAL_AT, INFLATED_AT, SUSPICIOUS_AT
 from slop_detector.models import FileAnalysis, PriorityHotspot, SlopStatus
 
 _CoverageData: Any = None
@@ -47,7 +48,7 @@ class ProjectPrioritizer:
         hotspots: List[PriorityHotspot] = []
 
         for result in python_results:
-            if result.status == SlopStatus.CLEAN and result.deficit_score < 30.0:
+            if result.status == SlopStatus.CLEAN and result.deficit_score < SUSPICIOUS_AT:
                 continue
 
             file_key = str(Path(result.file_path).resolve())
@@ -115,11 +116,11 @@ class ProjectPrioritizer:
         self, result: FileAnalysis, churn_score: float, coverage_ratio: Optional[float]
     ) -> List[str]:
         reasons: List[str] = []
-        if result.deficit_score >= 70:
+        if result.deficit_score >= CRITICAL_AT:
             reasons.append("critical deficit")
-        elif result.deficit_score >= 50:
+        elif result.deficit_score >= INFLATED_AT:
             reasons.append("high deficit")
-        elif result.deficit_score >= 30:
+        elif result.deficit_score >= SUSPICIOUS_AT:
             reasons.append("elevated deficit")
 
         if churn_score >= 0.60:

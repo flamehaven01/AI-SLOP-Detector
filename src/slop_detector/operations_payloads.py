@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, List
 
 from slop_detector.analysis.cross_file import CrossFileAnalyzer
 from slop_detector.ci_gate import CIGate
+from slop_detector.diagnostic_bands import SUSPICIOUS_AT
 from slop_detector.gate.models import GateMode
 from slop_detector.operations_cleanup import _collect_cleanup_issues
 
@@ -65,7 +66,9 @@ def _top_targets(result, limit: int = 10) -> List[Dict[str, Any]]:
                 "file_path": fr.file_path,
                 "priority_score": float(getattr(fr, "deficit_score", 0.0)),
                 "deficit_score": float(getattr(fr, "deficit_score", 0.0)),
-                "reasons": ["high deficit"] if getattr(fr, "deficit_score", 0.0) >= 30 else [],
+                "reasons": (
+                    ["high deficit"] if getattr(fr, "deficit_score", 0.0) >= SUSPICIOUS_AT else []
+                ),
                 "coverage_ratio": None,
                 "churn_count": 0,
             }

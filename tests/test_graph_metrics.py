@@ -322,10 +322,10 @@ def test_graph_metrics_is_additive_and_leaves_existing_outputs_unchanged(tmp_pat
     _write(tmp_path, "pkg/b.py", "from pkg import a\n")
     report = _analyze(tmp_path)
     assert len(report.import_cycles) == 1
-    assert report.risk_score == 0.10  # one cycle * 0.10; SCC output adds nothing
     payload = report.to_dict()
     assert "structure_evidence" in payload
-    assert {"import_cycles", "risk_score", "import_graph"} <= set(payload)
+    assert {"import_cycles", "import_graph"} <= set(payload)
+    assert "risk_score" not in payload  # cross-file analysis is evidence, not a score
     assert [p for p in payload["import_cycles"]] == [
         {"cycle": list(c.cycle), "display": str(c)} for c in report.import_cycles
     ]

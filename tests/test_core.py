@@ -7,6 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from slop_detector.core import SlopDetector
+from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.models import DDCResult, FileAnalysis, InflationResult, LDRResult, SlopStatus
 
 
@@ -714,7 +715,9 @@ def test_analyze_project_includes_non_python_results_in_aggregate(detector, tmp_
     assert result.total_files == 3
     assert result.deficit_files >= 1
     assert result.clean_files == result.total_files - result.deficit_files
-    assert result.overall_status == SlopStatus.CRITICAL_DEFICIT
+    # A project uses the file bands: 50-70 is INFLATED_SIGNAL (it was CRITICAL at >= 50).
+    assert 50.0 <= result.weighted_deficit_score < 70.0
+    assert result.overall_status == SlopStatus.INFLATED_SIGNAL
 
 
 def test_analyze_project_js_only_is_not_reported_as_empty_clean(detector, tmp_path, monkeypatch):
@@ -1067,9 +1070,10 @@ def simple():
 
     result = detector.analyze_file(temp_python_file.name)
 
-    # Very low usage ratio should trigger DEPENDENCY_NOISE
-    if result.ddc.usage_ratio < 0.50:
-        assert result.status == SlopStatus.DEPENDENCY_NOISE
+    # Very low usage is a dependency_noise flag beside the band; it never replaces it.
+    assert result.ddc.usage_ratio < 0.20
+    assert "dependency_noise" in result.flags
+    assert result.status == classify_deficit(result.deficit_score)
 
 
 def test_warnings_generation(detector, temp_python_file):

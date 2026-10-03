@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
 from typing import Optional
 
 from slop_detector.core import SlopDetector
-from slop_detector.finding_summary import build_finding_summary
-from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
+from slop_detector.core_project import build_project_analysis
+from slop_detector.models import FileAnalysis, ProjectAnalysis
 
 
 def _build_fallback_project_analysis(
@@ -38,80 +37,19 @@ def _build_fallback_project_analysis(
     if not all_results:
         return None
 
-    total_files = len(all_results)
-    slop_files = sum(1 for result in all_results if detector._is_result_non_clean(result))
-    clean_files = total_files - slop_files
-    avg_deficit_score = (
-        sum(detector._result_slop_score(result) for result in all_results) / total_files
-    )
-
-    ldr_scores = [detector._result_ldr_score(result) for result in all_results]
-    avg_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / total_files)
-
-    inflation_scores = [
-        result.inflation.inflation_score
-        for result in file_results
-        if math.isfinite(result.inflation.inflation_score)
-    ]
-    avg_inflation = sum(inflation_scores) / max(1, len(inflation_scores))
-    avg_ddc = sum(result.ddc.usage_ratio for result in file_results) / max(1, len(file_results))
-
-    if detector.config.use_weighted_analysis():
-        total_loc = sum(detector._result_total_lines(result) for result in all_results)
-        weighted_deficit_score = (
-            sum(
-                detector._result_slop_score(result)
-                * (detector._result_total_lines(result) / total_loc)
-                for result in all_results
-            )
-            if total_loc > 0
-            else avg_deficit_score
-        )
-    else:
-        weighted_deficit_score = avg_deficit_score
-
-    if weighted_deficit_score >= 50:
-        overall_status = SlopStatus.CRITICAL_DEFICIT
-    elif weighted_deficit_score >= 30:
-        overall_status = SlopStatus.SUSPICIOUS
-    else:
-        overall_status = SlopStatus.CLEAN
-
-    file_dcfs = [result.dcf for result in file_results if result.dcf]
-    structural_coherence, coherence_level = detector._compute_coherence_vr(file_dcfs)
-    suppression_ledger = [
-        entry
-        for file_result in file_results
-        for entry in getattr(file_result, "suppression_ledger", [])
-    ]
-    priority_hotspots, churn_available, coverage_available = (
-        detector.project_prioritizer.prioritize_project(str(scan_root), all_results)
-    )
+    # One aggregation for every project result (bands, weights, parse errors).
     scan_coverage = detector._collect_project_scan_coverage(scan_root, ignore_patterns)
-    detector._set_analyzed_scan_counts(scan_coverage, file_results, js_results, go_results)
-
-    return ProjectAnalysis(
-        project_path=str(scan_root),
-        total_files=total_files,
-        deficit_files=slop_files,
-        clean_files=clean_files,
-        avg_deficit_score=avg_deficit_score,
-        weighted_deficit_score=weighted_deficit_score,
-        avg_ldr=avg_ldr,
-        avg_inflation=avg_inflation,
-        avg_ddc=avg_ddc,
-        overall_status=overall_status,
-        file_results=file_results,
-        structural_coherence=structural_coherence,
-        coherence_level=coherence_level,
-        suppressed_issue_count=len(suppression_ledger),
-        suppression_ledger=suppression_ledger,
-        priority_hotspots=priority_hotspots,
-        churn_analysis_available=churn_available,
-        coverage_analysis_available=coverage_available,
-        finding_summary=build_finding_summary(all_results),
-        scan_coverage=scan_coverage,
-        ml_scoring=detector._ml_scoring,
+    return build_project_analysis(
+        str(scan_root),
+        str(scan_root),
+        file_results,
+        js_results,
+        go_results,
+        scan_coverage,
+        detector.config.use_weighted_analysis(),
+        detector._compute_coherence_vr,
+        detector.project_prioritizer.prioritize_project,
+        detector._ml_scoring,
     )
 
 

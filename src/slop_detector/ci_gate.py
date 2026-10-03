@@ -254,10 +254,17 @@ class CIGate:
         if critical_count >= self.thresholds.critical_patterns_fail:
             return GateVerdict.FAIL
 
-        if file_result.inflation.inflation_score >= self.thresholds.inflation_fail:
+        # Metric thresholds apply only to metrics the score applied to this file
+        # (its role or --patterns-only may skip them); the gate never re-judges a
+        # skipped metric.
+        skipped = set(getattr(file_result, "skipped_metrics", ()))
+        if (
+            "inflation" not in skipped
+            and file_result.inflation.inflation_score >= self.thresholds.inflation_fail
+        ):
             return GateVerdict.FAIL
 
-        if file_result.ddc.usage_ratio < self.thresholds.ddc_fail:
+        if "ddc" not in skipped and file_result.ddc.usage_ratio < self.thresholds.ddc_fail:
             return GateVerdict.FAIL
 
         # Check WARN conditions
