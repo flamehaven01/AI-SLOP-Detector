@@ -16,7 +16,7 @@ Every diagram below uses the same short names. Here is what each one actually me
 | **Purity** | A penalty that drops sharply each time a *critical*-severity pattern is found. | Higher |
 | **GQG** (weighted geometric mean) | How the four numbers above are blended: one very low score drags the whole result down, so a serious problem can't be averaged away. | combiner |
 | **Deficit Score** | The final 0-100 risk number for a file. 0 is clean, 100 is severe. | Lower |
-| **SR9** (project aggregation) | The project score leans on the worst file, not just the average (`0.6 x worst + 0.4 x mean`), so a few bad files can't hide behind many clean ones. | Lower |
+| **SR9** (project LDR) | Project logic density leans on the worst file, not just the average (`0.6 x worst + 0.4 x mean`), so a few hollow files can't hide behind many dense ones. The project deficit score itself is the line-weighted average of file scores. | Higher |
 
 Bands: **CLEAN < 30  |  SUSPICIOUS 30-50  |  INFLATED 50-70  |  CRITICAL >= 70**.
 
@@ -27,7 +27,7 @@ Bands: **CLEAN < 30  |  SUSPICIOUS 30-50  |  INFLATED 50-70  |  CRITICAL >= 70**
 ```mermaid
 graph TB
     A[Input: Source File] --> B[File Reader]
-    B --> R[FileRole Classifier<br/>SOURCE / INIT / STUB<br/>RE_EXPORT / TEST / MODEL]
+    B --> R[FileRole Classifier<br/>SOURCE / INIT / STUB<br/>RE_EXPORT / TEST / MODEL / CORPUS]
     R --> C[AST Parser]
     C --> D{Parse Success?}
     D -->|No| E[Syntax Error Handler]
@@ -38,7 +38,7 @@ graph TB
     F --> G[LDR Calculator]
     F --> H[Inflation Calculator<br/>v2.8.0 TOE formula]
     F --> I[DDC Calculator]
-    F --> J[Pattern Registry<br/>27 patterns]
+    F --> J[Pattern detectors<br/>registry + advanced checks]
     F --> OPT[Optional Metrics<br/>DocstringInflation<br/>HallucinationDeps<br/>ContextJargon<br/>MLScore]
 
     G --> K[GQG Scorer<br/>Weighted Geometric Mean]
@@ -75,7 +75,7 @@ flowchart LR
     D --> E1[LDR<br/>Logic Density]
     D --> E2[Inflation<br/>TOE formula]
     D --> E3[DDC<br/>Dependencies]
-    D --> E4[27 Patterns<br/>Anti-patterns]
+    D --> E4[Pattern detectors<br/>Anti-patterns]
 
     E1 --> F[GQG Scorer<br/>Geometric Mean]
     E2 --> F
@@ -122,7 +122,6 @@ flowchart TD
     
     E --> E1[pass statements]
     E --> E2[... ellipsis]
-    E --> E3[TODO/FIXME]
     E --> E4[Empty Functions]
     
     C --> F[Total Lines Count]
@@ -134,17 +133,16 @@ flowchart TD
     F --> H
     E1 --> I[Empty Lines Count]
     E2 --> I
-    E3 --> I
     E4 --> I
     I --> H
     
     H --> J[LDR = Logic / Total]
-    J --> K{LDR > 0.75?}
+    J --> K{LDR >= 0.75?}
     
-    K -->|Yes| L[Grade: A+]
-    K -->|No| M{LDR > 0.45?}
-    M -->|Yes| N[Grade: B]
-    M -->|No| O[Grade: F]
+    K -->|Yes| L[Grade: excellent >= 0.85<br/>or good >= 0.75]
+    K -->|No| M{LDR >= 0.45?}
+    M -->|Yes| N[Grade: acceptable >= 0.60<br/>or warning >= 0.45]
+    M -->|No| O[Grade: critical >= 0.30, else F]
     
     style J fill:#fff3cd
     style L fill:#d4edda
@@ -158,7 +156,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Code + Docs] --> B[Extract Text]
+    A[Comments, docstrings, strings] --> B[Extract prose<br/>code tokens, license headers,<br/>and metadata strings excluded]
     B --> C[Scan for Buzzwords]
     
     C --> D{Buzzword Found?}
@@ -180,10 +178,10 @@ flowchart TD
     L --> M[Get Cyclomatic Complexity]
     M --> N[Inflation = Jargon / Complexity]
     
-    N --> O{Inflation > 2.0?}
+    N --> O{Inflation > 1.0?}
     O -->|Yes| P[CRITICAL INFLATION]
-    O -->|No| Q{Inflation > 1.0?}
-    Q -->|Yes| R[HIGH INFLATION]
+    O -->|No| Q{Inflation > 0.5?}
+    Q -->|Yes| R[WARNING INFLATION]
     Q -->|No| S[ACCEPTABLE]
     
     style P fill:#ffcdd2
@@ -310,7 +308,8 @@ flowchart TD
 Repository-local history can tune weights through the self-calibrator. A
 confident milestone result may update an existing local config; this improves
 project-specific review sensitivity but is not independent external validation
-of the score. Project-level aggregation uses SR9
+of the score. The project deficit is the line-weighted average of file
+deficits, and its status is the band of that score. Project LDR uses SR9
 conservative weighting: `0.6 × min_file + 0.4 × mean`.
 
 ---
@@ -326,7 +325,7 @@ sequenceDiagram
     participant P as Patterns
     participant R as Reporter
     
-    U->>CLI: slop-detector analyze code.py
+    U->>CLI: slop-detector scan code.py
     CLI->>D: Initialize with config
     D->>D: Load .slopconfig.yaml
     
@@ -340,7 +339,7 @@ sequenceDiagram
     end
     
     M->>P: Run pattern detection
-    P->>P: Check 27 patterns
+    P->>P: Run applicable pattern detectors
     P-->>M: Return issues
     
     M->>M: Combine results
@@ -352,7 +351,7 @@ sequenceDiagram
     R-->>CLI: Return formatted report
     CLI-->>U: Display results
     
-    Note over U,CLI: Total time: ~100ms
+    Note over U,CLI: Runtime depends on source scope, optional analyzers, and cache state.
 ```
 
 ---
@@ -431,7 +430,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Project Directory] --> B[Find Python Files]
+    A[Project Directory] --> B[Discover supported source files]
     B --> C{Apply Ignore Patterns}
     
     C -->|Match| D[Skip File]
@@ -443,7 +442,7 @@ flowchart TD
     F -->|Yes| B
     F -->|No| G[Process Queue]
     
-    G --> H[Analyze Each File]
+    G --> H[Analyze Python, JS/TS, and Go files]
     H --> I[Collect Results]
     
     I --> J[Calculate Aggregates]
@@ -539,16 +538,13 @@ graph LR
 
 ```mermaid
 flowchart TD
-    A[File Input] --> B{File Size Check}
+    A[File Input] --> B{Eligibility check}
     
-    B -->|Too Small| C[Skip - Min 10 lines]
-    B -->|Too Large| D[Skip - Max 10K lines]
-    B -->|Valid| E[Parse AST Once]
+    B -->|Role or ignore match| C[Exclude with coverage reason]
+    B -->|Supported input| D[Parse AST once]
     
-    C --> Z[Return Empty Result]
-    D --> Z
-    
-    E --> F[Share AST Across Analyzers]
+    C --> Z[Report exclusion in scan coverage]
+    D --> F[Reuse parsed structure]
     
     F --> G1[LDR Uses AST]
     F --> G2[Inflation Uses AST]
@@ -562,7 +558,7 @@ flowchart TD
     
     H --> I[Single Result Object]
     
-    style E fill:#c8e6c9
+    style D fill:#c8e6c9
     style F fill:#fff3cd
     style I fill:#e1f5ff
     
@@ -611,5 +607,5 @@ flowchart TD
 
 ---
 
-**Last reviewed:** 2026-08-22
-**Version:** 3.8.9
+**Last reviewed:** 2026-10-04
+**Version:** 3.9.1
