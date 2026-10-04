@@ -28,6 +28,7 @@ from slop_detector.analysis.connection_resolution import (
     name_chain,
     record_gap,
     top_level_defs,
+    walk_files,
 )
 from slop_detector.project_resolution import HARD_AUTHORITIES
 
@@ -83,6 +84,23 @@ PLAIN_DECORATORS = frozenset(
 _CONTAINERS = (ast.Dict, ast.List, ast.Tuple, ast.Set)
 _ASSIGNMENTS = (ast.Assign, ast.AnnAssign, ast.AugAssign)
 _DOTTED = re.compile(r"^[A-Za-z_][\w.]*[.:]([A-Za-z_]\w*)$")
+# `from x import a, b` written inside a string that is run as code elsewhere
+# (a hook script template, a `python -c` command line).
+_CODE_FROM = re.compile(
+    r"\bfrom\s+([A-Za-z_][\w.]*)\s+import\s+([A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)"
+)
+
+# Configuration read by another program: a value that is exactly a name or a
+# dotted path names what that program loads. Prose in a value is not a name.
+# JSON is left out: in the measured codebases it was data (experiment results,
+# graph dumps, generated reports), whose names say nothing about loading.
+CONFIG_SUFFIXES = frozenset({".yaml", ".yml", ".toml", ".cfg", ".ini", ".conf"})
+CONFIG_MAX_BYTES = 512 * 1024  # larger files are data, not configuration
+_TOKEN = r"[A-Za-z_][\w.]*(?::[A-Za-z_]\w*)?"
+_QUOTED_VALUE = re.compile(r"[\"'](" + _TOKEN + r")[\"']")
+_BARE_VALUE = re.compile(
+    r"^[ \t]*(?:-[ \t]+|[\w.-]+[ \t]*[:=][ \t]*)(" + _TOKEN + r")[ \t]*(?:#.*)?$", re.M
+)
 
 
 class _Use(NamedTuple):
@@ -158,7 +176,8 @@ def _record_use(
     collector: Collector, module: Module, target: Target, use: _Use, gaps: Gaps
 ) -> None:
     if target[0] == "gap":
-        record_gap(target, gaps)
+        if not module.is_test:  # a test's unresolved import never changes a state
+            record_gap(target, gaps)
     elif target[0] == "module" and use.full and not module.is_test:
         # The module object itself is a value: its names may be reached through
         # whatever holds it.
@@ -301,6 +320,8 @@ class _DynamicScan:
         self.mentioned: Dict[str, str] = {}
         self.attributes: Set[str] = set()
         self.files: Dict[Path, str] = {}
+        self.code_names: Dict[Tuple[Optional[Path], str], str] = {}  # (module or any, name)
+        self.configured: Dict[str, str] = config_references(collector)
 
     def mark(self, path: Path, reason: str) -> None:
         self.files.setdefault(path, reason)
@@ -335,6 +356,18 @@ class _DynamicScan:
         if name:
             self.mentioned.setdefault(name, f"string_mention:{site}")
         self._module_path(str(node.value), True, site)
+        if "\n" in str(node.value):
+            self._code_imports(str(node.value), site)
+
+    def _code_imports(self, text: str, site: str) -> None:
+        """Names imported by code written inside a (non-doc) string."""
+        for match in _CODE_FROM.finditer(text):
+            paths: List[Optional[Path]] = [
+                p for p, dotted in self.names.items() if dotted == match.group(1)
+            ]
+            for name in (n.strip() for n in match.group(2).split(",")):
+                for path in paths or [None]:  # module not in the project: any symbol of that name
+                    self.code_names.setdefault((path, name), f"code_in_string:{site}")
 
     def _module_path(self, text: str, whole: bool, site: str) -> None:
         """A dotted string naming a project module, or a prefix ending in '.'.
@@ -434,11 +467,39 @@ class _DynamicScan:
         escaped = self.collector.escaped
         for module in self.collector.modules.values():
             for name, symbols in module.defs.items():
-                reasons = [self.files.get(module.path), self.mentioned.get(name)]
+                reasons = [
+                    self.files.get(module.path),
+                    self.mentioned.get(name),
+                    self.code_names.get((module.path, name)) or self.code_names.get((None, name)),
+                    self.configured.get(name),
+                ]
                 if name in self.attributes:
                     reasons.append(escaped.get(module.path))
                 for symbol in symbols:
                     symbol.dynamic.extend(r for r in reasons if r)
+
+
+def _config_names(text: str) -> Iterator[Tuple[str, int]]:
+    """(name, offset) for every config value that is exactly a name or a dotted path."""
+    for pattern in (_QUOTED_VALUE, _BARE_VALUE):
+        for match in pattern.finditer(text):
+            name = re.split(r"[.:]", match.group(1))[-1]
+            if name:
+                yield name, match.start(1)
+
+
+def config_references(collector: Collector) -> Dict[str, str]:
+    """Names that configuration files under the root give as values (`external_config_reference`)."""
+    found: Dict[str, str] = {}
+    for path in walk_files(collector.root, CONFIG_SUFFIXES, hidden=True):
+        if path.stat().st_size > CONFIG_MAX_BYTES:
+            continue
+        collector.config_files += 1
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for name, offset in _config_names(text):
+            line = text.count("\n", 0, offset) + 1
+            found.setdefault(name, f"external_config_reference:{collector.rel(path)}:{line}")
+    return found
 
 
 def dynamic(collector: Collector) -> None:

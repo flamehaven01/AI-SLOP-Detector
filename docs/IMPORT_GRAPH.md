@@ -162,23 +162,36 @@ One state per symbol, the first that applies:
 |---|---|
 | `connected` | Any of the first four kinds. Every other kind found is kept beside it. |
 | `externally_exposed` | No internal connection, but an export, re-export, script, or entry point. |
-| `dynamic_unknown` | The code can reach the name in a way static reading cannot follow: an unknown decorator, `getattr` with a computed name, `importlib`/`__import__`, `globals()`, a module `__getattr__`, `eval`/`exec`, a package scan through `__path__`, a module object stored and used through attributes, a string equal to the name, or a dotted string naming the module. |
+| `dynamic_unknown` | The code can reach the name in a way static reading cannot follow: an unknown decorator, `getattr` with a computed name, `importlib`/`__import__`, `globals()`, a module `__getattr__`, `eval`/`exec`, a package scan through `__path__`, a module object stored and used through attributes, a string equal to the name, a dotted string naming the module, an import written inside a string that is run as code elsewhere (`code_in_string`, such as a hook script template), or a configuration value that is exactly the name or a dotted path to it (`external_config_reference`, in `.yaml`/`.yml`/`.toml`/`.cfg`/`.ini`/`.conf` files, CI directories such as `.github` included). |
 | `unmeasured` | Evidence this symbol needs was not collected: an unresolved import, or one that resolves only with part of the project on `sys.path` (a script directory, an app root, a plugin's `src`), an unparsed file, or an unreadable `pyproject.toml` that may name it. |
 | `disconnected_candidate` | The collectors ran and found none of the above. |
 
 `dynamic_unknown` and `unmeasured` are local to the symbol: an unresolved import elsewhere
-that cannot name it changes nothing. `test_referenced` records a use from a test file and
-never changes the state; `summary.test_files_seen` says whether any test file was in the scan
-(the default configuration excludes `tests/`). Each row carries `reasons` for the dynamic and
-unmeasured states and up to five evidence sites (`evidence_counts` has the totals).
+that cannot name it changes nothing.
+
+Test files are read as evidence even when the scan skips them (the default configuration
+excludes `tests/`): they hold no candidate, and a use from a test sets `test_referenced`
+without changing the state, so "no production use, but tests exercise it" stays visible. An
+unresolved import in a test changes nothing either. `summary.test_files_seen` and
+`config_files_seen` say how many such files were read. JSON files are not read as
+configuration: in the measured codebases they were data (results, graph dumps, reports).
+
+`promotion_hold` lists why a disconnected candidate must not become a finding. Today the one
+reason is `public_api_of_distributable_package`: a public name (no leading `_`, in a regular
+package with no `_private` part) of a project that declares a package build (`[project]` or
+`[tool.poetry]` name in `pyproject.toml`, `setup.py`, or `setup.cfg`). Code outside the
+repository may use it, and nothing here can observe that. The state stays
+`disconnected_candidate`; only promotion is held.
+
+Each row carries `reasons` for the dynamic and unmeasured states and up to five evidence sites
+(`evidence_counts` has the totals).
 
 A disconnected candidate is a question for a person, not a verdict. It does not see:
 
-- code generated or run from strings (a hook script written from a template),
-- names loaded by another program from configuration (a framework that imports a connector
-  class named in its settings),
-- public library API that nothing in the repository calls, when there is no `__all__`,
-- uses from files outside the scan, such as tests under the default configuration,
+- code run from strings other than imports written in them, and names given to another program
+  in ways other than a configuration value (an environment variable, a database row, JSON),
+- uses of a public name by code outside the repository (see `promotion_hold`),
+- uses from Python files outside the scan root (scanning `src/` does not read `../tests`),
 - a local variable that shadows a top-level name (it reads as a use, so the error leans toward
   `connected`).
 

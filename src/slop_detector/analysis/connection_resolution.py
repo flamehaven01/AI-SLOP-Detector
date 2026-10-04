@@ -15,13 +15,26 @@ from __future__ import annotations
 
 import ast
 import builtins
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Set, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 
 from slop_detector.analysis.import_graph import ImportEdge, build_import_edges
-from slop_detector.path_facts import path_facts
+from slop_detector.path_facts import DEFAULT_EXCLUDE_PARTS, path_facts
 from slop_detector.project_resolution import (
     HARD_AUTHORITIES,
     ProjectModuleIndex,
@@ -151,6 +164,7 @@ class Collector:
         self.edges: Dict[Tuple[str, int, str, int], List[ImportEdge]] = {}
         self.unresolved: List[Dict[str, Any]] = []
         self.unparsed: Dict[Path, str] = {}
+        self.config_files = 0  # configuration files read for external references
         self.escaped: Dict[Path, str] = {}  # module objects used as values
         self.package_parents: Dict[str, List[Path]] = {}
         self._unrooted_cache: Dict[Tuple[Path, str], Tuple[Path, ...]] = {}
@@ -419,16 +433,17 @@ def apply_gaps(symbols: List[Symbol], gaps: Gaps) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _table(node: Any, key: str) -> Dict[str, Any]:
+    """`node[key]` when both are tables, else {} (parsing is not shape)."""
+    value = node.get(key) if isinstance(node, dict) else None
+    return value if isinstance(value, dict) else {}
+
+
 def _pyproject_entries(data: Dict[str, Any]) -> List[Tuple[str, str]]:
     """(evidence kind, 'module:attr') for every script and entry point."""
     entries: List[Tuple[str, str]] = []
-
-    def sub(node: Any, key: str) -> Dict[str, Any]:
-        value = node.get(key) if isinstance(node, dict) else None
-        return value if isinstance(value, dict) else {}
-
-    project = sub(data, "project")
-    poetry = sub(sub(data, "tool"), "poetry")
+    project = _table(data, "project")
+    poetry = _table(_table(data, "tool"), "poetry")
     for table in (project.get("scripts"), project.get("gui-scripts"), poetry.get("scripts")):
         if isinstance(table, dict):
             entries.extend(("pyproject_script", v) for v in table.values() if isinstance(v, str))
@@ -505,21 +520,86 @@ def _parse(path: Path) -> Tuple[Optional[ast.Module], str]:
         return None, text
 
 
+def _walked(directory: str, hidden: bool) -> bool:
+    name = directory.lower()
+    tool_cache = name.endswith("cache") and name[:1] in "._"  # .mypy_cache, __pycache__
+    if name in DEFAULT_EXCLUDE_PARTS or tool_cache:
+        return False
+    return hidden or not name.startswith(".")
+
+
+def walk_files(root: Path, suffixes: FrozenSet[str], hidden: bool = False) -> Iterator[Path]:
+    """Files under `root` with one of `suffixes`.
+
+    Environments, build output, and caches are skipped; other dot directories
+    only when `hidden` is false (CI configuration lives in `.github`, `.buildkite`).
+    """
+    for current, dirs, names in os.walk(root):
+        dirs[:] = [d for d in dirs if _walked(d, hidden)]
+        for name in names:
+            if os.path.splitext(name)[1].lower() in suffixes:
+                yield Path(current) / name
+
+
+def _test_files(root: Path, known: Set[Path]) -> List[Path]:
+    """Test files the scan did not list (the default configuration skips tests/**)."""
+    return sorted(
+        path
+        for path in walk_files(root, frozenset({".py"}))
+        if path not in known and path_facts(path, root).is_test
+    )
+
+
 def load(collector: Collector, files: Sequence[Path], trees: Dict[str, ast.AST]) -> None:
-    """Scanned files are candidate sources; their package `__init__.py` files are context."""
+    """Scanned files are candidate sources; package `__init__.py` and test files are context.
+
+    Context files are read for evidence only: they hold no candidate. An
+    unparsable `__init__.py` is a gap; an unparsable test file is skipped, as a
+    test reference never changes a state.
+    """
     for path in files:
         tree = trees.get(str(path))
         if isinstance(tree, ast.Module):
             collector.add_module(path, tree, candidate_source=True)
         else:
             collector.unparsed[path] = _parse(path)[1]
+    known = set(files)
     extra: Dict[str, ast.AST] = {}
-    for init in _package_inits(files, collector.root, set(files)):
-        tree, text = _parse(init)
+    for path in _package_inits(files, collector.root, known) + _test_files(collector.root, known):
+        tree, text = _parse(path)
         if tree is None:
-            collector.unparsed[init] = text
+            if path.name == "__init__.py":
+                collector.unparsed[path] = text
             continue
-        collector.add_module(init, tree, candidate_source=False)
-        extra[str(init)] = tree
+        collector.add_module(path, tree, candidate_source=False)
+        extra[str(path)] = tree
     if extra:
         collector.add_edges(build_import_edges(collector.root, [Path(p) for p in extra], extra))
+
+
+# ---------------------------------------------------------------------------
+# Distribution facts (for the promotion hold)
+# ---------------------------------------------------------------------------
+
+
+def distributable(root: Path) -> bool:
+    """A package build is declared: pyproject [project]/[tool.poetry] name, setup.py, or setup.cfg."""
+    pyproject = _find_pyproject(root)
+    if pyproject is not None:
+        data = load_pyproject(pyproject.parent)
+        if _table(data, "project").get("name") or _table(_table(data, "tool"), "poetry").get(
+            "name"
+        ):
+            return True
+    places = (root, *list(root.parents)[:2])
+    return any((d / "setup.py").is_file() or (d / "setup.cfg").is_file() for d in places)
+
+
+def public_module(collector: Collector, path: Path) -> bool:
+    """Inside a regular package under a module root, with no `_private` part on the way."""
+    hard = [r for r in collector.index.roots if r.authority in HARD_AUTHORITIES]
+    root = next((r.path for r in hard if r.path in path.parents), None)
+    if root is None or not (path.parent / "__init__.py").is_file():
+        return False
+    parts = path.relative_to(root).with_suffix("").parts
+    return not any(part.startswith("_") and part != "__init__" for part in parts)

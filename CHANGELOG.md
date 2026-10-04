@@ -167,6 +167,26 @@ instead of re-judging metrics.
   definition elsewhere, a comment, or an import that is never used). On this
   repository the 28 candidates include 7 pattern classes that are defined but
   never registered.
+- Closing the measured gaps: test files the scan skips (the default
+  configuration excludes `tests/`) are read as evidence only, so
+  `test_referenced` is filled in without creating candidates or changing a
+  state; an unresolved import in a test changes nothing. An import written
+  inside a string run as code elsewhere (`code_in_string`) and a configuration
+  value that is exactly a symbol's name or dotted path (`external_config_reference`;
+  YAML, TOML, CFG, INI, CONF, including CI directories such as `.buildkite`)
+  make it `dynamic_unknown`. JSON is not read as configuration: in the
+  measured codebases it was data. The three real uses found by hand (the hook
+  template function, the two connector classes named in a CI configuration)
+  are now `dynamic_unknown`.
+- `promotion_hold`: a disconnected public name of a project that declares a
+  package build is held as `public_api_of_distributable_package` (code outside
+  the repository may use it). The state stays `disconnected_candidate`.
+- Remeasured on the same 9 codebases (6,744 symbols): 237 disconnected
+  candidates (from 241: the three real uses, and one public function of
+  unstructured named in a YAML report a previous detector run had written into
+  that repository). Of the 237, 68 are used by tests, 157 are held as public
+  API (67 are both), and 79 have neither. 709 test files and 302 configuration
+  files were read; the collector adds about 5 to 7 s to a 50 to 60 s scan.
 - The analysis cache is unchanged: connection evidence is not part of a
   cached file result.
 

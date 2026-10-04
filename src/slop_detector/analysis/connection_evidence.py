@@ -59,6 +59,9 @@ CONNECTION_KINDS = (
 EXPOSURE_KINDS = ("public_export", "package_reexport", "pyproject_script", "pyproject_entry_point")
 EVIDENCE_KINDS = CONNECTION_KINDS + EXPOSURE_KINDS
 EVIDENCE_SAMPLE = 5  # sites kept per symbol; evidence_counts has the totals
+# A disconnected public name of a distributable package may be used by code
+# outside the repository, which no collector can observe: not to be promoted.
+PUBLIC_API_HOLD = "public_api_of_distributable_package"
 
 
 def state_of(symbol: Symbol) -> str:
@@ -72,7 +75,7 @@ def state_of(symbol: Symbol) -> str:
     return "unmeasured" if symbol.unmeasured else "disconnected_candidate"
 
 
-def symbol_row(symbol: Symbol) -> Dict[str, Any]:
+def symbol_row(symbol: Symbol, hold: List[str]) -> Dict[str, Any]:
     sites = [
         {"kind": kind, "file": file, "line": line}
         for kind in EVIDENCE_KINDS
@@ -89,15 +92,27 @@ def symbol_row(symbol: Symbol) -> Dict[str, Any]:
         "evidence": sites[:EVIDENCE_SAMPLE],
         "test_referenced": symbol.test_referenced,
         "reasons": list(dict.fromkeys(symbol.dynamic + symbol.unmeasured)),
+        "promotion_hold": hold,
     }
 
 
+def _holds(collector: Collector, symbol: Symbol, distributable: bool) -> List[str]:
+    """Why a disconnected candidate must not become a finding (empty: no hold)."""
+    if not distributable or state_of(symbol) != "disconnected_candidate":
+        return []
+    public = not symbol.name.startswith("_") and resolution.public_module(collector, symbol.file)
+    return [PUBLIC_API_HOLD] if public else []
+
+
 def _block(collector: Collector, symbols: List[Symbol]) -> Dict[str, Any]:
-    rows = [symbol_row(symbol) for symbol in symbols]
+    distributable = resolution.distributable(collector.root)
+    rows = [symbol_row(s, _holds(collector, s, distributable)) for s in symbols]
     summary: Dict[str, int] = {"candidates": len(rows)}
     summary.update({state: sum(r["state"] == state for r in rows) for state in STATES})
     summary["test_referenced"] = sum(r["test_referenced"] for r in rows)
     summary["test_files_seen"] = sum(m.is_test for m in collector.modules.values())
+    summary["config_files_seen"] = collector.config_files
+    summary["promotion_hold"] = sum(bool(r["promotion_hold"]) for r in rows)
     return {
         "scope": SCOPE,
         "score_effect": SCORE_EFFECT,

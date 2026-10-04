@@ -676,3 +676,157 @@ def test_a_dotted_module_name_string_is_dynamic_but_a_single_word_is_not(root):
     _write(root, "pkg/table.py", 'TARGET = "pkg.parts.md"\nKEYS = {"config": 1}\n')
     assert _row(root, "pkg/parts/md.py", "partition_md")["state"] == "dynamic_unknown"
     assert _row(root, "config.py", "load")["state"] == "disconnected_candidate"
+
+
+# ---------------------------------------------------------------------------
+# Phase 1 semantic closure
+# ---------------------------------------------------------------------------
+
+
+def _scanned_without_tests(root: Path):
+    """The default configuration skips tests/**: the scan never lists them."""
+    return [
+        SimpleNamespace(file_path=str(p), deficit_score=0.0)
+        for p in sorted(root.rglob("*.py"))
+        if "tests" not in p.relative_to(root).parts
+    ]
+
+
+def test_tests_outside_the_scan_are_read_as_evidence_only(root):
+    _write(root, "pkg/a.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n")
+    _write(root, "tests/test_a.py", "from pkg.a import f\n\n\ndef test_f():\n    assert f() == 1\n")
+    report = CrossFileAnalyzer().analyze(str(root), _scanned_without_tests(root), connections=True)
+    block = report.to_dict()["structure_evidence"]["connections"]
+    rows = {r["name"]: r for r in block["symbols"]}
+    assert set(rows) == {"f", "g"}  # no candidate from a test file
+    assert rows["f"]["state"] == "disconnected_candidate"
+    assert rows["f"]["test_referenced"] is True
+    assert rows["g"]["test_referenced"] is False
+    assert block["summary"]["test_files_seen"] == 1
+
+
+def test_cross_file_cli_marks_test_only_candidates(root, capsys):
+    from slop_detector.cli import main
+
+    _write(root, "pkg/a.py", "def lonely_helper():\n    return 1\n")
+    _write(
+        root,
+        "tests/test_a.py",
+        "from pkg.a import lonely_helper\n\n\ndef test_it():\n    lonely_helper()\n",
+    )
+    main([str(root), "--no-history", "--cross-file"])
+    text = capsys.readouterr().out
+    assert "lonely_helper (referenced by tests)" in text
+    assert "Test files were not in the scan" not in text
+
+
+@pytest.mark.parametrize(
+    "rel,text",
+    [
+        ("deploy/serve.yaml", "connector: MyConnector\nreplicas: 2\n"),
+        ("deploy/serve.toml", 'plugin = "pkg.conn:MyConnector"\n'),
+        (
+            ".buildkite/configs/serve.yaml",
+            'args:\n    - \'{"kv_connector":"MyConnector","kv_role":"both"}\'\n',
+        ),
+    ],
+    ids=["yaml-value", "toml-dotted-path", "ci-dir-json-in-yaml"],
+)
+def test_a_config_value_naming_the_symbol_is_external_dynamic(root, rel, text):
+    _write(root, "pkg/conn.py", "class MyConnector:\n    pass\n\n\nclass Other:\n    pass\n")
+    _write(root, rel, text)
+    row = _row(root, "pkg/conn.py", "MyConnector")
+    assert row["state"] == "dynamic_unknown"
+    assert any(r.startswith("external_config_reference:") for r in row["reasons"]), row["reasons"]
+    assert _row(root, "pkg/conn.py", "Other")["state"] == "disconnected_candidate"
+
+
+@pytest.mark.parametrize(
+    "rel",
+    ["results/graph.json", ".mypy_cache/3.12/pkg/conn.data.yaml", ".venv/lib/conf.yaml"],
+    ids=["json-is-data", "cache-dir", "environment-dir"],
+)
+def test_data_and_tool_directories_are_not_configuration(root, rel):
+    _write(root, "pkg/conn.py", "class MyConnector:\n    pass\n")
+    _write(root, rel, '{"label": "MyConnector"}\nname: MyConnector\n')
+    assert _row(root, "pkg/conn.py", "MyConnector")["state"] == "disconnected_candidate"
+
+
+def test_an_unresolved_import_in_a_test_file_changes_nothing(root):
+    _write(root, "pkg/a.py", "def f():\n    return 1\n")
+    _write(root, "tests/test_a.py", "from pkg.gone import f\n\n\ndef test_f():\n    f()\n")
+    report = CrossFileAnalyzer().analyze(str(root), _scanned_without_tests(root), connections=True)
+    rows = report.to_dict()["structure_evidence"]["connections"]["symbols"]
+    assert [r["state"] for r in rows if r["name"] == "f"] == ["disconnected_candidate"]
+
+
+def test_a_name_inside_config_prose_is_not_a_reference(root):
+    _write(root, "pkg/a.py", "def run():\n    return 1\n")
+    _write(root, "ci/job.yaml", "steps:\n  - name: please run the job and check\n")
+    assert _row(root, "pkg/a.py", "run")["state"] == "disconnected_candidate"
+
+
+def test_an_import_inside_a_code_template_string_is_dynamic(root):
+    _write(
+        root,
+        "pkg/watch.py",
+        "def apply_limits():\n    return 1\n\n\ndef unrelated():\n    return 2\n",
+    )
+    _write(
+        root,
+        "pkg/hooks.py",
+        'HOOK = """\\n#!/bin/sh\npython -c "\nfrom pkg.watch import apply_limits\napply_limits()\n"\n"""\n',
+    )
+    row = _row(root, "pkg/watch.py", "apply_limits")
+    assert row["state"] == "dynamic_unknown"
+    assert any(r.startswith("code_in_string:") for r in row["reasons"]), row["reasons"]
+    assert _row(root, "pkg/watch.py", "unrelated")["state"] == "disconnected_candidate"
+
+
+def test_an_import_in_a_docstring_is_not_code(root):
+    _write(root, "pkg/watch.py", "def apply_limits():\n    return 1\n")
+    _write(
+        root,
+        "pkg/doc.py",
+        'def f():\n    """Example:\n\n    from pkg.watch import apply_limits\n    """\n    return 1\n\n\nf()\n',
+    )
+    assert _row(root, "pkg/watch.py", "apply_limits")["state"] == "disconnected_candidate"
+
+
+HOLD = "public_api_of_distributable_package"
+
+
+def test_public_api_of_a_distributable_package_is_held(root):
+    _write(root, "pyproject.toml", '[project]\nname = "pkg"\nversion = "0"\n')
+    _write(root, "pkg/api.py", "def clean():\n    return 1\n\n\ndef _private():\n    return 2\n")
+    _write(root, "scripts/tool.py", "def helper():\n    return 3\n")
+    clean = _row(root, "pkg/api.py", "clean")
+    assert clean["state"] == "disconnected_candidate"  # the raw state is unchanged
+    assert clean["promotion_hold"] == [HOLD]
+    assert _row(root, "pkg/api.py", "_private")["promotion_hold"] == []
+    assert _row(root, "scripts/tool.py", "helper")["promotion_hold"] == []
+
+
+def test_without_a_distribution_nothing_is_held(root):
+    _write(root, "pkg/api.py", "def clean():\n    return 1\n")
+    assert _row(root, "pkg/api.py", "clean")["promotion_hold"] == []
+
+
+def test_a_private_module_is_not_public_api(root):
+    _write(root, "pyproject.toml", '[project]\nname = "pkg"\nversion = "0"\n')
+    _write(root, "pkg/_internal/__init__.py")
+    _write(root, "pkg/_internal/impl.py", "def clean():\n    return 1\n")
+    assert _row(root, "pkg/_internal/impl.py", "clean")["promotion_hold"] == []
+
+
+def test_a_package_named_like_a_cache_is_still_walked(root):
+    """Only tool caches (.mypy_cache, __pycache__) are skipped, not a package called lmcache."""
+    _write(root, "lmcache/__init__.py")
+    _write(root, "lmcache/a.py", "def f():\n    return 1\n")
+    _write(root, "lmcache/tests/test_a.py", "from lmcache.a import f\n\n\ndef test_f():\n    f()\n")
+    _write(root, "lmcache/deploy/serve.yaml", "fn: f\n")
+    scanned = [SimpleNamespace(file_path=str(root / "lmcache" / "a.py"), deficit_score=0.0)]
+    rows = CrossFileAnalyzer().analyze(str(root), scanned, connections=True).to_dict()
+    row = rows["structure_evidence"]["connections"]["symbols"][0]
+    assert row["test_referenced"] is True
+    assert any(r.startswith("external_config_reference:") for r in row["reasons"]), row["reasons"]

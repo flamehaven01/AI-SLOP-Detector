@@ -182,8 +182,13 @@ def _print_connections(block) -> None:
         print(f"    {Path(row['file']).name}:{row['line']} {row['name']}{tested}")
     if len(candidates) > _CONNECTION_SHOWN:
         print(f"    ... and {len(candidates) - _CONNECTION_SHOWN} more")
+    if summary["promotion_hold"]:
+        print(
+            f"  {summary['promotion_hold']} are public names of a distributable package; "
+            "code outside this repository may use them."
+        )
     if not summary["test_files_seen"]:
-        print("  Test files were not in the scan, so test references are not known.")
+        print("  No test files were found, so test references are not known.")
 
 
 _PHASE_WORDS = {
