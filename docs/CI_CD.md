@@ -24,7 +24,7 @@ jobs:
       - name: Install
         run: pip install "ai-slop-detector>=3.8.9"
       - name: Report
-        run: slop-detector scan . --ci-mode soft --ci-report > slop-report.md
+        run: slop-detector scan . --ci-mode soft --ci-report --output slop-report.md
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
@@ -33,7 +33,7 @@ jobs:
           path: slop-report.md
 ```
 
-`--ci-report` prints the gate report to stdout; redirect it to keep a file. With `--ci-mode` or `--ci-report`, `--output` is not used, so `--output slop-report.md` would leave no file to upload. It does **not** authenticate with a hosting provider or post a pull-request comment. Add a platform-specific publishing step if comments are wanted.
+`--ci-report` replaces the scan report with the gate report: written to `--output` when given (nothing is printed to stdout), otherwise printed to stdout; add `--json` for the gate result as JSON. Without `--ci-report`, `--ci-mode` runs the normal scan, with the same report, `--json`, and `--output` as without it, and only adds the gate's exit code. The gate does **not** authenticate with a hosting provider or post a pull-request comment. Add a platform-specific publishing step if comments are wanted.
 
 ## Gate Modes
 
