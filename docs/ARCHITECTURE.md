@@ -1,880 +1,101 @@
-# AI-SLOP Detector - Architecture Documentation
+# Architecture
 
-**Version:** 3.8.9
-**Last Updated:** 2026-08-22
+**Current contract:** v3.9.1. This page describes the current implementation, not a product roadmap or a performance benchmark.
 
----
+## Purpose And Boundary
 
-## Overview
+AI-SLOP Detector is a deterministic static-analysis tool for structural-risk signals in source code. It reports metrics, pattern findings, scan coverage, and optional operational guidance.
 
-AI-SLOP Detector is a static analysis tool for identifying quality issues that
-appear frequently in AI-assisted code. The system uses a multi-metric analysis
-engine with pattern detection, domain-aware initialization, and a
-project-scoped self-calibration engine that can tune review sensitivity from
-repository history. That calibration layer is operational and reproducible; it
-is not presented as independent external validation.
+It does not prove semantic correctness, security, authorship, or that a score is an externally validated governance control. See [VALIDATION.md](VALIDATION.md) for the evidence boundary.
 
-**Language support:** Python, JavaScript, TypeScript, Go
+## Runtime Shape
 
----
-
-## System Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│         CLI / API Entry Point / CI Gate                  │
-│   (--init, --project, --self-calibrate, --json, ...)     │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│                   SlopDetector (Core)                    │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │       Configuration Manager + Domain Init         │  │
-│  │  - YAML config loading / --init auto-generation   │  │
-│  │  - domain profiles (general, web/api, finance, …) │  │
-│  │  - Threshold management + Pattern registry setup  │  │
-│  └───────────────────────────────────────────────────┘  │
-└────────────────────┬────────────────────────────────────┘
-                     │
-        ┌────────────┼────────────┬──────────────┐
-        │            │            │              │
-        ▼            ▼            ▼              ▼
-┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐
-│   LDR    │  │Inflation │  │   DDC    │  │  Languages   │
-│Calculator│  │Calculator│  │Calculator│  │   Module     │
-└────┬─────┘  └────┬─────┘  └────┬─────┘  └──────┬───────┘
-     │             │             │                │
-     │             │             └────────┬───────┘
-     │             │                      │     PythonAnalyzer
-     │             └──────────┬───────────┘     JSAnalyzer (v3.4.0)
-     │                        │                 GoAnalyzer (v3.5.0)
-     └────────────┬───────────┘
-                  │
-     ┌────────────┼──────────────┬─────────────────┐
-     │            │              │                 │
-     ▼            ▼              ▼                 ▼
-┌──────────┐  ┌───────┐  ┌──────────────┐  ┌─────────────┐
-│Docstring │  │Pattern│  │Hallucination │  │  Question   │
-│Inflation │  │Registry│  │ Dependencies │  │  Generator  │
-│ Detector │  │27+ Det│  │   Detector   │  │  (v2.6)     │
-└────┬─────┘  └───┬───┘  └──────┬───────┘  └──────┬──────┘
-     │            │              │                 │
-     └────────────┼──────────────┼─────────────────┘
-                  │              │
-                  ▼              ▼
-          ┌─────────────────────────────┐
-          │     FileAnalysis Result     │
-          └────────────┬────────────────┘
-                       │
-          ┌────────────┼────────────────────┐
-          │            │                    │
-          ▼            ▼                    ▼
-    ┌─────────┐  ┌────────────┐  ┌──────────────────────┐
-    │ CI Gate │  │  History   │  │  Self-Calibration    │
-    │ (v2.6)  │  │  Tracker   │  │  Engine (v3.2.0)     │
-    └─────────┘  │(~/.slop-   │  │ SelfCalibrator       │
-                 │ detector/  │  │ project_id scoped    │
-                 │ history.db)│  │ domain-anchored grid │
-                 │project_id  │  │ drift warning (P4)   │
-                 └────────────┘  └──────────────────────┘
+```text
+CLI / npm wrapper / MCP / optional local API
+                    |
+                    v
+             SlopDetector facade
+                    |
+     +--------------+---------------+
+     |              |               |
+     v              v               v
+core_scoring   core_topology   core_project
+     |              |               |
+     +--------------+---------------+
+                    |
+                    v
+ metrics + patterns + language analyzers
+                    |
+                    v
+ FileAnalysis / ProjectAnalysis contracts
+                    |
+     +--------------+---------------+
+     |              |               |
+     v              v               v
+ renderers      operations      governance verifier
 ```
 
----
+`core.py` is a compatibility facade. It coordinates analysis and retains the existing private seams used by integrations and tests. Focused modules own the pure scoring, structural-topology, and project-aggregation logic.
 
-## Data Boundary Validation (v3.7.2)
+- `core_scoring.py`: four-dimensional score and penalty attribution. The status is the band of the score, from `diagnostic_bands.py`.
+- `core_topology.py`: DCF, Jensen-Shannon distance, and exact or deterministic approximate coherence calculations.
+- `core_project.py`: discovery policy, coverage envelope, and project result aggregation.
 
-Three runtime schema guards protect the analysis pipeline from malformed inputs reaching
-the GQG weighted geometric mean formula or the LEDA calibration grid search.
+## Source Scope
 
-```
-User YAML          Computed Metrics         History DB
-    │                     │                     │
-    ▼                     ▼                     ▼
-_validate_yaml_config()  __post_init__()    __post_init__()
-    │                     │                     │
-  Pydantic           clamp + warn log       clamp + JSON
-  WeightsSchema      ldr_score ∈ [0,1]      validation
-  DomainOverride     usage_ratio ∈ [0,1]    fired_rules
-  GodFunctionSchema  inflation_score ≥ 0    deficit ≥ 0
-    │                     │                     │
-    ▼                     ▼                     ▼
-ValueError (clear     WARNING logged        ValueError
-field path)           score clamped         at insert
-```
+The project scanner recognizes Python, JavaScript, TypeScript, and Go. It distinguishes analyzed files from intentionally excluded supported files and known unsupported source files. Build products and dependency trees such as `build`, `dist`, `.tox`, `node_modules`, and `.next` are excluded by default.
 
-| Guard | Location | Trigger |
-|---|---|---|
-| `_validate_yaml_config()` | `config.py` | `.slopconfig.yaml` load — bad weight type or range |
-| `LDRResult.__post_init__` | `models.py` | `ldr_score` outside `[0, 1]` |
-| `InflationResult.__post_init__` | `models.py` | `inflation_score < 0` |
-| `DDCResult.__post_init__` | `models.py` | `usage_ratio` outside `[0, 1]` |
-| `HistoryEntry.__post_init__` | `history.py` | Any metric out of range; invalid `fired_rules` JSON |
+Language support is not a claim of equivalent analysis depth. Python supplies the core metric and pattern path; JS/TS and Go use language analyzers and are included in the project contract. Inspect `scan_coverage` and language-specific result arrays before treating a project result as complete scope.
 
-**VS Code boundary** (`schema.ts`): `parseSlopReport(data: unknown): ParseResult<ISlopReport>`
-applies the same principle at the CLI→extension boundary — typed discriminated union, no
-external validation library, exact `field / expected / got` error on mismatch.
+## Deterministic Scoring
 
-**Governance boundary** (`governance_record.json` + `verify-governance`): the
-scoring model emits a reconstructable record, while the enforcement layer
-recomputes the canonical hash and checks policy state in a separate CLI gate.
-This keeps math changes from silently changing CI policy and keeps policy
-changes from mutating the scoring model.
+For a Python file, the base quality gate is a weighted geometric mean of four dimensions:
 
-**Framework masking boundary** (`masking.py`): deterministic framework-aware
-masking runs after pattern detection but before inline suppression matching.
-The current rules only hide narrow boilerplate noise in test harnesses and do
-not mask `critical` findings.
-
-**Cleanup planning boundary** (`operations.py`): cleanup-family commands do not
-replace the scoring model. They extend it with action semantics by reusing
-existing signals such as deficit, churn, coverage, and local evidence. This
-keeps cleanup guidance aligned with the core math instead of drifting into a
-second detached heuristic system.
-
----
-
-## Core Components
-
-### 1. Logic Density Ratio (LDR) Calculator
-
-**Purpose:** Measures the ratio of actual logic to empty/placeholder code.
-
-**Algorithm:**
-```python
-LDR = logic_lines / total_lines
-
-Where:
-- logic_lines = lines with actual implementation
-- empty_lines = pass, ..., TODO, FIXME patterns
-- total_lines = logic_lines + empty_lines
+```text
+GQG = exp(sum(weight_i * log(max(1e-4, dimension_i))) / sum(weight_i))
+base_deficit = 100 * (1 - GQG)
+deficit = min(base_deficit + pattern_penalty, 100)
 ```
 
-**Key Features:**
-- AST-based analysis for accurate line counting
-- Smart exception handling for:
-  - ABC (Abstract Base Class) interfaces
-  - Type stub files (.pyi)
-  - Configuration files
-- Pattern-based empty function detection
+Default weights are LDR `0.40`, inflation `0.30`, dependency usage (DDC) `0.20`, and critical-pattern purity `0.10`. A geometric mean is deliberate: one near-zero dimension cannot be hidden by high values in the others. Pattern penalties are added after the base score; the penalty is capped at `50` points and the total at `100`.
 
-**Grading Scale:**
-```
-S++: >90%  - Excellent implementation
-A:   75-90% - Good quality
-B:   60-75% - Acceptable
-C:   45-60% - Needs improvement
-F:   <45%   - Critical slop detected
-```
+The detailed formula and ranges live in [MATH_MODELS.md](MATH_MODELS.md). A status is the band of the deficit score (CLEAN <30, SUSPICIOUS <50, INFLATED_SIGNAL <70, CRITICAL_DEFICIT >=70), the same for files, projects, JS, and Go; no rule overrides it. The score is deterministic for the same input and configuration; that is reproducibility, not external validation.
 
-**Implementation:** `src/slop_detector/metrics/ldr.py`
+## Project Results
 
----
+`ProjectAnalysis` keeps language result arrays separate while calculating a project-level deficit. The weighted deficit uses analyzed line counts when weighted analysis is enabled. Project LDR is conservative: `0.6 * minimum + 0.4 * mean` so a low-density file is not diluted by many clean files.
 
-### 2. Inflation Calculator
+Python structural coherence is derived from distributional code fingerprints (DCF) and an MST over pairwise square-root Jensen-Shannon distances. Exact calculation is used through the configured ceiling; above it, the default is a deterministic sample. The report exposes whether the result is exact or approximate through `coherence_level`.
 
-**Purpose:** Detects buzzword-to-code ratio in documentation and comments.
+## Operations And Enforcement
 
-**Algorithm:**
-```python
-Inflation = jargon_count / (avg_complexity * 10)
+The normal score, cleanup planning, and governance enforcement are separate layers:
 
-Where:
-- jargon_count = number of buzzwords detected
-- avg_complexity = cyclomatic complexity (via Radon)
-```
+- `scan` gives a baseline result.
+- `review` (an alias for `audit`) attributes changed-code findings against a git base.
+- `pulse` (an alias for `health`) prioritizes hotspots.
+- `sweep` gathers a bounded cleanup family such as `dead-code`, `dupes`, or `unused-deps` and attaches confidence and evidence.
+- `verify-governance` verifies a generated governance record and fails closed on a bad or untrusted record.
 
-**Buzzword Categories:**
-- AI/ML: neural, transformer, deep learning, reinforcement learning
-- Architecture: Byzantine, cloud-native, microservices, serverless
-- Quality: robust, resilient, performant, cutting-edge
-- Academic: NeurIPS, ICLR, ICML, theorem, proof
+Cleanup confidence is prioritization evidence, not permission for blind deletion. Governance verification checks the artifact contract; it does not make the mathematical score a compliance certification.
 
-**Context Awareness:**
-```python
-# Justified jargon (not counted):
-import torch  # "neural" is justified
-class NeuralNetwork:  # actual neural net implementation
-    ...
+## History, Calibration, And Telemetry
 
-# Unjustified jargon (counted):
-def add(a, b):  # simple addition
-    """Uses advanced neural optimization"""  # ← inflation!
-    return a + b
-```
+Normal scans record repository-local history unless `--no-history` is used. The calibration path derives local improvement and false-positive-candidate signals from repeat-file history. At a guarded milestone it can update an existing local `.slopconfig.yaml`; manual `--self-calibrate --apply-calibration` remains the explicit review-and-apply path.
 
-**Thresholds:**
-```
-Pass:     <0.5   - Appropriate terminology
-Warning:  0.5-1.0 - Moderate jargon
-Fail:     1.0-2.0 - High buzzword density
-Critical: >2.0    - Fake documentation
-```
+This adaptation is repository-scoped and is not an external validation loop. It does not export history as a validation channel. Local impact tracking is opt-in, and telemetry is off by default; inspect its payload before enabling it. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md) and [HISTORY_TRACKING.md](HISTORY_TRACKING.md).
 
-**Implementation:** `src/slop_detector/metrics/inflation.py`
+## Integration Boundaries
 
----
+The npm package is a transport layer over the Python CLI, not a second analyzer. The MCP server provides structured tools over the same core.
 
-### 3. Dependency Check (DDC)
+The optional FastAPI service is a local integration surface. It has no built-in authentication or request authorization and permits all origins by default. Do not expose it directly to an untrusted network. Its webhook and project-status stubs are not supported deployment features; see [API.md](API.md).
 
-**Purpose:** Identifies unused imports and fake dependencies.
+## Related Documents
 
-**Algorithm:**
-```python
-DDC = actually_used / imported
-
-Where:
-- imported = all import statements
-- actually_used = names referenced in code
-- unused = imported - actually_used
-```
-
-**Special Handling:**
-- TYPE_CHECKING imports excluded
-- __all__ exports considered
-- Module-level usage detection
-
-**Detection Categories:**
-- Unused imports
-- Fake imports (imports that don't exist)
-- Ghost imports (imported but never used)
-
-**Implementation:** `src/slop_detector/metrics/ddc.py`
-
----
-
-### 4. Pattern Registry (v2.1+)
-
-**Purpose:** Detect structural anti-patterns beyond metrics.
-
-**Pattern Types:**
-
-#### Structural Issues
-```python
-# Bare Except (Critical)
-try:
-    risky()
-except:  # Catches SystemExit, KeyboardInterrupt!
-    pass
-
-# Mutable Default (Critical)
-def func(items=[]):  # Shared state bug!
-    items.append(1)
-    return items
-
-# Star Import (High)
-from module import *  # Namespace pollution
-```
-
-#### Placeholder Indicators
-```python
-# Pass Placeholder (High)
-def quantum_encode(data):
-    pass  # Empty implementation
-
-# Ellipsis Placeholder (High)
-def transform(x):
-    ...  # Not implemented
-
-# TODO Comment (Medium)
-def process():
-    # TODO: implement this
-    pass
-```
-
-#### Cross-Language Mistakes
-```python
-# JavaScript idioms in Python (High)
-items.push(x)     # Should be: items.append(x)
-items.length()    # Should be: len(items)
-
-# Java idioms in Python (High)
-obj.equals(other) # Should be: obj == other
-obj.toString()    # Should be: str(obj)
-```
-
-**Pattern Detection Flow:**
-```
-1. Parse AST
-2. Walk syntax tree
-3. Match patterns
-4. Collect issues with severity
-5. Apply to deficit score
-```
-
-**Implementation:** `src/slop_detector/patterns/`
-
----
-
-### 5. Docstring Inflation Detector (v2.6+)
-
-**Purpose:** Detects documentation-heavy, implementation-light code patterns.
-
-**Algorithm:**
-```python
-Inflation_Ratio = docstring_lines / implementation_lines
-
-Where:
-- docstring_lines = lines in docstring (excluding quotes)
-- implementation_lines = actual code lines (excluding pass, ..., etc.)
-```
-
-**Severity Thresholds:**
-```
-CRITICAL: ratio >= 2.0  (2x+ more docs than code)
-WARNING:  ratio >= 1.0  (more docs than code)
-INFO:     ratio >= 0.5  (substantial docs)
-PASS:     ratio <  0.5  (balanced or code-heavy)
-```
-
-**Detection Features:**
-- Per-function/class/module analysis
-- File-level aggregation
-- Top 10 worst offenders reporting
-- Preview of inflated docstrings
-
-**Implementation:** `src/slop_detector/metrics/docstring_inflation.py`
-
----
-
-### 6. Hallucination Dependencies Detector (v2.6+)
-
-**Purpose:** Identifies purpose-specific imports that are never used, revealing AI's intended but unimplemented features.
-
-**Algorithm:**
-```python
-Category_Usage = used_in_category / imported_in_category
-
-Categories (12 total):
-- ML: torch, tensorflow, keras, transformers
-- Vision: cv2, PIL, imageio
-- HTTP: requests, httpx, aiohttp, flask
-- Database: sqlalchemy, pymongo, redis
-- Async: asyncio, trio, anyio
-- Data: pandas, polars, dask
-- Serialization: json, yaml, toml
-- Testing: pytest, unittest, mock
-- Logging: logging, loguru, structlog
-- CLI: argparse, click, typer, rich
-- Cloud: boto3, google-cloud, azure
-- Security: cryptography, jwt, passlib
-```
-
-**Intent Inference:**
-- "torch" unused → "machine learning model training or inference"
-- "requests" unused → "HTTP requests or API integration"
-- "sqlalchemy" unused → "database operations and ORM"
-
-**Detection Features:**
-- 60+ libraries tracked across 12 categories
-- Per-category usage analysis
-- Intent-based questioning
-- Hallucination severity scoring
-
-**Implementation:** `src/slop_detector/metrics/hallucination_deps.py`
-
----
-
-### 7. Context-Based Jargon Detector (v2.6+)
-
-**Purpose:** Cross-validates quality claims with actual codebase evidence instead of just flagging buzzwords.
-
-**Algorithm:**
-```python
-Justification_Ratio = justified_claims / total_claims
-
-Where:
-- justified_claims = jargon terms with supporting evidence
-- total_claims = all quality claims detected
-- evidence_types = 14 categories (see below)
-```
-
-**Evidence Requirements (14 types):**
-
-**Production-Ready:**
-- error_handling (try/except with handlers)
-- logging (actual logger usage)
-- tests (test functions/files)
-- input_validation (isinstance, type checks)
-- config_management (settings, .env, yaml)
-
-**Enterprise-Grade:**
-- monitoring (prometheus, statsd, sentry)
-- documentation (meaningful docstrings)
-- security (auth, encryption, sanitization)
-
-**Scalable:**
-- caching (@cache, redis, memcache)
-- async_support (async/await usage)
-- connection_pooling
-- rate_limiting
-
-**Fault-Tolerant:**
-- retry_logic (@retry, backoff)
-- circuit_breaker
-- fallback mechanisms
-
-**Additional Evidence:**
-- design_patterns (Factory, Singleton, Observer)
-- advanced_algorithms (complexity >= 10)
-- optimization (vectorization, memoization)
-
-**Detection Features:**
-- 14 jargon terms with evidence requirements
-- Missing evidence reporting
-- Worst offenders (0 evidence) identification
-- Per-claim justification ratio
-
-**Implementation:** `src/slop_detector/metrics/context_jargon.py`
-
----
-
-### 8. Question Generator (v2.6+)
-
-**Purpose:** Converts analysis findings into actionable review questions for code reviewers.
-
-**Question Categories:**
-- **Critical:** Low justification ratio, zero evidence, massive hallucination
-- **Warning:** Unjustified jargon, category-specific unused imports, docstring inflation
-- **Info:** Excessive empty lines, low logic density, pattern-specific questions
-
-**Examples:**
-```
-CRITICAL:
-"Only 14% of quality claims are backed by evidence.
- Are these marketing buzzwords without substance?"
-
-WARNING:
-"'production-ready' claim at line 42 lacks: error_handling, logging, tests.
- Only 20% of required evidence present."
-
-INFO:
-"Function 'process' has 15 lines of docstring but only 2 lines of implementation.
- Is this AI-generated documentation without substance?"
-```
-
-**Implementation:** `src/slop_detector/question_generator.py`
-
----
-
-### 9. CI Gate System (v2.6+)
-
-**Purpose:** Progressive enforcement for CI/CD pipelines with 3-tier quality gates.
-
-**Modes:**
-
-**Soft Mode (Informational):**
-- PR comments only
-- Never fails build
-- Use for: visibility, onboarding
-
-**Hard Mode (Strict):**
-- Fails build on thresholds
-- deficit_score >= 70 → FAIL
-- critical_patterns >= 3 → FAIL
-- Use for: production branches
-
-**Quarantine Mode (Gradual):**
-- Tracks repeat offenders
-- Escalates to FAIL after 3 violations
-- Persistent tracking (.slop_quarantine.json)
-- Use for: gradual rollout
-
-**Thresholds (Configurable):**
-```python
-deficit_fail: 70.0
-deficit_warn: 30.0
-critical_patterns_fail: 3
-high_patterns_warn: 5
-inflation_fail: 1.5
-ddc_fail: 0.5
-```
-
-**Implementation:** `src/slop_detector/ci_gate.py`
-
----
-
-## Scoring System
-
-### Deficit Score Calculation
-
-```python
-# Base quality from metrics (0-1, higher is better)
-base_quality = (
-    ldr_score * weight_ldr +
-    (1 - inflation_normalized) * weight_inflation +
-    ddc_ratio * weight_ddc
-)
-
-# Base deficit (0-100, higher is worse)
-base_deficit = 100 * (1 - base_quality)
-
-# Pattern penalties
-pattern_penalty = sum(severity_weights[issue.severity] for issue in issues)
-pattern_penalty = min(pattern_penalty, 50)  # Cap at 50 points
-
-# Final deficit score
-deficit_score = min(base_deficit + pattern_penalty, 100)
-```
-
-**Default Weights:**
-- LDR: 40%
-- Inflation: 30%
-- DDC: 30%
-
-**Severity Weights:**
-- Critical: 10 points
-- High: 5 points
-- Medium: 2 points
-- Low: 1 point
-
-### Status Classification
-
-```python
-if deficit_score >= 70:
-    status = CRITICAL_DEFICIT
-elif len(critical_patterns) >= 3:
-    status = CRITICAL_DEFICIT
-elif inflation > 1.0:
-    status = INFLATED_SIGNAL
-elif ddc_ratio < 0.5:
-    status = DEPENDENCY_NOISE
-elif deficit_score >= 30:
-    status = SUSPICIOUS
-else:
-    status = CLEAN
-```
-
----
-
-## Data Flow
-
-### File Analysis Flow
-
-```
-1. Input: file_path
-   ↓
-2. Read file content
-   ↓
-3. Parse AST
-   ↓
-4. Calculate metrics (parallel):
-   - LDR ───┐
-   - Inflation ─┤→ Combine
-   - DDC ───┘
-   ↓
-5. Run pattern detection
-   ↓
-6. Calculate deficit score
-   ↓
-7. Determine status
-   ↓
-8. Return FileAnalysis object
-```
-
-### Project Analysis Flow
-
-```
-1. Input: project_path, pattern
-   ↓
-2. Find Python files (glob)
-   ↓
-3. Filter by ignore patterns
-   ↓
-4. For each file:
-   - analyze_file()
-   - Collect results
-   ↓
-5. Aggregate metrics:
-   - Average deficit
-   - Weighted deficit (by LOC)
-   - Overall status
-   ↓
-6. Return ProjectAnalysis object
-```
-
----
-
-## Configuration System
-
-### Configuration Hierarchy
-
-```
-1. Default config (hardcoded)
-   ↓
-2. User config file (.slopconfig.yaml)
-   ↓
-3. CLI arguments (highest priority)
-```
-
-### Config Structure
-
-```yaml
-weights:
-  ldr: 0.40
-  inflation: 0.30
-  ddc: 0.20
-  purity: 0.10
-
-ignore:
-  - "**/__init__.py"
-  - "tests/**"
-
-advanced:
-  exact_topology_ceiling: 300
-  topology_mode_above_ceiling: deterministic_approximate
-  analysis_cache_enabled: true
-  churn_commit_window: 200
-  coverage_data_file: ".coverage"
-
-architecture:
-  enabled: false
-  preset: none
-  layers: []
-
-patterns:
-  disabled:
-    - "todo_comment"
-```
-
-`architecture.enabled` defaults to `false`. Without an explicit opt-in, the
-`boundary-violations` cleanup family stays limited to import-cycle reporting.
-
-When `preset: layered` is enabled, the review path uses built-in practical
-patterns such as:
-
-- `api/routes/controllers/presentation`
-- `service/services/application/use_cases`
-- `domain/models/entities/value_objects`
-- `data/repositories/infrastructure/adapters`
-
-The preset is rule-based, not heuristic-only:
-
-- `api -> domain` is allowed
-- `domain -> data` is blocked
-- `domain -> api` is blocked
-- `domain -> service` is blocked
-
-Each `layer_boundary_violation` carries evidence including:
-
-- `matched_importer_pattern`
-- `matched_importee_pattern`
-- `allowed_imports`
-- `forbidden_imports`
-- violated preset/rule name
-
-**Implementation:** `src/slop_detector/config.py`
-
----
-
-## Extension Points
-
-### Adding New Metrics
-
-```python
-class CustomMetric:
-    def __init__(self, config):
-        self.config = config
-    
-    def calculate(self, file_path, content, tree):
-        # Analyze AST or content
-        score = ...
-        return CustomResult(score=score)
-```
-
-### Adding New Patterns
-
-```python
-from slop_detector.patterns.base import ASTPattern
-
-class CustomPattern(ASTPattern):
-    id = "custom_pattern"
-    severity = Severity.HIGH
-    message = "Custom issue detected"
-    
-    def detect(self, tree, file, content):
-        issues = []
-        for node in ast.walk(tree):
-            if self._matches(node):
-                issues.append(self.create_issue(node, file))
-        return issues
-```
-
-### Custom Configuration
-
-```python
-detector = SlopDetector(config_path=".slopconfig.yaml")
-detector.config.set("thresholds.ldr.critical", 0.4)
-detector.pattern_registry.disable("todo_comment")
-```
-
----
-
-## Performance Considerations
-
-### Optimization Strategies
-
-1. **Single-pass AST parsing**
-   - Parse once, share tree across analyzers
-   - Reduces CPU overhead
-
-2. **Efficient pattern matching**
-   - Compiled regex patterns
-   - Early exit conditions
-   - Optional Rust helper accelerates file walking and glob matching when built; it returns root-relative paths and is parity-checked against Python discovery before use. Scoring and policy remain in Python.
-
-3. **Smart caching**
-   - Config cached after first load
-   - Pattern registry built once
-   - Cross-file analysis now exposes an `import_graph` so cycle detection and
-     layered boundary review share the same import topology
-
-4. **Parallel processing** (future)
-   - File-level parallelization
-   - Independent metric calculations
-
-### Performance Targets
-
-- Single file: <100ms (typical)
-- Medium project (100 files): <10s
-- Large project (1000 files): <2min
-
-**Bottlenecks:**
-- AST parsing (unavoidable)
-- Radon complexity calculation (optional)
-- File I/O (mitigated by streaming)
-- Structural coherence exact MST above the topology ceiling now falls back to a
-  deterministic approximation to avoid repeated quadratic blowups on large
-  repositories
-- The behavior is controlled by `advanced.exact_topology_ceiling` and
-  `advanced.topology_mode_above_ceiling`
-- Repeated Python-file analysis can reuse cached `FileAnalysis` payloads through
-  the SQLite metadata cache, keyed by file metadata, content hash, engine
-  version, and config fingerprint
-- Project-level prioritization can overlay git churn and `.coverage` evidence to
-  rank "fix first" hotspots without changing the underlying file deficit score
-- Cleanup families now reuse that same churn/coverage overlay to produce
-  confidence-ranked action plans instead of flat candidate lists
-
----
-
-## Testing Strategy
-
-### Unit Tests
-- Individual metric calculators
-- Pattern detectors
-- Configuration loading
-
-### Integration Tests
-- End-to-end file analysis
-- Project scanning
-- Config precedence
-
-### Real-World Tests
-- Synthetic AI-generated code
-- Known slop patterns
-- Edge cases (ABC, type stubs)
-
-**Test Coverage Target:** >75% (current: 79%)
-
----
-
-## API Integration
-
-### Python API
-
-```python
-from slop_detector import SlopDetector
-
-detector = SlopDetector()
-result = detector.analyze_file("mycode.py")
-
-print(f"Status: {result.status.value}")
-print(f"Deficit: {result.deficit_score:.1f}/100")
-print(f"LDR: {result.ldr.ldr_score:.2%}")
-```
-
-### REST API (Enterprise)
-
-```bash
-# Start server
-slop-api --host 0.0.0.0 --port 8080
-
-# Analyze file
-curl -X POST http://localhost:8080/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"file_path": "code.py"}'
-```
-
-### CLI
-
-```bash
-slop-detector analyze file.py
-slop-detector scan ./src --format json
-```
-
----
-
-## Security Considerations
-
-### Input Validation
-- Path traversal prevention
-- File size limits (default: 10KB-10MB)
-- Syntax error handling
-
-### Safe AST Parsing
-- No code execution
-- Pure static analysis
-- Sandboxed parsing
-
-### Dependency Safety
-- Minimal dependencies
-- No network calls during analysis
-- Optional ML features isolated
-- Governance verification is fail-closed and reads `.cr-ep/governance_record.json`
-  only; it does not feed back into scoring
-
----
-
-## Future Enhancements
-
-### Planned Features
-- [ ] Multi-language support (JavaScript, Java, Go)
-- [ ] ML-based classification (optional)
-- [ ] IDE integrations (VS Code, PyCharm)
-- [ ] Git hook templates
-- [ ] Performance profiling mode
-
-### Research Areas
-- Semantic analysis (beyond syntax)
-- Learning from user feedback
-- Cross-project pattern mining
-- AI-based pattern evolution
-
----
-
-## References
-
-### Internal Documentation
-- [Usage Guide](USAGE.md)
-- [Pattern Catalog](PATTERNS.md)
-- [API Reference](API.md)
-- [Governance Verification](GOVERNANCE.md)
-
-### External Resources
-- [AST Module Documentation](https://docs.python.org/3/library/ast.html)
-- [Radon - Code Metrics](https://radon.readthedocs.io/)
-- [PEP 8 - Style Guide](https://pep8.org/)
-
----
-
-## Contributors
-
-**Maintainer:** Flamehaven Labs  
-**Contact:** info@flamehaven.space  
-**Repository:** https://github.com/flamehaven01/AI-SLOP-Detector
-
----
-
-**Last Updated:** 2026-08-22
-**Version:** 3.8.9
+- [USAGE.md](USAGE.md): short safe starting path.
+- [CLI_USAGE.md](CLI_USAGE.md): complete command reference.
+- [CONFIGURATION.md](CONFIGURATION.md): config and adaptive init.
+- [PATTERNS.md](PATTERNS.md): pattern catalog and fix boundaries.
+- [GOVERNANCE.md](GOVERNANCE.md): artifact verification contract.
+- [VALIDATION.md](VALIDATION.md): claims this implementation does not make.
