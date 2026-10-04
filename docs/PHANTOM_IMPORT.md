@@ -1,10 +1,13 @@
-# PhantomImportPattern — Hallucinated Package Detection (v2.9.0)
+# Phantom Import Detection
+
+**Current contract:** `main` after v3.9.1. The original pattern was introduced
+in v2.9.0; this page describes its current resolution boundary.
 
 **Pattern ID:** `phantom_import`
 **Severity:** CRITICAL
 **Axis:** QUALITY
 **Language:** Python only — Go/JS/TS have language-specific error patterns (see [PATTERNS.md](PATTERNS.md#go))
-**Module:** `slop_detector.patterns.python_advanced`
+**Module:** `slop_detector.patterns.python_imports`
 
 ---
 
@@ -43,11 +46,32 @@ from os.path import join         # stdlib — OK
 import sys                       # built-in — OK
 from . import utils              # relative import — excluded by design
 from ..models import Base        # relative import — excluded by design
+import mypackage.core            # project module — resolved in the project
 ```
 
 ---
 
 ## Resolution Strategy
+
+### Project modules are never checked as packages
+
+Before the four sources below, an import is skipped when it belongs to the
+project: a top-level name of the project's internal packages, a sibling `.py`
+file (flat-module projects), a name in `phantom_import_allowlist`, or a module
+the project's module index resolves to an actual file (`src/` layouts and
+namespace packages included).
+
+### Unresolved does not always mean phantom
+
+An import that none of the sources resolves is reported by the first row that
+applies:
+
+| Situation | Reported as | Severity |
+|---|---|---|
+| Declared only outside `pyproject.toml` project metadata (e.g. `requirements.txt`) while a `pyproject.toml` exists | `declared_outside_primary_metadata` | LOW |
+| Declared as a dependency but not installed where the analyzer runs | `runtime_unavailable_dependency` | MEDIUM |
+| Inside `try/except ImportError` and not declared | `undeclared_optional_dependency` | MEDIUM |
+| Not declared anywhere | `phantom_import` | CRITICAL |
 
 The pattern builds a resolution index once per process from four sources:
 
@@ -130,8 +154,8 @@ that don't exist) simultaneously. Both contribute to the deficit score.
 [CRITICAL] phantom_import — src/pipeline.py:4
   Phantom import: 'tensorflow_magic' cannot be resolved
   (not in stdlib, built-ins, or installed packages)
-  Suggestion: Verify 'tensorflow_magic' exists on PyPI and is listed
-  in your project dependencies. AI models sometimes generate
+  Suggestion: Verify 'tensorflow_magic' exists on PyPI and add it to
+  [project.dependencies] in pyproject.toml. AI models sometimes generate
   plausible-looking but non-existent package names.
 ```
 
@@ -139,15 +163,27 @@ that don't exist) simultaneously. Both contribute to the deficit score.
 
 ## Disabling
 
-To disable for a specific line (e.g., conditional platform import):
+To disable the pattern for a project:
 
-```python
+```yaml
 # .slopconfig.yaml
-disabled_patterns:
-  - phantom_import
+patterns:
+  disabled:
+    - phantom_import
 ```
 
-Or per-file inline (flagged by `lint_escape` — use sparingly):
+To accept a module name that is known to exist where the code runs:
+
+```yaml
+# .slopconfig.yaml
+phantom_import_allowlist:
+  - platform_specific_pkg
+```
+
+To suppress one line, with a reviewable comment (a `# noqa` comment does not
+suppress it, and is itself reported by `lint_escape`):
+
 ```python
-import platform_specific_pkg  # noqa: phantom_import
+# slop-disable-next-line phantom_import
+import platform_specific_pkg
 ```
