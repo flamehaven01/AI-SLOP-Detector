@@ -1,372 +1,101 @@
 # Development Guide
 
-Guide for contributing to AI-SLOP Detector.
-
-## Quick Setup
+## Setup
 
 ```bash
-# Clone repository
 git clone https://github.com/flamehaven01/AI-SLOP-Detector.git
 cd AI-SLOP-Detector
-
-# Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install development dependencies
+# Windows: .venv\Scripts\activate
+# POSIX: source .venv/bin/activate
 pip install -e ".[dev]"
-
-# Verify installation
-slop-detector --help
+slop-detector --version
 ```
 
-## Development Workflow
+Optional language and API extras are declared in `pyproject.toml`. Install only
+the extras required by the test or integration being changed.
 
-### 1. Create Feature Branch
+## Current Module Boundaries
+
+```text
+src/slop_detector/
+  core.py                 compatibility facade and orchestration
+  core_scoring.py         deterministic file-score helpers
+  core_topology.py        DCF and structural coherence helpers
+  core_project.py         discovery, coverage, aggregation
+  cli*.py                 parsers, routing, analysis, output, history, init
+  operations*.py          audit, health, cleanup, architecture helpers
+  metrics/                LDR, inflation, dependency and related signals
+  patterns/               registry and advanced pattern detectors
+  analysis/               cross-file import graph, structure and connection evidence
+  autofix/                line-oriented patchers (`--fix`)
+  gate/                   legacy SlopGate (`--gate`)
+  governance/             governance session and `verify-governance`
+  ml/                     optional ML scoring and self-calibration
+  auth/                   experimental, not wired into the core
+  config/                 bundled data (known dependency names)
+  languages/              JS/TS and Go adapters
+  mcp/                    stdio tool surface
+  api/                    optional local FastAPI surface
+tests/                    regression and contract tests
+npm-wrapper/              Node transport over the Python CLI
+vscode-extension/         editor integration
+```
+
+Keep pure calculation in the focused `core_*` modules. Keep `core.py` facades
+when an existing integration or test patches that seam. Do not duplicate score
+or result-contract logic in the CLI, npm wrapper, or editor extension.
+
+## Verification
+
+Run focused tests while changing a module, then the declared local suite before
+asking for review:
 
 ```bash
-git checkout -b feature/amazing-feature
+python -m pytest tests/test_core.py -q
+python -m pytest -q --no-cov
+python -m black --check src tests
+python -m ruff check src tests
+python -m mypy src
 ```
 
-### 2. Make Changes
+For a detector change, add a regression fixture and a negative control. For a
+public contract change, test the CLI JSON, npm type surface, or MCP/API model
+that consumes it. A passing local suite does not prove deployment behavior,
+external validity, or release readiness.
 
-Edit code in `src/slop_detector/`
+## Documentation Rules
 
-### 3. Run Tests
+- Update the current behavior guides when CLI, config, JSON, or integration
+  contracts change.
+- Preserve `CHANGELOG.md` and `RELEASE_NOTES.md` as historical records.
+- Keep `LEDA_CALIBRATION.md` and `LEDA_TURBO_PROTOCOL_DOGFOODING.md` marked as
+  legacy material rather than using them for current behavior.
+- State limits as clearly as capabilities. Do not convert dogfooding or local
+  tests into accuracy, performance, security, or compliance claims.
+
+## Commits And Releases
+
+Stage only the intended paths:
 
 ```bash
-# All tests
-pytest tests/ -v
-
-# With coverage
-pytest tests/ --cov=src/slop_detector --cov-report=html
-
-# Specific test file
-pytest tests/test_core.py -v
-
-# Watch mode (requires pytest-watch)
-ptw tests/ -- -v
+git add <changed-paths>
+git commit -m "type(scope): concise change summary"
 ```
 
-### 4. Check Code Quality
-
-```bash
-# Linting
-ruff check src/ tests/
-
-# Formatting
-black src/ tests/
-
-# Type checking (if using mypy)
-mypy src/slop_detector
-```
-
-### 5. Commit Changes
-
-```bash
-git add .
-git commit -m "feat: Add amazing feature"
-```
-
-**Commit Convention:**
-- `feat:` New feature
-- `fix:` Bug fix
-- `docs:` Documentation
-- `test:` Tests
-- `chore:` Maintenance
-
-### 6. Push and Create PR
-
-```bash
-git push origin feature/amazing-feature
-# Open PR on GitHub
-```
-
-## Project Structure
-
-```
-AI-SLOP-Detector/
-├── src/slop_detector/
-│   ├── __init__.py
-│   ├── core.py                    # Main detector logic
-│   ├── models.py                  # Data models
-│   ├── config.py                  # Configuration + domain profile loading
-│   ├── cli.py                     # Thin CLI entrypoint / dispatch
-│   ├── cli_parsers.py             # CLI argument surface
-│   ├── cli_handlers.py            # Command routing and execution
-│   ├── cli_analysis.py            # Analysis orchestration
-│   ├── cli_output.py              # Text / JSON / markdown output routing
-│   ├── cli_history.py             # History and calibration helpers
-│   ├── cli_init.py                # Init + adaptive-init flow
-│   ├── cli_observability.py       # Impact / telemetry hooks
-│   ├── operations.py              # Thin façade for operational helper surface
-│   ├── operations_payloads.py     # review / pulse / cleanup payload builders
-│   ├── operations_cleanup.py      # cleanup-family collection + confidence
-│   ├── operations_architecture.py # layer/boundary review helpers
-│   ├── operations_manifest.py     # manifest hygiene helpers
-│   ├── operations_render.py       # explain / text / markdown operational rendering
-│   ├── clone_signals.py           # shared clone signal identifiers
-│   ├── impact.py                  # Repo-local impact tracking
-│   ├── telemetry.py               # Opt-in telemetry surface
-│   ├── question_generator.py      # Review questions
-│   ├── ci_gate.py                 # CI/CD enforcement
-│   ├── metrics/                   # Analysis metrics
-│   │   ├── ldr.py                 # Logic Density Ratio
-│   │   ├── inflation.py           # Jargon detection
-│   │   ├── ddc.py                 # Dependency check
-│   │   ├── context_jargon.py      # Evidence validation
-│   │   ├── docstring_inflation.py
-│   │   └── hallucination_deps.py
-│   ├── patterns/                  # Pattern detection
-│   │   ├── base.py
-│   │   ├── placeholder.py
-│   │   ├── structural.py          # god_function, nested_complexity
-│   │   ├── cross_language.py
-│   │   └── python_clones.py       # exact_duplicate_pair + function_clone_cluster
-│   ├── ml/                        # Self-calibration engine
-│   │   ├── __init__.py
-│   │   └── self_calibrator.py
-│   ├── mcp/
-│   │   └── server.py              # MCP stdio tool surface
-│   └── auth/                      # Enterprise features
-├── tests/                   # Test suite (308 tests)
-│   ├── test_core.py
-│   ├── test_metrics.py
-│   ├── test_patterns.py
-│   ├── test_ci_gate.py
-│   ├── test_calibration_patches.py
-│   ├── test_operations_commands.py
-│   ├── test_cli.py
-│   └── e2e_v321/            # End-to-end tests
-│       └── test_e2e_v321.py
-├── docs/                    # Documentation
-├── vscode-extension/        # VS Code extension (v3.5.0)
-├── npm-wrapper/             # Thin Node distribution over Python core
-├── pyproject.toml          # Project metadata
-├── .slopconfig.example.yaml # Config template
-└── README.md
-```
-
-## Testing
-
-### Running Tests
-
-```bash
-# All tests with coverage
-pytest tests/ -v --cov=src/slop_detector --cov-report=html
-
-# Open coverage report
-open htmlcov/index.html  # On macOS
-# Or: start htmlcov/index.html  # On Windows
-```
-
-### Writing Tests
-
-```python
-# tests/test_my_feature.py
-import pytest
-from slop_detector.core import SlopDetector
-
-def test_my_feature():
-    """Test my amazing feature."""
-    detector = SlopDetector()
-    result = detector.analyze_file("test_file.py")
-    assert result.deficit_score < 30
-```
-
-### Test Coverage Requirements
-
-- **Minimum:** 80% overall coverage
-- **Target:** 85%+ overall coverage
-- **New code:** 90%+ coverage
-
-## Code Style
-
-### Formatting
-
-```bash
-# Format code
-black src/ tests/
-
-# Check formatting
-black --check src/ tests/
-```
-
-### Linting
-
-```bash
-# Lint code
-ruff check src/ tests/
-
-# Fix auto-fixable issues
-ruff check --fix src/ tests/
-```
-
-### Style Guide
-
-- Follow PEP 8
-- Use type hints
-- Write docstrings for public APIs
-- Keep functions focused (single responsibility)
-- Prefer explicit over implicit
-
-## Adding New Features
-
-### 1. Evidence Type
-
-To add a new evidence type (e.g., "caching"):
-
-1. Update `src/slop_detector/metrics/context_jargon.py`:
-   ```python
-   def _has_caching(self, content: str) -> bool:
-       return any(keyword in content for keyword in
-                  ["@cache", "redis", "memcache"])
-   ```
-
-2. Add to `EVIDENCE_REQUIREMENTS`:
-   ```python
-   EVIDENCE_REQUIREMENTS = {
-       "performance": ["caching", "async_support"],
-       # ...
-   }
-   ```
-
-3. Add tests in `tests/test_context_jargon.py`
-
-### 2. Pattern Detector
-
-To add a new pattern:
-
-1. Create pattern in `src/slop_detector/patterns/`:
-   ```python
-   class MyPattern(PatternDetector):
-       def detect(self, tree: ast.AST) -> List[Issue]:
-           # Implementation
-   ```
-
-2. Register in `src/slop_detector/patterns/registry.py`
-
-3. Add tests in `tests/test_patterns.py`
-
-### 3. Metric
-
-To add a new metric:
-
-1. Create metric in `src/slop_detector/metrics/my_metric.py`
-2. Update `FileAnalysis` model in `models.py`
-3. Integrate in `core.py`
-4. Add tests in `tests/test_my_metric.py`
-
-## Documentation
-
-### Updating Documentation
-
-```bash
-# Documentation files
-docs/
-├── CONFIGURATION.md  # Configuration guide
-├── CLI_USAGE.md      # CLI reference
-├── CI_CD.md          # CI/CD integration
-└── DEVELOPMENT.md    # This file
-
-# Update README.md for major features
-```
-
-### Documentation Style
-
-- Clear, concise language
-- Code examples for all features
-- Link to related docs
-- Keep examples up-to-date
-
-## Release Process
-
-### 1. Version Update
-
-Update version in:
-- `pyproject.toml`
-- `src/slop_detector/__init__.py`
-- `src/slop_detector/auth/__init__.py`
-
-### 2. Update CHANGELOG
-
-Add entry to `CHANGELOG.md`:
-
-```markdown
-## [X.Y.Z] - YYYY-MM-DD
-
-### Added
-- New feature
-
-### Changed
-- Updated behavior
-
-### Fixed
-- Bug fix
-```
-
-### 3. Create Tag
-
-```bash
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin vX.Y.Z
-```
-
-### 4. Build and Upload
-
-```bash
-# Build package
-python -m build
-
-# Upload to PyPI
-twine upload dist/*
-```
-
-## Contribution Guidelines
-
-### Code Review Checklist
-
-- [ ] Tests added/updated
-- [ ] Coverage ≥ 80%
-- [ ] Black formatted
-- [ ] Ruff clean
-- [ ] Documentation updated
-- [ ] CHANGELOG updated
-- [ ] No breaking changes (or documented)
-
-### Pull Request Template
-
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Documentation update
-- [ ] Performance improvement
-
-## Testing
-Describe testing performed
-
-## Checklist
-- [ ] Tests pass
-- [ ] Coverage maintained
-- [ ] Docs updated
-```
-
-## Getting Help
-
-- **Issues:** [GitHub Issues](https://github.com/flamehaven01/AI-SLOP-Detector/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/flamehaven01/AI-SLOP-Detector/discussions)
-- **Email:** info@flamehaven.space
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the MIT License.
-
-## See Also
-
-- [CLI Usage](CLI_USAGE.md) - Command-line reference
-- [Configuration](CONFIGURATION.md) - Customize settings
-- [CI/CD Integration](CI_CD.md) - Automated testing
+Keep unreleased changes in `CHANGELOG.md` until a user-facing release is ready.
+For a release, update the package version surfaces, validate the declared
+release profile, create an annotated tag, and create the GitHub Release. The
+release workflow owns publication; do not upload packages manually as a normal
+development step.
+
+## Review Checklist
+
+- The diff preserves public and patch seams or deliberately version them.
+- Targeted tests cover the changed behavior and an adverse case where relevant.
+- Formatter, linter, and type checks pass for changed Python code.
+- Documentation describes the observed implementation, not a roadmap.
+- No secrets, local databases, build products, or generated reports are staged.
+
+See [CLI_USAGE.md](CLI_USAGE.md), [CONFIGURATION.md](CONFIGURATION.md),
+[VALIDATION.md](VALIDATION.md), and [GOVERNANCE.md](GOVERNANCE.md).
