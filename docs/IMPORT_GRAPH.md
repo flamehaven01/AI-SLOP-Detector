@@ -14,7 +14,7 @@ project file when it can. That graph feeds:
 - **structure measures**: circular groups, most-imported files, and how far a change reaches.
 
 Everything is reported in one block, `structure_evidence`. It does **not** change any slop
-score, the cross-file `risk_score`, `import_cycles`, a sweep `verdict`, or its `issues`
+score or status, `import_cycles`, a sweep `verdict`, or its `issues`
 (`score_effect` is always `"none"`), and a file that many others import is not a defect by
 itself.
 
@@ -189,7 +189,7 @@ and all three import `core`:
 
 ```text
 [Cross-File Analysis]
-  Files: 4  Risk Score: 0.10
+  Files: 4
   Imports: 7 resolved, 0 conditional, 0 ambiguous, 0 unresolved internal
 
   Import Cycles (1):
@@ -199,17 +199,24 @@ and all three import `core`:
     3 files, type-checking only: a.py, b.py, c.py
       inner import-time cycle: a.py, b.py
   Most imported: core.py (3 files)
+
+  Connections (0 top-level functions/classes): 0 connected, 0 exposed, 0 dynamic, 0 unmeasured, 0 disconnected candidates
 ```
 
 A monorepo whose `backend/app/` is not declared:
 
 ```text
 [Cross-File Analysis]
-  Files: 2  Risk Score: 0.00
+  Files: 2
   Imports: 0 resolved, 1 conditional, 0 ambiguous, 0 unresolved internal
   [!] No cross-file issues among resolved imports; 1 internal imports (conditional, ambiguous or unresolved) were not checked.
       To include conditional ones, declare the module roots in pyproject.toml: [tool.setuptools.packages.find] where = [...]
+
+  Connections (1 top-level functions/classes): 0 connected, 0 exposed, 0 dynamic, 1 unmeasured, 0 disconnected candidates
 ```
+
+The one function, `ping`, is called through the undeclared import, so it is `unmeasured`
+rather than a disconnected candidate.
 
 For the first project, `sweep boundary-violations --json` gives `verdict: "fail"` with one
 `import_cycle` issue and this `summary.structure_evidence`. In the real output paths are
