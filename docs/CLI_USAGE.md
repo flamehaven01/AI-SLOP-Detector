@@ -99,12 +99,12 @@ History is local. The guarded milestone path may also update an existing local c
 ## CI And Governance
 
 ```bash
-slop-detector scan . --ci-mode soft --ci-report --output slop-report.md
+slop-detector scan . --ci-mode soft --ci-report > slop-report.md
 slop-detector scan . --ci-mode hard --ci-report
 slop-detector verify-governance ./.cr-ep
 ```
 
-`--ci-report` renders a report; it does not publish a pull-request comment. Governance verification checks a generated artifact record; it is not a general compliance certification. See [CI_CD.md](CI_CD.md) and [GOVERNANCE.md](GOVERNANCE.md).
+`--ci-report` prints the gate report to stdout (redirect it to keep a file; `--output` is not used with `--ci-mode` or `--ci-report`); it does not publish a pull-request comment. Governance verification checks a generated artifact record; it is not a general compliance certification. See [CI_CD.md](CI_CD.md) and [GOVERNANCE.md](GOVERNANCE.md).
 
 ## Node, MCP, And Local Observability
 
