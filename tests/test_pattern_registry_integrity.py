@@ -45,3 +45,12 @@ def test_the_module_scan_sees_every_default_detector():
     """Guards the guard: a scan that found nothing would pass the test above."""
     default = {type(pattern) for pattern in get_all_patterns()}
     assert default and default <= _concrete_pattern_classes()
+
+
+def test_every_autofix_fixer_is_for_a_default_detector():
+    """Fixers are looked up by the finding's pattern id; a fixer for no pattern never runs."""
+    from slop_detector.autofix.engine import _PATCHERS, FixEngine
+
+    ids = {pattern.id for pattern in get_all_patterns()}
+    assert sorted(set(_PATCHERS) - ids) == []
+    assert sorted(FixEngine.UNFIXABLE_PATTERNS - ids) == []

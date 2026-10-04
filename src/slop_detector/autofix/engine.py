@@ -11,9 +11,7 @@ Supported patterns (auto-fixable):
   pass_placeholder     -> raise NotImplementedError
   ellipsis_placeholder -> raise NotImplementedError
   js_push              -> .append(
-  js_to_upper          -> .upper()
   csharp_length        -> len(...)
-  return_none_placeholder -> (annotate only, no structural change)
 """
 
 from __future__ import annotations
@@ -177,21 +175,6 @@ def _fix_csharp_length(lines: List[str], idx: int, issue) -> Optional[FixChange]
             original=line,
             replacement=new_line,
             confidence=0.85,
-        )
-    return None
-
-
-@_register("csharp_to_upper")
-def _fix_csharp_to_upper(lines: List[str], idx: int, issue) -> Optional[FixChange]:
-    line = lines[idx]
-    new_line = re.sub(r"\.ToUpper\(\)", ".upper()", line)
-    if new_line != line:
-        return FixChange(
-            pattern_id="csharp_to_upper",
-            line=idx + 1,
-            original=line,
-            replacement=new_line,
-            confidence=0.95,
         )
     return None
 

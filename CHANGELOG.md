@@ -215,6 +215,11 @@ do not change.
   suspicious. The test corpus no longer says they "should trigger".
 - A test now fails when a concrete pattern class is not a default detector,
   so a pattern cannot sit unregistered again.
+- The autofix `csharp_to_upper` fixer is removed: no pattern has ever had that
+  id, and fixers are looked up by a finding's pattern id. A test now fails
+  when a fixer or an "unfixable" entry names no default detector. The autofix
+  docstring no longer lists fixers that do not exist (`js_length`,
+  `js_to_lower`, `js_to_upper`, `return_none_placeholder`).
 
 ## [3.9.1] - 2026-10-03
 
