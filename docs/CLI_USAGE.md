@@ -1,621 +1,123 @@
-# CLI Usage Guide
+# CLI Usage
 
-Complete reference for `slop-detector` command-line interface.
+**Current contract:** v3.9.1. Run `slop-detector --help` in the installed environment for the authoritative option list.
 
 ## Canonical Commands
 
-The preferred stable CLI surface is:
-
 ```bash
+# Baseline analysis. `scan` is the preferred spelling.
 slop-detector scan <target>
-slop-detector review <target>
+
+# Changed-code attribution. `review` maps to the audit operation.
+slop-detector review <target> --base HEAD
+
+# Repository hotspots. `pulse` maps to the health operation.
 slop-detector pulse <target>
-slop-detector sweep <family> <target>
-slop-detector watch <target> --follow
-slop-detector explain <identifier>
-slop-detector verify-governance <target>
-slop-detector mcp
+
+# Bounded cleanup families.
+slop-detector sweep dead-code <target>
+slop-detector sweep dupes <target>
+slop-detector sweep unused-deps <target>
+slop-detector sweep stale-suppressions <target>
+slop-detector sweep boundary-violations <target>
+
+# Artifact integrity.
+slop-detector verify-governance <project-or-record>
 ```
 
-Legacy forms such as `--project`, `audit`, `health`, and direct cleanup-family
-commands remain supported for backward compatibility.
+Compatible forms remain available: `slop-detector <path>`, `slop-detector --project <directory>`, `audit`, `health`, and direct cleanup family commands. New automation should prefer the canonical forms above.
 
-## Basic Commands
-
-### Single File Analysis
+## Structured Output
 
 ```bash
-# Canonical
-slop-detector scan mycode.py
-
-# Compatible legacy form
-slop-detector mycode.py
-
-# With JSON output
-slop-detector scan mycode.py --json
-
-# Save to file
-slop-detector scan mycode.py --output report.json
-slop-detector scan mycode.py --output report.md
-slop-detector scan mycode.py --output report.html
+slop-detector scan . --format json --output scan.json
+slop-detector review . --base origin/main --json --output review.json
+slop-detector pulse . --format=json
 ```
 
-### Project Analysis
+`--json` and `--format json` are equivalent, and they are the only way to get JSON: for normal scans the output file's extension selects the human renderer (`.md` for Markdown, `.html` for HTML), and any other name, `.json` included, receives the plain-text report. Operational commands support plain text and JSON; use JSON for agents and CI.
+
+Read project results with their scope:
+
+- `finding_summary`: aggregate finding and severity totals.
+- `scan_coverage`: analyzed, excluded, and unsupported source files.
+- `ml_scoring`: optional ML capability state.
+- `coherence_level`: exact or deterministic-approximate topology mode.
+
+`clean` means the measured configured signals are below the applicable status threshold. It is not a claim that the project is complete, safe, or fully covered.
+
+## Configuration And Init
 
 ```bash
-# Canonical
-slop-detector scan ./src
-
-# Compatible legacy form
-slop-detector --project ./src
-
-# Generate markdown report
-slop-detector scan ./src --output report.md
-```
-
-## Output Formats
-
-### Text (Default)
-
-```bash
-slop-detector mycode.py
-# Outputs colored text report to console
-```
-
-### JSON
-
-```bash
-slop-detector mycode.py --json
-# Outputs structured JSON for programmatic use
-```
-
-### Markdown
-
-```bash
-slop-detector mycode.py --output report.md
-# Generates markdown report with tables
-```
-
-### HTML
-
-```bash
-slop-detector mycode.py --output report.html
-# Generates interactive HTML report
-```
-
-## Pattern Management
-
-### List Available Patterns
-
-```bash
-slop-detector --list-patterns
-# Shows all 27+ detectable patterns with descriptions
-```
-
-### Disable Specific Patterns
-
-```bash
-# Disable single pattern
-slop-detector mycode.py --disable todo_comment
-
-# Disable multiple patterns
-slop-detector mycode.py --disable empty_except --disable todo_comment
-
-# Disable via config file
-slop-detector mycode.py --config .slopconfig.yaml
-```
-
-### Pattern Categories
-
-**Placeholder Patterns (27+):**
-
-Python / universal:
-- `empty_except` - Empty exception handlers
-- `not_implemented` - NotImplementedError
-- `pass_placeholder` - Pass statements
-- `ellipsis_placeholder` - Ellipsis (...)
-- `return_none_placeholder` - Return None
-- `todo_comment` - TODO comments
-- `fixme_comment` - FIXME comments
-- `hack_comment` - HACK comments
-- `bare_except` - Bare except blocks
-- `mutable_default_arg` - Mutable defaults
-- `star_import` - Star imports
-- `interface_only_class` - Interface classes
-- `exact_duplicate_pair` *(v3.8.5)* - Exact same-file duplicate functions after local-name normalization
-- `function_clone_cluster` *(v3.1.0)* - Near-identical function clusters via AST JSD (CRITICAL)
-- `placeholder_variable_naming` *(v3.1.0)* - Variables named `x`, `tmp`, `dummy` in production
-- `return_constant_stub` *(v3.1.0)* - Functions that always return a constant (stub pattern)
-- `phantom_import` - Imported but never used module (unused dependency)
-- `god_function` - Function exceeding complexity/length thresholds
-- `nested_complexity` *(v3.1.0)* - Deeply nested control flow (depth ≥ 4)
-- `lint_escape` - Inline lint suppression comments
-
-JavaScript / TypeScript:
-- `console_log_debug` - Leftover console.log debugging
-- `any_type_cast` - TypeScript `as any` / `: any` type erasure
-- `disabled_test` - `.skip` / `.todo` / `.xtest` disabled test blocks
-- `promise_ignore` - Unhandled promise (missing `await` / `.catch`)
-
-Go:
-- `error_discard` - `_ = fn()` silently discarding error return
-- `empty_select` - `select {}` or `select` with only a `default: break`
-- `todo_go` - `// TODO` / `// FIXME` in Go source
-- `unused_goroutine` - `go func()` with no channel or sync primitive
-
-See [PATTERNS.md](PATTERNS.md) for full descriptions, severity levels, and examples.
-
-## Project Initialization
-
-### Bootstrap a New Project
-
-```bash
-# Auto-detect project type and generate .slopconfig.yaml
+# Create the baseline config.
 slop-detector --init
 
-# Specify domain explicitly
-slop-detector --init --domain general
+# Preview adaptive suggestions without writing.
+slop-detector --init-preview
 
-# Preview adaptive suggestions without writing
-slop-detector --init --adaptive-init --init-preview
-
-# Merge adaptive suggestions into a new or existing config
+# Explicitly merge adaptive suggestions.
 slop-detector --init --adaptive-init --apply-init-suggestions
 
-# Overwrite an existing .slopconfig.yaml
-slop-detector --init --force-init
+# Use a chosen config.
+slop-detector scan . --config .slopconfig.yaml
 ```
 
-`--init` creates a fully-documented `.slopconfig.yaml` tailored to your domain and
-automatically adds `.slopconfig.yaml` to `.gitignore` (avoids leaking weakness maps).
+`--include-tests` removes only the built-in test-file exclusions. It does not override user-configured ignores or artifact exclusions.
 
-Adaptive init is intentionally split into safe stages:
+See [CONFIGURATION.md](CONFIGURATION.md) and [CONFIG_EXAMPLES.md](CONFIG_EXAMPLES.md).
 
-- baseline init:
-  - generates the template
-  - no repository-specific tuning
-- adaptive preview:
-  - collects repository signals
-  - prints ignore / override / architecture / cleanup hints
-  - does not write config
-- adaptive apply:
-  - requires explicit `--apply-init-suggestions`
-  - preserves unknown handwritten keys
-  - never silently rewrites an existing config
-
----
-
-## NPM Thin Wrapper
-
-The Node distribution surface is intentionally thin and delegates to the Python
-CLI rather than reimplementing analysis logic.
-
-Install:
+## Fixes And Suppressions
 
 ```bash
-npm install --save-dev ai-slop-detector
-# or: pnpm add -D ai-slop-detector
-# or: yarn add -D ai-slop-detector
-# or: bun add -d ai-slop-detector
+# Inspect registered line-oriented patches first.
+slop-detector scan module.py --fix --dry-run
+
+# Apply only after reviewing the dry run.
+slop-detector scan module.py --fix
+
+# Disable one pattern for this invocation.
+slop-detector scan module.py --disable todo_comment
 ```
 
-Python backend prerequisite:
+Only selected line-oriented patterns have patchers. Cleanup confidence and a dry-run result are review evidence, not autonomous authorization to modify code. Use inline suppressions or `.slopconfig.yaml` only with an explanation that can be reviewed later.
+
+## History And Calibration
 
 ```bash
-pip install ai-slop-detector
-```
+# Avoid writing local history for this run.
+slop-detector scan . --no-history
 
-Normal usage:
-
-```bash
-npx ai-slop-detector scan .
-npx ai-slop-detector review . --format json
-npx ai-slop-detector pulse . --format json
-npx ai-slop-detector sweep dead-code . --format json
-npx ai-slop-detector mcp
-```
-
-Typed output contract:
-
-```ts
-import type { AuditOutput, CleanupOutput, HealthOutput, ScanOutput } from "ai-slop-detector/types";
-```
-
-Programmatic Node API:
-
-```ts
-import {
-  computeHealth,
-  reviewChanges,
-  runCleanupFamily,
-  scanProject,
-} from "ai-slop-detector";
-```
-
-Local wrapper checks:
-
-```bash
-cd npm-wrapper
-node ./bin/ai-slop-detector.js --version
-node ./bin/ai-slop-detector.js scan .
-```
-
-Wrapper guarantees:
-
-- canonical CLI commands stay the same
-- stdout/stderr are passed through
-- exit codes are propagated
-- backend discovery is explicit and fails with actionable messaging
-- backend discovery order is stable:
-  `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
-  `python -m slop_detector.cli`
-- version-pinned TypeScript interfaces are available at
-  `ai-slop-detector/types`
-- the package root exports a thin async API for direct Node consumption
-
----
-
-## Advanced Options
-
-### Verbose Output
-
-```bash
-slop-detector mycode.py --verbose
-# Shows detailed analysis progress
-```
-
-### Custom Configuration
-
-```bash
-slop-detector mycode.py --config /path/to/config.yaml
-# Uses custom configuration file
-```
-
-### Integration Test Evidence (v2.6.2)
-
-```bash
-# Enable claim-based enforcement
-slop-detector --project . --ci-claims-strict
-
-# Fails if production/enterprise claims lack integration tests
-```
-
-## Self-Calibration
-
-```bash
-# Run calibration check (does NOT write to config)
+# Inspect a repository-local recommendation.
 slop-detector . --self-calibrate
 
-# Run calibration and apply optimal weights to .slopconfig.yaml
+# Explicit review-and-apply path.
 slop-detector . --self-calibrate --apply-calibration
-
-# Require at least 8 events per class before calibrating
-slop-detector . --self-calibrate --min-history 8
 ```
 
-See [SELF_CALIBRATION.md](SELF_CALIBRATION.md) for full details.
+History is local. The guarded milestone path may also update an existing local config after it has enough repeat-run evidence. Calibration is a local review-sensitivity aid, not external score validation. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
----
-
-## History & Trends
+## CI And Governance
 
 ```bash
-# Show recent history for files in current project
-slop-detector . --show-history
-
-# Show project-level trends over the last 30 days (default)
-slop-detector . --history-trends
-
-# Export full history to JSONL
-slop-detector --export-history history.jsonl
-
-# Disable history recording for this run
-slop-detector mycode.py --no-history
-```
-
-## Local Impact & Telemetry
-
-```bash
-# Enable repo-local impact tracking (.slop-detector/impact.json)
-slop-detector impact enable .
-
-# Show local impact summary
-slop-detector impact .
-slop-detector impact --json
-
-# Telemetry stays off by default
-slop-detector telemetry status
-
-# Inspect an example anonymized payload
-slop-detector telemetry inspect --example
-
-# Inspect a live payload without queueing it
-AI_SLOP_DETECTOR_TELEMETRY=inspect slop-detector review . --format json
-
-# Opt in to local telemetry queueing
-slop-detector telemetry enable
-slop-detector telemetry disable
-```
-
-Contracts:
-
-- `impact` is repository-local and gitignored
-- telemetry is default-off
-- telemetry payloads are anonymized and keyed by `project_id`, not path names
-- inspect mode prints a real payload without appending to the telemetry queue
-
----
-
-## CI/CD Integration
-
-See [CI/CD Integration Guide](CI_CD.md) for:
-- Soft mode (informational)
-- Hard mode (fail build)
-- Quarantine mode (track offenders)
-- Claim-based enforcement
-
-## Governance Verification
-
-The governance verification gate is separate from scoring and CI summary
-reporting:
-
-```bash
+slop-detector scan . --ci-mode soft --ci-report --output slop-report.md
+slop-detector scan . --ci-mode hard --ci-report
 slop-detector verify-governance ./.cr-ep
 ```
 
-It recomputes the canonical hash in `.cr-ep/governance_record.json` and
-fails closed when:
+`--ci-report` renders a report; it does not publish a pull-request comment. Governance verification checks a generated artifact record; it is not a general compliance certification. See [CI_CD.md](CI_CD.md) and [GOVERNANCE.md](GOVERNANCE.md).
 
-- the record hash does not match
-- `counts.halt_count > 0`
-- `trust_tier == "UNTRUSTED"`
-
-See [GOVERNANCE.md](GOVERNANCE.md) for the record contract.
-
-## Operational Commands
-
-These commands return the same meaning across `--json`, markdown, and plain text:
+## Node, MCP, And Local Observability
 
 ```bash
-slop-detector review <path> --json
-slop-detector pulse <path> --json
-slop-detector sweep dead-code <path> --json
-slop-detector sweep dupes <path> --json
-slop-detector sweep unused-deps <path> --json
-slop-detector sweep stale-suppressions <path> --json
-slop-detector sweep boundary-violations <path> --json
-slop-detector watch <path> --follow
-slop-detector fix <path> --dry-run
-slop-detector explain dead-code
-```
+npm install --save-dev ai-slop-detector
+pip install ai-slop-detector
+npx ai-slop-detector review . --format json
 
-Operational cleanup commands share one contract across text, markdown, and
-JSON:
-
-- every cleanup `issue` can carry `confidence`, `action_class`, and `evidence`
-- `unused-deps` now includes project-manifest findings:
-  - `manifest_unused_dependency`
-  - `undeclared_import`
-- `boundary-violations` remains import-cycle only unless architecture review is
-  explicitly enabled in `.slopconfig.yaml`
-
-Example opt-in architecture config:
-
-```yaml
-architecture:
-  enabled: true
-  preset: layered
-  layers: []
-```
-
-The built-in `layered` preset keeps safe defaults:
-
-- `api -> domain` is allowed
-- `domain -> data` is blocked
-- each `layer_boundary_violation` includes the matched importer/importee
-  patterns plus the explicit allow/forbid rule
-
-## MCP Server
-
-The same structured agent surface is available over MCP stdio:
-
-```bash
 slop-detector mcp
-# or
-slop-mcp
+slop-detector impact enable
+slop-detector telemetry inspect --example
 ```
 
-Tools exposed by the wrapper:
+The npm package delegates to the installed Python CLI. It does not implement a second analyzer. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
 
-- `slop_schema`
-- `slop_analyze_file`
-- `slop_analyze_project`
-
-For end-to-end AI-agent usage patterns, see
-[docs/AGENT_WORKFLOW.md](AGENT_WORKFLOW.md).
-
-## Complete CLI Reference
-
-```
-usage: slop-detector [-h] [--project] [--include-tests] [--output OUTPUT] [--json] [--verbose]
-                     [--topology-ceiling N]
-                     [--topology-mode {exact,deterministic_approximate}]
-                     [--config CONFIG] [--list-patterns]
-                     [--disable PATTERN [PATTERN ...]]
-                     [--init] [--domain DOMAIN] [--force-init]
-                     [--adaptive-init] [--init-preview]
-                     [--apply-init-suggestions]
-                     [--self-calibrate] [--apply-calibration] [--min-history N]
-                     [--show-history] [--history-trends] [--no-history]
-                     [--export-history FILE]
-                     [--ci-mode {soft,hard,quarantine}] [--ci-report]
-                     [--ci-claims-strict]
-                     [path]
-
-AI-SLOP Detector v3.8.x — Evidence-based static analyzer (Python/JS/TS/Go)
-
-positional arguments:
-  path                  File or directory to analyze
-
-optional arguments:
-  -h, --help            Show this help message and exit
-  --project             Analyze entire project (directory)
-  --include-tests       Include files excluded only by built-in test defaults
-  --output OUTPUT       Output file path (.json, .md, .html)
-  --json                Output as JSON (diagnostics go to stderr)
-  --verbose             Show detailed progress
-  --topology-ceiling N  Maximum Python-file count for exact structural topology
-  --topology-mode {exact,deterministic_approximate}
-                        Structural topology mode above the exact ceiling
-  --config CONFIG       Custom config file path
-  --list-patterns       List all detectable patterns
-
-Pattern Options:
-  --disable PATTERN     Disable specific pattern by ID (repeatable)
-
-Init Options (v3.2.0):
-  --init                Generate .slopconfig.yaml for current project
-  --domain DOMAIN       Specify domain for --init (general/scientific/numerical/
-  --adaptive-init       Collect repository signals and synthesize conservative init suggestions
-  --init-preview        Preview adaptive init suggestions without writing config
-  --apply-init-suggestions
-                        Merge adaptive suggestions into a new or existing config
-                        web/api/library/sdk/cli/tool/bio/finance)
-  --force-init          Overwrite existing .slopconfig.yaml
-
-Self-Calibration Options (v3.2.0):
-  --self-calibrate      Run calibration check against scan history
-  --apply-calibration   Write optimal weights to .slopconfig.yaml (requires ok status)
-  --min-history N       Minimum events per class for calibration (default: 5)
-
-History Options (v3.2.0):
-  --show-history        Show per-file history summary for current project
-  --history-trends      Show project-level trends (last 30 days)
-  --no-history          Skip recording this run to history.db
-  --export-history FILE Export full history as JSONL
-
-CI/CD Options:
-  --ci-mode {soft,hard,quarantine}
-                        CI gate mode (soft/hard/quarantine)
-  --ci-report           Generate CI/CD gate report
-  --ci-claims-strict    Fail if production claims lack integration tests
-```
-
-Structural topology notes:
-- Exact structural coherence uses the full MST path up to the configured ceiling.
-- Above that ceiling, `deterministic_approximate` keeps output stable while avoiding repeated quadratic cost.
-
-### Scan Scope and Finding Status
-
-Project reports expose three independent facts:
-
-- `overall_status` is the weighted deficit band; `clean` does not mean zero
-  pattern findings.
-- `finding_summary` contains aggregate finding count, affected-file count, and
-  severity totals across the project.
-- `scan_coverage` distinguishes analyzed files, intentionally excluded
-  supported files, and known unsupported source files. Exclusion totals and
-  reason counts are exact; detailed paths are capped at 200 entries.
-
-`--include-tests` removes only the built-in test-file exclusions. It does not
-override a user-configured ignore, dependency directory, or build-artifact
-exclusion.
-- JSON output exposes this through `coherence_level`, and plain-text / markdown output prints the same mode directly.
-
-Priority hotspot notes:
-- Project output now ranks files by deficit score, recent git churn, and coverage gap when those signals are available.
-- `.coverage` is read from the project root by default; missing git history or missing coverage data does not fail the scan.
-
-## Examples
-
-### Inline Suppression
-
-```python
-# slop-disable-next-line bare_except
-except:
-    pass
-
-# slop-disable all
-def compatibility_layer():
-    ...
-# slop-enable all
-```
-
-- `slop-disable-next-line <pattern_id|all>` suppresses only the next line
-- `slop-disable <pattern_id|all>` opens a block suppression
-- `slop-enable <pattern_id|all>` closes a block suppression
-
-Suppressed findings stay visible in JSON / text / markdown / rich output through
-the suppression ledger.
-
-### Development Workflow
-
-```bash
-# Quick check during development
-slop-detector mycode.py
-
-# Detailed analysis with output
-slop-detector mycode.py --verbose --output report.md
-
-# Check before commit
-slop-detector --project . --disable todo_comment
-```
-
-### Code Review
-
-```bash
-# Analyze PR changes
-slop-detector --project ./src --json > review.json
-
-# Generate review report
-slop-detector --project ./src --output review.md
-```
-
-### Quality Audit
-
-```bash
-# Full project audit
-slop-detector --project . --output audit.html
-
-# Strict mode (no disabled patterns)
-slop-detector --project . --config strict.yaml
-```
-
-## Interpreting the report
-
-Project and single-file reports are designed to be read without prior knowledge
-of the scoring model. Each metric is shown with three aids:
-
-- **Value** - the measured number (e.g. `36.4/100`, `95.36%`, `0.00x`).
-- **Healthy Direction** - whether `Lower` or `Higher` is better. Deficit and ICR
-  are better low; LDR and DDC are better high.
-- **What It Means** - a one-line plain-language description.
-
-A deficit-band legend interprets the headline score:
-
-```
-Deficit bands: CLEAN <30 | SUSPICIOUS 30-50 | INFLATED 50-70 | CRITICAL >=70
-```
-
-In rich (color) output the value is tinted green / yellow / red by its health
-band; the text and markdown renderers show the same rows without color.
-
-### Next Steps
-
-Every report ends with up to three deterministic, rule-based next steps:
-
-1. **Top concern** - the worst metric, with its value and meaning.
-2. **Recommended command** - the matching cleanup family (`sweep unused-deps`
-   for dependency concerns, `sweep dead-code` + `sweep dupes` for density /
-   deficit concerns), or jargon-review guidance for inflation.
-3. **Where to start** - the highest-priority hotspot file and a `review` command
-   to scope the work to changed code only.
-
-A clean project instead prints a single "no action needed" line and suggests
-wiring `--ci-mode hard` into CI.
-
-## See Also
-
-- [Configuration](CONFIGURATION.md) - Customize thresholds and patterns
-- [CI/CD Integration](CI_CD.md) - Automated quality gates
-- [Development](DEVELOPMENT.md) - Contributing guidelines
+For agent-specific guidance, see [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) and [CLAUDE_CODE_SKILL.md](CLAUDE_CODE_SKILL.md).
