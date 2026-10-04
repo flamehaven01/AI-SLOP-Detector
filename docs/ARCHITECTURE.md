@@ -1,6 +1,6 @@
 # Architecture
 
-**Current contract:** v3.9.1. This page describes the current implementation, not a product roadmap or a performance benchmark.
+**Current contract:** `main` after v3.9.1 (includes unreleased changes). This page describes the current implementation, not a product roadmap or a performance benchmark.
 
 ## Purpose And Boundary
 
