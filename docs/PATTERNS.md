@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** 3.8.9
-**Last Updated:** 2026-08-22
+**Version:** 3.9.1
+**Last Updated:** 2026-10-04
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -22,46 +22,64 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
 ## Quick Reference
 
-| ID | Severity | Category | Description |
-|---|---|---|---|
-| `bare_except` | CRITICAL | Structural | Catches all exceptions including SystemExit |
-| `mutable_default_arg` | CRITICAL | Structural | Mutable default argument (list/dict) |
-| `star_import` | MEDIUM | Structural | `from module import *` |
-| `global_statement` | MEDIUM | Structural | `global` keyword usage |
-| `empty_except` | CRITICAL | Placeholder | Exception handler with only `pass` |
-| `not_implemented` | HIGH | Placeholder | `raise NotImplementedError` stub |
-| `pass_placeholder` | HIGH | Placeholder | Function/class body is only `pass` |
-| `ellipsis_placeholder` | HIGH | Placeholder | Function body is only `...` (skips `@abstractmethod`) |
-| `hack_comment` | HIGH | Placeholder | `# HACK` comment |
-| `return_none_placeholder` | MEDIUM | Placeholder | `return None` as only statement (skips `Optional[T]` annotations) |
-| `todo_comment` | MEDIUM | Placeholder | `# TODO` comment |
-| `fixme_comment` | MEDIUM | Placeholder | `# FIXME` comment |
-| `interface_only_class` | HIGH | Placeholder | Class with ≥50% non-abstract placeholder methods |
-| `xxx_comment` | LOW | Placeholder | `# XXX` comment |
-| `javascript_array_push` | HIGH | Cross-Language | `.push()` (JavaScript Array method) |
-| `java_equals_method` | HIGH | Cross-Language | `.equals()` (Java String method) |
-| `ruby_each` | HIGH | Cross-Language | `.each {}` (Ruby iterator) |
-| `go_print` | MEDIUM | Cross-Language | `fmt.Println()` (Go print) |
-| `csharp_length` | MEDIUM | Cross-Language | `.Length` (C# property) |
-| `php_strlen` | MEDIUM | Cross-Language | `strlen()` (PHP function) |
-| `god_function` | HIGH | Python Advanced | Function > 50 logic lines or complexity > 10 |
-| `dead_code` | MEDIUM | Python Advanced | Unreachable statements after return/raise |
-| `deep_nesting` | HIGH | Python Advanced | Control-flow depth > 4 |
-| `lint_escape` | HIGH/MED/LOW | Python Advanced | `# noqa`, `# type: ignore`, `# pylint: disable` |
-| `phantom_import` | **CRITICAL** | **v2.9.0** | Import targets a non-existent package (extras specifiers stripped) |
-| `exact_duplicate_pair` | **HIGH** | **v3.8.5** | Exact same-file duplicate functions after normalizing local names and parameters |
-| `function_clone_cluster` | **CRITICAL** | **v3.1.0** | Near-identical function clusters via AST JSD (skips `@abstractmethod`, FastAPI routers) |
-| `placeholder_variable_naming` | HIGH | v3.1.0 | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
-| `return_constant_stub` | HIGH | v3.1.0 | Function always returns the same constant (stub pattern) |
-| `nested_complexity` | CRITICAL | v3.1.0 | Composite: control-flow depth and cyclomatic complexity both exceed thresholds |
-| `console_log_debug` | MEDIUM | v3.4.0 | `console.log` debug output in JS/TS |
-| `any_type_cast` | HIGH | v3.4.0 | TypeScript `as any` / `: any` type erasure |
-| `disabled_test` | HIGH | v3.4.0 | `.skip` / `.todo` / `.xtest` in JS/TS test files |
-| `promise_ignore` | HIGH | v3.4.0 | Unhandled promise (missing `await` / `.catch`) |
-| `error_discard` | CRITICAL | v3.5.0 | Go: `_ = fn()` silently discards error return |
-| `empty_select` | HIGH | v3.5.0 | Go: `select {}` blocks forever or empty select |
-| `todo_go` | MEDIUM | v3.5.0 | Go: `// TODO` / `// FIXME` comment |
-| `unused_goroutine` | HIGH | v3.5.0 | Go: `go func()` with no channel or sync primitive |
+Every rule the detectors currently report. This table is the current-state contract:
+`tests/test_patterns_doc_consistency.py` checks it against the Python pattern registry,
+the ids the Python patterns emit, the JS/TS and Go analyzers, and the autofix registry.
+Severity shows the default first; other severities a rule can emit follow it.
+The detailed sections below explain the main rules and may not cover every id.
+
+<!-- ACTIVE_PATTERN_REGISTRY:START -->
+| ID | Language | Severity | Category | Auto-Fix | Description |
+|---|---|---|---|---|---|
+| `bare_except` | Python | Critical | Structural | Yes | Catches all exceptions including SystemExit |
+| `mutable_default_arg` | Python | Critical | Structural | Yes | Mutable default argument (list/dict) |
+| `star_import` | Python | High | Structural | No | `from module import *` |
+| `global_statement` | Python | High | Structural | No | `global` keyword usage |
+| `empty_except` | Python | Critical | Placeholder | No | Exception handler with only `pass` |
+| `not_implemented` | Python | High | Placeholder | No | `raise NotImplementedError` stub |
+| `pass_placeholder` | Python | High | Placeholder | Yes | Function/class body is only `pass` |
+| `ellipsis_placeholder` | Python | High | Placeholder | Yes | Function body is only `...` (skips `@abstractmethod`) |
+| `return_none_placeholder` | Python | Medium | Placeholder | No | `return None` as only statement (skips `Optional[T]` annotations) |
+| `return_constant_stub` | Python | High | Placeholder | No | Function body is a single `return <constant>` |
+| `interface_only_class` | Python | High | Placeholder | No | Class with only abstract or placeholder methods |
+| `todo_comment` | Python | Medium | Placeholder | No | `# TODO` comment |
+| `fixme_comment` | Python | Medium | Placeholder | No | `# FIXME` comment |
+| `hack_comment` | Python | High | Placeholder | No | `# HACK` comment |
+| `xxx_comment` | Python | Low | Placeholder | No | `# XXX` comment |
+| `js_push` | Python | High | Cross-Language | Yes | `.push()` on a value proven to be a built-in (`items = []; items.push(x)`) |
+| `java_equals` | Python | High | Cross-Language | No | `.equals()` on a value proven to be a built-in |
+| `ruby_each` | Python | High | Cross-Language | No | `.each()` on a value proven to be a built-in |
+| `csharp_length` | Python | High | Cross-Language | Yes | `.Length` on a value proven to be a built-in |
+| `go_println` | Python | Medium | Cross-Language | No | `fmt.Println()` (Go print) |
+| `php_strlen` | Python | High | Cross-Language | No | `strlen()` (PHP function) |
+| `god_function` | Python | High (Medium or Low when only long) | Complexity | No | Function over the logic-line or complexity limit |
+| `dead_code` | Python | Medium | Complexity | No | Unreachable statements after return/raise |
+| `deep_nesting` | Python | High | Complexity | No | Control-flow depth over the limit |
+| `nested_complexity` | Python | Critical | Complexity | No | Control-flow depth and cyclomatic complexity both over their limits |
+| `lint_escape` | Python | High (bare `# noqa`); Medium or Low for narrower suppressions | Lint | No | `# noqa`, `# type: ignore`, `# pylint: disable` |
+| `phantom_import` | Python | Critical | Imports | No | Import targets a package or module that does not exist |
+| `undeclared_optional_dependency` | Python | Medium | Imports | No | ImportError-guarded import not listed in optional dependencies |
+| `runtime_unavailable_dependency` | Python | Medium | Imports | No | Declared dependency unavailable in the analyzer runtime (environment evidence) |
+| `declared_outside_primary_metadata` | Python | Low | Imports | No | Dependency declared outside pyproject.toml project metadata |
+| `phantom_member` | Python | High | Imports | No | Imported name that the installed package does not define |
+| `placeholder_variable_naming` | Python | High | Naming | No | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
+| `exact_duplicate_pair` | Python | High (Critical for 4 or more functions) | Clones | No | Same-file duplicate functions after normalizing local names |
+| `function_clone_cluster` | Python | High (Critical for 6 or more functions) | Clones | No | Near-identical function clusters via AST JSD |
+| `js_var_usage` | JS/TS | Medium | JS/TS | No | `var` declaration |
+| `js_console_log` | JS/TS | Low | JS/TS | No | `console.log` / `warn` / `error` / `info` |
+| `js_any_type` | JS/TS | High | JS/TS | No | TypeScript `any` type |
+| `js_empty_arrow` | JS/TS | Medium | JS/TS | No | Empty arrow function body |
+| `js_double_equals` | JS/TS | Medium | JS/TS | No | Loose equality (`==` instead of `===`) |
+| `js_god_function` | JS/TS | High | JS/TS | No | Function over the size or complexity threshold |
+| `js_dead_code` | JS/TS | Medium | JS/TS | No | Unreachable statement after return/throw/break |
+| `js_callback_hell` | JS/TS | High | JS/TS | No | Callback nesting over the depth threshold |
+| `go_empty_func` | Go | High | Go | No | Empty function body (stub) |
+| `go_panic` | Go | Medium / Critical (from the 3rd panic in a file) | Go | No | `panic()` used as the error path |
+| `go_fmt_print` | Go | Medium | Go | No | Debug print via `fmt.Println` / `Printf` / `Print` |
+| `go_ignored_error` | Go | High | Go | No | Blank-identifier error suppression (`_ = expr`) |
+| `go_todo_comment` | Go | Low | Go | No | `// TODO` / `FIXME` / `HACK` comment |
+| `go_god_function` | Go | High | Go | No | Function over the line limit |
+<!-- ACTIVE_PATTERN_REGISTRY:END -->
 
 ---
 
@@ -524,7 +542,7 @@ def calculate():
 ### 8. XXX Comment
 
 **ID:** `xxx_comment`  
-**Severity:** MEDIUM  
+**Severity:** LOW  
 **Category:** Code Smell
 
 **Description:**  
@@ -542,7 +560,7 @@ def process():
 ### 9. HACK Comment
 
 **ID:** `hack_comment`  
-**Severity:** MEDIUM  
+**Severity:** HIGH  
 **Category:** Technical Debt
 
 **Description:**  
@@ -564,9 +582,18 @@ def workaround():
 
 ## Cross-Language Mistakes
 
+`js_push`, `java_equals`, `ruby_each`, and `csharp_length` are reported only when the
+receiver is proven to be a Python built-in: a built-in literal, or a name bound exactly
+once in the same scope, by a top-level statement before the use, to a built-in literal
+or an unshadowed built-in constructor (`list()`, `str()`, ...). On a built-in these
+members do not exist, so the call fails at run time. A parameter, an attribute
+(`self.pool.push(x)`), a factory result, or a name bound in a branch or rebound is not
+proven and is not reported: many real APIs are called `push` or `equals`
+(pandas `DataFrame.equals`, SymPy). `go_println` and `php_strlen` match the call itself.
+
 ### 10. JavaScript Array Push
 
-**ID:** `javascript_array_push`  
+**ID:** `js_push`  
 **Severity:** HIGH  
 **Category:** Cross-Language Contamination
 
@@ -590,40 +617,20 @@ items.append(1)  # ← Python way
 - Copy-paste from JavaScript examples
 - Lack of language-specific validation
 
-**Detection:**
+**Not reported:**
 ```python
-# Pattern matches:
-variable.push(arg)
+self.pool.push(item)   # an attribute: its type is not proven
+def add(stack, x):
+    stack.push(x)      # a parameter: its type is not proven
 ```
+
+**Auto-fix:** `--fix` rewrites the reported `.push(` to `.append(` (that occurrence only).
 
 ---
 
-### 11. JavaScript Array Length
+### 11. Java Equals Method
 
-**ID:** `javascript_array_length`  
-**Severity:** HIGH  
-**Category:** Cross-Language Contamination
-
-**Description:**  
-Using JavaScript's `.length()` method instead of Python's `len()` function.
-
-**Bad Example:**
-```python
-items = [1, 2, 3]
-count = items.length()  # ← JavaScript!
-```
-
-**Good Example:**
-```python
-items = [1, 2, 3]
-count = len(items)  # ← Python way
-```
-
----
-
-### 12. Java Equals Method
-
-**ID:** `java_equals_method`  
+**ID:** `java_equals`  
 **Severity:** HIGH  
 **Category:** Cross-Language Contamination
 
@@ -632,35 +639,16 @@ Using Java's `.equals()` method instead of Python's `==` operator.
 
 **Bad Example:**
 ```python
-if obj1.equals(obj2):  # ← Java!
+name = "slop"
+if name.equals(other):  # ← Java! str has no .equals()
     print("equal")
 ```
 
 **Good Example:**
 ```python
-if obj1 == obj2:  # ← Python way
+name = "slop"
+if name == other:  # ← Python way
     print("equal")
-```
-
----
-
-### 13. Java ToString Method
-
-**ID:** `java_tostring_method`  
-**Severity:** HIGH  
-**Category:** Cross-Language Contamination
-
-**Description:**  
-Using Java's `.toString()` method instead of Python's `str()` function.
-
-**Bad Example:**
-```python
-text = obj.toString()  # ← Java!
-```
-
-**Good Example:**
-```python
-text = str(obj)  # ← Python way
 ```
 
 ---
@@ -703,12 +691,8 @@ patterns:
     - "xxx_comment"       # Allow XXX comments
 ```
 
-### Severity Filtering
-
-```yaml
-patterns:
-  severity_filter: "high"  # Only report high+ severity
-```
+The same ids work on the command line (`--disable todo_comment`); an unknown id there is
+an error (exit code 2), and `--list-patterns` prints the Python ids.
 
 ---
 
@@ -742,69 +726,41 @@ pattern_penalty = min(pattern_penalty, 50)  # Cap at 50 points
 ### Example: Custom Pattern
 
 ```python
-from slop_detector.patterns.base import ASTPattern
-from slop_detector.patterns.base import Severity
+import ast
 
-class GlobalVariablePattern(ASTPattern):
-    id = "global_variable"
-    severity = Severity.MEDIUM
-    message = "Global variable used"
-    
-    def detect(self, tree, file, content):
-        issues = []
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Global):
-                issues.append(
-                    self.create_issue(
-                        node, 
-                        file,
-                        suggestion="Use class attributes or function parameters"
-                    )
-                )
-        return issues
+from slop_detector.patterns.base import ASTPattern, Axis, Severity
+
+
+class PrintCallPattern(ASTPattern):
+    id = "print_call"
+    severity = Severity.LOW
+    axis = Axis.NOISE
+    message = "print() call left in library code"
+
+    def check_node(self, node, file, content):
+        # Called for every AST node; return an Issue, a list of Issues, or None.
+        if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "print":
+            return self.create_issue_from_node(node, file, suggestion="Use logging instead")
+        return None
 ```
 
 ### Register Pattern
 
 ```python
 detector = SlopDetector()
-detector.pattern_registry.register(GlobalVariablePattern())
+detector.pattern_registry.register(PrintCallPattern())
 ```
 
 ---
 
 ## Pattern Summary Table
 
-| Pattern | ID | Severity | Category | Auto-Fix |
-|---------|----|----|----------|----------|
-| Bare Except | `bare_except` | Critical | Structural | No |
-| Mutable Default | `mutable_default_arg` | Critical | Structural | No |
-| Star Import | `star_import` | High | Structural | No |
-| Pass Placeholder | `pass_placeholder` | High | Placeholder | No |
-| Ellipsis Placeholder | `ellipsis_placeholder` | High | Placeholder | No |
-| TODO Comment | `todo_comment` | Medium | Debt | No |
-| FIXME Comment | `fixme_comment` | Medium | Debt | No |
-| XXX Comment | `xxx_comment` | Medium | Debt | No |
-| HACK Comment | `hack_comment` | Medium | Debt | No |
-| JS Array Push | `javascript_array_push` | High | Cross-Lang | Yes* |
-| JS Array Length | `javascript_array_length` | High | Cross-Lang | Yes* |
-| Java Equals | `java_equals_method` | High | Cross-Lang | Yes* |
-| Java ToString | `java_tostring_method` | High | Cross-Lang | Yes* |
-| Exact Duplicate Pair | `exact_duplicate_pair` | High | v3.8.5 | No |
-| Function Clone Cluster | `function_clone_cluster` | Critical | v3.1.0 | No |
-| Placeholder Naming | `placeholder_variable_naming` | High | v3.1.0 | No |
-| Return Constant Stub | `return_constant_stub` | High | v3.1.0 | No |
-| Nested Complexity | `nested_complexity` | Critical | v3.1.0 | No |
-| Console Log Debug | `console_log_debug` | Medium | JS/TS v3.4.0 | No |
-| Any Type Cast | `any_type_cast` | High | JS/TS v3.4.0 | No |
-| Disabled Test | `disabled_test` | High | JS/TS v3.4.0 | No |
-| Promise Ignore | `promise_ignore` | High | JS/TS v3.4.0 | No |
-| Error Discard | `error_discard` | Critical | Go v3.5.0 | No |
-| Empty Select | `empty_select` | High | Go v3.5.0 | No |
-| Go TODO | `todo_go` | Medium | Go v3.5.0 | No |
-| Unused Goroutine | `unused_goroutine` | High | Go v3.5.0 | No |
+The current table, with severity, language, and auto-fix for every active rule, is the
+[Quick Reference](#quick-reference) at the top of this page.
 
-*Auto-fix available in future versions
+`--fix --dry-run` is the safe way to discover whether a detected pattern has a
+registered patcher. Only a limited set of line-oriented fixes is available;
+clone, cleanup-family, and most structural findings require review.
 
 ---
 
@@ -943,7 +899,7 @@ it skips tiny trivial wrappers to reduce noise.
 
 ### function_clone_cluster
 
-**Severity:** CRITICAL | **Axis:** QUALITY
+**Severity:** HIGH (CRITICAL for 6 or more functions) | **Axis:** QUALITY
 
 Detects clusters of near-identical function bodies — the most common structural
 sign of AI-generated code that was copy-pasted instead of abstracted.
@@ -1024,96 +980,43 @@ def is_enabled():
 
 ## JavaScript / TypeScript
 
-*Added: v3.4.0 — requires `.js`, `.ts`, `.jsx`, `.tsx` file extensions*
+*Added: v3.4.0 — `.js`, `.ts`, `.jsx`, `.tsx` files. Uses tree-sitter when the `js` extra is
+installed and a regex fallback otherwise; both emit the same ids and severities.*
 
-### console_log_debug
-
-**Severity:** MEDIUM | `console_log_debug`
-
-`console.log()`, `console.debug()`, `console.warn()` leftover from debugging
-sessions. Use a logging library in production.
-
-### any_type_cast
-
-**Severity:** HIGH | `any_type_cast`
-
-`as any` or `: any` in TypeScript. Erases type information and signals the
-developer doesn't understand or trust the type system — a common AI shortcut.
-
-### disabled_test
-
-**Severity:** HIGH | `disabled_test`
-
-`describe.skip`, `it.todo`, `test.only`, `xit`, `xtest` — disabled or partial
-test blocks. Indicates test debt or incomplete implementation.
-
-### promise_ignore
-
-**Severity:** HIGH | `promise_ignore`
-
-Async function result is not `await`ed and has no `.catch()` — silent promise
-rejection. AI-generated async code frequently misses this.
+| ID | Severity | What it flags |
+|---|---|---|
+| `js_var_usage` | MEDIUM | `var` declaration (use `let` / `const`) |
+| `js_console_log` | LOW | `console.log` / `warn` / `error` / `info` left in code |
+| `js_any_type` | HIGH | TypeScript `any` type: erases type information |
+| `js_empty_arrow` | MEDIUM | Arrow function with an empty body |
+| `js_double_equals` | MEDIUM | Loose equality `==` instead of `===` |
+| `js_god_function` | HIGH | Function over 50 lines or cyclomatic complexity 10 |
+| `js_dead_code` | MEDIUM | Statement after `return` / `throw` / `break` |
+| `js_callback_hell` | HIGH | Nesting deeper than 4 levels |
 
 ---
 
 ## Go
 
-*Added: v3.5.0 — requires `.go` file extension*
+*Added: v3.5.0 — `.go` files.*
 
-### error_discard
-
-**Severity:** CRITICAL | `error_discard`
-
-`_ = someFunc()` silently discards the error return value. Go's error handling
-contract requires every error to be either checked or explicitly documented as safe
-to ignore. This is the Go equivalent of a bare except.
+| ID | Severity | What it flags |
+|---|---|---|
+| `go_empty_func` | HIGH | Function with an empty body (stub) |
+| `go_panic` | MEDIUM, CRITICAL from the 3rd `panic()` in a file | `panic()` used as the error path instead of returning an error |
+| `go_fmt_print` | MEDIUM | Debug print via `fmt.Println` / `Printf` / `Print` |
+| `go_ignored_error` | HIGH | Error discarded with the blank identifier (`_ = expr`) |
+| `go_todo_comment` | LOW | `// TODO` / `FIXME` / `HACK` comment |
+| `go_god_function` | HIGH | Function over 60 lines |
 
 ```go
-// CRITICAL:
+// go_ignored_error:
 _ = os.Remove(tmpFile)     // error silently discarded
 
 // Fix:
 if err := os.Remove(tmpFile); err != nil {
     log.Printf("failed to remove temp file: %v", err)
 }
-```
-
-### empty_select
-
-**Severity:** HIGH | `empty_select`
-
-`select {}` blocks the goroutine forever — typically a copy-paste placeholder
-for a real event loop. Also flags `select` with only a `default: break` that
-immediately exits without waiting.
-
-### todo_go
-
-**Severity:** MEDIUM | `todo_go`
-
-`// TODO` or `// FIXME` comment in Go source. Same debt signal as Python
-`todo_comment`.
-
-### unused_goroutine
-
-**Severity:** HIGH | `unused_goroutine`
-
-`go func() { ... }()` with no channel send/receive and no `sync.WaitGroup`
-usage — goroutine result is unobservable and its lifecycle is uncontrolled.
-Fire-and-forget without lifecycle management is a common AI-generated concurrency mistake.
-
-```go
-// Flagged:
-go func() {
-    result := expensiveComputation()  // result is lost; no channel, no wg
-    _ = result
-}()
-
-// Fix:
-ch := make(chan int, 1)
-go func() {
-    ch <- expensiveComputation()
-}()
-result := <-ch
 ```
 
 ---
