@@ -26,23 +26,6 @@ class JavaScriptPushPattern(ASTPattern):
         return None
 
 
-class JavaScriptLengthPattern(ASTPattern):
-    """Detect .length instead of len() (JavaScript pattern)."""
-
-    id = "js_length"
-    severity = Severity.HIGH
-    axis = Axis.QUALITY
-    message = "JavaScript pattern: use len() instead of .length"
-
-    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.Attribute):
-            if node.attr == "length":
-                return self.create_issue_from_node(
-                    node, file, suggestion="Use Python's len(object) function"
-                )
-        return None
-
-
 class JavaEqualsPattern(ASTPattern):
     """Detect .equals() instead of == (Java pattern)."""
 
@@ -61,24 +44,6 @@ class JavaEqualsPattern(ASTPattern):
         return None
 
 
-class JavaToStringPattern(ASTPattern):
-    """Detect .toString() instead of str() (Java pattern)."""
-
-    id = "java_tostring"
-    severity = Severity.HIGH
-    axis = Axis.QUALITY
-    message = "Java pattern: use str() instead of .toString()"
-
-    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Attribute):
-                if node.func.attr == "toString":
-                    return self.create_issue_from_node(
-                        node, file, suggestion="Use Python's str(object) function"
-                    )
-        return None
-
-
 class RubyEachPattern(ASTPattern):
     """Detect .each instead of for loop (Ruby pattern)."""
 
@@ -93,24 +58,6 @@ class RubyEachPattern(ASTPattern):
                 if node.func.attr == "each":
                     return self.create_issue_from_node(
                         node, file, suggestion="Use 'for item in collection:' in Python"
-                    )
-        return None
-
-
-class RubyNilPattern(ASTPattern):
-    """Detect .nil? instead of is None (Ruby pattern)."""
-
-    id = "ruby_nil"
-    severity = Severity.HIGH
-    axis = Axis.QUALITY
-    message = "Ruby pattern: use 'is None' instead of .nil?"
-
-    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Attribute):
-                if node.func.attr == "nil?":
-                    return self.create_issue_from_node(
-                        node, file, suggestion="Use 'if value is None:' in Python"
                     )
         return None
 
@@ -152,24 +99,6 @@ class CSharpLengthPattern(ASTPattern):
         return None
 
 
-class CSharpToLowerPattern(ASTPattern):
-    """Detect .ToLower() instead of .lower() (C# pattern)."""
-
-    id = "csharp_tolower"
-    severity = Severity.MEDIUM
-    axis = Axis.QUALITY
-    message = "C# pattern: use .lower() instead of .ToLower()"
-
-    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Attribute):
-                if node.func.attr == "ToLower":  # Capitalized
-                    return self.create_issue_from_node(
-                        node, file, suggestion="Use Python's .lower() method"
-                    )
-        return None
-
-
 class PHPStrlenPattern(ASTPattern):
     """Detect strlen() instead of len() (PHP pattern)."""
 
@@ -184,23 +113,5 @@ class PHPStrlenPattern(ASTPattern):
                 if node.func.id == "strlen":
                     return self.create_issue_from_node(
                         node, file, suggestion="Use Python's len() function"
-                    )
-        return None
-
-
-class PHPArrayPushPattern(ASTPattern):
-    """Detect array_push() instead of .append() (PHP pattern)."""
-
-    id = "php_array_push"
-    severity = Severity.HIGH
-    axis = Axis.QUALITY
-    message = "PHP pattern: use .append() instead of array_push()"
-
-    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Name):
-                if node.func.id == "array_push":
-                    return self.create_issue_from_node(
-                        node, file, suggestion="Use Python's list.append() method"
                     )
         return None

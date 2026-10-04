@@ -79,37 +79,3 @@ class GlobalStatementPattern(ASTPattern):
                 node, file, suggestion="Pass variables as arguments or use class attributes"
             )
         return None
-
-
-class ExecEvalPattern(ASTPattern):
-    """Detect exec/eval usage (security risk)."""
-
-    id = "exec_eval_usage"
-    severity = Severity.CRITICAL
-    axis = Axis.STRUCTURE
-    message = "exec/eval is a security risk - arbitrary code execution"
-
-    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Name):
-                if node.func.id in ("exec", "eval"):
-                    return self.create_issue_from_node(
-                        node, file, suggestion="Refactor to avoid dynamic code execution"
-                    )
-        return None
-
-
-class AssertInProductionPattern(ASTPattern):
-    """Detect assert statements (removed in optimized Python)."""
-
-    id = "assert_in_production"
-    severity = Severity.MEDIUM
-    axis = Axis.STRUCTURE
-    message = "Assert statements are removed when running with -O flag"
-
-    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
-        if isinstance(node, ast.Assert):
-            return self.create_issue_from_node(
-                node, file, suggestion="Use explicit if/raise for production code"
-            )
-        return None

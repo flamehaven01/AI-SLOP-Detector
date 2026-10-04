@@ -27,14 +27,14 @@ def bad_global_usage():
     global_var += 1
 
 
-# exec_eval_usage - Should trigger CRITICAL
+# exec/eval - not reported: a generic security lint, not an AI-slop signal
 def dangerous_code(user_input):
     exec(user_input)  # [!] Security risk
     result = eval(user_input)  # [!] Security risk
     return result
 
 
-# assert_in_production - Should trigger MEDIUM
+# assert - not reported: a generic lint rule, not an AI-slop signal
 def check_value(x):
     assert x > 0  # [!] Removed with -O flag
     return x * 2

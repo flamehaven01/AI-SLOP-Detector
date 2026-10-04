@@ -11,8 +11,6 @@ Supported patterns (auto-fixable):
   pass_placeholder     -> raise NotImplementedError
   ellipsis_placeholder -> raise NotImplementedError
   js_push              -> .append(
-  js_length            -> len(...)
-  js_to_lower          -> .lower()
   js_to_upper          -> .upper()
   csharp_length        -> len(...)
   return_none_placeholder -> (annotate only, no structural change)
@@ -168,22 +166,6 @@ def _fix_js_push(lines: List[str], idx: int, issue) -> Optional[FixChange]:
     return None
 
 
-@_register("js_length")
-def _fix_js_length(lines: List[str], idx: int, issue) -> Optional[FixChange]:
-    line = lines[idx]
-    # obj.length -> len(obj)
-    new_line = re.sub(r"(\w+)\.length\b", r"len(\1)", line)
-    if new_line != line:
-        return FixChange(
-            pattern_id="js_length",
-            line=idx + 1,
-            original=line,
-            replacement=new_line,
-            confidence=0.88,
-        )
-    return None
-
-
 @_register("csharp_length")
 def _fix_csharp_length(lines: List[str], idx: int, issue) -> Optional[FixChange]:
     line = lines[idx]
@@ -195,21 +177,6 @@ def _fix_csharp_length(lines: List[str], idx: int, issue) -> Optional[FixChange]
             original=line,
             replacement=new_line,
             confidence=0.85,
-        )
-    return None
-
-
-@_register("csharp_to_lower")
-def _fix_csharp_to_lower(lines: List[str], idx: int, issue) -> Optional[FixChange]:
-    line = lines[idx]
-    new_line = re.sub(r"\.ToLower\(\)", ".lower()", line)
-    if new_line != line:
-        return FixChange(
-            pattern_id="csharp_to_lower",
-            line=idx + 1,
-            original=line,
-            replacement=new_line,
-            confidence=0.95,
         )
     return None
 
@@ -248,11 +215,9 @@ class FixEngine:
     UNFIXABLE_PATTERNS = {
         "star_import",
         "global_statement",
-        "exec_eval_usage",
         "todo_comment",
         "fixme_comment",
         "hack_comment",
-        "assert_in_production",
     }
 
     def fix_file(

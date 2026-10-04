@@ -190,6 +190,32 @@ instead of re-judging metrics.
 - The analysis cache is unchanged: connection evidence is not part of a
   cached file result.
 
+### Removed (pattern registry reconciliation)
+
+Seven pattern classes had been in the source since v2.5.0 without ever being
+registered: no scan ran them, `--list-patterns` never showed them, and no
+release offered them. Each was measured on the same 9 codebases by
+registering it in memory only, then removed. Findings, scores, and statuses
+do not change.
+
+- `js_length` (`.length`): 28 hits, all legitimate fields such as
+  `metadata.length` (0 of 28 were slop). Registered, it would have moved 2
+  files to a worse status, and its autofix would have rewritten
+  `metadata.length` to `len(metadata)`. Removed with that fixer.
+- `java_tostring`, `csharp_tolower`, `php_array_push`: 0 hits. Zero hits is
+  no evidence of value, and Java/.NET interop code calls `.toString()` and
+  `.ToLower()` legitimately. Removed with the `csharp_to_lower` fixer, whose
+  id never matched the pattern.
+- `ruby_nil`: could never fire. It looked for an attribute named `nil?`,
+  which Python cannot parse.
+- `exec_eval_usage` (81 hits) and `assert_in_production` (1,065 hits): they
+  find real `exec`/`eval` and `assert`, but those are generic security and
+  lint rules, not AI-slop signals. Registered, they would have moved 12 and
+  21 files to another status, and one project (LMCache) from clean to
+  suspicious. The test corpus no longer says they "should trigger".
+- A test now fails when a concrete pattern class is not a default detector,
+  so a pattern cannot sit unregistered again.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in
