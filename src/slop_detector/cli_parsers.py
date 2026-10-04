@@ -90,7 +90,7 @@ Examples:
     parser.add_argument(
         "--cross-file",
         action="store_true",
-        help="Run cross-file analysis (cycles, duplicates, hotspots)",
+        help="Run cross-file analysis (cycles, duplicates, hotspots, connection evidence)",
     )
     parser.add_argument(
         "--governance",

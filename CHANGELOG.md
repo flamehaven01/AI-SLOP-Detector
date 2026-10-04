@@ -139,6 +139,37 @@ instead of re-judging metrics.
   still non-clean at the same score.
 - The analysis cache version moves to `analysis-cache-v19`.
 
+### Added (connection evidence, candidate-only)
+
+- `--cross-file` adds `structure_evidence.connections`: for every top-level
+  function and class in a non-test file, the evidence that connects it (call,
+  reference, registry entry, registering decorator, `__all__`, package
+  re-export, pyproject script or entry point, each kept by kind) and one state:
+  `connected`, `externally_exposed`, `dynamic_unknown`, `unmeasured`, or
+  `disconnected_candidate`. The text output shows the counts and a few
+  candidates. See docs/IMPORT_GRAPH.md.
+- Candidate-only: no finding, no score or status change (`score_effect:
+  "none"`), methods not evaluated. The default scan, `sweep`, and MCP do not
+  run it. `dynamic_unknown` and `unmeasured` are local to a symbol: an
+  unresolved import that cannot name it changes nothing.
+- On 9 codebases (1,000 scanned files, 6,733 symbols): 6,082 connected, 144
+  exposed, 136 dynamic, 130 unmeasured, 241 disconnected candidates. A first
+  pass had 390 candidates; the review found imports that resolve only from a
+  script directory, an app root, or a plugin's `src`, package scans through
+  `__path__`, module paths built from strings, modules stored and called
+  through attributes, and `eval`, and each became `unmeasured` or
+  `dynamic_unknown` instead. Of the 241: 134 are named in no other Python file
+  of their repository, 68 only in test files, 39 in other non-test files. A
+  hand review of those 39 found 3 real uses the evidence misses (a function
+  called from a generated hook script, two connector classes an external
+  framework loads by name), 5 public library functions nothing in the
+  repository calls, and 31 with no use of that definition (a same-named
+  definition elsewhere, a comment, or an import that is never used). On this
+  repository the 28 candidates include 7 pattern classes that are defined but
+  never registered.
+- The analysis cache is unchanged: connection evidence is not part of a
+  cached file result.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in

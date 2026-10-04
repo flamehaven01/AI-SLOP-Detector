@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Set, Tuple
 
+from slop_detector.analysis import connection_evidence
 from slop_detector.analysis.import_graph import ImportEdge, build_import_edges, hard_graph
 from slop_detector.analysis.structure_evidence import build_structure_evidence
 
@@ -207,6 +208,7 @@ class CrossFileAnalyzer:
         project_path: str,
         file_analyses: List,  # List[FileAnalysis] from core.py
         slop_threshold: float = HOTSPOT_SLOP_THRESHOLD,
+        connections: bool = False,
     ) -> CrossFileReport:
         """
         Run cross-file analysis.
@@ -215,6 +217,8 @@ class CrossFileAnalyzer:
             project_path:   Root directory of the project.
             file_analyses:  List of FileAnalysis from SlopDetector.
             slop_threshold: Score above which a file is considered sloppy.
+            connections:    Add `structure_evidence.connections` (candidate-only
+                            connection evidence per top-level symbol; no score effect).
         """
         root = Path(project_path).resolve()
         py_files = [
@@ -252,6 +256,10 @@ class CrossFileAnalyzer:
         report.import_graph = {key: sorted(value) for key, value in import_graph.items()}
         report.import_edges = import_edges
         report.structure_evidence = build_structure_evidence(import_edges, self.GRAPH_TOP_N)
+        if connections:
+            report.structure_evidence["connections"] = connection_evidence.build_connections(
+                root, py_files, tree_cache, import_edges
+            )
 
         return report
 

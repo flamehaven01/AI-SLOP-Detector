@@ -126,6 +126,7 @@ def _run_cross_file(result) -> None:
     report = analyzer.analyze(
         result.project_path,
         result.file_results,
+        connections=True,
     )
 
     print("\n[Cross-File Analysis]")
@@ -156,6 +157,33 @@ def _run_cross_file(result) -> None:
 
     if not report.import_cycles and not report.duplicates and not report.hotspots:
         _print_no_issue_verdict(evidence["coverage"])
+
+    _print_connections(evidence["connections"])
+
+
+_CONNECTION_SHOWN = 5
+
+
+def _print_connections(block) -> None:
+    """Connection evidence summary; candidates are for review, not findings."""
+    summary = block["summary"]
+    print(
+        f"\n  Connections ({summary['candidates']} top-level functions/classes): "
+        f"{summary['connected']} connected, {summary['externally_exposed']} exposed, "
+        f"{summary['dynamic_unknown']} dynamic, {summary['unmeasured']} unmeasured, "
+        f"{summary['disconnected_candidate']} disconnected candidates"
+    )
+    candidates = [r for r in block["symbols"] if r["state"] == "disconnected_candidate"]
+    if not candidates:
+        return
+    print("  Disconnected candidates (no connection evidence found; review before acting):")
+    for row in candidates[:_CONNECTION_SHOWN]:
+        tested = " (referenced by tests)" if row["test_referenced"] else ""
+        print(f"    {Path(row['file']).name}:{row['line']} {row['name']}{tested}")
+    if len(candidates) > _CONNECTION_SHOWN:
+        print(f"    ... and {len(candidates) - _CONNECTION_SHOWN} more")
+    if not summary["test_files_seen"]:
+        print("  Test files were not in the scan, so test references are not known.")
 
 
 _PHASE_WORDS = {

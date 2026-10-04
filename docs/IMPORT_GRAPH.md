@@ -22,7 +22,7 @@ itself.
 
 | Surface | What you get |
 |---|---|
-| `slop-detector --project <dir> --cross-file` | Text summary: import resolution counts, import cycles, circular groups, most imported file |
+| `slop-detector --project <dir> --cross-file` | Text summary: import resolution counts, import cycles, circular groups, most imported file, connection evidence summary with a few disconnected candidates |
 | `slop-detector sweep <family> <dir> --json` (every family) | `summary.structure_evidence` |
 | `CrossFileAnalyzer().analyze(...)` (Python API) | `import_graph` (unchanged), `import_edges` (one row per import), `structure_evidence` |
 
@@ -136,6 +136,51 @@ Every row says how to read it:
 | `unknown` | `unknowns` | An internal import that could not be checked. |
 
 Count findings from `import_cycles` or `issues`, not from `structure_evidence`.
+
+## Connection evidence (`--cross-file` only)
+
+`structure_evidence.connections` says, for every top-level function and class in a
+non-test file, what connects it to the rest of the code. It is computed only by
+`--cross-file` (or `CrossFileAnalyzer().analyze(..., connections=True)`); the default scan,
+`sweep`, and the MCP tools never run it. It creates no finding and changes no score or
+status (`score_effect: "none"`). Methods are not evaluated.
+
+Evidence is kept by kind:
+
+| Kind | Meaning |
+|---|---|
+| `direct_call`, `direct_reference` | The name is called or used (passed, subclassed, annotated) in another place. An import alone is not a use, and a symbol's own body does not count. |
+| `registry_reference` | The name is an entry of an assigned dict, list, tuple, or set. |
+| `decorator_registration` | A decorator that registers with a framework: `route`, `get`/`post`/..., `command`, `group`, `task`, `register`, `fixture`, `hookimpl`, and a few more (a leading `_` is ignored). `@dataclass`, `@property`, `@lru_cache` and similar are evidence of nothing. |
+| `public_export` | Listed in `__all__`. |
+| `package_reexport` | Bound by a package `__init__.py` (read even when the scan skips `__init__.py`). |
+| `pyproject_script`, `pyproject_entry_point` | Named by `[project.scripts]`, `[project.gui-scripts]`, `[project.entry-points]`, or the Poetry equivalents. |
+
+One state per symbol, the first that applies:
+
+| `state` | When |
+|---|---|
+| `connected` | Any of the first four kinds. Every other kind found is kept beside it. |
+| `externally_exposed` | No internal connection, but an export, re-export, script, or entry point. |
+| `dynamic_unknown` | The code can reach the name in a way static reading cannot follow: an unknown decorator, `getattr` with a computed name, `importlib`/`__import__`, `globals()`, a module `__getattr__`, `eval`/`exec`, a package scan through `__path__`, a module object stored and used through attributes, a string equal to the name, or a dotted string naming the module. |
+| `unmeasured` | Evidence this symbol needs was not collected: an unresolved import, or one that resolves only with part of the project on `sys.path` (a script directory, an app root, a plugin's `src`), an unparsed file, or an unreadable `pyproject.toml` that may name it. |
+| `disconnected_candidate` | The collectors ran and found none of the above. |
+
+`dynamic_unknown` and `unmeasured` are local to the symbol: an unresolved import elsewhere
+that cannot name it changes nothing. `test_referenced` records a use from a test file and
+never changes the state; `summary.test_files_seen` says whether any test file was in the scan
+(the default configuration excludes `tests/`). Each row carries `reasons` for the dynamic and
+unmeasured states and up to five evidence sites (`evidence_counts` has the totals).
+
+A disconnected candidate is a question for a person, not a verdict. It does not see:
+
+- code generated or run from strings (a hook script written from a template),
+- names loaded by another program from configuration (a framework that imports a connector
+  class named in its settings),
+- public library API that nothing in the repository calls, when there is no `__all__`,
+- uses from files outside the scan, such as tests under the default configuration,
+- a local variable that shadows a top-level name (it reads as a use, so the error leans toward
+  `connected`).
 
 ## Example
 
