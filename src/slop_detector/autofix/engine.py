@@ -151,8 +151,12 @@ def _fix_ellipsis_placeholder(lines: List[str], idx: int, issue) -> Optional[Fix
 
 @_register("js_push")
 def _fix_js_push(lines: List[str], idx: int, issue) -> Optional[FixChange]:
+    # Only the reported call: the finding's column is where its receiver starts.
     line = lines[idx]
-    new_line = line.replace(".push(", ".append(")
+    at = line.find(".push(", getattr(issue, "column", 0))
+    if at < 0:
+        return None
+    new_line = line[:at] + ".append(" + line[at + len(".push(") :]
     if new_line != line:
         return FixChange(
             pattern_id="js_push",
@@ -164,10 +168,17 @@ def _fix_js_push(lines: List[str], idx: int, issue) -> Optional[FixChange]:
     return None
 
 
+_LENGTH_AT = re.compile(r"(\w+)\.Length\b")
+
+
 @_register("csharp_length")
 def _fix_csharp_length(lines: List[str], idx: int, issue) -> Optional[FixChange]:
+    # Only the reported attribute, whose receiver name starts at the finding's column.
     line = lines[idx]
-    new_line = re.sub(r"(\w+)\.Length\b", r"len(\1)", line)
+    match = _LENGTH_AT.match(line, getattr(issue, "column", 0))
+    if match is None:
+        return None
+    new_line = line[: match.start()] + f"len({match.group(1)})" + line[match.end() :]
     if new_line != line:
         return FixChange(
             pattern_id="csharp_length",

@@ -109,7 +109,8 @@ items.push(1)  # Should trigger
 def test_java_equals():
     """Test Java equals pattern detection."""
     code = """
-if text1.equals(text2):  # Should trigger
+text1 = "hello"
+if text1.equals(text2):  # Should trigger: text1 is proven to be a str
     pass
 """
     tree = ast.parse(code)

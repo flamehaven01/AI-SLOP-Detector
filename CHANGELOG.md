@@ -221,6 +221,27 @@ do not change.
   docstring no longer lists fixers that do not exist (`js_length`,
   `js_to_lower`, `js_to_upper`, `return_none_placeholder`).
 
+### Changed (cross-language precision)
+
+- `js_push`, `java_equals`, `ruby_each`, and `csharp_length` fire only when
+  the receiver is proven to be a Python built-in: a built-in literal, or a
+  name bound exactly once in the same scope, by a top-level statement before
+  the use, to a built-in literal or an unshadowed built-in constructor
+  (`items = []; items.push(x)`). They used to fire on any method or attribute
+  of that name, so `self.pool.push(x)`, `df.equals(other)`, or a .NET
+  `.Length` were reported. A parameter, an attribute, a factory result, or a
+  name bound in a branch or rebound is not proven and is not a finding.
+- On the 9 codebases the registered cross-language patterns had 2 hits, both
+  `js_push` and both false positives (a class's own `push` method, another
+  object's `push`); both are gone. One file moves from inflated_signal to
+  suspicious (51.41 to 49.41), and the LMCache project score goes from 27.75
+  to 27.69 (still clean); every other file is unchanged. `go_println` and
+  `php_strlen` are unchanged. Pattern ids, `--list-patterns`, `--disable`,
+  and the config disabled list are unchanged.
+- The `js_push` and `csharp_length` fixers rewrite only the reported
+  occurrence (at the finding's column), not every `.push(` or `.Length` on
+  the line.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in
