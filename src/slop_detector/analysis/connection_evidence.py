@@ -694,7 +694,7 @@ def _pyproject_entries(data: Dict[str, Any]) -> List[Tuple[str, str]]:
 
 
 def _find_pyproject(root: Path) -> Optional[Path]:
-    for directory in (root, *root.parents[:2]):
+    for directory in (root, *list(root.parents)[:2]):  # Path.parents slices from 3.10
         if (directory / "pyproject.toml").is_file():
             return directory / "pyproject.toml"
     return None
