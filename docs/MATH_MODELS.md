@@ -1,4 +1,7 @@
-# Mathematical Models Reference — AI-SLOP Detector v3.7.9
+# Mathematical Models Reference — AI-SLOP Detector
+
+**Current contract:** `main` after v3.9.1 (unreleased changes included). Historical rows below describe prior
+releases; current defaults and formulas are identified explicitly.
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.
@@ -33,18 +36,26 @@ ldr_score = logic_lines / total_lines        (if total_lines > 0, else 0.0)
 ```
 
 Where:
-- `total_lines` = all non-empty lines (blank lines counted separately)
-- `logic_lines` = lines that are not blank, not pure comments, not docstrings,
-  not structural tokens (class/def/pass/return alone, etc.)
+- `total_lines` = source lines that are not blank, not comments, and not
+  docstrings (comments and docstrings are excluded from both counts)
+- `logic_lines` = `total_lines` minus empty lines: any `pass`, `...`, or
+  `raise NotImplementedError` line, and every line of an empty function. A
+  function is empty when its body, after an optional leading docstring, is only
+  `pass`, `...`, or a bare `return` / `return None`. A body that calls something
+  is implementation, not a stub.
 
 ### Grade Table
 
-| Grade | Condition      | Interpretation                        |
-|-------|----------------|---------------------------------------|
-| A     | ldr >= 0.60    | High density — substantial logic      |
-| B     | ldr >= 0.45    | Adequate density                      |
-| C     | ldr >= 0.30    | Low density — likely padded           |
-| D     | ldr < 0.30     | Very low density — probable slop      |
+Grades come from the configured LDR thresholds (defaults shown):
+
+| Grade      | Condition      |
+|------------|----------------|
+| excellent  | ldr >= 0.85    |
+| good       | ldr >= 0.75    |
+| acceptable | ldr >= 0.60    |
+| warning    | ldr >= 0.45    |
+| critical   | ldr >= 0.30    |
+| F          | ldr < 0.30     |
 
 ### Special Exemptions
 
@@ -64,20 +75,26 @@ since structural boilerplate is expected.
 ### Formula
 
 ```
-density            = unjustified_jargon_count / max(logic_lines, 1)
-complexity_modifier = max(1.0, 1.0 + (avg_complexity - 3.0) / 10.0)
-inflation_score    = min(density * complexity_modifier * 10.0, 10.0)
+density             = unjustified_jargon_count / max(logic_lines, 15)
+complexity_modifier = max(1.0, 1.0 + (avg_complexity - 1.0) / 10.0)
+inflation_score     = min(density * complexity_modifier * 10.0, 10.0)
+
+# logic_lines == 0: inflation_score = 10.0 if any unjustified jargon, else 0.0
+# The floor of 15 lines keeps one hit in a tiny file from dominating.
 ```
+
+Jargon is counted only in prose: comments, docstrings, and string literals.
+Code tokens (identifiers, import paths), a leading license notice, dict keys,
+and argparse `help` / `description` / `epilog` / `usage` text are not claims.
 
 ### Complexity Modifier Behaviour
 
 | avg_complexity | modifier | Effect                                    |
 |---------------|----------|-------------------------------------------|
-| <= 3          | 1.0x     | No amplification (simple code baseline)   |
-| 6             | 1.3x     | Moderate amplification                    |
-| 10            | 1.7x     | Significant amplification                 |
-| 13            | 2.0x     | Double penalty                            |
-| 23            | 3.0x     | Triple penalty                            |
+| 1             | 1.0x     | No amplification (simplest code baseline) |
+| 6             | 1.5x     | Moderate amplification                    |
+| 11            | 2.0x     | Double penalty                            |
+| 21            | 3.0x     | Triple penalty                            |
 
 **Key property:** `complexity_modifier` is clamped to `[1.0, +inf)`. Complexity
 can only increase the penalty — never reduce it. This prevents a complex god
@@ -85,12 +102,15 @@ function from hiding behind its own algorithmic weight.
 
 ### Score Interpretation
 
-| Range    | Status      |
-|----------|-------------|
-| 0.0–1.0  | Low         |
-| 1.0–3.0  | Moderate    |
-| 3.0–6.0  | High        |
-| 6.0–10.0 | Extreme     |
+| Range     | Report status | Warning                      |
+|-----------|---------------|------------------------------|
+| <= 0.5    | PASS          | none                         |
+| 0.5–1.0   | WARNING       | "High inflation ratio"       |
+| > 1.0     | FAIL          | "CRITICAL: Inflation ratio"  |
+
+For the deficit score the inflation dimension is normalized as
+`min(inflation_score, 2.0) / 2.0` (Section 4), so values above 2.0 add nothing
+further to the base deficit.
 
 ### Prior Formula (deprecated v2.7.x)
 
@@ -108,20 +128,22 @@ inflation_score = jargon_count * weight / (avg_complexity + 1)
 ### Formula
 
 ```
-usage_ratio = len(actually_used) / len(imported)    (if imported else 1.0)
+usage_ratio = len(used_runtime_imports) / len(runtime_imports)    (if any, else 1.0)
 ```
 
-Where `actually_used` is the intersection of imported names with names found
-in the AST body (function calls, attribute accesses, type annotations).
+Where `runtime_imports` are the imported libraries that are expected to have a
+runtime footprint (type-checking-only and similar imports are excluded) and
+`used_runtime_imports` are those referenced in the AST body (function calls,
+attribute accesses, type annotations).
 
 ### Grade Table
 
-| Grade | Condition         | Interpretation              |
-|-------|-------------------|-----------------------------|
-| A     | ratio >= 0.80     | Imports well-used           |
-| B     | ratio >= 0.60     | Some unused, acceptable     |
-| C     | ratio >= 0.40     | Significant dead imports    |
-| D     | ratio < 0.40      | Likely hallucinated imports |
+| Grade      | Condition      |
+|------------|----------------|
+| EXCELLENT  | ratio >= 0.90  |
+| GOOD       | ratio >= 0.70  |
+| ACCEPTABLE | ratio >= 0.50  |
+| SUSPICIOUS | ratio < 0.50   |
 
 **Supplementary signal:** `fake_imports` — imports that are in the AST but
 resolve to no known purpose (ML, HTTP, DB libs imported then never referenced
@@ -154,7 +176,7 @@ total_w = w_ldr + w_inflation + w_ddc + w_purity
 
 pattern_penalty = Sigma(severity_weight[sev] * count[sev])
 
-deficit_score = base_deficit + pattern_penalty
+deficit_score = min(base_deficit + pattern_penalty, 100)
 ```
 
 ### Default Weights (v3.7.0+)
@@ -173,17 +195,16 @@ shipped configuration defaults; they are not evidence that one global weight
 set has been externally validated. Local self-calibration is repository-scoped
 and separately bounded; see [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
-### Pattern Severity Penalties (added after weighted sum, before x100)
+### Pattern Severity Penalties (added after the 0-100 base deficit)
 
 | Severity | Penalty per occurrence |
 |----------|------------------------|
-| critical | 0.10                   |
-| high     | 0.05                   |
-| medium   | 0.02                   |
-| low      | 0.01                   |
+| critical | 10.0                   |
+| high     | 5.0                    |
+| medium   | 2.0                    |
+| low      | 1.0                    |
 
-The sum is capped internally so that extreme pattern counts cannot push the
-score above 100.
+The penalty sum is capped at 50 points, and the final deficit at 100.
 
 ---
 
@@ -191,10 +212,12 @@ score above 100.
 
 > **v2.8.0 redesign.** Prior versions had multi-axis branching (separate LDR,
 > DDC, pattern-count branches) that could produce inconsistent status for
-> identical deficit scores. v2.8.0 uses a **single monotonic axis** on
-> `deficit_score`, with two explicit supplementary overrides.
+> identical deficit scores. v2.8.0 introduced a **single monotonic axis** on
+> `deficit_score`. On `main` after v3.9.1 a status is *only* the band of the score: the
+> two supplementary overrides (5+ critical patterns on a clean file, and the
+> `DEPENDENCY_NOISE` status) were removed.
 
-### Primary Axis
+### Bands (`diagnostic_bands.py`)
 
 ```
 deficit_score >= 70  -->  CRITICAL_DEFICIT
@@ -203,28 +226,26 @@ deficit_score >= 30  -->  SUSPICIOUS
 else                 -->  CLEAN
 ```
 
-### Supplementary Overrides (applied after primary axis)
+The same bands apply to files, the project (its line-weighted deficit), and
+JS/TS and Go results. They are product semantics, not configuration.
+
+### Flags (beside the band, never instead of it)
 
 ```
-IF critical_pattern_count >= 5 AND status == CLEAN:
-    status = SUSPICIOUS
-
-IF ddc_usage_ratio < 0.20 AND status in {CLEAN, SUSPICIOUS}:
-    status = DEPENDENCY_NOISE
+dependency_noise : DDC usage < 0.20, DDC not skipped, no critical pattern,
+                   inflation_score <= 1.0
+parse_error      : the file could not be parsed (deficit 100, excluded from
+                   the project's metric averages)
 ```
-
-**Key property:** Overrides can only *raise* status, never lower it.
-A file already at `INFLATED_SIGNAL` or `CRITICAL_DEFICIT` is unaffected.
 
 ### Status Semantics
 
 | Status             | Meaning                                          |
 |--------------------|--------------------------------------------------|
-| CLEAN              | No significant quality issues detected           |
+| CLEAN              | Deficit below 30 on the measured signals         |
 | SUSPICIOUS         | Marginal quality — review recommended            |
 | INFLATED_SIGNAL    | High jargon or low logic density — likely AI pad |
 | CRITICAL_DEFICIT   | Severe multi-dimensional deficit                 |
-| DEPENDENCY_NOISE   | Import graph dominated by unused dependencies    |
 
 ---
 
@@ -258,9 +279,13 @@ the dragging file.
 avg_deficit_score        = mean(file.deficit_score for file in project)
 weighted_deficit_score   = sum(file.deficit_score * file.total_lines)
                            / sum(file.total_lines)   [line-weighted mean]
-avg_inflation            = mean(file.inflation.inflation_score)
-avg_ddc                  = mean(file.ddc.usage_ratio)
+avg_inflation            = mean(finite file.inflation.inflation_score, parsed Python files)
+avg_ddc                  = mean(file.ddc.usage_ratio, parsed Python files)
 ```
+
+The project status is the band of `weighted_deficit_score`. A file that could
+not be parsed counts in the deficit averages (score 100, weighted by its lines)
+but not in the metric averages, which describe parsed code only.
 
 ---
 
@@ -271,16 +296,13 @@ avg_ddc                  = mean(file.ddc.usage_ratio)
 ### 7.1 Cyclomatic Complexity
 
 ```
-complexity(fn) = 1 + count(
-    If, IfExp,
-    For, While, ExceptHandler,
-    With,
-    BoolOp[op=And], BoolOp[op=Or]
-)
+complexity(fn) = 1
+    + count(If, For, While, ExceptHandler, With, AsyncWith, AsyncFor)
+    + sum(len(values) - 1 for each BoolOp)
 ```
 
 This is a simplified McCabe metric implemented over the AST. Each branching
-node adds 1 to the base complexity of 1.
+node adds 1 to the base complexity of 1, and `a and b and c` adds 2.
 
 ### 7.2 God Function
 
@@ -296,7 +318,8 @@ is_god_function = (
 Logic lines within a function are counted the same way as file-level LDR:
 executable statements excluding blank lines and pure comments.
 
-**Severity:** HIGH
+**Severity:** HIGH when the complexity limit is exceeded; LOW when only long
+and complexity <= 5; MEDIUM otherwise.
 
 ### 7.3 Deep Nesting
 
@@ -372,24 +395,26 @@ justified(jargon_at_line L, fn) =
     )
 ```
 
-Where `justifier_lines` includes:
-- Import statements that import a known domain library
-- Decorator lines referencing domain-specific decorators
-- Function-body usage of domain APIs
+Where `justifier_lines` are the lines where code *uses* a name imported from a
+justifying library of the jargon's category (aliases included: `import torch as
+T` ... `T.nn`), plus cache decorators and `.vectorize` for quality claims. An
+import statement alone justifies nothing; comments, strings, identifier names,
+and the claim word itself are never evidence. Jargon at module level (outside
+any function) is justified when the library is used anywhere in the file.
 
 ### Example
 
 ```python
-import torch  # line 1 — file-scope; does NOT justify line 20
+import torch                  # line 1: an import alone justifies nothing
 
-def encode(data):          # scope [10, 18]
-    return base64(data)    # line 12: "encode" jargon here IS NOT justified
-                           # (torch import is outside scope)
+def rank(rows):               # scope [3, 5]
+    # Neural ranking of rows. # line 4: "neural" is NOT justified
+    return sorted(rows)       #   (torch is not used in this function)
 
-@torch.jit.script          # line 20 — inside scope [20, 28]
-def transform(tensor):     # line 21
-    return tensor * 2.0    # line 23: "transform" jargon IS justified
-                           # (decorator at line 20 is in scope)
+@torch.jit.script             # line 7: a use of torch, inside scope [7, 10]
+def scale(t):
+    # Neural scaling.         # line 9: "neural" IS justified
+    return t * 2.0
 ```
 
 ---
@@ -399,7 +424,7 @@ def transform(tensor):     # line 21
 > ML scoring is an **optional secondary signal**. No model file = no scoring.
 > The rule-based `deficit_score` remains the authoritative primary signal.
 
-### Feature Vector (17 dimensions)
+### Feature Vector (16 dimensions)
 
 | # | Feature Name              | Source                                  | Range     |
 |---|---------------------------|-----------------------------------------|-----------|
@@ -414,7 +439,7 @@ def transform(tensor):     # line 21
 | 9 | `dead_code_count`         | v2.8.0 pattern (Section 7.4)            | [0, +inf) |
 |10 | `deep_nesting_count`      | v2.8.0 pattern (Section 7.3)            | [0, +inf) |
 |11 | `avg_complexity`          | radon cyclomatic mean over file         | [1, +inf) |
-|12 | `cross_language_patterns` | patterns from wrong-language idioms     | [0, +inf) |
+|12 | `cross_language_patterns` | pattern ids containing `cross` or `language` | [0, +inf) |
 |13 | `hallucination_count`     | pattern_id contains "hallucin"          | [0, +inf) |
 |14 | `total_lines`             | LDR result                              | [0, +inf) |
 |15 | `logic_lines`             | LDR result                              | [0, +inf) |
@@ -430,13 +455,13 @@ label = 0 (clean)  if deficit_score <  30.0
 The threshold of 30 corresponds to the SUSPICIOUS boundary on the primary
 status axis (Section 5).
 
-### Supported Model Types
+### Model
 
-| Type            | Identifier        | Backend                    |
-|-----------------|-------------------|----------------------------|
-| Random Forest   | `random_forest`   | `sklearn.ensemble`         |
-| XGBoost         | `xgboost`         | `xgboost.XGBClassifier`    |
-| Ensemble (soft) | `ensemble`        | RF + XGB probability mean  |
+The runtime scorer reads one model type: a pure-Python threshold classifier
+(`threshold_classifier_gaussian_nb`) stored as a JSON artifact. No pickled
+model is read. The RandomForest/XGBoost `SlopClassifier` in `ml/classifier.py`
+belongs to the legacy training pipeline (`ml/pipeline.py`) and is not used for
+scoring.
 
 ---
 
@@ -449,9 +474,9 @@ status axis (Section 5).
 class MLScore:
     slop_probability: float   # [0, 1] — probability this file is slop
     confidence: float         # [0, 1] — max class probability (model certainty)
-    model_type: str           # "random_forest" | "xgboost" | "ensemble"
+    model_type: str           # "threshold_classifier_gaussian_nb"
     agreement: bool           # True if rule-based and ML agree (see below)
-    features_used: int        # always 16 in v2.8.0
+    features_used: int        # len(FEATURES) = 16
 ```
 
 ### Label Thresholds
@@ -515,6 +540,10 @@ training without requiring a real codebase:
 
 | Version | Signal    | Change                                                          |
 |---------|-----------|-----------------------------------------------------------------|
+| unreleased | Status | Status is only the band of the score; overrides removed, `dependency_noise` and `parse_error` are flags |
+| unreleased | LDR    | Docstrings excluded like comments; call-only functions are not empty |
+| unreleased | ICR    | Dict keys and argparse help/description/epilog/usage text are not claims |
+| v3.9.1  | ICR       | Jargon counted in prose only (not code tokens or license notices); justification needs structural use |
 | v3.7.3  | Config    | Pydantic import made optional (try/except); package always loads |
 | v3.7.2  | Config    | `_validate_yaml_config()` — Layer 1 guard at YAML load time     |
 | v3.7.2  | Models    | `__post_init__` clamps on LDR/Inflation/DDC results (Layer 2)   |
@@ -539,39 +568,30 @@ training without requiring a real codebase:
 
 ---
 
-## Appendix B: Configuration Overrides
+## Appendix B: Configured Weights
 
-All weights and thresholds are overridable via `.slopconfig.yaml`:
+The four metric weights are configurable through `.slopconfig.yaml`:
 
 ```yaml
 weights:
   ldr: 0.40
   inflation: 0.30
-  ddc: 0.30
+  ddc: 0.20
   purity: 0.10
 
-thresholds:
-  deficit:
-    suspicious: 30
-    inflated: 50
-    critical: 70
-  ldr:
-    grade_a: 0.60
-    grade_b: 0.45
-    grade_c: 0.30
-
-pattern_penalties:
-  critical: 0.10
-  high: 0.05
-  medium: 0.02
-  low: 0.01
 ```
+
+The score-status bands and fixed pattern severity penalties are implementation
+rules, not supported configuration fields. See [CONFIGURATION.md](CONFIGURATION.md)
+for the complete configuration surface.
 
 ---
 
-*This document reflects the implementation in `src/slop_detector/` as of v3.7.9.
-For source-level detail see `metrics/inflation.py`, `core.py`,
-`patterns/python_advanced.py`, `ml/scorer.py`, and `docs/SCHEMA_VALIDATION.md`
+*This document reflects the implementation in `src/slop_detector/` on `main`
+after v3.9.1. It documents deterministic mechanics, not independent validation
+of the composite score.*
+For source-level detail see `metrics/inflation.py`, `core_scoring.py`,
+`patterns/python_complexity.py`, `ml/scorer.py`, and `docs/SCHEMA_VALIDATION.md`
 (runtime range guards for all metric result dataclasses).*
 
 ---
