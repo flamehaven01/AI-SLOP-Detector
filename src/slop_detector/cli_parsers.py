@@ -48,7 +48,14 @@ Examples:
         action="store_true",
         help="Include files excluded only by the built-in test-file defaults",
     )
-    parser.add_argument("--output", "-o", help="Output file (txt, json, or html)")
+    parser.add_argument(
+        "--output",
+        "-o",
+        help=(
+            "Write the report to this file (.html -> HTML, .md -> Markdown, otherwise text; "
+            "JSON requires --json or --format json). With --ci-report, the gate report."
+        ),
+    )
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument(
         "--format",

@@ -1,9 +1,8 @@
 - id: slop-detector
   name: AI-SLOP Detector
   description: >
-    Structural risk scanner for AI-assisted code.
-    Fails if any file reaches CRITICAL_DEFICIT (deficit_score >= 70)
-    or has 3+ critical patterns. Uses hard CI gate mode.
+    Runs the hard CI gate and fails when the configured gate policy returns
+    FAIL. Reports normal scan output before returning the gate exit code.
   entry: python -m slop_detector.cli
   language: python
   types: [python]
@@ -14,8 +13,8 @@
 - id: slop-detector-warn
   name: AI-SLOP Detector (Warn Only)
   description: >
-    Informational scan — reports findings but never fails the build.
-    Use for visibility without blocking commits.
+    Runs the soft CI gate as an informational scan. Reports findings
+    normally and does not fail for gate findings.
   entry: python -m slop_detector.cli
   language: python
   types: [python]

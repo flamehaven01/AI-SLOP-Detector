@@ -369,9 +369,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"[!] Analysis failed: {e}", file=sys.stderr)
         return 1
 
+    # --ci-mode (and --ci-claims-strict) add an exit policy to the normal scan;
+    # only --ci-report replaces the normal report with the gate report.
     ci_exit = _evaluate_ci_gate(args, result)
-    if ci_exit is not None:
-        return ci_exit
+    if getattr(args, "ci_report", False):
+        return ci_exit or 0
 
     _handle_output(args, result)
 
@@ -395,7 +397,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         _record_history(result)
         _check_calibration_hint(args)
 
-    return 0
+    return ci_exit or 0
 
 
 if __name__ == "__main__":

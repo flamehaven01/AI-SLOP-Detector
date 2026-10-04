@@ -214,9 +214,16 @@ def evaluate_ci_gate(args, result):
     gate_result = CIGate(mode=gate_mode, claims_strict=claims_strict).evaluate(result)
     if args.ci_report:
         if args.json:
-            print(json.dumps(_sanitize_for_json(gate_result.to_dict()), indent=2, allow_nan=False))
+            report = json.dumps(
+                _sanitize_for_json(gate_result.to_dict()), indent=2, allow_nan=False
+            )
         else:
-            print(gate_result.pr_comment or gate_result.message)
+            report = gate_result.pr_comment or gate_result.message
+        if getattr(args, "output", None):
+            Path(args.output).write_text(report + "\n", encoding="utf-8")
+            print(f"[+] CI gate report saved to {args.output}", file=sys.stderr)
+        else:
+            print(report)
     return 1 if gate_result.should_fail_build else 0
 
 

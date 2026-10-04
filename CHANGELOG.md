@@ -242,6 +242,29 @@ do not change.
   occurrence (at the finding's column), not every `.push(` or `.Length` on
   the line.
 
+### Fixed (CI gate output)
+
+- `--ci-mode` (soft, hard, quarantine) and `--ci-claims-strict` without
+  `--ci-report` print the normal scan report again (text, `--json`, or
+  `--output`) and run the rest of the scan (`--emit-leda-yaml`,
+  `--fail-threshold`, optional features, history, impact, telemetry) before
+  returning the gate's exit code. Since 0d67997 (first released in v3.7.0),
+  any CI option returned right after the gate, so `--ci-mode hard` printed
+  nothing and the `slop-detector-warn` pre-commit hook, described as
+  reporting findings, was silent.
+- `--ci-report` writes the gate report to `--output` when given, with nothing
+  duplicated on stdout; without `--output` it prints to stdout as before.
+  `--json` still selects the JSON gate result.
+- Gate thresholds, verdicts, and exit codes are unchanged. On the 9
+  codebases, 7 invocations each (`--json`; `--ci-mode` hard, soft, and
+  quarantine with `--json`; `--ci-mode hard` as text; `--ci-report --json`
+  with and without `--ci-mode hard`), all 63 exit codes and all 18
+  `--ci-report` outputs are identical before and after, and `--ci-mode ...
+  --json` now prints the same analysis JSON as `--json`.
+- The `--output` help names the formats it writes, and the pre-commit hook
+  descriptions no longer restate gate thresholds (the hard hook's listed only
+  two of the four).
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in
