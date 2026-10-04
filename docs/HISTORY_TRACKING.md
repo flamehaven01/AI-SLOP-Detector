@@ -1,6 +1,10 @@
-# History Tracking (v3.7.3)
+# History Tracking
 
-AI-SLOP Detector records every analysis run to a local SQLite database.
+**Current contract:** `main` after v3.9.1. Historical version markers below
+explain when fields were introduced; they are not a separate active protocol.
+
+AI-SLOP Detector records every analysis run to a local SQLite database,
+unless the run uses `--no-history` or `--read-only`.
 Run it repeatedly on the same codebase and the accumulated data becomes
 a continuous quality signal — showing which files improved, which degraded,
 and which patterns keep recurring.
@@ -86,6 +90,9 @@ Project Trends (last 7 days)
 ```bash
 slop-detector myfile.py --no-history
 ```
+
+`--read-only` also records nothing (it writes no history, cache, impact, or
+telemetry state, and refuses options that would).
 
 ### Export for ML training
 
