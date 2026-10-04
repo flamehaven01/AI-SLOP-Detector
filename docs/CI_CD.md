@@ -1,439 +1,71 @@
-# CI/CD Integration Guide
+# CI/CD Integration
 
-Integrate AI-SLOP Detector into your CI/CD pipeline with progressive enforcement modes.
+## Start With Evidence, Not A Blocking Gate
 
-## Installation Note (v3.7.3+)
+AI-SLOP Detector can produce a deterministic report and a process exit code in CI. A green run only means the configured detector policy passed; it does not prove correctness, security, deployment safety, or external score validation.
 
-Pin to `>=3.7.3` in all CI workflows. v3.7.2 had a hard top-level pydantic
-import that caused `ModuleNotFoundError` in stripped environments; v3.7.3 wraps
-it in `try/except ImportError`. Pydantic v2 is a base dependency — it is
-installed automatically with `pip install "ai-slop-detector>=3.7.3"`.
+Begin in soft mode, retain reports, and review scan coverage and representative findings before enabling a hard gate.
 
-```yaml
-- name: Install AI-SLOP Detector
-  run: pip install "ai-slop-detector>=3.7.3"
-```
-
-**Docker Hub credentials:** The `ci.yml` workflow's Docker job uses
-`continue-on-error: true` on the login step; push only fires when
-`steps.docker_login.outcome == 'success'`. Missing `DOCKER_USERNAME` /
-`DOCKER_TOKEN` secrets do not fail the build — they skip the push.
-
----
-
-## CI/CD Safety Note (v3.5.0)
-
-When using `--json` in CI pipelines (e.g., piping to `jq`):
+## Minimal GitHub Actions Example
 
 ```yaml
-# Safe since v3.5.0 — calibration hints go to stderr, not stdout
-- name: Quality Analysis (JSON)
-  run: slop-detector --project . --json > quality.json
-  # jq quality.json works correctly; calibration milestone output
-  # is always on stderr and will not corrupt JSON stdout
-```
-
-Prior to v3.5.0, auto-calibration milestone messages were printed to stdout,
-breaking `jq` parsing with `parse error: Invalid numeric literal`. This was
-fixed in v3.5.0 (all diagnostic output → `stderr`). If you encounter this
-error on older versions, upgrade to v3.5.0 or pin `--no-history` to suppress
-calibration triggers.
-
----
-
-## Quick Start
-
-```yaml
-# .github/workflows/quality-gate.yml
-name: Code Quality Gate
+name: Structural review
 
 on: [push, pull_request]
 
 jobs:
-  quality:
+  slop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-
-      - name: Install AI-SLOP Detector
-        run: pip install "ai-slop-detector>=3.7.3"
-
-      - name: Run Quality Gate
-        run: slop-detector --project . --ci-mode hard --ci-report
-```
-
-## Enforcement Modes
-
-### Soft Mode (Informational)
-
-**Use Case:** Visibility, onboarding, gradual adoption
-
-```bash
-slop-detector --project . --ci-mode soft --ci-report
-```
-
-**Behavior:**
-- ✅ Never fails build
-- 📊 Posts PR comments with findings
-- 📈 Tracks metrics
-- 🔔 Notifies but doesn't block
-
-**GitHub Actions:**
-```yaml
-- name: Quality Check (Soft)
-  run: slop-detector --project . --ci-mode soft --ci-report
-  continue-on-error: true
-```
-
-### Hard Mode (Strict)
-
-**Use Case:** Production branches, release gates
-
-```bash
-slop-detector --project . --ci-mode hard --ci-report
-```
-
-**Behavior:**
-- ❌ Fails build if thresholds exceeded
-- 🚫 Blocks merge if quality issues
-- 📊 Exit code 1 on failure
-- 🎯 Enforces quality standards
-
-**Fail Conditions:**
-- Deficit score ≥ 70
-- Critical patterns ≥ 3
-- Inflation score ≥ 1.5
-- Dependency usage < 50%
-
-**GitHub Actions:**
-```yaml
-- name: Quality Gate (Hard)
-  run: slop-detector --project . --ci-mode hard --ci-report
-  # Build will fail if quality issues detected
-```
-
-### Quarantine Mode (Gradual)
-
-**Use Case:** Gradual rollout, repeat offender tracking
-
-```bash
-slop-detector --project . --ci-mode quarantine --ci-report
-```
-
-**Behavior:**
-- 📝 Tracks violations in `.slop_quarantine.json`
-- ⚠️ Warns on first 2 violations
-- ❌ Fails on 3rd violation (escalation)
-- 🔄 Resets after fix
-
-**Escalation Path:**
-1. **1st violation:** Warning + tracked
-2. **2nd violation:** Warning + tracked
-3. **3rd violation:** Build fails
-
-**GitHub Actions:**
-```yaml
-- name: Quality Gate (Quarantine)
-  run: slop-detector --project . --ci-mode quarantine --ci-report
-
-- name: Upload Quarantine DB
-  uses: actions/upload-artifact@v3
-  with:
-    name: quarantine-db
-    path: .slop_quarantine.json
-```
-
-## Claim-Based Enforcement (v2.6.2)
-
-**Use Case:** Enforce integration test requirements for production claims
-
-```bash
-slop-detector --project . --ci-mode hard --ci-claims-strict --ci-report
-```
-
-**Behavior:**
-- ❌ Fails if production/enterprise/scalable/fault-tolerant claims lack integration tests
-- 🧪 Validates test evidence
-- 📊 Reports test coverage breakdown
-
-**GitHub Actions:**
-```yaml
-- name: Quality Gate (Claims Strict)
-  run: |
-    slop-detector --project . \
-      --ci-mode hard \
-      --ci-claims-strict \
-      --ci-report
-```
-
-## Integration Examples
-
-### GitHub Actions (Complete)
-
-```yaml
-name: Code Quality Pipeline
-
-on:
-  pull_request:
-    branches: [main, develop]
-  push:
-    branches: [main]
-
-jobs:
-  quality-gate:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install Dependencies
-        run: |
-          pip install ai-slop-detector
-
-      - name: Quality Analysis
-        run: |
-          slop-detector --project . \
-            --ci-mode quarantine \
-            --ci-claims-strict \
-            --ci-report \
-            --output quality-report.md
-
-      - name: Upload Report
+          python-version: "3.11"
+      - name: Install
+        run: pip install "ai-slop-detector>=3.8.9"
+      - name: Report
+        run: slop-detector scan . --ci-mode soft --ci-report > slop-report.md
+      - name: Upload report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: quality-report
-          path: quality-report.md
-
-      - name: Comment PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('quality-report.md', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: report
-            });
+          name: slop-report
+          path: slop-report.md
 ```
 
-### GitLab CI
+`--ci-report` prints the gate report to stdout; redirect it to keep a file. With `--ci-mode` or `--ci-report`, `--output` is not used, so `--output slop-report.md` would leave no file to upload. It does **not** authenticate with a hosting provider or post a pull-request comment. Add a platform-specific publishing step if comments are wanted.
+
+## Gate Modes
+
+| Mode | Intended use | Exit behavior |
+| --- | --- | --- |
+| `soft` | Adoption and evidence gathering | Informational; does not fail the build for findings. |
+| `hard` | A reviewed repository policy | Returns non-zero when the configured gate decides to fail. |
+| `quarantine` | Gradual enforcement of repeated violations | Persists local quarantine state; persist that file as an artifact or cache if runs are ephemeral. |
+
+The detailed decision is part of the report. Do not duplicate historical thresholds in CI configuration docs: thresholds, ignores, and pattern policy belong in `.slopconfig.yaml` and should be reviewed per repository.
+
+## JSON-First Automation
 
 ```yaml
-# .gitlab-ci.yml
-quality-gate:
-  stage: test
-  image: python:3.11
-  script:
-    - pip install ai-slop-detector
-    - slop-detector --project . --ci-mode hard --ci-report
-  artifacts:
-    reports:
-      junit: quality-report.xml
-    paths:
-      - quality-report.md
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: always
+- name: Machine-readable review
+  run: slop-detector review . --base origin/main --format json --output review.json
 ```
 
-### CircleCI
+Use `review` for changed-code attribution, `pulse` for hotspot prioritization, and `sweep <family>` for bounded cleanup evidence. Inspect `finding_summary`, `scan_coverage`, and `ml_scoring`; do not treat an overall `clean` label as a claim that every relevant file was analyzed.
 
-```yaml
-# .circleci/config.yml
-version: 2.1
+## History And Calibration
 
-jobs:
-  quality-gate:
-    docker:
-      - image: cimg/python:3.11
-    steps:
-      - checkout
-      - run:
-          name: Install AI-SLOP Detector
-          command: pip install ai-slop-detector
-      - run:
-          name: Run Quality Gate
-          command: |
-            slop-detector --project . \
-              --ci-mode hard \
-              --ci-report \
-              --output quality-report.md
-      - store_artifacts:
-          path: quality-report.md
+The normal scan path records local history unless `--no-history` is passed. Calibration diagnostics write to stderr, keeping JSON stdout machine-readable. The milestone path can update an existing local config only after its local confidence guards pass. In an ephemeral or policy-controlled CI environment, use `--no-history` unless local history behavior has been deliberately chosen.
 
-workflows:
-  quality-check:
-    jobs:
-      - quality-gate
-```
+Self-calibration is local adaptation, not an external validation mechanism. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
-### Jenkins
+## Claim-Based Enforcement
 
-```groovy
-// Jenkinsfile
-pipeline {
-    agent any
+`--ci-claims-strict` is a separate heuristic that checks selected textual claims for integration-test evidence. It does not certify production readiness or substitute for security, compliance, or human review.
 
-    stages {
-        stage('Quality Gate') {
-            steps {
-                sh '''
-                    pip install ai-slop-detector
-                    slop-detector --project . \
-                        --ci-mode quarantine \
-                        --ci-report \
-                        --output quality-report.md
-                '''
-            }
-        }
-    }
+## Related
 
-    post {
-        always {
-            archiveArtifacts artifacts: 'quality-report.md'
-        }
-    }
-}
-```
-
-## Configuration
-
-### Custom Thresholds
-
-Create `.slopconfig.yaml`:
-
-```yaml
-reporting:
-  ci:
-    fail_threshold: 50  # Fail if deficit >= 50
-    fail_on_critical: true
-
-thresholds:
-  ldr:
-    critical: 0.40
-  inflation:
-    critical: 0.8
-  ddc:
-    critical: 0.60
-```
-
-### Branch-Specific Rules
-
-```yaml
-# GitHub Actions with branch logic
-- name: Quality Gate
-  run: |
-    if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-      slop-detector --project . --ci-mode hard --ci-report
-    else
-      slop-detector --project . --ci-mode soft --ci-report
-    fi
-```
-
-## Monitoring & Reporting
-
-### PR Comments
-
-Soft/Quarantine modes automatically generate PR comments:
-
-```markdown
-## AI Code Quality Report
-
-**Mode**: QUARANTINE
-
-### Summary
-- Analyzed: 47 files (42 clean, 5 with issues)
-- Average Deficit Score: 23.4/100
-
-### [CRITICAL] Failed Quality Checks
-- `api/handler.py`: Exceeds critical thresholds
-- `utils/processor.py`: Exceeds critical thresholds
-
-### Recommendations
-Run `slop-detector <file>` locally for detailed analysis.
-```
-
-### Artifacts
-
-Store reports for historical analysis:
-
-```yaml
-- uses: actions/upload-artifact@v3
-  with:
-    name: quality-reports
-    path: |
-      quality-report.md
-      .slop_quarantine.json
-```
-
-## Best Practices
-
-### 1. Progressive Rollout
-
-```
-Week 1-2: Soft mode (visibility)
-Week 3-4: Quarantine mode (tracking)
-Week 5+:  Hard mode on main (enforcement)
-```
-
-### 2. Branch Strategy
-
-```yaml
-main:        Hard mode + Claims strict
-develop:     Quarantine mode
-feature/*:   Soft mode
-```
-
-### 3. Performance
-
-```yaml
-# Cache pip packages
-- uses: actions/cache@v3
-  with:
-    path: ~/.cache/pip
-    key: pip-${{ hashFiles('**/requirements.txt') }}
-```
-
-### 4. Notifications
-
-```yaml
-- name: Notify on Failure
-  if: failure()
-  uses: 8398a7/action-slack@v3
-  with:
-    status: ${{ job.status }}
-    text: 'Quality gate failed'
-```
-
-## Troubleshooting
-
-### Build Always Passing
-
-Check if `--ci-report` flag is present and mode is not soft.
-
-### False Positives
-
-Use `.slopconfig.yaml` to disable specific patterns or adjust thresholds.
-
-### Quarantine Not Escalating
-
-Verify `.slop_quarantine.json` is persisted between runs (use artifacts).
-
-## See Also
-
-- [CLI Usage](CLI_USAGE.md) - Command-line reference
-- [Configuration](CONFIGURATION.md) - Customize thresholds
-- [Development](DEVELOPMENT.md) - Local testing
+- [CONFIGURATION.md](CONFIGURATION.md)
+- [GOVERNANCE.md](GOVERNANCE.md)
+- [VALIDATION.md](VALIDATION.md)
