@@ -222,8 +222,7 @@ against the reference anchor (or current config weights as fallback). Any
 dimension that drifts more than `DOMAIN_DRIFT_LIMIT = 0.25` emits a warning:
 
 ```
-[!] Calibration warning: ldr drifted from anchor 0.40 to optimal 0.10 (Δ=-0.30)
-    — verify this divergence is intentional for your domain
+[!] ldr: optimal 0.10 drifted 0.30 from domain anchor (0.40); exceeds DOMAIN_DRIFT_LIMIT=0.25.
 ```
 
 Warnings appear in `--self-calibrate` output (yellow `[!]` in rich terminals,
@@ -320,9 +319,9 @@ existing `.slopconfig.yaml` is present, the milestone path can update that
 local config. Otherwise it prints a local status hint.
 
 ```
-[*] Auto-calibration (10 repeat-file pairs, project abc123def456): weights updated -> .slopconfig.yaml
+[*] Auto-calibration (10 multi-run files): repository-local weights updated -> .slopconfig.yaml
     ldr: 0.40 -> 0.45
-    ddc: 0.30 -> 0.25
+    ddc: 0.20 -> 0.25
 ```
 
 - Only writes when `status == "ok"` (CONFIDENCE_GAP + no_change gates fire first).
@@ -393,7 +392,7 @@ of the total score.
 
 ```
 ldr:  0.40 → 0.10   (-0.30)
-ddc:  0.30 → 0.65   (+0.35)
+ddc:  0.20 → 0.65   (+0.45)
 ```
 
 This means the codebase has many files with low LDR that remained unchanged
