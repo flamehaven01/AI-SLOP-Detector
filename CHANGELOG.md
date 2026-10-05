@@ -301,6 +301,15 @@ is present, the hash seed, and whether results come from the analysis cache.
   `models/`), and two unsloth files list the same `hallucination_deps` in the
   new order. Every other result and all 18 exit codes are unchanged.
 
+### Removed (configuration)
+
+- `patterns.severity_threshold` ("minimum severity to report") is gone from
+  the defaults and the `--init` template. Nothing ever read it: with
+  `critical`, every severity was still reported. It is removed rather than
+  implemented. A config that still sets it (earlier `--init` runs wrote it)
+  loads as before and logs a warning; results are unchanged. To stop a
+  pattern from reporting, use `patterns.disabled`.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in

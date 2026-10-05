@@ -79,6 +79,17 @@ def _validate_yaml_config(raw: Dict[str, Any]) -> None:
         )
 
 
+def _warn_ignored_keys(raw: Dict[str, Any]) -> None:
+    """Warn about keys that are accepted but have no effect."""
+    patterns = raw.get("patterns")
+    if isinstance(patterns, dict) and "severity_threshold" in patterns:
+        # Earlier --init templates wrote this key, but nothing ever read it.
+        _logger.warning(
+            "patterns.severity_threshold has no effect and is ignored: every severity is "
+            "reported. Remove it from the config; to drop a pattern use patterns.disabled."
+        )
+
+
 class Config:
     """Configuration manager with YAML support and sensible defaults."""
 
@@ -166,7 +177,6 @@ class Config:
         "patterns": {
             "enabled": True,
             "disabled": [],  # List of pattern IDs to disable
-            "severity_threshold": "low",  # minimum severity to report
             "god_function": {
                 # Default thresholds (applied to all functions not matched by domain_overrides)
                 "complexity_threshold": 10,
@@ -200,6 +210,7 @@ class Config:
     def _merge_config(self, custom: Dict[str, Any]) -> None:
         """Deep merge custom config into defaults (validated before merge)."""
         _validate_yaml_config(custom)
+        _warn_ignored_keys(custom)
         self._custom_ignore_patterns = "ignore" in custom
         self._deep_update(self.config, custom)
 
@@ -592,7 +603,6 @@ ignore:
 # ── Pattern detection ────────────────────────────────────────────────────────
 patterns:
   enabled: true
-  severity_threshold: low  # minimum severity: low | medium | high | critical
 
   god_function:
     complexity_threshold: {gf['complexity_threshold']}
