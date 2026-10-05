@@ -301,6 +301,31 @@ is present, the hash seed, and whether results come from the analysis cache.
   `models/`), and two unsloth files list the same `hallucination_deps` in the
   new order. Every other result and all 18 exit codes are unchanged.
 
+### Fixed (project context and caches)
+
+- A file's `phantom_import` / `phantom_member` result follows the project's
+  current dependency declarations and module topology, from the analysis
+  cache or not. Declaring a dependency used to leave a cached
+  `phantom_import` (CRITICAL) where a fresh run reports
+  `runtime_unavailable_dependency` (MEDIUM); adding a sibling module, an
+  `__init__.py`, or a directory, or removing a module, was likewise not seen.
+- Two caches were involved. The analysis cache key now includes a project
+  context fingerprint (`slop_detector.project_context`): the contents of
+  `pyproject.toml`, `requirements.txt` and `requirements/*.txt`, and every
+  project-relative directory and `.py` path. The process-local resolver
+  caches (project packages, module index, sibling modules, declared
+  dependencies) are keyed by root and the same fingerprint, so a
+  long-running process (`watch --follow`, the MCP server) sees the change
+  too. Cache `analysis-cache-v21`.
+- Editing a module's content is not a context change: other files stay
+  cached. Adding, removing or renaming a `.py` file or a directory, or
+  editing a dependency file, re-analyzes that project's files.
+- The fingerprint is built once per project per scan (0.16-0.52 s on the
+  codebases measured, one walk of the project tree). Warm-cache scans keep
+  their benefit: median of 5 warm runs, before and after, 1.93 / 2.24 s
+  (this repository), 7.95 / 7.43 s (LMCache), 5.98 / 6.79 s (unsloth,
+  run-to-run spread 5.3-9.7 s).
+
 ### Removed (configuration)
 
 - `patterns.severity_threshold` ("minimum severity to report") is gone from

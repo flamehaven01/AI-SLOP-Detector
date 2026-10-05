@@ -62,6 +62,8 @@ from slop_detector.patterns import get_all_patterns
 from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
 from slop_detector.prioritization import ProjectPrioritizer
+from slop_detector.project_context import context_for_file, project_context_scope
+from slop_detector.project_resolution import find_project_root
 from slop_detector.rust_scan import discover_project_files
 from slop_detector.suppression_handler import SuppressionHandler
 
@@ -161,11 +163,20 @@ class SlopDetector:
         - Pattern-based detection alongside metrics
         - Hybrid scoring (metrics + patterns)
 
+        Called alone it reads the project's current context (dependency
+        declarations, module topology); inside analyze_project it shares the
+        scan's snapshot (slop_detector.project_context).
+
         Args:
             file_path: The file to analyze.
             root:      The scan root its path facts are relative to. Without it the
                        nearest project marker is the root (slop_detector.path_facts).
         """
+        with project_context_scope():
+            return self._analyze_file(file_path, root)
+
+    def _analyze_file(self, file_path: str, root: Optional[str] = None) -> FileAnalysis:
+        """analyze_file inside a project-context scope."""
         path_obj = Path(file_path).resolve()
         file_path = str(path_obj)
         logger.info(f"Analyzing: {file_path}")
@@ -176,7 +187,9 @@ class SlopDetector:
         # installed environment, so a result from another environment is not reused.
         cache_fingerprint = f"{fingerprint_config(self.config.config)}|path:{facts.fingerprint()}"
         if self._analysis_cache is not None:
-            cache_fingerprint += f"|env:{environment_fingerprint()}"
+            # So do the project's dependency declarations and module topology.
+            context = context_for_file(path_obj, find_project_root(path_obj))
+            cache_fingerprint += f"|env:{environment_fingerprint()}|project:{context.fingerprint}"
 
         stat = path_obj.stat()
         try:
@@ -247,6 +260,11 @@ class SlopDetector:
         return self._build_file_analysis(filename, content, tree, path_facts(filename, None))
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
+        """Analyze a project; each project root's context snapshot is built once per scan."""
+        with project_context_scope():
+            return self._analyze_project(project_path, pattern)
+
+    def _analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """
         Analyze entire project with weighted scoring.
 

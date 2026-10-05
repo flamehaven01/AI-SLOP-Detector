@@ -21,6 +21,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple
 
+from slop_detector.project_context import project_context
+
 logger = logging.getLogger(__name__)
 
 SKIP_LAYOUT_DIRS: FrozenSet[str] = frozenset(
@@ -59,7 +61,8 @@ PROJECT_MARKERS: Tuple[str, ...] = (
 
 HARD_AUTHORITIES: FrozenSet[str] = frozenset({"E1", "E2", "E3"})
 
-_PROJECT_PACKAGES_CACHE: Dict[str, FrozenSet[str]] = {}
+# Keyed by (root, project-context fingerprint): a changed layout is a new key.
+_PROJECT_PACKAGES_CACHE: Dict[Tuple[str, str], FrozenSet[str]] = {}
 
 
 @dataclass(frozen=True)
@@ -214,13 +217,18 @@ def _top_level_packages(root: ModuleRoot) -> List[str]:
     return names
 
 
-def discover_project_packages(project_root: Path) -> FrozenSet[str]:
+def discover_project_packages(
+    project_root: Path, fingerprint: Optional[str] = None
+) -> FrozenSet[str]:
     """Top-level internal package names under every module root (cached).
 
     E4 roots contribute regular packages only; namespace packages are recognised
     under E1-E3 roots, so a stray directory cannot mute a real phantom import.
+    `fingerprint` is the project-context fingerprint; computed when omitted.
     """
-    root_key = str(project_root)
+    if fingerprint is None:
+        fingerprint = project_context(project_root).fingerprint
+    root_key = (str(project_root), fingerprint)
     if root_key in _PROJECT_PACKAGES_CACHE:
         return _PROJECT_PACKAGES_CACHE[root_key]
     names: set = set()
@@ -289,8 +297,9 @@ def probe_module(base: Path, parts: List[str]) -> Optional[Tuple[Path, str]]:
 class ProjectModuleIndex:
     """Locate dotted module names across all module roots of one project."""
 
-    def __init__(self, project_root: Path) -> None:
+    def __init__(self, project_root: Path, fingerprint: Optional[str] = None) -> None:
         self.project_root = project_root.resolve()
+        self.fingerprint = fingerprint or project_context(project_root).fingerprint
         self.roots = discover_module_roots(self.project_root)
         self._cache: Dict[str, Tuple[ModuleLocation, ...]] = {}
 
@@ -326,7 +335,7 @@ class ProjectModuleIndex:
         ]
 
     def is_internal_top_level(self, name: str) -> bool:
-        return name in discover_project_packages(self.project_root) or any(
+        return name in discover_project_packages(self.project_root, self.fingerprint) or any(
             (root.path / f"{name}.py").is_file()
             for root in self.roots
             if root.authority in HARD_AUTHORITIES
@@ -355,12 +364,14 @@ class ProjectModuleIndex:
         return any(self.locate(f"{dotted}.{name}") for name in names if name != "*")
 
 
-_INDEX_CACHE: Dict[str, ProjectModuleIndex] = {}
+_INDEX_CACHE: Dict[Tuple[str, str], ProjectModuleIndex] = {}
 
 
-def get_module_index(project_root: Path) -> ProjectModuleIndex:
-    """Per-process cached index (same lifetime as the package-name cache)."""
-    key = str(project_root)
+def get_module_index(project_root: Path, fingerprint: Optional[str] = None) -> ProjectModuleIndex:
+    """Per-process cached index, keyed by (root, project-context fingerprint)."""
+    if fingerprint is None:
+        fingerprint = project_context(project_root).fingerprint
+    key = (str(project_root), fingerprint)
     if key not in _INDEX_CACHE:
-        _INDEX_CACHE[key] = ProjectModuleIndex(project_root)
+        _INDEX_CACHE[key] = ProjectModuleIndex(project_root, fingerprint)
     return _INDEX_CACHE[key]

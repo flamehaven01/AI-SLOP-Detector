@@ -11,6 +11,7 @@ from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
 
 from slop_detector.environment_resolution import find_installed_spec
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
+from slop_detector.project_context import context_for_file
 from slop_detector.project_resolution import (
     ProjectModuleIndex,
     discover_project_packages,
@@ -31,14 +32,18 @@ _RESOLVABLE_MODULES_STORE: Dict[str, FrozenSet[str]] = {}
 # Project-local package discovery
 # ------------------------------------------------------------------
 
-_SIBLING_MODULES_CACHE: Dict[str, FrozenSet[str]] = {}
+# Both keyed by (directory or root, project-context fingerprint): a changed
+# context is a new key, so a long-running process never reuses a stale answer.
+_SIBLING_MODULES_CACHE: Dict[Tuple[str, str], FrozenSet[str]] = {}
 
-_DECLARED_DEPENDENCY_SOURCES_CACHE: Dict[str, Mapping[str, FrozenSet[str]]] = {}
+_DECLARED_DEPENDENCY_SOURCES_CACHE: Dict[Tuple[str, str], Mapping[str, FrozenSet[str]]] = {}
 
 
-def _discover_sibling_modules(file_path: Path) -> FrozenSet[str]:
+def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None) -> FrozenSet[str]:
     """Return stem names of .py files in the same directory (importable siblings)."""
-    key = str(file_path.parent)
+    if fingerprint is None:
+        fingerprint = context_for_file(file_path, find_project_root(file_path)).fingerprint
+    key = (str(file_path.parent), fingerprint)
     if key in _SIBLING_MODULES_CACHE:
         return _SIBLING_MODULES_CACHE[key]
     try:
@@ -112,9 +117,13 @@ def _read_requirements_file(requirements: Path) -> List[str]:
         return []
 
 
-def _discover_declared_dependency_sources(project_root: Path) -> Mapping[str, FrozenSet[str]]:
+def _discover_declared_dependency_sources(
+    project_root: Path, fingerprint: Optional[str] = None
+) -> Mapping[str, FrozenSet[str]]:
     """Map import names to the declaration files that justify them."""
-    root_key = str(project_root)
+    if fingerprint is None:
+        fingerprint = context_for_file(project_root / "_", project_root).fingerprint
+    root_key = (str(project_root), fingerprint)
     cached = _DECLARED_DEPENDENCY_SOURCES_CACHE.get(root_key)
     if cached is not None:
         return cached
@@ -205,9 +214,12 @@ def project_skip_context(
     and the allowlist; plus the project's module index for exact-path resolution.
     """
     project_root = find_project_root(file)
-    internal_packages = discover_project_packages(project_root) if project_root else frozenset()
-    skip_names = internal_packages | _discover_sibling_modules(file) | allowlist
-    index = get_module_index(project_root) if project_root else None
+    fingerprint = context_for_file(file, project_root).fingerprint
+    internal_packages = (
+        discover_project_packages(project_root, fingerprint) if project_root else frozenset()
+    )
+    skip_names = internal_packages | _discover_sibling_modules(file, fingerprint) | allowlist
+    index = get_module_index(project_root, fingerprint) if project_root else None
     return frozenset(skip_names), index
 
 
@@ -259,7 +271,11 @@ class PhantomImportPattern(BasePattern):
 
         project_root = find_project_root(file)
         declared_sources = (
-            _discover_declared_dependency_sources(project_root) if project_root else {}
+            _discover_declared_dependency_sources(
+                project_root, context_for_file(file, project_root).fingerprint
+            )
+            if project_root
+            else {}
         )
         has_pyproject = bool(project_root and (project_root / "pyproject.toml").exists())
         skip_names, index = project_skip_context(file, self._allowlist)
