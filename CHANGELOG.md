@@ -309,6 +309,11 @@ is present, the hash seed, and whether results come from the analysis cache.
   implemented. A config that still sets it (earlier `--init` runs wrote it)
   loads as before and logs a warning; results are unchanged. To stop a
   pattern from reporting, use `patterns.disabled`.
+- LDR's empty-line rules no longer list `# TODO`, `# FIXME`,
+  `# placeholder` and `# implementation details`: LDR skips comment-only
+  lines before trying the rules, so they never matched. No result changes.
+- The JS/TS analyzer's module docstring no longer lists
+  `ts_missing_return_type`, a pattern no code emits.
 
 ## [3.9.1] - 2026-10-03
 

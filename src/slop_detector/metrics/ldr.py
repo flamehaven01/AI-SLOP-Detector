@@ -53,14 +53,11 @@ def is_empty_function(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool
 class LDRCalculator:
     """Calculate Logic Density Ratio with smart exception handling."""
 
+    # Only code lines reach these: comment-only lines are skipped before matching.
     EMPTY_PATTERNS = [
         r"^\s*pass\s*$",
         r"^\s*\.\.\.\s*$",
         r"^\s*raise\s+NotImplementedError",
-        r"^\s*#\s*" + "TODO",
-        r"^\s*#\s*implementation\s+details",
-        r"^\s*#\s*placeholder",
-        r"^\s*#\s*" + "FIXME",
     ]
 
     def __init__(self, config):

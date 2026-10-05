@@ -32,7 +32,6 @@ Patterns detected (AST-precise):
   js_god_function      : function exceeding size or complexity threshold
   js_dead_code         : unreachable statement after return/throw/break
   js_callback_hell     : nesting depth > GOD_DEPTH_THRESHOLD
-  ts_missing_return_type: exported function without return type annotation
 """
 
 from __future__ import annotations
