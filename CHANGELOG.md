@@ -350,7 +350,7 @@ is present, the hash seed, and whether results come from the analysis cache.
   of the scanned project's own package are no longer reported as unavailable
   or phantom (LMCache, OpenMythos, unstructured, unsloth), and unsloth's
   declared `triton` moves from `phantom_import` to
-  `runtime_unavailable_dependency` in 7 files (4 change band). A real phantom
+  `runtime_unavailable_dependency` in 7 files (5 change band). A real phantom
   (`utils.paths`, which exists nowhere in unsloth) is still reported.
 
 ### Removed (configuration)
