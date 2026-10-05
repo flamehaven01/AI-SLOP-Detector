@@ -1,6 +1,6 @@
 # AI-SLOP Detector Roadmap
 
-> Last updated: 2026-06-15
+> Last updated: 2026-10-05
 
 This roadmap tracks the path that matters for `AI-SLOP-DETECTOR`.
 The goal is not feature parity theater. The goal is a cleaner, more governable,
@@ -83,6 +83,127 @@ chronological order.
 ## Next
 
 Broader work that should follow once the current release surface is stable.
+
+### Rust Accelerator — v3.10 Performance Architecture
+
+Rust is already connected as an optional file-discovery helper, but it is not
+yet a proven end-user accelerator. The current project scan still performs the
+Python discovery path for parity before accepting the Rust result, and project
+coverage performs its own Python tree walk. The Python package also does not
+currently ship a compiled Rust binary by default.
+
+The v3.10 goal is therefore not to move analyzer semantics into Rust. It is to
+remove repeated filesystem traversal while preserving one semantic authority.
+
+**Authority boundary**
+
+Rust may own fast filesystem enumeration. Python remains authoritative for:
+
+- ignore and exclusion policy
+- language classification
+- canonical root-relative path ordering
+- scan-coverage semantics
+- AST analysis and pattern detection
+- phantom-import and dependency evidence
+- scoring, diagnostic bands, findings, and status
+- report and JSON contracts
+
+Rust must never become an independent source of scoring or policy truth.
+
+**R0 — Benchmark the current path**
+
+Measure before changing architecture:
+
+- helper absent vs helper present
+- cold and warm filesystem runs
+- small, medium, and large repositories
+- discovery time separately from total scan time
+- repeated runs to distinguish filesystem noise from stable improvement
+
+No acceleration claim should be made from implementation alone.
+
+**R1 — Introduce a canonical project file manifest in Python**
+
+First refactor the existing Python path without changing behavior. A single
+project discovery result should feed:
+
+- Python files
+- JavaScript / TypeScript files
+- Go files
+- excluded supported files
+- unsupported source files
+- scan coverage
+
+This removes duplicate traversal as an architecture change before Rust becomes
+the preferred backend. The acceptance criterion is output parity with the
+current Python-only behavior.
+
+**R2 — Add Rust as the enumeration backend**
+
+When the helper is available, perform one Rust filesystem walk and pass the
+root-relative file inventory back to Python. Python then applies the canonical
+classification and policy layers.
+
+Required behavior:
+
+- helper unavailable -> Python fallback
+- helper failure -> Python fallback
+- no Rust toolchain required at runtime for ordinary Python use
+- canonical root-relative POSIX ordering before downstream analysis
+- no change to findings, scores, status, or report semantics merely because the
+  helper is present
+
+**R3 — Determinism and parity gate**
+
+Rust-present and Rust-absent runs over the same tree must produce the same
+semantic result. Verify at least:
+
+- analyzed file set and order
+- excluded and unsupported coverage
+- Python / JS / TS / Go file partitioning
+- findings and severities
+- per-file and project scores
+- structural-coherence inputs and output
+- serialized JSON apart from explicitly documented volatile fields
+
+Exercise path separators, hidden directories, symlinks, duplicate include
+patterns, ignore patterns, Unicode paths, and platform-specific path behavior.
+
+**R4 — Packaging and distribution**
+
+The current Python packaging does not include the compiled helper. Before
+defaulting to Rust acceleration, choose and verify a distribution model such as
+platform wheels or another optional binary delivery path.
+
+Distribution must remain fail-open to the Python fallback: absence of a Rust
+binary is not a product failure.
+
+**R5 — Performance promotion gate**
+
+Enable Rust as the preferred discovery backend only after benchmarks show a
+repeatable end-to-end benefit on realistic repositories. If the gain is
+negligible, keep Rust as an optional parity/test backend rather than adding
+distribution complexity for branding value.
+
+**Non-goals**
+
+This roadmap does not move the following into Rust:
+
+- AST semantics
+- pattern or claim detection
+- dependency-resolution policy
+- scoring mathematics
+- CI gate policy
+- governance or release decisions
+
+Any future native migration beyond filesystem enumeration requires a separate
+evidence-backed design and parity program.
+
+**Release boundary**
+
+This work is intentionally outside the v3.9.x stabilization scope. v3.9.x keeps
+the current verified fallback/parity model; the architectural acceleration work
+begins only after the release candidate is closed.
 
 ### Cleanup planner depth
 
@@ -175,13 +296,14 @@ Turn static scans into a stable long-term operating signal:
 
 ### Native acceleration on measured hot paths
 
-Keep Python as the product core. Use Rust only where benchmarks prove it helps:
+Keep Python as the product core. The concrete v3.10 Rust acceleration plan is
+tracked under **Rust Accelerator — v3.10 Performance Architecture** above.
+Future native work remains benchmark-gated and must preserve Python semantic
+authority unless a separate evidence-backed migration justifies changing it.
 
-- file walking
-- glob matching
-- large graph extraction
-
-No policy, math, or governance logic should move native without a strong reason.
+Potential later hot paths may include large graph extraction, but no policy,
+scoring mathematics, or governance logic should move native merely for
+implementation novelty.
 
 ---
 
