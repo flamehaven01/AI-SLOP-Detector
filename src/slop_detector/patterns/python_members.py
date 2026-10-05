@@ -44,13 +44,13 @@ class PhantomMemberPattern(BasePattern):
     def check(self, tree: ast.AST, file: Path, content: str) -> List[Issue]:
         if not isinstance(tree, ast.Module):
             return []
-        skip_names, index = project_skip_context(file, self._allowlist)
+        skip_names, indexes = project_skip_context(file, self._allowlist)
         result = verify_imports(
             tree,
             skip_names,
             guarded_import_lines(tree, _handler_is_import_guard),
-            skip_module=lambda dotted, names: _resolves_in_project(index, dotted, names),
-            excluded=environment_exclusions(index),
+            skip_module=lambda dotted, names: _resolves_in_project(indexes, dotted, names),
+            excluded=environment_exclusions(indexes),
         )
         self._unknowns[str(file)] = result.unknowns
         return [self._issue(file, finding) for finding in result.findings]

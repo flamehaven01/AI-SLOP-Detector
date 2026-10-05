@@ -17,9 +17,11 @@ from __future__ import annotations
 
 import logging
 import os
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple
+from typing import Any, Dict, FrozenSet, Iterator, List, Optional, Sequence, Tuple
 
 from slop_detector.project_context import project_context
 
@@ -62,7 +64,7 @@ PROJECT_MARKERS: Tuple[str, ...] = (
 HARD_AUTHORITIES: FrozenSet[str] = frozenset({"E1", "E2", "E3"})
 
 # Keyed by (root, project-context fingerprint): a changed layout is a new key.
-_PROJECT_PACKAGES_CACHE: Dict[Tuple[str, str], FrozenSet[str]] = {}
+_PROJECT_PACKAGES_CACHE: Dict[Tuple[str, str, bool], FrozenSet[str]] = {}
 
 
 @dataclass(frozen=True)
@@ -89,6 +91,45 @@ def find_project_root(file_path: Path) -> Optional[Path]:
             break
         current = parent
     return None
+
+
+_SCAN_ROOT: ContextVar[Optional[Path]] = ContextVar("slop_scan_root", default=None)
+
+
+@contextmanager
+def scan_root_scope(root: Optional[Path]) -> Iterator[None]:
+    """The explicit root of the scan in progress (None for a single-file analysis)."""
+    token = _SCAN_ROOT.set(root.resolve() if root is not None else None)
+    try:
+        yield
+    finally:
+        _SCAN_ROOT.reset(token)
+
+
+def resolution_roots(file_path: Path) -> Tuple[Path, ...]:
+    """The project roots whose code and declarations count as the project's.
+
+    The nearest project marker comes first and stays primary. During a scan
+    whose root is itself a project root containing it, the scan root is added:
+    a nested marker can be a service directory that imports from the repository
+    root (backend/requirements.txt) or a real subproject with its own
+    declarations (examples/x/pyproject.toml); a module or declaration found in
+    either root is project evidence. Nothing above the scan root is searched; a
+    scan below the project root, or of a folder that is not a project, keeps the
+    nearest marker alone.
+    """
+    nearest = find_project_root(file_path)
+    if nearest is None:
+        return ()
+    scan = _SCAN_ROOT.get()
+    if scan is None:
+        return (nearest,)
+    nearest_resolved = nearest.resolve()
+    if nearest_resolved == scan or scan not in nearest_resolved.parents:
+        return (nearest,)
+    if any((scan / marker).exists() for marker in PROJECT_MARKERS):
+        return (nearest, scan)
+    return (nearest,)
 
 
 def load_pyproject(project_root: Path) -> Dict[str, Any]:
@@ -218,21 +259,25 @@ def _top_level_packages(root: ModuleRoot) -> List[str]:
 
 
 def discover_project_packages(
-    project_root: Path, fingerprint: Optional[str] = None
+    project_root: Path, fingerprint: Optional[str] = None, hard_only: bool = False
 ) -> FrozenSet[str]:
     """Top-level internal package names under every module root (cached).
 
     E4 roots contribute regular packages only; namespace packages are recognised
     under E1-E3 roots, so a stray directory cannot mute a real phantom import.
+    `hard_only` keeps E1-E3 roots alone: an E4 package is importable only with
+    its own directory on sys.path, so its name is no evidence for a file outside it.
     `fingerprint` is the project-context fingerprint; computed when omitted.
     """
     if fingerprint is None:
         fingerprint = project_context(project_root).fingerprint
-    root_key = (str(project_root), fingerprint)
+    root_key = (str(project_root), fingerprint, hard_only)
     if root_key in _PROJECT_PACKAGES_CACHE:
         return _PROJECT_PACKAGES_CACHE[root_key]
     names: set = set()
     for root in discover_module_roots(project_root):
+        if hard_only and root.authority not in HARD_AUTHORITIES:
+            continue
         names.update(_top_level_packages(root))
     result = frozenset(names)
     _PROJECT_PACKAGES_CACHE[root_key] = result

@@ -11,13 +11,13 @@ from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
 
 from slop_detector.environment_resolution import find_installed_spec
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
-from slop_detector.project_context import context_for_file
+from slop_detector.project_context import fingerprint_for_roots
 from slop_detector.project_resolution import (
     ProjectModuleIndex,
     discover_project_packages,
-    find_project_root,
     get_module_index,
     load_pyproject,
+    resolution_roots,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ _DECLARED_DEPENDENCY_SOURCES_CACHE: Dict[Tuple[str, str], Mapping[str, FrozenSet
 def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None) -> FrozenSet[str]:
     """Return stem names of .py files in the same directory (importable siblings)."""
     if fingerprint is None:
-        fingerprint = context_for_file(file_path, find_project_root(file_path)).fingerprint
+        fingerprint = fingerprint_for_roots(file_path, resolution_roots(file_path))
     key = (str(file_path.parent), fingerprint)
     if key in _SIBLING_MODULES_CACHE:
         return _SIBLING_MODULES_CACHE[key]
@@ -122,7 +122,7 @@ def _discover_declared_dependency_sources(
 ) -> Mapping[str, FrozenSet[str]]:
     """Map import names to the declaration files that justify them."""
     if fingerprint is None:
-        fingerprint = context_for_file(project_root / "_", project_root).fingerprint
+        fingerprint = fingerprint_for_roots(project_root / "_", (project_root,))
     root_key = (str(project_root), fingerprint)
     cached = _DECLARED_DEPENDENCY_SOURCES_CACHE.get(root_key)
     if cached is not None:
@@ -153,10 +153,10 @@ def _discover_declared_dependency_sources(
 
 
 def _resolves_in_project(
-    index: Optional[ProjectModuleIndex], dotted: str, names: Sequence[str] = ()
+    indexes: Sequence[ProjectModuleIndex], dotted: str, names: Sequence[str] = ()
 ) -> bool:
-    """Exact-path resolution under the project's module roots, with no depth limit."""
-    return index is not None and index.resolves(dotted, names)
+    """Exact-path resolution under any of the project roots' module roots, no depth limit."""
+    return any(index.resolves(dotted, names) for index in indexes)
 
 
 def _get_resolvable_modules() -> FrozenSet[str]:
@@ -198,29 +198,40 @@ def _module_exists(name: str, excluded: Sequence[Path] = ()) -> bool:
         return True
 
 
-def environment_exclusions(index: Optional[ProjectModuleIndex]) -> Tuple[Path, ...]:
+def environment_exclusions(indexes: Sequence[ProjectModuleIndex]) -> Tuple[Path, ...]:
     """The analyzed project's own roots: never evidence that a module is installed."""
-    if index is None:
-        return ()
-    return (index.project_root, *(root.path for root in index.roots))
+    return tuple(
+        path
+        for index in indexes
+        for path in (index.project_root, *(root.path for root in index.roots))
+    )
+
+
+def _merged_declarations(roots: Sequence[Path]) -> Mapping[str, FrozenSet[str]]:
+    """Declaration sources of every resolution root, merged per import name."""
+    merged: Dict[str, FrozenSet[str]] = {}
+    for root in roots:
+        for name, sources in _discover_declared_dependency_sources(root).items():
+            merged[name] = merged.get(name, frozenset()) | sources
+    return merged
 
 
 def project_skip_context(
     file: Path, allowlist: FrozenSet[str]
-) -> Tuple[FrozenSet[str], Optional[ProjectModuleIndex]]:
+) -> Tuple[FrozenSet[str], Tuple[ProjectModuleIndex, ...]]:
     """Top-level names that belong to the project (never checked as installed packages).
 
-    Internal packages, sibling .py files (flat-module projects without pyproject.toml),
-    and the allowlist; plus the project's module index for exact-path resolution.
+    Internal packages of every resolution root, sibling .py files (flat-module
+    projects without pyproject.toml), and the allowlist; plus each root's module
+    index for exact-path resolution.
     """
-    project_root = find_project_root(file)
-    fingerprint = context_for_file(file, project_root).fingerprint
-    internal_packages = (
-        discover_project_packages(project_root, fingerprint) if project_root else frozenset()
-    )
-    skip_names = internal_packages | _discover_sibling_modules(file, fingerprint) | allowlist
-    index = get_module_index(project_root, fingerprint) if project_root else None
-    return frozenset(skip_names), index
+    roots = resolution_roots(file)
+    skip_names = set(allowlist)
+    for position, root in enumerate(roots):
+        # The scan root (second) is evidence for its hard roots and exact paths only.
+        skip_names |= discover_project_packages(root, hard_only=position > 0)
+    skip_names |= _discover_sibling_modules(file, fingerprint_for_roots(file, roots))
+    return frozenset(skip_names), tuple(get_module_index(root) for root in roots)
 
 
 def _handler_is_import_guard(handler: ast.ExceptHandler) -> bool:
@@ -269,24 +280,18 @@ class PhantomImportPattern(BasePattern):
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
 
-        project_root = find_project_root(file)
-        declared_sources = (
-            _discover_declared_dependency_sources(
-                project_root, context_for_file(file, project_root).fingerprint
-            )
-            if project_root
-            else {}
-        )
-        has_pyproject = bool(project_root and (project_root / "pyproject.toml").exists())
-        skip_names, index = project_skip_context(file, self._allowlist)
-        excluded = environment_exclusions(index)
+        roots = resolution_roots(file)
+        declared_sources = _merged_declarations(roots)
+        has_pyproject = bool(roots and (roots[0] / "pyproject.toml").exists())
+        skip_names, indexes = project_skip_context(file, self._allowlist)
+        excluded = environment_exclusions(indexes)
         guarded_lines = _collect_import_guard_lines(tree)
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     top = alias.name.split(".")[0]
-                    if top in skip_names or _resolves_in_project(index, alias.name):
+                    if top in skip_names or _resolves_in_project(indexes, alias.name):
                         continue
                     lineno = getattr(node, "lineno", 0)
                     sources = declared_sources.get(top, frozenset())
@@ -317,7 +322,7 @@ class PhantomImportPattern(BasePattern):
                     continue
                 top = node.module.split(".")[0]
                 names = [alias.name for alias in node.names]
-                if top in skip_names or _resolves_in_project(index, node.module, names):
+                if top in skip_names or _resolves_in_project(indexes, node.module, names):
                     continue
                 lineno = getattr(node, "lineno", 0)
                 sources = declared_sources.get(top, frozenset())

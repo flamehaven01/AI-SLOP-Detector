@@ -326,6 +326,33 @@ is present, the hash seed, and whether results come from the analysis cache.
   (this repository), 7.95 / 7.43 s (LMCache), 5.98 / 6.79 s (unsloth,
   run-to-run spread 5.3-9.7 s).
 
+### Fixed (project root for import evidence)
+
+- In a project scan, a directory with its own marker inside the scanned
+  project no longer splits it. `phantom_import` and `phantom_member` used the
+  nearest marker only, while the scan root was known to the path facts alone:
+  a service directory with its own `requirements.txt` (`backend/`) that
+  imports from the repository root (`src.rex...`, `backend.app...`) reported
+  modules that exist in the repository as phantom imports (CRITICAL).
+- Import evidence now comes from the nearest root and, during a scan whose
+  root is itself a project root containing it, from the scan root: a module
+  found under either is project code, and dependency declarations of both
+  count. The scan root contributes its E1-E3 package names and exact module
+  paths only; a package importable only under a conditional (E4) root is no
+  evidence for a file elsewhere. Nothing above the scan root is searched; a
+  single-file analysis, a scan below the project root, and a scan of a folder
+  that is not a project keep the nearest marker. The project-context
+  snapshots and the analysis cache key cover the same roots.
+- RExSyn-Nexus: 13 phantom imports and 3 undeclared optional dependencies
+  that all name repository modules are gone; two files change band
+  (92.38 critical_deficit to 68.23 inflated_signal, 63.93 inflated_signal to
+  29.00 clean). On the 9 codebases, all 18 exit codes are unchanged; imports
+  of the scanned project's own package are no longer reported as unavailable
+  or phantom (LMCache, OpenMythos, unstructured, unsloth), and unsloth's
+  declared `triton` moves from `phantom_import` to
+  `runtime_unavailable_dependency` in 7 files (4 change band). A real phantom
+  (`utils.paths`, which exists nowhere in unsloth) is still reported.
+
 ### Removed (configuration)
 
 - `patterns.severity_threshold` ("minimum severity to report") is gone from

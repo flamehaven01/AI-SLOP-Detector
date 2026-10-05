@@ -28,7 +28,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Sequence, Tuple
 
 DEPENDENCY_FILES = ("pyproject.toml", "requirements.txt")
 _SKIP_DIRS = frozenset({"__pycache__"})
@@ -70,6 +70,13 @@ def directory_context(directory: Path) -> ProjectContextSnapshot:
 
 def context_for_file(file: Path, project_root: Optional[Path]) -> ProjectContextSnapshot:
     return project_context(project_root) if project_root else directory_context(file.parent)
+
+
+def fingerprint_for_roots(file: Path, roots: Sequence[Path]) -> str:
+    """Identity of every project context a file's import evidence comes from."""
+    if not roots:
+        return directory_context(file.parent).fingerprint
+    return "+".join(project_context(root).fingerprint for root in roots)
 
 
 def _scoped(key: Tuple[str, str], build) -> ProjectContextSnapshot:

@@ -62,8 +62,8 @@ from slop_detector.patterns import get_all_patterns
 from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
 from slop_detector.prioritization import ProjectPrioritizer
-from slop_detector.project_context import context_for_file, project_context_scope
-from slop_detector.project_resolution import find_project_root
+from slop_detector.project_context import fingerprint_for_roots, project_context_scope
+from slop_detector.project_resolution import resolution_roots, scan_root_scope
 from slop_detector.rust_scan import discover_project_files
 from slop_detector.suppression_handler import SuppressionHandler
 
@@ -172,7 +172,7 @@ class SlopDetector:
             root:      The scan root its path facts are relative to. Without it the
                        nearest project marker is the root (slop_detector.path_facts).
         """
-        with project_context_scope():
+        with project_context_scope(), scan_root_scope(Path(root) if root else None):
             return self._analyze_file(file_path, root)
 
     def _analyze_file(self, file_path: str, root: Optional[str] = None) -> FileAnalysis:
@@ -188,8 +188,8 @@ class SlopDetector:
         cache_fingerprint = f"{fingerprint_config(self.config.config)}|path:{facts.fingerprint()}"
         if self._analysis_cache is not None:
             # So do the project's dependency declarations and module topology.
-            context = context_for_file(path_obj, find_project_root(path_obj))
-            cache_fingerprint += f"|env:{environment_fingerprint()}|project:{context.fingerprint}"
+            context = fingerprint_for_roots(path_obj, resolution_roots(path_obj))
+            cache_fingerprint += f"|env:{environment_fingerprint()}|project:{context}"
 
         stat = path_obj.stat()
         try:
