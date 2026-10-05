@@ -1,7 +1,8 @@
 """Static verification of names imported from installed (external) packages.
 
 The target is never imported or executed. The top-level package is located with
-importlib.util.find_spec, which does not run it, and only source files are read.
+the import system's finders, which do not run it, over the analyzer's environment
+(slop_detector.environment_resolution), and only source files are read.
 Each requested module or name is one of:
 
     present  source evidence shows it exists
@@ -16,13 +17,13 @@ from __future__ import annotations
 
 import ast
 import importlib.machinery
-import importlib.util
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Dict, FrozenSet, Iterator, List, Optional, Sequence, Set, Tuple
 
 from slop_detector.analysis.import_graph import _bound_names, _iter_imports
+from slop_detector.environment_resolution import find_installed_spec, search_path
 
 VERIFICATION_BASIS = "source_static_analysis"
 
@@ -86,19 +87,21 @@ def _source_of(spec) -> Optional[Path]:
 _TOP_LEVEL: Dict[Tuple[str, Tuple[str, ...]], Optional[_Module]] = {}
 
 
-def top_level(name: str) -> Optional[_Module]:
-    """The installed top-level module `name`, or None; cached per sys.path state."""
-    import sys
+def top_level(name: str, excluded: Sequence[Path] = ()) -> Optional[_Module]:
+    """The installed top-level module `name`, or None; cached per search path.
 
-    key = (name, tuple(sys.path))
+    Looked up in the analyzer's environment, never in its cwd or the `excluded`
+    project roots (slop_detector.environment_resolution).
+    """
+    key = (name, search_path(excluded))
     if key not in _TOP_LEVEL:
-        _TOP_LEVEL[key] = _find_top_level(name)
+        _TOP_LEVEL[key] = _find_top_level(name, excluded)
     return _TOP_LEVEL[key]
 
 
-def _find_top_level(name: str) -> Optional[_Module]:
+def _find_top_level(name: str, excluded: Sequence[Path]) -> Optional[_Module]:
     try:
-        spec = importlib.util.find_spec(name)
+        spec = find_installed_spec(name, excluded)
     except (ImportError, ValueError, AttributeError):
         return _Module(name, "opaque", reason="no_python_source")
     if spec is None:
@@ -325,10 +328,10 @@ def _virtual_or_absent(parent: _Module, name: str) -> Tuple[Optional[_Module], O
     return None, Outcome(ABSENT)
 
 
-def resolve_module(dotted: str) -> Tuple[Optional[_Module], Outcome]:
+def resolve_module(dotted: str, excluded: Sequence[Path] = ()) -> Tuple[Optional[_Module], Outcome]:
     """Walk `a.b.c` from the installed top level; never imports anything."""
     parts = dotted.split(".")
-    module = top_level(parts[0])
+    module = top_level(parts[0], excluded)
     if module is None:
         return None, Outcome(UNKNOWN, "not_installed")
     for name in parts[1:]:
@@ -394,9 +397,11 @@ def _requests(node: ast.AST) -> Iterator[Tuple[str, Optional[str]]]:
                 yield node.module, alias.name
 
 
-def _check(module_name: str, name: Optional[str]) -> Tuple[Outcome, Optional[str]]:
+def _check(
+    module_name: str, name: Optional[str], excluded: Sequence[Path]
+) -> Tuple[Outcome, Optional[str]]:
     """Outcome, and the missing name (None when the module itself is the subject)."""
-    module, outcome = resolve_module(module_name)
+    module, outcome = resolve_module(module_name, excluded)
     if module is None or name is None:
         return outcome, None
     return member(module, name), name
@@ -407,6 +412,7 @@ def verify_imports(
     skip_top: FrozenSet[str],
     guarded_lines: FrozenSet[int],
     skip_module: Callable[[str, List[str]], bool] = lambda dotted, names: False,
+    excluded: Sequence[Path] = (),
 ) -> FileVerification:
     """Verify every absolute import of an installed, non-project top-level package."""
     findings: List[Finding] = []
@@ -419,9 +425,9 @@ def verify_imports(
             top = module_name.split(".")[0]
             if top in skip_top or skip_module(module_name, [name] if name else []):
                 continue
-            if top_level(top) is None:
+            if top_level(top, excluded) is None:
                 continue  # not installed: phantom_import's case
-            outcome, subject = _check(module_name, name)
+            outcome, subject = _check(module_name, name, excluded)
             if outcome.state == ABSENT and type_only:
                 outcome = Outcome(UNKNOWN, "type_checking_only")
             _record(outcome, node, module_name, name, subject, findings, unknowns)

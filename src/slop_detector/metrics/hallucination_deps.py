@@ -211,10 +211,13 @@ class HallucinationDepsDetector:
         else:
             status = "PASS"
 
+        # A library's categories are a str set (hash-seed order), so give the
+        # evidence one total order before the cut decides which entries survive.
+        hallucinated_deps.sort(key=lambda d: (d.line, d.library, d.category))
         return HallucinationDepsResult(
             total_hallucinated=total_hallucinated,
             category_usage=sorted(category_usage, key=lambda c: c.usage_ratio),
-            hallucinated_deps=hallucinated_deps[:10],  # Top 10
+            hallucinated_deps=hallucinated_deps[:10],  # First 10 by (line, library, category)
             worst_category=worst_category,
             status=status,
         )

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import ast
-import importlib.util
 import logging
 import re
 import sys
 from pathlib import Path
 from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
 
+from slop_detector.environment_resolution import find_installed_spec
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 from slop_detector.project_resolution import (
     ProjectModuleIndex,
@@ -175,14 +175,25 @@ def _get_resolvable_modules() -> FrozenSet[str]:
     return _RESOLVABLE_MODULES_STORE["v"]
 
 
-def _module_exists(name: str) -> bool:
-    """Return True if name is a resolvable top-level module."""
+def _module_exists(name: str, excluded: Sequence[Path] = ()) -> bool:
+    """Return True if name is a resolvable top-level module in the analyzer's environment.
+
+    Never from the analyzer's cwd or the `excluded` project roots (see
+    slop_detector.environment_resolution).
+    """
     if name in _get_resolvable_modules():
         return True
     try:
-        return importlib.util.find_spec(name) is not None
+        return find_installed_spec(name, excluded) is not None
     except Exception:
         return True
+
+
+def environment_exclusions(index: Optional[ProjectModuleIndex]) -> Tuple[Path, ...]:
+    """The analyzed project's own roots: never evidence that a module is installed."""
+    if index is None:
+        return ()
+    return (index.project_root, *(root.path for root in index.roots))
 
 
 def project_skip_context(
@@ -252,6 +263,7 @@ class PhantomImportPattern(BasePattern):
         )
         has_pyproject = bool(project_root and (project_root / "pyproject.toml").exists())
         skip_names, index = project_skip_context(file, self._allowlist)
+        excluded = environment_exclusions(index)
         guarded_lines = _collect_import_guard_lines(tree)
 
         for node in ast.walk(tree):
@@ -262,7 +274,7 @@ class PhantomImportPattern(BasePattern):
                         continue
                     lineno = getattr(node, "lineno", 0)
                     sources = declared_sources.get(top, frozenset())
-                    if _module_exists(top):
+                    if _module_exists(top, excluded):
                         continue
                     if self._is_requirements_only_metadata_gap(sources, has_pyproject):
                         issues.append(
@@ -293,7 +305,7 @@ class PhantomImportPattern(BasePattern):
                     continue
                 lineno = getattr(node, "lineno", 0)
                 sources = declared_sources.get(top, frozenset())
-                if _module_exists(top):
+                if _module_exists(top, excluded):
                     continue
                 if self._is_requirements_only_metadata_gap(sources, has_pyproject):
                     issues.append(

@@ -33,7 +33,7 @@ from slop_detector.models import (
 )
 from slop_detector.patterns.base import Axis, Issue, Severity
 
-CACHE_ENGINE_VERSION = "analysis-cache-v19"
+CACHE_ENGINE_VERSION = "analysis-cache-v20"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 
@@ -152,7 +152,9 @@ def fingerprint_config(config_dict: Dict[str, Any]) -> str:
 
 
 def serialize_file_analysis(result: FileAnalysis) -> str:
-    return json.dumps(result.to_dict(), sort_keys=True, separators=(",", ":"))
+    # Key order is kept, not sorted: a cache hit must serialize exactly like the
+    # fresh analysis it was stored from.
+    return json.dumps(result.to_dict(), separators=(",", ":"))
 
 
 def deserialize_file_analysis(payload: str) -> FileAnalysis:

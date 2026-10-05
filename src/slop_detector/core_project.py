@@ -88,7 +88,12 @@ def discover_supported_files(
         [Path, Sequence[str], List[str]], Optional[List[Path]]
     ] = discover_project_files,
 ) -> List[Path]:
-    """Use accelerated discovery only after matching root-relative fallback results."""
+    """Use accelerated discovery only after matching root-relative fallback results.
+
+    Either way the files come back in one canonical order (root-relative POSIX
+    path), so position-dependent results (approximate topology sampling, the
+    first of tied files) do not depend on whether the Rust helper is present.
+    """
     fallback = [
         path
         for include_pattern in include_patterns
@@ -96,6 +101,7 @@ def discover_supported_files(
         if path.suffix.lower() in extensions
         and not should_ignore(path, ignore_patterns, root=project_path)
     ]
+    fallback = _canonical_order(project_path, fallback)
     discovered = rust_discoverer(project_path, include_patterns, ignore_patterns)
     if discovered is None:
         return fallback
@@ -112,7 +118,17 @@ def discover_supported_files(
             project_path,
         )
         return fallback
-    return accelerated
+    return _canonical_order(project_path, accelerated)
+
+
+def _canonical_order(project_path: Path, paths: List[Path]) -> List[Path]:
+    def key(path: Path) -> str:
+        try:
+            return path.relative_to(project_path).as_posix()
+        except ValueError:
+            return path.as_posix()
+
+    return sorted(paths, key=key)
 
 
 def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]) -> Dict[str, Any]:

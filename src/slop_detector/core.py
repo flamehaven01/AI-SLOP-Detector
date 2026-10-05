@@ -40,6 +40,7 @@ from slop_detector.core_topology import (
     deterministic_sample_indices,
     js_divergence,
 )
+from slop_detector.environment_resolution import environment_fingerprint
 from slop_detector.file_role import classify_file
 from slop_detector.ignore_handler import IgnoreHandler
 from slop_detector.masking import FrameworkMasker
@@ -171,7 +172,11 @@ class SlopDetector:
         facts = facts_for(path_obj, root)
         # Path facts depend on the root, so they are part of the cache key: the
         # same file scanned under two roots must not reuse the other's result.
+        # Import evidence (phantom_import, phantom_member) depends on the
+        # installed environment, so a result from another environment is not reused.
         cache_fingerprint = f"{fingerprint_config(self.config.config)}|path:{facts.fingerprint()}"
+        if self._analysis_cache is not None:
+            cache_fingerprint += f"|env:{environment_fingerprint()}"
 
         stat = path_obj.stat()
         try:

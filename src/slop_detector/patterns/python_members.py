@@ -24,6 +24,7 @@ from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 from slop_detector.patterns.python_imports import (
     _handler_is_import_guard,
     _resolves_in_project,
+    environment_exclusions,
     project_skip_context,
 )
 
@@ -49,6 +50,7 @@ class PhantomMemberPattern(BasePattern):
             skip_names,
             guarded_import_lines(tree, _handler_is_import_guard),
             skip_module=lambda dotted, names: _resolves_in_project(index, dotted, names),
+            excluded=environment_exclusions(index),
         )
         self._unknowns[str(file)] = result.unknowns
         return [self._issue(file, finding) for finding in result.findings]

@@ -265,6 +265,42 @@ do not change.
   descriptions no longer restate gate thresholds (the hard hook's listed only
   two of the four).
 
+### Fixed (determinism and runtime context)
+
+The same target in the same environment now gives byte-identical output
+whatever the analyzer's working directory, whether the Rust discovery helper
+is present, the hash seed, and whether results come from the analysis cache.
+
+- `phantom_import` and `phantom_member` no longer take evidence from the
+  analyzer's working directory (`""` or the cwd on `sys.path`, as `python -m`
+  and the pre-commit hooks put it) or from the analyzed project's own roots.
+  A `models/` directory where the analyzer ran used to resolve an unrelated
+  target's `import models.tensoRF`. The lookup is in
+  `slop_detector.environment_resolution`; nothing is imported.
+- The analysis cache key includes an environment fingerprint (interpreter,
+  search path without the cwd, top-level names in each search-path
+  directory), so a result computed under another environment is not reused.
+  Cache `analysis-cache-v20`: the first run after upgrading re-analyzes every
+  file. Not covered: editing an installed package's source in place.
+- Project files are analyzed in one canonical order (root-relative POSIX
+  path), with or without the Rust helper. Approximate structural coherence
+  samples by position and next steps name the first of tied files, so both
+  used to depend on whether the helper was built.
+- `hallucination_deps` evidence is ordered by (line, library, category)
+  before the first 10 are kept; a library's categories are a set, so the hash
+  seed used to decide the order and, past 10 entries, which ones were listed.
+- A cache hit serializes exactly like a fresh analysis: the cache stored
+  results with sorted keys, so `dcf` and `deficit_breakdown` printed in a
+  different key order on the second run.
+- On the 9 codebases (`--json` and `--ci-mode hard --ci-report --json` each)
+  every context gives the same output as the reference run: warm cache,
+  another hash seed, no Rust helper, another working directory (18/18 each).
+  Against the previous `main`, run from this repository: one AI-Scientist
+  file gains a `phantom_import` for `models.tensoRF` (deficit 57.07 to 69.09,
+  project 15.90 to 15.94; it had resolved through this repository's own
+  `models/`), and two unsloth files list the same `hallucination_deps` in the
+  new order. Every other result and all 18 exit codes are unchanged.
+
 ## [3.9.1] - 2026-10-03
 
 A checkpoint for the claim and path work after v3.9.0. Scores move: jargon in
