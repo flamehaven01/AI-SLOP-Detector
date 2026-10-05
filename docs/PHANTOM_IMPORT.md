@@ -95,12 +95,25 @@ from importlib.metadata import packages_distributions
 # Maps distribution name → list of importable top-level names
 ```
 
-### 4. Fallback — find_spec
+### 4. Fallback — the import system's finders
 ```python
-importlib.util.find_spec(module_name)
+# What importlib.util.find_spec(module_name) does, over the analyzer's environment:
+# the meta-path finders, and sys.path without two kinds of entry
 # Handles: namespace packages, editable installs (pip install -e .)
 # Used only when the module is not found in sources 1–3
 ```
+
+Two kinds of `sys.path` entry are not evidence that a package is installed:
+
+- the directory the analyzer runs from (`""` or the working directory itself,
+  which `python -m` and the pre-commit hooks put on `sys.path`). A `models/`
+  directory next to where the analyzer runs says nothing about the analyzed
+  project;
+- the analyzed project's own roots. What is project code is decided by the
+  project's module index (above), not by whether the project is on `sys.path`.
+
+The same target in the same environment gives the same result from any working
+directory. Nothing is imported or executed.
 
 ### Error policy
 On any resolution error, the pattern returns `True` (module assumed resolvable).
@@ -114,12 +127,12 @@ to falsely flagging a legitimate one.
 | Scenario | Handled |
 |---|---|
 | Relative imports | Excluded (`node.level > 0`) |
-| Editable installs | find_spec fallback |
-| Namespace packages | find_spec fallback |
+| Editable installs | Finder fallback |
+| Namespace packages | Finder fallback |
 | `PIL` (installed as `Pillow`) | `packages_distributions()` maps import names |
 | `sklearn` (installed as `scikit-learn`) | `packages_distributions()` maps import names |
 | Resolution errors | Returns True (assume resolvable) |
-| Python 3.8/3.9 (no `stdlib_module_names`) | find_spec fallback covers stdlib |
+| Python 3.8/3.9 (no `stdlib_module_names`) | Finder fallback covers stdlib |
 
 ---
 
@@ -127,7 +140,7 @@ to falsely flagging a legitimate one.
 
 The resolution index is built **once per process** and cached as a module-level
 `frozenset`. Subsequent files share the same index with O(1) lookup per import.
-`find_spec` is called only as a last resort, never for modules already in the index.
+The finder lookup is called only as a last resort, never for modules already in the index.
 
 ---
 

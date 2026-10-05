@@ -861,7 +861,9 @@ environment — a direct signal of AI-hallucinated code.
 1. `sys.builtin_module_names` — C extensions
 2. `sys.stdlib_module_names` — stdlib (Python 3.10+)
 3. `importlib.metadata.packages_distributions()` — pip-installed packages
-4. `importlib.util.find_spec` — namespace packages, editable installs
+4. The import system's finders, as `importlib.util.find_spec` would use them, over
+   `sys.path` without the analyzer's working directory and without the analyzed
+   project's own roots — namespace packages, editable installs
 
 Relative imports are excluded by design. Declared `[project.optional-dependencies]`
 entries are recognised after stripping PEP-508 extras specifiers (`psycopg[binary]`
