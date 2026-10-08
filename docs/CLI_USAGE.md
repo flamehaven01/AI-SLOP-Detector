@@ -87,14 +87,11 @@ Only selected line-oriented patterns have patchers. Cleanup confidence and a dry
 # Avoid writing local history for this run.
 slop-detector scan . --no-history
 
-# Inspect a repository-local recommendation.
+# Advisory weight report from local history (never writes weights).
 slop-detector . --self-calibrate
-
-# Explicit review-and-apply path.
-slop-detector . --self-calibrate --apply-calibration
 ```
 
-History is local. The guarded milestone path may also update an existing local config after it has enough repeat-run evidence. Calibration is a local review-sensitivity aid, not external score validation. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
+History is local, and scans never run calibration. `--apply-calibration` is disabled: it writes nothing and exits 2, because the legacy history is not provenance-stable. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
 ## CI And Governance
 

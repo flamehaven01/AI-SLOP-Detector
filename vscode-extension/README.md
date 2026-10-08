@@ -189,6 +189,11 @@ sent to stderr.
 
 ### LEDA Self-Evolving Configuration Loop
 
+> **Current behavior (detector v3.9.2+):** Self-Calibrate shows an advisory report
+> only. The **Apply** button is gone and the CLI no longer writes weights, because
+> the legacy history is not provenance-stable; see the detector's
+> `docs/SELF_CALIBRATION.md`. The notes below describe v3.2.1.
+
 The biggest addition: the extension now exposes the **LEDA calibration loop** —
 the engine that can tune detection weights from repository-local run history.
 This is operational calibration for one codebase, not an externally validated
@@ -362,7 +367,6 @@ Open Settings (`Ctrl+,`) and search **"SLOP Detector"**, or edit `settings.json`
   "slopDetector.pythonPath": "python",
   "slopDetector.configPath": "",                 // path to .slopconfig.yaml (optional)
   "slopDetector.recordHistory": true,            // write results to ~/.slop-detector/history.db
-  "slopDetector.showCalibrationHints": true,     // notify when LEDA calibration milestone is reached
   "slopDetector.phantomImportAllowlist": []      // [v3.7.5] module names to skip in phantom_import
 }
 ```

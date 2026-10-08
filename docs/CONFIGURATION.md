@@ -69,8 +69,8 @@ import cycles only.
 `.slopconfig.yaml` is validated by Pydantic v2 schemas before merging into the
 default config. Invalid values raise `ValueError` with the exact field path —
 before they can reach the GQG formula (the weighted score combiner) or the
-local self-calibration (a repository-scoped review-sensitivity aid based on
-your local history, not external validation).
+advisory `--self-calibrate` report (based on your local history; it never
+writes weights and is not external validation).
 
 ### Validated Sections
 
@@ -198,7 +198,7 @@ The adaptive layer is conservative by design:
 
 Each profile comes with pre-configured `capability_vector` (weight anchors) and
 `domain_overrides` (pattern severity adjustments). The `capability_vector` is used
-by the self-calibration engine as the initial anchor for grid search.
+by the advisory `--self-calibrate` report as the anchor for its grid search.
 
 Example generated config for a `general` project:
 

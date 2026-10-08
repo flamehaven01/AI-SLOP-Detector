@@ -163,10 +163,11 @@ Files that stay at 8 across 50 runs
 Repository-local signal for calibration only
 ```
 
-The local milestone path and `--self-calibrate` read this history (filtered by
-`project_id`) to find weights that reduce missed improvement signals and
-unnecessary alerts for one codebase. They do not establish false-positive rates
-or generalize beyond that calibration loop.
+`--self-calibrate` reads this history to report weights that would reduce missed
+improvement signals and unnecessary alerts. The report is advisory: nothing writes
+the weights, and scans never run it. The rows do not record the detector version,
+configuration or project root, and `project_id` is derived from the working
+directory, so the report does not establish false-positive rates.
 
 ---
 

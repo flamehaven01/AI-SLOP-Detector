@@ -1,7 +1,19 @@
 # Self-Calibration Engine
 
-> **Self-calibration uses repository-local history to tune review sensitivity.**
-> It is operational adaptation, not independent external validation.
+> **Status (v3.9.2): advisory only.** `--self-calibrate` reports what the local
+> history suggests; nothing writes weights. Scans no longer run calibration, and
+> `--apply-calibration` is disabled (it writes nothing and exits 2).
+>
+> Why: the legacy history does not record the detector version, the
+> configuration, or the project root, so a score change is not proof that the
+> code changed. Measured on 29,303 real history rows (26 working directories,
+> 8,556 files): 241 of the 301 "improvement" pairs (80%) had an unchanged file;
+> 61% of flagged rows (stored deficit > 25) were flagged by pattern penalties
+> that the weights cannot move; and rows are grouped by working directory, so
+> projects scanned from one directory share them. A provenance-stable
+> Calibration v2 (separate measurement and weight provenance, events compared
+> under one reference weight vector, legacy rows excluded) is planned for v3.10.
+> The rest of this document describes the legacy algorithm the report uses.
 
 ---
 
@@ -51,9 +63,12 @@ validation.
 
 What it does:
 
-- tunes the 4D weights from repository-local run history
-- keeps that tuning project-scoped and domain-anchored
+- reports the 4D weights that local run history would favour (advisory)
+- keeps the search domain-anchored
 - returns a reproducible recommendation from explicit rules and thresholds
+
+What it does not do (v3.9.2): write weights, run during scans, or separate
+history by project root (records are grouped by working directory).
 
 What it does **not** do:
 
@@ -61,8 +76,8 @@ What it does **not** do:
 - act as an external governance control by itself
 - replace blinded review, out-of-sample benchmarking, or independent validation
 
-Use calibrated weights as a repository-specific review aid. Do not treat them
-as proof that the score is universally validated.
+Use the report as a lead for review. Do not treat it as proof that the score is
+universally validated, or as a setting to apply.
 
 ---
 
@@ -129,7 +144,8 @@ With labeled events, the engine searches all weight combinations where:
 - **Purity dimension:** `purity_score = exp(-0.5 * n_critical_patterns)` — 1.0 when no critical patterns, decays toward 0 as critical patterns accumulate
 
 **v3.5.0 — Domain-anchored search (P3):** When `domain_anchor` is provided
-(auto-calibration always passes current config weights as anchor), each
+(the removed scan-time path passed the current config weights; the advisory
+`--self-calibrate` report passes none and searches `[MIN_W, MAX_W]`), each
 dimension's search range is constrained to `[anchor ± DOMAIN_TOLERANCE(0.15)]`
 clipped to absolute `[MIN_W=0.10, MAX_W=0.65]`. This prevents calibration from
 drifting outside the domain's meaningful weight region (e.g. a `scientific/ml`
@@ -277,18 +293,10 @@ Output:
 Combined error: 1.1069 -> 0.9985  (FN 0.9194->0.7258,  FP 0.1875->0.2727)
 ```
 
-### Apply calibrated weights
+### Applying weights (disabled)
 
-```bash
-# Write to default .slopconfig.yaml in current directory
-slop-detector . --self-calibrate --apply-calibration
-
-# Write to a specific config file
-slop-detector . --self-calibrate --apply-calibration path/to/.slopconfig.yaml
-```
-
-The engine only writes when `status = ok` (confident result).
-If `status = insufficient_data`, `--apply-calibration` is skipped with a warning.
+`--apply-calibration` writes nothing: it prints why to stderr and exits 2. To
+change weights, edit the `weights:` block of `.slopconfig.yaml` yourself.
 
 ### Adjust the minimum event threshold
 
@@ -302,35 +310,15 @@ Total minimum is 10 records (5+5). The 4D model's continuous tiebreak signal
 makes 5+5 statistically reliable; 3D required 10+10 (binary-only scoring).
 Increase `--min-history` for stricter confidence requirements.
 
-### Local milestone application (v3.5.0)
+### Scans no longer calibrate (v3.9.2)
 
-After each scan, the CLI checks whether enough repeat-file history exists.
-v3.5.0 tightened the local trigger condition:
-
-| Version | Trigger condition |
-|---|---|
-| v3.2.1 | `count_total_records() % 10 == 0` — fired on any N-file first scan (false trigger) |
-| **v3.5.0** | `count_files_with_multiple_runs(project_id) >= 10` — only files scanned ≥2× contribute |
-
-This prevents the common false trigger where scanning a 50-file project for the
-first time records 50 rows (50 % 10 == 0) but zero repeat-file pairs — no
-improvement/FP events can exist yet. When the local result is confident and an
-existing `.slopconfig.yaml` is present, the milestone path can update that
-local config. Otherwise it prints a local status hint.
-
-```
-[*] Auto-calibration (10 multi-run files): repository-local weights updated -> .slopconfig.yaml
-    ldr: 0.40 -> 0.45
-    ddc: 0.20 -> 0.25
-```
-
-- Only writes when `status == "ok"` (CONFIDENCE_GAP + no_change gates fire first).
-- Only writes when `.slopconfig.yaml` already exists in the project (no silent creation).
-- Prints exactly what changed for full auditability.
-- Calibration hint and warnings go to **stderr** — `--json` stdout is never contaminated.
-- Manual `--self-calibrate --apply-calibration` remains available when you want
-  to inspect the recommendation and apply it explicitly.
-- Neither path exports history or turns local behavior into external validation.
+Until v3.9.1, each scan with history checked a local milestone and could
+rewrite the weights of an existing `.slopconfig.yaml`. The v3.5.0 table here
+described the trigger as `count_files_with_multiple_runs(project_id) >= 10`,
+but the code also required an exact multiple of 10, so a project whose count
+jumped past 10 (12 files scanned twice) never calibrated, and `project_id` came
+from the working directory. With the evidence problems above, v3.9.2 removes
+the scan-time path entirely: scans record history and nothing else.
 
 ---
 
@@ -338,9 +326,9 @@ local config. Otherwise it prints a local status hint.
 
 | Status | Meaning |
 |---|---|
-| `ok` | Calibration produced a confident repository-local recommendation. `--apply-calibration` will write. |
-| `no_change` | Current weights are already near-optimal (improvement margin < 2%). No write. |
-| `insufficient_data` | Too few events, or confidence gap below threshold. No write. |
+| `ok` | The legacy algorithm produced a confident recommendation. Advisory only: nothing writes it. |
+| `no_change` | Current weights are already near-optimal (improvement margin < 2%). |
+| `insufficient_data` | Too few events, or confidence gap below threshold. |
 
 ---
 
@@ -458,7 +446,6 @@ No new packages required.
 **Constants:**
 - `DOMAIN_TOLERANCE = 0.15` — per-dimension grid search radius around anchor
 - `DOMAIN_DRIFT_LIMIT = 0.25` — drift threshold for post-calibration warning
-- `CALIBRATION_MILESTONE = 10` — min repeat-file pairs to trigger auto-calibration
 
 ---
 

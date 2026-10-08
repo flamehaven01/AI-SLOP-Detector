@@ -62,7 +62,7 @@ General linters flag style and convention. This tool flags structural risk.
 
 - **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
-- **Can adapt review sensitivity locally** — repository-scoped history can tune weights after 10 multi-run files when the confidence guard passes and an existing config is present. This is operational calibration, not external validation.
+- **Keeps local history** — every scan is recorded locally; `--self-calibrate` reports what that history suggests for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml` (history-based weight tuning is being rebuilt as Calibration v2).
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
 - **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general) and picks sensible defaults; override with `--domain`
 - **Python first, JS/TS and Go optional** — install the `[js]` or `[go]` extra to scan those files too
@@ -92,7 +92,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 - **You want style or formatting enforcement** — use ruff / black / ESLint. This tool ignores style on purpose.
 - **You need a runtime correctness guarantee** — a low score means cleaner structure, not that the code works. Keep your tests.
 - **Your code isn't Python, JS/TS, or Go** — other languages aren't analyzed yet.
-- **You expect calibrated thresholds on day one** — the first runs are un-calibrated and only begin to accumulate repository-specific calibration evidence after ~10 multi-run files. Treat early findings as leads, not verdicts.
+- **You expect thresholds tuned to your repository** — weights are the defaults or the values in your `.slopconfig.yaml`; nothing tunes them automatically. Treat findings as leads, not verdicts.
 
 ---
 
@@ -287,15 +287,14 @@ flowchart LR
     F -->|50–70| I[🔶 INFLATED_SIGNAL]
     F -->|≥ 70| J[🚨 CRITICAL_DEFICIT]
     E --> H2[history.db]
-    H2 --> K[Self-Calibrator\nauto-tune weights]
+    H2 --> K[Self-Calibrator\nadvisory report]
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
 Purity) **and** 31 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
-down regardless of other dimensions. Every scan is recorded to history (per project); at every
-10 multi-run files milestone the calibrator fires — weights apply only when >= 5 improvement
-events and >= 5 fp_candidate events per class have accumulated.
+down regardless of other dimensions. Every scan is recorded to local history; `--self-calibrate`
+turns that history into an advisory weight report and never writes weights.
 
 Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 Agent usage: [docs/AGENT_WORKFLOW.md](docs/AGENT_WORKFLOW.md)
@@ -375,7 +374,7 @@ deficit_score = 100 × (1 − quality) + pattern_penalty
 | ≥ 30 | `SUSPICIOUS` |
 | < 30 | `CLEAN` |
 
-Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.20 · purity=0.10` — sum is 1.00; GQG divides by `total_w` so exact normalization is not required (all four calibrated via `--self-calibrate` in v3.2.0+)
+Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.20 · purity=0.10` — sum is 1.00; GQG divides by `total_w` so exact normalization is not required (all four appear in the advisory `--self-calibrate` report)
 Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
 
 Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
@@ -484,22 +483,19 @@ Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error h
 
 ---
 
-**Self-Calibration** — repository-local weight tuning
+**Self-Calibration** — advisory weight report (legacy)
 ```bash
-slop-detector . --self-calibrate               # see what your history recommends
-slop-detector . --self-calibrate --apply-calibration  # write to .slopconfig.yaml
+slop-detector . --self-calibrate               # advisory: what the history suggests
 ```
-4D grid-search (ldr / inflation / ddc / purity) over repository-local run
-history. At the milestone, a confident recommendation can update an existing
-`.slopconfig.yaml`; use `--self-calibrate` to inspect it and
-`--apply-calibration` for an explicit write. This is an **operational
-calibration** layer, not independent external validation or a governance
-control by itself.
-- **Project-scoped** — `history.db` tags every record with a `project_id` (sha256 of cwd); calibration signal never mixes across different projects
-- **Domain-anchored** — grid search is constrained to ±0.15 around the current domain weights, preventing drift outside the domain's meaningful weight region
-- **Drift warnings** — `CalibrationResult.warnings` flags any dimension that shifted > 0.25 from the anchor
-- Only applies when confidence gap between top two candidates exceeds 0.10
-- Milestone is triggered by files re-scanned (not raw record count), avoiding false triggers on first-time project scans
+4D grid-search (ldr / inflation / ddc / purity) over local run history. The
+report is **advisory only**: scans never run it, and `--apply-calibration` is
+disabled (it writes nothing and exits 2). The legacy history does not record
+the detector version, configuration or project root, so a score change is not
+proof that the code changed: measured on 29,303 real history rows, 80% of the
+"improvement" events had an unchanged file, and records are grouped by working
+directory, so projects scanned from one directory share them. Weights change
+only when you edit `.slopconfig.yaml`. A provenance-stable Calibration v2 is
+planned for v3.10.
 
 [docs/SELF_CALIBRATION.md →](docs/SELF_CALIBRATION.md) · [Validation boundary →](docs/VALIDATION.md)
 
@@ -789,7 +785,7 @@ Real-time inline diagnostics, debounced lint-on-type, ML score and purity signal
 | Show History Trends | 7-day project-wide daily trend table |
 | Export History to JSONL | Dump `history.db` records for external analysis |
 | Bootstrap .slopconfig.yaml | Domain-aware config generation (`--init`) |
-| Run Self-Calibration | LEDA 4D weight optimizer with one-click Apply |
+| Run Self-Calibration | Advisory 4D weight report (weights are not applied) |
 
 **Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector)**
 or build locally:

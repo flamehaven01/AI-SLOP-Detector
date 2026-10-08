@@ -51,7 +51,7 @@ graph TB
     M --> N[FileAnalysis Result]
 
     N --> HIST[History DB<br/>~/.slop-detector/history.db]
-    HIST --> CAL[Self-Calibrator<br/>auto-tune at milestone]
+    HIST --> CAL[Self-Calibrator<br/>advisory report only]
 
     style A fill:#e1f5ff
     style N fill:#d4edda
@@ -305,10 +305,8 @@ flowchart TD
     style F fill:#fff3cd
 ```
 
-Repository-local history can tune weights through the self-calibrator. A
-confident milestone result may update an existing local config; this improves
-project-specific review sensitivity but is not independent external validation
-of the score. The project deficit is the line-weighted average of file
+Local history feeds an advisory self-calibration report; nothing writes the
+weights it suggests. The project deficit is the line-weighted average of file
 deficits, and its status is the band of that score. Project LDR uses SR9
 conservative weighting: `0.6 × min_file + 0.4 × mean`.
 
@@ -396,32 +394,25 @@ graph TB
 
 ## Self-Calibration Flow
 
-Every scan is auto-recorded to `~/.slop-detector/history.db`. Once enough
-repeat-file history exists, the local milestone path can tune weights in an
-existing config when its confidence guard passes. This is an operational
-calibration pass: it helps one project adapt review sensitivity, but it does
-not externally validate the underlying score or export history.
+Every scan is recorded to `~/.slop-detector/history.db` (unless `--no-history`);
+scans never run calibration. `--self-calibrate` prints an advisory weight report;
+`--apply-calibration` is disabled. The legacy history is not provenance-stable,
+so the report is a lead to review, not a setting to apply.
 
 ```mermaid
 flowchart TD
     A[Scan Completes] --> B[Record to history.db<br/>git commit + branch tag]
-    B --> GUARD[HistoryEntry.__post_init__<br/>v3.7.2 — clamp 6 fields<br/>fired_rules JSON validated]
-    GUARD --> C{10 project-scoped<br/>multi-run files?}
-    C -->|No| END[Done]
-    C -->|Yes| D[Extract Events<br/>improvement / fp_candidate pairs]
+    B --> END[Done: scans never calibrate]
+    S[--self-calibrate] --> D[Extract Events<br/>improvement / fp_candidate pairs]
     D --> E{Per-class min met?<br/>5 improvements + 5 fp_candidates}
-    E -->|No| F[Print: insufficient_data hint]
+    E -->|No| F[Report: insufficient_data]
     E -->|Yes| G[4D Grid Search<br/>ldr × inflation × ddc × purity]
-    G --> H{Confidence gap<br/>> 0.10?}
-    H -->|No| I[Print: already optimal]
-    H -->|Yes| J{Existing config?}
-    J -->|Yes| K[Apply local .slopconfig.yaml]
-    J -->|No| L[Print: local status hint]
-    K --> M[Print: weights updated]
+    G --> R[Advisory report<br/>weights are not written]
+    X[--apply-calibration] --> N[Refused: exit 2<br/>config unchanged]
 
-    style K fill:#c8e6c9
     style G fill:#fff3cd
     style F fill:#e1f5ff
+    style N fill:#f8d7da
 ```
 
 ---

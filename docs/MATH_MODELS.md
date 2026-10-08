@@ -192,8 +192,8 @@ deficit_score = min(base_deficit + pattern_penalty, 100)
 `total_w` normalises the geometric mean, so weights need not sum to any fixed value.
 These are the `DEFAULT_CONFIG` canonical fallback values. Domain profiles are
 shipped configuration defaults; they are not evidence that one global weight
-set has been externally validated. Local self-calibration is repository-scoped
-and separately bounded; see [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
+set has been externally validated. The `--self-calibrate` report is advisory and
+writes nothing; see [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
 ### Pattern Severity Penalties (added after the 0-100 base deficit)
 

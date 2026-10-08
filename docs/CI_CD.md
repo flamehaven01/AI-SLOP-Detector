@@ -56,9 +56,9 @@ Use `review` for changed-code attribution, `pulse` for hotspot prioritization, a
 
 ## History And Calibration
 
-The normal scan path records local history unless `--no-history` is passed. Calibration diagnostics write to stderr, keeping JSON stdout machine-readable. The milestone path can update an existing local config only after its local confidence guards pass. In an ephemeral or policy-controlled CI environment, use `--no-history` unless local history behavior has been deliberately chosen.
+The normal scan path records local history unless `--no-history` is passed. Scans never run calibration or change a config. In an ephemeral or policy-controlled CI environment, use `--no-history` unless local history behavior has been deliberately chosen.
 
-Self-calibration is local adaptation, not an external validation mechanism. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
+`--self-calibrate` is an advisory report, not an external validation mechanism, and it does not change weights. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
 ## Claim-Based Enforcement
 
