@@ -2,8 +2,9 @@
 End-to-end lifecycle test for ai-slop-detector v3.2.1.
 
 Validates three core promises shipped in v3.2.1:
-  P1 -- Auto-calibration: _check_calibration_hint() auto-runs + applies at
-        CALIBRATION_MILESTONE (10 records), no manual command required.
+  P1 -- Containment (v3.9.2, replaces v3.2.1 auto-calibration): scans keep
+        recording history but never run calibration or write weights; the
+        legacy history is not provenance-stable (see test_calibration_containment).
   P2 -- Git noise filter: git_commit captured per scan; same-commit improvements
         are skipped (noise), different-commit stable-hash fp_candidates are skipped (ambiguous).
   P3 -- Per-class minimums: MIN_IMPROVEMENTS=5 + MIN_FP_CANDIDATES=5 replace
@@ -16,11 +17,10 @@ Scenario (2-round scan):
     stable_{1..5}.py   -- high-slop content  -> never changed       -> fp_candidate events
 
   Round 1: scan all 10 files -> 10 records
-    milestone(10) fires -> calibrate() -> insufficient_data (no pairs yet)
   [fix improve files]
   Round 2: scan all 10 files -> 20 records
-    milestone(20) fires -> calibrate() ->
-      5 improvement events + 5 fp_candidates -> status=ok -> auto-apply .slopconfig.yaml
+    5 improvement events + 5 fp_candidates are extractable; no calibration runs
+    and .slopconfig.yaml is unchanged
 
 JSON data snapshots recorded at each step (run_01.json through run_10.json).
 Final report written to tests/e2e_v321/data/REPORT_v321.md if all assertions pass.
@@ -452,9 +452,8 @@ def test_step_03_round2_scan_auto_calibration(e2e_env):
     """Round 2: scan all 10 files after fixing improve_*.py.
 
     Expected:
-      P1: auto-calibration fires automatically at milestone (n=20)
+      P1: no calibration runs at the old milestone and weights are unchanged
       P3: 5 improvement events + 5 fp_candidates satisfy per-class floors
-      result: .slopconfig.yaml weights are updated
     """
     mock_dir = e2e_env["mock_dir"]
     home_dir = e2e_env["home_dir"]
@@ -514,26 +513,11 @@ def test_step_03_round2_scan_auto_calibration(e2e_env):
         len(fp_candidates) >= 5
     ), f"P3 FAIL: Expected >= 5 fp_candidates, got {len(fp_candidates)}"
 
-    # P1: calibration milestone must AUTO-TRIGGER (no manual command required)
-    # Milestone fires at every CALIBRATION_MILESTONE multiple of total records.
-    # Status may be ok (auto-applied) or insufficient_data (confidence too low for synthetic data).
-    # With uniform synthetic templates, confidence_gap stays near 0 — this is expected behavior.
-    assert r["milestone_fired"], (
-        f"P1 FAIL: Calibration milestone hint must fire automatically at n >= {n_after}.\n"
-        f"stdout:\n{r['stdout'][-1000:]}\nstderr:\n{r['stderr'][-500:]}"
+    # P1 (containment): the old milestone no longer runs calibration or writes weights.
+    assert not r["milestone_fired"] and not r["auto_calibrated"], (
+        f"P1 FAIL: a scan ran calibration at n={n_after}.\n" f"stderr:\n{r['stderr'][-500:]}"
     )
-    # milestone output must reference calibration (either auto-apply or insufficient_data hint)
-    # Calibration hints go to stderr (to avoid corrupting --json stdout for jq consumers)
-    milestone_output = r["stdout"] + r["stderr"]
-    has_calibration_message = (
-        "[*] Auto-calibration" in milestone_output
-        or "Calibration milestone" in milestone_output
-        or "[*] Calibration" in milestone_output
-    )
-    assert has_calibration_message, (
-        f"P1 FAIL: stdout must contain calibration milestone message.\n"
-        f"stdout:\n{milestone_output[-500:]}"
-    )
+    assert weights_after == weights_before, "P1 FAIL: a scan changed .slopconfig.yaml weights"
 
     e2e_env["results"]["step_03"] = snapshot
 
@@ -629,7 +613,7 @@ def test_step_06_calibrate_with_min_events_override(e2e_env):
     min_events=8 -> min_imp = max(8, MIN_IMPROVEMENTS=5) = 8 -> need 8 improvements.
     With only 5 improvements, this should return insufficient_data.
     """
-    from slop_detector.ml.self_calibrator import CALIBRATION_MILESTONE, SelfCalibrator
+    from slop_detector.ml.self_calibrator import SelfCalibrator
 
     home_dir = e2e_env["home_dir"]
     db_path = _get_db(home_dir)
@@ -656,7 +640,6 @@ def test_step_06_calibrate_with_min_events_override(e2e_env):
             "status": result_strict.status,
             "message": result_strict.message,
         },
-        "calibration_milestone": CALIBRATION_MILESTONE,
     }
     _save(data_dir, "run_06_min_events_override.json", snapshot)
 
@@ -807,7 +790,6 @@ def test_step_10_write_report(e2e_env):
     results = e2e_env["results"]
 
     from slop_detector.ml.self_calibrator import (
-        CALIBRATION_MILESTONE,
         CONFIDENCE_GAP,
         FIX_DELTA,
         FP_STABLE_DELTA,
@@ -844,7 +826,7 @@ def test_step_10_write_report(e2e_env):
         "",
         "| Promise | Feature | Result |",
         "|---------|---------|--------|",
-        "| P1 | Auto-calibration at milestone | [+] Fired at n=20, applied to .slopconfig.yaml |",
+        "| P1 | Calibration containment | [+] No calibration at n=20; weights unchanged |",
         "| P2 | Git context capture + noise filter | [+] git_commit populated in-repo; NULL + fallback out-of-repo |",
         "| P3 | Per-class minimums (5+5=10) | [+] 5 improvements + 5 fp_candidates → sufficient |",
         "",
@@ -860,26 +842,23 @@ def test_step_10_write_report(e2e_env):
         "```",
         "",
         "**Round 1:** Scan all 10 files → 10 history records",
-        "  - Milestone fires at n=10",
-        "  - `calibrate()` → `insufficient_data` (no consecutive pairs yet)",
         "",
         "**Fix phase:** Rewrite `improve_{{1..5}}.py` to clean code (zero jargon, pure logic)",
         "  - File hashes change → different SHA256",
         "",
         "**Round 2:** Scan all 10 files → 20 history records",
-        "  - Milestone fires at n=20",
         f"  - `calibrate()` extracts {labeled.get('improvement_events', '?')} improvements + {labeled.get('fp_candidates', '?')} fp_candidates",
-        "  - `status = ok` → `apply_to_config()` writes to .slopconfig.yaml",
+        "  - No calibration runs and .slopconfig.yaml is unchanged (containment)",
         "",
         "---",
         "",
-        "## P1 — Auto-Calibration (LEDA Loop Closure)",
+        "## P1 — Calibration Containment",
         "",
-        "**Claim:** 'The more you use it, the smarter it becomes' — automatic, no manual steps.",
+        "**Contract:** scans record history; no calibration runs and no weights are written.",
         "",
         f"- Records before round 2: {s01.get('records_after', '?')}",
         f"- Records after round 2: {s03.get('records_after', '?')}",
-        f"- Auto-calibration fired: {'YES [+]' if s03.get('auto_calibrated') else 'NO [-]'}",
+        f"- Calibration ran during scans: {'YES [-]' if s03.get('auto_calibrated') else 'NO [+]'}",
         "",
         "**Weight evolution:**",
         "",
@@ -930,7 +909,6 @@ def test_step_10_write_report(e2e_env):
         "|----------|-------|-----------|",
         f"| `MIN_IMPROVEMENTS` | {MIN_IMPROVEMENTS} | Minimum improvement events (TP class) |",
         f"| `MIN_FP_CANDIDATES` | {MIN_FP_CANDIDATES} | Minimum fp_candidate events (FP class) |",
-        f"| `CALIBRATION_MILESTONE` | {CALIBRATION_MILESTONE} | Auto-trigger threshold (total records) |",
         f"| `SLOP_FLOOR` | {SLOP_FLOOR} | Min deficit to be considered slop-flagged |",
         f"| `FIX_DELTA` | {FIX_DELTA} | Score drop required to label as improvement |",
         f"| `FP_STABLE_DELTA` | {FP_STABLE_DELTA} | Max score change to label as fp_candidate |",
@@ -997,7 +975,7 @@ def test_step_10_write_report(e2e_env):
         "",
         "**ai-slop-detector v3.2.1 e2e test: ALL GREEN**",
         "",
-        "> 'The more you use it, the smarter it becomes' — verified.",
+        "> History is recorded; weights change only by an explicit edit (Calibration v2: v3.10).",
         "",
     ]
 

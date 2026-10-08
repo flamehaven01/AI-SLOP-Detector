@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 from slop_detector.cli_history import (
-    _check_calibration_hint,  # noqa: F401
     _export_history,  # noqa: F401
     _get_git_context,  # noqa: F401
     _record_history,  # noqa: F401

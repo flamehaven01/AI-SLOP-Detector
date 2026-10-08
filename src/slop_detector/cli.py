@@ -120,12 +120,6 @@ def print_rich_report(*args, **kwargs):
     return _impl(*args, **kwargs)
 
 
-def _check_calibration_hint(*args, **kwargs):
-    from slop_detector.cli_commands import _check_calibration_hint as _impl
-
-    return _impl(*args, **kwargs)
-
-
 def _export_history(*args, **kwargs):
     from slop_detector.cli_commands import _export_history as _impl
 
@@ -395,7 +389,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if not getattr(args, "no_history", False):
         _record_history(result)
-        _check_calibration_hint(args)
 
     return ci_exit or 0
 

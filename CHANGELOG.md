@@ -353,6 +353,27 @@ is present, the hash seed, and whether results come from the analysis cache.
   `runtime_unavailable_dependency` in 7 files (5 change band). A real phantom
   (`utils.paths`, which exists nowhere in unsloth) is still reported.
 
+### Changed (self-calibration is advisory only)
+
+- Scans no longer run self-calibration, and nothing writes calibrated weights.
+  `--self-calibrate` still prints its report, now with a warning on stderr that
+  the evidence is legacy; `--self-calibrate --apply-calibration` writes nothing,
+  explains why on stderr, and exits 2. History recording is unchanged.
+- Why: the history the calibrator learns from records neither the detector
+  version, the configuration, nor the project root. Measured on 29,303 real
+  history rows: 241 of the 301 "improvement" pairs (80%) had an unchanged file,
+  so a detector or configuration change was learned as a user fix; 61% of
+  flagged rows were flagged by pattern penalties that weights cannot move; and
+  `project_id` came from the working directory, so projects scanned from one
+  directory shared one history. The scan-time trigger also fired only at exact
+  multiples of 10 multi-run files, so a 12-file project never calibrated, while
+  the documentation said `>= 10`.
+- `SelfCalibrator.apply_to_config` and `CALIBRATION_MILESTONE` are removed.
+  The VS Code extension's Self-Calibrate command shows the advisory report
+  without an Apply button, and treats exit 1 (insufficient data) as a report
+  rather than a failure; its unused `slopDetector.showCalibrationHints`
+  setting is removed. A provenance-stable Calibration v2 is planned for v3.10.
+
 ### Removed (configuration)
 
 - `patterns.severity_threshold` ("minimum severity to report") is gone from

@@ -14,65 +14,6 @@ def _compute_project_id() -> str:
     return hashlib.sha256(cwd.encode()).hexdigest()[:12]
 
 
-def _check_calibration_hint(args) -> None:
-    """Auto-run calibration when multi-run file history reaches a milestone."""
-    if getattr(args, "no_history", False):
-        return
-    try:
-        import sys as _sys
-
-        from slop_detector.config import Config
-        from slop_detector.history import HistoryTracker
-        from slop_detector.ml.self_calibrator import CALIBRATION_MILESTONE, SelfCalibrator
-
-        project_id = _compute_project_id()
-        tracker = HistoryTracker()
-        run_count = tracker.count_files_with_multiple_runs(project_id=project_id)
-        if run_count < CALIBRATION_MILESTONE or run_count % CALIBRATION_MILESTONE != 0:
-            return
-
-        config = Config(config_path=getattr(args, "config", None))
-        current_weights = config.get_weights()
-        domain_anchor = {
-            key: current_weights.get(key, 0.30) for key in ("ldr", "inflation", "ddc", "purity")
-        }
-        result = SelfCalibrator().calibrate(
-            current_weights=current_weights,
-            project_id=project_id,
-            domain_anchor=domain_anchor,
-        )
-        config_path = getattr(args, "config", None) or ".slopconfig.yaml"
-
-        if result.status == "ok" and Path(config_path).exists():
-            written = SelfCalibrator.apply_to_config(
-                result.optimal_weights, config_path=config_path
-            )
-            print(
-                f"\n[*] Auto-calibration ({run_count} multi-run files): repository-local weights updated -> {written}",
-                file=_sys.stderr,
-            )
-            for key in ("ldr", "inflation", "ddc", "purity"):
-                old_value = current_weights.get(key, 0.0)
-                new_value = result.optimal_weights.get(key, 0.0)
-                if abs(old_value - new_value) > 0.001:
-                    print(f"    {key}: {old_value:.2f} -> {new_value:.2f}", file=_sys.stderr)
-        elif result.status == "no_change":
-            print(
-                f"\n[*] Calibration milestone ({run_count} multi-run files): repository-local weights already near-optimal.",
-                file=_sys.stderr,
-            )
-        else:
-            print(
-                f"\n[*] Calibration milestone ({run_count} multi-run files): {result.message} "
-                f"Run --self-calibrate for details.",
-                file=_sys.stderr,
-            )
-    except Exception as exc:  # noqa: BLE001 — hint is informational; never block main flow
-        import logging as _logging
-
-        _logging.getLogger(__name__).debug("calibration hint skipped: %s", exc)
-
-
 def _get_git_context():
     """Capture current git commit and branch; return (None, None) outside a repo."""
     import subprocess
@@ -198,10 +139,29 @@ def _export_history(output_path: str) -> None:
     print(f"[+] Exported {count} records to {output_path}")
 
 
+LEGACY_CALIBRATION_WARNING = (
+    "[!] Legacy calibration evidence is not provenance-stable: history rows do not record "
+    "the detector version, configuration or project root (they are grouped by working "
+    "directory), so a score change is not proof that the code changed. This report is "
+    "advisory; weight application is disabled pending Calibration v2."
+)
+
+
 def _run_self_calibration(args: argparse.Namespace) -> int:
-    """Run repository-local self-calibration and optionally apply results to .slopconfig.yaml."""
+    """Report what the legacy self-calibration would recommend. Never writes weights."""
+    import sys
+
     from slop_detector.config import Config
     from slop_detector.ml.self_calibrator import SelfCalibrator
+
+    print(LEGACY_CALIBRATION_WARNING, file=sys.stderr)
+    if getattr(args, "apply_calibration", None):
+        print(
+            "[-] --apply-calibration is disabled: .slopconfig.yaml was not modified. "
+            "Run --self-calibrate alone for the advisory report.",
+            file=sys.stderr,
+        )
+        return 2
 
     try:
         from rich import box
@@ -321,20 +281,5 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         for warning in result.warnings:
             print(f"  [!] {warning}")
         print(f"  {result.message}")
-
-    apply_path = getattr(args, "apply_calibration", None)
-    if apply_path and result.status == "ok":
-        written = SelfCalibrator.apply_to_config(result.optimal_weights, config_path=apply_path)
-        message = f"[+] Calibrated weights written to {written}"
-        if rich_enabled and console:
-            console.print(f"\n[green]{message}[/green]")
-        else:
-            print(message)
-    elif apply_path and result.status != "ok":
-        message = "[-] --apply-calibration skipped: calibration did not produce a confident result."
-        if rich_enabled and console:
-            console.print(f"\n[yellow]{message}[/yellow]")
-        else:
-            print(message)
 
     return 0 if result.status in ("ok", "no_change") else 1

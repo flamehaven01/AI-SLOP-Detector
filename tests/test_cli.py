@@ -942,7 +942,7 @@ def test_read_only_suppresses_all_persistent_observability(tmp_path):
     with patch("slop_detector.cli._record_optional_impact") as impact, patch(
         "slop_detector.cli._capture_optional_telemetry"
     ) as telemetry, patch("slop_detector.cli._record_history") as history, patch(
-        "slop_detector.cli._check_calibration_hint"
+        "slop_detector.ml.self_calibrator.SelfCalibrator.calibrate"
     ) as calibration_hint:
         result = main(
             [

@@ -31,7 +31,7 @@ Examples:
   slop-detector src/ --js                    # Analyze JS/TS files
   slop-detector src/ --cross-file            # Cross-file analysis
   slop-detector src/ --governance            # Emit CR-EP session artifacts
-  slop-detector --self-calibrate             # Optimize weights from run history
+  slop-detector --self-calibrate             # Advisory weight report from run history
   slop-detector --project . --emit-leda-yaml # Emit LEDA injection YAML
   slop-detector --version                    # Show version
         """,
@@ -175,14 +175,20 @@ Examples:
     parser.add_argument(
         "--self-calibrate",
         action="store_true",
-        help="Analyze usage history to find optimal ldr/inflation/ddc weights for this codebase",
+        help=(
+            "Advisory report: the weights the legacy history-based calibration would "
+            "recommend. Never writes them."
+        ),
     )
     parser.add_argument(
         "--apply-calibration",
         metavar="CONFIG",
         nargs="?",
         const=".slopconfig.yaml",
-        help="Write calibrated weights to .slopconfig.yaml (or specified path). Use with --self-calibrate",
+        help=(
+            "Disabled until Calibration v2: legacy history is not provenance-stable, so "
+            "weights are never written (exits 2)."
+        ),
     )
     parser.add_argument(
         "--min-history",

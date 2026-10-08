@@ -115,32 +115,34 @@ export async function selfCalibrate(): Promise<void> {
 
     statusBarItem.text = '$(sync~spin) SLOP: Calibrating...';
     try {
-        const { stdout, stderr } = await client.runText(['--self-calibrate'], rootPath);
+        // Advisory only: the legacy history is not provenance-stable, so the CLI never
+        // writes weights (--apply-calibration exits 2). Exit 1 means insufficient data,
+        // which is a report, not a failure.
+        let stdout: string;
+        let stderr: string;
+        try {
+            ({ stdout, stderr } = await client.runText(['--self-calibrate'], rootPath));
+        } catch (error) {
+            const failed = error as { code?: number; stdout?: string; stderr?: string };
+            if (failed.code !== 1 || !failed.stdout) { throw error; }
+            stdout = failed.stdout;
+            stderr = failed.stderr ?? '';
+        }
         outputChannel.clear();
-        outputChannel.appendLine('=== SLOP Detector: Self-Calibration (LEDA) ===');
+        outputChannel.appendLine('=== SLOP Detector: Self-Calibration (advisory) ===');
         outputChannel.appendLine(stdout);
         if (stderr) { outputChannel.appendLine(stderr); }
         outputChannel.show(true);
 
-        if (stdout.includes('insufficient_data') || stdout.includes('Not enough')) {
+        if (stdout.includes('insufficient_data') || stdout.includes('INSUFFICIENT_DATA')) {
             vscode.window.showWarningMessage(
-                '[!] Not enough history yet. Run more analyses to build the calibration dataset.'
+                '[!] Not enough history yet for an advisory calibration report.'
             );
-        } else if (stdout.includes('no_change') || stdout.includes('No change')) {
-            vscode.window.showInformationMessage('[=] Calibration: current weights are already optimal.');
         } else {
-            const choice = await vscode.window.showInformationMessage(
-                '[*] Calibration ready. Apply new weights to .slopconfig.yaml?',
-                'Apply', 'View Only'
+            vscode.window.showInformationMessage(
+                '[=] Advisory report only: weights are not applied until Calibration v2. '
+                + 'Edit .slopconfig.yaml yourself to change them.'
             );
-            if (choice === 'Apply') {
-                const { stdout: applyOut } = await client.runText(
-                    ['--self-calibrate', '--apply-calibration'], rootPath,
-                );
-                outputChannel.appendLine('\n--- Apply Calibration ---');
-                outputChannel.appendLine(applyOut);
-                vscode.window.showInformationMessage('[+] Weights applied to .slopconfig.yaml');
-            }
         }
         statusBarItem.text = '$(check) SLOP: Ready';
     } catch (error) {
