@@ -177,8 +177,11 @@ class GodFunctionPattern(BasePattern):
         )
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
+        from slop_detector.metrics.ldr import docstring_line_numbers
+
         issues: list[Issue] = []
         lines = content.splitlines()
+        docstrings = docstring_line_numbers(tree)
 
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -187,8 +190,13 @@ class GodFunctionPattern(BasePattern):
             start = node.lineno
             end = getattr(node, "end_lineno", node.lineno)
 
+            # Logic lines: not blank, not a comment, not a docstring (prose, as in LDR).
             logic_lines = sum(
-                1 for ln in lines[start - 1 : end] if ln.strip() and not ln.strip().startswith("#")
+                1
+                for number in range(start, end + 1)
+                if number not in docstrings
+                and lines[number - 1].strip()
+                and not lines[number - 1].strip().startswith("#")
             )
 
             complexity = _cyclomatic_complexity(node)

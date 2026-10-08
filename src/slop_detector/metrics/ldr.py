@@ -50,6 +50,23 @@ def is_empty_function(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool
     return False
 
 
+def docstring_line_numbers(tree: ast.AST) -> set[int]:
+    """Line numbers of module, class, and function docstrings.
+
+    Docstrings are prose: like comments, they are never logic lines (LDR and
+    god_function both count with this).
+    """
+    rows: set[int] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        body = node.body
+        if body and _is_docstring_stmt(body[0]):
+            end = getattr(body[0], "end_lineno", None) or body[0].lineno
+            rows.update(range(body[0].lineno, end + 1))
+    return rows
+
+
 class LDRCalculator:
     """Calculate Logic Density Ratio with smart exception handling."""
 
@@ -73,7 +90,7 @@ class LDRCalculator:
 
         # Docstrings are prose, treated exactly like comments: they count neither
         # in the lines nor in the logic, so a docstring cannot change logic density.
-        docstring_lines = self._docstring_lines(tree)
+        docstring_lines = docstring_line_numbers(tree)
 
         if _Path(file_path).name == "__init__.py":
             non_empty = [
@@ -157,21 +174,6 @@ class LDRCalculator:
             is_abc_interface=is_abc_interface,
             is_type_stub=is_type_stub,
         )
-
-    @staticmethod
-    def _docstring_lines(tree: ast.AST) -> set[int]:
-        """Line numbers of module, class, and function docstrings."""
-        rows: set[int] = set()
-        for node in ast.walk(tree):
-            if not isinstance(
-                node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
-            ):
-                continue
-            body = node.body
-            if body and _is_docstring_stmt(body[0]):
-                end = getattr(body[0], "end_lineno", None) or body[0].lineno
-                rows.update(range(body[0].lineno, end + 1))
-        return rows
 
     @staticmethod
     def _is_abc_base(base: ast.expr) -> bool:

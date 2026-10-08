@@ -353,6 +353,20 @@ is present, the hash seed, and whether results come from the analysis cache.
   `runtime_unavailable_dependency` in 7 files (5 change band). A real phantom
   (`utils.paths`, which exists nowhere in unsloth) is still reported.
 
+### Fixed (god_function line count)
+
+- `god_function` reports "N logic lines (limit 50)", but N included docstring
+  lines, while LDR treats docstrings like comments. It now counts the same
+  way: blank lines, comments and docstrings (the function's own and those of
+  nested functions and classes) are not logic lines. Both use one helper,
+  `slop_detector.metrics.ldr.docstring_line_numbers`. The complexity limit is
+  unchanged. Cache `analysis-cache-v22`.
+- Flamehaven-TOE: 19 `god_function` findings existed only because of
+  docstrings and are gone; RExSyn-Nexus: 17. No file changes band. On the 8
+  external codebases of the 9-codebase replay, 45 findings are gone, 498 report
+  a smaller line count, no file changes band, and all 18 exit codes are
+  unchanged.
+
 ### Changed (self-calibration is advisory only)
 
 - Scans no longer run self-calibration, and nothing writes calibrated weights.
