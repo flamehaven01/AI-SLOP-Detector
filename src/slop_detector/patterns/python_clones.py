@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import ast
-import copy
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from slop_detector.clone_identity import MIN_SEMANTIC_NODES, body_fingerprint, function_body
 from slop_detector.clone_signals import EXACT_DUPLICATE_PAIR_ID, FUNCTION_CLONE_CLUSTER_ID
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
@@ -145,94 +145,63 @@ def _has_distinct_semantic_signatures(tree: ast.AST, clone_names: List[str]) -> 
     return bool(signatures) and all(signatures) and len(set(signatures)) == len(signatures)
 
 
-def _collect_local_name_mapping(
-    func: ast.FunctionDef | ast.AsyncFunctionDef,
-) -> Dict[str, str]:
-    mapping: Dict[str, str] = {}
-
-    def _bind(name: str, prefix: str = "v") -> None:
-        if name and name not in mapping:
-            mapping[name] = f"{prefix}{len(mapping)}"
-
-    all_args = []
-    all_args.extend(func.args.posonlyargs)
-    all_args.extend(func.args.args)
-    all_args.extend(func.args.kwonlyargs)
-    for arg in all_args:
-        _bind(arg.arg, "a")
-    if func.args.vararg:
-        _bind(func.args.vararg.arg, "a")
-    if func.args.kwarg:
-        _bind(func.args.kwarg.arg, "a")
-
-    for node in ast.walk(func):
-        if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
-            _bind(node.id, "v")
-        elif isinstance(node, ast.ExceptHandler) and isinstance(node.name, str):
-            _bind(node.name, "e")
-
-    return mapping
+def _method_owners(tree: ast.AST) -> Dict[int, ast.ClassDef]:
+    """Map id(method) to the class whose body defines it directly."""
+    return {
+        id(item): node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ClassDef)
+        for item in node.body
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
 
 
-class _LocalNameNormalizer(ast.NodeTransformer):
-    def __init__(self, mapping: Dict[str, str]):
-        self.mapping = mapping
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
-        node.name = "__func__"
-        return self.generic_visit(node)
-
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
-        node.name = "__func__"
-        return self.generic_visit(node)
-
-    def visit_arg(self, node: ast.arg) -> ast.AST:
-        if node.arg in self.mapping:
-            node.arg = self.mapping[node.arg]
-        return self.generic_visit(node)
-
-    def visit_Name(self, node: ast.Name) -> ast.AST:
-        if node.id in self.mapping:
-            node.id = self.mapping[node.id]
-        return node
-
-    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> ast.AST:
-        if isinstance(node.name, str) and node.name in self.mapping:
-            node.name = self.mapping[node.name]
-        return self.generic_visit(node)
+_VISITOR_ADAPTER_MAX_STATEMENTS = 3
 
 
-def _normalized_function_signature(
-    func: ast.FunctionDef | ast.AsyncFunctionDef,
-) -> Tuple[str, int]:
-    cloned = copy.deepcopy(func)
-    mapping = _collect_local_name_mapping(cloned)
-    normalized = _LocalNameNormalizer(mapping).visit(cloned)
-    ast.fix_missing_locations(normalized)
-    normalized_dump = ast.dump(normalized, include_attributes=False)
-    normalized_node_count = sum(1 for _ in ast.walk(normalized))
-    return normalized_dump, normalized_node_count
+def _is_visitor_adapter_group(
+    funcs: List[ast.FunctionDef | ast.AsyncFunctionDef], owners: Dict[int, ast.ClassDef]
+) -> bool:
+    """Visitor protocol glue, not copy-paste.
+
+    All four must hold: one owning class, every name starts with `visit_`, and
+    the (shared) body is at most 3 call statements, one of them generic_visit.
+    """
+    owner = owners.get(id(funcs[0]))
+    if owner is None or any(owners.get(id(func)) is not owner for func in funcs):
+        return False
+    if not all(func.name.startswith("visit_") for func in funcs):
+        return False
+    body = function_body(funcs[0])
+    if not body or len(body) > _VISITOR_ADAPTER_MAX_STATEMENTS:
+        return False
+    calls = [stmt.value for stmt in body if isinstance(stmt, (ast.Expr, ast.Return))]
+    if len(calls) != len(body) or not all(isinstance(call, ast.Call) for call in calls):
+        return False
+    return any(
+        isinstance(call.func, ast.Attribute) and call.func.attr == "generic_visit"
+        for call in calls
+        if isinstance(call, ast.Call)
+    )
 
 
 def _find_exact_duplicate_groups(
     tree: ast.AST,
 ) -> List[Tuple[List[str], List[int]]]:
-    groups: Dict[str, List[Tuple[str, int, int]]] = {}
+    groups: Dict[str, List[ast.FunctionDef | ast.AsyncFunctionDef]] = {}
     for func in _iter_function_nodes(tree):
-        signature, node_count = _normalized_function_signature(func)
-        entry = (func.name, getattr(func, "lineno", 1), node_count)
-        groups.setdefault(signature, []).append(entry)
+        identity, size = body_fingerprint(func)
+        if size >= MIN_SEMANTIC_NODES:
+            groups.setdefault(identity, []).append(func)
 
+    owners = _method_owners(tree)
     duplicates: List[Tuple[List[str], List[int]]] = []
-    for entries in groups.values():
-        if len(entries) < 2:
+    for funcs in groups.values():
+        if len(funcs) < 2 or _is_visitor_adapter_group(funcs, owners):
             continue
-        if max(node_count for _, _, node_count in entries) < 12:
-            continue
-        duplicate_names = [name for name, _, _ in entries]
-        duplicate_lines = [lineno for _, lineno, _ in entries]
-        duplicate_group = (duplicate_names, duplicate_lines)
-        duplicates.append(duplicate_group)
+        duplicates.append(
+            ([func.name for func in funcs], [getattr(func, "lineno", 1) for func in funcs])
+        )
     return duplicates
 
 

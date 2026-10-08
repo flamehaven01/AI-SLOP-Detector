@@ -63,7 +63,7 @@ The detailed sections below explain the main rules and may not cover every id.
 | `declared_outside_primary_metadata` | Python | Low | Imports | No | Dependency declared outside pyproject.toml project metadata |
 | `phantom_member` | Python | High | Imports | No | Imported name that the installed package does not define |
 | `placeholder_variable_naming` | Python | High | Naming | No | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
-| `exact_duplicate_pair` | Python | High (Critical for 4 or more functions) | Clones | No | Same-file duplicate functions after normalizing local names |
+| `exact_duplicate_pair` | Python | High (Critical for 4 or more functions) | Clones | No | Same-file functions with identical bodies after normalizing local names |
 | `function_clone_cluster` | Python | High (Critical for 6 or more functions) | Clones | No | Near-identical function clusters via AST JSD |
 | `js_var_usage` | JS/TS | Medium | JS/TS | No | `var` declaration |
 | `js_console_log` | JS/TS | Low | JS/TS | No | `console.log` / `warn` / `error` / `info` |
@@ -898,12 +898,28 @@ See [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) for full specification.
 
 **Severity:** HIGH | **Axis:** STRUCTURE
 
-Detects exact duplicate functions inside the same file after normalizing local
-variable names and parameter names. This catches copy-paste logic even when the
-author renamed `tally` to `marker` or `readings` to `bucket`.
+Detects exact duplicate functions inside the same file. Two functions are
+duplicates when their bodies are identical after normalizing local variable
+names and parameter names. This catches copy-paste logic even when the
+author renamed `tally` to `marker` or `readings` to `bucket`. The function name,
+leading docstring, decorators and annotations are not part of the comparison;
+operators, call targets, attributes and constants are, and `def` and
+`async def` bodies are never the same. The cross-file duplicate report
+(`--cross-file`) uses the same body identity and the same size floor
+(`slop_detector.clone_identity`).
 
-This is a strict detector. It does **not** try to infer semantic similarity, and
-it skips tiny trivial wrappers to reduce noise.
+This is a strict detector. It does **not** try to infer semantic similarity.
+A body needs at least 8 semantic AST nodes (context and operator nodes not
+counted) to be a candidate, so `pass`, `raise NotImplementedError`,
+`return <constant or name>` and a single delegating call such as
+`return self._inner.get(key)` are not reported. The floor is a
+precision-oriented value derived from the current multi-repository dogfood
+corpus, not a universal constant.
+
+`visit_*` methods of one class whose shared body is at most three call
+statements including `generic_visit` (visitor protocol glue) are not reported.
+Same bodies across classes, without the `visit_` prefix, or with other logic
+are.
 
 ### function_clone_cluster
 

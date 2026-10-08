@@ -389,6 +389,42 @@ is present, the hash seed, and whether results come from the analysis cache.
   unsloth's hard gate fails 44 files instead of 45. RExSyn-Nexus: 1 file
   changes band (32.80 suspicious to 27.80 clean).
 
+### Fixed (exact duplicates: one body identity, one size floor)
+
+- `exact_duplicate_pair` (same file) and the cross-file duplicate list both
+  say "exact duplicate" but compared different things. The same-file pattern
+  dumped the whole definition (docstring, annotations, decorators included)
+  and skipped only definitions under 12 AST nodes, so a docstring or annotated
+  parameters made `pass` or `raise NotImplementedError` "big enough"
+  (59 of 107 groups in the dogfood were single statements; 9 were CRITICAL,
+  among them `pass` x5). The cross-file hash included the function name and
+  docstring and had no floor at all, so renamed copies were missed and
+  trivial bodies were paired.
+- Both now use `slop_detector.clone_identity`. Identity is the function body
+  without its leading docstring, with parameters and local names normalized;
+  the name, decorators and annotations are not part of it, while operators,
+  call targets, attributes and constants are, and `def` and `async def` stay
+  distinct. Eligibility is separate: a body needs at least 8 semantic AST
+  nodes (context and operator nodes not counted). This floor is a
+  precision-oriented value derived from the current multi-repository dogfood
+  corpus, not a universal constant: below it were leaf statements and single
+  delegating calls, and from 6 to 10 the set of 4-or-more-function groups was
+  the same. Same-file `visit_*` methods of one class whose shared body is at
+  most three call statements including `generic_visit` (visitor protocol
+  glue) are not reported. Severities and the cross-file output cap of 50 are
+  unchanged. Cache `analysis-cache-v24`.
+- Measured, same file, 8 external codebases of the 9-codebase replay: 39
+  groups are gone (34 HIGH, 5 CRITICAL), every one below the floor; 11 HIGH
+  groups are new, each one a body the old identity split by docstring (9),
+  annotations or arguments (5), name (4) or decorator (1). 7 files move one
+  band down, all 18 exit codes are unchanged, and sloppylint's AST visitor is
+  not reported. Flamehaven-TOE loses its 2 `to_dict` groups (one CRITICAL);
+  NavierStokes gains `viscosity_rescale_velocity` / `viscosity_rescale_force`,
+  identical except for annotations. Cross-file, over the 11 codebases
+  without the cap: 2,121 pairs are gone, all below the floor; 243 are new,
+  151 renamed copies and 92 with the same name but a different docstring,
+  annotations or local names.
+
 ### Fixed (`--init` target path)
 
 - `slop-detector <path> --init` (or `--init <path>`) wrote `.slopconfig.yaml`

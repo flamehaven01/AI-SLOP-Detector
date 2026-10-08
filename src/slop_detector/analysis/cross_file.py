@@ -12,7 +12,6 @@ Detects project-level slop patterns that single-file analysis misses:
 from __future__ import annotations
 
 import ast
-import hashlib
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -21,6 +20,7 @@ from typing import Any, Dict, FrozenSet, List, Set, Tuple
 from slop_detector.analysis import connection_evidence
 from slop_detector.analysis.import_graph import ImportEdge, build_import_edges, hard_graph
 from slop_detector.analysis.structure_evidence import build_structure_evidence
+from slop_detector.clone_identity import MIN_SEMANTIC_NODES, body_fingerprint
 
 # ------------------------------------------------------------------
 # Data classes
@@ -114,21 +114,16 @@ class CrossFileReport:
 # ------------------------------------------------------------------
 
 
-def _hash_function_body(func_node: ast.AST) -> str:
-    """SHA-256 of normalized function body (docstrings excluded)."""
-    body_lines = [
-        ast.dump(child)
-        for child in ast.walk(func_node)
-        if not (isinstance(child, ast.Expr) and isinstance(child.value, ast.Constant))
-        and hasattr(child, "lineno")
-    ]
-    return hashlib.sha256("\n".join(body_lines).encode()).hexdigest()
+def _hash_function_body(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
+    """The shared body identity (clone_identity); "" for a body below the floor."""
+    identity, size = body_fingerprint(func_node)
+    return identity if size >= MIN_SEMANTIC_NODES else ""
 
 
 def _extract_functions(tree: ast.AST) -> List[Tuple[str, int, str]]:
     """
     Extract (func_name, line_no, body_hash) from AST.
-    Body hash: sha256 of normalized function body lines.
+    Body hash: the shared body identity, "" when the body is below the floor.
     """
     return [
         (node.name, node.lineno, _hash_function_body(node))
