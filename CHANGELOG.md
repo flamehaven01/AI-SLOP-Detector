@@ -389,6 +389,18 @@ is present, the hash seed, and whether results come from the analysis cache.
   unsloth's hard gate fails 44 files instead of 45. RExSyn-Nexus: 1 file
   changes band (32.80 suspicious to 27.80 clean).
 
+### Fixed (`--init` target path)
+
+- `slop-detector <path> --init` (or `--init <path>`) wrote `.slopconfig.yaml`
+  and `.gitignore` into the working directory and detected the domain and
+  adaptive signals there, not in `<path>`. Every read and write of an init
+  (config, `.gitignore`, domain detection, adaptive signals, the merge with an
+  existing config) now uses the given path; the default is still the working
+  directory. A path that does not exist, or is a file, is refused with exit 2
+  before anything is written, and no directory is created.
+- `docs/CLI_USAGE.md` showed `slop-detector --init-preview` alone, which runs
+  a scan; the preview is `--init --adaptive-init --init-preview`.
+
 ### Changed (self-calibration is advisory only)
 
 - Scans no longer run self-calibration, and nothing writes calibrated weights.

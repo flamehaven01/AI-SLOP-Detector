@@ -49,11 +49,12 @@ Read project results with their scope:
 ## Configuration And Init
 
 ```bash
-# Create the baseline config.
+# Create the baseline config in the current directory, or in a given one.
 slop-detector --init
+slop-detector path/to/repo --init
 
 # Preview adaptive suggestions without writing.
-slop-detector --init-preview
+slop-detector --init --adaptive-init --init-preview
 
 # Explicitly merge adaptive suggestions.
 slop-detector --init --adaptive-init --apply-init-suggestions

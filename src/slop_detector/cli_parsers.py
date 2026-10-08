@@ -200,7 +200,10 @@ Examples:
     parser.add_argument(
         "--init",
         action="store_true",
-        help="Bootstrap .slopconfig.yaml for this project and add it to .gitignore",
+        help=(
+            "Bootstrap .slopconfig.yaml in PATH (default: current directory) "
+            "and add it to that directory's .gitignore"
+        ),
     )
     parser.add_argument(
         "--force-init",

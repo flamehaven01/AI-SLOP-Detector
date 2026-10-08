@@ -440,6 +440,7 @@ from the JSON output rather than guessing.
 **Bootstrap** — domain-aware, one command to start
 ```bash
 slop-detector --init                   # auto-detect domain, generate .slopconfig.yaml
+slop-detector path/to/repo --init      # same, for another directory (must exist)
 slop-detector --init --domain web/api       # explicit domain override
 slop-detector --init --adaptive-init --init-preview
 slop-detector --init --adaptive-init --apply-init-suggestions

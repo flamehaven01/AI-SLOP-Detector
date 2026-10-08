@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -631,8 +632,15 @@ def _run_init(args: argparse.Namespace) -> int:
     """Bootstrap .slopconfig.yaml and secure it in .gitignore."""
     from slop_detector.config import DOMAIN_PROFILES, generate_slopconfig_template
 
-    config_path = Path(".slopconfig.yaml")
-    repo_path = Path(".")
+    # Every read and write of an init uses the given path (default: cwd).
+    repo_path = Path(getattr(args, "path", ".") or ".").resolve()
+    if not repo_path.exists():
+        print(f"[!] --init target does not exist: {repo_path}", file=sys.stderr)
+        return 2
+    if not repo_path.is_dir():
+        print(f"[!] --init target is not a directory: {repo_path}", file=sys.stderr)
+        return 2
+    config_path = repo_path / ".slopconfig.yaml"
     config_exists = config_path.exists()
     project_type = _detect_project_type(repo_path)
     init_options = _resolve_init_options(args)
@@ -681,10 +689,10 @@ def _run_init(args: argparse.Namespace) -> int:
         print("[*] Existing .slopconfig.yaml detected. Applying adaptive suggestions only.")
     else:
         config_path.write_text(template, encoding="utf-8")
-        print(f"[+] .slopconfig.yaml generated (project_type={project_type}, domain={domain_path})")
+        print(f"[+] {config_path} generated (project_type={project_type}, domain={domain_path})")
 
         _inject_gitignore_entry(
-            Path(".gitignore"),
+            repo_path / ".gitignore",
             entry=".slopconfig.yaml",
             comment="# slop-detector: governance config (contains codebase complexity surface — keep private)",
         )
@@ -709,7 +717,7 @@ def _run_init(args: argparse.Namespace) -> int:
                 "# Adaptive init suggestions are evidence-backed and opt-in.",
             ],
         )
-        print("[+] Adaptive init suggestions merged into .slopconfig.yaml")
+        print(f"[+] Adaptive init suggestions merged into {config_path}")
 
     if needs_adaptive:
         print()
@@ -717,7 +725,7 @@ def _run_init(args: argparse.Namespace) -> int:
 
     print()
     print("[>] Next steps:")
-    print("    slop-detector --project .")
+    print(f"    slop-detector --project {getattr(args, 'path', '.') or '.'}")
     print(f"    # domain profile: {profile.get('description', '')}")
     print()
     print("[!] Security: .slopconfig.yaml is in .gitignore (maps acceptable-complexity surface).")
