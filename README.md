@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.9.1" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.9.2" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
@@ -23,8 +23,9 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.9.1`
-- Previous stable tag: `v3.9.0`
+- Stable tag: `v3.9.2`
+- Previous stable tag: `v3.9.1`
+- `v3.9.2` makes one result mean the same thing everywhere and removes double counting: one set of score bands for files, projects, JS and Go; docstrings count like comments (logic density, god_function); a nested function's nesting is charged once; exact duplicates compare function bodies only, with one size floor for the same-file and cross-file reports; import evidence follows the scanned project's root; output is byte-identical across cache, hash seed, Rust helper, and working directory. Self-calibration is now an advisory report that writes nothing, documented configuration keys that nothing read are removed with a warning, and `--init <path>` writes into `<path>`. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.1` makes claim checks count only real claims and real evidence: jargon in import paths, identifiers, and license notices is not a claim; a claim is supported only by code structure (a library named in a comment no longer counts); evidence that one file cannot show, such as tests that live elsewhere, is reported as unmeasured rather than missing. It also flags names a real package does not define (`phantom_member`) and decides test files and exclusions relative to the project root, so a checkout under a `build/` directory is no longer scanned as 0 files. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.0` closes a security hole (no model is read from the working directory, nothing is unpickled), makes import evidence follow CPython's resolution rules, and makes `async def` stubs, `--patterns-only`, `--disable`, and the multi-file pre-commit hook work as documented. See [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 
@@ -101,7 +102,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.9.1"
+pip install "ai-slop-detector>=3.9.2"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -116,7 +117,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.9.1"
+pip install "ai-slop-detector>=3.9.2"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -807,6 +808,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.9.2** | consistency and correctness release: one band set (CLEAN <30 / SUSPICIOUS / INFLATED_SIGNAL / CRITICAL_DEFICIT >=70) for files, projects, JS and Go; `dependency_noise` and `parse_error` are flags; docstrings count like comments in LDR and god_function; deep_nesting under nested_complexity charged once; exact duplicates by function body with an 8-node floor, shared by same-file and cross-file; import evidence from the scan root; byte-identical output across cache, hash seed, Rust helper and cwd; advisory-only self-calibration; unread config keys removed with a warning; `--init <path>` honoured; cache `analysis-cache-v24` |
 | **v3.9.1** | claim and path checkpoint: jargon counted only in comments and strings, never in import paths, identifiers, or leading license notices; claim evidence states `structural` / `weak` / `absent` / `unmeasured` with a per-claim `support_level`; justification only by structural library use; test evidence unmeasured outside test files; `--ci-claims-strict` keeps failing unmeasured integration evidence; root-relative path facts (fixes 0-file scans under a `build/` checkout); `phantom_member` pattern |
 | **v3.9.0** | security and evidence release: no model is read from the working directory and nothing is unpickled; JSON ML model contract with one feature extractor for training and scoring; `scan --read-only`; import resolution that follows CPython (src layouts, namespace packages) with `structure_evidence`; `async def` placeholder findings; working `--patterns-only` / `--disable` and multi-file pre-commit hook; unimplemented API routes answer 501 |
 | **v3.8.9** | trust-and-measurement release: finding/severity summaries, coverage and ML capability disclosure, explicit `--include-tests`, root-relative Rust discovery parity checks, strictness-corpus controls, and no aggregate accuracy claim from dogfooding |

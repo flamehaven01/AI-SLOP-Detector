@@ -589,8 +589,8 @@ for the complete configuration surface.
 
 ---
 
-*This document reflects the implementation in `src/slop_detector/` on `main`
-after v3.9.1. It documents deterministic mechanics, not independent validation
+*This document reflects the implementation in `src/slop_detector/` at
+v3.9.2. It documents deterministic mechanics, not independent validation
 of the composite score.*
 For source-level detail see `metrics/inflation.py`, `core_scoring.py`,
 `patterns/python_complexity.py`, `ml/scorer.py`, and `docs/SCHEMA_VALIDATION.md`

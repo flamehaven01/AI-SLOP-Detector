@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.2] - 2026-10-09
+
+A consistency and correctness release after v3.9.1. Scores move in both
+directions; each section below says what moved and how it was measured
+(the same 9 codebases throughout, plus three dogfood projects for the later
+sections). Output is byte-identical across a warm cache, another hash seed,
+no Rust helper, and another working directory. Cache `analysis-cache-v24`:
+the first run after upgrading re-analyzes every file. For scripts:
+`SlopStatus.DEPENDENCY_NOISE` is no longer emitted (see `flags`),
+`CrossFileReport.risk_score` is gone, `--apply-calibration` writes nothing and
+exits 2, `SelfCalibrator.apply_to_config` and `CALIBRATION_MILESTONE` are
+removed, configuration keys that nothing read are removed (a config that sets
+one loads and warns), and `--init <path>` writes into `<path>`. The VS Code
+extension changes (advisory self-calibration) ship with its next release.
+
 ### Changed (scoring and classification consistency)
 
 One analysis result now means the same thing on every surface. A status is

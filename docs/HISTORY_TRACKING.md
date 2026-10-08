@@ -1,6 +1,6 @@
 # History Tracking
 
-**Current contract:** `main` after v3.9.1. Historical version markers below
+**Current contract:** v3.9.2. Historical version markers below
 explain when fields were introduced; they are not a separate active protocol.
 
 AI-SLOP Detector records every analysis run to a local SQLite database,

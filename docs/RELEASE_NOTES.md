@@ -5,6 +5,89 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.9.2 — 2026-10-09
+
+### Summary
+
+v3.9.2 makes one analysis result mean the same thing on every surface and
+removes places where the score counted something twice or counted something
+that is not logic. It also closes a write-safety gap in `--init` and turns
+the legacy self-calibration into an advisory report. Every change was
+measured before it was committed; the per-change numbers are in the
+[Changelog](../CHANGELOG.md#392---2026-10-09). The
+[Regression Risk](#regression-risk-v392) table lists what an existing user
+can notice.
+
+What the detector is has not changed: a static analyzer that reports
+signals of code that looks finished but isn't, with the evidence for each
+signal. It does not tell whether code was written by an AI.
+
+### What Changed
+
+- **One band set.** CLEAN <30, SUSPICIOUS 30-<50, INFLATED_SIGNAL 50-<70,
+  CRITICAL_DEFICIT >=70 for files, projects, JS and Go
+  (`slop_detector.diagnostic_bands`). `dependency_noise` and `parse_error`
+  are flags beside the band, not statuses.
+- **What counts as logic.** Docstrings count like comments in logic density
+  and in `god_function`'s line count; a function made of calls is not empty.
+- **No double counting.** A `deep_nesting` finding at the location of a
+  `nested_complexity` finding adds no penalty (both are still reported).
+- **Exact duplicates.** The same-file pattern and the cross-file report
+  compare function bodies only (name, docstring, decorators and annotations
+  excluded; operators and call targets kept) and share one size floor of 8
+  semantic nodes, a precision-oriented value derived from the current
+  dogfood corpus. Trivial bodies (`pass`, `raise NotImplementedError`) are no
+  longer duplicates; renamed copies are found.
+- **Import evidence.** A project scan resolves imports from the nearest
+  project root and the scan root, so a service directory with its own
+  `requirements.txt` no longer reports repository modules as phantom imports.
+  Results follow the project's current dependency files and module layout,
+  cached or not.
+- **Determinism.** The same target in the same environment gives
+  byte-identical output whatever the working directory, hash seed, Rust
+  helper or cache state.
+- **Self-calibration** prints an advisory report with a warning and writes
+  nothing; `--apply-calibration` exits 2.
+- **Configuration.** Documented keys that no code read
+  (`patterns.severity_threshold`, `patterns.enabled`, `thresholds.inflation`,
+  `thresholds.ddc`, `advanced.min_file_size`, `advanced.max_file_size`,
+  `advanced.ml_detection`, the example config's `thresholds.bcr` /
+  `weights.bcr`) are removed; a config that sets one loads, warns, and gives
+  the same results.
+- **`--init <path>`** reads and writes `<path>`; a missing path or a file is
+  refused with exit 2.
+- **CI gate output.** `--ci-mode` without `--ci-report` prints the normal
+  report again; verdicts and exit codes are unchanged.
+- Seven pattern classes that were never registered are removed, and four
+  cross-language patterns fire only on proven built-in receivers.
+- `--cross-file` adds candidate-only connection evidence
+  (`structure_evidence.connections`); it changes no score.
+
+### Regression Risk (v3.9.2)
+
+| Change | Who notices | What to do |
+|---|---|---|
+| Project and JS/Go bands unified | Scripts or dashboards keyed on project `critical_deficit` at >=50, or JS `clean` <20 | Read the new band; set CI strictness with the gate thresholds |
+| `dependency_noise` is a flag | Scripts matching `status == "dependency_noise"` | Read `flags` |
+| `CrossFileReport.risk_score` removed | Scripts reading the cross-file "Risk Score" | Use the cycle, duplicate and hotspot lists |
+| Scores move (LDR docstrings, god_function lines, nested dedupe, exact duplicates, import roots) | Baselines and trend charts | Re-baseline after upgrading; findings carry the evidence |
+| `--apply-calibration` exits 2 and writes nothing | CI that applied calibrated weights | Set `weights` in `.slopconfig.yaml` by hand if needed |
+| Unread configuration keys warn | Configs written by older `--init` runs | Remove the keys; results are the same either way |
+| `--ci-mode` without `--ci-report` prints the report | Quiet CI logs | Add `--ci-report` for the gate report only |
+| `--init <path>` writes into `<path>` | Anyone who relied on it writing into the cwd | Run `--init` without a path in the target directory |
+| Cache `analysis-cache-v24` | First run after upgrade | It re-analyzes every file once |
+
+### Verification
+
+- Full suite on Python 3.8-3.12 in CI (1,154 passed per version at the
+  release commit's parent).
+- 9-codebase replay (`--json` and `--ci-mode hard --ci-report --json`): 18/18
+  outputs byte-identical across a warm cache, another hash seed, and no Rust
+  helper with another working directory; every score change of each step
+  traced to its cause in the Changelog.
+
+---
+
 ## v3.9.1 — 2026-10-03
 
 ### Summary
