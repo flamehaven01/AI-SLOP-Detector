@@ -4,7 +4,7 @@ import logging as _logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
@@ -79,15 +79,37 @@ def _validate_yaml_config(raw: Dict[str, Any]) -> None:
         )
 
 
+# Keys that earlier defaults, --init templates, the example config or the docs
+# carried, but that no code ever read. Accepted, warned about, never applied.
+_IGNORED_KEYS: Dict[Tuple[str, str], str] = {
+    ("patterns", "severity_threshold"): (
+        "every severity is reported; to drop a pattern use patterns.disabled"
+    ),
+    (
+        "patterns",
+        "enabled",
+    ): "pattern detection is always on; to drop a pattern use patterns.disabled",
+    ("thresholds", "inflation"): "only thresholds.ldr is configurable",
+    ("thresholds", "ddc"): "only thresholds.ldr is configurable",
+    ("thresholds", "bcr"): "only thresholds.ldr is configurable",
+    ("weights", "bcr"): "the inflation weight is weights.inflation",
+    ("advanced", "min_file_size"): "no file is skipped by size; use ignore patterns",
+    ("advanced", "max_file_size"): "no file is skipped by size; use ignore patterns",
+    ("advanced", "ml_detection"): "ML scoring is enabled by a model artifact, not by this key",
+}
+
+
 def _warn_ignored_keys(raw: Dict[str, Any]) -> None:
     """Warn about keys that are accepted but have no effect."""
-    patterns = raw.get("patterns")
-    if isinstance(patterns, dict) and "severity_threshold" in patterns:
-        # Earlier --init templates wrote this key, but nothing ever read it.
-        _logger.warning(
-            "patterns.severity_threshold has no effect and is ignored: every severity is "
-            "reported. Remove it from the config; to drop a pattern use patterns.disabled."
-        )
+    for (section, key), hint in _IGNORED_KEYS.items():
+        block = raw.get(section)
+        if isinstance(block, dict) and key in block:
+            _logger.warning(
+                "%s.%s has no effect and is ignored: %s. Remove it from the config.",
+                section,
+                key,
+                hint,
+            )
 
 
 class Config:
@@ -102,13 +124,6 @@ class Config:
                 "acceptable": 0.60,
                 "warning": 0.45,
                 "critical": 0.30,
-            },
-            "inflation": {"pass": 0.50, "warning": 1.0, "fail": 2.0},
-            "ddc": {
-                "excellent": 0.90,
-                "good": 0.70,
-                "acceptable": 0.50,
-                "suspicious": 0.30,
             },
         },
         "weights": {"ldr": 0.40, "inflation": 0.30, "ddc": 0.20, "purity": 0.10},
@@ -156,8 +171,6 @@ class Config:
         "advanced": {
             "use_radon": True,
             "weighted_analysis": True,
-            "min_file_size": 10,
-            "max_file_size": 10000,
             "exact_topology_ceiling": 300,
             "topology_mode_above_ceiling": "deterministic_approximate",
             "analysis_cache_enabled": True,
@@ -175,7 +188,6 @@ class Config:
         },
         "phantom_import_allowlist": [],
         "patterns": {
-            "enabled": True,
             "disabled": [],  # List of pattern IDs to disable
             "god_function": {
                 # Default thresholds (applied to all functions not matched by domain_overrides)
@@ -580,7 +592,8 @@ version: "2.0"
 
 # ── Metric weights ──────────────────────────────────────────────────────────
 # Domain: {domain_path} — tuned by slop-detector --init.
-# Sum must equal 1.0. Use --self-calibrate after 20+ runs to refine.
+# Weights are normalized by their sum. --self-calibrate prints an advisory
+# report from your local history; it never writes these values.
 weights:
   ldr:       {cv['ldr']:.2f}  # Logic Density Ratio
   inflation: {cv['inflation']:.2f}  # Inflation-to-Code Ratio (jargon density)
@@ -602,8 +615,6 @@ ignore:
 
 # ── Pattern detection ────────────────────────────────────────────────────────
 patterns:
-  enabled: true
-
   god_function:
     complexity_threshold: {gf['complexity_threshold']}
     lines_threshold: {gf['lines_threshold']}
@@ -624,5 +635,4 @@ patterns:
 # ── Advanced ─────────────────────────────────────────────────────────────────
 advanced:
   use_radon: true
-  min_file_size: 10
 """

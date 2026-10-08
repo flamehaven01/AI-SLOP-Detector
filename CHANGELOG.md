@@ -382,6 +382,17 @@ is present, the hash seed, and whether results come from the analysis cache.
   implemented. A config that still sets it (earlier `--init` runs wrote it)
   loads as before and logs a warning; results are unchanged. To stop a
   pattern from reporting, use `patterns.disabled`.
+- The same applies to more keys that the defaults, the `--init` template, the
+  example config or the docs carried and that no code read:
+  `patterns.enabled`, `thresholds.inflation`, `thresholds.ddc`,
+  `advanced.min_file_size`, `advanced.max_file_size` and
+  `advanced.ml_detection`, plus the example config's legacy names
+  `thresholds.bcr` and `weights.bcr` (the inflation weight is
+  `weights.inflation`; `weights.bcr: 0.30` was silently the default). The docs
+  described inflation/ddc thresholds and a size limit that never applied. Each
+  is removed, not implemented; a config that sets one loads, warns on stderr,
+  and gives the same results. Only `thresholds.ldr` is a configurable
+  threshold.
 - LDR's empty-line rules no longer list `# TODO`, `# FIXME`,
   `# placeholder` and `# implementation details`: LDR skips comment-only
   lines before trying the rules, so they never matched. No result changes.

@@ -19,14 +19,7 @@ thresholds:
   ldr:
     critical: 0.30    # Below this = critical
     warning: 0.60     # Below this = warning
-
-  inflation:
-    critical: 1.0     # Above this = critical
-    warning: 0.5      # Above this = warning
-
-  ddc:
-    critical: 0.50    # Below this = critical (50% unused)
-    warning: 0.70     # Below this = warning (30% unused)
+  # Only the ldr thresholds are configurable.
 
 # Pattern control
 patterns:
@@ -224,12 +217,6 @@ thresholds:
   ldr:
     critical: 0.30
     warning: 0.45
-  inflation:
-    critical: 2.0
-    warning: 1.0
-  ddc:
-    critical: 0.30
-    warning: 0.50
 
 patterns:
   disabled:
@@ -276,12 +263,6 @@ thresholds:
   ldr:
     critical: 0.40
     warning: 0.70
-  inflation:
-    critical: 0.8
-    warning: 0.4
-  ddc:
-    critical: 0.60
-    warning: 0.80
 
 patterns:
   disabled: []  # Enable all patterns
@@ -294,9 +275,6 @@ thresholds:
   ldr:
     critical: 0.20
     warning: 0.50
-  inflation:
-    critical: 1.5
-    warning: 0.8
 
 patterns:
   disabled:

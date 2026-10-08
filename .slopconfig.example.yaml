@@ -12,24 +12,12 @@ thresholds:
     acceptable: 0.60 # A
     warning: 0.45    # B
     critical: 0.30   # C
-    
-  bcr:
-    # Buzzword-to-Code Ratio
-    pass: 0.50
-    warning: 1.0
-    fail: 2.0
-    
-  ddc:
-    # Deep Dependency Check
-    excellent: 0.90
-    good: 0.70
-    acceptable: 0.50
-    suspicious: 0.30
+  # Only the ldr thresholds are configurable.
 
 # Slop score calculation weights
 weights:
   ldr: 0.40  # 40% weight
-  bcr: 0.30  # 30% weight
+  inflation: 0.30  # 30% weight
   ddc: 0.30  # 30% weight
 
 # File patterns to ignore
@@ -202,14 +190,7 @@ advanced:
   # Use radon for complexity calculation
   use_radon: true
   
-  # Enable ML-based detection (experimental)
-  ml_detection: false
-  
   # Weight files by LOC in project analysis
   weighted_analysis: true
   
-  # Minimum file size to analyze (LOC)
-  min_file_size: 10
-  
-  # Maximum file size (skip very large files)
-  max_file_size: 10000
+
