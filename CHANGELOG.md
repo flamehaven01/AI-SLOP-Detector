@@ -367,6 +367,28 @@ is present, the hash seed, and whether results come from the analysis cache.
   a smaller line count, no file changes band, and all 18 exit codes are
   unchanged.
 
+### Fixed (score correctness: nested nesting charged once)
+
+- A function over both nesting and complexity limits was charged for its
+  nesting twice: `nested_complexity` (CRITICAL, +10) is deep nesting plus a
+  complexity condition, and `deep_nesting` (HIGH, +5) is created at the same
+  function location for the same nesting. A `deep_nesting` finding at the
+  location of a `nested_complexity` finding now adds no penalty. Both
+  findings are still reported, severities are unchanged, and
+  `nested_complexity` still counts as CRITICAL for purity. `god_function`
+  (length, or its own complexity limit) keeps its penalty. This is a score
+  fix, not a finding change. The CI gate's file evaluation now uses the same
+  penalty function instead of its own copy. Cache `analysis-cache-v23`.
+- Measured: in the TOE/RExSyn/NavierStokes dogfood, every `nested_complexity`
+  finding (26 of 26) shared its function with a `deep_nesting` finding. On
+  the 8 external codebases of the 9-codebase replay, findings are identical,
+  289 pairs are charged once, every score change equals the removed +5 per
+  pair (873 files checked, 0 mismatches), and 15 files move one band down
+  (LMCache 4, graphify 5, unsloth 6); LMCache's project score moves from
+  30.02 (suspicious) to 29.40 (clean). All 18 exit codes are unchanged;
+  unsloth's hard gate fails 44 files instead of 45. RExSyn-Nexus: 1 file
+  changes band (32.80 suspicious to 27.80 clean).
+
 ### Changed (self-calibration is advisory only)
 
 - Scans no longer run self-calibration, and nothing writes calibrated weights.

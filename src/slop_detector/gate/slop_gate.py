@@ -17,6 +17,8 @@ import math
 from dataclasses import dataclass
 from typing import List, Mapping, Optional, Tuple
 
+from slop_detector.core_scoring import calculate_pattern_penalty
+
 HALT_THRESHOLD_LDR = 0.60
 HALT_THRESHOLD_DDC = 0.50
 HALT_THRESHOLD_INFLATION = 1.5
@@ -192,13 +194,7 @@ class SlopGate:
         ddc = getattr(file_analysis.ddc, "usage_ratio", 0.0)
         inflation = getattr(file_analysis.inflation, "inflation_score", 0.0)
 
-        pattern_penalty = sum(
-            {"critical": 10.0, "high": 5.0, "medium": 2.0, "low": 1.0}.get(
-                getattr(i.severity, "value", "low"), 1.0
-            )
-            for i in getattr(file_analysis, "pattern_issues", [])
-        )
-        pattern_penalty = min(pattern_penalty, 50.0)
+        pattern_penalty = calculate_pattern_penalty(getattr(file_analysis, "pattern_issues", []))
 
         return self.evaluate(
             ldr_score=ldr,

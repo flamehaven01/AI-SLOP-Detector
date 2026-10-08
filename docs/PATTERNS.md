@@ -719,6 +719,12 @@ pattern_penalty = sum(
 pattern_penalty = min(pattern_penalty, 50)  # Cap at 50 points
 ```
 
+A `deep_nesting` finding at the same function location as a `nested_complexity`
+finding adds no penalty: `nested_complexity` is that deep nesting plus a
+complexity condition, so the construct is charged once (10, not 15). Both
+findings are reported, and `nested_complexity` still counts as CRITICAL for
+purity. `god_function` (length or its own complexity limit) keeps its penalty.
+
 ---
 
 ## Adding Custom Patterns

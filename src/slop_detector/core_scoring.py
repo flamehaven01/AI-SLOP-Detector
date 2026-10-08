@@ -69,14 +69,35 @@ def build_metric_warnings(
 
 
 def calculate_pattern_penalty(issues: List[Issue]) -> float:
-    """Return the capped additive penalty for pattern severities."""
+    """Return the capped additive penalty for pattern severities.
+
+    A deep_nesting finding at the location of a nested_complexity finding (the
+    same function) adds nothing: nested_complexity is that deep nesting plus a
+    complexity condition. Both findings, their severities and the purity
+    dimension are unchanged.
+    """
     severity_weights = {
         "critical": 10.0,
         "high": 5.0,
         "medium": 2.0,
         "low": 1.0,
     }
-    return min(sum(severity_weights.get(issue.severity.value, 1.0) for issue in issues), 50.0)
+    composite = {
+        (issue.file, issue.line, issue.column)
+        for issue in issues
+        if issue.pattern_id == "nested_complexity"
+    }
+    return min(
+        sum(
+            severity_weights.get(issue.severity.value, 1.0)
+            for issue in issues
+            if not (
+                issue.pattern_id == "deep_nesting"
+                and (issue.file, issue.line, issue.column) in composite
+            )
+        ),
+        50.0,
+    )
 
 
 def compute_deficit_breakdown(

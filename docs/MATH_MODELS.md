@@ -174,7 +174,9 @@ GQG_4D = exp(
 # purity_score = exp(−0.5 × n_critical_patterns)
 total_w = w_ldr + w_inflation + w_ddc + w_purity
 
-pattern_penalty = Sigma(severity_weight[sev] * count[sev])
+pattern_penalty = min(Sigma(severity_weight[sev] * count[sev]), 50)
+# except: a deep_nesting finding at the location of a nested_complexity
+# finding (same function) adds 0; both findings are kept.
 
 deficit_score = min(base_deficit + pattern_penalty, 100)
 ```
