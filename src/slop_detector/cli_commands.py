@@ -87,20 +87,22 @@ def _run_autofix(result, dry_run: bool = True) -> None:
         print("  Run without --dry-run to apply changes.")
 
 
-def _run_js_analysis(path: str) -> None:
-    """Analyze JS/TS files in a directory."""
-    from slop_detector.languages.js_analyzer import JSAnalyzer
+def _run_js_analysis(path: str, result=None) -> None:
+    """Print JS/TS results.
 
-    analyzer = JSAnalyzer()
-    target = Path(path)
+    A project scan has already analyzed its JS/TS files under the project's
+    exclusions; this renders those results instead of analyzing again. Only a
+    single JS/TS file given as the target is analyzed here, once.
+    """
+    results = getattr(result, "js_file_results", None)
+    if results is None:
+        target = Path(path)
+        if not (target.is_file() and target.suffix.lower() in (".js", ".jsx", ".ts", ".tsx")):
+            print(f"[!] No JS/TS files found at {path}")
+            return
+        from slop_detector.languages.js_analyzer import JSAnalyzer
 
-    if target.is_file() and target.suffix.lower() in (".js", ".jsx", ".ts", ".tsx"):
-        results = [analyzer.analyze(str(target))]
-    elif target.is_dir():
-        results = analyzer.analyze_directory(str(target))
-    else:
-        print(f"[!] No JS/TS files found at {path}")
-        return
+        results = [JSAnalyzer().analyze(str(target))]
 
     print(f"\n[JS/TS Analysis] {len(results)} files")
     clean = sum(1 for r in results if r.status == "clean")

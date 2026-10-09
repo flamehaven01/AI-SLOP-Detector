@@ -40,7 +40,7 @@ jobs:
 | Mode | Intended use | Exit behavior |
 | --- | --- | --- |
 | `soft` | Adoption and evidence gathering | Informational; does not fail the build for findings. |
-| `hard` | A reviewed repository policy | Returns non-zero when the configured gate decides to fail. |
+| `hard` | A reviewed repository policy | Returns non-zero when the configured gate decides to fail, or when the scan is incomplete (a file could not be analyzed; see `scan_coverage.failed`). |
 | `quarantine` | Gradual enforcement of repeated violations | Persists local quarantine state; persist that file as an artifact or cache if runs are ephemeral. |
 
 The detailed decision is part of the report. Do not duplicate historical thresholds in CI configuration docs: thresholds, ignores, and pattern policy belong in `.slopconfig.yaml` and should be reviewed per repository.

@@ -18,6 +18,7 @@ from slop_detector.core_project import (
     discover_supported_files,
     ignore_reason,
     is_result_non_clean,
+    record_analysis_failure,
     result_ldr_score,
     result_slop_score,
     result_status_value,
@@ -72,6 +73,7 @@ logger = logging.getLogger(__name__)
 
 # Metrics left out of deficit_score under --patterns-only (advanced.patterns_only).
 PATTERNS_ONLY_SKIP = frozenset({"ldr", "inflation", "ddc"})
+NO_CODE_SKIP = frozenset({"ldr", "ddc"})
 
 
 class SlopDetector:
@@ -287,17 +289,19 @@ class SlopDetector:
 
         # Analyze files
         results: List[FileAnalysis] = []
+        failures: List[Dict[str, str]] = []
         for file_path in python_files:
             try:
                 result = self.analyze_file(str(file_path), root=str(project_path_obj))
                 results.append(result)
             except Exception as e:
                 logger.error(f"Error analyzing {file_path}: {e}")
+                record_analysis_failure(failures, file_path, project_path_obj, "python", e)
 
         # Phase 3b: JS/TS analysis is independent of Python — run before early return
-        js_results = self._analyze_js_files(project_path_obj, ignore_patterns)
+        js_results = self._analyze_js_files(project_path_obj, ignore_patterns, failures)
         # Phase 3c: Go analysis is independent of Python — run before early return
-        go_results = self._analyze_go_files(project_path_obj, ignore_patterns)
+        go_results = self._analyze_go_files(project_path_obj, ignore_patterns, failures)
         if not results and not js_results and not go_results:
             logger.warning("No files analyzed")
 
@@ -312,6 +316,7 @@ class SlopDetector:
             self._compute_coherence_vr,
             self.project_prioritizer.prioritize_project,
             self._ml_scoring,
+            analysis_failures=failures,
         )
 
     def _build_file_analysis(
@@ -327,6 +332,11 @@ class SlopDetector:
         )
 
         ldr = self.ldr_calc.calculate(file_path, content, tree)
+        # No executable code (empty, whitespace, comments, docstring only): LDR and
+        # DDC do not apply, which is not the same as scoring 0. Patterns still run.
+        no_executable_code = ldr.total_lines == 0 and not ldr.is_packaging_init
+        if no_executable_code:
+            skip = skip | NO_CODE_SKIP
         inflation = self.inflation_calc.calculate(file_path, content, tree)
         ddc = self.ddc_calc.calculate(file_path, content, tree)
         dcf = self._compute_dcf(tree)
@@ -354,6 +364,8 @@ class SlopDetector:
             ldr, inflation, ddc, pattern_issues, skip=skip
         )
         flags = diagnostic_flags(inflation, ddc, pattern_issues, skip=skip)
+        if no_executable_code:
+            flags.append("no_executable_code")
         member_pattern = self.pattern_registry.get("phantom_member")
         unverified_imports = (
             member_pattern.take_unknowns(Path(file_path))  # type: ignore[attr-defined]
@@ -415,7 +427,12 @@ class SlopDetector:
             rust_discoverer=discover_project_files,
         )
 
-    def _analyze_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
+    def _analyze_js_files(
+        self,
+        project_path_obj: Path,
+        ignore_patterns: List[str],
+        failures: Optional[List[Dict[str, str]]] = None,
+    ) -> List:
         """Scan and analyze JS/TS files in project_path_obj (Phase 3b)."""
         js_files = self._discover_supported_files(
             project_path_obj,
@@ -432,6 +449,8 @@ class SlopDetector:
                 results.append(analyzer.analyze(str(fp)))
             except Exception as exc:
                 logger.error(f"Error analyzing JS/TS file {fp}: {exc}")
+                if failures is not None:
+                    record_analysis_failure(failures, fp, project_path_obj, "javascript", exc)
         logger.info(f"Analyzed {len(results)} JS/TS files")
         return results
 
@@ -441,7 +460,12 @@ class SlopDetector:
 
     _GO_EXTENSIONS = frozenset({".go"})
 
-    def _analyze_go_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List:
+    def _analyze_go_files(
+        self,
+        project_path_obj: Path,
+        ignore_patterns: List[str],
+        failures: Optional[List[Dict[str, str]]] = None,
+    ) -> List:
         """Scan and analyze Go files in project_path_obj (Phase 3c)."""
         go_files = self._discover_supported_files(
             project_path_obj,
@@ -458,6 +482,8 @@ class SlopDetector:
                 results.append(analyzer.analyze(str(fp)))
             except Exception as exc:
                 logger.error(f"Error analyzing Go file {fp}: {exc}")
+                if failures is not None:
+                    record_analysis_failure(failures, fp, project_path_obj, "go", exc)
         logger.info(f"Analyzed {len(results)} Go files")
         return results
 

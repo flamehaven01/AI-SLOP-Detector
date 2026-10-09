@@ -233,8 +233,10 @@ def run_optional_features(args, result) -> None:
         _run_gate(result)
     if getattr(args, "fix", False):
         _run_autofix(result, dry_run=getattr(args, "dry_run", True))
-    if getattr(args, "js", False):
-        _run_js_analysis(args.path)
+    # JSON output already carries the project's js_file_results; a text block
+    # after it would make stdout invalid JSON.
+    if getattr(args, "js", False) and not getattr(args, "json", False):
+        _run_js_analysis(args.path, result)
     if getattr(args, "cross_file", False) and hasattr(result, "project_path"):
         _run_cross_file(result)
     if getattr(args, "governance", False):

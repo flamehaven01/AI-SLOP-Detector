@@ -34,6 +34,25 @@ def _has_abstractmethod(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> b
     )
 
 
+def _is_overload(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
+    """Return True for a `typing.overload` signature (its `...` body is required).
+
+    Only `@overload` and `@typing.overload`; another object's `.overload` or an
+    aliased `typing` module is not resolved here.
+    """
+    for d in node.decorator_list:
+        if isinstance(d, ast.Name) and d.id == "overload":
+            return True
+        if (
+            isinstance(d, ast.Attribute)
+            and d.attr == "overload"
+            and isinstance(d.value, ast.Name)
+            and d.value.id == "typing"
+        ):
+            return True
+    return False
+
+
 def _empty_container_repr(value: ast.expr) -> Optional[str]:
     """Return display string if value is an empty container literal, else None."""
     if isinstance(value, ast.List) and not value.elts:
@@ -206,7 +225,7 @@ class EllipsisPlaceholderPattern(ASTPattern):
             return None
         if node.lineno in getattr(self, "_protocol_method_lines", set()):
             return None
-        if _has_abstractmethod(node):
+        if _has_abstractmethod(node) or _is_overload(node):
             return None
         body = _strip_docstring(node.body)
         if len(body) == 1:

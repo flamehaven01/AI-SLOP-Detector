@@ -40,7 +40,7 @@ slop-detector pulse . --format=json
 Read project results with their scope:
 
 - `finding_summary`: aggregate finding and severity totals.
-- `scan_coverage`: analyzed, excluded, and unsupported source files.
+- `scan_coverage`: analyzed, excluded, unsupported, and failed source files; `complete` is false when any file could not be analyzed (a hard gate then fails with "analysis incomplete"); `analysis_modes.javascript` says whether JS/TS was analyzed with tree-sitter or the regex fallback.
 - `ml_scoring`: optional ML capability state.
 - `coherence_level`: exact or deterministic-approximate topology mode.
 

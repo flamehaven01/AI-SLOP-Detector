@@ -65,19 +65,37 @@ def _cyclomatic_complexity(func_node: ast.FunctionDef | ast.AsyncFunctionDef) ->
     return complexity
 
 
-def _max_nesting_depth(node: ast.AST, depth: int = 0) -> int:
-    """Return maximum control-flow nesting depth within a node."""
-    max_d = depth
-    if isinstance(
-        node, (ast.If, ast.For, ast.While, ast.With, ast.AsyncWith, ast.AsyncFor, ast.Try)
-    ):
-        depth += 1
-        max_d = depth
+_NESTING_NODES = (ast.If, ast.For, ast.While, ast.With, ast.AsyncWith, ast.AsyncFor, ast.Try)
 
-    for child in ast.iter_child_nodes(node):
-        max_d = max(max_d, _max_nesting_depth(child, depth))
 
-    return max_d
+def _max_nesting_depth(node: ast.AST, lines: List[str]) -> int:
+    """Return maximum control-flow nesting depth within a node.
+
+    An `elif` continues its `if`; it is not a nested block. In the AST it is the
+    only statement of the parent's `orelse`, on a line that starts with `elif`
+    (an `if` written under `else:` is nested). Cyclomatic complexity still
+    counts each `elif` as a decision.
+    """
+
+    def is_elif(parent: ast.AST, child: ast.AST) -> bool:
+        return (
+            isinstance(parent, ast.If)
+            and isinstance(child, ast.If)
+            and len(parent.orelse) == 1
+            and parent.orelse[0] is child
+            and 0 < child.lineno <= len(lines)
+            and lines[child.lineno - 1].lstrip().startswith("elif")
+        )
+
+    def walk(current: ast.AST, depth: int, continues_if: bool) -> int:
+        if isinstance(current, _NESTING_NODES) and not continues_if:
+            depth += 1
+        deepest = depth
+        for child in ast.iter_child_nodes(current):
+            deepest = max(deepest, walk(child, depth, is_elif(current, child)))
+        return deepest
+
+    return walk(node, 0, False)
 
 
 def _collect_dead_statements(stmts: list[ast.stmt]) -> list[ast.stmt]:
@@ -263,12 +281,13 @@ class DeepNestingPattern(BasePattern):
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
+        lines = content.splitlines()
 
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
 
-            depth = _max_nesting_depth(node)
+            depth = _max_nesting_depth(node, lines)
             if depth > DEEP_NESTING_THRESHOLD:
                 issues.append(
                     self.create_issue(
@@ -318,10 +337,11 @@ class NestedComplexityPattern(BasePattern):
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
+        lines = content.splitlines()
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            depth = _max_nesting_depth(node)
+            depth = _max_nesting_depth(node, lines)
             cc = _cyclomatic_complexity(node)
             depth_limit, cc_limit = self._thresholds_for(node.name)
             if depth > depth_limit and cc > cc_limit:

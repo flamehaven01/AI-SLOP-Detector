@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from slop_detector.core import SlopDetector
-from slop_detector.core_project import build_project_analysis
+from slop_detector.core_project import build_project_analysis, record_analysis_failure
 from slop_detector.models import FileAnalysis, ProjectAnalysis
 
 
@@ -25,14 +25,15 @@ def _build_fallback_project_analysis(
     ]
 
     file_results = []
+    failures: list = []
     for file_path in python_files:
         try:
             file_results.append(detector.analyze_file(str(file_path), root=str(scan_root)))
-        except Exception:
-            continue
+        except Exception as exc:
+            record_analysis_failure(failures, file_path, scan_root, "python", exc)
 
-    js_results = detector._analyze_js_files(scan_root, ignore_patterns)
-    go_results = detector._analyze_go_files(scan_root, ignore_patterns)
+    js_results = detector._analyze_js_files(scan_root, ignore_patterns, failures)
+    go_results = detector._analyze_go_files(scan_root, ignore_patterns, failures)
     all_results = file_results + js_results + go_results
     if not all_results:
         return None
@@ -50,6 +51,7 @@ def _build_fallback_project_analysis(
         detector._compute_coherence_vr,
         detector.project_prioritizer.prioritize_project,
         detector._ml_scoring,
+        analysis_failures=failures,
     )
 
 

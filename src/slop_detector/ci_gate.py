@@ -115,6 +115,25 @@ class CIGate:
             )
         return GateVerdict.PASS, False, "Build PASSED: All files meet quality standards"
 
+    def _apply_incomplete_scan(
+        self, result: ProjectAnalysis, verdict: GateVerdict, should_fail: bool, message: str
+    ) -> tuple[GateVerdict, bool, str]:
+        """A scan that could not analyze every file cannot pass as complete.
+
+        Hard mode fails closed; other modes warn. Applies to any language,
+        independent of the per-file thresholds.
+        """
+        coverage = getattr(result, "scan_coverage", None) or {}
+        if coverage.get("complete", True):
+            return verdict, should_fail, message
+        count = coverage.get("failed", {}).get("total", 0)
+        note = f"analysis incomplete: {count} files could not be analyzed"
+        if self.mode == GateMode.HARD:
+            return GateVerdict.FAIL, True, f"Build FAILED: {note} | {message}"
+        if verdict == GateVerdict.PASS:
+            verdict = GateVerdict.WARN
+        return verdict, should_fail, f"Warning: {note} | {message}"
+
     def _evaluate_project(self, result: ProjectAnalysis) -> GateResult:
         """Evaluate project-level analysis."""
         failed_files, warned_files, quarantined_files = self._classify_files(result)
@@ -130,6 +149,9 @@ class CIGate:
             verdict, should_fail, message = dispatch_fn()
         else:
             verdict, should_fail, message = GateVerdict.PASS, False, "Unknown mode"
+        verdict, should_fail, message = self._apply_incomplete_scan(
+            result, verdict, should_fail, message
+        )
         if self.mode == GateMode.QUARANTINE:
             self._save_quarantine_db()
         pr_comment = self._generate_pr_comment(

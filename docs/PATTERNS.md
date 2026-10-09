@@ -38,7 +38,7 @@ The detailed sections below explain the main rules and may not cover every id.
 | `empty_except` | Python | Critical | Placeholder | No | Exception handler with only `pass` |
 | `not_implemented` | Python | High | Placeholder | No | `raise NotImplementedError` stub |
 | `pass_placeholder` | Python | High | Placeholder | Yes | Function/class body is only `pass` |
-| `ellipsis_placeholder` | Python | High | Placeholder | Yes | Function body is only `...` (skips `@abstractmethod`) |
+| `ellipsis_placeholder` | Python | High | Placeholder | Yes | Function body is only `...` (skips `@abstractmethod`, `Protocol` methods and `@overload` / `@typing.overload` signatures) |
 | `return_none_placeholder` | Python | Medium | Placeholder | No | `return None` as only statement (skips `Optional[T]` annotations) |
 | `return_constant_stub` | Python | High | Placeholder | No | Function body is a single `return <constant>` |
 | `interface_only_class` | Python | High | Placeholder | No | Class with only abstract or placeholder methods |
@@ -822,7 +822,9 @@ def process(x):
 **Severity:** HIGH | **Axis:** STYLE
 
 Control-flow nesting depth > 4 within a single function.
-Depth computed recursively over `If/For/While/With/Try` bodies.
+Depth computed recursively over `If/For/While/With/Try` bodies. An `elif` is part of
+its `if`, not a nested level (an `if` written under `else:` is nested);
+`nested_complexity` uses the same depth.
 
 ```python
 # Flagged (depth 5):

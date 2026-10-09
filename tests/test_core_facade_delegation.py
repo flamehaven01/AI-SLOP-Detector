@@ -39,8 +39,9 @@ def test_analyze_project_delegates_aggregation_to_project_helper(monkeypatch, tm
     sentinel = object()
     captured = {}
 
-    def fake_build(*args):
+    def fake_build(*args, **kwargs):
         captured["args"] = args
+        captured["kwargs"] = kwargs
         return sentinel
 
     monkeypatch.setattr("slop_detector.core.build_project_analysis", fake_build)
@@ -49,3 +50,4 @@ def test_analyze_project_delegates_aggregation_to_project_helper(monkeypatch, tm
     assert captured["args"][0] == str(tmp_path)
     assert captured["args"][1] == str(tmp_path)
     assert len(captured["args"][2]) == 1
+    assert captured["kwargs"] == {"analysis_failures": []}

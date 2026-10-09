@@ -279,6 +279,57 @@ def create_empty_project_analysis(project_path: str) -> ProjectAnalysis:
     )
 
 
+def record_analysis_failure(
+    failures: List[Dict[str, str]], file_path: Any, root: Any, language: str, exc: BaseException
+) -> None:
+    """Keep a file whose analysis raised in the coverage instead of dropping it."""
+    path = Path(file_path)
+    try:
+        relative = path.relative_to(Path(root)).as_posix()
+    except ValueError:
+        relative = path.as_posix()
+    failures.append({"path": relative, "language": language, "error_type": type(exc).__name__})
+
+
+def set_failed_scan_coverage(
+    scan_coverage: Dict[str, Any], failures: Optional[List[Dict[str, str]]]
+) -> None:
+    """Report files whose analysis failed; any failure makes the scan incomplete.
+
+    A failed file is not scored: an analyzer or environment failure says nothing
+    about the analyzed code (a syntax error is a parse_error result instead).
+    """
+    files = sorted(failures or [], key=lambda f: (f["path"], f["language"]))
+    scan_coverage["failed"] = {
+        "total": len(files),
+        "files": files[:_COVERAGE_FILE_DETAIL_LIMIT],
+        "omitted_file_details": max(0, len(files) - _COVERAGE_FILE_DETAIL_LIMIT),
+        "by_language": dict(sorted(Counter(f["language"] for f in files).items())),
+        "by_error_type": dict(sorted(Counter(f["error_type"] for f in files).items())),
+    }
+    scan_coverage["complete"] = not files
+
+
+def set_analysis_modes(scan_coverage: Dict[str, Any], js_results: List[Any]) -> None:
+    """Say how JS/TS was analyzed (the per-file `ast_mode`, summarized).
+
+    Regex fallback finds fewer patterns than tree-sitter (no god functions), so
+    two scores of one project are comparable only in the same mode.
+    """
+    modes: Dict[str, Any] = {}
+    if js_results:
+        from slop_detector.languages import js_analyzer
+
+        seen = {bool(getattr(result, "ast_mode", False)) for result in js_results}
+        mode = (
+            "tree_sitter_ast"
+            if seen == {True}
+            else "regex_fallback" if seen == {False} else "mixed"
+        )
+        modes["javascript"] = {"mode": mode, "ast_available": bool(js_analyzer._TS_AVAILABLE)}
+    scan_coverage["analysis_modes"] = modes
+
+
 def build_project_analysis(
     project_path: str,
     prioritization_path: str,
@@ -290,10 +341,13 @@ def build_project_analysis(
     coherence_calculator: Callable[[List[Dict[str, float]]], tuple[float, str]],
     prioritize_project: Callable[[str, List[FileAnalysis]], tuple[List[Any], bool, bool]],
     ml_scoring: Dict[str, Any],
+    analysis_failures: Optional[List[Dict[str, str]]] = None,
 ) -> ProjectAnalysis:
     """Aggregate analyzed language results into the stable project contract."""
     all_results = python_results + js_results + go_results
     set_analyzed_scan_counts(scan_coverage, python_results, js_results, go_results)
+    set_failed_scan_coverage(scan_coverage, analysis_failures)
+    set_analysis_modes(scan_coverage, js_results)
     if not all_results:
         result = create_empty_project_analysis(project_path)
         result.js_file_results = js_results
@@ -308,7 +362,10 @@ def build_project_analysis(
     # Metric averages describe parsed code; a parse failure has no metrics.
     measured = [result for result in all_results if not is_parse_error(result)]
     measured_python = [result for result in python_results if not is_parse_error(result)]
-    ldr_scores = [result_ldr_score(result) for result in measured] or [0.0]
+    # A module without executable code has no LDR or DDC to average.
+    with_code = [r for r in measured if "no_executable_code" not in getattr(r, "flags", [])]
+    with_code_python = [r for r in measured_python if "no_executable_code" not in r.flags]
+    ldr_scores = [result_ldr_score(result) for result in with_code] or [0.0]
     average_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / len(ldr_scores))
     finite_python_inflation = [
         result.inflation.inflation_score
@@ -316,8 +373,8 @@ def build_project_analysis(
         if math.isfinite(result.inflation.inflation_score)
     ]
     average_inflation = sum(finite_python_inflation) / max(1, len(finite_python_inflation))
-    average_ddc = sum(result.ddc.usage_ratio for result in measured_python) / max(
-        1, len(measured_python)
+    average_ddc = sum(result.ddc.usage_ratio for result in with_code_python) / max(
+        1, len(with_code_python)
     )
 
     if use_weighted_analysis:

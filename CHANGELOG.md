@@ -9,6 +9,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (precision: findings that were not there)
+
+Found by a cross-domain precision study of the published 3.9.2 on 12
+repositories outside this project (stdlib-style libraries, ML research code,
+web/API, finance, numerical, CLI, a TypeScript library, agent repositories).
+
+- An `elif` is no longer a level of nesting. In the AST it is an `if` inside the
+  previous `if`'s `else`, and the depth counted it, so a flat dispatch chain of
+  eleven branches was "nesting depth 11" (langdetect `NGram.normalize`, real
+  depth 2). `deep_nesting` and `nested_complexity` now count an `elif` (a line
+  that starts with `elif`) as part of its `if`; an `if` written under `else:` is
+  still nested, and cyclomatic complexity still counts each `elif` as a
+  decision. On the 11 Python repositories: 1,158 findings were only `elif`
+  depth and are gone; 550 more remain with a smaller reported depth.
+- An `@overload` / `@typing.overload` signature is no longer a placeholder: its
+  `...` body is what the typing construct requires. 35 `ellipsis_placeholder`
+  findings are gone. Other decorators, including another object's `.overload`,
+  still do not exempt an `...` body.
+
+### Fixed (scoring: a module without code is not scored as empty logic)
+
+- A module with no executable code (0 bytes, whitespace, comments only, or a
+  module docstring only; `ldr.total_lines == 0`) got a logic density of 0.0 and
+  a deficit of 97.49 (`critical_deficit`) and failed the hard gate, although
+  nothing in it was measured. It now carries the flag `no_executable_code`;
+  LDR and DDC are skipped (`skipped_metrics`), patterns and inflation still
+  run, and it is left out of the project's LDR and DDC averages. `pass`, `...`
+  and `raise NotImplementedError` are code and keep their placeholder findings;
+  an empty `__init__.py` keeps its packaging semantics; a syntax error stays a
+  `parse_error`. HealthChain: 3 empty modules were 3 of its 7 hard-gate
+  failures.
+
+### Fixed (coverage: a file that fails to analyze is counted, not lost)
+
+- Project analysis caught an exception per file, logged it, and dropped the
+  file: it was in no coverage count and not in the score, and the gate passed
+  over fewer files without saying so (seen once: 167 Python files missing from
+  a scan made under memory pressure). Each such file is now listed in
+  `scan_coverage.failed` (path, language, error type; totals by language and
+  by error type) and `scan_coverage.complete` is false. The hard gate fails
+  with "analysis incomplete"; soft and quarantine modes warn. A failed file is
+  not scored: an analyzer or environment failure is not a defect of the code.
+  The CLI's fallback scan, which skipped such files without a log line, records
+  them the same way.
+
+### Fixed (JS/TS output)
+
+- `--js` analyzed JS/TS a second time after the project scan, without the
+  project's exclusions, and printed a text block after the JSON, so
+  `--json --js` stdout was not JSON (also with no JS file) and the two passes
+  disagreed (typia: 2,216 vs 1,500 files). The project scan is now the only JS
+  pass: text mode renders its results, JSON mode prints nothing after the JSON.
+- `scan_coverage.analysis_modes.javascript` says how JS/TS was analyzed:
+  `tree_sitter_ast`, `regex_fallback` or `mixed`, and whether tree-sitter is
+  available. Regex fallback detects fewer patterns (no god functions), so the
+  same project scores differently with and without the `[js]` extra
+  (hermes-agent: 33.35 vs 39.72); compare scores only in the same mode.
+
+### Verification of the fixes above
+
+- Study corpus (11 Python repositories, 3.9.2 vs this change, same
+  environment): 1,193 findings are gone and every one is an `elif`-only
+  nesting finding (1,158) or an `@overload` signature (35); 550 findings
+  remain with a smaller reported depth; no other finding changes; every file
+  score equals the score recomputed from the 3.9.2 result with only those
+  changes. biopython's project score goes from 32.02 (suspicious) to 25.11
+  (clean); HealthChain's hard gate fails 3 files instead of 7.
+- The 9-codebase replay: all 18 exit codes unchanged; 240 `elif`-only and 2
+  `@overload` findings gone, 172 with a smaller depth, 2 modules without code
+  flagged; no other finding changes; every file score equals the
+  recomputation; JS and Go results unchanged; hard-gate failures go from 10 to
+  9 (AI-Scientist), 18 to 16 (LMCache), 25 to 16 (graphify), 44 to 40
+  (unsloth), 4 to 4 (unstructured).
+- NavierStokes-Research-Workbench (a frozen copy, prediction recorded before
+  the change): the one predicted file moves from 24.88 to 10.00 and the
+  project from 2.5316 to 1.9657; the other 65 file results are identical;
+  `--json --js` stdout equals `--json`.
+- Cache `analysis-cache-v25`: the first run after upgrading re-analyzes every
+  file.
+
 ## [3.9.2] - 2026-10-09
 
 A consistency and correctness release after v3.9.1. Scores move in both
