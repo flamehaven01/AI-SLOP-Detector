@@ -5,6 +5,62 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.9.3 — 2026-10-09
+
+### Summary
+
+v3.9.3 corrects what a cross-domain precision study of the published 3.9.2
+found: two kinds of findings that were not there, a score given to files
+with nothing to measure, a file-loss path in project scans, and two JS/TS
+output contracts. The study ran 3.9.2 on 12 repositories outside this
+project (mature libraries, ML research code, web/API, finance, numerical,
+CLI, a TypeScript library and two agent repositories); the per-change
+numbers are in the [Changelog](../CHANGELOG.md#393---2026-10-09).
+
+### What Changed
+
+- **`elif` is not nesting.** A flat `if/elif` chain was reported as deep
+  nesting (depth 11 for eleven branches). `deep_nesting` and
+  `nested_complexity` now count an `elif` as part of its `if`; complexity
+  still counts each `elif`.
+- **`@overload` is not a placeholder.** `@overload` / `@typing.overload`
+  signatures no longer raise `ellipsis_placeholder`; other decorators still
+  do not exempt an `...` body.
+- **No code, no LDR.** A module with no executable code (empty, whitespace,
+  comments, docstring only) is flagged `no_executable_code` and skips LDR and
+  DDC instead of scoring 97.49; patterns still run on it.
+- **Incomplete scans are visible.** A file whose analysis raises is listed in
+  `scan_coverage.failed`, `scan_coverage.complete` is false, and a hard gate
+  fails with "analysis incomplete" (soft and quarantine warn). The file is not
+  scored.
+- **One JS pass.** `--js` renders the project scan's JS/TS results; `--json
+  --js` prints one JSON document. `scan_coverage.analysis_modes.javascript`
+  says whether tree-sitter or the regex fallback was used.
+
+### Regression Risk (v3.9.3)
+
+| Change | Who notices | What to do |
+|---|---|---|
+| Fewer `deep_nesting` / `nested_complexity` / `ellipsis_placeholder` findings; lower scores | Baselines and trend charts | Re-baseline after upgrading |
+| Remaining nesting findings report a smaller depth | Scripts that parse the message | Read the finding, not the number in its message |
+| A hard gate can fail on an incomplete scan | CI on machines that run out of memory or file handles | Read `scan_coverage.failed`; fix the environment, or run soft mode |
+| `--json --js` no longer prints the JS text block | Anyone who read that block from stdout | Read `js_file_results` from the JSON, or run without `--json` |
+| New `scan_coverage` keys `failed`, `complete`, `analysis_modes` | Strict schema validators | The keys are additive |
+| Cache `analysis-cache-v25` | First run after upgrade | It re-analyzes every file once |
+
+### Verification
+
+- 39 contract tests (24 of them failed on 3.9.2), 16 mutants killed, full
+  suite on Python 3.8-3.12 in CI.
+- Study corpus and the 9-codebase replay: every removed finding is an
+  `elif`-only or `@overload` finding; no other finding changes; every file
+  score equals the 3.9.2 score recomputed with only those changes; all 18
+  replay exit codes unchanged.
+- NavierStokes-Research-Workbench, frozen copy with predictions recorded
+  before the change: 11 of 11 checks pass.
+
+---
+
 ## v3.9.2 — 2026-10-09
 
 ### Summary

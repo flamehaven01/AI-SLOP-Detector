@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.3] - 2026-10-09
+
+A precision and contract correction. Scores mostly go down because
+over-counted or non-applicable evidence is no longer penalized; a scan can now
+report itself incomplete and fail a hard gate. For scripts: findings that
+remain can report a smaller nesting depth; `scan_coverage` gains `failed`,
+`complete` and `analysis_modes` (additive); `--json --js` stdout is a single
+JSON document; a module without executable code carries the
+`no_executable_code` flag and `ldr`/`ddc` in `skipped_metrics`.
+
 ### Fixed (precision: findings that were not there)
 
 Found by a cross-domain precision study of the published 3.9.2 on 12

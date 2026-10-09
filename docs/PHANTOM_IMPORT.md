@@ -1,6 +1,6 @@
 # Phantom Import Detection
 
-**Current contract:** v3.9.2. The original pattern was introduced
+**Current contract:** v3.9.3. The original pattern was introduced
 in v2.9.0; this page describes its current resolution boundary.
 
 **Pattern ID:** `phantom_import`
