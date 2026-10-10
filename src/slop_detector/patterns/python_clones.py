@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -84,6 +85,23 @@ def _is_property_accessor_cluster(tree: ast.AST, clone_names: List[str]) -> bool
         matched += 1
 
     return matched == len(clone_set)
+
+
+def _fragmentation_candidates(tree: ast.AST, clone_names: List[str]) -> List[str]:
+    """Clone-group members that could be pieces of one fragmented operation.
+
+    A dunder method's shape follows its protocol (`__and__`, `__or__`, ...),
+    and a name the module defines more than once is one operation implemented
+    in several places: an override per class (polymorphism) or the closure of
+    each decorator factory. Neither is a fragment of a larger function, even
+    when the clone group holds only one of its definitions.
+    """
+    defined = Counter(node.name for node in _iter_function_nodes(tree))
+    return [
+        name
+        for name in clone_names
+        if defined[name] == 1 and not (name.startswith("__") and name.endswith("__"))
+    ]
 
 
 def _iter_function_nodes(tree: ast.AST) -> List[ast.FunctionDef | ast.AsyncFunctionDef]:
@@ -285,8 +303,12 @@ class FunctionClonePattern(BasePattern):
         if _has_distinct_semantic_signatures(tree, result.clone_group_names):
             return []
 
-        clone_size = result.max_clone_group
-        qualified_names = _qualified_clone_names(tree, result.clone_group_names)
+        fragments = _fragmentation_candidates(tree, result.clone_group_names)
+        if len(fragments) < _CLONE_MED_THRESHOLD:
+            return []
+
+        clone_size = len(fragments)
+        qualified_names = _qualified_clone_names(tree, fragments)
         names_preview = ", ".join(qualified_names[:6])
         if len(qualified_names) > 6:
             names_preview += f", ... (+{len(qualified_names) - 6} more)"
