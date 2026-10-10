@@ -589,9 +589,10 @@ def _insert_merged_lines(
     lines = text.splitlines()
     added = [p for p in merged.get("ignore", []) if p not in (base_data.get("ignore") or [])]
     if added:
-        lines = _insert_ignore_items(lines, added, has_key="ignore" in base_data)
-        if lines is None:
+        extended = _insert_ignore_items(lines, added, has_key="ignore" in base_data)
+        if extended is None:
             return None
+        lines = extended
     if merged.get("architecture") != base_data.get("architecture"):
         if "architecture" in base_data:
             return None

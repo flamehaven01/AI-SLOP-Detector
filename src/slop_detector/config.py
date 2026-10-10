@@ -4,7 +4,7 @@ import logging as _logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import yaml
 
@@ -555,7 +555,7 @@ def generate_slopconfig_template(
     domain_path = profile.get("domain_path", "general")
     description = profile.get("description", "")
     detected_by = profile.get("detected_by", [])  # injected at call-site
-    cv = Config.DEFAULT_CONFIG["weights"]
+    cv = cast(Dict[str, float], Config.DEFAULT_CONFIG["weights"])
     pc = profile.get("pattern_config", DOMAIN_PROFILES["general"]["pattern_config"])
     gf = pc.get("god_function", {"complexity_threshold": 10, "lines_threshold": 50})
     nc = pc.get("nested_complexity", {"depth_threshold": 4, "cc_threshold": 5})

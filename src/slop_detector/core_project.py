@@ -359,7 +359,7 @@ def set_unmeasured_scan_coverage(
     Such a file is scored on what was measured, but "no finding" from the
     failed pattern is not a measurement, so the scan is not complete.
     """
-    files = []
+    files: List[Dict[str, Any]] = []
     for result in results:
         patterns = sorted({e["pattern_id"] for e in getattr(result, "pattern_errors", []) or []})
         if patterns:
