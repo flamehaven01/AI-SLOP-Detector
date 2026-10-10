@@ -7,6 +7,7 @@ import fnmatch
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
 GOD_FUNCTION_LINES = 50
@@ -201,7 +202,7 @@ class GodFunctionPattern(BasePattern):
         lines = content.splitlines()
         docstrings = docstring_line_numbers(tree)
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
 
@@ -283,7 +284,7 @@ class DeepNestingPattern(BasePattern):
         issues: list[Issue] = []
         lines = content.splitlines()
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
 
@@ -338,7 +339,7 @@ class NestedComplexityPattern(BasePattern):
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
         lines = content.splitlines()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             depth = _max_nesting_depth(node, lines)

@@ -8,6 +8,7 @@ import tokenize
 from pathlib import Path
 from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.models import InflationResult
 
 logger = logging.getLogger(__name__)
@@ -128,7 +129,7 @@ def _char_col(line: str, byte_col: int) -> int:
 def _metadata_spans(tree: ast.AST, lines: List[str]) -> Spans:
     """Line -> column ranges of strings that are metadata rather than claims."""
     nodes: List[ast.expr] = []
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, ast.Dict):
             nodes.extend(key for key in node.keys if key is not None)
         elif isinstance(node, ast.Call):
@@ -165,7 +166,7 @@ CACHE_DECORATORS = frozenset({"cache", "lru_cache"})
 def _import_aliases(tree: ast.AST) -> Dict[str, str]:
     """Local name -> top-level module, for every absolute import in the file."""
     aliases: Dict[str, str] = {}
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 top = alias.name.split(".")[0]
@@ -180,7 +181,7 @@ def _import_aliases(tree: ast.AST) -> Dict[str, str]:
 def cache_decorator_lines(tree: ast.AST) -> Set[int]:
     """Lines of `@cache` / `@lru_cache` decorators (bare, called, or qualified)."""
     lines: Set[int] = set()
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             for decorator in node.decorator_list:
                 target = decorator.func if isinstance(decorator, ast.Call) else decorator
@@ -201,7 +202,7 @@ def justifier_lines(tree: ast.AST, modules: Mapping[str, Sequence[str]]) -> Dict
     aliases = _import_aliases(tree)
     category_of = {module: category for category, mods in modules.items() for module in mods}
     found: Dict[str, Set[int]] = {category: set() for category in modules}
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
             category = category_of.get(aliases.get(node.id, ""))
             if category:
@@ -324,32 +325,33 @@ class InflationCalculator:
             if self._is_data_literal_entry(line):
                 continue
             line_lower = line.lower()
-            for category, words in self.JARGON.items():
-                for word in words:
-                    pattern = r"\b" + re.escape(word.lower()) + r"\b"
-                    for match in re.finditer(pattern, line_lower):
-                        if not tokenized:
-                            prose, tokenized = _prose_spans(content), True
-                            metadata = _metadata_spans(tree, lines)
-                            justifiers = justifier_lines(tree, self.JUSTIFICATIONS)
-                        if not _in_prose(prose, line_idx, match.start(), match.end()):
-                            continue  # import path, attribute, or identifier: code, not a claim
-                        if metadata and _in_prose(metadata, line_idx, match.start(), match.end()):
-                            continue  # dict key or CLI help text: metadata, not a claim
-                        jargon_found.append(word)
-                        is_justified = self._is_jargon_justified_scoped(
-                            category, line_idx, func_scopes, justifiers
-                        )
-                        if is_justified:
-                            justified_jargon.append(word)
-                        jargon_details.append(
-                            {
-                                "word": word,
-                                "line": line_idx,
-                                "category": category,
-                                "justified": is_justified,
-                            }
-                        )
+            for category, word, lowered, pattern in _WORD_PATTERNS:
+                # A regex hit needs the word as a substring: skip the regex otherwise.
+                if lowered not in line_lower:
+                    continue
+                for match in pattern.finditer(line_lower):
+                    if not tokenized:
+                        prose, tokenized = _prose_spans(content), True
+                        metadata = _metadata_spans(tree, lines)
+                        justifiers = justifier_lines(tree, self.JUSTIFICATIONS)
+                    if not _in_prose(prose, line_idx, match.start(), match.end()):
+                        continue  # import path, attribute, or identifier: code, not a claim
+                    if metadata and _in_prose(metadata, line_idx, match.start(), match.end()):
+                        continue  # dict key or CLI help text: metadata, not a claim
+                    jargon_found.append(word)
+                    is_justified = self._is_jargon_justified_scoped(
+                        category, line_idx, func_scopes, justifiers
+                    )
+                    if is_justified:
+                        justified_jargon.append(word)
+                    jargon_details.append(
+                        {
+                            "word": word,
+                            "line": line_idx,
+                            "category": category,
+                            "justified": is_justified,
+                        }
+                    )
         return jargon_found, justified_jargon, jargon_details
 
     @staticmethod
@@ -398,7 +400,7 @@ class InflationCalculator:
         function_count = 0
         total_complexity = 0
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 function_count += 1
                 complexity = 1
@@ -419,7 +421,7 @@ class InflationCalculator:
         """
         # Collect all function ranges (include decorator lines in scope start)
         func_ranges = []
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 end = getattr(node, "end_lineno", node.lineno + 1)
                 # Extend start to first decorator so @lru_cache etc. are in scope
@@ -484,9 +486,18 @@ class InflationCalculator:
                 # Verify no functions
                 function_count = sum(
                     1
-                    for node in ast.walk(tree)
+                    for node in walk_nodes(tree)
                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                 )
                 return function_count == 0
 
         return False
+
+
+# (category, word, lowercase word, whole-word pattern) in JARGON order, compiled
+# once: the scan used to escape and look up every pattern on every line.
+_WORD_PATTERNS = [
+    (category, word, word.lower(), re.compile(r"\b" + re.escape(word.lower()) + r"\b"))
+    for category, words in InflationCalculator.JARGON.items()
+    for word in words
+]

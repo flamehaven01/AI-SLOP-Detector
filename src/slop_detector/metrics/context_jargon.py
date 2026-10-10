@@ -6,6 +6,7 @@ import ast
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.metrics.inflation import cache_decorator_lines
 from slop_detector.path_facts import PathFacts, facts_for
 
@@ -338,7 +339,7 @@ class ContextJargonDetector:
 
     def _has_error_handling(self, tree: ast.AST) -> bool:
         """Check for error handling (try/except blocks)."""
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.Try) and node.handlers:
                 # Check it's not empty except
                 for handler in node.handlers:
@@ -356,7 +357,7 @@ class ContextJargonDetector:
                 and any(a.name.split(".")[0] == "logging" for a in node.names)
             )
             or (isinstance(node, ast.ImportFrom) and (node.module or "").split(".")[0] == "logging")
-            for node in ast.walk(tree)
+            for node in walk_nodes(tree)
         )
         if not imported:
             return False
@@ -364,7 +365,7 @@ class ContextJargonDetector:
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)
             and node.func.attr in ("debug", "info", "warning", "error", "critical")
-            for node in ast.walk(tree)
+            for node in walk_nodes(tree)
         )
 
     def _has_tests(self, file_path: str, tree: ast.AST, facts: Optional[PathFacts] = None) -> bool:
@@ -416,7 +417,7 @@ class ContextJargonDetector:
         Check if file contains actual test functions.
         Prevents false positives from helper files like integration_utils.py
         """
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
                 return True
         return False
@@ -424,7 +425,7 @@ class ContextJargonDetector:
     def _has_validation_structure(self, tree: ast.AST) -> bool:
         """Input validation in code: isinstance/issubclass checks, assert, or
         raising ValueError/TypeError."""
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.Assert):
                 return True
             if (
@@ -467,7 +468,7 @@ class ContextJargonDetector:
     def _has_documentation(self, tree: ast.AST) -> bool:
         """Check for meaningful documentation."""
         docstring_count = 0
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                 doc = ast.get_docstring(node)
                 if doc and len(doc) > 20:  # Meaningful docstrings
@@ -492,7 +493,7 @@ class ContextJargonDetector:
 
     def _has_async_support(self, tree: ast.AST) -> bool:
         """Check for async/await usage."""
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.AsyncFunctionDef, ast.Await, ast.AsyncFor, ast.AsyncWith)):
                 return True
         return False
@@ -509,7 +510,7 @@ class ContextJargonDetector:
         """Check for design patterns."""
         # Look for common patterns: Factory, Singleton, Observer, etc.
         class_names = set()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.ClassDef):
                 class_names.add(node.name.lower())
 

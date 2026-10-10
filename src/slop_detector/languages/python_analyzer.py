@@ -6,6 +6,8 @@ Implementation of LanguageAnalyzer for Python
 import ast
 from typing import Dict, List, Set
 
+from slop_detector.ast_index import walk_nodes
+
 from .base import AnalysisResult, CodeIssue, FunctionMetrics, LanguageAnalyzer, SeverityLevel
 
 
@@ -102,7 +104,7 @@ class PythonAnalyzer(LanguageAnalyzer):
             return []
 
         metrics = []
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 metrics.append(self._analyze_function(node))
         return metrics
@@ -160,7 +162,7 @@ class PythonAnalyzer(LanguageAnalyzer):
             return set()
 
         imported = set()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.Import):
                 for n in node.names:
                     imported.add(n.asname or n.name)
@@ -169,7 +171,7 @@ class PythonAnalyzer(LanguageAnalyzer):
                     imported.add(n.asname or n.name)
 
         used = set()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.Name):
                 used.add(node.id)
 
@@ -177,13 +179,13 @@ class PythonAnalyzer(LanguageAnalyzer):
 
     def _count_imports(self, tree: ast.AST) -> int:
         count = 0
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 count += 1
         return count
 
     def _count_classes(self, tree: ast.AST) -> int:
-        return sum(1 for node in ast.walk(tree) if isinstance(node, ast.ClassDef))
+        return sum(1 for node in walk_nodes(tree) if isinstance(node, ast.ClassDef))
 
     def _get_jargon(self) -> Set[str]:
         return {

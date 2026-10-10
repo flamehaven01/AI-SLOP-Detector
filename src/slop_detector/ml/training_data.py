@@ -22,6 +22,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from slop_detector.ast_index import walk_nodes
+
 logger = logging.getLogger(__name__)
 
 
@@ -174,7 +176,7 @@ class TrainingDataCollector:
                     tree = ast.parse(f.read())
                 functions = [
                     node
-                    for node in ast.walk(tree)
+                    for node in walk_nodes(tree)
                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                 ]
                 if functions:

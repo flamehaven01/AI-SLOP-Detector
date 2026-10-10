@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 from typing import Any, Iterable, List, Optional, Tuple
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.models import MaskedIssue
 from slop_detector.path_facts import PathFacts, facts_for
 from slop_detector.patterns.base import Issue, Severity
@@ -55,7 +56,7 @@ class FrameworkMasker:
 
     @staticmethod
     def _python_function_name_at_line(tree: ast.AST, line_number: int) -> Optional[str]:
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if (
                 isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                 and node.lineno == line_number

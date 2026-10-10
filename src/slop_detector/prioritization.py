@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.diagnostic_bands import CRITICAL_AT, INFLATED_AT, SUSPICIOUS_AT
 from slop_detector.models import FileAnalysis, PriorityHotspot, SlopStatus
 
@@ -237,7 +238,7 @@ class ProjectPrioritizer:
             return set()
 
         docstring_lines: Set[int] = set()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             body = getattr(node, "body", None)
             if not isinstance(body, list) or not body:
                 continue
@@ -254,7 +255,7 @@ class ProjectPrioritizer:
 
         executable = {
             node.lineno
-            for node in ast.walk(tree)
+            for node in walk_nodes(tree)
             if isinstance(node, ast.stmt)
             and hasattr(node, "lineno")
             and node.lineno not in docstring_lines

@@ -9,6 +9,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+from slop_detector.ast_index import walk_nodes
+
 
 class Severity(Enum):
     """Issue severity levels."""
@@ -132,7 +134,7 @@ class ASTPattern(BasePattern):
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         """Walk AST and check each node."""
         issues = []
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if issue := self.check_node(node, file, content):
                 if isinstance(issue, list):
                     issues.extend(issue)

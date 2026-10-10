@@ -7,10 +7,12 @@ from collections import Counter
 from math import log, sqrt
 from typing import Callable, Dict, List, Sequence
 
+from slop_detector.ast_index import walk_nodes
+
 
 def compute_dcf(tree: ast.AST) -> Dict[str, float]:
     """Return the normalized AST node distribution for one parsed source file."""
-    counts = Counter(type(node).__name__ for node in ast.walk(tree))
+    counts = Counter(type(node).__name__ for node in walk_nodes(tree))
     total = sum(counts.values()) or 1
     return {name: count / total for name, count in counts.items()}
 

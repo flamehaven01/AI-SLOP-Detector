@@ -6,6 +6,7 @@ import ast
 import re
 from pathlib import Path
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
 _NOQA_BARE = re.compile(r"#\s*noqa\s*$", re.IGNORECASE)
@@ -32,7 +33,7 @@ class LintEscapePattern(BasePattern):
     def _string_literal_lines(tree: ast.AST) -> set[int]:
         """Line numbers that fall inside a string/docstring literal (1-based)."""
         inside: set[int] = set()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 start = getattr(node, "lineno", None)
                 end = getattr(node, "end_lineno", start)

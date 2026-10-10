@@ -4,6 +4,8 @@ import ast
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union, cast
 
+from slop_detector.ast_index import walk_nodes
+
 DocstringNode = Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
 
 
@@ -109,7 +111,7 @@ class DocstringInflationDetector:
                     )
 
         # Check functions and classes
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 detail = self._analyze_node(node, content)
                 if detail:

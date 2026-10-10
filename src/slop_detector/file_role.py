@@ -11,6 +11,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.path_facts import PathFacts, facts_for
 
 
@@ -84,7 +85,7 @@ def classify_file(
         return FileRole.RE_EXPORT
 
     # MODEL: dataclass-heavy file — check for @dataclass decorator before RE_EXPORT ratio
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, ast.ClassDef):
             for deco in node.decorator_list:
                 name = ""

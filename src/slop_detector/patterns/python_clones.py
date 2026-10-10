@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.clone_identity import MIN_SEMANTIC_NODES, body_fingerprint, function_body
 from slop_detector.clone_signals import EXACT_DUPLICATE_PAIR_ID, FUNCTION_CLONE_CLUSTER_ID
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
@@ -29,7 +30,7 @@ def _is_dispatcher_pattern(tree: ast.AST, clone_names: List[str]) -> bool:
     threshold = max(3, int(len(clone_set) * 0.4))
 
     # Signal 1: dispatch table
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, ast.Dict):
             hits = sum(1 for v in node.values if isinstance(v, ast.Name) and v.id in clone_set)
             if hits >= threshold:
@@ -48,7 +49,7 @@ def _is_dispatcher_pattern(tree: ast.AST, clone_names: List[str]) -> bool:
     # Signal 3: FastAPI / Flask route file — module-level `app` or `router` assignment.
     # Route handlers share structural patterns (try/except + HTTPException) by convention,
     # not copy-paste fragmentation.
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id in ("app", "router"):
@@ -105,7 +106,7 @@ def _fragmentation_candidates(tree: ast.AST, clone_names: List[str]) -> List[str
 
 
 def _iter_function_nodes(tree: ast.AST) -> List[ast.FunctionDef | ast.AsyncFunctionDef]:
-    return [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    return [n for n in walk_nodes(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
 
 
 def _qualified_clone_names(tree: ast.AST, clone_names: List[str]) -> List[str]:
@@ -167,7 +168,7 @@ def _method_owners(tree: ast.AST) -> Dict[int, ast.ClassDef]:
     """Map id(method) to the class whose body defines it directly."""
     return {
         id(item): node
-        for node in ast.walk(tree)
+        for node in walk_nodes(tree)
         if isinstance(node, ast.ClassDef)
         for item in node.body
         if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))

@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Callable, Dict, FrozenSet, Iterator, List, Optional, Sequence, Set, Tuple
 
 from slop_detector.analysis.import_graph import _bound_names, _iter_imports
+from slop_detector.ast_index import walk_nodes
 from slop_detector.environment_resolution import find_installed_spec, search_path
 
 VERIFICATION_BASIS = "source_static_analysis"
@@ -222,7 +223,7 @@ def _is_sys_modules_mutation(node: ast.Call) -> bool:
 def _sys_modules_assignments(tree: ast.Module) -> Tuple[Set[str], bool]:
     literal: Set[str] = set()
     dynamic = False
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 key, is_dynamic = _sys_modules_key(target)
@@ -294,7 +295,7 @@ def _read_scope(path: Path) -> Optional[_Scope]:
     package_name = path.parent.name if path.name == "__init__.py" else path.stem
     bound, conditional, all_names, getattr_hook, star = _top_level_bindings(tree, package_name)
     literal, sys_dynamic = _sys_modules_assignments(tree)
-    dynamic = sys_dynamic or any(_is_dynamic(node) for node in ast.walk(tree))
+    dynamic = sys_dynamic or any(_is_dynamic(node) for node in walk_nodes(tree))
     return _Scope(
         bound=frozenset(bound),
         conditional=frozenset(conditional - bound),
@@ -457,7 +458,7 @@ def guarded_import_lines(tree: ast.AST, is_import_guard: Callable[[ast.ExceptHan
     inside any except branch (version or platform fallbacks).
     """
     lines: Set[int] = set()
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if not isinstance(node, ast.Try):
             continue
         if any(is_import_guard(h) for h in node.handlers):

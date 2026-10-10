@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.path_facts import DEFAULT_EXCLUDE_PARTS, path_facts
 
 _SOURCE_SUFFIXES = {
@@ -218,7 +219,7 @@ def _collect_python_complexity_candidates(project_path: Path) -> List[Dict[str, 
         except (OSError, SyntaxError, UnicodeError):
             continue
         lines = content.splitlines()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             start = getattr(node, "lineno", 0)

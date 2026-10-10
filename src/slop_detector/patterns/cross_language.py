@@ -17,6 +17,7 @@ import ast
 from collections import defaultdict
 from typing import Dict, Iterator, List, Optional, Set, Union
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.patterns.base import ASTPattern, Axis, BasePattern, Issue, Severity
 
 # Constructors whose call returns a built-in of that type, unless the name is rebound.
@@ -85,7 +86,7 @@ def _bindings(scope: Scope) -> Dict[str, List[ast.AST]]:
 def _shadowed_constructors(tree: ast.Module) -> Set[str]:
     """Constructor names bound anywhere in the module: their calls prove nothing."""
     shadowed: Set[str] = set()
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         names = [node.arg] if isinstance(node, ast.arg) else _binding_names(node)
         shadowed.update(n for n in names if n in _BUILTIN_CONSTRUCTORS)
     return shadowed
@@ -155,9 +156,16 @@ class _BuiltinReceiverPattern(BasePattern):
     def check(self, tree: ast.AST, file, content: str) -> List[Issue]:
         if not isinstance(tree, ast.Module):
             return []
+        # Every finding needs `.member` somewhere in the module; most modules
+        # have none, and then the scope analysis below cannot find anything.
+        if not any(
+            isinstance(node, ast.Attribute) and node.attr == self.member
+            for node in walk_nodes(tree)
+        ):
+            return []
         shadowed = _shadowed_constructors(tree)
         scopes: List[Scope] = [tree]
-        scopes.extend(node for node in ast.walk(tree) if isinstance(node, _DEFS))
+        scopes.extend(node for node in walk_nodes(tree) if isinstance(node, _DEFS))
         issues: List[Issue] = []
         for scope in scopes:
             sites: Optional[Dict[str, List[ast.AST]]] = None

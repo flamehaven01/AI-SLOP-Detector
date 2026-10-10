@@ -15,6 +15,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.core import SlopDetector
 from slop_detector.models import FileAnalysis
 
@@ -207,12 +208,12 @@ class TrainingDataCollector:
             tree = ast.parse(content)
 
             # Count functions and classes
-            num_functions = sum(1 for node in ast.walk(tree) if isinstance(node, ast.FunctionDef))
-            num_classes = sum(1 for node in ast.walk(tree) if isinstance(node, ast.ClassDef))
+            num_functions = sum(1 for node in walk_nodes(tree) if isinstance(node, ast.FunctionDef))
+            num_classes = sum(1 for node in walk_nodes(tree) if isinstance(node, ast.ClassDef))
 
             # Calculate average function length
             function_lengths = []
-            for node in ast.walk(tree):
+            for node in walk_nodes(tree):
                 if isinstance(node, ast.FunctionDef):
                     if hasattr(node, "end_lineno") and hasattr(node, "lineno"):
                         length = node.end_lineno - node.lineno
@@ -236,7 +237,7 @@ class TrainingDataCollector:
 
             # Calculate docstring ratio
             docstring_count = 0
-            for node in ast.walk(tree):
+            for node in walk_nodes(tree):
                 if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Module)):
                     if ast.get_docstring(node):
                         docstring_count += 1

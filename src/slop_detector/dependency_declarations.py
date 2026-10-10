@@ -27,6 +27,8 @@ from typing import Any, Dict, List
 
 import yaml
 
+from slop_detector.ast_index import walk_nodes
+
 logger = logging.getLogger(__name__)
 
 _FIXED_NAMES = frozenset({"pyproject.toml", "setup.py", "setup.cfg", "Pipfile"})
@@ -150,7 +152,7 @@ def _setup_requirement_values(tree: ast.Module) -> List[ast.AST]:
     """The install_requires / extras_require values of every setup() call."""
     return [
         keyword.value
-        for node in ast.walk(tree)
+        for node in walk_nodes(tree)
         if isinstance(node, ast.Call) and _is_setup_call(node.func)
         for keyword in node.keywords
         if keyword.arg in {"install_requires", "extras_require"}

@@ -5,15 +5,25 @@ from __future__ import annotations
 import fnmatch
 import logging
 import math
+import os
 from collections import Counter
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from slop_detector.config import Config
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_summary import build_finding_summary
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
-from slop_detector.path_facts import default_exclusion_reason, path_facts, relative_to_root
+from slop_detector.path_facts import (
+    DEFAULT_EXCLUDE_PARTS,
+    default_exclusion_reason,
+    path_facts,
+    relative_to_root,
+)
 from slop_detector.rust_scan import discover_project_files
 
 logger = logging.getLogger(__name__)
@@ -76,21 +86,109 @@ def ignore_reason(
     default_reason = default_exclusion_reason(below_root.parts)
     if default_reason:
         return default_reason
+    return _pattern_reason(str(below_root).replace("\\", "/"), patterns)
 
-    normalized_paths = {str(below_root).replace("\\", "/")}
 
+def _pattern_reason(normalized: str, patterns: List[str]) -> Optional[str]:
+    """The first ignore pattern matching a root-relative POSIX path."""
+    return _cached_pattern_reason(normalized, tuple(patterns))
+
+
+@lru_cache(maxsize=65536)
+def _cached_pattern_reason(normalized: str, patterns: Tuple[str, ...]) -> Optional[str]:
+    # A pure function of its arguments; coverage and discovery ask about the
+    # same file, so the answer is computed once.
+    as_path = Path(normalized)
     for pattern in patterns:
         normalized_pattern = str(pattern).replace("\\", "/")
-        for normalized in normalized_paths:
-            if Path(normalized).match(normalized_pattern):
-                return f"pattern:{normalized_pattern}"
-            if fnmatch.fnmatch(normalized, normalized_pattern):
-                return f"pattern:{normalized_pattern}"
-            if normalized_pattern.startswith("**/") and fnmatch.fnmatch(
-                normalized, normalized_pattern[3:]
-            ):
-                return f"pattern:{normalized_pattern}"
+        if as_path.match(normalized_pattern):
+            return f"pattern:{normalized_pattern}"
+        if fnmatch.fnmatch(normalized, normalized_pattern):
+            return f"pattern:{normalized_pattern}"
+        if normalized_pattern.startswith("**/") and fnmatch.fnmatch(
+            normalized, normalized_pattern[3:]
+        ):
+            return f"pattern:{normalized_pattern}"
     return None
+
+
+@dataclass(frozen=True)
+class WalkedFile:
+    """A file below the scan root, with what the walk already knows about it."""
+
+    path: Path
+    relative: str  # root-relative POSIX path
+    default_reason: Optional[str]  # default-excluded directory, if any
+
+    def ignore_reason(self, patterns: List[str]) -> Optional[str]:
+        """Same answer as ignore_reason(path, patterns, root) without re-deriving the path."""
+        return self.default_reason or _pattern_reason(self.relative, patterns)
+
+
+def walk_project(project_path: Path) -> List[WalkedFile]:
+    """Every file below the root in one walk.
+
+    The default exclusion of a directory is computed once per directory; a
+    file's own name joins it only when the name is itself an excluded name.
+    Directories are walked even when excluded, so exclusion counts stay whole.
+    """
+    walked: List[WalkedFile] = []
+    # Depth-first, entries in name order (files of a directory before its
+    # subdirectories); symlinked directories are not followed, and the
+    # directory entry's own type answers is_dir/is_file without another stat.
+    stack: List[Tuple[Tuple[str, ...], Path]] = [((), project_path)]
+    while stack:
+        dir_parts, directory = stack.pop()
+        try:
+            with os.scandir(directory) as listing:
+                entries = sorted(listing, key=lambda entry: entry.name)
+        except OSError:
+            continue
+        dir_reason = default_exclusion_reason(dir_parts)
+        subdirectories = []
+        for entry in entries:
+            if entry.is_dir(follow_symlinks=False):
+                subdirectories.append((dir_parts + (entry.name,), directory / entry.name))
+            elif entry.is_file():
+                reason = (
+                    default_exclusion_reason(dir_parts + (entry.name,))
+                    if entry.name.lower() in DEFAULT_EXCLUDE_PARTS
+                    else dir_reason
+                )
+                relative = "/".join(dir_parts + (entry.name,))
+                walked.append(WalkedFile(directory / entry.name, relative, reason))
+        stack.extend(reversed(subdirectories))
+    return walked
+
+
+_WALK_SCOPE: ContextVar[Optional[Dict[str, List[WalkedFile]]]] = ContextVar(
+    "slop_walk_scope", default=None
+)
+
+
+@contextmanager
+def project_walk_scope() -> Iterator[None]:
+    """Inside, a root is walked once and its listing reused until the scope exits."""
+    if _WALK_SCOPE.get() is not None:
+        yield
+        return
+    token = _WALK_SCOPE.set({})
+    try:
+        yield
+    finally:
+        _WALK_SCOPE.reset(token)
+
+
+def project_files(project_path: Path) -> List[WalkedFile]:
+    """The root's file listing: the scope's, or a fresh walk outside a scope."""
+    scope = _WALK_SCOPE.get()
+    key = str(project_path)
+    if scope is not None and key in scope:
+        return scope[key]
+    walked = walk_project(project_path)
+    if scope is not None:
+        scope[key] = walked
+    return walked
 
 
 def should_ignore(file_path: Path, patterns: List[str], root: Optional[Path] = None) -> bool:
@@ -113,14 +211,10 @@ def discover_supported_files(
     path), so position-dependent results (approximate topology sampling, the
     first of tied files) do not depend on whether the Rust helper is present.
     """
-    fallback = [
-        path
-        for include_pattern in include_patterns
-        for path in project_path.glob(include_pattern)
-        if path.suffix.lower() in extensions
-        and not should_ignore(path, ignore_patterns, root=project_path)
-    ]
-    fallback = _canonical_order(project_path, fallback)
+    fallback = _canonical_order(
+        project_path,
+        _fallback_discovery(project_path, include_patterns, extensions, ignore_patterns),
+    )
     discovered = rust_discoverer(project_path, include_patterns, ignore_patterns)
     if discovered is None:
         return fallback
@@ -138,6 +232,36 @@ def discover_supported_files(
         )
         return fallback
     return _canonical_order(project_path, accelerated)
+
+
+def _fallback_discovery(
+    project_path: Path,
+    include_patterns: Sequence[str],
+    extensions: set[str] | frozenset[str],
+    ignore_patterns: List[str],
+) -> List[Path]:
+    """Root-relative discovery. `**/<name pattern>` includes read the shared walk
+    (fnmatch keeps glob's per-platform case rule); any other include is globbed.
+    """
+    found: List[Path] = []
+    for include_pattern in include_patterns:
+        name_pattern = include_pattern[3:] if include_pattern.startswith("**/") else ""
+        if name_pattern and "/" not in name_pattern:
+            found.extend(
+                item.path
+                for item in project_files(project_path)
+                if fnmatch.fnmatch(item.path.name, name_pattern)
+                and item.path.suffix.lower() in extensions
+                and item.ignore_reason(ignore_patterns) is None
+            )
+            continue
+        found.extend(
+            path
+            for path in project_path.glob(include_pattern)
+            if path.suffix.lower() in extensions
+            and not should_ignore(path, ignore_patterns, root=project_path)
+        )
+    return found
 
 
 def _canonical_order(project_path: Path, paths: List[Path]) -> List[Path]:
@@ -161,12 +285,10 @@ def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]
     excluded: List[Dict[str, Any]] = []
     unsupported: List[Dict[str, str]] = []
     try:
-        for path in project_path.rglob("*"):
-            if not path.is_file():
-                continue
+        for item in project_files(project_path):
+            path, relative = item.path, item.relative
             suffix = path.suffix.lower()
-            reason = ignore_reason(path, ignore_patterns, root=project_path)
-            relative = str(path.relative_to(project_path)).replace("\\", "/")
+            reason = item.ignore_reason(ignore_patterns)
             if suffix in _SUPPORTED_SOURCE_EXTENSIONS and reason is not None:
                 excluded.append(
                     {

@@ -21,6 +21,8 @@ from __future__ import annotations
 import ast
 from typing import Dict, Optional, Set, Union
 
+from slop_detector.ast_index import walk_nodes
+
 FunctionNode = Union[ast.FunctionDef, ast.AsyncFunctionDef]
 
 _ABSTRACT_BASES = frozenset({"ABC", "Protocol"})
@@ -55,9 +57,9 @@ class DeclaredIntent:
 
     def __init__(self, tree: ast.AST) -> None:
         self._parent: Dict[ast.AST, ast.AST] = {
-            child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)
+            child: parent for parent in walk_nodes(tree) for child in ast.iter_child_nodes(parent)
         }
-        classes = [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+        classes = [node for node in walk_nodes(tree) if isinstance(node, ast.ClassDef)]
         self._methods_by_class: Dict[str, Set[str]] = {}
         self._overridden: Dict[str, Set[str]] = {}
         for klass in classes:

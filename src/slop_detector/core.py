@@ -18,6 +18,7 @@ from slop_detector.core_project import (
     discover_supported_files,
     ignore_reason,
     is_result_non_clean,
+    project_walk_scope,
     record_analysis_failure,
     result_ldr_score,
     result_slop_score,
@@ -265,7 +266,7 @@ class SlopDetector:
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """Analyze a project; each project root's context snapshot is built once per scan."""
-        with project_context_scope():
+        with project_context_scope(), project_walk_scope():
             return self._analyze_project(project_path, pattern)
 
     def _analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:

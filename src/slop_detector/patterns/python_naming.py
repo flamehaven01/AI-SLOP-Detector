@@ -6,6 +6,7 @@ import ast
 import re
 from typing import Any, List, Union
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 
 _PLACEHOLDER_PARAM_THRESHOLD = 5
@@ -59,7 +60,7 @@ class PlaceholderVariableNamingPattern(BasePattern):
 
     def check(self, tree: ast.AST, file: Any, content: str) -> List[Issue]:
         issues: List[Issue] = []
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 issues.extend(self._check_function(node, file))
         return issues

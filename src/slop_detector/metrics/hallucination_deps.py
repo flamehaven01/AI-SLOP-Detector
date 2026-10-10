@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
+from slop_detector.ast_index import walk_nodes
+
 logger = logging.getLogger(__name__)
 
 # The category map this check measures against. If it cannot be loaded, or is
@@ -226,7 +228,7 @@ class HallucinationDepsDetector:
         """Collect line numbers for each import."""
         import_lines = {}
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     lib_name = alias.name.split(".")[0]

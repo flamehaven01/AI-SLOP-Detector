@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from typing import List, Optional
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.models import IgnoredFunction
 
 
@@ -21,7 +22,7 @@ class IgnoreHandler:
         """
         ignored = []
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 for decorator in node.decorator_list:
                     ignore_info = IgnoreHandler._parse_slop_ignore_decorator(decorator)
@@ -87,7 +88,7 @@ class IgnoreHandler:
         ranges = []
         ignored_names = {f.name for f in ignored_functions}
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if node.name in ignored_names:
                     end_line = node.end_lineno if hasattr(node, "end_lineno") else node.lineno

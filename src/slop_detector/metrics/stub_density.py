@@ -32,6 +32,8 @@ import math
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union
 
+from slop_detector.ast_index import walk_nodes
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -289,7 +291,7 @@ def calculate_stub_density(source: str) -> Optional[StubDensityResult]:
         return None
 
     all_funcs: List[Union[ast.FunctionDef, ast.AsyncFunctionDef]] = [
-        n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+        n for n in walk_nodes(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
     ]
     total = len(all_funcs)
     if total == 0:

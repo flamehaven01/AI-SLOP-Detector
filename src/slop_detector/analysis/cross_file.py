@@ -20,6 +20,7 @@ from typing import Any, Dict, FrozenSet, List, Set, Tuple
 from slop_detector.analysis import connection_evidence
 from slop_detector.analysis.import_graph import ImportEdge, build_import_edges, hard_graph
 from slop_detector.analysis.structure_evidence import build_structure_evidence
+from slop_detector.ast_index import walk_nodes
 from slop_detector.clone_identity import MIN_SEMANTIC_NODES, body_fingerprint
 
 # ------------------------------------------------------------------
@@ -127,7 +128,7 @@ def _extract_functions(tree: ast.AST) -> List[Tuple[str, int, str]]:
     """
     return [
         (node.name, node.lineno, _hash_function_body(node))
-        for node in ast.walk(tree)
+        for node in walk_nodes(tree)
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
     ]
 

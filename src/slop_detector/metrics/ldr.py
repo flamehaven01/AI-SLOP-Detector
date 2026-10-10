@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import re
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.models import LDRResult
 
 
@@ -57,7 +58,7 @@ def docstring_line_numbers(tree: ast.AST) -> set[int]:
     god_function both count with this).
     """
     rows: set[int] = set()
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         body = node.body
@@ -114,7 +115,7 @@ class LDRCalculator:
 
         # Identify lines belonging to truly empty functions
         empty_func_lines: set[int] = set()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if self._is_truly_empty_function(node):
                     if (
@@ -218,7 +219,7 @@ class LDRCalculator:
         abstract_method_count = 0
         total_method_count = 0
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.ClassDef):
                 if any(self._is_abc_base(base) for base in node.bases):
                     abstract, total = self._count_abc_class_methods(node)
@@ -234,7 +235,7 @@ class LDRCalculator:
         """Count lines in truly empty functions (only pass/return None)."""
         empty_lines = 0
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if self._is_truly_empty_function(node):
                     # Count lines in this function

@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.finding_summary import get_finding_summary
 from slop_detector.metrics.context_jargon import PRODUCTION_CLAIMS
 from slop_detector.path_facts import facts_for
@@ -51,7 +52,7 @@ def _count_test_functions_ast(file_path: str) -> int:
         tree = ast.parse(Path(file_path).read_text(encoding="utf-8"))
         return sum(
             1
-            for node in ast.walk(tree)
+            for node in walk_nodes(tree)
             if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")
         )
     except (OSError, SyntaxError):

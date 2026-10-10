@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.dependency_declarations import (
     declaration_files,
     declared_requirements,
@@ -256,7 +257,7 @@ def _handler_is_import_guard(handler: ast.ExceptHandler) -> bool:
 def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
     """Return line numbers of import statements inside try/except ImportError blocks."""
     guarded: set[int] = set()
-    for node in ast.walk(tree):
+    for node in walk_nodes(tree):
         if not isinstance(node, ast.Try):
             continue
         if any(_handler_is_import_guard(h) for h in node.handlers):
@@ -295,7 +296,7 @@ class PhantomImportPattern(BasePattern):
         excluded = environment_exclusions(indexes)
         guarded_lines = _collect_import_guard_lines(tree)
 
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     top = alias.name.split(".")[0]

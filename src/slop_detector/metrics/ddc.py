@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from typing import Set
 
+from slop_detector.ast_index import walk_nodes
 from slop_detector.models import DDCResult
 
 # Modules that exist purely for type annotations and are never referenced at
@@ -119,7 +120,7 @@ class DDCCalculator:
         type_checking_imports = set()
 
         # Check if we're inside TYPE_CHECKING block
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             # Detect TYPE_CHECKING block
             if isinstance(node, ast.If):
                 if isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
@@ -187,7 +188,7 @@ class DDCCalculator:
     def _collect_all_members(tree: ast.AST, imports_map: dict[str, str]) -> Set[str]:
         """Return libs whose alias is listed in __all__ — treated as used (re-exported)."""
         all_names: Set[str] = set()
-        for node in ast.walk(tree):
+        for node in walk_nodes(tree):
             if not isinstance(node, ast.Assign):
                 continue
             for target in node.targets:
