@@ -9,6 +9,7 @@ from slop_detector.patterns import get_all_patterns
 from slop_detector.question_generator import QuestionGenerator
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
+    capability_notes,
     clone_metric_row,
     coherence_display,
     file_metric_rows,
@@ -19,6 +20,7 @@ from slop_detector.renderer_glossary import (
 try:
     from rich import box
     from rich.console import Console
+    from rich.markup import escape
     from rich.panel import Panel
     from rich.table import Table
     from rich.text import Text
@@ -126,6 +128,9 @@ def _build_rich_summary_tables(result):
                 f"unsupported={unsupported.get('total', 0)}"
             ),
         )
+        for note in capability_notes(scan_coverage):
+            # escape: "[js]" in the install hint is not rich markup
+            summary_table.add_row("Analysis Capability", escape(note))
     ml_scoring = getattr(result, "ml_scoring", {})
     if ml_scoring:
         style = "green" if ml_scoring["status"] == "available" else "yellow"

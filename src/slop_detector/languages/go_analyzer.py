@@ -39,6 +39,10 @@ logger = logging.getLogger(__name__)
 
 _TS_AVAILABLE = False
 
+# The regex path measures every Go check this analyzer reports (the AST
+# path currently reuses it), so a regex result misses nothing.
+REGEX_FALLBACK_NOT_MEASURED: tuple = ()
+
 try:
     import tree_sitter_go as _tsgo
     from tree_sitter import Language as _Language

@@ -44,6 +44,22 @@ _MEANS_CLONE_CLUSTER = (
 )
 
 
+_MEASURE_WITH = {"javascript": "ai-slop-detector[js]", "go": "ai-slop-detector[go]"}
+
+
+def capability_notes(scan_coverage: Dict[str, Any]) -> List[str]:
+    """One line per language whose analysis mode left checks unmeasured."""
+    notes = []
+    for language, info in sorted((scan_coverage.get("analysis_modes") or {}).items()):
+        missing = info.get("not_measured") or []
+        if missing:
+            notes.append(
+                f"{language}: {info.get('mode')} (not measured: {', '.join(missing)}; "
+                f"install {_MEASURE_WITH.get(language, 'the language extra')} for AST analysis)"
+            )
+    return notes
+
+
 def _deficit_health(value: float) -> str:
     # Lower is better. Bands follow the status thresholds.
     return "good" if value < 30 else "warn" if value < 50 else "bad"

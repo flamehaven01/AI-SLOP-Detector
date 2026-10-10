@@ -7,6 +7,7 @@ from pathlib import Path
 from slop_detector.finding_summary import get_finding_summary
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
+    capability_notes,
     coherence_display,
     file_metric_rows,
     next_steps,
@@ -91,8 +92,9 @@ def _text_project_section(result) -> list:
                 f"unsupported={unsupported.get('total', 0)}"
             ),
             "  Excluded paths and matching rules are available in JSON output.",
-            "",
         ]
+        lines += [f"  Analysis capability: {note}" for note in capability_notes(scan_coverage)]
+        lines.append("")
     if ml_scoring:
         lines += [f"ML Scoring: {ml_scoring['status'].upper()} (optional secondary signal)"]
         if ml_scoring.get("reason"):

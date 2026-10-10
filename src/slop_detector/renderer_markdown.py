@@ -10,6 +10,7 @@ from slop_detector.metrics.context_jargon import PRODUCTION_CLAIMS
 from slop_detector.path_facts import facts_for
 from slop_detector.renderer_glossary import (
     DEFICIT_BANDS,
+    capability_notes,
     coherence_display,
     file_metric_rows,
     next_steps,
@@ -162,6 +163,8 @@ def _md_scan_coverage_section(result) -> list:
             f"Excluded test files: {excluded.get('tests', 0)}; "
             f"excluded by custom ignore rules: {excluded.get('by_source', {}).get('custom', 0)}"
         ),
+        "",
+        *[f"- Analysis capability: {note}" for note in capability_notes(coverage)],
         "",
         "_JSON output includes each excluded path and its matching ignore rule._",
         "",

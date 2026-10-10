@@ -375,23 +375,33 @@ def set_unmeasured_scan_coverage(
     scan_coverage["complete"] = scan_coverage.get("complete", True) and not files
 
 
-def set_analysis_modes(scan_coverage: Dict[str, Any], js_results: List[Any]) -> None:
-    """Say how JS/TS was analyzed (the per-file `ast_mode`, summarized).
+def set_analysis_modes(
+    scan_coverage: Dict[str, Any], js_results: List[Any], go_results: Optional[List[Any]] = None
+) -> None:
+    """Say how JS/TS and Go were analyzed and which checks the mode could not run.
 
-    Regex fallback finds fewer patterns than tree-sitter (no god functions), so
-    two scores of one project are comparable only in the same mode.
+    The per-file `ast_mode`, summarized. The JS regex fallback finds no god
+    functions, dead code or complexity, so two scores of one project are
+    comparable only in the same mode; `not_measured` names what is missing.
     """
-    modes: Dict[str, Any] = {}
-    if js_results:
-        from slop_detector.languages import js_analyzer
+    from slop_detector.languages import go_analyzer, js_analyzer
 
-        seen = {bool(getattr(result, "ast_mode", False)) for result in js_results}
-        mode = (
-            "tree_sitter_ast"
-            if seen == {True}
-            else "regex_fallback" if seen == {False} else "mixed"
-        )
-        modes["javascript"] = {"mode": mode, "ast_available": bool(js_analyzer._TS_AVAILABLE)}
+    modes: Dict[str, Any] = {}
+    for language, results, analyzer, fallback in (
+        ("javascript", js_results, js_analyzer, "regex_fallback"),
+        ("go", go_results or [], go_analyzer, "regex"),
+    ):
+        if not results:
+            continue
+        seen = {bool(getattr(result, "ast_mode", False)) for result in results}
+        mode = "tree_sitter_ast" if seen == {True} else fallback if seen == {False} else "mixed"
+        modes[language] = {
+            "mode": mode,
+            "ast_available": bool(analyzer._TS_AVAILABLE),
+            "not_measured": (
+                [] if mode == "tree_sitter_ast" else list(analyzer.REGEX_FALLBACK_NOT_MEASURED)
+            ),
+        }
     scan_coverage["analysis_modes"] = modes
 
 
@@ -413,7 +423,7 @@ def build_project_analysis(
     set_analyzed_scan_counts(scan_coverage, python_results, js_results, go_results)
     set_failed_scan_coverage(scan_coverage, analysis_failures)
     set_unmeasured_scan_coverage(scan_coverage, Path(project_path), python_results)
-    set_analysis_modes(scan_coverage, js_results)
+    set_analysis_modes(scan_coverage, js_results, go_results)
     if not all_results:
         result = create_empty_project_analysis(project_path)
         result.js_file_results = js_results

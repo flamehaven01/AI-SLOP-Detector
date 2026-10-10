@@ -100,7 +100,12 @@ def test_regex_fallback_is_disclosed(tmp_path, monkeypatch):
     result = SlopDetector(read_only=True).analyze_project(str(_project(tmp_path)))
     assert [r.ast_mode for r in result.js_file_results] == [False]
     javascript = result.scan_coverage["analysis_modes"]["javascript"]
-    assert javascript == {"mode": "regex_fallback", "ast_available": False}
+    assert javascript == {
+        "mode": "regex_fallback",
+        "ast_available": False,
+        # v3.10: the checks the fallback cannot run
+        "not_measured": ["js_dead_code", "js_god_function", "max_complexity"],
+    }
 
 
 def test_analysis_mode_is_in_the_json(tmp_path, capsys):

@@ -48,6 +48,10 @@ from slop_detector.models import MaskedIssue
 
 logger = logging.getLogger(__name__)
 
+# What the regex fallback cannot measure (tree-sitter AST only): it reports
+# no god functions, no dead code and no cyclomatic complexity.
+REGEX_FALLBACK_NOT_MEASURED: Tuple[str, ...] = ("js_dead_code", "js_god_function", "max_complexity")
+
 # ------------------------------------------------------------------
 # Tree-sitter availability (optional dependency)
 # ------------------------------------------------------------------
