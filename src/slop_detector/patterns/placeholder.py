@@ -6,6 +6,11 @@ import ast
 from typing import List, Optional, Union
 
 from slop_detector.patterns.base import ASTPattern, Axis, Issue, RegexPattern, Severity
+from slop_detector.patterns.declared_intent import (
+    DeclaredIntent,
+    declared_intent,
+    is_declared_body,
+)
 
 # ---------------------------------------------------------------------------
 # Module-level helpers — shared by multiple pattern classes
@@ -104,7 +109,23 @@ def _is_placeholder_stmt(stmt: ast.stmt) -> bool:
     return False
 
 
-class PassPlaceholderPattern(ASTPattern):
+class _IntentAwarePattern(ASTPattern):
+    """A placeholder pattern that reads the module's declared intent once per tree."""
+
+    _intent: Optional[DeclaredIntent] = None
+
+    def check(self, tree: ast.AST, file, content) -> List[Issue]:
+        self._intent = declared_intent(tree)
+        try:
+            return super().check(tree, file, content)
+        finally:
+            self._intent = None
+
+    def _declared(self, node, stmt: ast.stmt) -> bool:
+        return self._intent is not None and is_declared_body(self._intent, node, stmt)
+
+
+class PassPlaceholderPattern(_IntentAwarePattern):
     """Detect functions with only pass statement."""
 
     id = "pass_placeholder"
@@ -118,7 +139,7 @@ class PassPlaceholderPattern(ASTPattern):
         if _has_abstractmethod(node):
             return None
         body = _strip_docstring(node.body)
-        if len(body) == 1 and isinstance(body[0], ast.Pass):
+        if len(body) == 1 and isinstance(body[0], ast.Pass) and not self._declared(node, body[0]):
             return self.create_issue_from_node(
                 node, file, suggestion="Implement the function or remove it"
             )
@@ -195,7 +216,7 @@ class HackCommentPattern(RegexPattern):
         )
 
 
-class EllipsisPlaceholderPattern(ASTPattern):
+class EllipsisPlaceholderPattern(_IntentAwarePattern):
     """Detect functions with only ellipsis (...)."""
 
     id = "ellipsis_placeholder"
@@ -203,32 +224,13 @@ class EllipsisPlaceholderPattern(ASTPattern):
     axis = Axis.QUALITY
     message = "Empty function with only ... - placeholder not implemented"
 
-    def check(self, tree: ast.AST, file, content) -> List[Issue]:
-        protocol_lines: set[int] = set()
-        for class_node in (node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)):
-            if any(
-                isinstance(base, ast.Name) and base.id == "Protocol" for base in class_node.bases
-            ):
-                protocol_lines.update(
-                    method.lineno
-                    for method in class_node.body
-                    if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef))
-                )
-        self._protocol_method_lines = protocol_lines
-        try:
-            return super().check(tree, file, content)
-        finally:
-            self._protocol_method_lines = set()
-
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            return None
-        if node.lineno in getattr(self, "_protocol_method_lines", set()):
             return None
         if _has_abstractmethod(node) or _is_overload(node):
             return None
         body = _strip_docstring(node.body)
-        if len(body) == 1:
+        if len(body) == 1 and not self._declared(node, body[0]):
             stmt = body[0]
             if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
                 if stmt.value.value is ...:
@@ -238,7 +240,7 @@ class EllipsisPlaceholderPattern(ASTPattern):
         return None
 
 
-class NotImplementedPattern(ASTPattern):
+class NotImplementedPattern(_IntentAwarePattern):
     """Detect functions that raise NotImplementedError.
 
     Skips @abstractmethod decorated methods — raise NotImplementedError in an
@@ -257,6 +259,8 @@ class NotImplementedPattern(ASTPattern):
             return None
         body = _strip_docstring(node.body)
         if len(body) != 1 or not isinstance(body[0], ast.Raise):
+            return None
+        if self._declared(node, body[0]):
             return None
         exc = body[0].exc
         is_not_impl = (
@@ -349,7 +353,7 @@ class EmptyExceptPattern(ASTPattern):
         )
 
 
-class ReturnNonePlaceholderPattern(ASTPattern):
+class ReturnNonePlaceholderPattern(_IntentAwarePattern):
     """Detect functions that only return None."""
 
     id = "return_none_placeholder"
@@ -367,7 +371,7 @@ class ReturnNonePlaceholderPattern(ASTPattern):
         if _has_optional_return(node):
             return None
         body = _strip_docstring(node.body)
-        if len(body) == 1 and isinstance(body[0], ast.Return):
+        if len(body) == 1 and isinstance(body[0], ast.Return) and not self._declared(node, body[0]):
             ret = body[0]
             if ret.value is None or (
                 isinstance(ret.value, ast.Constant) and ret.value.value is None
@@ -378,7 +382,7 @@ class ReturnNonePlaceholderPattern(ASTPattern):
         return None
 
 
-class ReturnConstantStubPattern(ASTPattern):
+class ReturnConstantStubPattern(_IntentAwarePattern):
     """Detect functions whose entire body is a single return <constant> statement.
 
     Targets the adversarial ldr_gaming/stub_with_real_structure evasion:
@@ -432,6 +436,8 @@ class ReturnConstantStubPattern(ASTPattern):
         body = _strip_docstring(node.body)
         if len(body) != 1 or not isinstance(body[0], ast.Return):
             return None
+        if self._declared(node, body[0]):
+            return None
 
         ret_val = body[0].value
 
@@ -464,7 +470,7 @@ class ReturnConstantStubPattern(ASTPattern):
         return None
 
 
-class InterfaceOnlyClassPattern(ASTPattern):
+class InterfaceOnlyClassPattern(_IntentAwarePattern):
     """Detect classes with only abstract methods or pass."""
 
     id = "interface_only_class"
@@ -483,12 +489,20 @@ class InterfaceOnlyClassPattern(ASTPattern):
             if _has_abstractmethod(method):
                 continue
             body = _strip_docstring(method.body)
-            if len(body) == 1 and _is_placeholder_stmt(body[0]):
+            if (
+                len(body) == 1
+                and _is_placeholder_stmt(body[0])
+                and not self._declared(method, body[0])
+            ):
                 count += 1
         return count
 
     def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
         if not isinstance(node, ast.ClassDef):
+            return None
+        # A declared interface (ABC / Protocol) or a class its module
+        # subclasses is meant to hold contracts.
+        if self._intent is not None and self._intent.is_interface_class(node):
             return None
         methods = [n for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
         if not methods:
