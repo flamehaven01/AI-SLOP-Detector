@@ -230,7 +230,9 @@ class SlopDetector:
             return create_error_analysis(file_path, str(e), content)
 
         result = self._build_file_analysis(file_path, content, tree, facts)
-        if self._analysis_cache is not None:
+        # A partially measured result (a pattern raised) is not reused: the
+        # failure may be transient, and a cache hit would hide the next answer.
+        if self._analysis_cache is not None and not result.pattern_errors:
             self._analysis_cache.put(
                 file_path=file_path,
                 file_size=stat.st_size,

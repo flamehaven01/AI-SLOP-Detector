@@ -9,24 +9,28 @@ import sys
 from pathlib import Path
 from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
 
-from slop_detector.environment_resolution import find_installed_spec
+from slop_detector.dependency_declarations import (
+    declaration_files,
+    declared_requirements,
+    root_declaration_files,
+)
+from slop_detector.environment_resolution import environment_state, find_installed_spec
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
-from slop_detector.project_context import fingerprint_for_roots
+from slop_detector.project_context import fingerprint_for_roots, is_importable_directory
 from slop_detector.project_resolution import (
     ProjectModuleIndex,
     discover_project_packages,
     get_module_index,
-    load_pyproject,
     resolution_roots,
 )
 
 logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------
-# Module resolution index (built once per process)
+# Module resolution index (one per environment state)
 # ------------------------------------------------------------------
 
-_RESOLVABLE_MODULES_STORE: Dict[str, FrozenSet[str]] = {}
+_RESOLVABLE_MODULES_STORE: Dict[Tuple[Tuple[str, int], ...], FrozenSet[str]] = {}
 
 # ------------------------------------------------------------------
 # Project-local package discovery
@@ -40,15 +44,24 @@ _DECLARED_DEPENDENCY_SOURCES_CACHE: Dict[Tuple[str, str], Mapping[str, FrozenSet
 
 
 def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None) -> FrozenSet[str]:
-    """Return stem names of .py files in the same directory (importable siblings)."""
+    """Names importable from the file's directory: sibling .py files and, for a
+    script outside a regular package, sibling package directories (regular or
+    namespace), since a script's directory is on sys.path when it runs.
+
+    Inside a regular package `import name` is absolute, so a subpackage next
+    to the module is not what it loads."""
     if fingerprint is None:
         fingerprint = fingerprint_for_roots(file_path, resolution_roots(file_path))
     key = (str(file_path.parent), fingerprint)
     if key in _SIBLING_MODULES_CACHE:
         return _SIBLING_MODULES_CACHE[key]
+    script_directory = not (file_path.parent / "__init__.py").is_file()
     try:
         result: FrozenSet[str] = frozenset(
-            p.stem for p in file_path.parent.iterdir() if p.suffix == ".py" and p.stem != "__init__"
+            p.stem if p.is_file() else p.name
+            for p in file_path.parent.iterdir()
+            if (p.suffix == ".py" and p.stem != "__init__" and p.is_file())
+            or (script_directory and is_importable_directory(p))
         )
     except OSError:
         result = frozenset()
@@ -96,60 +109,47 @@ def _add_dep_names(dep_list: List[str], packages: set) -> None:
         packages.update(_dependency_import_names(dep))
 
 
-def _load_pyproject_dependency_lists(project_root: Path) -> List[List[str]]:
-    """Load project and optional dependency lists without making tomllib mandatory."""
-    project = load_pyproject(project_root).get("project", {})
-    if not isinstance(project, dict):
-        return []
-    dependency_lists = [project.get("dependencies", [])]
-    optional = project.get("optional-dependencies", {})
-    if isinstance(optional, dict):
-        dependency_lists.extend(optional.values())
-    return [list(items) for items in dependency_lists if isinstance(items, list)]
-
-
-def _read_requirements_file(requirements: Path) -> List[str]:
-    """Read direct requirements entries; nested includes are intentionally not followed."""
-    try:
-        return requirements.read_text(encoding="utf-8").splitlines()
-    except OSError as exc:
-        logger.debug("Cannot read requirements file %s: %s", requirements, exc)
-        return []
+def _declaration_sources(files: Sequence[Path], label_root: Path) -> Dict[str, set[str]]:
+    """Map import names to the declaration files (labelled from `label_root`)."""
+    sources: Dict[str, set[str]] = {}
+    for path in files:
+        label = path.relative_to(label_root).as_posix()
+        for dependency in declared_requirements(path):
+            for import_name in _dependency_import_names(dependency):
+                sources.setdefault(import_name, set()).add(label)
+    return sources
 
 
 def _discover_declared_dependency_sources(
     project_root: Path, fingerprint: Optional[str] = None
 ) -> Mapping[str, FrozenSet[str]]:
-    """Map import names to the declaration files that justify them."""
+    """Map import names to the root's declaration files that justify them."""
     if fingerprint is None:
         fingerprint = fingerprint_for_roots(project_root / "_", (project_root,))
     root_key = (str(project_root), fingerprint)
     cached = _DECLARED_DEPENDENCY_SOURCES_CACHE.get(root_key)
     if cached is not None:
         return cached
-
-    sources: Dict[str, set[str]] = {}
-
-    def _record(dependencies: List[str], source: str) -> None:
-        for dependency in dependencies:
-            for import_name in _dependency_import_names(dependency):
-                sources.setdefault(import_name, set()).add(source)
-
-    for dependency_list in _load_pyproject_dependency_lists(project_root):
-        _record(dependency_list, "pyproject.toml")
-    requirement_files = [project_root / "requirements.txt"]
-    requirements_dir = project_root / "requirements"
-    if requirements_dir.is_dir():
-        requirement_files.extend(sorted(requirements_dir.glob("*.txt")))
-    for requirements in requirement_files:
-        if requirements.exists():
-            _record(
-                _read_requirements_file(requirements), str(requirements.relative_to(project_root))
-            )
-
+    sources = _declaration_sources(root_declaration_files(project_root), project_root)
     result = {name: frozenset(locations) for name, locations in sources.items()}
     _DECLARED_DEPENDENCY_SOURCES_CACHE[root_key] = result
     return result
+
+
+def _path_declarations(file: Path, nearest_root: Path) -> Mapping[str, FrozenSet[str]]:
+    """Declarations in the directories between the file and its nearest root.
+
+    Only files on the file's own path count: a declaration in another subtree
+    says nothing about this file. The root itself is read by the root lookup.
+    """
+    directories = []
+    current = file.parent
+    while current != nearest_root and nearest_root in current.parents:
+        directories.append(current)
+        current = current.parent
+    files = [path for directory in directories for path in declaration_files(directory)]
+    sources = _declaration_sources(files, nearest_root)
+    return {name: frozenset(locations) for name, locations in sources.items()}
 
 
 def _resolves_in_project(
@@ -160,9 +160,14 @@ def _resolves_in_project(
 
 
 def _get_resolvable_modules() -> FrozenSet[str]:
-    """Build the set of all top-level module names resolvable in this environment (cached)."""
-    if "v" in _RESOLVABLE_MODULES_STORE:
-        return _RESOLVABLE_MODULES_STORE["v"]
+    """All top-level module names resolvable in this environment.
+
+    Cached per environment state, so an install or uninstall in a long-lived
+    process (MCP server, watch mode) is seen by the next lookup.
+    """
+    state = environment_state()
+    if state in _RESOLVABLE_MODULES_STORE:
+        return _RESOLVABLE_MODULES_STORE[state]
 
     known: set[str] = set()
     known.update(sys.builtin_module_names)
@@ -180,22 +185,22 @@ def _get_resolvable_modules() -> FrozenSet[str]:
     except (AttributeError, ImportError) as exc:
         logger.debug("packages_distributions unavailable, skipping layer 3: %s", exc)
 
-    _RESOLVABLE_MODULES_STORE["v"] = frozenset(known)
-    return _RESOLVABLE_MODULES_STORE["v"]
+    _RESOLVABLE_MODULES_STORE.clear()
+    _RESOLVABLE_MODULES_STORE[state] = frozenset(known)
+    return _RESOLVABLE_MODULES_STORE[state]
 
 
 def _module_exists(name: str, excluded: Sequence[Path] = ()) -> bool:
     """Return True if name is a resolvable top-level module in the analyzer's environment.
 
     Never from the analyzer's cwd or the `excluded` project roots (see
-    slop_detector.environment_resolution).
+    slop_detector.environment_resolution). A lookup that raises is not an
+    answer: it propagates, and the pattern is recorded as unmeasured for the
+    file instead of reporting the module as installed.
     """
     if name in _get_resolvable_modules():
         return True
-    try:
-        return find_installed_spec(name, excluded) is not None
-    except Exception:
-        return True
+    return find_installed_spec(name, excluded) is not None
 
 
 def environment_exclusions(indexes: Sequence[ProjectModuleIndex]) -> Tuple[Path, ...]:
@@ -281,7 +286,10 @@ class PhantomImportPattern(BasePattern):
         issues: list[Issue] = []
 
         roots = resolution_roots(file)
-        declared_sources = _merged_declarations(roots)
+        declared_sources = dict(_merged_declarations(roots))
+        if roots:
+            for name, sources in _path_declarations(file, roots[0]).items():
+                declared_sources[name] = declared_sources.get(name, frozenset()) | sources
         has_pyproject = bool(roots and (roots[0] / "pyproject.toml").exists())
         skip_names, indexes = project_skip_context(file, self._allowlist)
         excluded = environment_exclusions(indexes)

@@ -134,8 +134,12 @@ def resolution_roots(file_path: Path) -> Tuple[Path, ...]:
 
 def load_pyproject(project_root: Path) -> Dict[str, Any]:
     """Parse <project_root>/pyproject.toml; {} when absent, unparsable, or no TOML reader."""
-    pyproject = project_root / "pyproject.toml"
-    if not pyproject.exists():
+    return load_toml(project_root / "pyproject.toml")
+
+
+def load_toml(path: Path) -> Dict[str, Any]:
+    """Parse a TOML file; {} when absent, unparsable, or no TOML reader."""
+    if not path.exists():
         return {}
     toml_mod: Any = None
     try:
@@ -149,13 +153,13 @@ def load_pyproject(project_root: Path) -> Dict[str, Any]:
             toml_mod = tomli
         except ImportError:
             # Not silent: declared module roots (E1) are lost without a reader.
-            logger.warning("No TOML reader (tomllib/tomli); %s was not read", pyproject)
+            logger.warning("No TOML reader (tomllib/tomli); %s was not read", path)
             return {}
     try:
-        with open(pyproject, "rb") as fh:
+        with open(path, "rb") as fh:
             return dict(toml_mod.load(fh))
     except Exception as exc:  # noqa: BLE001
-        logger.debug("Failed to parse %s: %s", pyproject, exc)
+        logger.debug("Failed to parse %s: %s", path, exc)
         return {}
 
 

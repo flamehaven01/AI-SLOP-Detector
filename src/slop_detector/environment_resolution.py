@@ -65,7 +65,23 @@ def find_installed_spec(name: str, excluded: Iterable[Path] = ()) -> Optional[Mo
     return None
 
 
-_FINGERPRINTS: Dict[Tuple[str, ...], str] = {}
+def environment_state() -> Tuple[Tuple[str, int], ...]:
+    """(entry, directory mtime) for each search-path entry.
+
+    An install, uninstall or upgrade adds or removes a top-level entry in a
+    search-path directory, which changes that directory's mtime; caches keyed
+    by this state follow the environment inside one long-lived process.
+    """
+    state = []
+    for entry in search_path():
+        try:
+            state.append((entry, os.stat(entry).st_mtime_ns))
+        except OSError:  # a zip, a missing directory: the entry string still counts
+            state.append((entry, -1))
+    return tuple(state)
+
+
+_FINGERPRINTS: Dict[Tuple[Tuple[str, int], ...], str] = {}
 
 
 def environment_fingerprint() -> str:
@@ -77,12 +93,13 @@ def environment_fingerprint() -> str:
     and plain packages added to a path directory. Not covered: editing the
     source of an already installed package in place (e.g. an editable install).
     """
-    path = search_path()
-    if path not in _FINGERPRINTS:
-        listing = [(entry, _top_level_names(entry)) for entry in path]
+    state = environment_state()
+    if state not in _FINGERPRINTS:
+        listing = [(entry, _top_level_names(entry)) for entry, _mtime in state]
         payload = repr((sys.version, sys.implementation.cache_tag, listing))
-        _FINGERPRINTS[path] = hashlib.sha256(payload.encode("utf-8")).hexdigest()
-    return _FINGERPRINTS[path]
+        _FINGERPRINTS.clear()
+        _FINGERPRINTS[state] = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return _FINGERPRINTS[state]
 
 
 def _top_level_names(entry: str) -> Tuple[str, ...]:

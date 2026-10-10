@@ -351,6 +351,30 @@ def set_failed_scan_coverage(
     scan_coverage["complete"] = not files
 
 
+def set_unmeasured_scan_coverage(
+    scan_coverage: Dict[str, Any], project_path: Path, results: List[Any]
+) -> None:
+    """Report files where a pattern could not measure (state "unmeasured").
+
+    Such a file is scored on what was measured, but "no finding" from the
+    failed pattern is not a measurement, so the scan is not complete.
+    """
+    files = []
+    for result in results:
+        patterns = sorted({e["pattern_id"] for e in getattr(result, "pattern_errors", []) or []})
+        if patterns:
+            path = relative_to_root(Path(result.file_path), project_path)
+            rel = path.as_posix() if path is not None else str(result.file_path)
+            files.append({"path": rel, "patterns": patterns})
+    files.sort(key=lambda item: item["path"])
+    scan_coverage["unmeasured"] = {
+        "total": len(files),
+        "files": files[:_COVERAGE_FILE_DETAIL_LIMIT],
+        "by_pattern": dict(sorted(Counter(p for item in files for p in item["patterns"]).items())),
+    }
+    scan_coverage["complete"] = scan_coverage.get("complete", True) and not files
+
+
 def set_analysis_modes(scan_coverage: Dict[str, Any], js_results: List[Any]) -> None:
     """Say how JS/TS was analyzed (the per-file `ast_mode`, summarized).
 
@@ -388,6 +412,7 @@ def build_project_analysis(
     all_results = python_results + js_results + go_results
     set_analyzed_scan_counts(scan_coverage, python_results, js_results, go_results)
     set_failed_scan_coverage(scan_coverage, analysis_failures)
+    set_unmeasured_scan_coverage(scan_coverage, Path(project_path), python_results)
     set_analysis_modes(scan_coverage, js_results)
     if not all_results:
         result = create_empty_project_analysis(project_path)

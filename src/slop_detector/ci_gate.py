@@ -127,7 +127,11 @@ class CIGate:
         if coverage.get("complete", True):
             return verdict, should_fail, message
         count = coverage.get("failed", {}).get("total", 0)
-        note = f"analysis incomplete: {count} files could not be analyzed"
+        partial = coverage.get("unmeasured", {}).get("total", 0)
+        note = (
+            f"analysis incomplete: {count} files could not be analyzed, "
+            f"{partial} files partially measured"
+        )
         if self.mode == GateMode.HARD:
             return GateVerdict.FAIL, True, f"Build FAILED: {note} | {message}"
         if verdict == GateVerdict.PASS:

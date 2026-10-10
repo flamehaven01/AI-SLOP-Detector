@@ -80,7 +80,9 @@ class DDCCalculator:
         actually_used_list = sorted(list(actually_used))
         excluded = type_checking_imports | annotation_only_libs
         unused = sorted(all_imported_libs - set(actually_used_list) - excluded)
-        fake_imports = sorted(self.HEAVYWEIGHT_LIBS & all_imported_libs - set(actually_used_list))
+        fake_imports = sorted(
+            self.HEAVYWEIGHT_LIBS & all_imported_libs - set(actually_used_list) - excluded
+        )
 
         # usage_ratio: fraction of runtime-expected imports that are actually used.
         # Imports that are excluded (type-checking / annotation-only / noqa / __all__)
