@@ -64,9 +64,9 @@ General linters flag style and convention. This tool flags structural risk.
 
 - **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
-- **Keeps local history** — every scan is recorded locally; `--self-calibrate` reports what that history suggests for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml` (history-based weight tuning is being rebuilt as Calibration v2).
+- **Keeps local history** — every scan is recorded locally with what measured it (detector version, configuration, project root); `--self-calibrate` reports what the comparable runs of your project suggest for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml`.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
-- **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general) and picks sensible defaults; override with `--domain`
+- **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general; `general` when the evidence is weak) and sets that domain's pattern thresholds, printing every change; weights stay the defaults; override with `--domain`
 - **Python first, JS/TS and Go optional** — install the `[js]` or `[go]` extra to scan those files too
 - **Drops into CI** — soft / hard / quarantine gates, GitHub Actions ready
 - **VS Code extension** — inline warnings as you type, score in the status bar
@@ -447,10 +447,13 @@ slop-detector --init --domain web/api       # explicit domain override
 slop-detector --init --adaptive-init --init-preview
 slop-detector --init --adaptive-init --apply-init-suggestions
 ```
-`--init` detects your project domain from file patterns (8 built-in profiles:
-`general`, `scientific/ml`, `scientific/numerical`, `web/api`,
-`library/sdk`, `cli/tool`, `bio`, `finance`) and pre-seeds the weight profile
-accordingly. Also secures `.slopconfig.yaml` in `.gitignore` by default.
+`--init` detects your project domain from the imports of your own non-test
+Python files (8 built-in profiles: `general`, `scientific/ml`,
+`scientific/numerical`, `web/api`, `library/sdk`, `cli/tool`, `bio`,
+`finance`). Common stacks (numpy, scipy, matplotlib, argparse) do not decide
+the domain, and a tie is `general`. The profile sets pattern thresholds and
+`--init` prints each threshold it changes; every profile keeps the default
+weights. Also secures `.slopconfig.yaml` in `.gitignore` by default.
 
 Adaptive init is now a separate safety layer:
 
@@ -460,8 +463,11 @@ Adaptive init is now a separate safety layer:
   - writes nothing
 - `--init --adaptive-init --apply-init-suggestions`
   - opt-in merge path
-  - preserves unknown handwritten keys
-  - only applies conservative suggestions
+  - keeps your file as written (keys and comments) and adds only new ignore
+    lines; a file it cannot extend in place is rewritten with a warning
+  - suggests ignoring only directories that hold code and are not excluded yet
+  - lists complex functions for review; it never writes an override that
+    would exempt them
 
 ---
 
@@ -486,19 +492,19 @@ Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error h
 
 ---
 
-**Self-Calibration** — advisory weight report (legacy)
+**Self-Calibration** — advisory weight report (Calibration v2)
 ```bash
-slop-detector . --self-calibrate               # advisory: what the history suggests
+slop-detector . --self-calibrate               # advisory: what this project's history suggests
 ```
-4D grid-search (ldr / inflation / ddc / purity) over local run history. The
-report is **advisory only**: scans never run it, and `--apply-calibration` is
-disabled (it writes nothing and exits 2). The legacy history does not record
-the detector version, configuration or project root, so a score change is not
-proof that the code changed: measured on 29,303 real history rows, 80% of the
-"improvement" events had an unchanged file, and records are grouped by working
-directory, so projects scanned from one directory share them. Weights change
-only when you edit `.slopconfig.yaml`. A provenance-stable Calibration v2 is
-planned for v3.10.
+Learns ldr / inflation / ddc (purity is held) from the comparable runs of the
+scanned project root only: same detector, engine and configuration. An
+improvement needs a changed file whose metric-only score fell from the
+SUSPICIOUS band; a flagged file left unchanged counts once. Pattern penalties
+are never learned as weights. The report is **advisory only**: scans never
+run it, and `--apply-calibration` is disabled (it writes nothing and exits 2).
+History recorded before v3.10 has no measurement provenance and is reported as
+legacy, not evidence (on one real database v1 learned 79% of its
+"improvements" from files that had not changed).
 
 [docs/SELF_CALIBRATION.md →](docs/SELF_CALIBRATION.md) · [Validation boundary →](docs/VALIDATION.md)
 
@@ -548,14 +554,15 @@ Recommended use:
 
 ## Local Calibration
 
-AI-SLOP Detector can adjust review sensitivity from history held inside one
-repository environment. This is a local operational aid: it is not a
+AI-SLOP Detector can report how its weights would change from the history of
+one project root. This is a local operational aid: it is not a
 multi-repository data collection channel, a global profile injector, or
 evidence that the score is externally validated.
 
-The local calibration path is bounded by project scoping, minimum-history and
-confidence checks, and the existing configuration boundary. Review the proposed
-change before relying on it for a team workflow. See
+The report is bounded by comparable evidence (same measurement, same project
+root), per-class minimums, a confidence gap, and the configuration boundary:
+it never writes weights. Review a recommendation before changing
+`.slopconfig.yaml` for a team workflow. See
 [docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md) for the supported flow and
 [docs/VALIDATION.md](docs/VALIDATION.md) for the validation boundary.
 
@@ -809,6 +816,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.10.0 (in progress)** | P0 checkpoint `v3.10.0-p0`: scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; cache `analysis-cache-v26` |
 | **v3.9.3** | precision correction from a 12-repository study: `elif` is not nesting (`deep_nesting`, `nested_complexity`); `@overload` / `@typing.overload` are not placeholders; `no_executable_code` modules skip LDR/DDC instead of scoring 97.49; failed analyses are counted in `scan_coverage.failed` with `complete: false` and a hard gate fails closed; one JS pass and valid `--json --js` output; `scan_coverage.analysis_modes`; cache `analysis-cache-v25` |
 | **v3.9.2** | consistency and correctness release: one band set (CLEAN <30 / SUSPICIOUS / INFLATED_SIGNAL / CRITICAL_DEFICIT >=70) for files, projects, JS and Go; `dependency_noise` and `parse_error` are flags; docstrings count like comments in LDR and god_function; deep_nesting under nested_complexity charged once; exact duplicates by function body with an 8-node floor, shared by same-file and cross-file; import evidence from the scan root; byte-identical output across cache, hash seed, Rust helper and cwd; advisory-only self-calibration; unread config keys removed with a warning; `--init <path>` honoured; cache `analysis-cache-v24` |
 | **v3.9.1** | claim and path checkpoint: jargon counted only in comments and strings, never in import paths, identifiers, or leading license notices; claim evidence states `structural` / `weak` / `absent` / `unmeasured` with a per-claim `support_level`; justification only by structural library use; test evidence unmeasured outside test files; `--ci-claims-strict` keeps failing unmeasured integration evidence; root-relative path facts (fixes 0-file scans under a `build/` checkout); `phantom_member` pattern |

@@ -9,6 +9,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 3.10.0 in progress: P0 checkpoint (tag `v3.10.0-p0`, not published)
+
+Every score says what it looked at and what it came from. Found by re-scanning
+NSRW, Flamehaven-TOE and RExSyn-Nexus with 3.9.3 and by the 12-repository
+precision study. For scripts: `scan_coverage` gains keys (additive);
+`--init` output and generated configs change; `phantom_import` moves to
+declared/local states where a declaration or a script-directory package
+exists; history gains schema v6 columns; `--self-calibrate` reads only v6
+evidence; cache `analysis-cache-v26`.
+
+#### Scan coverage says what was not looked at
+
+- `unsupported` also counts code files no analyzer reads (notebooks, `.lean`,
+  `.mjs`/`.cjs`, `.vue`, ...) with `by_extension`. NSRW: 4 -> 31 (26 `.lean`,
+  1 `.ipynb`) while the scan said `complete: true`.
+- `excluded.by_source` splits default rules from custom ignore rules and
+  `excluded.custom_rules` names each custom rule's file count (RExSyn: 17
+  files hidden by its own config, beside 16,820 default exclusions).
+- `excluded.tests` counts the project's unevaluated test files (dependency
+  tests inside environments are not counted).
+- `unmeasured` lists files where a pattern could not measure (it raised); such
+  a scan is not complete: a hard gate fails closed, a soft gate warns. An
+  environment lookup that raises no longer answers "installed" (it made two
+  import findings vanish under resource exhaustion), and a partial result is
+  not cached.
+
+#### `--init` writes evidence, never hides findings
+
+- Every generated config uses the default weights; profiles no longer carry
+  weight vectors (the general profile still had the reverted v3.7.0
+  `ddc 0.6215`; the scientific/ml weights alone removed every CRITICAL file on
+  RExSyn and TOE). `--init` prints the profile's threshold changes.
+- Domain detection walks the tree once with environments pruned (RExSyn
+  215.9 s -> 0.5 s), ignores test files, no longer counts numpy, scipy,
+  matplotlib, seaborn or argparse, and a tied lead is `general`. On 8 repos
+  a wrong non-general profile went from 6 to 1.
+- Function overrides are listed as review hotspots and never written (they
+  exempted today's worst functions by bare name, project-wide).
+- `--apply-init-suggestions` keeps the existing text and comments, inserts
+  only new ignore lines (CRLF kept), verifies the result parses to the merged
+  config (else rewrites with a warning), and leaves an unchanged config
+  untouched. Ignore suggestions name only directories that hold code and are
+  not already excluded; `data` is no longer a noise name.
+- `--include-tests` removes the built-in test patterns from any config (an
+  `--init` config made it fail).
+
+#### Import evidence
+
+- Declarations are read from PEP 621 and Poetry `pyproject.toml`, `setup.py`
+  (`install_requires`/`extras_require`, literals or module-level names, read
+  with `ast`), `setup.cfg`, `Pipfile`, `requirements*.txt`/`.in` and conda
+  `environment*.yml` (with its pip list), at each root and in the directories
+  between a file and its root; every declaration file is part of the cache
+  identity.
+- A package directory next to a script (regular or namespace) is local
+  evidence; inside a regular package it is not (imports there are absolute).
+- An install or uninstall is seen inside a long-lived process (MCP, watch).
+- DDC `fake_imports` uses the same exclusions as `usage_ratio`
+  (annotation-only, `TYPE_CHECKING`, `noqa`, `__all__`).
+- On 18 repositories only import findings and `fake_imports` changed:
+  `phantom_import` -168 (OpenClaw 150, minGPT 13, cytools 4, RExSyn 1),
+  reclassified as declared or local; minGPT 49.19 -> 22.04. OpenMythos
+  10.60 -> 12.45: its Poetry dependencies are now read, so "not in pyproject"
+  (LOW, false) became "declared but unavailable in the analyzer runtime"
+  (MEDIUM, the existing policy). Imports with no evidence of any kind stay
+  `phantom_import`.
+
+#### Calibration v2 (advisory)
+
+- History schema v6 (migrated in place, old rows never rewritten): detector
+  version, measurement fingerprint (detector + engine + whole configuration),
+  weights, canonical project root, relative path, base deficit and pattern
+  penalty. CLI and API scans write it.
+- `--self-calibrate` and LEDA use only v6 rows of the scanned project root;
+  runs pair only under the same measurement; an improvement needs a changed
+  file and a metric-only drop from the canonical `SUSPICIOUS_AT` (30);
+  `stable_flag_candidate` (renamed from `fp_candidate`) counts once per file;
+  only ldr/inflation/ddc are learned, purity is held; the default current
+  weights are the configuration defaults. Nothing writes weights.
+- On a copy of a real history database (31,065 rows) v1 reported 364
+  improvements, 289 (79%) with an unchanged file; v2 reports the rows as
+  legacy, 0 evidence, and starts from new scans.
+
 ## [3.9.3] - 2026-10-09
 
 A precision and contract correction. Scores mostly go down because
