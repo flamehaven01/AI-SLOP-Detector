@@ -206,7 +206,6 @@ class Config:
         # Runtime CLI overrides must not mutate nested default lists/dicts shared
         # by future detector instances in the same process.
         self.config: Dict[str, Any] = deepcopy(self.DEFAULT_CONFIG)
-        self._custom_ignore_patterns = False
 
         # Try loading from environment variable
         env_config = os.getenv("SLOP_CONFIG")
@@ -223,7 +222,6 @@ class Config:
         """Deep merge custom config into defaults (validated before merge)."""
         _validate_yaml_config(custom)
         _warn_ignored_keys(custom)
-        self._custom_ignore_patterns = "ignore" in custom
         self._deep_update(self.config, custom)
 
     def _deep_update(self, base: Dict[str, Any], update: Dict[str, Any]) -> None:
@@ -264,16 +262,18 @@ class Config:
         """Get file patterns to ignore."""
         return self.get("ignore", [])
 
-    def include_default_tests(self) -> bool:
-        """Remove only built-in test ignores; preserve explicit user policy."""
-        if self._custom_ignore_patterns:
-            return False
+    def include_default_tests(self) -> None:
+        """Remove the built-in test ignores, from the defaults or from a config.
+
+        `--include-tests` is a per-run request and wins over the built-in test
+        patterns a config repeats (every --init template does). Other test
+        patterns a config adds (e.g. "backend/tests/**") are kept.
+        """
         self.config["ignore"] = [
             pattern
             for pattern in self.get_ignore_patterns()
             if pattern not in DEFAULT_TEST_IGNORE_PATTERNS
         ]
-        return True
 
     def is_abc_exception_enabled(self) -> bool:
         """Check if ABC interface exception is enabled."""
@@ -409,12 +409,16 @@ class Config:
 
 
 # ---------------------------------------------------------------------------
-# Domain profiles: NNSL-inspired trigger+capability_vector mapping.
+# Domain profiles: import triggers -> pattern thresholds and ignore extras.
+# Profiles do not carry metric weights: every generated config uses the
+# default weights (Config.DEFAULT_CONFIG), since no profile weight vector has
+# a measured derivation and weights move every file's band.
 # Each profile defines:
 #   parent           — top-level domain category
 #   domain_path      — slash-delimited hierarchy (parent/sub)
-#   triggers         — import names used for auto-detection during --init
-#   capability_vector — metric weights (ldr, inflation, ddc, purity)
+#   triggers         — import names used for auto-detection during --init;
+#                      generic stacks (numpy, scipy, matplotlib, argparse)
+#                      appear in most repositories and are not triggers
 #   pattern_config   — god_function / nested_complexity thresholds
 #   ignore_extra     — additional ignore patterns beyond defaults
 # ---------------------------------------------------------------------------
@@ -424,7 +428,6 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "domain_path": "general",
         "description": "General-purpose project (default)",
         "triggers": [],
-        "capability_vector": {"ldr": 0.15, "inflation": 0.1285, "ddc": 0.6215, "purity": 0.1},
         "pattern_config": {
             "god_function": {"complexity_threshold": 10, "lines_threshold": 50},
             "nested_complexity": {"depth_threshold": 4, "cc_threshold": 5},
@@ -436,8 +439,6 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "domain_path": "scientific/ml",
         "description": "Machine learning, deep learning, data science",
         "triggers": [
-            "numpy",
-            "scipy",
             "torch",
             "tensorflow",
             "keras",
@@ -445,10 +446,7 @@ DOMAIN_PROFILES: Dict[str, Any] = {
             "jax",
             "xgboost",
             "lightgbm",
-            "matplotlib",
-            "seaborn",
         ],
-        "capability_vector": {"ldr": 0.50, "inflation": 0.05, "ddc": 0.40, "purity": 0.05},
         "pattern_config": {
             "god_function": {"complexity_threshold": 15, "lines_threshold": 100},
             "nested_complexity": {"depth_threshold": 6, "cc_threshold": 20},
@@ -460,7 +458,6 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "domain_path": "scientific/numerical",
         "description": "Numerical computing, simulations, physical modelling",
         "triggers": ["sympy", "cupy", "numba", "cython", "mpmath", "astropy", "fenics"],
-        "capability_vector": {"ldr": 0.50, "inflation": 0.05, "ddc": 0.40, "purity": 0.05},
         "pattern_config": {
             "god_function": {"complexity_threshold": 15, "lines_threshold": 120},
             "nested_complexity": {"depth_threshold": 6, "cc_threshold": 25},
@@ -481,7 +478,6 @@ DOMAIN_PROFILES: Dict[str, Any] = {
             "sanic",
             "falcon",
         ],
-        "capability_vector": {"ldr": 0.35, "inflation": 0.25, "ddc": 0.30, "purity": 0.10},
         "pattern_config": {
             "god_function": {"complexity_threshold": 10, "lines_threshold": 60},
             "nested_complexity": {"depth_threshold": 4, "cc_threshold": 8},
@@ -493,7 +489,6 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "domain_path": "library/sdk",
         "description": "Libraries, SDKs, and reusable packages (Protocol/ABC heavy)",
         "triggers": [],  # detected via Protocol/ABC prevalence, not imports
-        "capability_vector": {"ldr": 0.30, "inflation": 0.20, "ddc": 0.35, "purity": 0.15},
         "pattern_config": {
             "god_function": {"complexity_threshold": 12, "lines_threshold": 70},
             "nested_complexity": {"depth_threshold": 5, "cc_threshold": 10},
@@ -504,8 +499,7 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "parent": "cli",
         "domain_path": "cli/tool",
         "description": "Command-line tools and scripts",
-        "triggers": ["argparse", "click", "typer", "docopt", "fire", "plumbum"],
-        "capability_vector": {"ldr": 0.35, "inflation": 0.30, "ddc": 0.25, "purity": 0.10},
+        "triggers": ["click", "typer", "docopt", "fire", "plumbum"],
         "pattern_config": {
             "god_function": {"complexity_threshold": 12, "lines_threshold": 70},
             "nested_complexity": {"depth_threshold": 5, "cc_threshold": 15},
@@ -526,7 +520,6 @@ DOMAIN_PROFILES: Dict[str, Any] = {
             "mne",
             "pyvcf",
         ],
-        "capability_vector": {"ldr": 0.55, "inflation": 0.05, "ddc": 0.35, "purity": 0.05},
         "pattern_config": {
             "god_function": {"complexity_threshold": 15, "lines_threshold": 100},
             "nested_complexity": {"depth_threshold": 6, "cc_threshold": 20},
@@ -538,7 +531,6 @@ DOMAIN_PROFILES: Dict[str, Any] = {
         "domain_path": "finance",
         "description": "Financial applications and quantitative analysis",
         "triggers": ["yfinance", "quantlib", "zipline", "backtrader", "alpaca", "ccxt", "ta"],
-        "capability_vector": {"ldr": 0.35, "inflation": 0.15, "ddc": 0.40, "purity": 0.10},
         "pattern_config": {
             "god_function": {"complexity_threshold": 12, "lines_threshold": 80},
             "nested_complexity": {"depth_threshold": 5, "cc_threshold": 12},
@@ -563,7 +555,7 @@ def generate_slopconfig_template(
     domain_path = profile.get("domain_path", "general")
     description = profile.get("description", "")
     detected_by = profile.get("detected_by", [])  # injected at call-site
-    cv = profile.get("capability_vector", DOMAIN_PROFILES["general"]["capability_vector"])
+    cv = Config.DEFAULT_CONFIG["weights"]
     pc = profile.get("pattern_config", DOMAIN_PROFILES["general"]["pattern_config"])
     gf = pc.get("god_function", {"complexity_threshold": 10, "lines_threshold": 50})
     nc = pc.get("nested_complexity", {"depth_threshold": 4, "cc_threshold": 5})
@@ -591,8 +583,8 @@ def generate_slopconfig_template(
 version: "2.0"
 
 # ── Metric weights ──────────────────────────────────────────────────────────
-# Domain: {domain_path} — tuned by slop-detector --init.
-# Weights are normalized by their sum. --self-calibrate prints an advisory
+# Default weights for every domain (the profile changes pattern thresholds
+# only). Weights are normalized by their sum. --self-calibrate prints an advisory
 # report from your local history; it never writes these values.
 weights:
   ldr:       {cv['ldr']:.2f}  # Logic Density Ratio

@@ -95,7 +95,6 @@ class TestDomainProfiles:
             "domain_path",
             "description",
             "triggers",
-            "capability_vector",
             "pattern_config",
             "ignore_extra",
         }
@@ -103,13 +102,10 @@ class TestDomainProfiles:
             missing = required - profile.keys()
             assert not missing, f"Profile '{name}' missing keys: {missing}"
 
-    def test_capability_vector_sums_to_one(self):
+    def test_profiles_carry_no_weights(self):
+        # Weights come from Config.DEFAULT_CONFIG for every domain (v3.10).
         for name, profile in DOMAIN_PROFILES.items():
-            cv = profile["capability_vector"]
-            total = sum(cv.values())
-            assert (
-                abs(total - 1.0) < 1e-6
-            ), f"Profile '{name}' capability_vector sums to {total:.4f}, expected 1.0"
+            assert "capability_vector" not in profile, name
 
     def test_domain_path_starts_with_parent(self):
         for name, profile in DOMAIN_PROFILES.items():
@@ -129,21 +125,9 @@ class TestGenerateSlopconfigTemplate:
     def test_general_template_has_default_weights(self):
         tmpl = generate_slopconfig_template()
         cfg = yaml.safe_load(tmpl)
-        assert cfg["weights"]["ldr"] == pytest.approx(0.15)
+        assert cfg["weights"]["ldr"] == pytest.approx(0.40)
+        assert cfg["weights"]["ddc"] == pytest.approx(0.20)
         assert cfg["weights"]["purity"] == pytest.approx(0.10)
-
-    def test_ml_template_has_low_purity_weight(self):
-        profile = DOMAIN_PROFILES["scientific/ml"]
-        tmpl = generate_slopconfig_template(domain_profile=profile)
-        cfg = yaml.safe_load(tmpl)
-        assert cfg["weights"]["purity"] == pytest.approx(0.05)
-        assert cfg["weights"]["inflation"] == pytest.approx(0.05)
-
-    def test_bio_template_has_low_purity_weight(self):
-        profile = DOMAIN_PROFILES["bio"]
-        tmpl = generate_slopconfig_template(domain_profile=profile)
-        cfg = yaml.safe_load(tmpl)
-        assert cfg["weights"]["purity"] == pytest.approx(0.05)
 
     def test_ml_template_has_relaxed_god_function(self):
         profile = DOMAIN_PROFILES["scientific/ml"]
@@ -242,6 +226,7 @@ class TestInitIdempotency:
         (tmp_path / "src" / "api").mkdir(parents=True, exist_ok=True)
         (tmp_path / "src" / "data").mkdir(parents=True, exist_ok=True)
         (tmp_path / "results").mkdir()
+        _write_py(tmp_path / "results", "replay.py", "def replay():\n    return 1\n")
         existing = {
             "version": "2.0",
             "ignore": ["tests/**"],
@@ -317,7 +302,9 @@ class TestInitIdempotency:
         assert merged["custom_section"]["keep_me"] is True
         assert merged["architecture"]["enabled"] is True
         assert merged["architecture"]["preset"] == "layered"
-        assert merged["patterns"]["god_function"]["domain_overrides"]
+        # Function overrides are review items, never written (v3.10).
+        assert merged["patterns"]["god_function"]["domain_overrides"] == []
+        assert "reconcile" in out
 
     def test_force_init_with_apply_suggestions_preserves_handwritten(
         self, tmp_path, monkeypatch, capsys
@@ -390,7 +377,8 @@ class TestAdaptiveInitSignals:
         signals = collect_init_signals(tmp_path)
 
         assert "tests" in signals["noise_directories"]
-        assert "dist" in signals["noise_directories"]
+        # dist/ is excluded by default: nothing to suggest (v3.10).
+        assert "dist" not in signals["noise_directories"]
         assert "node_modules" not in signals["noise_directories"]
         assert signals["cleanup_markers"]["has_tests"] is True
 
@@ -508,7 +496,8 @@ class TestAdaptiveInitSuggestions:
         (tmp_path / "src" / "api").mkdir(parents=True, exist_ok=True)
         (tmp_path / "src" / "domain").mkdir(parents=True, exist_ok=True)
         (tmp_path / "src" / "data").mkdir(parents=True, exist_ok=True)
-        (tmp_path / "checkpoints").mkdir()
+        (tmp_path / "examples").mkdir()
+        _write_py(tmp_path / "examples", "demo.py", "def demo():\n    return 1\n")
         (tmp_path / "package.json").write_text('{"name":"demo"}', encoding="utf-8")
         _write_py(
             tmp_path / "src" / "domain",

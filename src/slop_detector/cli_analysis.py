@@ -69,11 +69,7 @@ def _apply_runtime_overrides(args, detector) -> None:
     """Apply CLI overrides onto detector config before analysis."""
     advanced = detector.config.config.setdefault("advanced", {})
     if getattr(args, "include_tests", False):
-        if not detector.config.include_default_tests():
-            raise ValueError(
-                "--include-tests cannot override explicit ignore rules in .slopconfig.yaml; "
-                "remove the test pattern from that config to opt in."
-            )
+        detector.config.include_default_tests()
     if getattr(args, "topology_ceiling", None) is not None:
         advanced["exact_topology_ceiling"] = args.topology_ceiling
     if getattr(args, "topology_mode", None) is not None:

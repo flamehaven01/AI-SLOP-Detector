@@ -216,7 +216,7 @@ def test_project_reports_default_test_exclusions_and_can_include_tests(tmp_path)
     assert "Scan Coverage: analyzed=1, excluded=1" in generate_text_report(default_result)
     assert "## Scan Coverage" in generate_markdown_report(default_result)
 
-    assert detector.config.include_default_tests() is True
+    detector.config.include_default_tests()
     included_result = detector.analyze_project(str(tmp_path))
     included_coverage = included_result.to_dict()["scan_coverage"]
     assert included_coverage["analyzed"]["python"] == 2
