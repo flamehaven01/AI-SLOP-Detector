@@ -85,7 +85,9 @@ def _text_project_section(result) -> list:
             (
                 "Scan Coverage: "
                 f"analyzed={scan_coverage['analyzed']['total']}, "
-                f"excluded={excluded['total']} supported source files, "
+                f"excluded={excluded['total']} supported source files "
+                f"(tests={excluded.get('tests', 0)}, "
+                f"custom rules={excluded.get('by_source', {}).get('custom', 0)}), "
                 f"unsupported={unsupported.get('total', 0)}"
             ),
             "  Excluded paths and matching rules are available in JSON output.",

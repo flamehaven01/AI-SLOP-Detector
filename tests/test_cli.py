@@ -203,11 +203,15 @@ def test_project_reports_default_test_exclusions_and_can_include_tests(tmp_path)
         ],
         "omitted_file_details": 0,
         "by_reason": {"pattern:tests/**": 1},
+        "by_source": {"default": 1, "custom": 0},
+        "custom_rules": {},
+        "tests": 1,
     }
     assert default_coverage["unsupported"] == {
         "total": 0,
         "files": [],
         "omitted_file_details": 0,
+        "by_extension": {},
     }
     assert "Scan Coverage: analyzed=1, excluded=1" in generate_text_report(default_result)
     assert "## Scan Coverage" in generate_markdown_report(default_result)
@@ -236,6 +240,7 @@ def test_project_coverage_bounds_excluded_details_and_reports_unsupported_files(
         "total": 1,
         "files": [{"path": "native.rs", "extension": ".rs"}],
         "omitted_file_details": 0,
+        "by_extension": {".rs": 1},
     }
 
 

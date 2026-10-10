@@ -9,10 +9,11 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
+from slop_detector.config import Config
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_summary import build_finding_summary
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
-from slop_detector.path_facts import default_exclusion_reason, relative_to_root
+from slop_detector.path_facts import default_exclusion_reason, path_facts, relative_to_root
 from slop_detector.rust_scan import discover_project_files
 
 logger = logging.getLogger(__name__)
@@ -26,21 +27,39 @@ _SUPPORTED_SOURCE_EXTENSIONS = {
     ".tsx": "javascript",
     ".go": "go",
 }
+# Code-bearing files no analyzer reads (other languages, notebooks, proof
+# sources, JS module variants the JS analyzer does not collect).
 _UNSUPPORTED_SOURCE_EXTENSIONS = {
     ".c",
     ".cc",
+    ".cjs",
     ".cpp",
     ".cs",
+    ".dart",
+    ".ex",
+    ".exs",
     ".h",
+    ".hs",
+    ".ipynb",
     ".java",
+    ".jl",
     ".kt",
     ".kts",
+    ".lean",
+    ".lua",
+    ".mjs",
     ".php",
+    ".pl",
+    ".r",
     ".rb",
     ".rs",
     ".scala",
     ".sh",
+    ".sol",
+    ".svelte",
     ".swift",
+    ".vue",
+    ".zig",
 }
 
 
@@ -131,55 +150,77 @@ def _canonical_order(project_path: Path, paths: List[Path]) -> List[Path]:
     return sorted(paths, key=key)
 
 
+def _is_default_exclusion(reason: str) -> bool:
+    if reason.startswith("directory:"):
+        return True
+    return reason[len("pattern:") :] in Config.DEFAULT_CONFIG["ignore"]
+
+
 def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]) -> Dict[str, Any]:
     """Report excluded supported files and unexcluded unsupported source files."""
-    excluded: List[Dict[str, str]] = []
+    excluded: List[Dict[str, Any]] = []
     unsupported: List[Dict[str, str]] = []
-    excluded_by_reason: Counter[str] = Counter()
-    unsupported_count = 0
     try:
         for path in project_path.rglob("*"):
             if not path.is_file():
                 continue
             suffix = path.suffix.lower()
             reason = ignore_reason(path, ignore_patterns, root=project_path)
+            relative = str(path.relative_to(project_path)).replace("\\", "/")
             if suffix in _SUPPORTED_SOURCE_EXTENSIONS and reason is not None:
-                excluded_by_reason[reason] += 1
-                if len(excluded) < _COVERAGE_FILE_DETAIL_LIMIT:
-                    excluded.append(
-                        {
-                            "path": str(path.relative_to(project_path)).replace("\\", "/"),
-                            "language": _SUPPORTED_SOURCE_EXTENSIONS[suffix],
-                            "reason": reason,
-                        }
-                    )
-                continue
-            if suffix in _UNSUPPORTED_SOURCE_EXTENSIONS and reason is None:
-                unsupported_count += 1
-                if len(unsupported) < _COVERAGE_FILE_DETAIL_LIMIT:
-                    unsupported.append(
-                        {
-                            "path": str(path.relative_to(project_path)).replace("\\", "/"),
-                            "extension": suffix,
-                        }
-                    )
+                excluded.append(
+                    {
+                        "path": relative,
+                        "language": _SUPPORTED_SOURCE_EXTENSIONS[suffix],
+                        "reason": reason,
+                        # Project tests only: a dependency's tests in an excluded
+                        # environment or build directory are not this project's.
+                        "project_test": not reason.startswith("directory:")
+                        and bool(path_facts(path, project_path).is_test),
+                    }
+                )
+            elif suffix in _UNSUPPORTED_SOURCE_EXTENSIONS and reason is None:
+                unsupported.append({"path": relative, "extension": suffix})
     except OSError as exc:
         logger.debug("Could not collect full scan coverage for %s: %s", project_path, exc)
 
-    excluded_count = sum(excluded_by_reason.values())
     return {
         "analyzed": {"total": 0, "python": 0, "javascript": 0, "go": 0},
-        "excluded": {
-            "total": excluded_count,
-            "files": excluded,
-            "omitted_file_details": max(0, excluded_count - len(excluded)),
-            "by_reason": dict(sorted(excluded_by_reason.items())),
-        },
-        "unsupported": {
-            "total": unsupported_count,
-            "files": unsupported,
-            "omitted_file_details": max(0, unsupported_count - len(unsupported)),
-        },
+        "excluded": _excluded_coverage(excluded),
+        "unsupported": _unsupported_coverage(unsupported),
+    }
+
+
+def _excluded_coverage(entries: List[Dict[str, Any]]) -> Dict[str, Any]:
+    by_reason = Counter(entry["reason"] for entry in entries)
+    custom_rules = {
+        reason: count
+        for reason, count in sorted(by_reason.items())
+        if not _is_default_exclusion(reason)
+    }
+    custom_count = sum(custom_rules.values())
+    details = [
+        {key: entry[key] for key in ("path", "language", "reason")}
+        for entry in entries[:_COVERAGE_FILE_DETAIL_LIMIT]
+    ]
+    return {
+        "total": len(entries),
+        "files": details,
+        "omitted_file_details": max(0, len(entries) - len(details)),
+        "by_reason": dict(sorted(by_reason.items())),
+        "by_source": {"default": len(entries) - custom_count, "custom": custom_count},
+        "custom_rules": custom_rules,
+        "tests": sum(1 for entry in entries if entry["project_test"]),
+    }
+
+
+def _unsupported_coverage(entries: List[Dict[str, str]]) -> Dict[str, Any]:
+    details = entries[:_COVERAGE_FILE_DETAIL_LIMIT]
+    return {
+        "total": len(entries),
+        "files": details,
+        "omitted_file_details": max(0, len(entries) - len(details)),
+        "by_extension": dict(sorted(Counter(entry["extension"] for entry in entries).items())),
     }
 
 

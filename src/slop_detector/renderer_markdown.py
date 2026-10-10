@@ -158,6 +158,11 @@ def _md_scan_coverage_section(result) -> list:
             f"{unsupported.get('total', 0)} |"
         ),
         "",
+        (
+            f"Excluded test files: {excluded.get('tests', 0)}; "
+            f"excluded by custom ignore rules: {excluded.get('by_source', {}).get('custom', 0)}"
+        ),
+        "",
         "_JSON output includes each excluded path and its matching ignore rule._",
         "",
     ]

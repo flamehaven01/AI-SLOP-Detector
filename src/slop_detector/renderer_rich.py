@@ -120,7 +120,9 @@ def _build_rich_summary_tables(result):
         summary_table.add_row(
             "Scan Coverage",
             (
-                f"analyzed={analyzed['total']}, excluded={excluded['total']} supported source files, "
+                f"analyzed={analyzed['total']}, excluded={excluded['total']} supported source files "
+                f"(tests={excluded.get('tests', 0)}, "
+                f"custom rules={excluded.get('by_source', {}).get('custom', 0)}), "
                 f"unsupported={unsupported.get('total', 0)}"
             ),
         )
