@@ -17,7 +17,7 @@ except ImportError:
 
 from .. import __version__
 from ..core import SlopDetector
-from ..history import HistoryTracker
+from ..history import HistoryTracker, history_project_root, measurement_provenance
 from .models import (
     AgentFileResponse,
     AgentProjectResponse,
@@ -131,6 +131,9 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
                     git_commit=request.metadata.get("commit"),
                     git_branch=request.metadata.get("branch"),
                     project_id=_project_id_for_path(file_path.parent),
+                    provenance=measurement_provenance(
+                        detector.config, history_project_root(str(file_path), False)
+                    ),
                 )
 
             return AnalysisResponse.from_result(result)
@@ -178,6 +181,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
                     results.file_results,
                     project_path,
                     request.metadata,
+                    measurement_provenance(detector.config, project_path),
                 )
 
             return [AnalysisResponse.from_result(r) for r in results.file_results]
@@ -238,7 +242,9 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     return app
 
 
-async def _save_project_history(results: List[Any], project_path: Path, metadata: Dict[str, Any]):
+async def _save_project_history(
+    results: List[Any], project_path: Path, metadata: Dict[str, Any], provenance=None
+):
     """Background task to save project analysis"""
     history = HistoryTracker()
     project_id = _project_id_for_path(project_path)
@@ -248,6 +254,7 @@ async def _save_project_history(results: List[Any], project_path: Path, metadata
             git_commit=metadata.get("commit"),
             git_branch=metadata.get("branch"),
             project_id=project_id,
+            provenance=provenance,
         )
 
 

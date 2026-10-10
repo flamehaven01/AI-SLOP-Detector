@@ -474,9 +474,12 @@ def test_step_03_round2_scan_auto_calibration(e2e_env):
 
     db_path = _get_db(home_dir)
     calib = SelfCalibrator(db_path=db_path)
-    events, _ = calib._extract_events()
+    # v3.10 Calibration v2: evidence of this project root, v6 rows only.
+    from slop_detector.ml.self_calibrator import CalibrationResult
+
+    events = calib._extract_events(str(mock_dir.resolve()), CalibrationResult(status=""))
     improvements = [e for e in events if e.label == "improvement"]
-    fp_candidates = [e for e in events if e.label == "fp_candidate"]
+    fp_candidates = [e for e in events if e.label == "stable_flag_candidate"]
 
     snapshot = {
         "step": "03_round2_auto_calibration",
@@ -622,10 +625,11 @@ def test_step_06_calibrate_with_min_events_override(e2e_env):
     calib = SelfCalibrator(db_path=db_path)
 
     # With min_events=5 (default): should succeed (5+5 available)
-    result_default = calib.calibrate(min_events=5)
+    root = str(e2e_env["mock_dir"].resolve())
+    result_default = calib.calibrate(min_events=5, project_root=root)
 
     # With min_events=10: requires 10 per class -> insufficient with only 5
-    result_strict = calib.calibrate(min_events=10)
+    result_strict = calib.calibrate(min_events=10, project_root=root)
 
     snapshot = {
         "step": "06_min_events_override",
@@ -633,7 +637,7 @@ def test_step_06_calibrate_with_min_events_override(e2e_env):
         "default_min5": {
             "status": result_default.status,
             "improvements": result_default.improvement_events,
-            "fp_candidates": result_default.fp_candidates,
+            "fp_candidates": result_default.stable_flag_candidates,
             "message": result_default.message,
         },
         "strict_min10": {
@@ -643,9 +647,9 @@ def test_step_06_calibrate_with_min_events_override(e2e_env):
     }
     _save(data_dir, "run_06_min_events_override.json", snapshot)
 
-    assert result_default.improvement_events == 5 and result_default.fp_candidates >= 5, (
+    assert result_default.improvement_events == 5 and result_default.stable_flag_candidates >= 5, (
         f"P3 FAIL: With min_events=5, calibration must reach grid-search phase with 5+5 events. "
-        f"Got improvement_events={result_default.improvement_events}, fp_candidates={result_default.fp_candidates}"
+        f"Got improvement_events={result_default.improvement_events}, fp_candidates={result_default.stable_flag_candidates}"
     )
     # status may be ok/no_change/insufficient_data depending on confidence_gap with synthetic data
     # P3 validates per-class floor logic only — confidence gap is a separate quality gate
@@ -673,7 +677,7 @@ def test_step_07_optimal_weights_validity(e2e_env):
     data_dir = e2e_env["data_dir"]
 
     calib = SelfCalibrator(db_path=db_path)
-    result = calib.calibrate(min_events=5)
+    result = calib.calibrate(min_events=5, project_root=str(e2e_env["mock_dir"].resolve()))
 
     weights = result.optimal_weights
 
@@ -789,13 +793,12 @@ def test_step_10_write_report(e2e_env):
     data_dir = e2e_env["data_dir"]
     results = e2e_env["results"]
 
+    from slop_detector.diagnostic_bands import SUSPICIOUS_AT
     from slop_detector.ml.self_calibrator import (
         CONFIDENCE_GAP,
         FIX_DELTA,
-        FP_STABLE_DELTA,
-        MIN_FP_CANDIDATES,
         MIN_IMPROVEMENTS,
-        SLOP_FLOOR,
+        MIN_STABLE_FLAGS,
     )
 
     s01 = results.get("step_01", {})
@@ -908,15 +911,14 @@ def test_step_10_write_report(e2e_env):
         "| Constant | Value | Rationale |",
         "|----------|-------|-----------|",
         f"| `MIN_IMPROVEMENTS` | {MIN_IMPROVEMENTS} | Minimum improvement events (TP class) |",
-        f"| `MIN_FP_CANDIDATES` | {MIN_FP_CANDIDATES} | Minimum fp_candidate events (FP class) |",
-        f"| `SLOP_FLOOR` | {SLOP_FLOOR} | Min deficit to be considered slop-flagged |",
+        f"| `MIN_STABLE_FLAGS` | {MIN_STABLE_FLAGS} | Minimum stable_flag_candidate events |",
+        f"| `SUSPICIOUS_AT` | {SUSPICIOUS_AT} | Min metric-only deficit to be considered flagged |",
         f"| `FIX_DELTA` | {FIX_DELTA} | Score drop required to label as improvement |",
-        f"| `FP_STABLE_DELTA` | {FP_STABLE_DELTA} | Max score change to label as fp_candidate |",
         f"| `CONFIDENCE_GAP` | {CONFIDENCE_GAP} | Min winner margin for confident calibration |",
         "",
         "**Scenario result:**",
         f"- Improvement events: {labeled.get('improvement_events', '?')} (needed >= {MIN_IMPROVEMENTS}) [+]",
-        f"- FP candidates: {labeled.get('fp_candidates', '?')} (needed >= {MIN_FP_CANDIDATES}) [+]",
+        f"- FP candidates: {labeled.get('fp_candidates', '?')} (needed >= {MIN_STABLE_FLAGS}) [+]",
         "",
         "**Override test (step 06):**",
         f"- `--min-history 5` (default): status = {s06.get('default_min5', {}).get('status', '?')} [+]",

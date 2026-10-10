@@ -42,28 +42,35 @@ def _get_git_context():
         return None, None
 
 
-def _record_history(result) -> None:
-    """Auto-record analysis result(s) to history DB with git context and project_id."""
+def _record_history(result, config=None, path=None, is_project=False) -> None:
+    """Auto-record analysis result(s) to history DB with git context and provenance.
+
+    With the detector's config and the scanned path the rows carry v6
+    measurement provenance (calibration evidence); without them they are legacy.
+    """
     try:
-        from slop_detector.history import HistoryTracker
+        from slop_detector.history import (
+            HistoryTracker,
+            history_project_root,
+            measurement_provenance,
+        )
 
         git_commit, git_branch = _get_git_context()
         project_id = _compute_project_id()
+        provenance = (
+            measurement_provenance(config, history_project_root(path, is_project))
+            if config is not None and path is not None
+            else None
+        )
         tracker = HistoryTracker()
-        if hasattr(result, "file_results"):
-            for file_analysis in result.file_results:
-                tracker.record(
-                    file_analysis,
-                    git_commit=git_commit,
-                    git_branch=git_branch,
-                    project_id=project_id,
-                )
-        else:
+        results = result.file_results if hasattr(result, "file_results") else [result]
+        for file_analysis in results:
             tracker.record(
-                result,
+                file_analysis,
                 git_commit=git_commit,
                 git_branch=git_branch,
                 project_id=project_id,
+                provenance=provenance,
             )
     except Exception as exc:  # noqa: BLE001 — history is best-effort; never block main flow
         import logging as _logging
@@ -140,10 +147,9 @@ def _export_history(output_path: str) -> None:
 
 
 LEGACY_CALIBRATION_WARNING = (
-    "[!] Legacy calibration evidence is not provenance-stable: history rows do not record "
-    "the detector version, configuration or project root (they are grouped by working "
-    "directory), so a score change is not proof that the code changed. This report is "
-    "advisory; weight application is disabled pending Calibration v2."
+    "[!] Calibration v2 learns only from comparable runs of this project root (same "
+    "detector, engine and configuration) recorded with measurement provenance; legacy "
+    "history rows are not evidence. This report is advisory; weight application is disabled."
 )
 
 
@@ -174,12 +180,18 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         console = None  # type: ignore[assignment]
         rich_enabled = False
 
+    from slop_detector.history import history_project_root
+
     config = Config(config_path=getattr(args, "config", None))
     current_weights = config.get_weights()
     min_events = getattr(args, "min_history", 5)
+    target = getattr(args, "path", None) or "."
+    project_root = history_project_root(target, Path(target).is_dir())
 
     calibrator = SelfCalibrator()
-    result = calibrator.calibrate(current_weights=current_weights, min_events=min_events)
+    result = calibrator.calibrate(
+        current_weights=current_weights, min_events=min_events, project_root=str(project_root)
+    )
 
     if rich_enabled and console:
         from rich.panel import Panel
@@ -194,11 +206,16 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         table = Table(box=box.ROUNDED, show_header=True, header_style="bold cyan")
         table.add_column("Metric", style="cyan")
         table.add_column("Value", justify="right")
-        table.add_row("Unique files in history", str(result.unique_files))
+        table.add_row("Project root", result.project_root)
+        table.add_row("Files with comparable runs", str(result.unique_files))
+        table.add_row("Comparable run pairs", str(result.comparable_pairs))
+        table.add_row("Legacy rows (not evidence)", str(result.legacy_rows_ignored))
         table.add_row(
-            "Improvement events (flag followed by change)", str(result.improvement_events)
+            "Improvements (flagged file changed, score fell)", str(result.improvement_events)
         )
-        table.add_row("FP candidates (flag followed by stable file)", str(result.fp_candidates))
+        table.add_row(
+            "Stable flags (flagged file left unchanged)", str(result.stable_flag_candidates)
+        )
         table.add_row("Confidence gap", f"{result.confidence_gap:.4f}")
         console.print(table)
 
@@ -259,27 +276,33 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
                 console.print(f"[yellow][!] {warning}[/yellow]")
         console.print(f"\n[dim]{result.message}[/dim]")
     else:
-        print(f"[Self-Calibration] status={result.status}")
-        print(f"  unique_files={result.unique_files}")
-        print(f"  improvement_events={result.improvement_events}")
-        print(f"  fp_candidates={result.fp_candidates}")
-        print(f"  confidence_gap={result.confidence_gap:.4f}")
-        print(f"  current_weights={current_weights}")
-        print(f"  optimal_weights={result.optimal_weights}")
-        if result.per_rule_fp_rates:
-            high_fp_plain = {
-                rule_id: rate
-                for rule_id, rate in sorted(
-                    result.per_rule_fp_rates.items(), key=lambda item: -item[1]
-                )
-                if rate >= 0.5
-            }
-            if high_fp_plain:
-                print("  per_rule_noisy_alert_rates (>=50%):")
-                for rule_id, rate in high_fp_plain.items():
-                    print(f"    {rule_id}: {rate:.0%}")
-        for warning in result.warnings:
-            print(f"  [!] {warning}")
-        print(f"  {result.message}")
+        _print_calibration_plain(result, current_weights)
 
     return 0 if result.status in ("ok", "no_change") else 1
+
+
+def _print_calibration_plain(result, current_weights) -> None:
+    """Plain-text self-calibration report (no rich available)."""
+    print(f"[Self-Calibration] status={result.status}")
+    print(f"  project_root={result.project_root}")
+    print(f"  unique_files={result.unique_files}")
+    print(f"  comparable_pairs={result.comparable_pairs}")
+    print(f"  legacy_rows_ignored={result.legacy_rows_ignored}")
+    print(f"  improvement_events={result.improvement_events}")
+    print(f"  stable_flag_candidates={result.stable_flag_candidates}")
+    print(f"  confidence_gap={result.confidence_gap:.4f}")
+    print(f"  current_weights={current_weights}")
+    print(f"  optimal_weights={result.optimal_weights}")
+    if result.per_rule_fp_rates:
+        high_fp_plain = {
+            rule_id: rate
+            for rule_id, rate in sorted(result.per_rule_fp_rates.items(), key=lambda item: -item[1])
+            if rate >= 0.5
+        }
+        if high_fp_plain:
+            print("  per_rule_noisy_alert_rates (>=50%):")
+            for rule_id, rate in high_fp_plain.items():
+                print(f"    {rule_id}: {rate:.0%}")
+    for warning in result.warnings:
+        print(f"  [!] {warning}")
+    print(f"  {result.message}")

@@ -388,7 +388,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         _capture_optional_telemetry("scan", result)
 
     if not getattr(args, "no_history", False):
-        _record_history(result)
+        _record_history(result, detector.config, args.path, bool(args.project))
 
     return ci_exit or 0
 

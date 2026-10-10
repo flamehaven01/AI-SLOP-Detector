@@ -1,10 +1,13 @@
 """
 Unit tests for v3.5.0 self-calibration patches P1-P4.
 
-P1 — project_id column: stored in history.db, filters _load_history
+P1 — project_id column: stored in history.db (calibration v2 reads project_root)
 P2 — count_files_with_multiple_runs: correct count, project_id scoping
 P3 — domain-anchored grid search: candidates stay within DOMAIN_TOLERANCE
 P4 — CalibrationResult.warnings: populated when optimal drifts > DOMAIN_DRIFT_LIMIT
+
+v3.10: events carry no critical-pattern count (purity is held, not learned),
+the second class is stable_flag_candidate, and the grid learns ldr/inflation/ddc.
 """
 
 from __future__ import annotations
@@ -65,7 +68,6 @@ def _improvement_event(**kw) -> CalibrationEvent:
     kw.setdefault("ldr", 0.6)
     kw.setdefault("inflation", 0.2)
     kw.setdefault("ddc", 0.8)
-    kw.setdefault("n_critical_patterns", 0)
     kw["label"] = "improvement"
     return CalibrationEvent(**kw)
 
@@ -75,8 +77,7 @@ def _fp_event(**kw) -> CalibrationEvent:
     kw.setdefault("ldr", 0.6)
     kw.setdefault("inflation", 0.5)
     kw.setdefault("ddc", 0.5)
-    kw.setdefault("n_critical_patterns", 0)
-    kw["label"] = "fp_candidate"
+    kw["label"] = "stable_flag_candidate"
     return CalibrationEvent(**kw)
 
 
@@ -163,26 +164,6 @@ class TestProjectIdIsolation:
             row = conn.execute("SELECT project_id FROM history").fetchone()
         assert row[0] is None
 
-    def test_load_history_filters_by_project_id(self, tmp_path):
-        """SelfCalibrator._load_history(project_id=X) returns only X's rows."""
-        tracker = HistoryTracker(db_path=tmp_path / "history.db")
-        _insert(
-            tracker,
-            _entry("proj1/a.py", project_id="proj1"),
-            _entry("proj1/b.py", project_id="proj1"),
-            _entry("proj2/c.py", project_id="proj2"),
-        )
-        calibrator = SelfCalibrator(db_path=tmp_path / "history.db")
-        rows_p1 = calibrator._load_history(project_id="proj1")
-        rows_p2 = calibrator._load_history(project_id="proj2")
-        rows_all = calibrator._load_history()
-
-        assert len(rows_p1) == 2
-        assert all("proj1" in r["file_path"] for r in rows_p1)
-        assert len(rows_p2) == 1
-        assert all("proj2" in r["file_path"] for r in rows_p2)
-        assert len(rows_all) == 3
-
 
 # ---------------------------------------------------------------------------
 # P3 — domain-anchored grid search
@@ -197,7 +178,7 @@ class TestDomainAnchoredGridSearch:
     def test_unconstrained_covers_full_ldr_range(self, tmp_path):
         """Without domain_anchor grid spans MIN_W to MAX_W for ldr."""
         calibrator = SelfCalibrator(db_path=tmp_path / "history.db")
-        candidates = calibrator._grid_search(self._EVENTS_IMP, self._EVENTS_FP)
+        candidates = calibrator._grid_search(self._EVENTS_IMP, self._EVENTS_FP, self._ANCHOR)
         ldr_vals = {c.w_ldr for c in candidates}
         assert min(ldr_vals) == pytest.approx(MIN_W, abs=0.001)
         assert max(ldr_vals) == pytest.approx(MAX_W, abs=0.01)
@@ -206,20 +187,21 @@ class TestDomainAnchoredGridSearch:
         """With domain_anchor every candidate is within +/-DOMAIN_TOLERANCE on each axis."""
         calibrator = SelfCalibrator(db_path=tmp_path / "history.db")
         candidates = calibrator._grid_search(
-            self._EVENTS_IMP, self._EVENTS_FP, domain_anchor=self._ANCHOR
+            self._EVENTS_IMP, self._EVENTS_FP, self._ANCHOR, domain_anchor=self._ANCHOR
         )
         assert len(candidates) > 0, "Expected at least one valid candidate"
         for c in candidates:
             assert abs(c.w_ldr - self._ANCHOR["ldr"]) <= DOMAIN_TOLERANCE + 0.001
             assert abs(c.w_inflation - self._ANCHOR["inflation"]) <= DOMAIN_TOLERANCE + 0.001
-            assert abs(c.w_purity - self._ANCHOR["purity"]) <= DOMAIN_TOLERANCE + 0.001
+            assert abs(c.w_ddc - self._ANCHOR["ddc"]) <= DOMAIN_TOLERANCE + 0.001
+            assert c.w_purity == pytest.approx(self._ANCHOR["purity"])
 
     def test_constrained_search_has_fewer_candidates(self, tmp_path):
         """Constrained grid must produce strictly fewer candidates than unconstrained."""
         calibrator = SelfCalibrator(db_path=tmp_path / "history.db")
-        all_cands = calibrator._grid_search(self._EVENTS_IMP, self._EVENTS_FP)
+        all_cands = calibrator._grid_search(self._EVENTS_IMP, self._EVENTS_FP, self._ANCHOR)
         anchored_cands = calibrator._grid_search(
-            self._EVENTS_IMP, self._EVENTS_FP, domain_anchor=self._ANCHOR
+            self._EVENTS_IMP, self._EVENTS_FP, self._ANCHOR, domain_anchor=self._ANCHOR
         )
         assert len(anchored_cands) < len(all_cands)
 
@@ -274,10 +256,10 @@ class TestCalibrationWarnings:
         fp_events = [_fp_event() for _ in range(6)]
         all_events = imp_events + fp_events
 
-        with patch.object(calibrator, "_extract_events", return_value=(all_events, 12)):
+        with patch.object(calibrator, "_extract_events", return_value=all_events):
             with patch.object(calibrator, "_grid_search", return_value=[winner, runner_up]):
                 with patch.object(calibrator, "_score_weights", return_value=(0.3, 0.3, 0.0)):
-                    result = calibrator.calibrate(current_weights=current)
+                    result = calibrator.calibrate(current_weights=current, project_root="/p")
 
         # Mocked setup guarantees confidence_gap=0.4, improvement=0.6 -> status="ok"
         assert result.status == "ok"
@@ -318,10 +300,10 @@ class TestCalibrationWarnings:
         fp_events = [_fp_event() for _ in range(6)]
         all_events = imp_events + fp_events
 
-        with patch.object(calibrator, "_extract_events", return_value=(all_events, 12)):
+        with patch.object(calibrator, "_extract_events", return_value=all_events):
             with patch.object(calibrator, "_grid_search", return_value=[winner, runner_up]):
                 with patch.object(calibrator, "_score_weights", return_value=(0.3, 0.3, 0.0)):
-                    result = calibrator.calibrate(current_weights=current)
+                    result = calibrator.calibrate(current_weights=current, project_root="/p")
 
         assert result.status == "ok"
         assert result.warnings == [], f"Expected no warnings but got: {result.warnings}"

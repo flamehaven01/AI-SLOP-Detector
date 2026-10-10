@@ -5,10 +5,12 @@ unchanged file (the detector or its configuration changed, not the code), 61%
 of flagged rows were flagged by pattern penalties the weights cannot move, and
 history was scoped by the working directory, so projects scanned from one
 directory shared it. A recommendation built on that evidence is not one to
-apply. Until Calibration v2 (provenance-stable history), the contract is:
+apply. With Calibration v2 (v3.10) the contract is:
 
-- scans keep recording history, and never run calibration on their own;
-- `--self-calibrate` reports, with a warning that the evidence is legacy;
+- scans keep recording history, now with measurement provenance (schema v6),
+  and never run calibration on their own;
+- `--self-calibrate` reports on the comparable runs of the scanned project
+  root, says legacy rows are not evidence, and is advisory;
 - `--self-calibrate --apply-calibration` writes nothing and exits non-zero.
 """
 
@@ -89,11 +91,35 @@ def test_scans_still_record_history(project, history_db, capsys):
     assert _rows(history_db) == 20
 
 
-def test_self_calibrate_warns_that_the_evidence_is_legacy(project, history_db, capsys):
+def test_self_calibrate_says_legacy_rows_are_not_evidence(project, history_db, capsys):
     main(["--self-calibrate", "--no-color"])
     err = capsys.readouterr().err
-    assert "not provenance-stable" in err
+    assert "legacy history rows are not evidence" in err
     assert "advisory" in err
+
+
+def test_scans_record_provenance_for_the_scanned_root(project, history_db, capsys):
+    _scan(project)
+    capsys.readouterr()
+    with sqlite3.connect(history_db) as conn:
+        rows = conn.execute(
+            "SELECT provenance_state, project_root, file_rel_path, measurement_fingerprint"
+            " FROM history"
+        ).fetchall()
+    assert {row[0] for row in rows} == {"v6"}
+    assert {row[1] for row in rows} == {str(project.resolve())}
+    assert sorted(row[2] for row in rows) == sorted(f"mod_{i}.py" for i in range(10))
+    assert len({row[3] for row in rows}) == 1
+
+
+def test_self_calibrate_reads_the_comparable_runs_of_this_root(project, history_db, capsys):
+    _scan(project)
+    _scan(project)
+    capsys.readouterr()
+    main(["--self-calibrate", "--no-color", str(project)])
+    out = " ".join(capsys.readouterr().out.split())
+    # Two scans of 10 unchanged files under one measurement: 10 comparable pairs.
+    assert "from 10 comparable run pairs" in out
 
 
 def test_apply_calibration_writes_nothing_and_fails(project, history_db, monkeypatch, capsys):

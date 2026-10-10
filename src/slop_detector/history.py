@@ -19,6 +19,14 @@ Schema v4 (v3.4.0):
 Schema v5 (v3.5.0):
   - project_id added (sha256[:12] of resolved cwd at scan time)
     Prevents cross-project calibration signal pollution in global history.db.
+
+Schema v6 (v3.10):
+  - measurement provenance: detector_version, measurement_fingerprint
+    (detector version + cache engine + full configuration), weights_vector,
+    project_root (canonical scan root), file_rel_path, base_deficit,
+    pattern_penalty, provenance_state ("v6").
+    Only v6 rows are calibration evidence; older rows are kept as they are
+    (provenance_state NULL = legacy, unknown measurement) and never rewritten.
 """
 
 import hashlib
@@ -29,6 +37,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+PROVENANCE_V6 = "v6"
 
 _SCHEMA_V2 = """
 CREATE TABLE IF NOT EXISTS history (
@@ -50,6 +60,18 @@ CREATE INDEX IF NOT EXISTS idx_file_path  ON history(file_path);
 CREATE INDEX IF NOT EXISTS idx_timestamp  ON history(timestamp DESC);
 """
 
+# v6 provenance columns (all nullable: NULL on legacy rows).
+_V6_COLUMNS = {
+    "detector_version": "TEXT",
+    "measurement_fingerprint": "TEXT",
+    "weights_vector": "TEXT",
+    "project_root": "TEXT",
+    "file_rel_path": "TEXT",
+    "base_deficit": "REAL",
+    "pattern_penalty": "REAL",
+    "provenance_state": "TEXT",
+}
+
 
 @dataclass
 class HistoryEntry:
@@ -68,7 +90,16 @@ class HistoryEntry:
     fired_rules: Optional[str] = None  # v3.4.0: JSON {pattern_id: count} for per-rule FP tracking
     git_commit: Optional[str] = None
     git_branch: Optional[str] = None
-    project_id: Optional[str] = None  # v3.5.0: sha256[:12] of cwd — scopes calibration per project
+    project_id: Optional[str] = None  # v3.5.0: sha256[:12] of cwd (legacy, not evidence)
+    # v6 measurement provenance (None on legacy rows)
+    detector_version: Optional[str] = None
+    measurement_fingerprint: Optional[str] = None
+    weights_vector: Optional[str] = None  # JSON {dimension: weight}
+    project_root: Optional[str] = None
+    file_rel_path: Optional[str] = None
+    base_deficit: Optional[float] = None
+    pattern_penalty: Optional[float] = None
+    provenance_state: Optional[str] = None
 
     def __post_init__(self) -> None:
         # Clamp scores so malformed data never corrupts the LEDA calibration grid search.
@@ -83,6 +114,53 @@ class HistoryEntry:
                 json.loads(self.fired_rules)
             except (json.JSONDecodeError, ValueError) as exc:
                 raise ValueError(f"HistoryEntry.fired_rules must be valid JSON: {exc}") from exc
+
+
+@dataclass(frozen=True)
+class MeasurementProvenance:
+    """What measured a history row: two rows are comparable only if this matches."""
+
+    detector_version: str
+    measurement_fingerprint: str
+    weights: Dict[str, float]
+    project_root: Path
+
+
+def measurement_provenance(config, project_root: Path) -> MeasurementProvenance:
+    """Provenance of a scan with `config` under the canonical `project_root`.
+
+    The fingerprint covers the detector version, the analysis engine version
+    and the whole effective configuration (weights, thresholds, ignore rules,
+    disabled patterns, runtime overrides): any of them can change a score.
+    """
+    from slop_detector import __version__
+    from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, fingerprint_config
+
+    payload = json.dumps(
+        {
+            "detector": __version__,
+            "engine": CACHE_ENGINE_VERSION,
+            "config": fingerprint_config(config.config),
+        },
+        sort_keys=True,
+    )
+    return MeasurementProvenance(
+        detector_version=__version__,
+        measurement_fingerprint=hashlib.sha256(payload.encode("utf-8")).hexdigest(),
+        weights=dict(config.get_weights()),
+        project_root=Path(project_root).resolve(),
+    )
+
+
+def history_project_root(path: str, is_project: bool) -> Path:
+    """Canonical project root of a scan: the scanned directory for a project
+    scan, the nearest project marker (else the parent) for a single file."""
+    from slop_detector.project_resolution import find_project_root
+
+    target = Path(path).resolve()
+    if is_project:
+        return target
+    return find_project_root(target) or target.parent
 
 
 class HistoryTracker:
@@ -117,10 +195,20 @@ class HistoryTracker:
             "n_critical_patterns": "ALTER TABLE history ADD COLUMN n_critical_patterns INTEGER NOT NULL DEFAULT 0",
             "fired_rules": "ALTER TABLE history ADD COLUMN fired_rules TEXT DEFAULT NULL",
             "project_id": "ALTER TABLE history ADD COLUMN project_id TEXT DEFAULT NULL",
+            "git_commit": "ALTER TABLE history ADD COLUMN git_commit TEXT DEFAULT NULL",
+            "git_branch": "ALTER TABLE history ADD COLUMN git_branch TEXT DEFAULT NULL",
         }
+        for col in _V6_COLUMNS:
+            migrations[col] = (
+                f"ALTER TABLE history ADD COLUMN {col} {_V6_COLUMNS[col]} DEFAULT NULL"
+            )
         for col, ddl in migrations.items():
             if col not in existing:
                 conn.execute(ddl)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_v6_evidence"
+            " ON history(project_root, file_rel_path, measurement_fingerprint, timestamp)"
+        )
 
     def _conn(self) -> sqlite3.Connection:
         return sqlite3.connect(self.db_path)
@@ -138,12 +226,14 @@ class HistoryTracker:
         git_commit: Optional[str] = None,
         git_branch: Optional[str] = None,
         project_id: Optional[str] = None,
+        provenance: Optional[MeasurementProvenance] = None,
     ) -> None:
         """Record a FileAnalysis result. Accepts the dataclass directly.
 
         git_commit / git_branch: captured once per CLI run and passed in (v3.2.1).
-        project_id: sha256[:12] of resolved cwd (v3.5.0); scopes calibration per project.
-        When present, used by SelfCalibrator to filter measurement noise from real fixes.
+        project_id: sha256[:12] of resolved cwd (v3.5.0); kept for old readers.
+        provenance: what measured the result (v6). Without it the row is
+        recorded as legacy and is never calibration evidence.
         """
         file_path = str(getattr(file_analysis, "file_path", ""))
         deficit = float(getattr(file_analysis, "deficit_score", 0.0))
@@ -157,23 +247,9 @@ class HistoryTracker:
         ddc = getattr(file_analysis, "ddc", None)
         ddc_ratio = float(getattr(ddc, "usage_ratio", 1.0)) if ddc else 1.0
 
-        pattern_issues = getattr(file_analysis, "pattern_issues", [])
-        pattern_count = len(pattern_issues) if pattern_issues else 0
-        n_critical_patterns = sum(
-            1
-            for issue in (pattern_issues or [])
-            if str(getattr(getattr(issue, "severity", None), "value", "")).lower() == "critical"
+        pattern_count, n_critical_patterns, fired_rules_json = _pattern_summary(
+            getattr(file_analysis, "pattern_issues", []) or []
         )
-
-        # v3.4.0: per-rule fired_rules for LEDA per-rule FP tracking
-        if pattern_issues:
-            rule_counts: dict = {}
-            for issue in pattern_issues:
-                pid = str(getattr(issue, "pattern_id", "unknown"))
-                rule_counts[pid] = rule_counts.get(pid, 0) + 1
-            fired_rules_json: Optional[str] = json.dumps(rule_counts)
-        else:
-            fired_rules_json = None
 
         status = getattr(file_analysis, "status", None)
         grade = status.value if status and hasattr(status, "value") else str(status or "")
@@ -196,6 +272,8 @@ class HistoryTracker:
             git_branch=git_branch,
             project_id=project_id,
         )
+        if provenance is not None:
+            _apply_provenance(entry, provenance, file_analysis)
         self._insert(entry)
 
     def _insert(self, e: HistoryEntry) -> None:
@@ -203,8 +281,10 @@ class HistoryTracker:
         INSERT INTO history
             (timestamp, file_path, file_hash, deficit_score, ldr_score,
              inflation_score, ddc_usage_ratio, pattern_count, n_critical_patterns,
-             fired_rules, grade, git_commit, git_branch, project_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             fired_rules, grade, git_commit, git_branch, project_id,
+             detector_version, measurement_fingerprint, weights_vector, project_root,
+             file_rel_path, base_deficit, pattern_penalty, provenance_state)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._managed_conn() as conn:
             conn.execute(
@@ -224,6 +304,14 @@ class HistoryTracker:
                     e.git_commit,
                     e.git_branch,
                     e.project_id,
+                    e.detector_version,
+                    e.measurement_fingerprint,
+                    e.weights_vector,
+                    e.project_root,
+                    e.file_rel_path,
+                    e.base_deficit,
+                    e.pattern_penalty,
+                    e.provenance_state,
                 ),
             )
             conn.commit()
@@ -395,6 +483,42 @@ class HistoryTracker:
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
+
+def _pattern_summary(pattern_issues: List[Any]):
+    """(finding count, CRITICAL count, fired_rules JSON {pattern_id: count} or None)."""
+    n_critical = sum(
+        1
+        for issue in pattern_issues
+        if str(getattr(getattr(issue, "severity", None), "value", "")).lower() == "critical"
+    )
+    rule_counts: Dict[str, int] = {}
+    for issue in pattern_issues:
+        pid = str(getattr(issue, "pattern_id", "unknown"))
+        rule_counts[pid] = rule_counts.get(pid, 0) + 1
+    fired_rules = json.dumps(rule_counts) if rule_counts else None
+    return len(pattern_issues), n_critical, fired_rules
+
+
+def _apply_provenance(
+    entry: HistoryEntry, provenance: MeasurementProvenance, file_analysis
+) -> None:
+    """Fill the v6 columns: who measured the row, where, and how the score splits."""
+    root = provenance.project_root
+    try:
+        rel: Optional[str] = Path(entry.file_path).resolve().relative_to(root).as_posix()
+    except ValueError:
+        rel = None
+    breakdown = getattr(file_analysis, "deficit_breakdown", None) or {}
+    penalty = float(breakdown.get("pattern_hits", 0.0))
+    entry.detector_version = provenance.detector_version
+    entry.measurement_fingerprint = provenance.measurement_fingerprint
+    entry.weights_vector = json.dumps(provenance.weights, sort_keys=True)
+    entry.project_root = str(root)
+    entry.file_rel_path = rel
+    entry.base_deficit = max(0.0, entry.deficit_score - penalty)
+    entry.pattern_penalty = penalty
+    entry.provenance_state = PROVENANCE_V6
 
 
 def _sha256(file_path: str) -> str:

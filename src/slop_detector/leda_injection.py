@@ -10,7 +10,7 @@ from typing import Any
 import yaml
 
 from slop_detector.config import Config
-from slop_detector.history import HistoryTracker
+from slop_detector.history import HistoryTracker, history_project_root
 from slop_detector.ml.self_calibrator import SelfCalibrator
 
 
@@ -26,7 +26,10 @@ def build_leda_injection(
     config = Config(config_path=config_path)
     tracker = HistoryTracker()
     calibrator = SelfCalibrator(db_path=tracker.db_path)
-    calibration = calibrator.calibrate(current_weights=config.get_weights())
+    calibration = calibrator.calibrate(
+        current_weights=config.get_weights(),
+        project_root=str(history_project_root(path, Path(path).is_dir())),
+    )
 
     payload = {
         "version": "0.1",
@@ -164,8 +167,10 @@ def _build_calibration_summary(calibration: Any, tracker: HistoryTracker) -> dic
         "status": getattr(calibration, "status", "insufficient_data"),
         "history_records": tracker.count_total_records(),
         "unique_files": getattr(calibration, "unique_files", 0),
+        "comparable_pairs": getattr(calibration, "comparable_pairs", 0),
+        "legacy_rows_ignored": getattr(calibration, "legacy_rows_ignored", 0),
         "improvement_events": getattr(calibration, "improvement_events", 0),
-        "fp_candidates": getattr(calibration, "fp_candidates", 0),
+        "stable_flag_candidates": getattr(calibration, "stable_flag_candidates", 0),
         "confidence_gap": getattr(calibration, "confidence_gap", 0.0),
         "current_weights": getattr(calibration, "current_weights", {}),
         "optimal_weights": getattr(calibration, "optimal_weights", {}),
@@ -196,7 +201,7 @@ def _build_claim_risk(result: Any, calibration: Any, config: Config) -> list[dic
                 "finding": "History-backed calibration is active, so effective review weighting may evolve beyond static documentation.",
                 "evidence": [
                     f"calibration_status={getattr(calibration, 'status', 'unknown')}",
-                    f"history_records={getattr(calibration, 'improvement_events', 0) + getattr(calibration, 'fp_candidates', 0)}",
+                    f"history_records={getattr(calibration, 'improvement_events', 0) + getattr(calibration, 'stable_flag_candidates', 0)}",
                 ],
                 "suggested_action": "Treat maturity and registry state as a moving review surface, not a fixed declaration.",
             }
