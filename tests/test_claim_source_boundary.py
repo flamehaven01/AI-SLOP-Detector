@@ -3,7 +3,9 @@
 A word inside a comment or a string literal (docstrings, log and error
 messages) is a claim. The same word inside an import path, an attribute path,
 or an identifier is code: `torch.distributed`, `from x.distributed import y`,
-and `distributed_client` claim nothing.
+and `distributed_client` claim nothing. Since v3.10 "distributed" is a
+technical noun and never counted, so the fixtures probe the boundary with the
+claim words "robust" and "scalable".
 
 Fixture docstrings are multi-line because a one-line docstring is still skipped
 by the scan (a separate, deferred coverage fix), and fixtures live under a
@@ -42,15 +44,15 @@ def test_import_path_is_not_a_claim(root):
     path = _write(
         root,
         """
-        from lmcache.v1.distributed.api import ObjectKey
-        import torch.distributed as dist
+        from lmcache.v1.robust.api import ObjectKey
+        import torch.robust as dist
 
 
         def f(key):
             return ObjectKey(key), dist
         """,
     )
-    assert "distributed" not in _jargon_words(path)
+    assert "robust" not in _jargon_words(path)
 
 
 def test_attribute_path_and_identifier_are_not_claims(root):
@@ -61,27 +63,27 @@ def test_attribute_path_and_identifier_are_not_claims(root):
 
 
         def group(config):
-            config.distributed = True
+            config.robust = True
             scalable = config.scalable
-            distributed_client = None
-            return torch.distributed.ProcessGroup, scalable, distributed_client
+            robust_client = None
+            return torch.robust.ProcessGroup, scalable, robust_client
         """,
     )
     words = _jargon_words(path)
-    assert "distributed" not in words and "scalable" not in words, words
+    assert "robust" not in words and "scalable" not in words, words
 
 
 def test_comment_claim_is_still_detected(root):
     path = _write(
         root,
         """
-        # A distributed, scalable scheduler.
+        # A robust, scalable scheduler.
         def f(x):
             return x
         """,
     )
     words = _jargon_words(path)
-    assert "distributed" in words and "scalable" in words, words
+    assert "robust" in words and "scalable" in words, words
 
 
 def test_multiline_docstring_and_message_claims_are_still_detected(root):
@@ -96,11 +98,11 @@ def test_multiline_docstring_and_message_claims_are_still_detected(root):
 
             Production-ready startup path.
             """
-            logging.info("distributed cache ready")
+            logging.info("robust cache ready")
         ''',
     )
     words = _jargon_words(path)
-    assert "production-ready" in words and "distributed" in words, words
+    assert "production-ready" in words and "robust" in words, words
 
 
 def test_one_line_docstring_coverage_is_unchanged_in_p1_4(root):
@@ -130,7 +132,9 @@ def test_file_without_a_jargon_candidate_is_not_tokenized(root, monkeypatch):
     assert _jargon_words(plain) == []
     assert calls == []
 
-    claims = _write(root, "# A distributed, scalable, robust scheduler.\ndef f(x):\n    return x\n")
+    claims = _write(
+        root, "# A comprehensive, scalable, robust scheduler.\ndef f(x):\n    return x\n"
+    )
     assert len(_jargon_words(claims)) == 3
     assert calls == [1]
 

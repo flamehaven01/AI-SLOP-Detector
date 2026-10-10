@@ -224,26 +224,16 @@ except ImportError:
 class InflationCalculator:
     """Calculate Inflation (formerly BCR) with context-aware jargon detection."""
 
+    # Claim words only: qualifiers that assert quality, scale or novelty, and
+    # venue names. Technical nouns (embedding, transformer, neural, equation,
+    # optimization, distributed, serverless, ...) name what the code works
+    # with; measured on 17 repositories their hits were descriptions, not
+    # claims, so they are not inflation.
     JARGON = {
-        # AI/ML jargon
-        "ai_ml": [
-            "neural",
-            "deep learning",
-            "transformer",
-            "attention mechanism",
-            "reinforcement learning",
-            "policy optimization",
-            "gradient descent",
-            "latent space",
-            "embedding",
-            "semantic reasoning",
-        ],
-        # Architecture jargon
+        # Architecture claims
         "architecture": [
-            "byzantine",
             "fault-tolerant",
             "fault tolerant",
-            "distributed",
             "scalable",
             "enterprise-grade",
             "enterprise grade",
@@ -253,16 +243,13 @@ class InflationCalculator:
             "mission critical",
             "cloud-native",
             "cloud native",
-            "microservices",
-            "serverless",
         ],
-        # Quality jargon
+        # Quality claims
         "quality": [
             "robust",
             "resilient",
             "performant",
             "optimized",
-            "optimization",
             "state-of-the-art",
             "cutting-edge",
             "advanced algorithm",
@@ -270,14 +257,13 @@ class InflationCalculator:
             "comprehensive",
             "holistic",
         ],
-        # Paper references (venue/publication names only — math terms like proof/lemma/theorem
-        # are primary domain vocabulary in formal-methods and governance code, not slop signals)
+        # Paper references (venue/publication names only; math terms such as
+        # proof, lemma, theorem or equation are domain vocabulary, not claims)
         "academic": [
             "neurips",
             "iclr",
             "icml",
             "cvpr",
-            "equation",
             "spotlight",
         ],
     }
@@ -285,7 +271,6 @@ class InflationCalculator:
     # Libraries that justify jargon where the code uses them (justifier_lines).
     # Quality is also justified by cache decorators and `.vectorize` calls.
     JUSTIFICATIONS = {
-        "ai_ml": ["torch", "tensorflow", "keras", "jax", "transformers"],
         "architecture": ["multiprocessing", "concurrent", "asyncio"],
         "quality": ["numba", "cython"],
     }

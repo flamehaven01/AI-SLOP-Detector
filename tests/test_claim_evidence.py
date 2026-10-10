@@ -145,7 +145,10 @@ def test_identifier_containing_a_library_name_does_not_justify(root):
 
 
 def test_the_claim_word_does_not_justify_itself(root):
-    """'distributed' was both jargon and a justifier, so it always justified itself."""
+    """'distributed' was both jargon and a justifier, so it always justified itself.
+
+    v3.10: technical nouns are not claims; the same rule is checked with a claim word.
+    """
     path = _write(
         root,
         "m.py",
@@ -153,12 +156,12 @@ def test_the_claim_word_does_not_justify_itself(root):
         def lookup(key, table):
             """Fixture.
 
-            A distributed cache lookup.
+            A scalable cache lookup.
             """
             return table.get(key)
         ''',
     )
-    assert _justified(_analyze(path), "distributed") == [False]
+    assert _justified(_analyze(path), "scalable") == [False]
 
 
 def test_preservation_real_async_usage_justifies(root):
@@ -186,18 +189,18 @@ def test_aliased_import_usage_justifies(root):
         root,
         "m.py",
         '''
-        import torch as T
+        import asyncio as aio
 
 
-        def build(n):
+        async def fan_out(jobs):
             """Fixture.
 
-            Neural layer.
+            Scalable fan-out.
             """
-            return T.nn.Linear(n, n)
+            return await aio.gather(*jobs)
         ''',
     )
-    assert _justified(_analyze(path), "neural") == [True]
+    assert _justified(_analyze(path), "scalable") == [True]
 
 
 def test_preservation_cache_decorator_justifies(root):

@@ -46,18 +46,17 @@ def optimize():
 def test_justified_jargon(bcr_calc):
     """Test jargon justified by implementation (word must appear standalone, not as identifier)."""
     code = """
-import torch
+import asyncio
 
-def train():
-    # This is a neural network training loop using deep learning
-    model = torch.nn.Linear(10, 5)
-    optimizer = torch.optim.Adam(model.parameters())
-    return model, optimizer
+async def fan_out(jobs):
+    # This is a scalable fan-out over all jobs
+    results = await asyncio.gather(*jobs)
+    return results
 """
     tree = ast.parse(code)
     result = bcr_calc.calculate("test.py", code, tree)
 
-    # "neural" in a comment (standalone word) should be detected and justified by torch import
+    # "scalable" in a comment (standalone word) is justified by asyncio use in its scope
     assert len(result.justified_jargon) > 0
 
 
@@ -117,7 +116,7 @@ def process_data():
 def test_jargon_count_multiple_occurrences(bcr_calc):
     """Test counting multiple occurrences of same jargon."""
     code = """
-# neural neural neural
+# scalable scalable scalable
 # robust robust
 def process():
     pass

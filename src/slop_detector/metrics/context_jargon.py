@@ -180,7 +180,7 @@ class ContextJargonDetector:
         "optimized": ["caching", "memoization", "lazy_loading", "algorithmic_efficiency"],
         "comprehensive": ["documentation", "tests_unit", "error_messages"],
         "sophisticated": ["design_patterns", "abstraction", "modularity"],
-        "advanced": ["design_patterns", "advanced_algorithms", "optimization"],
+        "advanced algorithm": ["design_patterns", "advanced_algorithms", "optimization"],
     }
 
     def __init__(self, config):
