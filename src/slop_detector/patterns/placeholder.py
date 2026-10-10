@@ -301,15 +301,9 @@ class EmptyExceptPattern(ASTPattern):
         exc_node = node.type
 
         if exc_node is None:
-            # Bare except: pass — catches everything, including SystemExit
-            return self.create_issue(
-                file=file,
-                line=getattr(node, "lineno", 0),
-                column=getattr(node, "col_offset", 0),
-                message="Bare 'except: pass' swallows all exceptions including SystemExit",
-                suggestion="Catch specific exception types and log or handle them properly",
-                severity_override=Severity.CRITICAL,
-            )
+            # A bare handler is bare_except's finding (it says when the handler
+            # only passes); reporting it here counted one defect twice.
+            return None
 
         # Check for optional dependency guard: except ImportError / ModuleNotFoundError
         exc_names: set[str] = set()
