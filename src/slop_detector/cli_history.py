@@ -154,7 +154,7 @@ LEGACY_CALIBRATION_WARNING = (
 
 
 def _run_self_calibration(args: argparse.Namespace) -> int:
-    """Report what the legacy self-calibration would recommend. Never writes weights."""
+    """Print the Calibration v2 advisory report for the target's project root. Never writes weights."""
     import sys
 
     from slop_detector.config import Config

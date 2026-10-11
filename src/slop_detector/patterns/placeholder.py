@@ -298,16 +298,16 @@ class NotImplementedPattern(_IntentAwarePattern):
 
 
 class EmptyExceptPattern(ASTPattern):
-    """Detect empty exception handlers (except: pass).
+    """Detect empty typed exception handlers (except SomeError: pass).
 
     Severity depends on the exception type caught:
-    - Bare 'except: pass'           -> CRITICAL (swallows SystemExit, KeyboardInterrupt)
     - 'except ImportError: pass'    -> LOW      (optional dependency guard pattern)
     - 'except SomeTypedExc: pass'   -> MEDIUM   (intentional but undocumented)
+    A bare 'except: pass' is bare_except's finding (one finding per defect).
     """
 
     id = "empty_except"
-    severity = Severity.CRITICAL
+    severity = Severity.MEDIUM
     axis = Axis.QUALITY
     message = "Empty exception handler - errors silently ignored"
 
