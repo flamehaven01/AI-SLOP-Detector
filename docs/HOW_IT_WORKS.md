@@ -11,12 +11,12 @@ Every diagram below uses the same short names. Here is what each one actually me
 | Short name | What it measures (plain language) | Healthy direction |
 |---|---|---|
 | **LDR** (Logic Density Ratio) | Share of code lines that contain real implementation, not stubs / `pass` / `TODO`. | Higher |
-| **Inflation / ICR** | How much buzzword and jargon the text carries relative to how complex the code actually is. | Lower |
+| **Inflation / ICR** | How many unsupported claim words (scalable, robust, state-of-the-art, ...) the text carries relative to how complex the code actually is. Domain vocabulary is not counted. | Lower |
 | **DDC** (Dependency Usage) | Of the libraries you import, how many are actually referenced by runtime code. | Higher |
 | **Purity** | A penalty that drops sharply each time a *critical*-severity pattern is found. | Higher |
 | **GQG** (weighted geometric mean) | How the four numbers above are blended: one very low score drags the whole result down, so a serious problem can't be averaged away. | combiner |
 | **Deficit Score** | The final 0-100 risk number for a file. 0 is clean, 100 is severe. | Lower |
-| **SR9** (project LDR) | Project logic density leans on the worst file, not just the average (`0.6 x worst + 0.4 x mean`), so a few hollow files can't hide behind many dense ones. The project deficit score itself is the line-weighted average of file scores. | Higher |
+| **SR9** (project LDR) | Project logic density leans on the worst file, not just the average (`0.6 x worst + 0.4 x mean`), so a few hollow files can't hide behind many dense ones. The project deficit score itself is the line-weighted average of file scores; modules that hold only static data carry no line weight (`scan_coverage.aggregation_exclusions`). | Higher |
 
 Bands: **CLEAN < 30  |  SUSPICIOUS 30-50  |  INFLATED 50-70  |  CRITICAL >= 70**.
 
@@ -188,11 +188,10 @@ flowchart TD
     style R fill:#fff9c4
     style S fill:#c8e6c9
     
-    subgraph "Buzzword Categories"
-    T1[AI/ML Terms]
-    T2[Architecture]
-    T3[Quality Claims]
-    T4[Academic Refs]
+    subgraph "Claim-word categories (v3.10)"
+    T1[Architecture claims]
+    T2[Quality claims]
+    T3[Academic venues]
     end
 ```
 
@@ -307,7 +306,8 @@ flowchart TD
 
 Local history feeds an advisory self-calibration report; nothing writes the
 weights it suggests. The project deficit is the line-weighted average of file
-deficits, and its status is the band of that score. Project LDR uses SR9
+deficits (static data modules carry no weight), and its status is the band of
+that score. Project LDR uses SR9
 conservative weighting: `0.6 × min_file + 0.4 × mean`.
 
 ---
@@ -396,17 +396,18 @@ graph TB
 
 Every scan is recorded to `~/.slop-detector/history.db` (unless `--no-history`);
 scans never run calibration. `--self-calibrate` prints an advisory weight report;
-`--apply-calibration` is disabled. The legacy history is not provenance-stable,
-so the report is a lead to review, not a setting to apply.
+`--apply-calibration` is disabled. Since v3.10 (Calibration v2) the report uses
+only rows of one project root measured the same way; rows written before v3.10
+are legacy. The report is a lead to review, not a setting to apply.
 
 ```mermaid
 flowchart TD
-    A[Scan Completes] --> B[Record to history.db<br/>git commit + branch tag]
+    A[Scan Completes] --> B[Record to history.db<br/>v6 provenance: detector, fingerprint,<br/>weights, project root]
     B --> END[Done: scans never calibrate]
-    S[--self-calibrate] --> D[Extract Events<br/>improvement / fp_candidate pairs]
-    D --> E{Per-class min met?<br/>5 improvements + 5 fp_candidates}
+    S[--self-calibrate] --> D[v6 rows of one project root<br/>consecutive runs under one fingerprint<br/>improvement / stable_flag_candidate]
+    D --> E{Per-class min met?<br/>5 improvements + 5 stable flags}
     E -->|No| F[Report: insufficient_data]
-    E -->|Yes| G[4D Grid Search<br/>ldr × inflation × ddc × purity]
+    E -->|Yes| G[Grid Search<br/>ldr × inflation × ddc, purity held]
     G --> R[Advisory report<br/>weights are not written]
     X[--apply-calibration] --> N[Refused: exit 2<br/>config unchanged]
 

@@ -25,6 +25,7 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 **Release track**
 - Stable tag: `v3.9.3`
 - Previous stable tag: `v3.9.2`
+- `3.10.0` is on `main` and not yet released: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and scans are about three times faster cold. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.9.3` is a precision correction found by testing 3.9.2 on 12 outside repositories: an `elif` no longer counts as a level of nesting, `@overload` signatures are not placeholders, a module with no executable code is not scored as empty logic, a file that fails to analyze is listed and marks the scan incomplete (a hard gate then fails) instead of silently disappearing, `--json --js` prints one JSON document, and the JS/TS analysis mode (tree-sitter or regex fallback) is disclosed. Scores mostly go down; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.2` makes one result mean the same thing everywhere and removes double counting: one set of score bands for files, projects, JS and Go; docstrings count like comments (logic density, god_function); a nested function's nesting is charged once; exact duplicates compare function bodies only, with one size floor for the same-file and cross-file reports; import evidence follows the scanned project's root; output is byte-identical across cache, hash seed, Rust helper, and working directory. Self-calibration is now an advisory report that writes nothing, documented configuration keys that nothing read are removed with a warning, and `--init <path>` writes into `<path>`. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.1` makes claim checks count only real claims and real evidence: jargon in import paths, identifiers, and license notices is not a claim; a claim is supported only by code structure (a library named in a comment no longer counts); evidence that one file cannot show, such as tests that live elsewhere, is reported as unmeasured rather than missing. It also flags names a real package does not define (`phantom_member`) and decides test files and exclusions relative to the project root, so a checkout under a `build/` directory is no longer scanned as 0 files. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
@@ -111,7 +112,9 @@ python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d
 Expected output for a healthy project: `clean 0.0` to `clean 30.0`. `clean`
 describes the weighted deficit band only; inspect `finding_summary`,
 `scan_coverage`, and `ml_scoring` before treating it as a complete project
-assessment. The `--output`
+assessment. Modules that hold only static data (`literal_data_module`) are
+analyzed but carry no line weight in the weighted score;
+`scan_coverage.aggregation_exclusions` lists them. The `--output`
 form writes UTF-8 (no BOM) directly to disk, so it is safe under Windows
 PowerShell — prefer it to `> slop.json` redirection.
 
@@ -139,14 +142,12 @@ slop-detector --project . --ci-mode hard --ci-report  # CI gate
 pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
 pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
 
-# Thin npm wrapper (delegates to the Python CLI)
-npm install --save-dev ai-slop-detector
-# or: pnpm add -D ai-slop-detector / yarn add -D ai-slop-detector / bun add -d ai-slop-detector
+# Thin npm wrapper (delegates to the Python CLI). Not published to npm
+# (package.json is private): install it from a checkout of this repository.
+pip install ai-slop-detector                       # Python backend required
+npm install --save-dev /path/to/AI-SLOP-Detector/npm-wrapper
 
-# Python backend still required
-pip install ai-slop-detector
-
-npx ai-slop-detector scan .
+npx ai-slop-detector scan .                        # runs the locally installed wrapper
 npx ai-slop-detector review . --format json
 npx ai-slop-detector pulse . --format json
 npx ai-slop-detector sweep dead-code . --format json
@@ -179,7 +180,8 @@ The npm surface is intentionally thin:
 - it does **not** reimplement analysis logic
 - it delegates into the Python CLI/runtime
 - it exists for Node-first teams that want `npx`-style entry without changing
-  product semantics
+  product semantics; it is not on the npm registry, so `npm install
+  ai-slop-detector` by name does not install it
 - it requires a Python backend and discovers it in this order:
   `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
   `python -m slop_detector.cli`
@@ -411,7 +413,7 @@ that attributes the score back to its source dimensions. This answers
 | Field | Meaning |
 |---|---|
 | `ldr_penalty` | Points of deficit attributable to low logic density |
-| `inflation_penalty` | Points from buzzword / docstring inflation |
+| `inflation_penalty` | Points from unsupported claim words (docstring inflation is reported separately and is not scored) |
 | `ddc_penalty` | Points from low import-usage ratio |
 | `purity_penalty` | Points from critical-severity pattern hits via GQG |
 | `pattern_hits` | Additive pattern penalty (post-cap) |
@@ -478,6 +480,9 @@ slop-detector --project ./src         # now includes .js/.jsx/.ts/.tsx files
 ```
 Activates JSAnalyzer v2.8.0 with tree-sitter AST (regex fallback when not installed).
 Results appear under `js_file_results` in `ProjectAnalysis` and JSON output.
+The regex fallback cannot measure god functions, dead code or complexity;
+`scan_coverage.analysis_modes` lists those checks as `not_measured`, and the
+text, rich and markdown reports say so in one line.
 
 ---
 
@@ -609,6 +614,23 @@ absolute gate. Exact MST topology is used up to
 `advanced.exact_topology_ceiling` (default `300` files); above that the engine
 switches to a deterministic approximation and reports
 `coherence_level = "vr_structural_approx"`. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
+
+---
+
+**Source held in memory**
+```python
+from slop_detector.core import SlopDetector
+
+detector = SlopDetector()
+result = detector.analyze_code_string(code)  # no location
+result = detector.analyze_code_string(code, "pkg/mod.py", project_root=".")  # as that file
+```
+Without `project_root` the filename is only a label: no sibling module,
+project root or dependency declaration is read, and an import the installed
+environment cannot resolve (it may be local code) is listed in
+`unverified_imports` instead of being reported. With `project_root` the
+source is analyzed as `analyze_file(project_root/filename, root=project_root)`
+would analyze it.
 
 ---
 
@@ -816,7 +838,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
-| **v3.10.0 (in progress)** | P0 checkpoint `v3.10.0-p0`: scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; cache `analysis-cache-v26` |
+| **v3.10.0 (unreleased, on `main`)** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (TOE cold 33.1 s -> 10.9 s); cache `analysis-cache-v30`. See [CHANGELOG.md](CHANGELOG.md) |
 | **v3.9.3** | precision correction from a 12-repository study: `elif` is not nesting (`deep_nesting`, `nested_complexity`); `@overload` / `@typing.overload` are not placeholders; `no_executable_code` modules skip LDR/DDC instead of scoring 97.49; failed analyses are counted in `scan_coverage.failed` with `complete: false` and a hard gate fails closed; one JS pass and valid `--json --js` output; `scan_coverage.analysis_modes`; cache `analysis-cache-v25` |
 | **v3.9.2** | consistency and correctness release: one band set (CLEAN <30 / SUSPICIOUS / INFLATED_SIGNAL / CRITICAL_DEFICIT >=70) for files, projects, JS and Go; `dependency_noise` and `parse_error` are flags; docstrings count like comments in LDR and god_function; deep_nesting under nested_complexity charged once; exact duplicates by function body with an 8-node floor, shared by same-file and cross-file; import evidence from the scan root; byte-identical output across cache, hash seed, Rust helper and cwd; advisory-only self-calibration; unread config keys removed with a warning; `--init <path>` honoured; cache `analysis-cache-v24` |
 | **v3.9.1** | claim and path checkpoint: jargon counted only in comments and strings, never in import paths, identifiers, or leading license notices; claim evidence states `structural` / `weak` / `absent` / `unmeasured` with a per-claim `support_level`; justification only by structural library use; test evidence unmeasured outside test files; `--ci-claims-strict` keeps failing unmeasured integration evidence; root-relative path facts (fixes 0-file scans under a `build/` checkout); `phantom_member` pattern |

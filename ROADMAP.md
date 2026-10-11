@@ -1,6 +1,6 @@
 # AI-SLOP Detector Roadmap
 
-> Last updated: 2026-10-05
+> Last updated: 2026-10-11
 
 This roadmap tracks the path that matters for `AI-SLOP-DETECTOR`.
 The goal is not feature parity theater. The goal is a cleaner, more governable,
@@ -11,6 +11,27 @@ more agent-ready structural review system.
 ## Now
 
 Concrete work scoped to the next one or two minor releases.
+
+### v3.11 research (measured in v3.10, not changed)
+
+Each item was measured on the 18-repository study corpus and held back because
+its evidence or its contract was not ready; each needs its own falsifiable
+study before a change.
+
+- `nested_complexity` severity: CRITICAL drives the most band moves in mature
+  libraries; deciding it needs a sampled precision study, not a score target
+  (leaving it out of purity is a policy change, not de-duplication).
+- Pattern penalty: it counts findings regardless of file size (297 Python
+  files reach the cap, median 1,007 lines), and its cap equals the INFLATED
+  boundary, so findings alone can set the band (23 of 7,506 files).
+- Tables built item by item (`table["k"] = {...}`, biopython's
+  Restriction_Dictionary) as data modules: needs name binding and statement
+  order rules.
+- Test-quality patterns (assertion-free, constant assertions): needs a corpus
+  of legitimate "passes unless it raises", snapshot and property tests first.
+- Clone and override evidence across files; jargon-judge consolidation and
+  lazy imports as evidence; TypeScript class-field function names;
+  `ml/data_collector` nesting depth still counts `elif`.
 
 ### Post-v3.8.2 self-dogfood cleanup
 
@@ -85,6 +106,13 @@ chronological order.
 Broader work that should follow once the current release surface is stable.
 
 ### Rust Accelerator — v3.10 Performance Architecture
+
+> **Status (v3.10):** the repeated traversal this plan targets was removed in
+> Python: one project walk per scan, shared by scan coverage and
+> Python/JS/Go discovery, and one AST walk per module (Flamehaven-TOE cold
+> 33.1 s -> 10.9 s, NSRW 11.1 s -> 4.3 s, output byte-identical). The Rust
+> stages below were not started; whether they still pay needs a new profile
+> of the remaining hot paths.
 
 Rust is already connected as an optional file-discovery helper, but it is not
 yet a proven end-user accelerator. The current project scan still performs the

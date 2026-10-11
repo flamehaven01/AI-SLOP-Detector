@@ -45,17 +45,17 @@ pip install "ai-slop-detector[js]"   # optional JS/TS support
 pip install "ai-slop-detector[go]"   # optional Go support
 ```
 
-Optional Node-first wrapper:
+Optional Node-first wrapper (not published to npm (its package.json is private); install it from a checkout of this repository):
 
 ```bash
-npm install --save-dev ai-slop-detector
+npm install --save-dev /path/to/AI-SLOP-Detector/npm-wrapper
 ```
 
 Verify:
 
 ```bash
 slop-detector --version
-npx ai-slop-detector --version
+npx ai-slop-detector --version   # only with the wrapper installed as above
 ```
 
 ---
@@ -198,7 +198,7 @@ exclusions remain in force.
 
 ## Node / MCP Surfaces
 
-Node wrapper:
+Node wrapper (installed from the repository's `npm-wrapper/`, see above):
 
 ```bash
 npx ai-slop-detector review . --format json

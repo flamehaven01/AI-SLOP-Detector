@@ -31,11 +31,11 @@ The detailed sections below explain the main rules and may not cover every id.
 <!-- ACTIVE_PATTERN_REGISTRY:START -->
 | ID | Language | Severity | Category | Auto-Fix | Description |
 |---|---|---|---|---|---|
-| `bare_except` | Python | Critical | Structural | Yes | Catches all exceptions including SystemExit |
-| `mutable_default_arg` | Python | Critical | Structural | Yes | Mutable default argument (list/dict) |
+| `bare_except` | Python | Critical | Structural | Yes | Catches all exceptions including SystemExit (one finding per bare handler; says when it only passes) |
+| `mutable_default_arg` | Python | Critical with mutation or escape evidence, else High | Structural | Yes | Mutable default argument (list/dict/set) |
 | `star_import` | Python | High | Structural | No | `from module import *` |
 | `global_statement` | Python | High | Structural | No | `global` keyword usage |
-| `empty_except` | Python | Critical | Placeholder | No | Exception handler with only `pass` |
+| `empty_except` | Python | Medium (Low for an import guard) | Placeholder | No | Typed exception handler with only `pass` (a bare handler is `bare_except`'s) |
 | `not_implemented` | Python | High | Placeholder | No | `raise NotImplementedError` stub |
 | `pass_placeholder` | Python | High | Placeholder | Yes | Function/class body is only `pass` |
 | `ellipsis_placeholder` | Python | High | Placeholder | Yes | Function body is only `...` (skips `@abstractmethod`, `Protocol` methods and `@overload` / `@typing.overload` signatures) |
@@ -72,7 +72,7 @@ The detailed sections below explain the main rules and may not cover every id.
 | `js_double_equals` | JS/TS | Medium | JS/TS | No | Loose equality (`==` instead of `===`) |
 | `js_god_function` | JS/TS | High | JS/TS | No | Function over the size or complexity threshold |
 | `js_dead_code` | JS/TS | Medium | JS/TS | No | Unreachable statement after return/throw/break |
-| `js_callback_hell` | JS/TS | High | JS/TS | No | Callback nesting over the depth threshold |
+| `js_callback_hell` | JS/TS | High | JS/TS | No | Callback nesting over the depth threshold (at the deepest function, or the deepest line in regex mode) |
 | `go_empty_func` | Go | High | Go | No | Empty function body (stub) |
 | `go_panic` | Go | Medium / Critical (from the 3rd panic in a file) | Go | No | `panic()` used as the error path |
 | `go_fmt_print` | Go | Medium | Go | No | Debug print via `fmt.Println` / `Printf` / `Print` |
@@ -93,6 +93,8 @@ The detailed sections below explain the main rules and may not cover every id.
 
 **Description:**  
 Catches all exceptions including SystemExit and KeyboardInterrupt, which should never be caught.
+A bare handler is reported once, here; when its body is only `pass` the message
+says so (`empty_except` leaves bare handlers alone since v3.10).
 
 **Bad Example:**
 ```python
@@ -135,11 +137,16 @@ except Exception as e:  # Better than bare except
 ### 2. Mutable Default Arguments
 
 **ID:** `mutable_default_arg`  
-**Severity:** CRITICAL  
+**Severity:** CRITICAL when the function mutates the default or lets it escape; otherwise HIGH  
 **Category:** Function Definition
 
 **Description:**  
-Using mutable objects (list, dict) as default arguments creates shared state bugs.
+Using mutable objects (list, dict, set) as default arguments creates shared state bugs.
+The bug needs the default to be changed or kept: the finding is CRITICAL when the
+function mutates the default (a mutating method such as `append` / `update` /
+`add`, item or attribute assignment, augmented assignment, deletion) or lets it
+escape (returns or yields it, or binds it to another name). A default that is
+only read is HIGH ("not mutated here"): still a trap for the next edit.
 
 **Bad Example:**
 ```python
@@ -218,6 +225,23 @@ import os
 ---
 
 ## Placeholder Indicators
+
+**Declared intent (v3.10).** A one-line body is unfinished only when nothing in
+the module says it is meant to be that way. The placeholder patterns read the
+same module-level evidence:
+
+- methods of a declared interface (an `ABC` / `Protocol` base, subscripted or
+  qualified, or `metaclass=ABCMeta`) and base methods that a subclass in the
+  module overrides are contracts, not stubs;
+- an override of a module base that returns a constant or `None` is a hook
+  implementation; an override that is `pass` or raises is still reported;
+- a `property` / `cached_property` / `classmethod` / `staticmethod` returning a
+  constant is a declared accessor; a `...` body under another decorator is
+  implemented by the decorator;
+- `interface_only_class` skips declared interfaces and classes the module
+  subclasses.
+
+Only the module is read, so a hierarchy split across modules is not seen.
 
 ### 4. Pass Placeholder
 
@@ -313,11 +337,12 @@ class DataProcessor(ABC):
 ### 6. Empty Exception Handler (v2.6+)
 
 **ID:** `empty_except`
-**Severity:** CRITICAL
+**Severity:** MEDIUM (LOW for an `ImportError` / `ModuleNotFoundError` optional-dependency guard)
 **Category:** Error Handling
 
 **Description:**
-Exception handler catches errors but does nothing (empty `except: pass`), silently swallowing all errors.
+A typed exception handler catches errors but does nothing (`except ValueError: pass`),
+silently swallowing them. A bare `except: pass` is reported once, by `bare_except`.
 
 **Bad Example:**
 ```python
@@ -940,6 +965,16 @@ cluster via BFS connected components.
 - FastAPI / Flask route files (module-level `app` or `router` assignment)
 - `@abstractmethod` stubs (excluded from histogram before clustering)
 
+**Not fragments** (left out before a group is sized, v3.10):
+- dunder methods: their shape follows the protocol (`__and__` / `__or__` / `__xor__`)
+- names the module defines more than once: one operation implemented per class
+  (an override in each subclass) or per decorator closure
+
+A group still at the threshold after that is reported with its remaining size
+and members. Polymorphism across files (one provider class per file) is not
+visible to a module rule and can still be reported. Exact copies are
+`exact_duplicate_pair`'s.
+
 ```python
 # Flagged: clone cluster (similarity 0.92)
 def process_user(user):
@@ -1007,7 +1042,9 @@ def is_enabled():
 ## JavaScript / TypeScript
 
 *Added: v3.4.0 — `.js`, `.ts`, `.jsx`, `.tsx` files. Uses tree-sitter when the `js` extra is
-installed and a regex fallback otherwise; both emit the same ids and severities.*
+installed and a regex fallback otherwise. Both use the same ids and severities, but the
+regex fallback cannot measure `js_god_function`, `js_dead_code` or complexity;
+`scan_coverage.analysis_modes` lists them as `not_measured` and the reports say so.*
 
 | ID | Severity | What it flags |
 |---|---|---|
@@ -1019,6 +1056,14 @@ installed and a regex fallback otherwise; both emit the same ids and severities.
 | `js_god_function` | HIGH | Function over 50 lines or cyclomatic complexity 10 |
 | `js_dead_code` | MEDIUM | Statement after `return` / `throw` / `break` |
 | `js_callback_hell` | HIGH | Nesting deeper than 4 levels |
+
+`js_callback_hell` is one finding per file. With tree-sitter it is placed at the
+start of the first function (source order) that reaches the file's maximum
+nesting; in regex mode at the first line where the counted nesting reaches its
+maximum (the regex counts braces and does not know functions). Function names in
+messages and `function_metrics` come from the function itself or, for a
+function expression or arrow function assigned to a variable, from that
+variable (`const run = () => {}` is `run`); otherwise `(anonymous)`.
 
 ---
 

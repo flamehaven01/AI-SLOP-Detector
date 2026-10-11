@@ -92,7 +92,7 @@ slop-detector scan . --no-history
 slop-detector . --self-calibrate
 ```
 
-History is local, and scans never run calibration. `--apply-calibration` is disabled: it writes nothing and exits 2, because the legacy history is not provenance-stable. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
+History is local, and scans never run calibration. The report (Calibration v2) uses only rows of the scanned project root that were measured the same way (detector, engine and configuration); rows written before v3.10 are not evidence. `--apply-calibration` is disabled: it writes nothing and exits 2. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
 ## CI And Governance
 
@@ -107,8 +107,8 @@ slop-detector verify-governance ./.cr-ep
 ## Node, MCP, And Local Observability
 
 ```bash
-npm install --save-dev ai-slop-detector
 pip install ai-slop-detector
+npm install --save-dev /path/to/AI-SLOP-Detector/npm-wrapper   # not on the npm registry
 npx ai-slop-detector review . --format json
 
 slop-detector mcp
@@ -116,6 +116,6 @@ slop-detector impact enable
 slop-detector telemetry inspect --example
 ```
 
-The npm package delegates to the installed Python CLI. It does not implement a second analyzer. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
+The npm wrapper is not published to npm (its package.json is private); install it from a checkout of this repository. It delegates to the installed Python CLI. It does not implement a second analyzer. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
 
 For agent-specific guidance, see [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) and [CLAUDE_CODE_SKILL.md](CLAUDE_CODE_SKILL.md).

@@ -227,10 +227,11 @@ Layer 3 guard fires (HistoryEntry.__post_init__)
 _insert(entry) → SQLite history.db
         │
         ▼
-SelfCalibrator.calibrate() reads history
-  → improvement_event / fp_candidate labeling
-  → 4D grid search over validated records only
-  → confidence_gap >= 0.10 → weight update
+SelfCalibrator.calibrate() reads history (Calibration v2)
+  → v6 rows of one project root, grouped by measurement fingerprint
+  → improvement / stable_flag_candidate labeling (metric-only deficit)
+  → ldr / inflation / ddc grid search, purity held
+  → confidence_gap >= 0.10 → advisory recommendation (nothing is written)
 ```
 
 Layer 2 and 3 together guarantee that no record with impossible metric values (`ldr > 1`,

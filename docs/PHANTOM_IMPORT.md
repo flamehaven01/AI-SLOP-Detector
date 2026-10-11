@@ -59,7 +59,19 @@ Before the four sources below, an import is skipped when it belongs to the
 project: a top-level name of the project's internal packages, a sibling `.py`
 file (flat-module projects), a name in `phantom_import_allowlist`, or a module
 the project's module index resolves to an actual file (`src/` layouts and
-namespace packages included).
+namespace packages included). A package directory next to a script (regular
+or namespace) is local too, unless the file is inside a regular package, where
+imports are absolute (v3.10).
+
+### Declarations
+
+"Declared" means named by a dependency declaration of the file's project
+(v3.10): PEP 621 and Poetry `pyproject.toml` (dependencies, dev and groups),
+`setup.py` `install_requires` / `extras_require` (literals or module-level
+names, read with `ast`, never executed), `setup.cfg`, `Pipfile`,
+`requirements*.txt` / `.in`, and conda `environment*.yml` with its pip list,
+at each project root and in the directories between the file and its root. A
+declaration in another subtree says nothing about the file.
 
 ### Unresolved does not always mean phantom
 
@@ -116,9 +128,24 @@ The same target in the same environment gives the same result from any working
 directory. Nothing is imported or executed.
 
 ### Error policy
-On any resolution error, the pattern returns `True` (module assumed resolvable).
-This errs toward **False Negative** — missing a phantom import is preferable
-to falsely flagging a legitimate one.
+A lookup that raises is not an answer (v3.10): the module is not assumed
+installed. The pattern is recorded as unmeasured for that file
+(`pattern_errors`, state `unmeasured`), the file is listed in
+`scan_coverage.unmeasured`, and the scan is not complete (a hard CI gate fails
+closed, a soft gate warns). A partial result is not cached. Before v3.10 such a
+lookup answered "installed", which made two import findings vanish under
+resource exhaustion.
+
+### A source with no location
+`SlopDetector.analyze_code_string(content)` without `project_root` analyzes a
+source that has no place on disk: no sibling module, project root or
+declaration is read for it (before v3.10 its virtual filename resolved to the
+working directory). An import the environment cannot resolve may be local
+code, so it is not reported; it is listed in `unverified_imports` with reason
+`no_project_context` and no score effect. Standard-library and installed
+packages, and the names they define (`phantom_member`), are still checked.
+With `project_root`, the source is analyzed as the file
+`project_root/filename`.
 
 ---
 

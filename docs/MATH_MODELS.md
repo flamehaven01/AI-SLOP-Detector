@@ -281,13 +281,20 @@ the dragging file.
 avg_deficit_score        = mean(file.deficit_score for file in project)
 weighted_deficit_score   = sum(file.deficit_score * file.total_lines)
                            / sum(file.total_lines)   [line-weighted mean]
+                           over files that are not literal_data_module (v3.10)
 avg_inflation            = mean(finite file.inflation.inflation_score, parsed Python files)
 avg_ddc                  = mean(file.ddc.usage_ratio, parsed Python files)
 ```
 
 The project status is the band of `weighted_deficit_score`. A file that could
 not be parsed counts in the deficit averages (score 100, weighted by its lines)
-but not in the metric averages, which describe parsed code only.
+but not in the metric averages, which describe parsed code only. A
+`literal_data_module` (a module with only a docstring, leading `from
+__future__` directives and static literal assignments, no finding and no
+pattern error) is analyzed and listed but carries no line weight: its 0 would
+otherwise count as that many lines of defect-free code. When every file is
+such a module, or aggregation is unweighted, nothing is excluded;
+`scan_coverage.aggregation_exclusions` reports candidates and the decision.
 
 ---
 
@@ -372,9 +379,13 @@ attributed to the innermost function.
 
 ## 8. Function-Scoped Justification
 
-> **v2.8.0 redesign.** Previously, a single `import torch` at the top of a
-> file would justify all AI jargon anywhere in the file. Now each function
-> must contain (or be decorated by) its own justifier.
+> **v2.8.0 redesign.** Previously, a single library import at the top of a
+> file would justify every claim word anywhere in the file. Now each function
+> must contain (or be decorated by) its own justifier. Since v3.10 only claim
+> words are counted (architecture and quality qualifiers such as scalable,
+> production-ready, robust, optimized, state-of-the-art, and venue names); the
+> AI/ML category and domain nouns (embedding, neural, distributed,
+> optimization, equation, ...) are not inflation.
 
 ### Scope Definition
 
@@ -384,8 +395,8 @@ scope_start(fn) = min(decorator.lineno for decorator in fn.decorator_list,
 scope_end(fn)   = fn.end_lineno
 ```
 
-The decorator's `lineno` is included so that `@torch.jit.script` above a
-function is correctly counted as part of that function's justification scope.
+The decorator's `lineno` is included so that `@numba.njit` above a function is
+correctly counted as part of that function's justification scope.
 
 ### Justification Check
 
@@ -398,8 +409,9 @@ justified(jargon_at_line L, fn) =
 ```
 
 Where `justifier_lines` are the lines where code *uses* a name imported from a
-justifying library of the jargon's category (aliases included: `import torch as
-T` ... `T.nn`), plus cache decorators and `.vectorize` for quality claims. An
+justifying library of the claim's category (architecture: multiprocessing,
+concurrent, asyncio; quality: numba, cython; aliases included), plus cache
+decorators and `.vectorize` for quality claims. An
 import statement alone justifies nothing; comments, strings, identifier names,
 and the claim word itself are never evidence. Jargon at module level (outside
 any function) is justified when the library is used anywhere in the file.
@@ -407,15 +419,17 @@ any function) is justified when the library is used anywhere in the file.
 ### Example
 
 ```python
-import torch                  # line 1: an import alone justifies nothing
+import numba                       # line 1: an import alone justifies nothing
 
-def rank(rows):               # scope [3, 5]
-    # Neural ranking of rows. # line 4: "neural" is NOT justified
-    return sorted(rows)       #   (torch is not used in this function)
 
-@torch.jit.script             # line 7: a use of torch, inside scope [7, 10]
+def rank(rows):                    # scope [4, 6]
+    # Optimized ranking of rows.   # line 5: "optimized" is NOT justified
+    return sorted(rows)            #   (numba is not used in this function)
+
+
+@numba.njit                        # line 9: a use of numba, inside scope [9, 12]
 def scale(t):
-    # Neural scaling.         # line 9: "neural" IS justified
+    # Optimized scaling.           # line 11: "optimized" IS justified
     return t * 2.0
 ```
 
@@ -542,9 +556,12 @@ training without requiring a real codebase:
 
 | Version | Signal    | Change                                                          |
 |---------|-----------|-----------------------------------------------------------------|
-| unreleased | Status | Status is only the band of the score; overrides removed, `dependency_noise` and `parse_error` are flags |
-| unreleased | LDR    | Docstrings excluded like comments; call-only functions are not empty |
-| unreleased | ICR    | Dict keys and argparse help/description/epilog/usage text are not claims |
+| v3.10.0 (unreleased) | Project | `literal_data_module` files carry no line weight in `weighted_deficit_score` |
+| v3.10.0 (unreleased) | ICR | Claim words only: AI/ML category and domain nouns (distributed, optimization, equation, ...) removed |
+| v3.10.0 (unreleased) | Penalty | `bare_except` + `empty_except` on one bare handler counted once; `mutable_default_arg` HIGH without mutation evidence |
+| v3.9.2  | Status    | Status is only the band of the score; overrides removed, `dependency_noise` and `parse_error` are flags |
+| v3.9.2  | LDR       | Docstrings excluded like comments; call-only functions are not empty |
+| v3.9.2  | ICR       | Dict keys and argparse help/description/epilog/usage text are not claims |
 | v3.9.1  | ICR       | Jargon counted in prose only (not code tokens or license notices); justification needs structural use |
 | v3.7.3  | Config    | Pydantic import made optional (try/except); package always loads |
 | v3.7.2  | Config    | `_validate_yaml_config()` — Layer 1 guard at YAML load time     |

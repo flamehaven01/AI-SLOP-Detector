@@ -81,7 +81,7 @@ Cleanup confidence is prioritization evidence, not permission for blind deletion
 
 ## History, Calibration, And Telemetry
 
-Normal scans record local history unless `--no-history` is used; they never run calibration. `--self-calibrate` reads it and prints an advisory weight report; it never writes weights, and `--apply-calibration` is disabled (writes nothing, exits 2). The legacy history does not record the detector version, configuration or project root, so its events are not provenance-stable; see [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
+Normal scans record local history unless `--no-history` is used; they never run calibration. `--self-calibrate` reads it and prints an advisory weight report; it never writes weights, and `--apply-calibration` is disabled (writes nothing, exits 2). Since v3.10 (Calibration v2) every row records its measurement provenance (detector version, measurement fingerprint, weights, canonical project root) and the report compares only runs of one project root measured the same way; rows written before v3.10 are legacy and not evidence. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
 This adaptation is repository-scoped and is not an external validation loop. It does not export history as a validation channel. Local impact tracking is opt-in, and telemetry is off by default; inspect its payload before enabling it. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md) and [HISTORY_TRACKING.md](HISTORY_TRACKING.md).
 

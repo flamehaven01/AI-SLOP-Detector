@@ -5,6 +5,15 @@
 **Repo**: https://github.com/flamehaven01/AI-SLOP-Detector  
 **Disputed post**: LinkedIn draft referencing self-calibration and download metrics
 
+> **Historical record.** This verification describes the code of v3.5.0 on
+> 2026-04-15; line references point at that version. Later releases changed the
+> verified behaviour: since v3.9.2 scans never calibrate and
+> `--apply-calibration` writes nothing (exit 2); since v3.10 the report
+> (Calibration v2) uses only history rows of one project root measured the
+> same way, and counts an improvement only when the file changed. See
+> [docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md) for the current
+> behaviour. The verdicts below are not current claims.
+
 ---
 
 ## Claim 1: "Every scan is recorded"

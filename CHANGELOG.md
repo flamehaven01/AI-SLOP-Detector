@@ -9,15 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 3.10.0 in progress: P0 checkpoint (tag `v3.10.0-p0`, not published)
+### 3.10.0 (not published; the P0 checkpoint is tagged `v3.10.0-p0`)
 
-Every score says what it looked at and what it came from. Found by re-scanning
-NSRW, Flamehaven-TOE and RExSyn-Nexus with 3.9.3 and by the 12-repository
-precision study. For scripts: `scan_coverage` gains keys (additive);
-`--init` output and generated configs change; `phantom_import` moves to
-declared/local states where a declaration or a script-directory package
-exists; history gains schema v6 columns; `--self-calibrate` reads only v6
-evidence; cache `analysis-cache-v26`.
+Every score says what it looked at and what it came from, and a finding needs
+evidence. Found by re-scanning NSRW, Flamehaven-TOE and RExSyn-Nexus with
+3.9.3 and by the 18-repository precision study; every change below was
+replayed on that corpus (or on the part of it the change can reach) and lists
+what moved.
+
+For scripts and agents:
+
+- Additive keys: `scan_coverage.unsupported.by_extension`,
+  `excluded.by_source` / `custom_rules` / `tests`, `unmeasured`,
+  `analysis_modes` (JavaScript and Go, with `not_measured`),
+  `aggregation_exclusions`; file flag `literal_data_module`;
+  `unverified_imports` rows with reason `no_project_context`.
+- `analyze_code_string(content, filename, project_root=None)`: without a
+  project root the source has no location (see below).
+- Findings that change: `phantom_import` (declared / local states),
+  placeholder and clone families (declared intent, protocol methods),
+  `bare_except` / `empty_except` (one finding per bare handler),
+  `mutable_default_arg` (HIGH without mutation evidence), inflation (claim
+  words only); JS `js_callback_hell` location and function names.
+- `--init` output and generated configs change; history gains schema v6
+  columns; `--self-calibrate` reads only v6 evidence.
+- Analysis cache `analysis-cache-v30` (old entries are recomputed).
 
 #### Scan coverage says what was not looked at
 
@@ -91,6 +107,121 @@ evidence; cache `analysis-cache-v26`.
 - On a copy of a real history database (31,065 rows) v1 reported 364
   improvements, 289 (79%) with an unchanged file; v2 reports the rows as
   legacy, 0 evidence, and starts from new scans.
+
+#### Placeholder, clone and inflation findings need evidence
+
+- Placeholder patterns read the module's declared intent: methods of a
+  declared interface (ABC / Protocol / `metaclass=ABCMeta`) and base methods a
+  subclass in the module overrides are contracts; an override returning a
+  constant or `None` is a hook implementation; a decorated accessor returning
+  a constant is declared. An override that is `pass` or raises is still
+  reported. 18 repositories: of 514 placeholder-family findings 336 had such
+  evidence; -285 findings (return_constant_stub 191, interface_only_class 36,
+  not_implemented 20, return_none_placeholder 19, pass_placeholder 11,
+  ellipsis_placeholder 8). Hierarchies across modules are not read.
+- `function_clone_cluster` leaves out dunder methods and names the module
+  defines more than once (one operation per class or per decorator closure)
+  before sizing a group: 27 findings -> 12 removed, 4 resized. Polymorphism
+  across files is not visible to a module rule and stays.
+- Inflation counts claim words (quality and scale qualifiers such as robust,
+  state-of-the-art, production-ready, scalable, and venue names), not the
+  vocabulary of the domain: the ai_ml category and the nouns distributed,
+  microservices, serverless, byzantine, optimization and equation are gone
+  (sampled hits were descriptions such as "Henderson Hasselbalch equation").
+  No pattern finding changed; weighted scores fall by up to 0.78; 7 files move
+  down a band. The claim judge's "advanced" evidence rule now matches the
+  counted word.
+- `docstring_inflation` is reported, not part of the score; the README said
+  it added points and is corrected.
+
+#### Analysis modes say which checks they could not run
+
+JS/TS without the `[js]` extra runs a regex fallback that finds no god
+functions, dead code or complexity (hermes-agent: 0 god functions vs 2,703
+with tree-sitter). `scan_coverage.analysis_modes` describes JavaScript and Go
+(`mode`, `ast_available`, `not_measured`), and the text, rich and markdown
+reports add one line per language with unmeasured checks. Scores and findings
+are unchanged.
+
+#### One finding per defect
+
+- A bare `except: pass` was reported twice as CRITICAL (`bare_except` and
+  `empty_except`). `empty_except` now leaves bare handlers to `bare_except`,
+  which says when the handler only passes. OpenClaw -0.11 (3 files move band).
+  `empty_except` declares the severity it reports (MEDIUM; LOW for an import
+  guard) instead of CRITICAL, which it no longer emits.
+- `mutable_default_arg` is CRITICAL when the function mutates the default
+  (mutating method, item or attribute assignment, augmented assignment,
+  deletion) or lets it escape (return, yield, alias); otherwise HIGH ("not
+  mutated here"). sentence-transformers -0.33 (1 move), HealthChain -0.29.
+
+#### Data modules leave the project line weight
+
+A module that is only data scored 0 and counted as that many lines of
+defect-free code in the weighted project score. A file is flagged
+`literal_data_module` when its AST holds only a module docstring, leading
+`from __future__` directives and assignments of static literals to plain
+names (no other import, def, class, control flow, call, comprehension,
+f-string, name, operator or unpacking) and it has no finding and no pattern
+error. Flagged files stay analyzed and listed; only their line weight leaves
+the weighted score. `scan_coverage.aggregation_exclusions` (present when there
+is a candidate) gives candidates, lines and whether they were applied; when
+every file is a candidate, or aggregation is unweighted, nothing is excluded
+and the reason is given. 18 repositories: 38 files, all scored 0, none
+ordinary code; jieba 0.09 -> 13.30, OpenClaw 31.80 -> 33.34, biopython 24.02
+-> 24.43, TOE 4.79 -> 4.80; no band moved. Tables built item by item
+(`table["k"] = {...}`, biopython's Restriction_Dictionary) are not covered.
+
+#### `analyze_code_string` has no implicit context
+
+The virtual filename resolved to the working directory, whose sibling
+modules, project root and declarations were read as the source's own: the
+same string scored 37.8 or 76.8 depending on where it ran (the ML dataset
+pipeline labels code through this call). Without `project_root` the source
+now has no location: an import the environment cannot resolve may be local
+code, so it is listed in `unverified_imports` (`no_project_context`, no score
+effect) instead of reported; standard-library and installed-package evidence
+still applies. With `project_root` the source is analyzed as
+`analyze_file(project_root / filename, root=project_root)` would analyze it.
+`analyze_file` and `analyze_project` are unchanged.
+
+#### Locations and names
+
+- JS `js_callback_hell` was always at line 1. With tree-sitter it is at the
+  start of the first function that reaches the file's maximum nesting; in
+  regex mode at the first line where the counted nesting does (typia and
+  hermes: 456 findings moved, counts and scores unchanged).
+- A function expression or arrow function assigned to a variable takes the
+  variable's name instead of `(anonymous)`.
+- `--init --init-preview` caps complexity hotspots per function, not per
+  file, and groups a function's files under its name: one function copied
+  into three files no longer hides every other hotspot.
+
+#### Speed
+
+One project walk per scan (shared by coverage and Python/JS/Go discovery),
+one AST walk per module shared by every module-wide check, and a cheaper claim
+scan. Cold / warm: Flamehaven-TOE 33.09 s / 10.24 s -> 10.92 s / 3.24 s, NSRW
+11.05 s / 1.55 s -> 4.31 s / 0.78 s; output byte-identical except the order of
+the bounded excluded-file sample. Symlinked directories are not followed.
+
+#### Distribution says what was published
+
+The release Docker job reports `PUBLISHED` or `BUILT_NOT_PUBLISHED` (it
+reported success while nothing was pushed). The npm wrapper, never published,
+is marked `private`.
+
+#### Fixed
+
+- Python 3.8: `empty_except` used `ast.unparse` (3.9+) and failed on every
+  typed handler since 3.0.2, leaving those files unmeasured.
+
+#### Not in 3.10 (measured, moved to 3.11)
+
+`nested_complexity` severity, file-size normalization of the pattern penalty
+(its cap equals the INFLATED boundary), tables built item by item, test-quality
+patterns, clone and override evidence across files, TypeScript class-field
+function names.
 
 ## [3.9.3] - 2026-10-09
 

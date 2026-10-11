@@ -18,14 +18,20 @@ and which patterns keep recurring.
 ```
 
 Shared across all projects on the machine. Each file is identified by its
-absolute path. Since v3.5.0, every record is tagged with a `project_id`
-(SHA-256[:12] of the scan's resolved cwd) so calibration signal is scoped
-per project and never bleeds between unrelated codebases.
+absolute path. Since v3.10 (schema v6) every row also records what measured it
+and which project it belongs to: the detector version, a measurement
+fingerprint (detector + analysis engine + the whole effective configuration),
+the weights, the canonical project root (the scanned directory for a project
+scan; the nearest project marker, else the parent, for a single file) and the
+file's path under it. Calibration compares only rows with the same project
+root and fingerprint. The v3.5.0 `project_id` (SHA-256[:12] of the working
+directory) is still written for old readers but is not evidence: it grouped
+projects scanned from one directory together.
 
-Schema migrates automatically when new columns are introduced — existing
-rows receive safe defaults (`project_id = NULL`, `n_critical_patterns = 0`).
+The schema migrates in place when columns are added; existing rows are never
+rewritten (pre-v6 rows keep `provenance_state = NULL` and count as legacy).
 
-### Schema (v5 — v3.5.0)
+### Schema (v6 — v3.10)
 
 | Column | Type | Added | Description |
 |---|---|---|---|
@@ -42,7 +48,15 @@ rows receive safe defaults (`project_id = NULL`, `n_critical_patterns = 0`).
 | `git_branch` | TEXT | v3.2.1 | Current branch name (when available) |
 | `n_critical_patterns` | INTEGER | v3.2.0 | Count of CRITICAL-severity pattern issues in this run |
 | `fired_rules` | TEXT | v3.4.0 | JSON object `{"pattern_id": count, ...}` — validated on write since v3.7.2 |
-| `project_id` | TEXT | **v3.5.0** | SHA-256[:12] of resolved scan cwd — scopes calibration per project |
+| `project_id` | TEXT | v3.5.0 | SHA-256[:12] of resolved scan cwd (legacy; not used by calibration) |
+| `detector_version` | TEXT | **v3.10** | Release that measured the row |
+| `measurement_fingerprint` | TEXT | **v3.10** | SHA-256 of detector version + engine version + effective configuration |
+| `weights_vector` | TEXT | **v3.10** | Weights the scan used (JSON) |
+| `project_root` | TEXT | **v3.10** | Canonical project root of the scan |
+| `file_rel_path` | TEXT | **v3.10** | File path under `project_root` |
+| `base_deficit` | REAL | **v3.10** | Score before the pattern penalty |
+| `pattern_penalty` | REAL | **v3.10** | Additive pattern penalty |
+| `provenance_state` | TEXT | **v3.10** | `v6` on rows written with provenance; NULL on legacy rows |
 
 ---
 
@@ -150,7 +164,7 @@ labels — creating a circular dependency where the ML model just learns the rul
 The history tracker breaks this cycle:
 
 ```
-Daily runs accumulate history (per project via project_id)
+Daily runs accumulate history (per project root and measurement)
     ↓
 Files that score 42 → 18 → 0 across runs
     = a flagged file was changed and its local score moved
@@ -165,9 +179,10 @@ Repository-local signal for calibration only
 
 `--self-calibrate` reads this history to report weights that would reduce missed
 improvement signals and unnecessary alerts. The report is advisory: nothing writes
-the weights, and scans never run it. The rows do not record the detector version,
-configuration or project root, and `project_id` is derived from the working
-directory, so the report does not establish false-positive rates.
+the weights, and scans never run it. It uses only v6 rows of one project root,
+compares only runs with the same measurement fingerprint, and counts an
+improvement only when the file itself changed. Even so it describes local review
+behaviour; it does not establish false-positive rates.
 
 ---
 
@@ -190,10 +205,11 @@ if reg and reg["is_regression"]:
 # Project trends
 trends = tracker.get_project_trends(days=7)
 
-# v3.5.0: count files scanned more than once (calibration trigger)
+# Files scanned more than once under a legacy project_id (informational;
+# scans no longer trigger calibration, see SELF_CALIBRATION.md)
 project_id = "abc123def456"  # sha256[:12] of cwd
 repeat_files = tracker.count_files_with_multiple_runs(project_id=project_id)
-print(f"Files with multiple runs: {repeat_files}")  # calibration fires at ≥10
+print(f"Files with multiple runs: {repeat_files}")
 
 # Export
 count = tracker.export_jsonl("history.jsonl")

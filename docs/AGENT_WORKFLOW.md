@@ -27,7 +27,7 @@ Use the canonical review surface:
 slop-detector review . --format json
 ```
 
-Node-first workflows can use:
+Node-first workflows can use the npm wrapper (not published to npm (its package.json is private); install it from a checkout of this repository):
 
 ```bash
 npx ai-slop-detector review . --format json
