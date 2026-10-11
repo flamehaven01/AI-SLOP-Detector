@@ -527,6 +527,41 @@ def set_analysis_modes(
     scan_coverage["analysis_modes"] = modes
 
 
+def aggregation_weighted_results(
+    all_results: List[Any], use_weighted_analysis: bool, scan_coverage: Dict[str, Any]
+) -> List[Any]:
+    """Results that carry line weight in the project score, with disclosure.
+
+    A literal_data_module (static data, no finding) has no code to judge, so
+    its 0 would count as that many lines of defect-free code. It stays
+    analyzed and listed; only its line weight leaves the project score. When
+    every result is such a module there is nothing else to score, and the
+    original aggregation is kept (no score is invented).
+    """
+    candidates = [r for r in all_results if "literal_data_module" in getattr(r, "flags", ())]
+    if not candidates:
+        return all_results
+    rest = [r for r in all_results if "literal_data_module" not in getattr(r, "flags", ())]
+    not_applied = (
+        "unweighted_aggregation"
+        if not use_weighted_analysis
+        else "no_scorable_code" if sum(result_total_lines(r) for r in rest) == 0 else None
+    )
+    candidate_lines = sum(result_total_lines(r) for r in candidates)
+    disclosure: Dict[str, Any] = {
+        "reason": "literal_data_module",
+        "candidates": len(candidates),
+        "candidate_lines": candidate_lines,
+        "applied": not_applied is None,
+        "files": 0 if not_applied else len(candidates),
+        "lines": 0 if not_applied else candidate_lines,
+    }
+    if not_applied:
+        disclosure["not_applied_reason"] = not_applied
+    scan_coverage["aggregation_exclusions"] = disclosure
+    return all_results if not_applied else rest
+
+
 def build_project_analysis(
     project_path: str,
     prioritization_path: str,
@@ -575,12 +610,15 @@ def build_project_analysis(
         1, len(with_code_python)
     )
 
+    weighted_results = aggregation_weighted_results(
+        all_results, use_weighted_analysis, scan_coverage
+    )
     if use_weighted_analysis:
-        total_lines = sum(result_total_lines(result) for result in all_results)
+        total_lines = sum(result_total_lines(result) for result in weighted_results)
         weighted_deficit = (
             sum(
                 result_slop_score(result) * (result_total_lines(result) / total_lines)
-                for result in all_results
+                for result in weighted_results
             )
             if total_lines > 0
             else average_deficit

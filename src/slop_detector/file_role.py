@@ -114,3 +114,52 @@ def classify_file(
         return FileRole.STUB
 
     return FileRole.SOURCE
+
+
+# Nodes a static literal may contain (constants, containers of them, signed
+# numbers). Anything else -- a name, call, operator, comprehension, f-string,
+# unpacking -- is code that runs at import time.
+_STATIC_LITERAL_NODES = (
+    ast.Constant,
+    ast.Dict,
+    ast.List,
+    ast.Tuple,
+    ast.Set,
+    ast.Load,
+    ast.UnaryOp,
+    ast.USub,
+    ast.UAdd,
+)
+
+
+def _is_static_literal(value: ast.expr) -> bool:
+    for node in ast.walk(value):
+        if not isinstance(node, _STATIC_LITERAL_NODES):
+            return False
+        if isinstance(node, ast.UnaryOp) and not (
+            isinstance(node.operand, ast.Constant)
+            and isinstance(node.operand.value, (int, float, complex))
+        ):
+            return False
+    return True
+
+
+def is_static_literal_module(tree: ast.Module) -> bool:
+    """True when the module is data, not code: only a module docstring and
+    assignments of static literals to plain names, at least one of them.
+
+    Decided from the AST alone (nothing is evaluated). Such a module has no
+    logic for the analysis to judge, so its score says nothing about code.
+    """
+    body = list(tree.body)
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+        if isinstance(body[0].value.value, str):
+            body = body[1:]
+    if not body:
+        return False
+    return all(
+        isinstance(stmt, ast.Assign)
+        and all(isinstance(target, ast.Name) for target in stmt.targets)
+        and _is_static_literal(stmt.value)
+        for stmt in body
+    )

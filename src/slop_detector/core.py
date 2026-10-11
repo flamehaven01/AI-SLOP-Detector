@@ -43,7 +43,7 @@ from slop_detector.core_topology import (
     js_divergence,
 )
 from slop_detector.environment_resolution import environment_fingerprint
-from slop_detector.file_role import classify_file
+from slop_detector.file_role import classify_file, is_static_literal_module
 from slop_detector.ignore_handler import IgnoreHandler
 from slop_detector.masking import FrameworkMasker
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
@@ -369,6 +369,11 @@ class SlopDetector:
         flags = diagnostic_flags(inflation, ddc, pattern_issues, skip=skip)
         if no_executable_code:
             flags.append("no_executable_code")
+        # Data, not code: left out of the project line weight (core_project).
+        # A finding or a pattern error keeps the file in, so nothing measured
+        # (or failed to be measured) disappears from the project score.
+        if not pattern_issues and not pattern_errors and is_static_literal_module(tree):  # type: ignore[arg-type]
+            flags.append("literal_data_module")
         member_pattern = self.pattern_registry.get("phantom_member")
         unverified_imports = (
             member_pattern.take_unknowns(Path(file_path))  # type: ignore[attr-defined]
