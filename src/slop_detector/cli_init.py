@@ -363,7 +363,10 @@ def _suggest_domain_overrides(signals: Dict[str, Any]) -> List[Dict[str, Any]]:
                 },
             }
         )
-    return suggestions[:3]
+    # The cap counts functions: copies of one function in several files keep
+    # their own evidence and do not crowd out other functions.
+    names = list(dict.fromkeys(item["function_pattern"] for item in suggestions))[:3]
+    return [item for item in suggestions if item["function_pattern"] in names]
 
 
 def _suggest_architecture_config(signals: Dict[str, Any]) -> Dict[str, Any]:
@@ -481,13 +484,16 @@ def _render_init_preview(
         # An override would exempt today's worst functions (by name, project
         # wide), so they are shown for review and never written to the config.
         lines.append("  Complexity hotspots to review (not written to config):")
+        by_name: Dict[str, List[Dict[str, Any]]] = {}
         for item in overrides:
-            evidence = item.get("evidence", {})
-            lines.append(
-                "    - "
-                f"{evidence.get('file_path')}::{item['function_pattern']} "
-                f"(complexity {evidence.get('complexity')}, lines {evidence.get('logic_lines')})"
-            )
+            by_name.setdefault(item["function_pattern"], []).append(item.get("evidence", {}))
+        for name, evidences in by_name.items():
+            lines.append(f"    - {name}")
+            for evidence in evidences:
+                lines.append(
+                    f"        {evidence.get('file_path')} "
+                    f"(complexity {evidence.get('complexity')}, lines {evidence.get('logic_lines')})"
+                )
 
     architecture = suggestions.get("architecture", {})
     lines.append(
