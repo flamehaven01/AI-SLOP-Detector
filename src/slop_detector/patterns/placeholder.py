@@ -109,6 +109,28 @@ def _is_placeholder_stmt(stmt: ast.stmt) -> bool:
     return False
 
 
+def _exception_type_text(node: ast.expr, content: str) -> Optional[str]:
+    """Text of an except clause's type without ast.unparse (3.9+; CI runs 3.8).
+
+    Names, dotted names and tuples of them are written as ast.unparse writes
+    them; any other expression uses its source text on one line. None when
+    neither is available, so a message never names an invented type.
+    """
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        base = _exception_type_text(node.value, content)
+        return f"{base}.{node.attr}" if base else None
+    if isinstance(node, ast.Tuple):
+        parts = [_exception_type_text(elt, content) for elt in node.elts]
+        texts = [part for part in parts if part]
+        if len(texts) < len(parts):
+            return None
+        return f"({texts[0]},)" if len(texts) == 1 else "(" + ", ".join(texts) + ")"
+    segment = ast.get_source_segment(content, node)
+    return " ".join(segment.split()) if segment else None
+
+
 class _IntentAwarePattern(ASTPattern):
     """A placeholder pattern that reads the module's declared intent once per tree."""
 
@@ -314,7 +336,7 @@ class EmptyExceptPattern(ASTPattern):
                 if isinstance(elt, ast.Name):
                     exc_names.add(elt.id)
 
-        exc_type_str = ast.unparse(exc_node)
+        exc_type_str = _exception_type_text(exc_node, content)
 
         if exc_names and exc_names.issubset(self._IMPORT_GUARD_NAMES):
             # Optional dependency guard — common and legitimate pattern
@@ -325,6 +347,8 @@ class EmptyExceptPattern(ASTPattern):
                 message=(
                     f"'except {exc_type_str}: pass' — optional dependency guard; "
                     f"verify this is intentional"
+                    if exc_type_str
+                    else "Empty optional dependency guard; verify this is intentional"
                 ),
                 suggestion=(
                     "Add a comment explaining which optional package is guarded "
@@ -338,7 +362,11 @@ class EmptyExceptPattern(ASTPattern):
             file=file,
             line=getattr(node, "lineno", 0),
             column=getattr(node, "col_offset", 0),
-            message=(f"Empty handler for '{exc_type_str}' silently discards the exception"),
+            message=(
+                f"Empty handler for '{exc_type_str}' silently discards the exception"
+                if exc_type_str
+                else "Empty handler silently discards the exception"
+            ),
             suggestion=(
                 "Add logging (logger.debug/warning) or a comment explaining "
                 "why silence is correct here."
