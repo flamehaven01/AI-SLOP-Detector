@@ -556,9 +556,9 @@ training without requiring a real codebase:
 
 | Version | Signal    | Change                                                          |
 |---------|-----------|-----------------------------------------------------------------|
-| v3.10.0 (unreleased) | Project | `literal_data_module` files carry no line weight in `weighted_deficit_score` |
-| v3.10.0 (unreleased) | ICR | Claim words only: AI/ML category and domain nouns (distributed, optimization, equation, ...) removed |
-| v3.10.0 (unreleased) | Penalty | `bare_except` + `empty_except` on one bare handler counted once; `mutable_default_arg` HIGH without mutation evidence |
+| v3.10.0 | Project | `literal_data_module` files carry no line weight in `weighted_deficit_score` |
+| v3.10.0 | ICR | Claim words only: AI/ML category and domain nouns (distributed, optimization, equation, ...) removed |
+| v3.10.0 | Penalty | `bare_except` + `empty_except` on one bare handler counted once; `mutable_default_arg` HIGH without mutation evidence |
 | v3.9.2  | Status    | Status is only the band of the score; overrides removed, `dependency_noise` and `parse_error` are flags |
 | v3.9.2  | LDR       | Docstrings excluded like comments; call-only functions are not empty |
 | v3.9.2  | ICR       | Dict keys and argparse help/description/epilog/usage text are not claims |

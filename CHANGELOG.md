@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 3.10.0 (not published; the P0 checkpoint is tagged `v3.10.0-p0`)
+## [3.10.0] - 2026-10-11
 
 Every score says what it looked at and what it came from, and a finding needs
 evidence. Found by re-scanning NSRW, Flamehaven-TOE and RExSyn-Nexus with

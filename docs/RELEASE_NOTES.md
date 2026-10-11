@@ -5,6 +5,51 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.10.0 — 2026-10-11
+
+### Summary
+
+v3.10.0 makes every score say what it looked at and what it came from, and
+asks evidence of each finding. It comes from re-scanning NSRW,
+Flamehaven-TOE and RExSyn-Nexus with 3.9.3 and from an 18-repository
+precision study; each change was replayed on that corpus and its effect is
+listed, per change, in the [Changelog](../CHANGELOG.md#3100---2026-10-11).
+
+### What moves when you upgrade
+
+- **Fewer findings without evidence.** Imports that are declared (Poetry,
+  setup.py, setup.cfg, Pipfile, conda, nested requirements) or that are local
+  packages next to a script are no longer `phantom_import`; placeholder
+  findings respect declared interfaces and overridden hooks; clone clusters
+  leave out protocol methods and per-class overrides; inflation counts claim
+  words only. A bare `except: pass` is one finding, and `mutable_default_arg`
+  is HIGH unless the function mutates or returns the default.
+- **Scores move, mostly down**, for those reasons; static data modules no
+  longer dilute a project's weighted score (jieba 0.09 -> 13.30), so a
+  project dominated by data tables can move up.
+- **Coverage is disclosed.** `scan_coverage` gains unanalyzed code files by
+  extension, custom-rule exclusions, unevaluated tests, partially measured
+  files and the checks a fallback analyzer could not run. A partially
+  measured scan is not complete: a hard CI gate fails.
+- **`--init`** keeps the default weights for every profile and never writes
+  function exemptions.
+
+### Upgrade notes
+
+- The analysis cache is recomputed once (`analysis-cache-v30`).
+- History migrates in place to schema v6; `--self-calibrate` (Calibration v2)
+  ignores rows written before 3.10, so it reports `insufficient_data` until
+  new comparable scans accumulate.
+- `analyze_code_string(content)` no longer reads the working directory: an
+  unresolvable import is listed in `unverified_imports` instead of reported.
+  Pass `project_root=` to analyze the source as a file of a project.
+- Cold scans are 2.6-3x faster (NSRW 11.1 s -> 4.3 s, Flamehaven-TOE 33.1 s
+  -> 10.9 s): one project walk, one AST walk per module.
+- The npm wrapper is not on the npm registry; install it from the
+  repository's `npm-wrapper/`.
+
+---
+
 ## v3.9.3 — 2026-10-09
 
 ### Summary
