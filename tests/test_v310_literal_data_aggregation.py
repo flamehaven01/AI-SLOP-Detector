@@ -6,11 +6,13 @@ lines of dict) moved the project band. A file with no code to judge scored 0
 and counted as that many lines of defect-free code.
 
 Contract:
-- `literal_data_module` (file flag) needs: only a module docstring and
+- `literal_data_module` (file flag) needs: only a module docstring, leading
+  `from __future__ import ...` directives (R1: jieba's tables) and
   assignments of static literals to plain names (constants, containers of
-  them, signed numbers); no import, def, class, control flow, call,
-  comprehension, f-string, name reference, operator or unpacking; at least
-  one assignment; no pattern finding and no pattern error.
+  them, signed numbers); no other import, def, class, control flow, call,
+  comprehension, f-string, name reference, operator or unpacking (also of a
+  literal: `{**{...}}`); at least one assignment; no pattern finding and no
+  pattern error.
 - The project weighted score leaves flagged files out of the line weight;
   file results, findings and file counts are unchanged.
 - scan_coverage.aggregation_exclusions discloses candidates and the applied
@@ -69,7 +71,11 @@ def test_static_literal_module_is_flagged(tmp_path):
         "Y = -'a'",
         "Y = -(1, 2)",
         "Y = {**TABLE}",
+        "Y = {**{'x': 1}}",
         "Y = [*TABLE]",
+        "from __future__ import annotations",
+        "from os import path",
+        "from . import sibling",
         "TABLE['f'] = 2",
         "A, B = 1, 2",
         "Y: dict = {}",
@@ -80,6 +86,32 @@ def test_any_code_disqualifies(tmp_path, extra):
     flags = _flags(tmp_path, textwrap.dedent(DATA) + extra + "\n")
     assert "parse_error" not in flags  # judged as code, not as a broken file
     assert FLAG not in flags
+
+
+@pytest.mark.parametrize(
+    "head",
+    [
+        "from __future__ import unicode_literals\n",
+        '"""Table."""\nfrom __future__ import annotations\n',
+        '"""Table."""\nfrom __future__ import annotations\nfrom __future__ import division\n',
+    ],
+)
+def test_future_directive_at_the_top_is_allowed(tmp_path, head):
+    # jieba's probability tables: a compiler directive, then one dict.
+    assert FLAG in _flags(tmp_path, head + "TABLE = {'a': -3.6, 'b': -10.5}\n")
+
+
+@pytest.mark.parametrize(
+    "head",
+    [
+        # `from .__future__ import x` is a package-relative import, not the directive.
+        "from .__future__ import x\n",
+        "from os import path\n",
+        "from __future__ import annotations\nfrom os import path\n",
+    ],
+)
+def test_a_leading_import_other_than_future_disqualifies(tmp_path, head):
+    assert FLAG not in _flags(tmp_path, head + "TABLE = {'a': 1}\n")
 
 
 def test_docstring_only_or_empty_is_not_data(tmp_path):

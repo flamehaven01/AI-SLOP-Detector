@@ -141,20 +141,33 @@ def _is_static_literal(value: ast.expr) -> bool:
             and isinstance(node.operand.value, (int, float, complex))
         ):
             return False
+        # `**` in a dict display has no node of its own (its key is None), so a
+        # literal unpacked into a literal passes the node check above.
+        if isinstance(node, ast.Dict) and None in node.keys:
+            return False
     return True
 
 
 def is_static_literal_module(tree: ast.Module) -> bool:
-    """True when the module is data, not code: only a module docstring and
-    assignments of static literals to plain names, at least one of them.
+    """True when the module is data, not code: only a module docstring,
+    leading `from __future__` directives and assignments of static literals
+    to plain names, at least one of them.
 
     Decided from the AST alone (nothing is evaluated). Such a module has no
     logic for the analysis to judge, so its score says nothing about code.
+    A __future__ import is a compiler directive, not a dependency.
     """
     body = list(tree.body)
     if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
         if isinstance(body[0].value.value, str):
             body = body[1:]
+    while (
+        body
+        and isinstance(body[0], ast.ImportFrom)
+        and body[0].module == "__future__"
+        and body[0].level == 0
+    ):
+        body = body[1:]
     if not body:
         return False
     return all(
