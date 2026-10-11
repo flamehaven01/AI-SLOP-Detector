@@ -324,6 +324,18 @@ def _find_dead_code(node: Any) -> List[Tuple[int, int]]:
     return dead
 
 
+def _function_name(fn_node: Any) -> str:
+    """The function's own name, or the variable it is assigned to
+    (`const run = () => {}`); "(anonymous)" when the tree names neither."""
+    name_node = fn_node.child_by_field_name("name")
+    parent = fn_node.parent
+    if name_node is None and parent is not None and parent.type == "variable_declarator":
+        declared = parent.child_by_field_name("name")
+        if declared is not None and declared.type == "identifier":
+            name_node = declared
+    return name_node.text.decode("utf-8", errors="replace") if name_node else "(anonymous)"
+
+
 def _collect_functions(node: Any, depth: int = 0) -> List[Any]:
     """Collect all function nodes from AST, excluding nested (counted separately)."""
     fns = []
@@ -552,12 +564,10 @@ class JSAnalyzer:
         god_count = 0
         max_complexity = 0
         max_depth = 0
+        deepest = (1, 0)  # where the maximum depth is first reached
 
         for fn_node in _collect_functions(root):
-            name_node = fn_node.child_by_field_name("name")
-            fn_name = (
-                name_node.text.decode("utf-8", errors="replace") if name_node else "(anonymous)"
-            )
+            fn_name = _function_name(fn_node)
             fn_start = fn_node.start_point[0] + 1
             fn_end = fn_node.end_point[0] + 1
             fn_lines = fn_end - fn_start + 1
@@ -578,6 +588,8 @@ class JSAnalyzer:
                     )
                 )
             max_complexity = max(max_complexity, complexity)
+            if depth > max_depth:
+                deepest = (fn_start, fn_node.start_point[1])
             max_depth = max(max_depth, depth)
             metrics.append(
                 FunctionMetrics(fn_name, fn_start, fn_end, fn_lines, complexity, depth, is_god)
@@ -588,8 +600,8 @@ class JSAnalyzer:
                 JSIssue(
                     "js_callback_hell",
                     "high",
-                    1,
-                    0,
+                    deepest[0],
+                    deepest[1],
                     f"Max nesting depth {max_depth} — callback hell risk",
                     "Refactor to async/await or flatten promise chains",
                 )
@@ -625,6 +637,7 @@ class JSAnalyzer:
         code = 0
         depth = 0
         max_depth = 0
+        deepest_line = 1  # the first line at the maximum counted depth
         issues: List[JSIssue] = []
         in_block_comment = False
 
@@ -648,6 +661,8 @@ class JSAnalyzer:
             code += 1
             depth = max(0, depth - _regex_leading_close_count(line))
             depth += _regex_structural_open_count(line)
+            if depth > max_depth:
+                deepest_line = i
             max_depth = max(max_depth, depth)
 
             if _RE_VAR.search(line):
@@ -705,7 +720,7 @@ class JSAnalyzer:
                 JSIssue(
                     "js_callback_hell",
                     "high",
-                    1,
+                    deepest_line,
                     0,
                     f"Max nesting depth {max_depth} — callback hell risk",
                 )
