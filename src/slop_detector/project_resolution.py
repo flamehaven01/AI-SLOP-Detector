@@ -106,6 +106,25 @@ def scan_root_scope(root: Optional[Path]) -> Iterator[None]:
         _SCAN_ROOT.reset(token)
 
 
+_NO_LOCATION: ContextVar[bool] = ContextVar("slop_no_location", default=False)
+
+
+@contextmanager
+def no_location_scope() -> Iterator[None]:
+    """A source with no location (analyze_code_string without a project root):
+    its file name is a label, so nothing around a path (sibling modules, project
+    roots, declarations) is evidence for it."""
+    token = _NO_LOCATION.set(True)
+    try:
+        yield
+    finally:
+        _NO_LOCATION.reset(token)
+
+
+def has_location() -> bool:
+    return not _NO_LOCATION.get()
+
+
 def resolution_roots(file_path: Path) -> Tuple[Path, ...]:
     """The project roots whose code and declarations count as the project's.
 
@@ -118,7 +137,7 @@ def resolution_roots(file_path: Path) -> Tuple[Path, ...]:
     scan below the project root, or of a folder that is not a project, keeps the
     nearest marker alone.
     """
-    nearest = find_project_root(file_path)
+    nearest = find_project_root(file_path) if has_location() else None
     if nearest is None:
         return ()
     scan = _SCAN_ROOT.get()

@@ -16,12 +16,14 @@ from slop_detector.dependency_declarations import (
     root_declaration_files,
 )
 from slop_detector.environment_resolution import environment_state, find_installed_spec
+from slop_detector.external_members import unknown_row
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 from slop_detector.project_context import fingerprint_for_roots, is_importable_directory
 from slop_detector.project_resolution import (
     ProjectModuleIndex,
     discover_project_packages,
     get_module_index,
+    has_location,
     resolution_roots,
 )
 
@@ -236,7 +238,8 @@ def project_skip_context(
     for position, root in enumerate(roots):
         # The scan root (second) is evidence for its hard roots and exact paths only.
         skip_names |= discover_project_packages(root, hard_only=position > 0)
-    skip_names |= _discover_sibling_modules(file, fingerprint_for_roots(file, roots))
+    if has_location():
+        skip_names |= _discover_sibling_modules(file, fingerprint_for_roots(file, roots))
     return frozenset(skip_names), tuple(get_module_index(root) for root in roots)
 
 
@@ -267,6 +270,10 @@ def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
     return frozenset(guarded)
 
 
+def _no_context_row(line: int, module: str) -> Dict[str, object]:
+    return unknown_row(line, module, None, "no_project_context", basis="environment_only")
+
+
 class PhantomImportPattern(BasePattern):
     """Classify unresolved imports without confusing runtime and metadata evidence.
 
@@ -282,9 +289,18 @@ class PhantomImportPattern(BasePattern):
 
     def __init__(self, allowlist: Optional[List[str]] = None) -> None:
         self._allowlist: FrozenSet[str] = frozenset(allowlist or [])
+        self._unknowns: Dict[str, Tuple[Dict[str, object], ...]] = {}
+
+    def take_unknowns(self, file: Path) -> List[Dict[str, object]]:
+        """Imports the last check of `file` could not judge (removed once taken)."""
+        return list(self._unknowns.pop(str(file), ()))
 
     def check(self, tree: ast.AST, file: Path, content: str) -> list[Issue]:
         issues: list[Issue] = []
+        # A source with no location: an import the environment cannot resolve may
+        # be local code nobody showed us, so it is unverified, not a finding.
+        unknowns: list[Dict[str, object]] = []
+        located = has_location()
 
         roots = resolution_roots(file)
         declared_sources = dict(_merged_declarations(roots))
@@ -305,6 +321,9 @@ class PhantomImportPattern(BasePattern):
                     lineno = getattr(node, "lineno", 0)
                     sources = declared_sources.get(top, frozenset())
                     if _module_exists(top, excluded):
+                        continue
+                    if not located:
+                        unknowns.append(_no_context_row(lineno, alias.name))
                         continue
                     if self._is_requirements_only_metadata_gap(sources, has_pyproject):
                         issues.append(
@@ -337,6 +356,9 @@ class PhantomImportPattern(BasePattern):
                 sources = declared_sources.get(top, frozenset())
                 if _module_exists(top, excluded):
                     continue
+                if not located:
+                    unknowns.append(_no_context_row(lineno, node.module))
+                    continue
                 if self._is_requirements_only_metadata_gap(sources, has_pyproject):
                     issues.append(
                         self._make_metadata_gap_issue(
@@ -355,6 +377,7 @@ class PhantomImportPattern(BasePattern):
                         )
                     )
 
+        self._unknowns[str(file)] = tuple(unknowns)
         return issues
 
     def _make_issue(

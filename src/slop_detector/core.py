@@ -65,7 +65,7 @@ from slop_detector.patterns.base import Issue
 from slop_detector.patterns.registry import PatternRegistry
 from slop_detector.prioritization import ProjectPrioritizer
 from slop_detector.project_context import fingerprint_for_roots, project_context_scope
-from slop_detector.project_resolution import resolution_roots, scan_root_scope
+from slop_detector.project_resolution import no_location_scope, resolution_roots, scan_root_scope
 from slop_detector.rust_scan import discover_project_files
 from slop_detector.suppression_handler import SuppressionHandler
 
@@ -245,24 +245,45 @@ class SlopDetector:
             )
         return result
 
-    def analyze_code_string(self, content: str, filename: str = "<string>") -> FileAnalysis:
-        """Analyze Python source code provided as a string (no file I/O).
+    def analyze_code_string(
+        self, content: str, filename: str = "<string>", project_root: Optional[str] = None
+    ) -> FileAnalysis:
+        """Analyze Python source code provided as a string (the source is not read from disk).
 
-        Identical to analyze_file() but accepts raw source instead of a path.
         Useful for dataset pipelines, REPL usage, and API endpoints.
 
         Args:
-            content:  Python source code as a string.
-            filename: Virtual filename shown in results (default: "<string>").
+            content:      Python source code as a string.
+            filename:     Name shown in results (default: "<string>").
+            project_root: The project the source belongs to. Without it the source
+                          has no location: the filename is a label, nothing around
+                          any path (sibling modules, project roots, declarations)
+                          is evidence, and an import the environment cannot resolve
+                          is listed in unverified_imports, not reported. With it the
+                          source is analyzed as analyze_file(project_root/filename,
+                          root=project_root) would analyze that file.
 
         Returns:
             FileAnalysis — same structure as analyze_file().
         """
+        if project_root is None:
+            try:
+                tree = ast.parse(content, filename=filename)
+            except SyntaxError as e:
+                return create_error_analysis(filename, str(e), content)
+            with no_location_scope():
+                return self._build_file_analysis(
+                    filename, content, tree, path_facts(filename, None)
+                )
+        path_obj = (Path(project_root) / filename).resolve()
         try:
-            tree = ast.parse(content, filename=filename)
+            tree = ast.parse(content, filename=str(path_obj))
         except SyntaxError as e:
-            return create_error_analysis(filename, str(e), content)
-        return self._build_file_analysis(filename, content, tree, path_facts(filename, None))
+            return create_error_analysis(str(path_obj), str(e), content)
+        with project_context_scope(), scan_root_scope(Path(project_root)):
+            return self._build_file_analysis(
+                str(path_obj), content, tree, facts_for(path_obj, project_root)
+            )
 
     def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
         """Analyze a project; each project root's context snapshot is built once per scan."""
@@ -374,12 +395,11 @@ class SlopDetector:
         # (or failed to be measured) disappears from the project score.
         if not pattern_issues and not pattern_errors and is_static_literal_module(tree):  # type: ignore[arg-type]
             flags.append("literal_data_module")
-        member_pattern = self.pattern_registry.get("phantom_member")
-        unverified_imports = (
-            member_pattern.take_unknowns(Path(file_path))  # type: ignore[attr-defined]
-            if member_pattern is not None and "patterns" not in skip
-            else []
-        )
+        unverified_imports: List[Dict[str, Any]] = []
+        for pattern_id in ("phantom_import", "phantom_member"):
+            pattern = self.pattern_registry.get(pattern_id)
+            if pattern is not None and "patterns" not in skip:
+                unverified_imports += pattern.take_unknowns(Path(file_path))  # type: ignore[attr-defined]
 
         result = FileAnalysis(
             file_path=file_path,

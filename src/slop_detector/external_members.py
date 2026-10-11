@@ -448,7 +448,7 @@ def _record(
     if outcome.state == ABSENT:
         findings.append(Finding(line, getattr(node, "col_offset", 0), module_name, subject))
     elif outcome.state == UNKNOWN:
-        unknowns.append(_unknown_row(line, module_name, name, outcome.reason))
+        unknowns.append(unknown_row(line, module_name, name, outcome.reason))
 
 
 def guarded_import_lines(tree: ast.AST, is_import_guard: Callable[[ast.ExceptHandler], bool]):
@@ -470,7 +470,9 @@ def guarded_import_lines(tree: ast.AST, is_import_guard: Callable[[ast.ExceptHan
     return frozenset(lines)
 
 
-def _unknown_row(line: int, module: str, name: Optional[str], reason: str) -> Dict[str, object]:
+def unknown_row(
+    line: int, module: str, name: Optional[str], reason: str, basis: str = VERIFICATION_BASIS
+) -> Dict[str, object]:
     return {
         "line": line,
         "requested_module": module,
@@ -478,7 +480,7 @@ def _unknown_row(line: int, module: str, name: Optional[str], reason: str) -> Di
         "evidence_state": UNKNOWN,
         "reason": reason,
         "score_effect": "none",
-        "verification_basis": VERIFICATION_BASIS,
+        "verification_basis": basis,
     }
 
 
