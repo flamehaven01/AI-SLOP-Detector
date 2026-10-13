@@ -143,7 +143,7 @@ def test_load_git_churn_counts_recent_touches(tmp_path, monkeypatch):
 
     calls = {"count": 0}
 
-    def fake_run(cmd, cwd, capture_output, text, check):
+    def fake_run(cmd, cwd, capture_output, check, **decoding):
         calls["count"] += 1
         if "rev-parse" in cmd:
             return SimpleNamespace(stdout=str(tmp_path), returncode=0)

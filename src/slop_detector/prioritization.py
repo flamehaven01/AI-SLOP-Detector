@@ -150,6 +150,8 @@ class ProjectPrioritizer:
             result = subprocess.run(
                 [
                     "git",
+                    "-c",
+                    "core.quotepath=off",
                     "log",
                     "--format=format:",
                     "--name-only",
@@ -161,7 +163,8 @@ class ProjectPrioritizer:
                 ],
                 cwd=project_path,
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 check=True,
             )
         except (FileNotFoundError, subprocess.CalledProcessError):
@@ -215,7 +218,8 @@ class ProjectPrioritizer:
                 ["git", "rev-parse", "--show-toplevel"],
                 cwd=project_path,
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 check=True,
             )
         except (FileNotFoundError, subprocess.CalledProcessError):

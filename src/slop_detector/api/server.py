@@ -16,7 +16,7 @@ except ImportError:
     )
 
 from .. import __version__
-from ..core import SlopDetector
+from ..core import SlopDetector, UnsupportedLanguageError
 from ..history import HistoryTracker, history_project_root, measurement_provenance
 from .models import (
     AgentFileResponse,
@@ -140,6 +140,8 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
 
         except HTTPException:
             raise
+        except UnsupportedLanguageError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -157,6 +159,8 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             return AgentFileResponse.from_result(result)
         except HTTPException:
             raise
+        except UnsupportedLanguageError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

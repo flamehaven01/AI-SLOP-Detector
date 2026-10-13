@@ -23,7 +23,8 @@ def _get_git_context():
             subprocess.run(
                 ["git", "rev-parse", "--short", "HEAD"],
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=3,
             ).stdout.strip()
             or None
@@ -32,7 +33,8 @@ def _get_git_context():
             subprocess.run(
                 ["git", "branch", "--show-current"],
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=3,
             ).stdout.strip()
             or None

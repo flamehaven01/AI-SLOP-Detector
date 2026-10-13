@@ -31,7 +31,12 @@ class GitIntegration:
         try:
             # Get current commit hash
             commit_result = subprocess.run(
-                ["git", "rev-parse", "HEAD"], cwd=path, capture_output=True, text=True, check=True
+                ["git", "rev-parse", "HEAD"],
+                cwd=path,
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
             commit = commit_result.stdout.strip()
 
@@ -40,7 +45,8 @@ class GitIntegration:
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
                 cwd=path,
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 check=True,
             )
             branch = branch_result.stdout.strip()
@@ -57,10 +63,19 @@ class GitIntegration:
 
         try:
             result = subprocess.run(
-                ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
+                [
+                    "git",
+                    "-c",
+                    "core.quotepath=off",
+                    "diff",
+                    "--cached",
+                    "--name-only",
+                    "--diff-filter=ACM",
+                ],
                 cwd=path,
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 check=True,
             )
 

@@ -17,10 +17,11 @@ from slop_detector.path_facts import relative_to_root
 def _run_git(args: List[str], cwd: Path) -> List[str]:
     try:
         completed = subprocess.run(
-            ["git", *args],
+            ["git", "-c", "core.quotepath=off", *args],
             cwd=str(cwd),
             capture_output=True,
-            text=True,
+            encoding="utf-8",
+            errors="replace",
             check=True,
         )
     except Exception:
