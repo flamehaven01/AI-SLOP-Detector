@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 
 from slop_detector import __version__
 from slop_detector.api.models import AgentFileResponse, AgentProjectResponse, AgentSurfaceManifest
-from slop_detector.core import SlopDetector
+from slop_detector.core import SlopDetector, UnsupportedLanguageError
 
 JSONRPC_VERSION = "2.0"
 DEFAULT_PROTOCOL_VERSION = "2024-11-05"
@@ -115,7 +115,18 @@ def _analyze_file(arguments: Dict[str, Any]) -> Dict[str, Any]:
     if not file_path.exists():
         return _tool_result({"error": "file_not_found", "file_path": str(file_path)}, is_error=True)
     detector = SlopDetector(config_path=arguments.get("config_path"))
-    result = detector.analyze_file(str(file_path))
+    try:
+        result = detector.analyze_file(str(file_path))
+    except UnsupportedLanguageError as exc:
+        return _tool_result(
+            {
+                "error": "unsupported_language",
+                "file_path": str(file_path),
+                "detail": str(exc),
+                "hint": "use slop_analyze_project on the file's folder",
+            },
+            is_error=True,
+        )
     return _tool_result(AgentFileResponse.from_result(result).model_dump())
 
 

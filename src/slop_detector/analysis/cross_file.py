@@ -171,7 +171,7 @@ def _parse_files(
     for fpath in py_files:
         try:
             tree = ast.parse(
-                fpath.read_text(encoding="utf-8", errors="ignore"), filename=str(fpath)
+                fpath.read_text(encoding="utf-8-sig", errors="ignore"), filename=str(fpath)
             )
         except Exception:
             continue

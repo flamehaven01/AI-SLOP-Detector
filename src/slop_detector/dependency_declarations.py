@@ -74,12 +74,12 @@ def declared_requirements(path: Path) -> List[str]:
         if name == "pipfile":
             return _pipfile_requirements(load_toml(path))
         if name == "setup.py":
-            return _setup_py_requirements(path.read_text(encoding="utf-8", errors="ignore"))
+            return _setup_py_requirements(path.read_text(encoding="utf-8-sig", errors="ignore"))
         if name == "setup.cfg":
-            return _setup_cfg_requirements(path.read_text(encoding="utf-8", errors="ignore"))
+            return _setup_cfg_requirements(path.read_text(encoding="utf-8-sig", errors="ignore"))
         if name.endswith((".yml", ".yaml")):
-            return _conda_requirements(path.read_text(encoding="utf-8", errors="ignore"))
-        return path.read_text(encoding="utf-8", errors="ignore").splitlines()
+            return _conda_requirements(path.read_text(encoding="utf-8-sig", errors="ignore"))
+        return path.read_text(encoding="utf-8-sig", errors="ignore").splitlines()
     except (OSError, ValueError, SyntaxError, yaml.YAMLError, configparser.Error) as exc:
         logger.debug("Cannot read declarations from %s: %s", path, exc)
         return []

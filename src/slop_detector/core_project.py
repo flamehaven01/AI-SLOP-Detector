@@ -306,6 +306,13 @@ def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]
     except OSError as exc:
         logger.debug("Could not collect full scan coverage for %s: %s", project_path, exc)
 
+    return scan_coverage(excluded, unsupported)
+
+
+def scan_coverage(
+    excluded: List[Dict[str, Any]], unsupported: List[Dict[str, str]]
+) -> Dict[str, Any]:
+    """Scan coverage before analysis counts are set (no entries for a single file)."""
     return {
         "analyzed": {"total": 0, "python": 0, "javascript": 0, "go": 0},
         "excluded": _excluded_coverage(excluded),

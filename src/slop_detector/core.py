@@ -77,6 +77,10 @@ PATTERNS_ONLY_SKIP = frozenset({"ldr", "inflation", "ddc"})
 NO_CODE_SKIP = frozenset({"ldr", "ddc"})
 
 
+class UnsupportedLanguageError(ValueError):
+    """A non-Python source file was given to the Python-file entry point."""
+
+
 class SlopDetector:
     """Main SLOP detection engine with v2.1 pattern support."""
 
@@ -174,7 +178,16 @@ class SlopDetector:
             file_path: The file to analyze.
             root:      The scan root its path facts are relative to. Without it the
                        nearest project marker is the root (slop_detector.path_facts).
+
+        Raises:
+            UnsupportedLanguageError: the file is JS/TS or Go source; parsing it as
+                Python would score a parse error (use analyze_js_file / analyze_go_file).
         """
+        if Path(file_path).suffix.lower() in self._JS_EXTENSIONS | self._GO_EXTENSIONS:
+            raise UnsupportedLanguageError(
+                f"{file_path} is not Python source; use analyze_js_file, "
+                "analyze_go_file or analyze_project"
+            )
         with project_context_scope(), scan_root_scope(Path(root) if root else None):
             return self._analyze_file(file_path, root)
 
@@ -200,7 +213,7 @@ class SlopDetector:
         except Exception as e:
             logger.error(f"Failed to read {file_path}: {e}")
             raise
-        content = raw_bytes.decode("utf-8", errors="ignore")
+        content = raw_bytes.decode("utf-8-sig", errors="ignore")
         content_hash = hashlib.sha256(raw_bytes).hexdigest()
 
         if self._analysis_cache is not None:

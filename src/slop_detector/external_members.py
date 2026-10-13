@@ -289,7 +289,7 @@ def scope(path: Path) -> Optional[_Scope]:
 
 def _read_scope(path: Path) -> Optional[_Scope]:
     try:
-        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        tree = ast.parse(path.read_text(encoding="utf-8-sig", errors="replace"))
     except (OSError, SyntaxError, ValueError):
         return None
     package_name = path.parent.name if path.name == "__init__.py" else path.stem

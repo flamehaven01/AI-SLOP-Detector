@@ -214,7 +214,7 @@ def _collect_python_complexity_candidates(project_path: Path) -> List[Dict[str, 
     candidates: List[Dict[str, Any]] = []
     for path in _iter_init_python_files(project_path):
         try:
-            content = path.read_text(encoding="utf-8", errors="ignore")
+            content = path.read_text(encoding="utf-8-sig", errors="ignore")
             tree = ast.parse(content)
         except (OSError, SyntaxError, UnicodeError):
             continue

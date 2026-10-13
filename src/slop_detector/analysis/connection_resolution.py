@@ -513,7 +513,7 @@ def _package_inits(files: Sequence[Path], root: Path, known: Set[Path]) -> List[
 
 
 def _parse(path: Path) -> Tuple[Optional[ast.Module], str]:
-    text = path.read_text(encoding="utf-8", errors="ignore")
+    text = path.read_text(encoding="utf-8-sig", errors="ignore")
     try:
         return ast.parse(text, filename=str(path)), text
     except (SyntaxError, ValueError):

@@ -182,7 +182,7 @@ def _scan_init(tree: ast.Module, package_name: str) -> _InitBindings:
 def _read_init_bindings(init_path: Path, cache: Dict[Path, _InitBindings]) -> _InitBindings:
     if init_path not in cache:
         try:
-            tree = ast.parse(init_path.read_text(encoding="utf-8", errors="ignore"))
+            tree = ast.parse(init_path.read_text(encoding="utf-8-sig", errors="ignore"))
             cache[init_path] = _scan_init(tree, init_path.parent.name)
         except (OSError, SyntaxError, ValueError):
             empty: frozenset = frozenset()
@@ -418,7 +418,7 @@ def build_import_edges(
         tree = (trees or {}).get(str(path))
         if tree is None:
             try:
-                source = path.read_text(encoding="utf-8", errors="ignore")
+                source = path.read_text(encoding="utf-8-sig", errors="ignore")
                 tree = ast.parse(source, filename=str(path))
             except (OSError, SyntaxError, ValueError):
                 continue
