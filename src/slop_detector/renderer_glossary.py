@@ -60,6 +60,28 @@ def capability_notes(scan_coverage: Dict[str, Any]) -> List[str]:
     return notes
 
 
+def incomplete_notes(scan_coverage: Dict[str, Any]) -> List[str]:
+    """Lines saying which files the scores leave out (empty for a complete scan)."""
+    notes = []
+    failed = scan_coverage.get("failed") or {}
+    if failed.get("total"):
+        n = failed["total"]
+        errors = ", ".join(f"{k}: {v}" for k, v in sorted(failed.get("by_error_type", {}).items()))
+        them = "it" if n == 1 else "them"
+        notes.append(
+            f"{n} file{'' if n == 1 else 's'} could not be analyzed ({errors}); "
+            f"the scores leave {them} out. Paths are in JSON scan_coverage.failed."
+        )
+    unmeasured = scan_coverage.get("unmeasured") or {}
+    if unmeasured.get("total"):
+        n = unmeasured["total"]
+        notes.append(
+            f"{n} file{'' if n == 1 else 's'} had checks that could not run. "
+            "Paths are in JSON scan_coverage.unmeasured."
+        )
+    return notes
+
+
 def _deficit_health(value: float) -> str:
     # Lower is better. Bands follow the status thresholds.
     return "good" if value < 30 else "warn" if value < 50 else "bad"

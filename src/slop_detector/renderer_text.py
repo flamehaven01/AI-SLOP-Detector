@@ -10,6 +10,7 @@ from slop_detector.renderer_glossary import (
     capability_notes,
     coherence_display,
     file_metric_rows,
+    incomplete_notes,
     next_steps,
     project_metric_rows,
 )
@@ -94,6 +95,7 @@ def _text_project_section(result) -> list:
             "  Excluded paths and matching rules are available in JSON output.",
         ]
         lines += [f"  Analysis capability: {note}" for note in capability_notes(scan_coverage)]
+        lines += [f"  INCOMPLETE SCAN: {note}" for note in incomplete_notes(scan_coverage)]
         lines.append("")
     if ml_scoring:
         lines += [f"ML Scoring: {ml_scoring['status'].upper()} (optional secondary signal)"]

@@ -13,6 +13,7 @@ from slop_detector.renderer_glossary import (
     clone_metric_row,
     coherence_display,
     file_metric_rows,
+    incomplete_notes,
     next_steps,
     project_metric_rows,
 )
@@ -131,6 +132,8 @@ def _build_rich_summary_tables(result):
         for note in capability_notes(scan_coverage):
             # escape: "[js]" in the install hint is not rich markup
             summary_table.add_row("Analysis Capability", escape(note))
+        for note in incomplete_notes(scan_coverage):
+            summary_table.add_row("[bold red]Incomplete Scan[/bold red]", escape(note))
     ml_scoring = getattr(result, "ml_scoring", {})
     if ml_scoring:
         style = "green" if ml_scoring["status"] == "available" else "yellow"

@@ -14,6 +14,7 @@ from slop_detector.renderer_glossary import (
     capability_notes,
     coherence_display,
     file_metric_rows,
+    incomplete_notes,
     next_steps,
     project_metric_rows,
 )
@@ -166,6 +167,7 @@ def _md_scan_coverage_section(result) -> list:
         ),
         "",
         *[f"- Analysis capability: {note}" for note in capability_notes(coverage)],
+        *[f"- **Incomplete scan:** {note}" for note in incomplete_notes(coverage)],
         "",
         "_JSON output includes each excluded path and its matching ignore rule._",
         "",
