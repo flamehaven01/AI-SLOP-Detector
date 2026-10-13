@@ -66,7 +66,9 @@ def _cyclomatic_complexity(func_node: ast.FunctionDef | ast.AsyncFunctionDef) ->
     return complexity
 
 
-_NESTING_NODES = (ast.If, ast.For, ast.While, ast.With, ast.AsyncWith, ast.AsyncFor, ast.Try)
+# Decisions, loops and except handlers nest; a try body or a with block does not
+# (SonarSource Cognitive Complexity nesting rules).
+_NESTING_NODES = (ast.If, ast.For, ast.While, ast.AsyncFor, ast.ExceptHandler)
 
 
 def _max_nesting_depth(node: ast.AST, lines: List[str]) -> int:
@@ -199,7 +201,6 @@ class GodFunctionPattern(BasePattern):
         from slop_detector.metrics.ldr import docstring_line_numbers
 
         issues: list[Issue] = []
-        lines = content.splitlines()
         docstrings = docstring_line_numbers(tree)
 
         for node in walk_nodes(tree):
@@ -207,15 +208,18 @@ class GodFunctionPattern(BasePattern):
                 continue
 
             start = node.lineno
-            end = getattr(node, "end_lineno", node.lineno)
 
-            # Logic lines: not blank, not a comment, not a docstring (prose, as in LDR).
-            logic_lines = sum(
-                1
-                for number in range(start, end + 1)
-                if number not in docstrings
-                and lines[number - 1].strip()
-                and not lines[number - 1].strip().startswith("#")
+            # Logic lines are Python logical lines: a statement spanning many
+            # physical lines (literal, SQL string, call arguments) counts once.
+            # Docstrings are prose, as in LDR. The 50 limit matches pylint's
+            # too-many-statements default.
+            logic_lines = len(
+                {
+                    child.lineno
+                    for child in ast.walk(node)
+                    if isinstance(child, (ast.stmt, ast.ExceptHandler))
+                    and child.lineno not in docstrings
+                }
             )
 
             complexity = _cyclomatic_complexity(node)
