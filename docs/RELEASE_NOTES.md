@@ -29,7 +29,8 @@ listed in the [Changelog](../CHANGELOG.md#3101---2026-10-14).
   reports show `NOT EVALUATED` / `N/A` and name files that could not be
   analyzed; `--fail-threshold` fails when every file failed.
 - **Configuration errors stop the run** before analysis, with the file, key
-  path and expected type.
+  path and expected type. The check needs only the standard library (not
+  pydantic), and a null value leaves its key at the default.
 
 ### Upgrade notes
 
