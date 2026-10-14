@@ -4,7 +4,7 @@ import logging as _logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Literal, Optional, Tuple, cast
 
 import yaml
 
@@ -14,69 +14,145 @@ DEFAULT_TEST_IGNORE_PATTERNS = frozenset({"tests/**", "**/*_test.py", "**/test_*
 
 # ---------------------------------------------------------------------------
 # Runtime schema guards for .slopconfig.yaml user input.
-# Pydantic v2 is a base dependency but guard gracefully if absent so the
-# package imports cleanly in stripped environments (pip install without deps).
+# Pydantic v2 is a base dependency. Without it the package still imports and
+# runs on defaults, but a named config file is refused rather than unchecked.
 # ---------------------------------------------------------------------------
 
+
+class ConfigError(ValueError):
+    """A config file that cannot be applied as written (missing, unreadable, invalid)."""
+
+
+# Every key the code consumes is typed here. Strict: "10" is not 10 and true is
+# not 1. Unknown keys are allowed (legacy keys warn below). Only validation:
+# the raw values, not these models, are merged, so no schema default is added.
 try:
     from pydantic import BaseModel as _BaseModel
+    from pydantic import ConfigDict as _ConfigDict
     from pydantic import Field as _Field
     from pydantic import ValidationError as _ValidationError
 
-    class _WeightsSchema(_BaseModel):
-        model_config = {"extra": "allow"}
-        ldr: float = _Field(default=0.40, ge=0.0, le=1.0)
-        inflation: float = _Field(default=0.30, ge=0.0, le=1.0)
-        ddc: float = _Field(default=0.20, ge=0.0, le=1.0)
-        purity: float = _Field(default=0.10, ge=0.0, le=1.0)
+    class _Section(_BaseModel):
+        model_config = _ConfigDict(strict=True, extra="allow")
 
-    class _DomainOverrideSchema(_BaseModel):
-        model_config = {"extra": "allow"}
+    _Ratio = Optional[float]
+
+    class _LdrThresholds(_Section):
+        excellent: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+        good: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+        acceptable: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+        warning: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+        critical: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+
+    class _Thresholds(_Section):
+        ldr: Optional[_LdrThresholds] = None
+
+    class _Weights(_Section):
+        ldr: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+        inflation: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+        ddc: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+        purity: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+
+    class _AbcInterface(_Section):
+        enabled: Optional[bool] = None
+        penalty_reduction: _Ratio = _Field(default=None, ge=0.0, le=1.0)
+
+    class _ConfigFiles(_Section):
+        enabled: Optional[bool] = None
+        patterns: Optional[List[str]] = None
+
+    class _Exceptions(_Section):
+        abc_interface: Optional[_AbcInterface] = None
+        config_files: Optional[_ConfigFiles] = None
+
+    class _HotspotWeights(_Section):
+        deficit: Optional[float] = _Field(default=None, ge=0.0)
+        churn: Optional[float] = _Field(default=None, ge=0.0)
+        coverage_gap: Optional[float] = _Field(default=None, ge=0.0)
+
+    class _Advanced(_Section):
+        use_radon: Optional[bool] = None
+        weighted_analysis: Optional[bool] = None
+        exact_topology_ceiling: Optional[int] = None
+        topology_mode_above_ceiling: Optional[Literal["deterministic_approximate", "exact"]] = None
+        analysis_cache_enabled: Optional[bool] = None
+        analysis_cache_db: Optional[str] = None
+        patterns_only: Optional[bool] = None
+        churn_commit_window: Optional[int] = None
+        coverage_data_file: Optional[str] = None
+        hotspot_limit: Optional[int] = None
+        hotspot_weights: Optional[_HotspotWeights] = None
+
+    class _Layer(_Section):
+        name: str
+        patterns: List[str]
+        can_import: Optional[List[str]] = None
+        cannot_import: Optional[List[str]] = None
+
+    class _Architecture(_Section):
+        enabled: Optional[bool] = None
+        preset: Optional[str] = None
+        layers: Optional[List[_Layer]] = None
+
+    class _GodOverride(_Section):
         function_pattern: str
         complexity_threshold: int = _Field(ge=1)
         lines_threshold: int = _Field(ge=1)
 
-    class _GodFunctionSchema(_BaseModel):
-        model_config = {"extra": "allow"}
-        complexity_threshold: int = _Field(default=10, ge=1)
-        lines_threshold: int = _Field(default=50, ge=1)
-        domain_overrides: List[_DomainOverrideSchema] = _Field(default_factory=list)
+    class _GodFunction(_Section):
+        complexity_threshold: Optional[int] = _Field(default=None, ge=1)
+        lines_threshold: Optional[int] = _Field(default=None, ge=1)
+        domain_overrides: Optional[List[_GodOverride]] = None
+
+    class _NestedOverride(_Section):
+        function_pattern: str
+        depth_threshold: Optional[int] = _Field(default=None, ge=1)
+        cc_threshold: Optional[int] = _Field(default=None, ge=1)
+
+    class _NestedComplexity(_Section):
+        depth_threshold: Optional[int] = _Field(default=None, ge=1)
+        cc_threshold: Optional[int] = _Field(default=None, ge=1)
+        domain_overrides: Optional[List[_NestedOverride]] = None
+
+    class _Patterns(_Section):
+        disabled: Optional[List[str]] = None
+        god_function: Optional[_GodFunction] = None
+        nested_complexity: Optional[_NestedComplexity] = None
+
+    class _ConfigFile(_Section):
+        thresholds: Optional[_Thresholds] = None
+        weights: Optional[_Weights] = None
+        ignore: Optional[List[str]] = None
+        exceptions: Optional[_Exceptions] = None
+        advanced: Optional[_Advanced] = None
+        architecture: Optional[_Architecture] = None
+        phantom_import_allowlist: Optional[List[str]] = None
+        patterns: Optional[_Patterns] = None
 
     _PYDANTIC_AVAILABLE = True
 
 except ImportError:
     _PYDANTIC_AVAILABLE = False
-    _logger.debug("pydantic not installed — .slopconfig.yaml schema validation disabled")
 
 
-def _validate_yaml_config(raw: Dict[str, Any]) -> None:
-    """Validate critical sections of a raw YAML config dict before merging.
+def _validate_yaml_config(raw: Any, source: str) -> None:
+    """Reject a config whose consumed keys have the wrong type, range or shape.
 
-    Raises ValueError with a user-readable message if any section is invalid.
-    Skipped silently when pydantic is unavailable.
+    The message names the file, each key path and the expected type; it does
+    not repeat the values (a config may hold paths or other private data).
     """
+    if not isinstance(raw, dict):
+        raise ConfigError(f"{source}: the top level must be a mapping of settings")
     if not _PYDANTIC_AVAILABLE:
-        return
-
-    errors: List[str] = []
-
-    if "weights" in raw and isinstance(raw["weights"], dict):
-        try:
-            _WeightsSchema.model_validate(raw["weights"])  # type: ignore[name-defined]
-        except _ValidationError as exc:  # type: ignore[name-defined]
-            errors.append(f"weights: {exc}")
-
-    patterns = raw.get("patterns") or {}
-    if isinstance(patterns, dict) and "god_function" in patterns:
-        try:
-            _GodFunctionSchema.model_validate(patterns["god_function"])  # type: ignore[name-defined]
-        except _ValidationError as exc:  # type: ignore[name-defined]
-            errors.append(f"patterns.god_function: {exc}")
-
-    if errors:
-        raise ValueError(
-            ".slopconfig.yaml validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
-        )
+        raise ConfigError(f"{source}: cannot be validated (pydantic is not installed)")
+    try:
+        _ConfigFile.model_validate(raw)
+    except _ValidationError as exc:
+        problems = [
+            f"  - {'.'.join(str(part) for part in error['loc'])}: {error['msg']}"
+            for error in exc.errors()
+        ]
+        raise ConfigError(f"{source}: invalid configuration\n" + "\n".join(problems)) from None
 
 
 # Keys that earlier defaults, --init templates, the example config or the docs
@@ -97,6 +173,23 @@ _IGNORED_KEYS: Dict[Tuple[str, str], str] = {
     ("advanced", "max_file_size"): "no file is skipped by size; use ignore patterns",
     ("advanced", "ml_detection"): "ML scoring is enabled by a model artifact, not by this key",
 }
+
+
+def _load_yaml(path: Path) -> Any:
+    """Read one config file; a missing, unreadable or non-YAML file is a ConfigError."""
+    if not path.is_file():
+        raise ConfigError(f"{path}: config file not found")
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ConfigError(f"{path}: config file cannot be read ({type(exc).__name__})") from None
+    try:
+        return yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        mark = getattr(exc, "problem_mark", None)
+        where = f" at line {mark.line + 1}, column {mark.column + 1}" if mark else ""
+        problem = getattr(exc, "problem", None) or "syntax error"
+        raise ConfigError(f"{path}: not valid YAML{where}: {problem}") from None
 
 
 def _warn_ignored_keys(raw: Dict[str, Any]) -> None:
@@ -207,20 +300,21 @@ class Config:
         # by future detector instances in the same process.
         self.config: Dict[str, Any] = deepcopy(self.DEFAULT_CONFIG)
 
-        # Try loading from environment variable
+        # SLOP_CONFIG wins over config_path. A named file that cannot be used
+        # stops here: running on defaults would not be the requested config.
         env_config = os.getenv("SLOP_CONFIG")
-        if env_config and Path(env_config).exists():
+        if env_config:
+            if not Path(env_config).is_file():
+                raise ConfigError(f"SLOP_CONFIG={env_config}: config file not found")
             config_path = env_config
+        if config_path:
+            self._merge_config(_load_yaml(Path(config_path)), str(config_path))
 
-        # Load custom config
-        if config_path and Path(config_path).exists():
-            with open(config_path, "r", encoding="utf-8") as f:
-                custom_config = yaml.safe_load(f)
-                self._merge_config(custom_config)
-
-    def _merge_config(self, custom: Dict[str, Any]) -> None:
-        """Deep merge custom config into defaults (validated before merge)."""
-        _validate_yaml_config(custom)
+    def _merge_config(self, custom: Any, source: str = "config") -> None:
+        """Validate the raw config, then deep-merge it as written into the defaults."""
+        if custom is None:  # an empty file sets nothing
+            return
+        _validate_yaml_config(custom, source)
         _warn_ignored_keys(custom)
         self._deep_update(self.config, custom)
 

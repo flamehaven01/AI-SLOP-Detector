@@ -2,8 +2,9 @@
 
 A file whose analysis raised is recorded in scan_coverage.failed and the JSON
 says complete=False, but the rich, text and markdown reports showed only
-"analyzed=0 ... CLEAN": a scan where every file failed (here, a config value
-of the wrong type) read as a clean project.
+"analyzed=0 ... CLEAN": a scan where every file failed read as a clean
+project. (Found through a wrong-typed config value, which is now refused at
+startup; here the file analysis itself raises.)
 """
 
 from __future__ import annotations
@@ -22,11 +23,14 @@ from slop_detector.renderer_text import generate_text_report
 
 
 @pytest.fixture
-def failed_scan(tmp_path: Path):
+def failed_scan(tmp_path: Path, monkeypatch):
     (tmp_path / "m.py").write_text("def f(x):\n    return x + 1\n", encoding="utf-8")
-    config = tmp_path / ".slopconfig.yaml"
-    config.write_text('thresholds: {ldr: "abc"}\n', encoding="utf-8")
-    result = SlopDetector(config_path=str(config), read_only=True).analyze_project(str(tmp_path))
+
+    def raise_inside_analysis(*args, **kwargs):
+        raise AttributeError("analysis raised")
+
+    monkeypatch.setattr(SlopDetector, "_build_file_analysis", raise_inside_analysis)
+    result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
     assert result.scan_coverage["failed"]["total"] == 1  # acceptance: the trigger is real
     return result
 
