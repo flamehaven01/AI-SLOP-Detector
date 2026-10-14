@@ -14,7 +14,6 @@ from pathlib import Path
 
 import pytest
 
-import slop_detector.config as config_module
 from slop_detector.cli import main
 from slop_detector.config import DOMAIN_PROFILES, Config, ConfigError, generate_slopconfig_template
 from slop_detector.core import SlopDetector
@@ -39,6 +38,8 @@ def _write(tmp_path: Path, text: str) -> Path:
         ("ignore:\n  - 5\n", "ignore.0"),
         ("patterns: 5\n", "patterns"),
         ("weights:\n  ldr: 2.0\n", "weights.ldr"),
+        ("weights:\n  inflation: -0.1\n", "weights.inflation: Input should be greater"),
+        ("patterns:\n  god_function:\n    lines_threshold: 0\n", "lines_threshold"),
         ("exceptions:\n  abc_interface:\n    enabled: 1\n", "exceptions.abc_interface.enabled"),
         ("phantom_import_allowlist: numpy\n", "phantom_import_allowlist"),
         ("architecture:\n  layers:\n    - name: 3\n", "architecture.layers.0.name"),
@@ -78,10 +79,9 @@ def test_env_config_still_wins_over_explicit_path(tmp_path, monkeypatch):
     assert Config(str(explicit)).get_weights()["ldr"] == 0.9
 
 
-def test_unvalidatable_config_fails_instead_of_skipping(tmp_path, monkeypatch):
-    monkeypatch.setattr(config_module, "_PYDANTIC_AVAILABLE", False)
-    with pytest.raises(ConfigError, match="cannot be validated"):
-        Config(str(_write(tmp_path, "weights:\n  ldr: 0.5\n")))
+def test_null_leaves_an_optional_key_unset(tmp_path):
+    config = Config(str(_write(tmp_path, "weights:\n  ldr: null\nignore: null\n")))
+    assert config.get_weights()["ldr"] == Config().get_weights()["ldr"]
 
 
 def test_empty_config_file_means_defaults(tmp_path):

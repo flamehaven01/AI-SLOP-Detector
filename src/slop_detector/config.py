@@ -4,7 +4,7 @@ import logging as _logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import yaml
 
@@ -13,9 +13,8 @@ _logger = _logging.getLogger(__name__)
 DEFAULT_TEST_IGNORE_PATTERNS = frozenset({"tests/**", "**/*_test.py", "**/test_*.py"})
 
 # ---------------------------------------------------------------------------
-# Runtime schema guards for .slopconfig.yaml user input.
-# Pydantic v2 is a base dependency. Without it the package still imports and
-# runs on defaults, but a named config file is refused rather than unchecked.
+# Runtime schema guards for .slopconfig.yaml user input. Standard library only:
+# the check must not depend on an optional package being importable.
 # ---------------------------------------------------------------------------
 
 
@@ -24,115 +23,192 @@ class ConfigError(ValueError):
 
 
 # Every key the code consumes is typed here. Strict: "10" is not 10 and true is
-# not 1. Unknown keys are allowed (legacy keys warn below). Only validation:
-# the raw values, not these models, are merged, so no schema default is added.
-try:
-    from pydantic import BaseModel as _BaseModel
-    from pydantic import ConfigDict as _ConfigDict
-    from pydantic import Field as _Field
-    from pydantic import ValidationError as _ValidationError
+# not 1 (an int is a valid float). A null value leaves an optional key unset.
+# Unknown keys are allowed (legacy keys warn below). Only validation: the raw
+# values are merged, so no default is added.
+# Spec forms: ("bool",) ("str",) ("int", lo) ("float", lo, hi) ("choice", values)
+# ("list", item_spec) ("section", {key: spec}, required_keys)
+_RATIO = ("float", 0.0, 1.0)
+_STRS = ("list", ("str",))
+_AT_LEAST_1 = ("int", 1)
+_SCHEMA: Tuple[Any, ...] = (
+    "section",
+    {
+        "thresholds": (
+            "section",
+            {
+                "ldr": (
+                    "section",
+                    {k: _RATIO for k in ("excellent", "good", "acceptable", "warning", "critical")},
+                    (),
+                )
+            },
+            (),
+        ),
+        "weights": ("section", {k: _RATIO for k in ("ldr", "inflation", "ddc", "purity")}, ()),
+        "ignore": _STRS,
+        "exceptions": (
+            "section",
+            {
+                "abc_interface": (
+                    "section",
+                    {"enabled": ("bool",), "penalty_reduction": _RATIO},
+                    (),
+                ),
+                "config_files": ("section", {"enabled": ("bool",), "patterns": _STRS}, ()),
+            },
+            (),
+        ),
+        "advanced": (
+            "section",
+            {
+                "use_radon": ("bool",),
+                "weighted_analysis": ("bool",),
+                "exact_topology_ceiling": ("int", None),
+                "topology_mode_above_ceiling": ("choice", ("deterministic_approximate", "exact")),
+                "analysis_cache_enabled": ("bool",),
+                "analysis_cache_db": ("str",),
+                "patterns_only": ("bool",),
+                "churn_commit_window": ("int", None),
+                "coverage_data_file": ("str",),
+                "hotspot_limit": ("int", None),
+                "hotspot_weights": (
+                    "section",
+                    {k: ("float", 0.0, None) for k in ("deficit", "churn", "coverage_gap")},
+                    (),
+                ),
+            },
+            (),
+        ),
+        "architecture": (
+            "section",
+            {
+                "enabled": ("bool",),
+                "preset": ("str",),
+                "layers": (
+                    "list",
+                    (
+                        "section",
+                        {
+                            "name": ("str",),
+                            "patterns": _STRS,
+                            "can_import": _STRS,
+                            "cannot_import": _STRS,
+                        },
+                        ("name", "patterns"),
+                    ),
+                ),
+            },
+            (),
+        ),
+        "phantom_import_allowlist": _STRS,
+        "patterns": (
+            "section",
+            {
+                "disabled": _STRS,
+                "god_function": (
+                    "section",
+                    {
+                        "complexity_threshold": _AT_LEAST_1,
+                        "lines_threshold": _AT_LEAST_1,
+                        "domain_overrides": (
+                            "list",
+                            (
+                                "section",
+                                {
+                                    "function_pattern": ("str",),
+                                    "complexity_threshold": _AT_LEAST_1,
+                                    "lines_threshold": _AT_LEAST_1,
+                                },
+                                ("function_pattern", "complexity_threshold", "lines_threshold"),
+                            ),
+                        ),
+                    },
+                    (),
+                ),
+                "nested_complexity": (
+                    "section",
+                    {
+                        "depth_threshold": _AT_LEAST_1,
+                        "cc_threshold": _AT_LEAST_1,
+                        "domain_overrides": (
+                            "list",
+                            (
+                                "section",
+                                {
+                                    "function_pattern": ("str",),
+                                    "depth_threshold": _AT_LEAST_1,
+                                    "cc_threshold": _AT_LEAST_1,
+                                },
+                                ("function_pattern",),
+                            ),
+                        ),
+                    },
+                    (),
+                ),
+            },
+            (),
+        ),
+    },
+    (),
+)
 
-    class _Section(_BaseModel):
-        model_config = _ConfigDict(strict=True, extra="allow")
 
-    _Ratio = Optional[float]
+def _range_problem(value: float, lo: Optional[float], hi: Optional[float]) -> Optional[str]:
+    if lo is not None and value < lo:
+        return f"Input should be greater than or equal to {lo:g}"
+    if hi is not None and value > hi:
+        return f"Input should be less than or equal to {hi:g}"
+    return None
 
-    class _LdrThresholds(_Section):
-        excellent: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-        good: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-        acceptable: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-        warning: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-        critical: _Ratio = _Field(default=None, ge=0.0, le=1.0)
 
-    class _Thresholds(_Section):
-        ldr: Optional[_LdrThresholds] = None
+def _scalar_problem(value: Any, spec: Tuple[Any, ...]) -> Optional[str]:
+    """The problem with a scalar value, or None. bool is never a number."""
+    kind = spec[0]
+    if kind == "bool":
+        return None if isinstance(value, bool) else "Input should be a valid boolean"
+    if kind == "str":
+        return None if isinstance(value, str) else "Input should be a valid string"
+    if kind == "choice":
+        allowed = " or ".join(f"'{choice}'" for choice in spec[1])
+        return None if value in spec[1] else f"Input should be {allowed}"
+    if isinstance(value, bool):
+        return f"Input should be a valid {'integer' if kind == 'int' else 'number'}"
+    if kind == "int":
+        if not isinstance(value, int):
+            return "Input should be a valid integer"
+        return _range_problem(value, spec[1], None)
+    if not isinstance(value, (int, float)):
+        return "Input should be a valid number"
+    return _range_problem(value, spec[1], spec[2])
 
-    class _Weights(_Section):
-        ldr: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-        inflation: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-        ddc: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-        purity: _Ratio = _Field(default=None, ge=0.0, le=1.0)
 
-    class _AbcInterface(_Section):
-        enabled: Optional[bool] = None
-        penalty_reduction: _Ratio = _Field(default=None, ge=0.0, le=1.0)
-
-    class _ConfigFiles(_Section):
-        enabled: Optional[bool] = None
-        patterns: Optional[List[str]] = None
-
-    class _Exceptions(_Section):
-        abc_interface: Optional[_AbcInterface] = None
-        config_files: Optional[_ConfigFiles] = None
-
-    class _HotspotWeights(_Section):
-        deficit: Optional[float] = _Field(default=None, ge=0.0)
-        churn: Optional[float] = _Field(default=None, ge=0.0)
-        coverage_gap: Optional[float] = _Field(default=None, ge=0.0)
-
-    class _Advanced(_Section):
-        use_radon: Optional[bool] = None
-        weighted_analysis: Optional[bool] = None
-        exact_topology_ceiling: Optional[int] = None
-        topology_mode_above_ceiling: Optional[Literal["deterministic_approximate", "exact"]] = None
-        analysis_cache_enabled: Optional[bool] = None
-        analysis_cache_db: Optional[str] = None
-        patterns_only: Optional[bool] = None
-        churn_commit_window: Optional[int] = None
-        coverage_data_file: Optional[str] = None
-        hotspot_limit: Optional[int] = None
-        hotspot_weights: Optional[_HotspotWeights] = None
-
-    class _Layer(_Section):
-        name: str
-        patterns: List[str]
-        can_import: Optional[List[str]] = None
-        cannot_import: Optional[List[str]] = None
-
-    class _Architecture(_Section):
-        enabled: Optional[bool] = None
-        preset: Optional[str] = None
-        layers: Optional[List[_Layer]] = None
-
-    class _GodOverride(_Section):
-        function_pattern: str
-        complexity_threshold: int = _Field(ge=1)
-        lines_threshold: int = _Field(ge=1)
-
-    class _GodFunction(_Section):
-        complexity_threshold: Optional[int] = _Field(default=None, ge=1)
-        lines_threshold: Optional[int] = _Field(default=None, ge=1)
-        domain_overrides: Optional[List[_GodOverride]] = None
-
-    class _NestedOverride(_Section):
-        function_pattern: str
-        depth_threshold: Optional[int] = _Field(default=None, ge=1)
-        cc_threshold: Optional[int] = _Field(default=None, ge=1)
-
-    class _NestedComplexity(_Section):
-        depth_threshold: Optional[int] = _Field(default=None, ge=1)
-        cc_threshold: Optional[int] = _Field(default=None, ge=1)
-        domain_overrides: Optional[List[_NestedOverride]] = None
-
-    class _Patterns(_Section):
-        disabled: Optional[List[str]] = None
-        god_function: Optional[_GodFunction] = None
-        nested_complexity: Optional[_NestedComplexity] = None
-
-    class _ConfigFile(_Section):
-        thresholds: Optional[_Thresholds] = None
-        weights: Optional[_Weights] = None
-        ignore: Optional[List[str]] = None
-        exceptions: Optional[_Exceptions] = None
-        advanced: Optional[_Advanced] = None
-        architecture: Optional[_Architecture] = None
-        phantom_import_allowlist: Optional[List[str]] = None
-        patterns: Optional[_Patterns] = None
-
-    _PYDANTIC_AVAILABLE = True
-
-except ImportError:
-    _PYDANTIC_AVAILABLE = False
+def _check(value: Any, spec: Tuple[Any, ...], path: Tuple[Any, ...], out: List[str]) -> None:
+    """Append "key.path: problem" for every violation of spec under value."""
+    where = ".".join(str(part) for part in path)
+    kind = spec[0]
+    if kind == "section":
+        if not isinstance(value, dict):
+            out.append(f"{where}: Input should be a valid dictionary")
+            return
+        fields, required = spec[1], spec[2]
+        for key in required:
+            if key not in value:
+                out.append(f"{'.'.join(str(p) for p in (*path, key))}: Field required")
+        for key, sub in fields.items():
+            if key in value and (value[key] is not None or key in required):
+                _check(value[key], sub, (*path, key), out)
+        return
+    if kind == "list":
+        if not isinstance(value, list):
+            out.append(f"{where}: Input should be a valid list")
+            return
+        for index, item in enumerate(value):
+            _check(item, spec[1], (*path, index), out)
+        return
+    problem = _scalar_problem(value, spec)
+    if problem is not None:
+        out.append(f"{where}: {problem}")
 
 
 def _validate_yaml_config(raw: Any, source: str) -> None:
@@ -143,16 +219,12 @@ def _validate_yaml_config(raw: Any, source: str) -> None:
     """
     if not isinstance(raw, dict):
         raise ConfigError(f"{source}: the top level must be a mapping of settings")
-    if not _PYDANTIC_AVAILABLE:
-        raise ConfigError(f"{source}: cannot be validated (pydantic is not installed)")
-    try:
-        _ConfigFile.model_validate(raw)
-    except _ValidationError as exc:
-        problems = [
-            f"  - {'.'.join(str(part) for part in error['loc'])}: {error['msg']}"
-            for error in exc.errors()
-        ]
-        raise ConfigError(f"{source}: invalid configuration\n" + "\n".join(problems)) from None
+    problems: List[str] = []
+    _check(raw, _SCHEMA, (), problems)
+    if problems:
+        raise ConfigError(
+            f"{source}: invalid configuration\n" + "\n".join(f"  - {p}" for p in problems)
+        )
 
 
 # Keys that earlier defaults, --init templates, the example config or the docs
@@ -319,8 +391,10 @@ class Config:
         self._deep_update(self.config, custom)
 
     def _deep_update(self, base: Dict[str, Any], update: Dict[str, Any]) -> None:
-        """Recursively update nested dictionaries."""
+        """Recursively update nested dictionaries; a null value leaves the key unset."""
         for key, value in update.items():
+            if value is None:
+                continue
             if isinstance(value, dict) and key in base and isinstance(base[key], dict):
                 self._deep_update(base[key], value)
             else:

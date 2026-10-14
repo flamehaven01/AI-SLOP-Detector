@@ -32,6 +32,9 @@ auto-detected `.slopconfig.yaml` (project root, or next to a single file).
 values as written into the defaults. The validated models are not merged, so no
 schema default is added to a partial config.
 
+**Standard library only:** the check does not need pydantic, so it behaves the
+same in every environment.
+
 **Strict:** values are not coerced. `"10"` is not an integer and `true` is not a
 number; an integer is accepted where a float is expected.
 
@@ -59,10 +62,9 @@ Each raises `ConfigError` (a `ValueError`):
 
 - a named config file (`SLOP_CONFIG` or `--config`) that does not exist or cannot be read;
 - text that is not valid YAML, or a top level that is not a mapping;
-- any checked key with the wrong type, range or allowed value;
-- a config that cannot be validated because pydantic is not installed.
+- any checked key with the wrong type, range or allowed value.
 
-An empty file means defaults.
+An empty file means defaults, and a null value leaves its key at the default.
 
 ### Error Output
 

@@ -86,7 +86,8 @@ patterns:
 
 The message names the file, the key path and the expected type, and every
 problem is listed at once. Keys that never had an effect only warn; unknown
-keys are accepted; an empty file means defaults. The raw values are merged as
+keys are accepted; an empty file means defaults and a null value leaves its key
+at the default. The check uses the standard library only (no pydantic needed). The raw values are merged as
 written, so a partial config changes only the keys it sets.
 
 Full specification: [docs/SCHEMA_VALIDATION.md](SCHEMA_VALIDATION.md)

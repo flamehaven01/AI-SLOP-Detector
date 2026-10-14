@@ -81,6 +81,10 @@ For scripts and agents:
 - A missing or unreadable `--config` or `SLOP_CONFIG` file, invalid YAML, or
   a top level that is not a mapping is an error instead of a silent run on
   defaults. Messages name the file, key path and expected type, not values.
+- The check uses the standard library only, so it runs where pydantic is not
+  installed (a project with a `.slopconfig.yaml` no longer depends on it). A
+  null value leaves its key at the default (it used to replace the default
+  with null).
 - Unchanged: keys that never had an effect still only warn, unknown keys are
   accepted, `SLOP_CONFIG` still wins over `--config`, an empty file means
   defaults.
