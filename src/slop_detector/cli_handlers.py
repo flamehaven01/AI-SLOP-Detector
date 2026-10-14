@@ -205,13 +205,15 @@ def run_sweep_command(
 
 def evaluate_ci_gate(args, result):
     """Run CI gate evaluation; return exit code or None to continue."""
-    claims_strict = getattr(args, "ci_claims_strict", False)
-    if not (args.ci_mode or args.ci_report or claims_strict):
-        return None
-    from slop_detector.ci_gate import CIGate, GateMode
+    from slop_detector.service.policy import evaluate_gate, gate_exit_code
 
-    gate_mode = GateMode(args.ci_mode) if args.ci_mode else GateMode.SOFT
-    gate_result = CIGate(mode=gate_mode, claims_strict=claims_strict).evaluate(result)
+    claims_strict = getattr(args, "ci_claims_strict", False)
+    # --ci-report alone reports the soft gate. The CLI refuses --read-only with
+    # any gate option before this point, so read_only is False here.
+    mode = args.ci_mode or ("soft" if args.ci_report else None)
+    gate_result = evaluate_gate(result, mode=mode, claims_strict=claims_strict, read_only=False)
+    if gate_result is None:
+        return None
     if args.ci_report:
         if args.json:
             report = json.dumps(
@@ -224,7 +226,7 @@ def evaluate_ci_gate(args, result):
             print(f"[+] CI gate report saved to {args.output}", file=sys.stderr)
         else:
             print(report)
-    return 1 if gate_result.should_fail_build else 0
+    return gate_exit_code(gate_result)
 
 
 def run_optional_features(args, result) -> None:

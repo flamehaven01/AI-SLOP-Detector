@@ -10,6 +10,7 @@ from typing import Optional, Sequence
 
 from slop_detector.core import SlopDetector  # re-exported for CLI patch surface/tests
 from slop_detector.leda_injection import build_leda_injection, write_leda_injection
+from slop_detector.service.policy import resolve_config_path, threshold_breach
 
 _OPERATIONS_COMMANDS = {
     "audit",
@@ -333,11 +334,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # In project mode the config lives in the project root; in single-file
     # mode it lives next to the file.  Either way, prefer it over defaults.
     if args.config is None:
-        config_dir = Path(args.path) if args.project else Path(args.path).parent
-        candidate = config_dir / ".slopconfig.yaml"
-        if candidate.exists():
-            args.config = str(candidate)
-            logging.info(f"Auto-detected config: {candidate}")
+        args.config = resolve_config_path(Path(args.path), bool(args.project), None)
+        if args.config is not None:
+            logging.info(f"Auto-detected config: {args.config}")
 
     if args.list_patterns:
         list_patterns()
@@ -358,7 +357,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 2
 
     try:
-        result, score = _run_analysis_phase(args, detector)
+        result, _ = _run_analysis_phase(args, detector)
     except Exception as e:
         print(f"[!] Analysis failed: {e}", file=sys.stderr)
         return 1
@@ -374,11 +373,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if getattr(args, "emit_leda_yaml", False):
         _emit_leda_yaml(args, result)
 
-    if args.fail_threshold is not None and score > args.fail_threshold:
-        print(
-            f"\n[!] FAIL: Deficit score {score:.1f} exceeds threshold {args.fail_threshold}",
-            file=sys.stderr,
-        )
+    breach = threshold_breach(result, args.fail_threshold)
+    if breach is not None:
+        print(f"\n[!] FAIL: {breach}", file=sys.stderr)
         return 1
 
     _run_optional_features(args, result)

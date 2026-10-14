@@ -6,12 +6,10 @@ from pathlib import Path
 from typing import Optional
 
 from slop_detector.core import SlopDetector
-from slop_detector.core_project import (
-    build_project_analysis,
-    record_analysis_failure,
-    scan_coverage,
-)
-from slop_detector.models import FileAnalysis, ProjectAnalysis
+from slop_detector.core_project import build_project_analysis, record_analysis_failure
+from slop_detector.models import ProjectAnalysis
+from slop_detector.service.policy import headline_score
+from slop_detector.service.targets import analyze_target
 
 
 def _build_fallback_project_analysis(
@@ -59,44 +57,10 @@ def _build_fallback_project_analysis(
     )
 
 
-def _analyze_single_source_file(detector: SlopDetector, path: Path) -> ProjectAnalysis:
-    """A single JS/TS or Go file is a project of that one file, in its own language."""
-    is_js = path.suffix.lower() in detector._JS_EXTENSIONS
-    language = "javascript" if is_js else "go"
-    analyze = detector.analyze_js_file if is_js else detector.analyze_go_file
-    results: list = []
-    failures: list = []
-    try:
-        results.append(analyze(str(path)))
-    except Exception as exc:
-        record_analysis_failure(failures, path, path.parent, language, exc)
-    return build_project_analysis(
-        str(path),
-        str(path.parent),
-        [],
-        results if is_js else [],
-        [] if is_js else results,
-        scan_coverage([], []),
-        detector.config.use_weighted_analysis(),
-        detector._compute_coherence_vr,
-        detector.project_prioritizer.prioritize_project,
-        detector._ml_scoring,
-        analysis_failures=failures,
-    )
-
-
 def _run_analysis_phase(args, detector):
     """Run file or project analysis. Returns (result, score)."""
-    result: ProjectAnalysis | FileAnalysis
-    if args.project:
-        result = detector.analyze_project(args.path)
-        return result, result.weighted_deficit_score
-    target = Path(args.path)
-    if target.suffix.lower() in detector._JS_EXTENSIONS | detector._GO_EXTENSIONS:
-        result = _analyze_single_source_file(detector, target)
-        return result, result.weighted_deficit_score
-    result = detector.analyze_file(args.path)
-    return result, result.deficit_score
+    result = analyze_target(detector, args.path, bool(args.project))
+    return result, headline_score(result)
 
 
 def _apply_runtime_overrides(args, detector) -> None:
