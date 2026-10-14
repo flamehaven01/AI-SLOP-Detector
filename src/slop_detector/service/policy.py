@@ -7,7 +7,7 @@ refused under read-only.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 
 from slop_detector.core_project import score_is_valid
 
@@ -22,6 +22,40 @@ def resolve_config_path(target: Path, project: bool, explicit: Optional[str]) ->
         return explicit
     candidate = (target if project else target.parent) / CONFIG_FILENAME
     return str(candidate) if candidate.exists() else None
+
+
+def apply_runtime_overrides(
+    detector: Any,
+    *,
+    include_tests: bool = False,
+    topology_ceiling: Optional[int] = None,
+    topology_mode: Optional[str] = None,
+    patterns_only: bool = False,
+    disabled: Sequence[str] = (),
+) -> None:
+    """Apply per-run options onto the detector's config before analysis.
+
+    Disabled patterns are recorded in the config (part of the cache key); an
+    unknown pattern id is a ValueError.
+    """
+    advanced = detector.config.config.setdefault("advanced", {})
+    if include_tests:
+        detector.config.include_default_tests()
+    if topology_ceiling is not None:
+        advanced["exact_topology_ceiling"] = topology_ceiling
+    if topology_mode is not None:
+        advanced["topology_mode_above_ceiling"] = topology_mode
+    if patterns_only:
+        advanced["patterns_only"] = True
+    unknown = sorted({pid for pid in disabled if detector.pattern_registry.get(pid) is None})
+    if unknown:
+        raise ValueError(f"--disable: unknown pattern id {', '.join(unknown)}; see --list-patterns")
+    if not disabled:
+        return
+    patterns = detector.config.config.setdefault("patterns", {})
+    patterns["disabled"] = sorted(set(patterns.get("disabled") or []) | set(disabled))
+    for pid in disabled:
+        detector.pattern_registry.disable(pid)
 
 
 def headline_score(result: Any) -> float:

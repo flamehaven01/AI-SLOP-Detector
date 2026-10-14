@@ -55,9 +55,14 @@ def _sanitize_for_json(obj: Any):
     return obj
 
 
+def render_json(result) -> str:
+    """The JSON document for an analysis result (the CLI's --json output)."""
+    return json.dumps(_sanitize_for_json(result.to_dict()), indent=2, allow_nan=False)
+
+
 def _write_json_output(args, result) -> None:
     """Serialize result to JSON and write to file or stdout."""
-    output = json.dumps(_sanitize_for_json(result.to_dict()), indent=2, allow_nan=False)
+    output = render_json(result)
     if args.output:
         _write_file(args.output, output)
     else:

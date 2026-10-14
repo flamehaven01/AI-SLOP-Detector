@@ -8,7 +8,7 @@ from typing import Optional
 from slop_detector.core import SlopDetector
 from slop_detector.core_project import build_project_analysis, record_analysis_failure
 from slop_detector.models import ProjectAnalysis
-from slop_detector.service.policy import headline_score
+from slop_detector.service.policy import apply_runtime_overrides, headline_score
 from slop_detector.service.targets import analyze_target
 
 
@@ -65,26 +65,11 @@ def _run_analysis_phase(args, detector):
 
 def _apply_runtime_overrides(args, detector) -> None:
     """Apply CLI overrides onto detector config before analysis."""
-    advanced = detector.config.config.setdefault("advanced", {})
-    if getattr(args, "include_tests", False):
-        detector.config.include_default_tests()
-    if getattr(args, "topology_ceiling", None) is not None:
-        advanced["exact_topology_ceiling"] = args.topology_ceiling
-    if getattr(args, "topology_mode", None) is not None:
-        advanced["topology_mode_above_ceiling"] = args.topology_mode
-    if getattr(args, "patterns_only", False):
-        advanced["patterns_only"] = True
-    _apply_disabled_patterns(getattr(args, "disable", None) or [], detector)
-
-
-def _apply_disabled_patterns(pattern_ids, detector) -> None:
-    """Disable patterns by ID; an unknown ID is an error. Recorded in config (cache key)."""
-    unknown = sorted({pid for pid in pattern_ids if detector.pattern_registry.get(pid) is None})
-    if unknown:
-        raise ValueError(f"--disable: unknown pattern id {', '.join(unknown)}; see --list-patterns")
-    if not pattern_ids:
-        return
-    patterns = detector.config.config.setdefault("patterns", {})
-    patterns["disabled"] = sorted(set(patterns.get("disabled") or []) | set(pattern_ids))
-    for pid in pattern_ids:
-        detector.pattern_registry.disable(pid)
+    apply_runtime_overrides(
+        detector,
+        include_tests=bool(getattr(args, "include_tests", False)),
+        topology_ceiling=getattr(args, "topology_ceiling", None),
+        topology_mode=getattr(args, "topology_mode", None),
+        patterns_only=bool(getattr(args, "patterns_only", False)),
+        disabled=getattr(args, "disable", None) or [],
+    )
