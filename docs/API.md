@@ -59,6 +59,13 @@ installed version.
 `/agent/*` is the preferred API path for new integrations. The older
 `/analyze/*` routes remain for compatibility.
 
+The file endpoints analyze Python source. A `.js`, `.jsx`, `.ts`, `.tsx` or
+`.go` file gets `400` with a message (analyze its folder with the project
+endpoints instead); a path that does not exist gets `404`. In Python,
+`SlopDetector.analyze_file` raises `UnsupportedLanguageError` (a `ValueError`)
+for those files, and the MCP `slop_analyze_file` tool returns the error
+`unsupported_language`.
+
 ## Request Examples
 
 ```bash

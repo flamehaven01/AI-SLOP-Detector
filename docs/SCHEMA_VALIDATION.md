@@ -25,62 +25,63 @@ its range and type are structurally guaranteed.**
 
 ## Layer 1 — Config Boundary (`config.py`)
 
-**Trigger:** `.slopconfig.yaml` load (or `$SLOP_CONFIG` env path).
+**Trigger:** loading the config file named by `SLOP_CONFIG`, `--config`, or the
+auto-detected `.slopconfig.yaml` (project root, or next to a single file).
 
-**Implementation:** `_validate_yaml_config(raw: dict) -> None`
+**Order:** load YAML → validate every key the detector reads → merge the raw
+values as written into the defaults. The validated models are not merged, so no
+schema default is added to a partial config.
 
-Validates the raw YAML dict *before* `_deep_update()` merges it into `DEFAULT_CONFIG`.
-Raises `ValueError` with a human-readable message on the first invalid section.
+**Strict:** values are not coerced. `"10"` is not an integer and `true` is not a
+number; an integer is accepted where a float is expected.
 
-### Schemas
+### Checked keys
 
-**`_WeightsSchema`** — validates `weights:` block:
+| Section | Keys and constraints |
+|---|---|
+| `thresholds.ldr` | `excellent`, `good`, `acceptable`, `warning`, `critical`: float in `[0, 1]` |
+| `weights` | `ldr`, `inflation`, `ddc`, `purity`: float in `[0, 1]` |
+| `ignore`, `phantom_import_allowlist` | list of strings |
+| `exceptions.abc_interface` | `enabled`: bool; `penalty_reduction`: float in `[0, 1]` |
+| `exceptions.config_files` | `enabled`: bool; `patterns`: list of strings |
+| `advanced` | bools (`use_radon`, `weighted_analysis`, `analysis_cache_enabled`, `patterns_only`); ints (`exact_topology_ceiling`, `churn_commit_window`, `hotspot_limit`); strings (`analysis_cache_db`, `coverage_data_file`); `topology_mode_above_ceiling` is `deterministic_approximate` or `exact`; `hotspot_weights.*` float >= 0 |
+| `architecture` | `enabled`: bool; `preset`: string; `layers`: list of `{name: str, patterns: [str], can_import?: [str], cannot_import?: [str]}` |
+| `patterns.disabled` | list of strings |
+| `patterns.god_function` | `complexity_threshold`, `lines_threshold`: int >= 1; each `domain_overrides` entry needs `function_pattern` (str) and both thresholds |
+| `patterns.nested_complexity` | `depth_threshold`, `cc_threshold`: int >= 1; each `domain_overrides` entry needs `function_pattern` (str) |
 
-| Field | Type | Constraint |
-|---|---|---|
-| `ldr` | `float` | `0.0 ≤ x ≤ 1.0` |
-| `inflation` | `float` | `0.0 ≤ x ≤ 1.0` |
-| `ddc` | `float` | `0.0 ≤ x ≤ 1.0` |
-| `purity` | `float` | `0.0 ≤ x ≤ 1.0` |
+Keys that never had an effect (`patterns.severity_threshold`, ...) are accepted
+with a warning; unknown keys are accepted.
 
-Extra keys are allowed (`extra = "allow"`) for forward compatibility.
+### Refused before any analysis
 
-**`_DomainOverrideSchema`** — validates each entry in `patterns.god_function.domain_overrides`:
+Each raises `ConfigError` (a `ValueError`):
 
-| Field | Type | Constraint |
-|---|---|---|
-| `function_pattern` | `str` | fnmatch wildcard — must be a string |
-| `complexity_threshold` | `int` | `≥ 1` |
-| `lines_threshold` | `int` | `≥ 1` |
+- a named config file (`SLOP_CONFIG` or `--config`) that does not exist or cannot be read;
+- text that is not valid YAML, or a top level that is not a mapping;
+- any checked key with the wrong type, range or allowed value;
+- a config that cannot be validated because pydantic is not installed.
 
-**`_GodFunctionSchema`** — wraps the `patterns.god_function:` block:
-
-| Field | Type | Constraint |
-|---|---|---|
-| `complexity_threshold` | `int` | `≥ 1` |
-| `lines_threshold` | `int` | `≥ 1` |
-| `domain_overrides` | `list[DomainOverride]` | each entry validated above |
+An empty file means defaults.
 
 ### Error Output
 
+The message names the file, each key path and the expected type; it does not
+repeat the values (a config may hold paths or other private data):
+
 ```
-ValueError: .slopconfig.yaml validation failed:
-  - weights: 1 validation error for _WeightsSchema
-    ldr
-      Input should be less than or equal to 1 [type=less_than_equal, input_value=2.5]
-  - patterns.god_function: 1 validation error for _GodFunctionSchema
-    domain_overrides.0.function_pattern
-      Input should be a valid string [type=string_type, input_value=123]
+.slopconfig.yaml: invalid configuration
+  - thresholds.ldr.good: Input should be a valid number
+  - patterns.god_function.complexity_threshold: Input should be a valid integer
 ```
 
-All errors are collected before raising — the user sees every problem in one pass.
+All problems are reported at once.
 
 ### What it Protects
 
-- `get_weights()` return value used as `w_ldr / w_inf / w_ddc / w_purity` in GQG scorer
-- `get_god_function_config()["domain_overrides"]` iterated by `fnmatch.fnmatch(name, pattern)`
-- Both would produce unhelpful `TypeError` or `AttributeError` at an unrelated call site
-  without this guard
+- A wrong-typed value used to fail every file at analysis time, so the run
+  read as an empty, clean project; it now stops at startup.
+- A mistyped `--config` path used to run silently on defaults.
 
 ---
 
@@ -241,8 +242,8 @@ Layer 2 and 3 together guarantee that no record with impossible metric values (`
 
 ## Adding New Validated Fields
 
-**Config additions** — extend `_WeightsSchema` or add a new schema class in `config.py`,
-then call it inside `_validate_yaml_config()`. No changes needed elsewhere.
+**Config additions** — add the key to its section model in `config.py` (or a new
+section model under `_ConfigFile`). The raw value is still what is merged.
 
 **Model additions** — if a new metric result dataclass is added to `models.py`, add a
 `__post_init__` method that clamps any float field that feeds into GQG or LEDA.

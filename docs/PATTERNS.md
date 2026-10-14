@@ -812,6 +812,9 @@ Patterns added in v2.8.0, using Python `ast` module for structural analysis.
 **Severity:** HIGH | **Axis:** STYLE
 
 Function exceeds `logic_lines > 50` OR `cyclomatic_complexity > 10`.
+Logic lines are Python logical lines: one per statement (and `except` clause),
+so a dict literal, SQL string or call spread over many physical lines counts
+once; docstrings are excluded. 50 is pylint's too-many-statements default.
 Cyclomatic complexity = `1 + count(If, For, While, ExceptHandler, With, BoolOp)`.
 God functions are primary carriers of slop: they combine unrelated responsibilities
 and resist meaningful testing.
@@ -847,19 +850,21 @@ def process(x):
 **Severity:** HIGH | **Axis:** STYLE
 
 Control-flow nesting depth > 4 within a single function.
-Depth computed recursively over `If/For/While/With/Try` bodies. An `elif` is part of
-its `if`, not a nested level (an `if` written under `else:` is nested);
-`nested_complexity` uses the same depth.
+Depth rises for `if`, `for`, `while`, `async for` and `except` blocks (SonarSource
+Cognitive Complexity nesting rules); a `try` body or a `with` block is not a level.
+An `elif` is part of its `if`, not a nested level (an `if` written under `else:` is
+nested); `nested_complexity` uses the same depth.
 
 ```python
-# Flagged (depth 5):
+# Flagged (depth 5; the try and with add no level):
 for item in data:
     if item:
         for sub in item:
             if sub:
                 try:
-                    if sub.valid:  # depth 5
-                        ...
+                    with lock:
+                        if sub.valid:  # depth 5
+                            ...
 ```
 
 ---

@@ -9,6 +9,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.1] - 2026-10-14
+
+Fixes found by hunting for wrong results before the desktop release: what a
+function's length and nesting count, files that were scored or crashed for
+reasons unrelated to their code, and runs that read as clean or passed while
+measuring nothing. Score changes were replayed on the 18-repository corpus.
+
+For scripts and agents:
+
+- Findings that change: `god_function`, `nested_complexity` and
+  `deep_nesting` (see below). On the corpus they went down by 608, 471 and
+  472; nothing was added.
+- Additive keys: `scan_coverage.measurement_state` (`COMPLETE` / `PARTIAL` /
+  `NO_MEASUREMENT`), `score_valid`, `reason`. `overall_status` and the scores
+  keep their types and meaning.
+- A config that cannot be applied as written now stops the run before any
+  analysis (`ConfigError`, a `ValueError`). Configs that loaded before may be
+  refused if a value has the wrong type (`"10"` for a number, `true` for a
+  number) or a named config file does not exist.
+- `--fail-threshold` fails a scan in which every file failed to analyze.
+- `SlopDetector.analyze_file` raises `UnsupportedLanguageError` for a JS/TS
+  or Go file; the MCP file tool returns `unsupported_language`; the REST file
+  endpoints answer 400.
+- `analyze_project(..., observer=None)` reports progress events
+  (`slop_detector.service.events`).
+- Analysis cache `analysis-cache-v32` (old entries are recomputed).
+
+#### Length and nesting count logic, not layout
+
+- `god_function` counts logical lines: a statement spread over many physical
+  lines (a dict literal, an SQL string, call arguments) counts once;
+  docstrings are still excluded. The limit stays 50 (pylint's
+  too-many-statements default).
+- Nesting depth rises for `if`, `for`, `while`, `async for` and `except`
+  only; a `try` body or a `with` block is not a level (SonarSource Cognitive
+  Complexity nesting rules). `deep_nesting` and `nested_complexity` share it.
+
+#### Files no longer scored or crashed for the wrong reason
+
+- A UTF-8 byte order mark made a valid Python file a parse error (score 100).
+  Source, `__init__.py`, `setup.py`, `setup.cfg` and requirements files are
+  read as `utf-8-sig`.
+- `slop-detector app.js` (or `.ts`, `.go`) parsed the file as Python and
+  scored a parse error, so a CI gate on a clean JS file failed. A single
+  JS/TS/Go file is analyzed in its own language.
+- A project scan of a git repository inside a folder with a non-ASCII name
+  (e.g. Korean) crashed while reading git's output. git and helper output is
+  decoded as UTF-8 and git paths are not quoted (`core.quotepath=off`), so
+  staged files, changed files and churn keep non-ASCII file names.
+- `--project -o report.html` crashed for every project. The HTML report now
+  renders projects, escapes its text and declares UTF-8.
+
+#### Nothing measured is not a pass
+
+- Human reports (rich, text, Markdown) say how many files could not be
+  analyzed and how many had checks that could not run; they showed only
+  "analyzed=0 ... CLEAN".
+- When no file was analyzed, human reports show `NOT EVALUATED` and `N/A`
+  instead of `CLEAN` and `0.0`. A CI gate with nothing to measure (no
+  eligible or only excluded files) warns and does not block; a scan whose
+  every file failed still fails a hard gate.
+- `--fail-threshold` treated a scan in which every file failed as a 0.0
+  score and passed it; it now fails ("no file could be analyzed").
+
+#### Configuration is checked before the run
+
+- Every key the detector reads is validated with its type and range; values
+  are not coerced (`"10"` is not 10). Allowed values of
+  `advanced.topology_mode_above_ceiling` are checked.
+- A missing or unreadable `--config` or `SLOP_CONFIG` file, invalid YAML, or
+  a top level that is not a mapping is an error instead of a silent run on
+  defaults. Messages name the file, key path and expected type, not values.
+- Unchanged: keys that never had an effect still only warn, unknown keys are
+  accepted, `SLOP_CONFIG` still wins over `--config`, an empty file means
+  defaults.
+
+#### Pre-commit hook installer
+
+- `GitIntegration.install_pre_commit_hook` wrote a hook that called options
+  the CLI does not have, so every commit with a staged `.py` file failed. The
+  hook now runs `python -m slop_detector.precommit --staged --ci-mode hard`
+  with the interpreter that installed it, in the hooks directory git reports
+  (worktrees, `core.hooksPath`), and it never overwrites a hook it did not
+  write. `--staged` reads git's NUL-separated list, so spaces and non-ASCII
+  names survive; a staged file with unstaged changes stops the commit (the
+  scan reads the working tree).
+
+#### Other
+
+- `--inspector-read-only` is accepted as another name for `--read-only`
+  (same option, same restrictions).
+- The optional Rust discovery helper stops after 30 s (the slowest corpus
+  repository took 0.243 s) and discovery falls back to the Python walk.
+
 ## [3.10.0] - 2026-10-11
 
 Every score says what it looked at and what it came from, and a finding needs

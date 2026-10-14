@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.10.0" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.10.1" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
@@ -23,8 +23,9 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 </p>
 
 **Release track**
-- Stable tag: `v3.10.0`
-- Previous stable tag: `v3.9.3`
+- Stable tag: `v3.10.1`
+- Previous stable tag: `v3.10.0`
+- `v3.10.1`: function length counts logical lines and `try` / `with` are not nesting levels (far fewer false `god_function` and nesting findings); UTF-8 files with a byte order mark and single JS/TS/Go files are analyzed instead of scored as parse errors; scans of git repositories under non-ASCII folder names and HTML reports of projects no longer crash; a scan that measured nothing shows `NOT EVALUATED` and never passes `--fail-threshold`; an invalid or missing config stops the run before analysis. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.10.0`: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and cold scans are 2.6-3x faster (NSRW, Flamehaven-TOE). See [CHANGELOG.md](CHANGELOG.md).
 - `v3.9.3` is a precision correction found by testing 3.9.2 on 12 outside repositories: an `elif` no longer counts as a level of nesting, `@overload` signatures are not placeholders, a module with no executable code is not scored as empty logic, a file that fails to analyze is listed and marks the scan incomplete (a hard gate then fails) instead of silently disappearing, `--json --js` prints one JSON document, and the JS/TS analysis mode (tree-sitter or regex fallback) is disclosed. Scores mostly go down; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.2` makes one result mean the same thing everywhere and removes double counting: one set of score bands for files, projects, JS and Go; docstrings count like comments (logic density, god_function); a nested function's nesting is charged once; exact duplicates compare function bodies only, with one size floor for the same-file and cross-file reports; import evidence follows the scanned project's root; output is byte-identical across cache, hash seed, Rust helper, and working directory. Self-calibration is now an advisory report that writes nothing, documented configuration keys that nothing read are removed with a warning, and `--init <path>` writes into `<path>`. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
@@ -104,7 +105,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.10.0"
+pip install "ai-slop-detector>=3.10.1"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -121,7 +122,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.10.0"
+pip install "ai-slop-detector>=3.10.1"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -838,6 +839,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.10.1** | correctness release: `god_function` counts logical lines and nesting rises only for `if`/`for`/`while`/`except` (corpus: -608 / -471 / -472 findings, none added); BOM files and single JS/TS/Go files analyzed; crashes fixed for git repositories under non-ASCII folders and project HTML reports; `scan_coverage.measurement_state` / `score_valid` / `reason`, `NOT EVALUATED` in human reports, `--fail-threshold` fails when every file failed; strict config validation before the run; working pre-commit hook installer; `--inspector-read-only` alias of `--read-only` |
 | **v3.10.0** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (TOE cold 33.1 s -> 10.9 s); cache `analysis-cache-v30`. See [CHANGELOG.md](CHANGELOG.md) |
 | **v3.9.3** | precision correction from a 12-repository study: `elif` is not nesting (`deep_nesting`, `nested_complexity`); `@overload` / `@typing.overload` are not placeholders; `no_executable_code` modules skip LDR/DDC instead of scoring 97.49; failed analyses are counted in `scan_coverage.failed` with `complete: false` and a hard gate fails closed; one JS pass and valid `--json --js` output; `scan_coverage.analysis_modes`; cache `analysis-cache-v25` |
 | **v3.9.2** | consistency and correctness release: one band set (CLEAN <30 / SUSPICIOUS / INFLATED_SIGNAL / CRITICAL_DEFICIT >=70) for files, projects, JS and Go; `dependency_noise` and `parse_error` are flags; docstrings count like comments in LDR and god_function; deep_nesting under nested_complexity charged once; exact duplicates by function body with an 8-node floor, shared by same-file and cross-file; import evidence from the scan root; byte-identical output across cache, hash seed, Rust helper and cwd; advisory-only self-calibration; unread config keys removed with a warning; `--init <path>` honoured; cache `analysis-cache-v24` |

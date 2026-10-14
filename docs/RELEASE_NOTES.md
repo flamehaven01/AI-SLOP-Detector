@@ -5,6 +5,48 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.10.1 — 2026-10-14
+
+### Summary
+
+v3.10.1 fixes results that were wrong for reasons unrelated to the analyzed
+code, and runs that read as clean while measuring nothing. Each change is
+listed in the [Changelog](../CHANGELOG.md#3101---2026-10-14).
+
+### What moves when you upgrade
+
+- **Fewer `god_function` and nesting findings.** Length counts logical lines
+  (a multi-line literal or call is one line), and `try` / `with` wrappers are
+  not nesting levels. On the 18-repository corpus: `god_function` -608,
+  `nested_complexity` -471, `deep_nesting` -472, none added.
+- **Files that were mis-scored are analyzed.** UTF-8 files with a byte order
+  mark parse; a single JS/TS/Go file given on the command line is analyzed in
+  its language instead of failing as Python.
+- **Crashes fixed:** project scans of git repositories in folders with
+  non-ASCII names, and HTML reports of projects.
+- **Nothing measured is never a pass.** `scan_coverage.measurement_state`,
+  `score_valid` and `reason` say whether the score measures anything; human
+  reports show `NOT EVALUATED` / `N/A` and name files that could not be
+  analyzed; `--fail-threshold` fails when every file failed.
+- **Configuration errors stop the run** before analysis, with the file, key
+  path and expected type.
+
+### Upgrade notes
+
+- A config with a wrong-typed value (`complexity_threshold: "10"`,
+  `hotspot_limit: true`), an unknown `topology_mode_above_ceiling`, or a
+  `--config` / `SLOP_CONFIG` path that does not exist is now refused. Fix the
+  value or path the message names.
+- A pre-commit hook installed with `GitIntegration.install_pre_commit_hook`
+  by an earlier version never worked (it called options the CLI does not
+  have). Delete it and install again; the installer does not replace a hook
+  it did not write.
+- `SlopDetector.analyze_file` raises `UnsupportedLanguageError` for JS/TS and
+  Go files; use `analyze_js_file`, `analyze_go_file` or `analyze_project`.
+- The analysis cache is recomputed once (`analysis-cache-v32`).
+
+---
+
 ## v3.10.0 — 2026-10-11
 
 ### Summary

@@ -57,53 +57,37 @@ architecture:
 `architecture` is opt-in. If you do nothing, `boundary-violations` reports
 import cycles only.
 
-## Config Validation (v3.7.2)
+## Config Validation
 
-`.slopconfig.yaml` is validated by Pydantic v2 schemas before merging into the
-default config. Invalid values raise `ValueError` with the exact field path —
-before they can reach the GQG formula (the weighted score combiner) or the
-advisory `--self-calibrate` report (based on your local history; it never
-writes weights and is not external validation).
+The config is validated before any analysis, and a config that cannot be
+applied as written stops the run with `ConfigError` (a `ValueError`):
 
-### Validated Sections
-
-**`weights:` block** — each key must be `float` in `[0.0, 1.0]`:
+- every key the detector reads must have its type and range; values are not
+  coerced (`complexity_threshold: "10"` and `hotspot_limit: true` are refused);
+- `advanced.topology_mode_above_ceiling` must be `deterministic_approximate`
+  or `exact`;
+- a `--config` or `SLOP_CONFIG` file that does not exist, invalid YAML, or a
+  top level that is not a mapping is an error, not a silent run on defaults.
 
 ```yaml
-# Raises ValueError at load time:
+# Refused at startup:
 weights:
-  ldr: 2.5        # Error: ldr must be <= 1.0
-  inflation: -0.1 # Error: inflation must be >= 0.0
-```
-
-**`patterns.god_function:` block**:
-
-```yaml
+  ldr: 2.5                      # must be within [0, 1]
 patterns:
   god_function:
-    complexity_threshold: 10  # must be int >= 1
-    lines_threshold: 50       # must be int >= 1
-    domain_overrides:
-      - function_pattern: "train_*"   # must be string
-        complexity_threshold: 30      # must be int >= 1
-        lines_threshold: 200          # must be int >= 1
+    complexity_threshold: "10"  # must be an integer, not a string
 ```
 
-### Error Format
-
-All sections are validated before raising — you see every problem at once:
-
 ```
-ValueError: .slopconfig.yaml validation failed:
-  - weights: 1 validation error for _WeightsSchema
-    ldr
-      Input should be less than or equal to 1 [type=less_than_equal, input_value=2.5]
-  - patterns.god_function: 1 validation error for _GodFunctionSchema
-    domain_overrides.0.function_pattern
-      Input should be a valid string [type=string_type, input_value=123]
+.slopconfig.yaml: invalid configuration
+  - weights.ldr: Input should be less than or equal to 1
+  - patterns.god_function.complexity_threshold: Input should be a valid integer
 ```
 
-Unknown top-level keys are silently ignored for forward compatibility.
+The message names the file, the key path and the expected type, and every
+problem is listed at once. Keys that never had an effect only warn; unknown
+keys are accepted; an empty file means defaults. The raw values are merged as
+written, so a partial config changes only the keys it sets.
 
 Full specification: [docs/SCHEMA_VALIDATION.md](SCHEMA_VALIDATION.md)
 
@@ -260,10 +244,15 @@ cleanup contract.
 
 ## Configuration Priority
 
-1. Command-line arguments (highest)
-2. `.slopconfig.yaml` in current directory
-3. `--config` specified file
-4. Default values (lowest)
+Which file is loaded:
+
+1. `SLOP_CONFIG` environment variable (wins over `--config`)
+2. `--config <file>`
+3. `.slopconfig.yaml` in the scanned project's root (or next to a single scanned file)
+4. none: built-in defaults
+
+A file named by 1 or 2 must exist. Command-line options (`--include-tests`,
+`--disable`, `--topology-ceiling`, ...) then apply on top of the loaded config.
 
 ## Example Configurations
 

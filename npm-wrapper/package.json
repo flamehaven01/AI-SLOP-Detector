@@ -1,6 +1,6 @@
 {
   "name": "ai-slop-detector",
-  "version": "3.10.0",
+  "version": "3.10.1",
   "private": true,
   "description": "Thin npm wrapper for the AI-SLOP-DETECTOR Python CLI",
   "license": "MIT",

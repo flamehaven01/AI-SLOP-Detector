@@ -1,6 +1,6 @@
 # CLI Usage
 
-**Current contract:** v3.9.3. Run `slop-detector --help` in the installed environment for the authoritative option list.
+**Current contract:** v3.10.1. Run `slop-detector --help` in the installed environment for the authoritative option list.
 
 ## Canonical Commands
 
@@ -27,6 +27,15 @@ slop-detector verify-governance <project-or-record>
 
 Compatible forms remain available: `slop-detector <path>`, `slop-detector --project <directory>`, `audit`, `health`, and direct cleanup family commands. New automation should prefer the canonical forms above.
 
+A directory is scanned as a project. A single `.py` file is scanned as Python; a
+single `.js`, `.jsx`, `.ts`, `.tsx` or `.go` file is scanned in its own language
+(as a project of that one file).
+
+`--read-only` (also accepted as `--inspector-read-only`) changes nothing in the
+project or in the detector's state (history, impact, telemetry, analysis cache)
+and refuses write-capable options such as `--output`, `--fix`, `--init`,
+`--ci-mode` and `--ci-report`.
+
 ## Structured Output
 
 ```bash
@@ -41,8 +50,11 @@ Read project results with their scope:
 
 - `finding_summary`: aggregate finding and severity totals.
 - `scan_coverage`: analyzed, excluded, unsupported, and failed source files; `complete` is false when any file could not be analyzed (a hard gate then fails with "analysis incomplete"); `analysis_modes.javascript` says whether JS/TS was analyzed with tree-sitter or the regex fallback.
+- `scan_coverage.measurement_state`: `COMPLETE`, `PARTIAL` (some files or checks could not be measured; the score covers the rest) or `NO_MEASUREMENT` (no file was analyzed; `score_valid` is false and `reason` is `all_analysis_failed`, `all_excluded` or `no_eligible_files`). Human reports then show `NOT EVALUATED` and `N/A`.
 - `ml_scoring`: optional ML capability state.
 - `coherence_level`: exact or deterministic-approximate topology mode.
+
+`--fail-threshold N` exits 1 when the headline score (weighted for a project) is above `N`, and when every file failed to analyze; a scan with nothing to measure is not evaluated and exits 0. A hard CI gate (`--ci-mode hard`) fails an incomplete scan and warns without failing when there was nothing to measure.
 
 `clean` means the measured configured signals are below the applicable status threshold. It is not a claim that the project is complete, safe, or fully covered.
 

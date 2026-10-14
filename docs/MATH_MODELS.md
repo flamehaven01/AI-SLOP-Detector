@@ -324,8 +324,10 @@ is_god_function = (
 )
 ```
 
-Logic lines within a function are counted the same way as file-level LDR:
-executable statements excluding blank lines and pure comments.
+Logic lines within a function are Python logical lines: one per statement
+(and `except` clause), so a statement spread over many physical lines (a
+literal, an SQL string, call arguments) counts once; docstrings are excluded.
+The limit 50 is pylint's too-many-statements default.
 
 **Severity:** HIGH when the complexity limit is exceeded; LOW when only long
 and complexity <= 5; MEDIUM otherwise.
@@ -556,6 +558,7 @@ training without requiring a real codebase:
 
 | Version | Signal    | Change                                                          |
 |---------|-----------|-----------------------------------------------------------------|
+| v3.10.1 | Patterns | `god_function` length = logical lines; nesting depth rises for if/for/while/async for/except only (try and with are not levels) |
 | v3.10.0 | Project | `literal_data_module` files carry no line weight in `weighted_deficit_score` |
 | v3.10.0 | ICR | Claim words only: AI/ML category and domain nouns (distributed, optimization, equation, ...) removed |
 | v3.10.0 | Penalty | `bare_except` + `empty_except` on one bare handler counted once; `mutable_default_arg` HIGH without mutation evidence |
