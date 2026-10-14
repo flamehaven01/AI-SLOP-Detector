@@ -135,7 +135,8 @@ class GitIntegration:
         )
         try:
             hook_path.parent.mkdir(parents=True, exist_ok=True)
-            hook_path.write_text(hook_content, encoding="utf-8", newline="\n")
+            # Bytes: LF line endings on every platform (write_text(newline=) is 3.10+).
+            hook_path.write_bytes(hook_content.encode("utf-8"))
             hook_path.chmod(0o755)
         except OSError as e:
             print(f"[-] Failed to install hook: {e}")
