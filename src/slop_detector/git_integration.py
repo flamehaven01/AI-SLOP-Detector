@@ -3,9 +3,15 @@ Git integration for automatic history recording.
 Provides pre-commit hook and git info extraction.
 """
 
+import shlex
 import subprocess
+import sys
 from pathlib import Path
 from typing import Dict, Optional
+
+# Ownership line of the hook install_pre_commit_hook writes; only a hook that
+# carries it is replaced.
+HOOK_MARKER = "# ai-slop-detector managed pre-commit hook"
 
 
 class GitIntegration:
@@ -86,50 +92,53 @@ class GitIntegration:
 
     @staticmethod
     def install_pre_commit_hook(repo_path: str = ".") -> bool:
-        """Install git pre-commit hook for automatic slop detection"""
-        if not GitIntegration.is_git_repo(repo_path):
+        """Install a git pre-commit hook that scans the staged .py files.
+
+        The hook runs `python -m slop_detector.precommit --staged --ci-mode hard`
+        with the interpreter that installed it (deleting that environment
+        breaks the hook with an error). The commit is blocked when a scan fails
+        the hard gate or cannot run, and when a staged file has unstaged
+        changes (the scan reads the working tree). The hooks directory comes
+        from git (worktrees, core.hooksPath). A hook that does not carry
+        HOOK_MARKER is someone else's and is never overwritten.
+        """
+        try:
+            hooks = subprocess.run(
+                ["git", "rev-parse", "--git-path", "hooks"],
+                cwd=repo_path,
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
+            ).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
             print("[!] Not a git repository")
             return False
 
-        git_dir = Path(repo_path) / ".git"
-        hooks_dir = git_dir / "hooks"
-        hooks_dir.mkdir(exist_ok=True)
+        hook_path = (Path(repo_path) / hooks / "pre-commit").resolve()
+        if hook_path.exists():
+            try:
+                existing = hook_path.read_text(encoding="utf-8", errors="replace")
+            except OSError as e:
+                print(f"[-] Cannot read existing hook {hook_path}: {e}")
+                return False
+            if HOOK_MARKER not in existing:
+                print(f"[-] {hook_path} exists and was not installed by slop-detector; left as is")
+                return False
 
-        hook_path = hooks_dir / "pre-commit"
-
-        hook_content = """#!/bin/sh
-# AI SLOP Detector Pre-Commit Hook
-
-echo "[*] Running AI SLOP Detector on staged files..."
-
-# Get staged Python files
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\\.py$')
-
-if [ -z "$STAGED_FILES" ]; then
-    echo "[+] No Python files to check"
-    exit 0
-fi
-
-# Run slop detector with history recording
-slop-detector --files $STAGED_FILES --record-history --fail-on regression
-
-EXIT_CODE=$?
-
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "[-] Slop detection failed! Fix issues before committing."
-    echo "    Run: slop-detector <file> --verbose for details"
-    exit 1
-fi
-
-echo "[+] Slop detection passed!"
-exit 0
-"""
-
+        interpreter = shlex.quote(Path(sys.executable).as_posix())
+        hook_content = (
+            "#!/bin/sh\n"
+            f"{HOOK_MARKER}\n"
+            "# Scans staged .py files with --ci-mode hard; see slop_detector.precommit.\n"
+            f"exec {interpreter} -m slop_detector.precommit --staged --ci-mode hard\n"
+        )
         try:
-            hook_path.write_text(hook_content)
-            hook_path.chmod(0o755)  # Make executable
-            print(f"[+] Pre-commit hook installed at: {hook_path}")
-            return True
-        except Exception as e:
+            hook_path.parent.mkdir(parents=True, exist_ok=True)
+            hook_path.write_text(hook_content, encoding="utf-8", newline="\n")
+            hook_path.chmod(0o755)
+        except OSError as e:
             print(f"[-] Failed to install hook: {e}")
             return False
+        print(f"[+] Pre-commit hook installed at: {hook_path}")
+        return True
