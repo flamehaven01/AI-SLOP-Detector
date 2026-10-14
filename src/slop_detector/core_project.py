@@ -504,6 +504,34 @@ def set_unmeasured_scan_coverage(
     scan_coverage["complete"] = scan_coverage.get("complete", True) and not files
 
 
+def set_measurement_state(scan_coverage: Dict[str, Any], analyzed: int) -> None:
+    """Say whether the project score measures anything.
+
+    overall_status is a score band; this is separate. COMPLETE: every file and
+    check measured. PARTIAL: scored on what was measured. NO_MEASUREMENT: no
+    file result, so the score (0.0, "clean") is not a measurement.
+    """
+    failed = scan_coverage.get("failed", {}).get("total", 0)
+    unmeasured = scan_coverage.get("unmeasured", {}).get("total", 0)
+    excluded = scan_coverage.get("excluded", {}).get("total", 0)
+    if not analyzed:
+        state, reason = "NO_MEASUREMENT", (
+            "all_analysis_failed" if failed else "all_excluded" if excluded else "no_eligible_files"
+        )
+    elif failed or unmeasured:
+        state, reason = "PARTIAL", "analysis_failed" if failed else "checks_unmeasured"
+    else:
+        state, reason = "COMPLETE", None
+    scan_coverage["measurement_state"] = state
+    scan_coverage["score_valid"] = state != "NO_MEASUREMENT"
+    scan_coverage["reason"] = reason
+
+
+def score_is_valid(result: Any) -> bool:
+    """False only for a project result whose score measures nothing."""
+    return bool((getattr(result, "scan_coverage", None) or {}).get("score_valid", True))
+
+
 def set_analysis_modes(
     scan_coverage: Dict[str, Any], js_results: List[Any], go_results: Optional[List[Any]] = None
 ) -> None:
@@ -588,6 +616,7 @@ def build_project_analysis(
     set_failed_scan_coverage(scan_coverage, analysis_failures)
     set_unmeasured_scan_coverage(scan_coverage, Path(project_path), python_results)
     set_analysis_modes(scan_coverage, js_results, go_results)
+    set_measurement_state(scan_coverage, len(all_results))
     if not all_results:
         result = create_empty_project_analysis(project_path)
         result.js_file_results = js_results

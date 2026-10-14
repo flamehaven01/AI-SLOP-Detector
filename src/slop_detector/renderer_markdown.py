@@ -6,6 +6,7 @@ import ast
 from pathlib import Path
 
 from slop_detector.ast_index import walk_nodes
+from slop_detector.core_project import score_is_valid
 from slop_detector.finding_summary import get_finding_summary
 from slop_detector.metrics.context_jargon import PRODUCTION_CLAIMS
 from slop_detector.path_facts import facts_for
@@ -17,6 +18,7 @@ from slop_detector.renderer_glossary import (
     incomplete_notes,
     next_steps,
     project_metric_rows,
+    status_label,
 )
 
 # Health icons emitted into Markdown output, written as ASCII source escapes
@@ -95,15 +97,15 @@ def _collect_test_evidence_stats(file_results, project_root=None) -> dict:
     return stats
 
 
-def _md_summary_section(score_label: str, score: float, avg_inflation: float, status) -> list:
+def _md_summary_section(score_label: str, score: str, inflation: str, status: str) -> list:
     # The status sits next to the score it was derived from (a project's status is
     # the band of its weighted deficit; the average is in Project Metrics).
     return [
         "## 1. Executive Summary",
         "| Metric | Score | Status | Description |",
         "| :--- | :--- | :--- | :--- |",
-        f"| **{score_label}** | {score:.2f} | {status.value.upper()} | Closer to 0.0 is better. High score indicates low logic density. |",
-        f"| **Inflation (Jargon)** | {avg_inflation:.2f} | - | Density of non-functional 'marketing' terms. |",
+        f"| **{score_label}** | {score} | {status} | Closer to 0.0 is better. High score indicates low logic density. |",
+        f"| **Inflation (Jargon)** | {inflation} | - | Density of non-functional 'marketing' terms. |",
         "",
     ]
 
@@ -380,18 +382,24 @@ def generate_markdown_report(result) -> str:
     """Generate a detailed developer-focused Markdown report."""
     is_project = hasattr(result, "project_path")
     root_dir = result.project_path if is_project else str(Path(result.file_path).parent)
-    status = result.overall_status if is_project else result.status
+    status = status_label(result)
     score_label = "Weighted Deficit Score" if is_project else "Deficit Score"
     score = result.weighted_deficit_score if is_project else result.deficit_score
     avg_inflation = result.avg_inflation if is_project else result.inflation.inflation_score
+    measured = score_is_valid(result)
     timestamp = getattr(result, "timestamp", None)
 
     lines = ["# AI Code Quality Audit Report"]
     if timestamp:
         lines.append(f"**Date**: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-    lines += [f"**Target**: `{root_dir}`", f"**Status**: {status.value.upper()}", ""]
+    lines += [f"**Target**: `{root_dir}`", f"**Status**: {status}", ""]
 
-    lines += _md_summary_section(score_label, score, avg_inflation, status)
+    lines += _md_summary_section(
+        score_label,
+        f"{score:.2f}" if measured else "N/A",
+        f"{avg_inflation:.2f}" if measured else "N/A",
+        status,
+    )
 
     if is_project:
         lines += _md_project_metrics_section(result)

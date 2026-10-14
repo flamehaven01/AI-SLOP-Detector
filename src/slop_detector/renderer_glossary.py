@@ -16,6 +16,7 @@ from slop_detector.clone_signals import (
     is_clone_pattern,
     is_exact_duplicate_pair,
 )
+from slop_detector.core_project import score_is_valid
 from slop_detector.diagnostic_bands import bands_text
 
 # Deficit bands: the canonical bands (diagnostic_bands), rendered once.
@@ -102,12 +103,29 @@ def _ddc_health(value: float) -> str:
     return "good" if value >= 0.80 else "warn" if value >= 0.50 else "bad"
 
 
+def status_label(result: Any) -> str:
+    """The status shown to people: the score band, or NOT EVALUATED when the
+    project score measures nothing (scan_coverage.score_valid is false)."""
+    if not score_is_valid(result):
+        return "NOT EVALUATED"
+    status = getattr(result, "overall_status", None) or result.status
+    return str(getattr(status, "value", status)).upper()
+
+
 def project_metric_rows(result: Any) -> List[Dict[str, str]]:
     """Return ordered metric descriptors for a ProjectAnalysis result.
 
     Each row: label, value (display), direction ("Lower"/"Higher"), health
-    ("good"/"warn"/"bad"), means (plain-language explanation).
+    ("good"/"warn"/"bad", or "n/a" when nothing was measured), means.
     """
+    rows = _project_metric_rows(result)
+    if not score_is_valid(result):
+        for row in rows:
+            row["value"], row["health"] = "N/A", "n/a"
+    return rows
+
+
+def _project_metric_rows(result: Any) -> List[Dict[str, str]]:
     return [
         {
             "label": "Average Deficit Score",

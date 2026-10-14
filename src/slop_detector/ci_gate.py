@@ -124,6 +124,11 @@ class CIGate:
         independent of the per-file thresholds.
         """
         coverage = getattr(result, "scan_coverage", None) or {}
+        if coverage.get("complete", True) and not coverage.get("score_valid", True):
+            # Nothing to measure (no eligible or only excluded files): not
+            # blocking, and not a quality PASS either.
+            reason = coverage.get("reason")
+            return GateVerdict.WARN, False, f"Not evaluated: {reason}; no file was analyzed"
         if coverage.get("complete", True):
             return verdict, should_fail, message
         count = coverage.get("failed", {}).get("total", 0)

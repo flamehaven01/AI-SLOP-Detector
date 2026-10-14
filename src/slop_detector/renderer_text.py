@@ -13,6 +13,7 @@ from slop_detector.renderer_glossary import (
     incomplete_notes,
     next_steps,
     project_metric_rows,
+    status_label,
 )
 from slop_detector.renderer_markdown import _collect_test_evidence_stats
 
@@ -66,7 +67,7 @@ def _text_project_section(result) -> list:
         f"Total Files: {result.total_files}",
         f"Clean Files: {result.clean_files}",
         f"Deficit Files: {result.deficit_files}",
-        f"Overall Status: {result.overall_status.upper()}",
+        f"Overall Status: {status_label(result)}",
         (
             "Finding Summary: "
             f"{findings['total']} across {findings['affected_files']} files "

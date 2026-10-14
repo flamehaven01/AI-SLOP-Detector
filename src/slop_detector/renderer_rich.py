@@ -16,6 +16,7 @@ from slop_detector.renderer_glossary import (
     incomplete_notes,
     next_steps,
     project_metric_rows,
+    status_label,
 )
 
 try:
@@ -100,8 +101,9 @@ def _build_rich_summary_tables(result):
             else str(result.deficit_files)
         ),
     )
-    sc = "red" if result.overall_status != "clean" else "green"
-    summary_table.add_row("Overall Status", f"[{sc}]{result.overall_status.upper()}[/{sc}]")
+    label = status_label(result)
+    sc = "yellow" if label == "NOT EVALUATED" else "green" if label == "CLEAN" else "red"
+    summary_table.add_row("Overall Status", f"[{sc}]{label}[/{sc}]")
     findings = get_finding_summary(result)
     severity = findings["severity"]
     summary_table.add_row(
