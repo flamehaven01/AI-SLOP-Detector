@@ -6,7 +6,7 @@ import ast
 import hashlib
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector.config import Config
@@ -67,9 +67,13 @@ from slop_detector.prioritization import ProjectPrioritizer
 from slop_detector.project_context import fingerprint_for_roots, project_context_scope
 from slop_detector.project_resolution import no_location_scope, resolution_roots, scan_root_scope
 from slop_detector.rust_scan import discover_project_files
+from slop_detector.service.events import ScanObserver, ScanProgress
 from slop_detector.suppression_handler import SuppressionHandler
 
 logger = logging.getLogger(__name__)
+
+# Prefix of the per-file error log line, by language (unchanged wording).
+_FAILURE_LABEL = {"python": "", "javascript": "JS/TS file ", "go": "Go file "}
 
 
 # Metrics left out of deficit_score under --patterns-only (advanced.patterns_only).
@@ -298,12 +302,54 @@ class SlopDetector:
                 str(path_obj), content, tree, facts_for(path_obj, project_root)
             )
 
-    def analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
-        """Analyze a project; each project root's context snapshot is built once per scan."""
-        with project_context_scope(), project_walk_scope():
-            return self._analyze_project(project_path, pattern)
+    def analyze_project(
+        self,
+        project_path: str,
+        pattern: str = "**/*.py",
+        observer: Optional[ScanObserver] = None,
+    ) -> ProjectAnalysis:
+        """Analyze a project; each project root's context snapshot is built once per scan.
 
-    def _analyze_project(self, project_path: str, pattern: str = "**/*.py") -> ProjectAnalysis:
+        observer receives the scan's progress events (slop_detector.service.events);
+        an exception it raises ends the scan and propagates.
+        """
+        with project_context_scope(), project_walk_scope():
+            return self._analyze_project(project_path, pattern, observer)
+
+    def _analyze_each(
+        self,
+        files: List[Path],
+        analyze: Callable[[Path], Any],
+        language: str,
+        root: Path,
+        failures: Optional[List[Dict[str, str]]],
+        progress: Optional[ScanProgress] = None,
+    ) -> List[Any]:
+        """Analyze files one by one; a file that raises is recorded as failed.
+
+        The progress call sits outside the per-file try: an exception from the
+        observer (a cancellation) ends the scan instead of failing a file.
+        """
+        results: List[Any] = []
+        for fp in files:
+            outcome = "analyzed"
+            try:
+                results.append(analyze(fp))
+            except Exception as exc:
+                logger.error(f"Error analyzing {_FAILURE_LABEL[language]}{fp}: {exc}")
+                if failures is not None:
+                    record_analysis_failure(failures, fp, root, language, exc)
+                outcome = "failed"
+            if progress is not None:
+                progress.file_done(str(fp), language, outcome)
+        return results
+
+    def _analyze_project(
+        self,
+        project_path: str,
+        pattern: str = "**/*.py",
+        observer: Optional[ScanObserver] = None,
+    ) -> ProjectAnalysis:
         """
         Analyze entire project with weighted scoring.
 
@@ -323,25 +369,31 @@ class SlopDetector:
         )
 
         logger.info(f"Found {len(python_files)} Python files in {project_path}")
+        # Every language is discovered before any file is analyzed, so the
+        # totals are known up front; analysis order stays Python, JS/TS, Go.
+        js_files = self._discover_js_files(project_path_obj, ignore_patterns)
+        go_files = self._discover_go_files(project_path_obj, ignore_patterns)
+        progress = ScanProgress(
+            observer,
+            {"python": len(python_files), "javascript": len(js_files), "go": len(go_files)},
+        )
+        progress.discovered()
 
-        # Analyze files
-        results: List[FileAnalysis] = []
         failures: List[Dict[str, str]] = []
-        for file_path in python_files:
-            try:
-                result = self.analyze_file(str(file_path), root=str(project_path_obj))
-                results.append(result)
-            except Exception as e:
-                logger.error(f"Error analyzing {file_path}: {e}")
-                record_analysis_failure(failures, file_path, project_path_obj, "python", e)
-
-        # Phase 3b: JS/TS analysis is independent of Python — run before early return
-        js_results = self._analyze_js_files(project_path_obj, ignore_patterns, failures)
-        # Phase 3c: Go analysis is independent of Python — run before early return
-        go_results = self._analyze_go_files(project_path_obj, ignore_patterns, failures)
+        results: List[FileAnalysis] = self._analyze_each(
+            python_files,
+            lambda fp: self.analyze_file(str(fp), root=str(project_path_obj)),
+            "python",
+            project_path_obj,
+            failures,
+            progress,
+        )
+        js_results = self._analyze_js_list(js_files, project_path_obj, failures, progress)
+        go_results = self._analyze_go_list(go_files, project_path_obj, failures, progress)
         if not results and not js_results and not go_results:
             logger.warning("No files analyzed")
 
+        progress.aggregating()
         return build_project_analysis(
             str(project_path),
             str(project_path_obj),
@@ -468,6 +520,35 @@ class SlopDetector:
             rust_discoverer=discover_project_files,
         )
 
+    def _discover_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List[Path]:
+        return self._discover_supported_files(
+            project_path_obj,
+            [f"**/*{ext}" for ext in self._JS_EXTENSIONS],
+            self._JS_EXTENSIONS,
+            ignore_patterns,
+        )
+
+    def _analyze_js_list(
+        self,
+        js_files: List[Path],
+        project_path_obj: Path,
+        failures: Optional[List[Dict[str, str]]],
+        progress: Optional[ScanProgress] = None,
+    ) -> List:
+        if not js_files:
+            return []
+        analyzer = self._get_js_analyzer()
+        results = self._analyze_each(
+            js_files,
+            lambda fp: analyzer.analyze(str(fp)),
+            "javascript",
+            project_path_obj,
+            failures,
+            progress,
+        )
+        logger.info(f"Analyzed {len(results)} JS/TS files")
+        return results
+
     def _analyze_js_files(
         self,
         project_path_obj: Path,
@@ -475,31 +556,43 @@ class SlopDetector:
         failures: Optional[List[Dict[str, str]]] = None,
     ) -> List:
         """Scan and analyze JS/TS files in project_path_obj (Phase 3b)."""
-        js_files = self._discover_supported_files(
-            project_path_obj,
-            [f"**/*{ext}" for ext in self._JS_EXTENSIONS],
-            self._JS_EXTENSIONS,
-            ignore_patterns,
-        )
-        if not js_files:
-            return []
-        analyzer = self._get_js_analyzer()
-        results = []
-        for fp in js_files:
-            try:
-                results.append(analyzer.analyze(str(fp)))
-            except Exception as exc:
-                logger.error(f"Error analyzing JS/TS file {fp}: {exc}")
-                if failures is not None:
-                    record_analysis_failure(failures, fp, project_path_obj, "javascript", exc)
-        logger.info(f"Analyzed {len(results)} JS/TS files")
-        return results
+        js_files = self._discover_js_files(project_path_obj, ignore_patterns)
+        return self._analyze_js_list(js_files, project_path_obj, failures)
 
     def analyze_js_file(self, file_path: str):
         """Analyze a single JS/TS file and return JSFileAnalysis."""
         return self._get_js_analyzer().analyze(file_path)
 
     _GO_EXTENSIONS = frozenset({".go"})
+
+    def _discover_go_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List[Path]:
+        return self._discover_supported_files(
+            project_path_obj,
+            [f"**/*{ext}" for ext in self._GO_EXTENSIONS],
+            self._GO_EXTENSIONS,
+            ignore_patterns,
+        )
+
+    def _analyze_go_list(
+        self,
+        go_files: List[Path],
+        project_path_obj: Path,
+        failures: Optional[List[Dict[str, str]]],
+        progress: Optional[ScanProgress] = None,
+    ) -> List:
+        if not go_files:
+            return []
+        analyzer = self._get_go_analyzer()
+        results = self._analyze_each(
+            go_files,
+            lambda fp: analyzer.analyze(str(fp)),
+            "go",
+            project_path_obj,
+            failures,
+            progress,
+        )
+        logger.info(f"Analyzed {len(results)} Go files")
+        return results
 
     def _analyze_go_files(
         self,
@@ -508,25 +601,8 @@ class SlopDetector:
         failures: Optional[List[Dict[str, str]]] = None,
     ) -> List:
         """Scan and analyze Go files in project_path_obj (Phase 3c)."""
-        go_files = self._discover_supported_files(
-            project_path_obj,
-            [f"**/*{ext}" for ext in self._GO_EXTENSIONS],
-            self._GO_EXTENSIONS,
-            ignore_patterns,
-        )
-        if not go_files:
-            return []
-        analyzer = self._get_go_analyzer()
-        results = []
-        for fp in go_files:
-            try:
-                results.append(analyzer.analyze(str(fp)))
-            except Exception as exc:
-                logger.error(f"Error analyzing Go file {fp}: {exc}")
-                if failures is not None:
-                    record_analysis_failure(failures, fp, project_path_obj, "go", exc)
-        logger.info(f"Analyzed {len(results)} Go files")
-        return results
+        go_files = self._discover_go_files(project_path_obj, ignore_patterns)
+        return self._analyze_go_list(go_files, project_path_obj, failures)
 
     def analyze_go_file(self, file_path: str):
         """Analyze a single .go file and return GoFileAnalysis."""
