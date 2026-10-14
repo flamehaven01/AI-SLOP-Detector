@@ -154,6 +154,9 @@ Examples:
     )
     parser.add_argument(
         "--read-only",
+        # Same option under the name the Flamehaven Inspector manifest uses.
+        "--inspector-read-only",
+        dest="read_only",
         action="store_true",
         help=(
             "Analyze without changing the project or the detector's own state: no "
