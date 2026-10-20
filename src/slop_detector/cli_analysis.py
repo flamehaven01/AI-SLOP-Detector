@@ -8,8 +8,7 @@ from typing import Optional
 from slop_detector.core import SlopDetector
 from slop_detector.core_project import build_project_analysis, record_analysis_failure
 from slop_detector.models import ProjectAnalysis
-from slop_detector.service.policy import apply_runtime_overrides, headline_score
-from slop_detector.service.targets import analyze_target
+from slop_detector.service.policy import apply_runtime_overrides
 
 
 def _build_fallback_project_analysis(
@@ -55,12 +54,6 @@ def _build_fallback_project_analysis(
         detector._ml_scoring,
         analysis_failures=failures,
     )
-
-
-def _run_analysis_phase(args, detector):
-    """Run file or project analysis. Returns (result, score)."""
-    result = analyze_target(detector, args.path, bool(args.project))
-    return result, headline_score(result)
 
 
 def _apply_runtime_overrides(args, detector) -> None:

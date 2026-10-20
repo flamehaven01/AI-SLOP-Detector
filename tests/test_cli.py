@@ -1072,7 +1072,9 @@ def test_main_initialization_error():
     with patch.object(
         sys, "argv", ["slop-detector", "/nonexistent/config.yaml", "-c", "/nonexistent/config.yaml"]
     ):
-        with patch("slop_detector.cli.SlopDetector", side_effect=Exception("Config error")):
+        with patch(
+            "slop_detector.service.scan.SlopDetector", side_effect=Exception("Config error")
+        ):
             result = main()
             assert result == 1
 

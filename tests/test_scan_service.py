@@ -280,3 +280,30 @@ def test_unknown_export_format(targets):
 
 def test_write_policy_default_is_read_only():
     assert ScanRequest(Path(".")).writes is WritePolicy.READ_ONLY
+
+
+# -- Phase 4: the CLI scans through ScanService ---------------------------------------
+
+
+def test_cli_scan_runs_through_the_service(targets, capsys):
+    """Holding the service's process lock makes a CLI scan a typed refusal."""
+    from slop_detector.service import scan as scan_module
+
+    assert scan_module._SCAN_LOCK.acquire(blocking=False)
+    try:
+        code = main([str(targets["file"]), "--no-history"])
+    finally:
+        scan_module._SCAN_LOCK.release()
+    assert code == 1
+    assert "another scan is running" in capsys.readouterr().err
+
+
+def test_cli_setup_failure_keeps_its_message_and_exit_code(targets, tmp_path, capsys):
+    code = main([str(targets["file"]), "--config", str(tmp_path / "missing.yaml")])
+    assert code == 1
+    assert "[!] Failed to initialize detector:" in capsys.readouterr().err
+
+
+def test_cli_unknown_disabled_pattern_keeps_exit_code_2(targets, capsys):
+    assert main([str(targets["file"]), "--disable", "no_such", "--no-history"]) == 2
+    assert "[!] Invalid runtime override:" in capsys.readouterr().err

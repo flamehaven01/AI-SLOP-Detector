@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
 
 from slop_detector.core import SlopDetector
 from slop_detector.core_project import (
@@ -11,7 +10,7 @@ from slop_detector.core_project import (
     record_analysis_failure,
     scan_coverage,
 )
-from slop_detector.models import FileAnalysis, ProjectAnalysis
+from slop_detector.models import ProjectAnalysis
 
 
 def target_kind(target: Path, project: bool) -> str:
@@ -48,15 +47,3 @@ def analyze_single_source_file(detector: SlopDetector, path: Path) -> ProjectAna
         detector._ml_scoring,
         analysis_failures=failures,
     )
-
-
-def analyze_target(
-    detector: SlopDetector, target: str, project: bool
-) -> Union[ProjectAnalysis, FileAnalysis]:
-    """Analyze a target the way its kind requires."""
-    kind = target_kind(Path(target), project)
-    if kind == "project":
-        return detector.analyze_project(target)
-    if kind == "source_file":
-        return analyze_single_source_file(detector, Path(target))
-    return detector.analyze_file(target)

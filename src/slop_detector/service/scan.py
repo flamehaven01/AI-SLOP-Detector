@@ -45,7 +45,8 @@ _SCAN_LOCK = threading.Lock()
 
 class WritePolicy(enum.Enum):
     READ_ONLY = "read_only"  # no analysis cache, no history
-    RECORD_HISTORY = "record_history"  # analysis cache and local history, as the CLI default
+    RECORD_HISTORY = "record_history"  # analysis cache and local history
+    CACHE_ONLY = "cache_only"  # analysis cache; the caller records history (the CLI does)
 
 
 @dataclass(frozen=True)
@@ -74,16 +75,25 @@ class ScanOutcome:
     config_path_used: Optional[str]
     measurement_state: Optional[str]  # project results only
     score_valid: bool
+    config: Any  # the detector's Config, with the run's options applied
 
 
 class ScanFailedError(Exception):
-    """A scan that produced no result. kind: target_not_found, config,
-    invalid_request, busy, observer, unsupported_language, internal."""
+    """A scan that produced no result.
 
-    def __init__(self, kind: str, message: str) -> None:
+    kind: target_not_found, config, invalid_request, busy, observer,
+    unsupported_language, internal. stage: "request" (before setup), "setup"
+    (config and detector), "analysis". detail: the underlying error's text.
+    """
+
+    def __init__(
+        self, kind: str, message: str, stage: str = "analysis", detail: Optional[str] = None
+    ) -> None:
         super().__init__(message)
         self.kind = kind
         self.message = message
+        self.stage = stage
+        self.detail = detail if detail is not None else message
 
 
 class ScanCancelledError(Exception):
@@ -128,7 +138,7 @@ class ScanService:
         cancel: Optional[CancelToken] = None,
     ) -> ScanOutcome:
         if not _SCAN_LOCK.acquire(blocking=False):
-            raise ScanFailedError("busy", "another scan is running in this process")
+            raise ScanFailedError("busy", "another scan is running in this process", "request")
         try:
             return self._run(request, on_event, cancel)
         finally:
@@ -141,13 +151,13 @@ class ScanService:
         cancel: Optional[CancelToken],
     ) -> ScanOutcome:
         target = Path(request.target)
-        if not target.exists():
-            raise ScanFailedError("target_not_found", f"{target} does not exist")
         project = request.mode == "project" or (request.mode == "auto" and target.is_dir())
         read_only = request.writes is WritePolicy.READ_ONLY
         if read_only and request.gate == "quarantine":
             raise ScanFailedError(
-                "invalid_request", "the quarantine gate writes its database; not allowed read-only"
+                "invalid_request",
+                "the quarantine gate writes its database; not allowed read-only",
+                "request",
             )
         explicit = str(request.config_path) if request.config_path is not None else None
         config_path = (
@@ -155,7 +165,10 @@ class ScanService:
             if explicit is not None or request.discover_config
             else None
         )
+        # Setup before the target check: a config error is reported first (CLI order).
         detector = self._build_detector(request, config_path, read_only)
+        if not target.exists():
+            raise ScanFailedError("target_not_found", f"{target} does not exist", "request")
 
         def notify(event: ScanEvent) -> None:
             # Outside the engine's per-file except: a cancel or a UI error ends the scan.
@@ -177,14 +190,18 @@ class ScanService:
             raise ScanCancelledError("scan cancelled") from None
         except _ObserverFailedError as exc:
             _deliver_quietly(on_event, ScanEvent("failed", outcome="observer"))
-            raise ScanFailedError("observer", f"the progress observer raised {exc}") from None
+            raise ScanFailedError(
+                "observer", f"the progress observer raised {exc}", detail=str(exc)
+            ) from None
         except UnsupportedLanguageError as exc:
             _deliver_quietly(on_event, ScanEvent("failed", outcome="unsupported_language"))
             raise ScanFailedError("unsupported_language", str(exc)) from None
         except Exception as exc:
             logger.debug("scan failed", exc_info=True)
             _deliver_quietly(on_event, ScanEvent("failed", outcome="internal"))
-            raise ScanFailedError("internal", f"analysis failed: {type(exc).__name__}") from None
+            raise ScanFailedError(
+                "internal", f"analysis failed: {type(exc).__name__}", detail=str(exc)
+            ) from None
 
         gate = evaluate_gate(result, request.gate, request.claims_strict, read_only)
         breach = threshold_breach(result, request.fail_threshold)
@@ -203,6 +220,7 @@ class ScanService:
             config_path_used=config_path,
             measurement_state=coverage.get("measurement_state"),
             score_valid=score_is_valid(result),
+            config=detector.config,
         )
 
     @staticmethod
@@ -212,10 +230,10 @@ class ScanService:
         try:
             detector = SlopDetector(config_path=config_path, read_only=read_only)
         except ConfigError as exc:
-            raise ScanFailedError("config", str(exc)) from None
+            raise ScanFailedError("config", str(exc), "setup") from None
         except Exception as exc:
             raise ScanFailedError(
-                "internal", f"detector setup failed: {type(exc).__name__}"
+                "internal", f"detector setup failed: {type(exc).__name__}", "setup", str(exc)
             ) from None
         try:
             apply_runtime_overrides(
@@ -227,7 +245,7 @@ class ScanService:
                 disabled=request.disabled_patterns,
             )
         except ValueError as exc:
-            raise ScanFailedError("invalid_request", str(exc)) from None
+            raise ScanFailedError("invalid_request", str(exc), "setup") from None
         return detector
 
     @staticmethod

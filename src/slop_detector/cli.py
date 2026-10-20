@@ -11,6 +11,7 @@ from typing import Optional, Sequence
 from slop_detector.core import SlopDetector  # re-exported for CLI patch surface/tests
 from slop_detector.leda_injection import build_leda_injection, write_leda_injection
 from slop_detector.service.policy import resolve_config_path, threshold_breach
+from slop_detector.service.scan import ScanFailedError, ScanRequest, ScanService, WritePolicy
 
 _OPERATIONS_COMMANDS = {
     "audit",
@@ -61,10 +62,34 @@ def _apply_runtime_overrides(args, detector) -> None:
     _impl(args, detector)
 
 
-def _run_analysis_phase(args, detector):
-    from slop_detector.cli_analysis import _run_analysis_phase as _impl
+def _scan_request(args) -> ScanRequest:
+    """The service request for a scan; config discovery already ran (args.config)."""
+    return ScanRequest(
+        target=Path(args.path),
+        mode="project" if args.project else "auto",
+        config_path=Path(args.config) if args.config else None,
+        discover_config=False,
+        include_tests=bool(getattr(args, "include_tests", False)),
+        patterns_only=bool(getattr(args, "patterns_only", False)),
+        disabled_patterns=tuple(getattr(args, "disable", None) or ()),
+        topology_ceiling=getattr(args, "topology_ceiling", None),
+        topology_mode=getattr(args, "topology_mode", None),
+        writes=(
+            WritePolicy.READ_ONLY if getattr(args, "read_only", False) else WritePolicy.CACHE_ONLY
+        ),
+    )
 
-    return _impl(args, detector)
+
+def _report_scan_failure(exc: ScanFailedError) -> int:
+    """The CLI's messages and exit codes for a scan that produced no result."""
+    if exc.stage == "setup" and exc.kind == "invalid_request":
+        print(f"[!] Invalid runtime override: {exc.detail}", file=sys.stderr)
+        return 2
+    if exc.stage == "setup":
+        print(f"[!] Failed to initialize detector: {exc.detail}", file=sys.stderr)
+        return 1
+    print(f"[!] Analysis failed: {exc.detail}", file=sys.stderr)
+    return 1
 
 
 def _record_optional_impact(command_name: str, result) -> None:
@@ -342,25 +367,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         list_patterns()
         return 0
 
+    # The CLI keeps its own gate, threshold and history steps (their order and
+    # output); the scan itself runs through the same service as the GUI.
     try:
-        detector = SlopDetector(
-            config_path=args.config, read_only=getattr(args, "read_only", False)
-        )
-    except Exception as e:
-        print(f"[!] Failed to initialize detector: {e}", file=sys.stderr)
-        return 1
-
-    try:
-        _apply_runtime_overrides(args, detector)
-    except ValueError as e:
-        print(f"[!] Invalid runtime override: {e}", file=sys.stderr)
-        return 2
-
-    try:
-        result, _ = _run_analysis_phase(args, detector)
-    except Exception as e:
-        print(f"[!] Analysis failed: {e}", file=sys.stderr)
-        return 1
+        outcome = ScanService().run(_scan_request(args))
+    except ScanFailedError as exc:
+        return _report_scan_failure(exc)
+    result = outcome.result
 
     # --ci-mode (and --ci-claims-strict) add an exit policy to the normal scan;
     # only --ci-report replaces the normal report with the gate report.
@@ -385,7 +398,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         _capture_optional_telemetry("scan", result)
 
     if not getattr(args, "no_history", False):
-        _record_history(result, detector.config, args.path, bool(args.project))
+        _record_history(result, outcome.config, args.path, bool(args.project))
 
     return ci_exit or 0
 
