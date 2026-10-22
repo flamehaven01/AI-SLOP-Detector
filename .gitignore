@@ -91,6 +91,11 @@ dashboard/
 # use the detector. Local only; never committed.
 ENGINE_EXECUTION_*.json
 TOOL_REGISTRY.yaml
+# Internal review material: kept local in this folder. git add -f still adds it,
+# so credentials and sensitive evidence belong outside the repository.
+/.internal/
+# v3.10 scope draft (2026-10-10): kept locally as history, not a current plan.
+/docs/V3_10_SCOPE_LOCK.md
 
 # CI/CD Gate Reports
 gate_report.md

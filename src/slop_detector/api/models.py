@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from slop_detector.core_project import score_is_valid
+
 
 class AnalysisRequest(BaseModel):
     """Request to analyze file or project."""
@@ -13,7 +15,7 @@ class AnalysisRequest(BaseModel):
         json_schema_extra={
             "example": {
                 "file_path": "/path/to/file.py",
-                "save_history": True,
+                "save_history": False,
                 "metadata": {"commit": "abc123", "branch": "main"},
             }
         }
@@ -21,7 +23,8 @@ class AnalysisRequest(BaseModel):
 
     file_path: Optional[str] = None
     project_path: Optional[str] = None
-    save_history: bool = True
+    # Only /analyze/* record history, and only when a request sets this.
+    save_history: bool = False
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -137,6 +140,7 @@ class AgentProjectResponse(BaseModel):
             AgentFileResponse.from_result(item).model_dump()
             for item in getattr(result, "file_results", [])
         ]
+        coverage = getattr(result, "scan_coverage", None) or {}
         return cls(
             project_path=result.project_path,
             summary={
@@ -154,6 +158,11 @@ class AgentProjectResponse(BaseModel):
                 "structural_coherence": result.structural_coherence,
                 "coherence_level": result.coherence_level,
                 "suppressed_issue_count": getattr(result, "suppressed_issue_count", 0),
+                # Whether the score measures anything (scan_coverage): a scan whose
+                # files all failed is "clean" with score_valid False.
+                "measurement_state": coverage.get("measurement_state"),
+                "score_valid": score_is_valid(result),
+                "reason": coverage.get("reason"),
             },
             signals={
                 "churn_analysis_available": getattr(result, "churn_analysis_available", False),

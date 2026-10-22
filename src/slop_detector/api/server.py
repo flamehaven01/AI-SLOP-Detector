@@ -56,14 +56,14 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     )
 
     def scan(target: Path, mode: str):
-        """Scan as the API always has: the app's config only, analysis cache on;
-        history is recorded by the routes that ask for it."""
+        """Read-only scan with the app's config only: no analysis cache, no history.
+        The /analyze/* routes record history themselves when a request asks."""
         request = ScanRequest(
             target=target,
             mode=mode,
             config_path=Path(config_path) if config_path else None,
             discover_config=False,
-            writes=WritePolicy.CACHE_ONLY,
+            writes=WritePolicy.READ_ONLY,
         )
         try:
             return ScanService().run(request)
@@ -124,10 +124,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         )
 
     @app.post("/analyze/file", response_model=AnalysisResponse)
-    async def analyze_file(
-        request: AnalysisRequest,
-        history: HistoryTracker = Depends(get_history),
-    ):
+    async def analyze_file(request: AnalysisRequest):
         """Analyze a single file"""
         try:
             file_path = Path(request.file_path)
@@ -137,9 +134,9 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             outcome = scan(file_path, "python_file")
             result = outcome.result
 
-            # Save to history if enabled
+            # Save to history if asked; opening the tracker creates its database.
             if request.save_history:
-                history.record(
+                get_history().record(
                     result,
                     git_commit=request.metadata.get("commit"),
                     git_branch=request.metadata.get("branch"),
@@ -264,11 +261,15 @@ async def _save_project_history(
 
 
 def run_server(
-    host: str = "0.0.0.0",
+    host: str = "127.0.0.1",
     port: int = 8000,
     config_path: Optional[Path] = None,
 ):
-    """Run API server"""
+    """Run the API server on this machine only, unless a host is given.
+
+    The API has no authentication and reads any path it is sent, so binding a
+    network interface (host="0.0.0.0") exposes that to the network.
+    """
     import uvicorn
 
     app = create_app(config_path)

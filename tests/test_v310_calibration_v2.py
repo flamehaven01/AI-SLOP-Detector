@@ -368,9 +368,13 @@ def test_api_history_rows_carry_provenance(tmp_path, monkeypatch):
     client = TestClient(create_app())
 
     assert (
-        client.post("/analyze/file", json={"file_path": str(project / "mod.py")}).status_code == 200
+        client.post(
+            "/analyze/file", json={"file_path": str(project / "mod.py"), "save_history": True}
+        ).status_code
+        == 200
     )
-    assert client.post("/analyze/project", json={"project_path": str(project)}).status_code == 200
+    body = {"project_path": str(project), "save_history": True}
+    assert client.post("/analyze/project", json=body).status_code == 200
 
     with sqlite3.connect(db) as conn:
         rows = conn.execute(

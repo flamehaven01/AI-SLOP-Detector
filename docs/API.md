@@ -27,8 +27,10 @@ pip install "ai-slop-detector[api]"
 slop-api
 ```
 
-`slop-api` starts the local server on `0.0.0.0:8000`. To choose host, port, or
-a configuration path, call the Python entry point explicitly:
+`slop-api` starts the server on `127.0.0.1:8000`, reachable from this machine
+only. To choose host, port, or a configuration path, call the Python entry
+point explicitly; `host="0.0.0.0"` opens it to the network, with no
+authentication:
 
 ```python
 from pathlib import Path
@@ -59,6 +61,11 @@ installed version.
 `/agent/*` is the preferred API path for new integrations. The older
 `/analyze/*` routes remain for compatibility.
 
+Scans are read-only: no route writes the analysis cache, and only the
+`/analyze/*` routes record local history, when a request sets
+`"save_history": true` (the default is `false`). The MCP tools are read-only
+as well.
+
 The file endpoints analyze Python source. A `.js`, `.jsx`, `.ts`, `.tsx` or
 `.go` file gets `400` with a message (analyze its folder with the project
 endpoints instead); a path that does not exist gets `404`. In Python,
@@ -81,7 +88,9 @@ curl -X POST http://127.0.0.1:8000/agent/project \
 ```
 
 Agent responses contain a summary, signals, analysis details, and generated
-timestamp. Project responses also include file results, language-specific
+timestamp. A project summary says whether its score measures anything:
+`measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`), `score_valid`,
+and `reason` (for example `all_analysis_failed`, `no_eligible_files`). Project responses also include file results, language-specific
 results, priority hotspots, and the suppression ledger.
 
 ## Validation

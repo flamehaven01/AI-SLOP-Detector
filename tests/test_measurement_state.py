@@ -132,3 +132,29 @@ def test_human_reports_say_not_evaluated(tmp_path):
         assert status_lines and not any("clean" in line.lower() for line in status_lines)
     markdown = generate_markdown_report(result)
     assert "| **Weighted Deficit Score** | N/A | NOT EVALUATED |" in markdown
+
+
+def _agent_summary(result) -> tuple:
+    from slop_detector.api.models import AgentProjectResponse
+
+    summary = AgentProjectResponse.from_result(result).summary
+    return summary["measurement_state"], summary["score_valid"], summary["reason"]
+
+
+def test_agent_response_complete(project):
+    assert _agent_summary(_scan(project)) == ("COMPLETE", True, None)
+
+
+def test_agent_response_partial(project, monkeypatch):
+    _fail_analysis_of(monkeypatch, "b.py")
+    assert _agent_summary(_scan(project)) == ("PARTIAL", True, "analysis_failed")
+
+
+def test_agent_response_all_analysis_failed(project, monkeypatch):
+    _fail_all_analysis(monkeypatch)
+    assert _agent_summary(_scan(project)) == ("NO_MEASUREMENT", False, "all_analysis_failed")
+
+
+def test_agent_response_no_eligible_files(tmp_path):
+    (tmp_path / "notes.txt").write_text("x", encoding="utf-8")
+    assert _agent_summary(_scan(tmp_path)) == ("NO_MEASUREMENT", False, "no_eligible_files")

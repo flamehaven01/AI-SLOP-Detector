@@ -111,7 +111,7 @@ def _tool_result(payload: Dict[str, Any], is_error: bool = False) -> Dict[str, A
 
 
 def _scan(target: Path, mode: str, config_path: Optional[str]) -> Any:
-    """Scan as MCP always has: the explicit config only, analysis cache on, no history.
+    """Read-only scan with the explicit config only: no analysis cache, no history.
 
     An unsupported language is raised as ScanFailedError; any other failure is
     raised with the underlying error's text, which the stdio loop answers as -32603.
@@ -121,7 +121,7 @@ def _scan(target: Path, mode: str, config_path: Optional[str]) -> Any:
         mode=mode,
         config_path=Path(config_path) if config_path else None,
         discover_config=False,
-        writes=WritePolicy.CACHE_ONLY,
+        writes=WritePolicy.READ_ONLY,
     )
     try:
         return ScanService().run(request).result
