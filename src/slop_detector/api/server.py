@@ -16,8 +16,8 @@ except ImportError:
     )
 
 from .. import __version__
-from ..core import SlopDetector, UnsupportedLanguageError
 from ..history import HistoryTracker, history_project_root, measurement_provenance
+from ..service.scan import ScanFailedError, ScanRequest, ScanService, WritePolicy
 from .models import (
     AgentFileResponse,
     AgentProjectResponse,
@@ -55,10 +55,23 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Dependency injection
-    def get_detector() -> SlopDetector:
-        return SlopDetector(config_path=config_path)
+    def scan(target: Path, mode: str):
+        """Scan as the API always has: the app's config only, analysis cache on;
+        history is recorded by the routes that ask for it."""
+        request = ScanRequest(
+            target=target,
+            mode=mode,
+            config_path=Path(config_path) if config_path else None,
+            discover_config=False,
+            writes=WritePolicy.CACHE_ONLY,
+        )
+        try:
+            return ScanService().run(request)
+        except ScanFailedError as exc:
+            status = 400 if exc.kind == "unsupported_language" else 500
+            raise HTTPException(status_code=status, detail=exc.detail) from None
 
+    # Dependency injection
     def get_history() -> HistoryTracker:
         return HistoryTracker()
 
@@ -113,7 +126,6 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     @app.post("/analyze/file", response_model=AnalysisResponse)
     async def analyze_file(
         request: AnalysisRequest,
-        detector: SlopDetector = Depends(get_detector),
         history: HistoryTracker = Depends(get_history),
     ):
         """Analyze a single file"""
@@ -122,7 +134,8 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail="File not found")
 
-            result = detector.analyze_file(str(file_path))
+            outcome = scan(file_path, "python_file")
+            result = outcome.result
 
             # Save to history if enabled
             if request.save_history:
@@ -132,7 +145,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
                     git_branch=request.metadata.get("branch"),
                     project_id=_project_id_for_path(file_path.parent),
                     provenance=measurement_provenance(
-                        detector.config, history_project_root(str(file_path), False)
+                        outcome.config, history_project_root(str(file_path), False)
                     ),
                 )
 
@@ -140,27 +153,19 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
 
         except HTTPException:
             raise
-        except UnsupportedLanguageError as e:
-            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
     @app.post("/agent/file", response_model=AgentFileResponse)
-    async def analyze_file_agent(
-        request: AnalysisRequest,
-        detector: SlopDetector = Depends(get_detector),
-    ):
+    async def analyze_file_agent(request: AnalysisRequest):
         """Analyze a single file and return an agent-friendly snapshot."""
         try:
             file_path = Path(request.file_path)
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail="File not found")
-            result = detector.analyze_file(str(file_path))
-            return AgentFileResponse.from_result(result)
+            return AgentFileResponse.from_result(scan(file_path, "python_file").result)
         except HTTPException:
             raise
-        except UnsupportedLanguageError as e:
-            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -168,7 +173,6 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     async def analyze_project(
         request: AnalysisRequest,
         background_tasks: BackgroundTasks,
-        detector: SlopDetector = Depends(get_detector),
     ):
         """Analyze entire project (async)"""
         try:
@@ -176,7 +180,8 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             if not project_path.exists():
                 raise HTTPException(status_code=404, detail="Project not found")
 
-            results = detector.analyze_project(str(project_path))
+            outcome = scan(project_path, "project")
+            results = outcome.result
 
             # Background task: save to history
             if request.save_history:
@@ -185,7 +190,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
                     results.file_results,
                     project_path,
                     request.metadata,
-                    measurement_provenance(detector.config, project_path),
+                    measurement_provenance(outcome.config, project_path),
                 )
 
             return [AnalysisResponse.from_result(r) for r in results.file_results]
@@ -196,17 +201,13 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             raise HTTPException(status_code=500, detail=str(e))
 
     @app.post("/agent/project", response_model=AgentProjectResponse)
-    async def analyze_project_agent(
-        request: AnalysisRequest,
-        detector: SlopDetector = Depends(get_detector),
-    ):
+    async def analyze_project_agent(request: AnalysisRequest):
         """Analyze a project and return the agent-native structured snapshot."""
         try:
             project_path = Path(request.project_path)
             if not project_path.exists():
                 raise HTTPException(status_code=404, detail="Project not found")
-            results = detector.analyze_project(str(project_path))
-            return AgentProjectResponse.from_result(results)
+            return AgentProjectResponse.from_result(scan(project_path, "project").result)
         except HTTPException:
             raise
         except Exception as e:

@@ -307,3 +307,135 @@ def test_cli_setup_failure_keeps_its_message_and_exit_code(targets, tmp_path, ca
 def test_cli_unknown_disabled_pattern_keeps_exit_code_2(targets, capsys):
     assert main([str(targets["file"]), "--disable", "no_such", "--no-history"]) == 2
     assert "[!] Invalid runtime override:" in capsys.readouterr().err
+
+
+# -- Phase 5: the MCP tools and REST routes scan through ScanService -----------------
+
+
+def _hold_scan_lock():
+    from slop_detector.service import scan as scan_module
+
+    assert scan_module._SCAN_LOCK.acquire(blocking=False)
+    return scan_module._SCAN_LOCK
+
+
+@pytest.mark.parametrize(
+    "tool,key,target",
+    [
+        ("slop_analyze_file", "file_path", "file"),
+        ("slop_analyze_project", "project_path", "project"),
+    ],
+)
+def test_mcp_scans_run_through_the_service(targets, tool, key, target):
+    from slop_detector.mcp.server import _call_tool
+
+    lock = _hold_scan_lock()
+    try:
+        with pytest.raises(Exception, match="another scan is running"):
+            _call_tool(tool, {key: str(targets[target])})
+    finally:
+        lock.release()
+
+
+@pytest.mark.parametrize(
+    "route,key,target",
+    [
+        ("/analyze/file", "file_path", "file"),
+        ("/agent/file", "file_path", "file"),
+        ("/analyze/project", "project_path", "project"),
+        ("/agent/project", "project_path", "project"),
+    ],
+)
+def test_api_scans_run_through_the_service(targets, route, key, target):
+    pytest.importorskip("fastapi", reason="requires api extra")
+    from fastapi.testclient import TestClient
+
+    from slop_detector.api.server import create_app
+
+    client = TestClient(create_app(), raise_server_exceptions=False)
+    lock = _hold_scan_lock()
+    try:
+        response = client.post(route, json={key: str(targets[target])})
+    finally:
+        lock.release()
+    assert response.status_code == 500
+    assert "another scan is running" in response.json()["detail"]
+
+
+def _project_with_broken_slopconfig(root: Path) -> Path:
+    project = root / "cfg_proj"
+    project.mkdir()
+    (project / "a.py").write_text(CODE, encoding="utf-8")
+    (project / ".slopconfig.yaml").write_text("thresholds:\n  ldr: abc\n", encoding="utf-8")
+    return project
+
+
+def test_mcp_does_not_discover_a_project_slopconfig(tmp_path):
+    from slop_detector.mcp.server import _call_tool
+
+    project = _project_with_broken_slopconfig(tmp_path)
+    result = _call_tool("slop_analyze_project", {"project_path": str(project)})
+    assert result["isError"] is False
+    result = _call_tool("slop_analyze_file", {"file_path": str(project / "a.py")})
+    assert result["isError"] is False
+
+
+def test_api_does_not_discover_a_project_slopconfig(tmp_path):
+    pytest.importorskip("fastapi", reason="requires api extra")
+    from fastapi.testclient import TestClient
+
+    from slop_detector.api.server import create_app
+
+    project = _project_with_broken_slopconfig(tmp_path)
+    client = TestClient(create_app())
+    assert client.post("/agent/project", json={"project_path": str(project)}).status_code == 200
+    assert client.post("/agent/file", json={"file_path": str(project / "a.py")}).status_code == 200
+
+
+def test_mcp_config_error_keeps_the_config_message(targets, tmp_path):
+    from slop_detector.mcp.server import _call_tool
+
+    bad = tmp_path / "bad.yaml"
+    bad.write_text("thresholds:\n  ldr: abc\n", encoding="utf-8")
+    with pytest.raises(Exception) as info:
+        _call_tool(
+            "slop_analyze_file", {"file_path": str(targets["file"]), "config_path": str(bad)}
+        )
+    assert str(info.value).startswith(f"{bad}: invalid configuration")
+
+
+def test_api_config_error_is_a_500_with_the_config_message(targets, tmp_path):
+    """Detector setup used to fail inside a FastAPI dependency: a bare 500 with no detail."""
+    pytest.importorskip("fastapi", reason="requires api extra")
+    from fastapi.testclient import TestClient
+
+    from slop_detector.api.server import create_app
+
+    bad = tmp_path / "bad.yaml"
+    bad.write_text("thresholds:\n  ldr: abc\n", encoding="utf-8")
+    client = TestClient(create_app(config_path=bad), raise_server_exceptions=False)
+    response = client.post("/agent/file", json={"file_path": str(targets["file"])})
+    assert response.status_code == 500
+    assert "invalid configuration" in response.json()["detail"]
+
+
+def test_mcp_and_api_analysis_failure_keep_the_underlying_text(targets, monkeypatch):
+    from slop_detector.core import SlopDetector
+    from slop_detector.mcp.server import _call_tool
+
+    def boom(self, *args, **kwargs):
+        raise ValueError("boom from the engine")
+
+    monkeypatch.setattr(SlopDetector, "analyze_project", boom)
+    with pytest.raises(Exception) as info:
+        _call_tool("slop_analyze_project", {"project_path": str(targets["project"])})
+    assert str(info.value) == "boom from the engine"
+
+    pytest.importorskip("fastapi", reason="requires api extra")
+    from fastapi.testclient import TestClient
+
+    from slop_detector.api.server import create_app
+
+    client = TestClient(create_app(), raise_server_exceptions=False)
+    response = client.post("/agent/project", json={"project_path": str(targets["project"])})
+    assert (response.status_code, response.json()["detail"]) == (500, "boom from the engine")

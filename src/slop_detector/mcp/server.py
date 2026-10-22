@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 
 from slop_detector import __version__
 from slop_detector.api.models import AgentFileResponse, AgentProjectResponse, AgentSurfaceManifest
-from slop_detector.core import SlopDetector, UnsupportedLanguageError
+from slop_detector.service.scan import ScanFailedError, ScanRequest, ScanService, WritePolicy
 
 JSONRPC_VERSION = "2.0"
 DEFAULT_PROTOCOL_VERSION = "2024-11-05"
@@ -110,19 +110,39 @@ def _tool_result(payload: Dict[str, Any], is_error: bool = False) -> Dict[str, A
     }
 
 
+def _scan(target: Path, mode: str, config_path: Optional[str]) -> Any:
+    """Scan as MCP always has: the explicit config only, analysis cache on, no history.
+
+    An unsupported language is raised as ScanFailedError; any other failure is
+    raised with the underlying error's text, which the stdio loop answers as -32603.
+    """
+    request = ScanRequest(
+        target=target,
+        mode=mode,
+        config_path=Path(config_path) if config_path else None,
+        discover_config=False,
+        writes=WritePolicy.CACHE_ONLY,
+    )
+    try:
+        return ScanService().run(request).result
+    except ScanFailedError as exc:
+        if exc.kind == "unsupported_language":
+            raise
+        raise RuntimeError(exc.detail) from None
+
+
 def _analyze_file(arguments: Dict[str, Any]) -> Dict[str, Any]:
     file_path = Path(arguments["file_path"])
     if not file_path.exists():
         return _tool_result({"error": "file_not_found", "file_path": str(file_path)}, is_error=True)
-    detector = SlopDetector(config_path=arguments.get("config_path"))
     try:
-        result = detector.analyze_file(str(file_path))
-    except UnsupportedLanguageError as exc:
+        result = _scan(file_path, "python_file", arguments.get("config_path"))
+    except ScanFailedError as exc:
         return _tool_result(
             {
                 "error": "unsupported_language",
                 "file_path": str(file_path),
-                "detail": str(exc),
+                "detail": exc.detail,
                 "hint": "use slop_analyze_project on the file's folder",
             },
             is_error=True,
@@ -137,8 +157,7 @@ def _analyze_project(arguments: Dict[str, Any]) -> Dict[str, Any]:
             {"error": "project_not_found", "project_path": str(project_path)},
             is_error=True,
         )
-    detector = SlopDetector(config_path=arguments.get("config_path"))
-    result = detector.analyze_project(str(project_path))
+    result = _scan(project_path, "project", arguments.get("config_path"))
     return _tool_result(AgentProjectResponse.from_result(result).model_dump())
 
 

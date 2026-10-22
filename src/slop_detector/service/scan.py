@@ -4,8 +4,7 @@ It resolves the config, applies per-run options, analyzes the target with the
 engine, evaluates the gate and the exit policy (service.policy), and reports
 progress. It adds no analysis of its own.
 
-Guarantees, for calls through ScanService only (direct engine calls from the
-REST or MCP surfaces are not covered):
+The CLI scan, the MCP tools and the REST routes all scan through it. Guarantees:
 - READ_ONLY (the default) builds no analysis cache and records no history;
   RECORD_HISTORY is the explicit opt-in. Exports are separate, explicit writes.
 - One scan per process, across instances; a second concurrent run is refused.
@@ -52,7 +51,9 @@ class WritePolicy(enum.Enum):
 @dataclass(frozen=True)
 class ScanRequest:
     target: Path
-    mode: str = "auto"  # "auto": a directory is a project; or "file" / "project"
+    # "auto": a directory is a project; or "file" / "project". "python_file": the
+    # Python-file entry point of MCP and REST, which refuses JS/TS/Go source.
+    mode: str = "auto"
     config_path: Optional[Path] = None
     discover_config: bool = True  # .slopconfig.yaml in the project root / next to the file
     include_tests: bool = False
@@ -184,7 +185,8 @@ class ScanService:
 
         try:
             notify(ScanEvent("started", path=str(target)))
-            result = self._analyze(detector, target, project, notify)
+            kind = "python_file" if request.mode == "python_file" else target_kind(target, project)
+            result = self._analyze(detector, target, kind, notify)
         except _CancelRequestedError:
             _deliver_quietly(on_event, ScanEvent("cancelled"))
             raise ScanCancelledError("scan cancelled") from None
@@ -250,9 +252,8 @@ class ScanService:
 
     @staticmethod
     def _analyze(
-        detector: SlopDetector, target: Path, project: bool, notify: ScanObserver
+        detector: SlopDetector, target: Path, kind: str, notify: ScanObserver
     ) -> Union[ProjectAnalysis, FileAnalysis]:
-        kind = target_kind(target, project)
         if kind == "project":
             return detector.analyze_project(str(target), observer=notify)
         result: Union[ProjectAnalysis, FileAnalysis]
