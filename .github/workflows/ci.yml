@@ -54,10 +54,24 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e ".[dev]"
-          
+
+      # REST tests skip without FastAPI; run them on one version. TestClient needs
+      # httpx, which the [api] extra does not include.
+      - name: Install REST API test dependencies
+        if: matrix.python-version == '3.12'
+        run: pip install -e ".[dev,api]" httpx
+
       - name: Run tests
         run: pytest --cov --cov-report=xml
-        
+
+      - name: REST write-policy tests must not skip
+        if: matrix.python-version == '3.12'
+        run: |
+          # The default run shell is `bash -e` without pipefail: tee would hide a pytest failure.
+          set -o pipefail
+          pytest tests/test_interface_write_policy.py -q -rs --no-cov -p no:cacheprovider | tee rest_tests.txt
+          if grep -q SKIPPED rest_tests.txt; then echo "REST tests were skipped"; exit 1; fi
+
       - name: Upload coverage
         continue-on-error: true
         uses: codecov/codecov-action@v3
