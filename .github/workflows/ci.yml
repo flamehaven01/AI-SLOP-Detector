@@ -56,10 +56,11 @@ jobs:
           pip install -e ".[dev]"
 
       # REST tests skip without FastAPI; run them on one version. TestClient needs
-      # httpx, which the [api] extra does not include.
+      # httpx, which the [api] extra does not include. PyJWT: tests/test_api_models.py
+      # imports the experimental slop_detector.auth, whose dependency is undeclared.
       - name: Install REST API test dependencies
         if: matrix.python-version == '3.12'
-        run: pip install -e ".[dev,api]" httpx
+        run: pip install -e ".[dev,api]" httpx PyJWT
 
       - name: Run tests
         run: pytest --cov --cov-report=xml
