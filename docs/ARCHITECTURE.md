@@ -14,6 +14,9 @@ It does not prove semantic correctness, security, authorship, or that a score is
 CLI / npm wrapper / MCP / optional local API
                     |
                     v
+  ScanService (config, run options, gate, events)
+                    |
+                    v
              SlopDetector facade
                     |
      +--------------+---------------+
@@ -40,6 +43,7 @@ core_scoring   core_topology   core_project
 - `core_scoring.py`: four-dimensional score and penalty attribution. The status is the band of the score, from `diagnostic_bands.py`.
 - `core_topology.py`: DCF, Jensen-Shannon distance, and exact or deterministic approximate coherence calculations.
 - `core_project.py`: discovery policy, coverage envelope, and project result aggregation.
+- `service/`: `ScanService` runs one scan the same way for every surface (config resolution, per-run options, gate and threshold decisions, progress events, cancellation, typed failures); `ExportService` renders the CLI's report formats. It adds no analysis. Its default writes nothing; the CLI asks it to keep the analysis cache and records history itself.
 
 ## Source Scope
 
@@ -87,9 +91,9 @@ This adaptation is repository-scoped and is not an external validation loop. It 
 
 ## Integration Boundaries
 
-The npm package is a transport layer over the Python CLI, not a second analyzer. The MCP server provides structured tools over the same core.
+The npm package is a transport layer over the Python CLI, not a second analyzer. The MCP server provides structured tools over the same core; its scans are read-only (no analysis cache, no history).
 
-The optional FastAPI service is a local integration surface. It has no built-in authentication or request authorization and permits all origins by default. Do not expose it directly to an untrusted network. Its webhook and project-status stubs are not supported deployment features; see [API.md](API.md).
+The optional FastAPI service is a local integration surface. It binds `127.0.0.1` by default, scans read-only, and records history only when a request sets `save_history`. It has no built-in authentication or request authorization and permits all origins by default. Do not expose it directly to an untrusted network. Its webhook and project-status stubs are not supported deployment features; see [API.md](API.md).
 
 ## Related Documents
 

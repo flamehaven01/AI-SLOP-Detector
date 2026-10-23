@@ -5,6 +5,55 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.11.0 — 2026-10-23
+
+### Summary
+
+v3.11.0 puts one scan engine, `ScanService`, behind the CLI, the MCP tools
+and the REST API, and makes the two programmatic surfaces read-only by
+default. Findings, scores and the analysis cache are the same as in v3.10.1;
+no scoring or precision change is part of this release. Each change is listed
+in the [Changelog](../CHANGELOG.md#3110---2026-10-23).
+
+### What moves when you upgrade
+
+- **MCP and REST scans write nothing by default.** The MCP tools write
+  neither the analysis cache nor history. The REST routes write no cache, and
+  record history only when a request sets `"save_history": true` (the default
+  is now `false`).
+- **The REST server listens on this machine only.** `slop-api` binds
+  `127.0.0.1:8000`; pass `host="0.0.0.0"` to `run_server` to open it to the
+  network.
+- **Agents can tell a measured score from an empty one.** The agent project
+  response adds `measurement_state`, `score_valid` and `reason` to its
+  `summary`. A scan whose files all failed still reports `overall_status:
+  clean`; `score_valid: false` says the score measured nothing.
+- **A Python API for embedding the scanner.** `ScanService` runs a scan with
+  progress events, cancellation and typed errors, read-only unless asked
+  otherwise; `ExportService` writes the same JSON, Markdown, HTML and text
+  reports as the CLI. The planned desktop application is built on it.
+
+### Upgrade notes
+
+- **These are behavior changes in a minor version.** If a client relied on
+  REST history being recorded by default, send `"save_history": true`. If a
+  client reached the API from another machine, start the server with an
+  explicit host, and put authentication in front of it: the API has none.
+- A REST server started with an invalid configuration answers `500` with the
+  configuration error as `detail` instead of a bare `Internal Server Error`.
+- The CLI is unchanged apart from one message: a target that does not exist
+  is reported as `<path> does not exist` (exit code 1 as before).
+- The analysis cache is kept (`analysis-cache-v32`).
+
+### Known limitations
+
+- `slop_detector.auth` is an experimental module the analyzer does not use;
+  it needs PyJWT, which is not a declared dependency.
+- The REST API allows any origin (CORS). Binding `127.0.0.1` keeps other
+  machines out, not web pages open in a local browser.
+
+---
+
 ## v3.10.1 — 2026-10-14
 
 ### Summary

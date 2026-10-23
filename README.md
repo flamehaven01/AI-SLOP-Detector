@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.10.1" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.11.0" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
@@ -22,9 +22,26 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 <b>Runs fully offline &middot; deterministic core scoring &middot; no API key, no model download, nothing leaves your machine.</b>
 </p>
 
+### Tested like the code it judges
+
+A detector that flags plausible-but-empty code has to show its own evidence.
+Every number below comes from a recorded run.
+
+| | |
+|---|---|
+| **18 real codebases** | Scoring changes are replayed on 15 public projects (biopython, alphafold3, sentence-transformers, jieba, langdetect, HealthChain, financial-services, cytools, minGPT, typia in TypeScript, and agent toolkits) and 3 STEM research codebases: a Navier-Stokes CFD workbench, a theoretical-physics codebase and a biomedical structure-validation platform. The [CHANGELOG](CHANGELOG.md) states what each change moved; v3.10.1 cut `god_function` findings by 608 and added none. |
+| **Its errors are hunted, then fixed in the open** | A hand review of 146 sampled findings in 12 outside repositories classified each one as a true positive or a named error class. The v3.9.3 and v3.10 fixes come from that review, each listed with its measured effect. The tool is not independently validated; [VALIDATION.md](docs/VALIDATION.md) says what is and is not known. |
+| **Says when it measured nothing** | Every project result carries `measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`) and `score_valid`. When nothing was measured, human reports read `NOT EVALUATED` instead of a clean verdict, and a scan whose files all failed to analyze fails `--fail-threshold`. |
+| **Byte-for-byte reproducible** | Same input, same JSON, whatever the cache, hash seed, Rust helper or working directory. Cold and warm scans were compared byte for byte on every study repository. |
+| **Its own tests are tested** | More than 1,500 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.11.0, 25 of 25 were caught. |
+| **Speed is measured, not promised** | Timed cold scans in v3.10.0: Flamehaven-TOE 33.1 s to 10.9 s, the Navier-Stokes workbench 11.1 s to 4.3 s. |
+
+Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
+
 **Release track**
-- Stable tag: `v3.10.1`
-- Previous stable tag: `v3.10.0`
+- Stable tag: `v3.11.0`
+- Previous stable tag: `v3.10.1`
+- `v3.11.0`: one scan engine (`ScanService`) behind the CLI, MCP and REST, with progress events, cancellation and typed errors; MCP and REST scans write nothing by default (REST history only with `"save_history": true`), the REST server binds `127.0.0.1`, and agent project responses say whether the score measured anything (`measurement_state`, `score_valid`, `reason`). Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.10.1`: function length counts logical lines and `try` / `with` are not nesting levels (far fewer false `god_function` and nesting findings); UTF-8 files with a byte order mark and single JS/TS/Go files are analyzed instead of scored as parse errors; scans of git repositories under non-ASCII folder names and HTML reports of projects no longer crash; a scan that measured nothing shows `NOT EVALUATED` and never passes `--fail-threshold`; an invalid or missing config stops the run before analysis. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.10.0`: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and cold scans are 2.6-3x faster (NSRW, Flamehaven-TOE). See [CHANGELOG.md](CHANGELOG.md).
 - `v3.9.3` is a precision correction found by testing 3.9.2 on 12 outside repositories: an `elif` no longer counts as a level of nesting, `@overload` signatures are not placeholders, a module with no executable code is not scored as empty logic, a file that fails to analyze is listed and marks the scan incomplete (a hard gate then fails) instead of silently disappearing, `--json --js` prints one JSON document, and the JS/TS analysis mode (tree-sitter or regex fallback) is disclosed. Scores mostly go down; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
@@ -46,7 +63,7 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 [What It Detects](#what-it-detects) •
 [Scoring](#scoring-model) •
 [Key Features](#key-features) •
-[Calibration](#empirical-weight-calibration-leda) •
+[Calibration](#local-calibration) •
 [Security](#security-considerations) •
 [CI/CD](#cicd-integration) •
 [Config](#configuration) •
@@ -105,7 +122,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.10.1"
+pip install "ai-slop-detector>=3.11.0"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -122,7 +139,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.10.1"
+pip install "ai-slop-detector>=3.11.0"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -839,6 +856,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.11.0** | one engine release: CLI, MCP and REST run the same `ScanService` (CLI output unchanged over 70 compared cases); MCP and REST are read-only by default, REST history is opt-in, the REST server binds `127.0.0.1`; agent responses carry `measurement_state` / `score_valid` / `reason`; findings and scores unchanged |
 | **v3.10.1** | correctness release: `god_function` counts logical lines and nesting rises only for `if`/`for`/`while`/`except` (corpus: -608 / -471 / -472 findings, none added); BOM files and single JS/TS/Go files analyzed; crashes fixed for git repositories under non-ASCII folders and project HTML reports; `scan_coverage.measurement_state` / `score_valid` / `reason`, `NOT EVALUATED` in human reports, `--fail-threshold` fails when every file failed; strict config validation before the run; working pre-commit hook installer; `--inspector-read-only` alias of `--read-only` |
 | **v3.10.0** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (TOE cold 33.1 s -> 10.9 s); cache `analysis-cache-v30`. See [CHANGELOG.md](CHANGELOG.md) |
 | **v3.9.3** | precision correction from a 12-repository study: `elif` is not nesting (`deep_nesting`, `nested_complexity`); `@overload` / `@typing.overload` are not placeholders; `no_executable_code` modules skip LDR/DDC instead of scoring 97.49; failed analyses are counted in `scan_coverage.failed` with `complete: false` and a hard gate fails closed; one JS pass and valid `--json --js` output; `scan_coverage.analysis_modes`; cache `analysis-cache-v25` |

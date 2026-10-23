@@ -9,6 +9,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-10-23
+
+One scan engine for every surface, and safer defaults for the two that other
+programs call. The CLI, the MCP tools and the REST routes now run the same
+`ScanService`; findings, scores and the analysis cache format do not change.
+
+For scripts and agents:
+
+- **Behavior changes (check before upgrading):**
+  - MCP `slop_analyze_file` / `slop_analyze_project` no longer write the
+    analysis cache or history.
+  - REST routes no longer write the analysis cache. `save_history` now
+    defaults to `false`; `/analyze/*` record history only when a request
+    sets `"save_history": true`.
+  - `slop-api` (`run_server`) binds `127.0.0.1` instead of `0.0.0.0`. Pass
+    `host="0.0.0.0"` to listen on the network; the API still has no
+    authentication.
+- Additive keys: the agent project response (`/agent/project`,
+  `slop_analyze_project`) carries `summary.measurement_state`,
+  `summary.score_valid` and `summary.reason`. `overall_status` keeps its
+  meaning, so a scan whose files all failed is still `clean`: read
+  `score_valid`.
+- New Python API: `slop_detector.service.scan` (`ScanRequest`,
+  `ScanService`, `WritePolicy`, `ScanOutcome`, `CancelToken`,
+  `ScanFailedError`, `ScanCancelledError`) and
+  `slop_detector.service.export.ExportService`.
+- The CLI's output, exit codes and messages are unchanged, except that a
+  target that does not exist is reported as `<path> does not exist`
+  (exit code 1 as before).
+- Analysis cache unchanged (`analysis-cache-v32`).
+
+#### One engine behind CLI, MCP and REST
+
+- `ScanService` resolves the config, applies the run's options, analyzes,
+  evaluates the gate and the `--fail-threshold` decision, and reports
+  progress events (`started`, `discovered`, `file_done`, `aggregating`, then
+  `completed`, `failed` or `cancelled`). It adds no analysis of its own.
+- Its default is read-only (`WritePolicy.READ_ONLY`: no cache, no history);
+  history is an explicit opt-in. One scan runs per process; a second
+  concurrent one is refused. A cancel takes effect at a file boundary.
+- Failures are typed (`ScanFailedError.kind`: `target_not_found`, `config`,
+  `invalid_request`, `busy`, `observer`, `unsupported_language`,
+  `internal`).
+- `ExportService` renders `json`, `md`, `html` and `text` with the CLI's
+  renderers; `export()` writes the same bytes as the CLI's `-o`.
+- An invalid configuration given to the REST server now answers `500` with
+  the configuration error as `detail`, instead of a bare
+  `Internal Server Error`. The MCP tools report the same message as before.
+
+#### Verification
+
+- CLI: stdout, stderr and exit code identical to the output recorded before
+  the migration, over 70 target and option combinations. MCP and REST: 55 answers compared; the successful
+  ones are identical apart from the three added summary keys.
+- Each behavior change was checked against deliberately broken versions of
+  the code (mutation testing): 25 of 25 were caught.
+- CI runs the REST tests on Python 3.12 and fails if they are skipped.
+
+#### Known limitations
+
+- `slop_detector.auth` (experimental, not used by the analyzer) imports
+  `jwt`, and PyJWT is not a declared dependency: importing it without
+  PyJWT fails.
+- The REST API has no authentication and allows any origin (CORS
+  `allow_origins=["*"]`). Binding `127.0.0.1` limits it to this machine; it
+  does not protect it from web pages in a local browser.
+
 ## [3.10.1] - 2026-10-14
 
 Fixes found by hunting for wrong results before the desktop release: what a
