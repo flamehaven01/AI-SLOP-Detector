@@ -177,7 +177,7 @@ For scripts and agents:
 ## [3.10.0] - 2026-10-11
 
 Every score says what it looked at and what it came from, and a finding needs
-evidence. Found by re-scanning NSRW, Flamehaven-TOE and RExSyn-Nexus with
+evidence. Found by re-scanning three private research codebases with
 3.9.3 and by the 18-repository precision study; every change below was
 replayed on that corpus (or on the part of it the change can reach) and lists
 what moved.
@@ -203,10 +203,10 @@ For scripts and agents:
 #### Scan coverage says what was not looked at
 
 - `unsupported` also counts code files no analyzer reads (notebooks, `.lean`,
-  `.mjs`/`.cjs`, `.vue`, ...) with `by_extension`. NSRW: 4 -> 31 (26 `.lean`,
+  `.mjs`/`.cjs`, `.vue`, ...) with `by_extension`. One private codebase: 4 -> 31 (26 `.lean`,
   1 `.ipynb`) while the scan said `complete: true`.
 - `excluded.by_source` splits default rules from custom ignore rules and
-  `excluded.custom_rules` names each custom rule's file count (RExSyn: 17
+  `excluded.custom_rules` names each custom rule's file count (a private codebase: 17
   files hidden by its own config, beside 16,820 default exclusions).
 - `excluded.tests` counts the project's unevaluated test files (dependency
   tests inside environments are not counted).
@@ -221,9 +221,9 @@ For scripts and agents:
 - Every generated config uses the default weights; profiles no longer carry
   weight vectors (the general profile still had the reverted v3.7.0
   `ddc 0.6215`; the scientific/ml weights alone removed every CRITICAL file on
-  RExSyn and TOE). `--init` prints the profile's threshold changes.
-- Domain detection walks the tree once with environments pruned (RExSyn
-  215.9 s -> 0.5 s), ignores test files, no longer counts numpy, scipy,
+  two private codebases). `--init` prints the profile's threshold changes.
+- Domain detection walks the tree once with environments pruned (one private
+  codebase: 215.9 s -> 0.5 s), ignores test files, no longer counts numpy, scipy,
   matplotlib, seaborn or argparse, and a tied lead is `general`. On 8 repos
   a wrong non-general profile went from 6 to 1.
 - Function overrides are listed as review hotspots and never written (they
@@ -250,7 +250,7 @@ For scripts and agents:
 - DDC `fake_imports` uses the same exclusions as `usage_ratio`
   (annotation-only, `TYPE_CHECKING`, `noqa`, `__all__`).
 - On 18 repositories only import findings and `fake_imports` changed:
-  `phantom_import` -168 (OpenClaw 150, minGPT 13, cytools 4, RExSyn 1),
+  `phantom_import` -168 (OpenClaw 150, minGPT 13, cytools 4, a private codebase 1),
   reclassified as declared or local; minGPT 49.19 -> 22.04. OpenMythos
   10.60 -> 12.45: its Poetry dependencies are now read, so "not in pyproject"
   (LOW, false) became "declared but unavailable in the analyzer runtime"
@@ -334,7 +334,7 @@ is a candidate) gives candidates, lines and whether they were applied; when
 every file is a candidate, or aggregation is unweighted, nothing is excluded
 and the reason is given. 18 repositories: 38 files, all scored 0, none
 ordinary code; jieba 0.09 -> 13.30, OpenClaw 31.80 -> 33.34, biopython 24.02
--> 24.43, TOE 4.79 -> 4.80; no band moved. Tables built item by item
+-> 24.43, a private codebase 4.79 -> 4.80; no band moved. Tables built item by item
 (`table["k"] = {...}`, biopython's Restriction_Dictionary) are not covered.
 
 #### `analyze_code_string` has no implicit context
@@ -366,8 +366,8 @@ still applies. With `project_root` the source is analyzed as
 
 One project walk per scan (shared by coverage and Python/JS/Go discovery),
 one AST walk per module shared by every module-wide check, and a cheaper claim
-scan. Cold / warm: Flamehaven-TOE 33.09 s / 10.24 s -> 10.92 s / 3.24 s, NSRW
-11.05 s / 1.55 s -> 4.31 s / 0.78 s; output byte-identical except the order of
+scan. Cold / warm on two private codebases: 33.09 s / 10.24 s -> 10.92 s / 3.24 s
+and 11.05 s / 1.55 s -> 4.31 s / 0.78 s; output byte-identical except the order of
 the bounded excluded-file sample. Symlinked directories are not followed.
 
 #### Distribution says what was published
@@ -471,7 +471,7 @@ web/API, finance, numerical, CLI, a TypeScript library, agent repositories).
   recomputation; JS and Go results unchanged; hard-gate failures go from 10 to
   9 (AI-Scientist), 18 to 16 (LMCache), 25 to 16 (graphify), 44 to 40
   (unsloth), 4 to 4 (unstructured).
-- NavierStokes-Research-Workbench (a frozen copy, prediction recorded before
+- A private research codebase (a frozen copy, prediction recorded before
   the change): the one predicted file moves from 24.88 to 10.00 and the
   project from 2.5316 to 1.9657; the other 65 file results are identical;
   `--json --js` stdout equals `--json`.
@@ -827,7 +827,7 @@ is present, the hash seed, and whether results come from the analysis cache.
   single-file analysis, a scan below the project root, and a scan of a folder
   that is not a project keep the nearest marker. The project-context
   snapshots and the analysis cache key cover the same roots.
-- RExSyn-Nexus: 13 phantom imports and 3 undeclared optional dependencies
+- A private codebase: 13 phantom imports and 3 undeclared optional dependencies
   that all name repository modules are gone; two files change band
   (92.38 critical_deficit to 68.23 inflated_signal, 63.93 inflated_signal to
   29.00 clean). On the 9 codebases, all 18 exit codes are unchanged; imports
@@ -845,8 +845,8 @@ is present, the hash seed, and whether results come from the analysis cache.
   nested functions and classes) are not logic lines. Both use one helper,
   `slop_detector.metrics.ldr.docstring_line_numbers`. The complexity limit is
   unchanged. Cache `analysis-cache-v22`.
-- Flamehaven-TOE: 19 `god_function` findings existed only because of
-  docstrings and are gone; RExSyn-Nexus: 17. No file changes band. On the 8
+- Two private codebases: 19 and 17 `god_function` findings existed only
+  because of docstrings and are gone. No file changes band. On the 8
   external codebases of the 9-codebase replay, 45 findings are gone, 498 report
   a smaller line count, no file changes band, and all 18 exit codes are
   unchanged.
@@ -863,14 +863,14 @@ is present, the hash seed, and whether results come from the analysis cache.
   (length, or its own complexity limit) keeps its penalty. This is a score
   fix, not a finding change. The CI gate's file evaluation now uses the same
   penalty function instead of its own copy. Cache `analysis-cache-v23`.
-- Measured: in the TOE/RExSyn/NavierStokes dogfood, every `nested_complexity`
+- Measured: in three private codebases, every `nested_complexity`
   finding (26 of 26) shared its function with a `deep_nesting` finding. On
   the 8 external codebases of the 9-codebase replay, findings are identical,
   289 pairs are charged once, every score change equals the removed +5 per
   pair (873 files checked, 0 mismatches), and 15 files move one band down
   (LMCache 4, graphify 5, unsloth 6); LMCache's project score moves from
   30.02 (suspicious) to 29.40 (clean). All 18 exit codes are unchanged;
-  unsloth's hard gate fails 44 files instead of 45. RExSyn-Nexus: 1 file
+  unsloth's hard gate fails 44 files instead of 45. A private codebase: 1 file
   changes band (32.80 suspicious to 27.80 clean).
 
 ### Fixed (exact duplicates: one body identity, one size floor)
@@ -902,8 +902,8 @@ is present, the hash seed, and whether results come from the analysis cache.
   groups are new, each one a body the old identity split by docstring (9),
   annotations or arguments (5), name (4) or decorator (1). 7 files move one
   band down, all 18 exit codes are unchanged, and sloppylint's AST visitor is
-  not reported. Flamehaven-TOE loses its 2 `to_dict` groups (one CRITICAL);
-  NavierStokes gains `viscosity_rescale_velocity` / `viscosity_rescale_force`,
+  not reported. One private codebase loses its 2 `to_dict` groups (one CRITICAL);
+  another gains `viscosity_rescale_velocity` / `viscosity_rescale_force`,
   identical except for annotations. Cross-file, over the 11 codebases
   without the cap: 2,121 pairs are gone, all below the floor; 243 are new,
   151 renamed copies and 92 with the same name but a different docstring,
@@ -1384,8 +1384,8 @@ first run re-analyzes every file.
 ### Validation
 
 - `python -m pytest tests/test_docstring_inflation.py tests/test_patterns/test_patterns.py tests/test_fp_reduction.py tests/test_js_analyzer.py tests/test_ddc.py tests/test_inflation.py tests/test_core.py -q`
-- `python -m slop_detector.cli scan D:\\Sanctum\\AI-SLOP-DETECTOR --project --json`
-- `python -m slop_detector.cli scan D:\\Sanctum\\alecta-stock --json`
+- `python -m slop_detector.cli scan . --project --json` (this repository)
+- `python -m slop_detector.cli scan <another local project> --json`
 
 ## [3.8.6] - 2026-06-15 — Strictness Stabilization, Coherence Cleanup, and Operations Split
 
@@ -2606,9 +2606,7 @@ Medium:
   file-level signal.
 - Thresholds: ≥ 6 clones → CRITICAL; ≥ 4 clones → HIGH.
 - Algorithm: 30-dim AST histogram per function → pairwise JSD →
-  BFS connected components. Ported and adapted from
-  Protocol-ReGenesis-Engine `src/core/math_models.py` (itself a Python port
-  of Flamehaven-TOE v4.5.0 `toe/math/di2.py`).
+  BFS connected components.
 - New module: `metrics/stub_density.py` — `_jsd()`, `_node_histogram()`,
   `_find_largest_clone_group()`, `calculate_stub_density()`.
 
@@ -2710,7 +2708,7 @@ All 188 tests pass. No public API changes.
 - Scans the found root for internal project packages: `src/` layout, flat layout, and
   `[tool.setuptools.packages.find] where` directive.
 - Parses `[project.dependencies]` and `[project.optional-dependencies]` to extract declared
-  package names, stripping vendor prefixes (e.g. `flamehaven_nnsl` → `nnsl`).
+  package names, stripping vendor prefixes (e.g. `vendor_toolkit` → `toolkit`).
 - Results cached per-process (`_PROJECT_PACKAGES_CACHE`) — zero repeated I/O within a run.
 
 **Import guard detection** (`_collect_import_guard_lines`, `_IMPORT_GUARD_EXC_NAMES`)
@@ -2782,7 +2780,7 @@ New severity routing:
 
 ### Validation
 
-- Applied to Flamehaven-TOE v4.5.0 (83 files, src-layout, 11 optional deps):
+- Applied to a private src-layout codebase (83 files, 11 optional deps):
   - Before: 252 CRITICAL phantom imports, deficit_score=100 on all files, status=`critical_deficit`
   - After: 0 CRITICAL phantom imports, 11 MEDIUM (correctly classified optional deps),
     deficit_score avg ~18.1, status=`clean`

@@ -264,15 +264,15 @@ project_ldr = 0.6 * min(file_ldr_scores) + 0.4 * mean(file_ldr_scores)
 
 ### Rationale
 
-This is derived from the **SR9 conservative aggregation principle** (TOE
-Sovereign Resonance protocol), where:
+This is a **conservative aggregation**: the worst file sets most of the
+project value, where:
 
 - `min` captures the worst-case file (weighted 60%)
 - `mean` captures the central tendency (weighted 40%)
 
 Contrast with naive mean: a project with 99 clean files (LDR=0.8) and one
 empty wrapper file (LDR=0.05) would score 0.795 under mean — appearing healthy.
-Under SR9, it scores 0.6 * 0.05 + 0.4 * 0.795 = 0.348 — correctly flagging
+Under this rule, it scores 0.6 * 0.05 + 0.4 * 0.795 = 0.348 — correctly flagging
 the dragging file.
 
 ### Other Project Aggregations

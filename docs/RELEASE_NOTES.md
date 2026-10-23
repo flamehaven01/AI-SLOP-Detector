@@ -102,8 +102,8 @@ listed in the [Changelog](../CHANGELOG.md#3101---2026-10-14).
 ### Summary
 
 v3.10.0 makes every score say what it looked at and what it came from, and
-asks evidence of each finding. It comes from re-scanning NSRW,
-Flamehaven-TOE and RExSyn-Nexus with 3.9.3 and from an 18-repository
+asks evidence of each finding. It comes from re-scanning three
+private research codebases with 3.9.3 and from an 18-repository
 precision study; each change was replayed on that corpus and its effect is
 listed, per change, in the [Changelog](../CHANGELOG.md#3100---2026-10-11).
 
@@ -135,8 +135,8 @@ listed, per change, in the [Changelog](../CHANGELOG.md#3100---2026-10-11).
 - `analyze_code_string(content)` no longer reads the working directory: an
   unresolvable import is listed in `unverified_imports` instead of reported.
   Pass `project_root=` to analyze the source as a file of a project.
-- Cold scans are 2.6-3x faster (NSRW 11.1 s -> 4.3 s, Flamehaven-TOE 33.1 s
-  -> 10.9 s): one project walk, one AST walk per module.
+- Cold scans are 2.6-3x faster (two private codebases: 11.1 s -> 4.3 s and
+  33.1 s -> 10.9 s): one project walk, one AST walk per module.
 - The npm wrapper is not on the npm registry; install it from the
   repository's `npm-wrapper/`.
 
@@ -193,7 +193,7 @@ numbers are in the [Changelog](../CHANGELOG.md#393---2026-10-09).
   `elif`-only or `@overload` finding; no other finding changes; every file
   score equals the 3.9.2 score recomputed with only those changes; all 18
   replay exit codes unchanged.
-- NavierStokes-Research-Workbench, frozen copy with predictions recorded
+- A private research codebase, frozen copy with predictions recorded
   before the change: 11 of 11 checks pass.
 
 ---
@@ -685,8 +685,8 @@ dogfooding and then verified against the detector's own repository. The work
 ### Validation
 
 - `python -m pytest tests/test_docstring_inflation.py tests/test_patterns/test_patterns.py tests/test_fp_reduction.py tests/test_js_analyzer.py tests/test_ddc.py tests/test_inflation.py tests/test_core.py -q`
-- `python -m slop_detector.cli scan D:\\Sanctum\\AI-SLOP-DETECTOR --project --json`
-- `python -m slop_detector.cli scan D:\\Sanctum\\alecta-stock --json`
+- `python -m slop_detector.cli scan . --project --json` (this repository)
+- `python -m slop_detector.cli scan <another local project> --json`
 
 ---
 

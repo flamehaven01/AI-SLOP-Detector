@@ -36,7 +36,7 @@ graph TB
     E --> Z[Return CRITICAL_DEFICIT<br/>deficit=100.0]
 
     F --> G[LDR Calculator]
-    F --> H[Inflation Calculator<br/>v2.8.0 TOE formula]
+    F --> H[Inflation Calculator<br/>v2.8.0 scoped formula]
     F --> I[DDC Calculator]
     F --> J[Pattern detectors<br/>registry + advanced checks]
     F --> OPT[Optional Metrics<br/>DocstringInflation<br/>HallucinationDeps<br/>ContextJargon<br/>MLScore]
@@ -73,7 +73,7 @@ flowchart LR
     C --> D[Analysis]
 
     D --> E1[LDR<br/>Logic Density]
-    D --> E2[Inflation<br/>TOE formula]
+    D --> E2[Inflation<br/>scoped formula]
     D --> E3[DDC<br/>Dependencies]
     D --> E4[Pattern detectors<br/>Anti-patterns]
 

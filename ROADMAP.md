@@ -109,8 +109,8 @@ Broader work that should follow once the current release surface is stable.
 
 > **Status (v3.10):** the repeated traversal this plan targets was removed in
 > Python: one project walk per scan, shared by scan coverage and
-> Python/JS/Go discovery, and one AST walk per module (Flamehaven-TOE cold
-> 33.1 s -> 10.9 s, NSRW 11.1 s -> 4.3 s, output byte-identical). The Rust
+> Python/JS/Go discovery, and one AST walk per module (cold scans
+> 2.6-3x faster on the measured codebases, output byte-identical). The Rust
 > stages below were not started; whether they still pay needs a new profile
 > of the remaining hot paths.
 

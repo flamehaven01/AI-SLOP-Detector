@@ -22,19 +22,52 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 <b>Runs fully offline &middot; deterministic core scoring &middot; no API key, no model download, nothing leaves your machine.</b>
 </p>
 
-### Tested like the code it judges
+### Proven on other people's code
 
 A detector that flags plausible-but-empty code has to show its own evidence.
-Every number below comes from a recorded run.
+Public open-source projects are its benchmark, its test bed and its
+calibration set: every number below comes from a recorded run on code its
+authors did not write.
+
+**Benchmark: v3.11.0 (the published wheel) on public projects**
+
+| Project | Domain | Python files analyzed | Cold scan | Rerun |
+|---|---|---:|---:|---|
+| [biopython](https://github.com/biopython/biopython) | bioinformatics | 270 | 31 s | byte-identical |
+| [sentence-transformers](https://github.com/UKPLab/sentence-transformers) | NLP embeddings | 317 | 17 s | byte-identical |
+| [HealthChain](https://github.com/healthchainai/HealthChain) | healthcare data (FHIR) | 125 | 7 s | byte-identical |
+| [alphafold3](https://github.com/google-deepmind/alphafold3) | protein structure prediction | 85 | 8 s | byte-identical |
+| [jieba](https://github.com/fxsjy/jieba) | Chinese text segmentation | 30 | 25 s | byte-identical |
+| [cytools](https://github.com/LiamMcAllisterGroup/cytools) | Calabi-Yau geometry | 16 | 5 s | byte-identical |
+| [financial-services](https://github.com/anthropics/financial-services) | finance agents | 16 | 2 s | byte-identical |
+| [langdetect](https://github.com/Mimino666/langdetect) | language detection | 9 | 2 s | byte-identical |
+| [minGPT](https://github.com/karpathy/minGPT) | language models | 5 | 1 s | byte-identical |
+
+Each project was scanned twice with `--read-only` and an empty home
+directory: 18 of 18 runs exited 0 with byte-identical JSON, nothing was
+written to the home directory, and no repository changed. One Windows 11 desktop (8 logical cores),
+Python 3.12; times are the first run, and depend on the machine.
+
+**Outside code shaped the analyzer**
+
+| Found on | What it exposed | What the analyzer does now |
+|---|---|---|
+| langdetect | an `elif` chain of eleven branches read as nesting depth 11 (real depth 2) | an `elif` is part of its `if`; across the 11 Python study repositories, 1,158 findings that were only `elif` depth are gone (v3.9.3) |
+| the 12-repository study | `@overload` signatures reported as empty placeholders | `...` under `@overload` is the typing construct, not a stub; 35 findings gone (v3.9.3) |
+| HealthChain | modules with no executable code scored 97.5: 3 of its 7 hard-gate failures | a module without executable code is flagged `no_executable_code`, not scored as empty logic (v3.9.3) |
+| jieba | 4 data modules (7.2 MB) held 99.2% of the line weight (project score 0.09) | static data modules are analyzed but carry no weight; 0.09 becomes 13.30 (v3.10.0) |
+| hermes-agent | the JS regex fallback found 0 god functions where tree-sitter found 2,703 | every result says which analysis mode ran and which checks it could not run (v3.10.0) |
+| OpenClaw-Medical-Skills, minGPT, cytools | imports of the project's own or declared modules reported as phantom imports | import evidence follows the scanned project's layout; 168 `phantom_import` findings reclassified (v3.10.0) |
+| an 18-repository replay | function length and nesting counted layout, not logic | length counts logical lines with pylint's limit of 50; nesting follows SonarSource Cognitive Complexity; -608 `god_function` findings, none added (v3.10.1) |
+
+**How the results are checked**
 
 | | |
 |---|---|
-| **18 real codebases** | Scoring changes are replayed on 15 public projects (biopython, alphafold3, sentence-transformers, jieba, langdetect, HealthChain, financial-services, cytools, minGPT, typia in TypeScript, and agent toolkits) and 3 STEM research codebases: a Navier-Stokes CFD workbench, a theoretical-physics codebase and a biomedical structure-validation platform. The [CHANGELOG](CHANGELOG.md) states what each change moved; v3.10.1 cut `god_function` findings by 608 and added none. |
-| **Its errors are hunted, then fixed in the open** | A hand review of 146 sampled findings in 12 outside repositories classified each one as a true positive or a named error class. The v3.9.3 and v3.10 fixes come from that review, each listed with its measured effect. The tool is not independently validated; [VALIDATION.md](docs/VALIDATION.md) says what is and is not known. |
+| **Hand-reviewed findings** | 146 sampled findings from 12 outside repositories were read in the source and classified as true positives or named error classes; the v3.9.3 and v3.10 fixes come from that review, each listed with its measured effect in the [CHANGELOG](CHANGELOG.md). The tool is not independently validated; [VALIDATION.md](docs/VALIDATION.md) says what is and is not known. |
+| **Replayed before release** | Scoring changes are replayed on an 18-repository corpus and the CHANGELOG states what moved, finding by finding. |
 | **Says when it measured nothing** | Every project result carries `measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`) and `score_valid`. When nothing was measured, human reports read `NOT EVALUATED` instead of a clean verdict, and a scan whose files all failed to analyze fails `--fail-threshold`. |
-| **Byte-for-byte reproducible** | Same input, same JSON, whatever the cache, hash seed, Rust helper or working directory. Cold and warm scans were compared byte for byte on every study repository. |
 | **Its own tests are tested** | More than 1,500 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.11.0, 25 of 25 were caught. |
-| **Speed is measured, not promised** | Timed cold scans in v3.10.0: Flamehaven-TOE 33.1 s to 10.9 s, the Navier-Stokes workbench 11.1 s to 4.3 s. |
 
 Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
 
@@ -43,7 +76,7 @@ Linters check form; this checks substance. See [why not just a linter](#why-not-
 - Previous stable tag: `v3.10.1`
 - `v3.11.0`: one scan engine (`ScanService`) behind the CLI, MCP and REST, with progress events, cancellation and typed errors; MCP and REST scans write nothing by default (REST history only with `"save_history": true`), the REST server binds `127.0.0.1`, and agent project responses say whether the score measured anything (`measurement_state`, `score_valid`, `reason`). Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.10.1`: function length counts logical lines and `try` / `with` are not nesting levels (far fewer false `god_function` and nesting findings); UTF-8 files with a byte order mark and single JS/TS/Go files are analyzed instead of scored as parse errors; scans of git repositories under non-ASCII folder names and HTML reports of projects no longer crash; a scan that measured nothing shows `NOT EVALUATED` and never passes `--fail-threshold`; an invalid or missing config stops the run before analysis. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.10.0`: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and cold scans are 2.6-3x faster (NSRW, Flamehaven-TOE). See [CHANGELOG.md](CHANGELOG.md).
+- `v3.10.0`: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and cold scans are 2.6-3x faster. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.9.3` is a precision correction found by testing 3.9.2 on 12 outside repositories: an `elif` no longer counts as a level of nesting, `@overload` signatures are not placeholders, a module with no executable code is not scored as empty logic, a file that fails to analyze is listed and marks the scan incomplete (a hard gate then fails) instead of silently disappearing, `--json --js` prints one JSON document, and the JS/TS analysis mode (tree-sitter or regex fallback) is disclosed. Scores mostly go down; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.2` makes one result mean the same thing everywhere and removes double counting: one set of score bands for files, projects, JS and Go; docstrings count like comments (logic density, god_function); a nested function's nesting is charged once; exact duplicates compare function bodies only, with one size floor for the same-file and cross-file reports; import evidence follows the scanned project's root; output is byte-identical across cache, hash seed, Rust helper, and working directory. Self-calibration is now an advisory report that writes nothing, documented configuration keys that nothing read are removed with a warning, and `--init <path>` writes into `<path>`. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 - `v3.9.1` makes claim checks count only real claims and real evidence: jargon in import paths, identifiers, and license notices is not a claim; a claim is supported only by code structure (a library named in a comment no longer counts); evidence that one file cannot show, such as tests that live elsewhere, is reported as unmeasured rather than missing. It also flags names a real package does not define (`phantom_member`) and decides test files and exclusions relative to the project root, so a checkout under a `build/` directory is no longer scanned as 0 files. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
@@ -858,7 +891,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 |---|---|
 | **v3.11.0** | one engine release: CLI, MCP and REST run the same `ScanService` (CLI output unchanged over 70 compared cases); MCP and REST are read-only by default, REST history is opt-in, the REST server binds `127.0.0.1`; agent responses carry `measurement_state` / `score_valid` / `reason`; findings and scores unchanged |
 | **v3.10.1** | correctness release: `god_function` counts logical lines and nesting rises only for `if`/`for`/`while`/`except` (corpus: -608 / -471 / -472 findings, none added); BOM files and single JS/TS/Go files analyzed; crashes fixed for git repositories under non-ASCII folders and project HTML reports; `scan_coverage.measurement_state` / `score_valid` / `reason`, `NOT EVALUATED` in human reports, `--fail-threshold` fails when every file failed; strict config validation before the run; working pre-commit hook installer; `--inspector-read-only` alias of `--read-only` |
-| **v3.10.0** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (TOE cold 33.1 s -> 10.9 s); cache `analysis-cache-v30`. See [CHANGELOG.md](CHANGELOG.md) |
+| **v3.10.0** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (cold scans 2.6-3x faster); cache `analysis-cache-v30`. See [CHANGELOG.md](CHANGELOG.md) |
 | **v3.9.3** | precision correction from a 12-repository study: `elif` is not nesting (`deep_nesting`, `nested_complexity`); `@overload` / `@typing.overload` are not placeholders; `no_executable_code` modules skip LDR/DDC instead of scoring 97.49; failed analyses are counted in `scan_coverage.failed` with `complete: false` and a hard gate fails closed; one JS pass and valid `--json --js` output; `scan_coverage.analysis_modes`; cache `analysis-cache-v25` |
 | **v3.9.2** | consistency and correctness release: one band set (CLEAN <30 / SUSPICIOUS / INFLATED_SIGNAL / CRITICAL_DEFICIT >=70) for files, projects, JS and Go; `dependency_noise` and `parse_error` are flags; docstrings count like comments in LDR and god_function; deep_nesting under nested_complexity charged once; exact duplicates by function body with an 8-node floor, shared by same-file and cross-file; import evidence from the scan root; byte-identical output across cache, hash seed, Rust helper and cwd; advisory-only self-calibration; unread config keys removed with a warning; `--init <path>` honoured; cache `analysis-cache-v24` |
 | **v3.9.1** | claim and path checkpoint: jargon counted only in comments and strings, never in import paths, identifiers, or leading license notices; claim evidence states `structural` / `weak` / `absent` / `unmeasured` with a per-claim `support_level`; justification only by structural library use; test evidence unmeasured outside test files; `--ci-claims-strict` keeps failing unmeasured integration evidence; root-relative path facts (fixes 0-file scans under a `build/` checkout); `phantom_member` pattern |
