@@ -14,8 +14,9 @@ discovered / analyzed / failed files, files with pattern errors and a coverage
 state; per finding the file's SHA-256; per report the src digest and Python
 version. `parity` compares each repository with the full CLI pipeline
 (`--project --json --read-only`) on (file, line, pattern, message) and on the
-number of analyzed files; a repository whose fast run is not COMPLETE never
-matches. Unknown pattern ids are refused. `diff`
+number of analyzed files; a repository that either side did not measure
+completely never matches, and `run` exits non-zero on any incomplete
+repository. Unknown pattern ids are refused. `diff`
 prints the findings one report adds or drops against another.
 """
 
@@ -64,6 +65,15 @@ def _scan_repo(job: tuple) -> dict:
     os.environ.pop("SLOP_CONFIG", None)
     home = tempfile.mkdtemp(prefix="replay_home_")
     os.environ["HOME"] = os.environ["USERPROFILE"] = home
+    try:
+        result = _scan(repo, patterns)
+    finally:
+        shutil.rmtree(home, ignore_errors=True)
+    result["temp_home_left"] = os.path.exists(home)
+    return result
+
+
+def _scan(repo: str, patterns: set) -> dict:
     from slop_detector.core import SlopDetector
     from slop_detector.core_project import project_walk_scope
     from slop_detector.project_context import project_context_scope
@@ -101,7 +111,6 @@ def _scan_repo(job: tuple) -> dict:
                             "message": issue.message,
                         }
                     )
-    shutil.rmtree(home, ignore_errors=True)
     analyzed = len(files) - len(failed)
     state = (
         "NO_MEASUREMENT" if not analyzed else "PARTIAL" if failed or pattern_failed else "COMPLETE"
@@ -156,12 +165,27 @@ def _full_pipeline(src: str, repo: Path, patterns: set) -> tuple:
     data = json.loads(done.stdout.decode("utf-8"))
     found = set()
     results = data.get("file_results", [])
+    state = (data.get("scan_coverage") or {}).get("measurement_state")
     for fr in results:
         rel = Path(fr["file_path"]).resolve().relative_to(repo.resolve()).as_posix()
         for issue in fr.get("pattern_issues", []):
             if issue["pattern_id"] in patterns:
                 found.add((rel, issue.get("line"), issue["pattern_id"], issue.get("message", "")))
-    return found, len(results)
+    return found, len(results), state
+
+
+def parity_state(repo: dict, full: set, full_files: int, full_state) -> str:
+    """MATCH only when both sides measured everything and agree."""
+    if repo["coverage_state"] != "COMPLETE" or full_state != "COMPLETE":
+        return "INCOMPLETE"
+    if key_set(repo) != full or repo["analyzed_files"] != full_files:
+        return "MISMATCH"
+    return "MATCH"
+
+
+def run_exit(report: dict) -> int:
+    """Non-zero when any repository was not completely measured."""
+    return 0 if all(r["coverage_state"] == "COMPLETE" for r in report["repos"]) else 1
 
 
 def key_set(report_repo: dict) -> set:
@@ -208,25 +232,23 @@ def main() -> int:
             print(
                 f"{repo['repo']}: {len(repo['findings'])} findings, {repo['analyzed_files']}/"
                 f"{repo['discovered_files']} files, {repo['coverage_state']}, {repo['seconds']} s"
+                + (", temp HOME left" if repo["temp_home_left"] else "")
             )
         print(f"wall {report['wall_seconds']} s, src {report['src_digest'][:12]}")
-        return 0
+        return run_exit(report)
 
     mismatches = 0
     for repo in report["repos"]:
         fast = key_set(repo)
-        full, full_files = _full_pipeline(args.src, Path(args.repos) / repo["repo"], patterns)
-        if repo["coverage_state"] != "COMPLETE":
-            state = "INCOMPLETE"
-        elif fast != full or repo["analyzed_files"] != full_files:
-            state = "MISMATCH"
-        else:
-            state = "MATCH"
+        full, full_files, full_state = _full_pipeline(
+            args.src, Path(args.repos) / repo["repo"], patterns
+        )
+        state = parity_state(repo, full, full_files, full_state)
         mismatches += state != "MATCH"
         print(
             f"{repo['repo']}: {state} fast={len(fast)} full={len(full)} "
             f"only_fast={len(fast - full)} only_full={len(full - fast)} "
-            f"files={repo['analyzed_files']}/{full_files}"
+            f"files={repo['analyzed_files']}/{full_files} full_state={full_state}"
         )
     return 1 if mismatches else 0
 
