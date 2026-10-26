@@ -13,7 +13,9 @@ usage:
 discovered / analyzed / failed files, files with pattern errors and a coverage
 state; per finding the file's SHA-256; per report the src digest and Python
 version. `parity` compares each repository with the full CLI pipeline
-(`--project --json --read-only`) on (file, line, pattern, message). `diff`
+(`--project --json --read-only`) on (file, line, pattern, message) and on the
+number of analyzed files; a repository whose fast run is not COMPLETE never
+matches. Unknown pattern ids are refused. `diff`
 prints the findings one report adds or drops against another.
 """
 
@@ -24,6 +26,7 @@ import hashlib
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -98,6 +101,7 @@ def _scan_repo(job: tuple) -> dict:
                             "message": issue.message,
                         }
                     )
+    shutil.rmtree(home, ignore_errors=True)
     analyzed = len(files) - len(failed)
     state = (
         "NO_MEASUREMENT" if not analyzed else "PARTIAL" if failed or pattern_failed else "COMPLETE"
@@ -131,7 +135,7 @@ def run(src: str, repos_root: str, patterns: set, repos: list, workers: int) -> 
     }
 
 
-def _full_pipeline(src: str, repo: Path, patterns: set) -> set:
+def _full_pipeline(src: str, repo: Path, patterns: set) -> tuple:
     with tempfile.TemporaryDirectory() as home:
         env = dict(os.environ, HOME=home, USERPROFILE=home, PYTHONPATH=src, PYTHONHASHSEED="1")
         env.pop("SLOP_CONFIG", None)
@@ -151,12 +155,13 @@ def _full_pipeline(src: str, repo: Path, patterns: set) -> set:
         )
     data = json.loads(done.stdout.decode("utf-8"))
     found = set()
-    for fr in data.get("file_results", []):
+    results = data.get("file_results", [])
+    for fr in results:
         rel = Path(fr["file_path"]).resolve().relative_to(repo.resolve()).as_posix()
         for issue in fr.get("pattern_issues", []):
             if issue["pattern_id"] in patterns:
                 found.add((rel, issue.get("line"), issue["pattern_id"], issue.get("message", "")))
-    return found
+    return found, len(results)
 
 
 def key_set(report_repo: dict) -> set:
@@ -174,6 +179,13 @@ def main() -> int:
     parser.add_argument("--workers", type=int, default=4)
     args = parser.parse_args()
     patterns = set(filter(None, args.patterns.split(",")))
+    if args.mode != "diff":
+        sys.path.insert(0, args.src)
+        from slop_detector.patterns import get_all_patterns
+
+        unknown = patterns - {p.id for p in get_all_patterns()}
+        if not patterns or unknown:
+            parser.error(f"--patterns must name registered pattern ids; unknown: {sorted(unknown)}")
 
     if args.mode == "diff":
         old, new = (json.loads(Path(p).read_text(encoding="utf-8")) for p in args.rest)
@@ -203,12 +215,18 @@ def main() -> int:
     mismatches = 0
     for repo in report["repos"]:
         fast = key_set(repo)
-        full = _full_pipeline(args.src, Path(args.repos) / repo["repo"], patterns)
-        state = "MATCH" if fast == full else "MISMATCH"
-        mismatches += state == "MISMATCH"
+        full, full_files = _full_pipeline(args.src, Path(args.repos) / repo["repo"], patterns)
+        if repo["coverage_state"] != "COMPLETE":
+            state = "INCOMPLETE"
+        elif fast != full or repo["analyzed_files"] != full_files:
+            state = "MISMATCH"
+        else:
+            state = "MATCH"
+        mismatches += state != "MATCH"
         print(
             f"{repo['repo']}: {state} fast={len(fast)} full={len(full)} "
-            f"only_fast={len(fast - full)} only_full={len(full - fast)}"
+            f"only_fast={len(fast - full)} only_full={len(full - fast)} "
+            f"files={repo['analyzed_files']}/{full_files}"
         )
     return 1 if mismatches else 0
 
