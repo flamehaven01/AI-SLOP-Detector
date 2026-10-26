@@ -40,7 +40,9 @@ The detailed sections below explain the main rules and may not cover every id.
 | `pass_placeholder` | Python | High | Placeholder | Yes | Function/class body is only `pass` |
 | `ellipsis_placeholder` | Python | High | Placeholder | Yes | Function body is only `...` (skips `@abstractmethod`, `Protocol` methods and `@overload` / `@typing.overload` signatures) |
 | `return_none_placeholder` | Python | Medium | Placeholder | No | `return None` as only statement (skips `Optional[T]` annotations) |
-| `return_constant_stub` | Python | High | Placeholder | No | Function body is a single `return <constant>` |
+| `return_constant_stub` | Python | High | Placeholder | No | Function returns a constant with nothing but logging in front of it |
+| `return_input_stub` | Python | Medium | Placeholder | No | Function only logs and returns an argument unchanged |
+| `failure_as_success` | Python | High | Structural | No | Catch-all handler returns the same result as the success path, so a failure cannot be told apart |
 | `interface_only_class` | Python | High | Placeholder | No | Class with only abstract or placeholder methods |
 | `todo_comment` | Python | Medium | Placeholder | No | `# TODO` comment |
 | `fixme_comment` | Python | Medium | Placeholder | No | `# FIXME` comment |
@@ -1028,8 +1030,11 @@ processed = process(user)
 **Severity:** HIGH | **Axis:** QUALITY | **Added:** v3.1.0
 
 Function always returns the same constant regardless of input — a classic stub
-pattern. Excludes known constant-returning idioms (e.g., `__bool__`, `__len__`,
-sentinel factories).
+pattern. Statements in front of the return that only log, print or `pass` do
+not count as an implementation; a log call whose arguments call anything but a
+pure builtin (`len`, `str`, ...) does. Excludes dunder methods that answer with
+a constant (`__bool__`, `__len__`, ...), abstract methods and declared intent
+(contract methods, overrides of a module base, properties and other accessors).
 
 ```python
 # Flagged:
@@ -1037,9 +1042,84 @@ def calculate_score(metrics):
     """Complex scoring algorithm."""
     return 42   # always 42 regardless of input
 
+
+# Flagged (v3.12.0): logging does not make it an implementation
+def score(self, charge):
+    logger.debug("screening %s", charge.customer_id)
+    return 0.0
+
+# OK: an override of a module base answering a question
+class Base:
+    def enabled(self):
+        return load_flag()
+
+class Disabled(Base):
+    def enabled(self):
+        return False
+```
+
+---
+
+### failure_as_success
+
+**Severity:** HIGH | **Axis:** QUALITY | **Added:** v3.12.0
+
+A handler that catches everything (bare `except`, `Exception`, `BaseException`)
+and, after nothing but logging, returns the same result as the `try` body's
+only `return`: the same constant, the same expression over names the `try` body
+neither rebinds nor fills (`x = ...`, `x[k] = ...`, `x.append(...)`), or a dict
+with the same success status (`"up"`, `"ok"`, ...). The result then does not
+depend on whether the work happened.
+
+Not reported (each found as a deliberate decision on an external replay):
+- a `try` body with several returns: its last is usually the default answer
+  ("deny", "not found"), and answering an error with that default is a choice;
+- `except Exception: return True` after a `try` that returns something else
+  (fail-open or fail-closed decisions);
+- a catch-all beside a handler that raises or returns a failure: the `try`
+  classifies its errors;
+- failure values (`False`, `None`, empty, `{"success": False, ...}`), narrow
+  exceptions with a fallback, and re-raises.
+
+```python
+# Flagged:
+def export_csv(records, path):
+    try:
+        write_rows(path, records)
+        return len(records)
+    except Exception:
+        logger.error("export failed")
+        return len(records)
+
+# OK: a narrow exception with a documented fallback
+def safe_predict(model, features):
+    try:
+        return model.predict(features)
+    except (ValueError, OverflowError):
+        return 0.5
+```
+
+---
+
+### return_input_stub
+
+**Severity:** MEDIUM | **Axis:** QUALITY | **Added:** v3.12.0
+
+Function only logs (or prints) and then returns one of its arguments
+unchanged, so none of the promised work happens. A bare `return value` with
+nothing in front of it (an identity function, a default hook) is not reported,
+and declared intent is honoured as for `return_constant_stub`.
+
+```python
+# Flagged:
+def normalize(records):
+    """Lower-case emails and convert timestamps to UTC."""
+    logger.info("normalizing %d records", len(records))
+    return records
+
 # OK:
-def is_enabled():
-    return True  # explicit toggle — not a stub
+def identity(value):
+    return value
 ```
 
 ---

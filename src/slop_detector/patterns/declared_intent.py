@@ -52,6 +52,113 @@ def _methods(klass: ast.ClassDef) -> Set[str]:
     }
 
 
+_SCOPE_NODES = (
+    ast.FunctionDef,
+    ast.AsyncFunctionDef,
+    ast.Lambda,
+    ast.ListComp,
+    ast.SetComp,
+    ast.DictComp,
+    ast.GeneratorExp,
+)
+
+
+def _local_names(scope: ast.AST) -> Set[str]:
+    """Names a function, lambda or comprehension binds itself (minus `global`s)."""
+    bound: Set[str] = set()
+    declared_global: Set[str] = set()
+    if isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+        args = scope.args
+        for arg in args.posonlyargs + args.args + args.kwonlyargs:
+            bound.add(arg.arg)
+        for extra in (args.vararg, args.kwarg):
+            if extra is not None:
+                bound.add(extra.arg)
+        roots = scope.body if isinstance(scope.body, list) else [scope.body]
+    else:
+        roots = list(getattr(scope, "generators", []))  # a comprehension's own bindings
+    pending: list = list(roots)
+    while pending:
+        node = pending.pop()
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            bound.add(node.name)
+            continue
+        if isinstance(node, _SCOPE_NODES):
+            continue
+        if isinstance(node, ast.Global):
+            declared_global.update(node.names)
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
+            bound.add(node.id)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            bound.update((a.asname or a.name).split(".")[0] for a in node.names)
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            bound.add(node.name)
+        pending.extend(ast.iter_child_nodes(node))
+    return bound - declared_global
+
+
+def _value_references(tree: ast.AST):
+    """Functions read by value, and `self.`/`cls.` methods read by value.
+
+    A name read resolves to the innermost scope that binds it (the module when
+    none does); it registers the function defined in that same scope. So a
+    nested callback (`def deny(...)` then `set_callback(deny)` in one function)
+    counts, and a parameter or local of the same name elsewhere does not.
+    Returns (set of (defining scope id, name), set of method names,
+    map of function node id -> defining scope id).
+    """
+    called = {id(node.func) for node in walk_nodes(tree) if isinstance(node, ast.Call)}
+    data_attrs = {
+        node.attr
+        for node in walk_nodes(tree)
+        if isinstance(node, ast.Attribute)
+        and isinstance(node.ctx, (ast.Store, ast.Del))
+        and isinstance(node.value, ast.Name)
+        and node.value.id in ("self", "cls")
+    }
+    module_scope = 0
+    refs: Set[tuple] = set()
+    attrs: Set[str] = set()
+    defined_in: Dict[int, int] = {}
+    stack: list = [(tree, ())]
+    while stack:
+        node, scopes = stack.pop()
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            defined_in[id(node)] = scopes[-1][0] if scopes else module_scope
+        if isinstance(node, _SCOPE_NODES):
+            scopes = scopes + ((id(node), _local_names(node)),)
+        if id(node) not in called and isinstance(getattr(node, "ctx", None), ast.Load):
+            if isinstance(node, ast.Name):
+                owner = next(
+                    (sid for sid, names in reversed(scopes) if node.id in names), module_scope
+                )
+                refs.add((owner, node.id))
+            elif (
+                isinstance(node, ast.Attribute)
+                and isinstance(node.value, ast.Name)
+                and node.value.id in ("self", "cls")
+                and node.attr not in data_attrs
+            ):
+                attrs.add(node.attr)
+        stack.extend((child, scopes) for child in ast.iter_child_nodes(node))
+    return refs, attrs, defined_in
+
+
+def _module_bindings(tree: ast.AST) -> Set[str]:
+    """Names the module binds at top level (defs, classes, imports, assignments)."""
+    bound: Set[str] = set()
+    for node in getattr(tree, "body", []):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            bound.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            bound.update((a.asname or a.name).split(".")[0] for a in node.names)
+        elif isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                bound.update(n.id for n in ast.walk(target) if isinstance(n, ast.Name))
+    return bound
+
+
 class DeclaredIntent:
     """What one module declares about its classes and methods."""
 
@@ -68,6 +175,8 @@ class DeclaredIntent:
             for base in klass.bases:
                 self._overridden.setdefault(_simple_name(base), set()).update(_methods(klass))
         self._abstract: Set[ast.ClassDef] = {k for k in classes if self._declared_abstract(k)}
+        self._name_refs, self._self_attr_refs, self._defined_in = _value_references(tree)
+        self.module_bindings: Set[str] = _module_bindings(tree)
 
     @staticmethod
     def _declared_abstract(klass: ast.ClassDef) -> bool:
@@ -102,6 +211,19 @@ class DeclaredIntent:
             function.name in self._methods_by_class.get(_simple_name(base), set())
             for base in klass.bases
         )
+
+    def is_registered_by_value(self, function: FunctionNode) -> bool:
+        """The module hands the function over by value (a callback or a dispatch
+        entry) instead of calling it: its fixed answer is the handler's job.
+
+        A module function counts when its name is read, not called, where no
+        enclosing function binds that name; a method when `self.` / `cls.` reads
+        it and the class never assigns that attribute (then it is data).
+        """
+        if self.enclosing_class(function) is not None:
+            return function.name in self._self_attr_refs
+        scope = self._defined_in.get(id(function), 0)
+        return (scope, function.name) in self._name_refs
 
     @staticmethod
     def is_accessor(function: FunctionNode) -> bool:

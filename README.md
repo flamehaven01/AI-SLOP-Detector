@@ -114,7 +114,7 @@ AI-SLOP Detector is an **evidence-based static analyzer** that targets a defect 
 
 General linters flag style and convention. This tool flags structural risk.
 
-- **27 checks for "fake-done" code** — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
+- **50 checks across Python, JS/TS and Go** (the [pattern registry](docs/PATTERNS.md)) — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
 - **Keeps local history** — every scan is recorded locally with what measured it (detector version, configuration, project root); `--self-calibrate` reports what the comparable runs of your project suggest for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml`.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
@@ -332,7 +332,7 @@ Adoption and observability surfaces are intentionally separate from scoring:
 flowchart LR
     A[📄 Source File] --> R[FileRole\nClassifier]
     R --> B[AST Parser]
-    B --> C[31 Pattern Checks]
+    B --> C[33 Pattern Checks]
     B --> D[LDR · ICR · DDC\n+ Purity Metrics]
     C --> E[GQG Scorer\nWeighted Geometric Mean]
     D --> E
@@ -346,7 +346,7 @@ flowchart LR
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 31 pattern checks. Results are combined via a **weighted
+Purity) **and** 33 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to local history; `--self-calibrate`
 turns that history into an advisory weight report and never writes weights.
@@ -395,8 +395,8 @@ dependency, and language-specific signals.** Full catalog:
 
 | Category | Patterns | Signal |
 |---|---|---|
-| **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `return_constant_stub`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
-| **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement` | Anti-patterns |
+| **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `return_constant_stub`, `return_input_stub`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
+| **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement`, `failure_as_success` | Anti-patterns |
 | **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_println`, `csharp_length`, `php_strlen` | Wrong-language syntax |
 | **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `nested_complexity`, `lint_escape`, `exact_duplicate_pair`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
 | **Phantom** | `phantom_import`, `phantom_member` | Hallucinated packages, and names an installed package does not define |

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import re
 from typing import List, Optional, Union
 
 from slop_detector.patterns.base import ASTPattern, Axis, Issue, RegexPattern, Severity
@@ -69,6 +70,82 @@ def _empty_container_repr(value: ast.expr) -> Optional[str]:
     if isinstance(value, ast.Set) and not value.elts:
         return "set()"
     return None
+
+
+_LOGGER_NAMES = frozenset({"logger", "log", "logging", "_logger", "_log", "LOGGER", "LOG"})
+_LOG_METHODS = frozenset(
+    {"debug", "info", "warning", "warn", "error", "exception", "critical", "fatal", "log"}
+)
+# Calls a log argument may make without the log line doing work of its own.
+_PURE_BUILTINS = frozenset(
+    {"len", "str", "repr", "type", "round", "int", "float", "bool", "abs", "min", "max", "sum"}
+)
+
+
+def _is_log_call(call: ast.Call) -> bool:
+    """`logger.info(...)`, `self.logger.debug(...)`, `logging.warning(...)` or `print(...)`."""
+    func = call.func
+    if isinstance(func, ast.Name):
+        return func.id == "print"
+    if not isinstance(func, ast.Attribute) or func.attr not in _LOG_METHODS:
+        return False
+    receiver = func.value
+    if isinstance(receiver, ast.Name):
+        return receiver.id in _LOGGER_NAMES
+    return isinstance(receiver, ast.Attribute) and receiver.attr in _LOGGER_NAMES
+
+
+def _is_cosmetic(stmt: ast.stmt, shadowed: frozenset = frozenset()) -> bool:
+    """`pass`, or a log/print call whose arguments call nothing but pure builtins.
+
+    `shadowed` names builtins the module rebinds; a call to one is not pure.
+    """
+    if isinstance(stmt, ast.Pass):
+        return True
+    if not (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call)):
+        return False
+    call = stmt.value
+    if not _is_log_call(call):
+        return False
+    for arg in list(call.args) + [k.value for k in call.keywords]:
+        for inner in ast.walk(arg):
+            if isinstance(inner, ast.Call) and not (
+                isinstance(inner.func, ast.Name)
+                and inner.func.id in _PURE_BUILTINS
+                and inner.func.id not in shadowed
+            ):
+                return False
+    return True
+
+
+def _final_return(body: List[ast.stmt], shadowed: frozenset = frozenset()) -> Optional[ast.Return]:
+    """The last statement, when it is a `return` and everything before it is cosmetic."""
+    if not body or not isinstance(body[-1], ast.Return):
+        return None
+    if not all(_is_cosmetic(stmt, shadowed) for stmt in body[:-1]):
+        return None
+    return body[-1]
+
+
+# Name parts saying the function exists to log: its log line is the work.
+_LOGGING_JOB_WORDS = frozenset(
+    {"log", "trace", "audit", "record", "report", "notify", "emit", "warn", "debug", "echo"}
+)
+
+
+def _logging_job(name: str) -> bool:
+    """`trace`, `log_event`, `auditAccess`: the function's job is the log line."""
+    parts = re.findall(r"[a-z]+", re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", name).lower())
+    return any(part in _LOGGING_JOB_WORDS for part in parts)
+
+
+def _cosmetic_note(body: List[ast.stmt]) -> str:
+    """' only logs (line 39) and' for a body with cosmetic statements, else ''."""
+    lines = [stmt.lineno for stmt in body[:-1] if not isinstance(stmt, ast.Pass)]
+    if not lines:
+        return ""
+    where = ", ".join(str(n) for n in lines)
+    return f" only logs (line{'s' if len(lines) > 1 else ''} {where}) and"
 
 
 def _has_optional_return(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
@@ -145,6 +222,15 @@ class _IntentAwarePattern(ASTPattern):
 
     def _declared(self, node, stmt: ast.stmt) -> bool:
         return self._intent is not None and is_declared_body(self._intent, node, stmt)
+
+    def _registered(self, node) -> bool:
+        return self._intent is not None and self._intent.is_registered_by_value(node)
+
+    def _shadowed(self) -> frozenset:
+        """Pure builtins the module rebinds (an import, def or assignment of `len`)."""
+        if self._intent is None:
+            return frozenset()
+        return frozenset(_PURE_BUILTINS & self._intent.module_bindings)
 
 
 class PassPlaceholderPattern(_IntentAwarePattern):
@@ -405,7 +491,10 @@ class ReturnNonePlaceholderPattern(_IntentAwarePattern):
 
 
 class ReturnConstantStubPattern(_IntentAwarePattern):
-    """Detect functions whose entire body is a single return <constant> statement.
+    """Detect functions whose body is a return <constant>, after nothing but logging.
+
+    Statements in front of the return that only log, print or pass do not make
+    it an implementation (`logger.debug(...); return 0.0` is still a stub).
 
     Targets the adversarial ldr_gaming/stub_with_real_structure evasion:
     20 one-liner functions each returning a literal constant score high on LDR
@@ -456,12 +545,17 @@ class ReturnConstantStubPattern(_IntentAwarePattern):
             return None
 
         body = _strip_docstring(node.body)
-        if len(body) != 1 or not isinstance(body[0], ast.Return):
+        final = _final_return(body, self._shadowed())
+        if final is None or self._declared(node, final):
             return None
-        if self._declared(node, body[0]):
+        # Logging in front of the constant does not make it an implementation,
+        # unless the function is a callback the module hands over by value: then
+        # the log line is the handler's action and the constant its answer.
+        note = _cosmetic_note(body)
+        if note and (self._registered(node) or _logging_job(node.name)):
             return None
 
-        ret_val = body[0].value
+        ret_val = final.value
 
         # return None is handled by ReturnNonePlaceholderPattern — skip
         if ret_val is None:
@@ -475,7 +569,7 @@ class ReturnConstantStubPattern(_IntentAwarePattern):
             return self.create_issue_from_node(
                 node,
                 file,
-                message=f"Function '{node.name}' returns constant {val_repr} - likely stub",
+                message=f"Function '{node.name}'{note} returns constant {val_repr} - likely stub",
                 suggestion="Implement meaningful logic or remove the function",
             )
 
@@ -485,11 +579,55 @@ class ReturnConstantStubPattern(_IntentAwarePattern):
             return self.create_issue_from_node(
                 node,
                 file,
-                message=f"Function '{node.name}' returns empty {container} - likely stub",
+                message=f"Function '{node.name}'{note} returns empty {container} - likely stub",
                 suggestion="Implement meaningful logic or remove the function",
             )
 
         return None
+
+
+class ReturnInputStubPattern(_IntentAwarePattern):
+    """Detect functions that only log and then return one of their arguments unchanged.
+
+    `logger.info("normalizing"); return records` performs none of the work its
+    name and docstring promise. A bare `return value` (an identity function or
+    a default hook) is not reported: the log line is what makes the body look
+    like an implementation. Declared intent (contracts, overrides, accessors)
+    is honoured as for return_constant_stub.
+    """
+
+    id = "return_input_stub"
+    severity = Severity.MEDIUM
+    axis = Axis.QUALITY
+    message = "Function only logs and returns an argument unchanged - likely stub"
+
+    def check_node(self, node: ast.AST, file, content) -> Optional[Issue]:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return None
+        if node.name.startswith("__") or _has_abstractmethod(node):
+            return None
+        body = _strip_docstring(node.body)
+        final = _final_return(body, self._shadowed())
+        if final is None or not isinstance(final.value, ast.Name):
+            return None
+        note = _cosmetic_note(body)
+        if not note or self._declared(node, final) or self._registered(node):
+            return None
+        if _logging_job(node.name):
+            return None
+        arguments = node.args.posonlyargs + node.args.args + node.args.kwonlyargs
+        names = {a.arg for a in arguments} - {"self", "cls"}
+        if final.value.id not in names:
+            return None
+        return self.create_issue_from_node(
+            node,
+            file,
+            message=(
+                f"Function '{node.name}'{note} returns its argument "
+                f"'{final.value.id}' unchanged - likely stub"
+            ),
+            suggestion="Implement the transformation the function promises, or remove it",
+        )
 
 
 class InterfaceOnlyClassPattern(_IntentAwarePattern):

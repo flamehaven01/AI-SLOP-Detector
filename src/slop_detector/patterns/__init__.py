@@ -38,6 +38,7 @@ def get_all_patterns(
         PHPStrlenPattern,
         RubyEachPattern,
     )
+    from slop_detector.patterns.failure_masking import FailureAsSuccessPattern
     from slop_detector.patterns.placeholder import (
         EllipsisPlaceholderPattern,
         EmptyExceptPattern,
@@ -47,6 +48,7 @@ def get_all_patterns(
         NotImplementedPattern,
         PassPlaceholderPattern,
         ReturnConstantStubPattern,
+        ReturnInputStubPattern,
         ReturnNonePlaceholderPattern,
         TodoCommentPattern,
         XXXCommentPattern,
@@ -86,6 +88,8 @@ def get_all_patterns(
         HackCommentPattern(),
         ReturnNonePlaceholderPattern(),
         ReturnConstantStubPattern(),
+        ReturnInputStubPattern(),
+        FailureAsSuccessPattern(),
         TodoCommentPattern(),
         FixmeCommentPattern(),
         InterfaceOnlyClassPattern(),

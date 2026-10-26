@@ -1,0 +1,78 @@
+{
+  "classes": {
+    "STUB_DISGUISED": "returns a constant or its input; only cosmetic statements (logging) around it",
+    "FAILURE_AS_SUCCESS": "an exception handler reports success or a benign result instead of the failure",
+    "CLAIM_WITHOUT_MECHANISM": "the docstring promises a mechanism (retry, cache, parallel, pagination, weighting, filtering) the body does not have",
+    "IGNORED_INPUT": "a parameter the contract depends on is never used",
+    "ALWAYS_PASS_CHECK": "a check, validator or authorization that passes regardless of its input",
+    "HARDCODED_RESULT": "returns canned data where the docstring promises computed or fetched data",
+    "PLACEHOLDER_PLAIN": "an obvious stub: pass, ..., NotImplementedError or a TODO with a default return"
+  },
+  "functions": {
+    "payments.py": {
+      "FraudScreen.score": "STUB_DISGUISED",
+      "FraudScreen.velocity": "GENUINE",
+      "PaymentGateway.submit": "STUB_DISGUISED",
+      "PaymentGateway.submit_with_retry": "CLAIM_WITHOUT_MECHANISM",
+      "PaymentGateway.refund": "GENUINE",
+      "PaymentProcessor.charge": "FAILURE_AS_SUCCESS",
+      "PaymentProcessor.settle_total": "GENUINE"
+    },
+    "storage.py": {
+      "MetadataCache.get": "CLAIM_WITHOUT_MECHANISM",
+      "TTLCache.get": "GENUINE",
+      "TTLCache.set": "GENUINE",
+      "verify_checksum": "ALWAYS_PASS_CHECK",
+      "sha256_of": "GENUINE",
+      "upload": "IGNORED_INPUT",
+      "upload_many": "CLAIM_WITHOUT_MECHANISM",
+      "delete_prefix": "FAILURE_AS_SUCCESS"
+    },
+    "auth.py": {
+      "hash_password": "GENUINE",
+      "verify_password": "GENUINE",
+      "verify_token": "ALWAYS_PASS_CHECK",
+      "is_authorized": "GENUINE",
+      "can_delete": "ALWAYS_PASS_CHECK",
+      "rate_limit": "GENUINE",
+      "throttle": "ALWAYS_PASS_CHECK",
+      "sanitize_username": "CLAIM_WITHOUT_MECHANISM",
+      "audit": "GENUINE"
+    },
+    "http_client.py": {
+      "PartnerClient.get": "GENUINE",
+      "PartnerClient.get_with_retry": "GENUINE",
+      "PartnerClient.post_with_retry": "CLAIM_WITHOUT_MECHANISM",
+      "PartnerClient.list_all": "CLAIM_WITHOUT_MECHANISM",
+      "PartnerClient.iter_pages": "GENUINE",
+      "PartnerClient.health": "FAILURE_AS_SUCCESS",
+      "PartnerClient.fetch_exchange_rates": "HARDCODED_RESULT"
+    },
+    "pipeline.py": {
+      "load_records": "GENUINE",
+      "validate_record": "ALWAYS_PASS_CHECK",
+      "is_valid_email": "GENUINE",
+      "deduplicate": "GENUINE",
+      "normalize": "STUB_DISGUISED",
+      "export_csv": "FAILURE_AS_SUCCESS",
+      "run": "GENUINE",
+      "summarize": "HARDCODED_RESULT"
+    },
+    "inference.py": {
+      "Model.predict": "GENUINE",
+      "LogisticModel.predict": "GENUINE",
+      "EnsembleModel.predict": "CLAIM_WITHOUT_MECHANISM",
+      "standardize": "GENUINE",
+      "predict_batch": "IGNORED_INPUT",
+      "calibrate": "STUB_DISGUISED",
+      "explain": "HARDCODED_RESULT",
+      "safe_predict": "GENUINE"
+    },
+    "placeholders.py": {
+      "monthly_report": "PLACEHOLDER_PLAIN",
+      "forecast": "PLACEHOLDER_PLAIN",
+      "export_pdf": "PLACEHOLDER_PLAIN",
+      "send_report": "PLACEHOLDER_PLAIN"
+    }
+  }
+}
