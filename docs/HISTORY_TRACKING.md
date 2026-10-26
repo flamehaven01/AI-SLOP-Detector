@@ -1,10 +1,12 @@
 # History Tracking
 
-**Current contract:** v3.9.3. Historical version markers below
+**Current contract:** v3.11.0. Historical version markers below
 explain when fields were introduced; they are not a separate active protocol.
 
-AI-SLOP Detector records every analysis run to a local SQLite database,
-unless the run uses `--no-history` or `--read-only`.
+AI-SLOP Detector records every CLI analysis run to a local SQLite database,
+unless the run uses `--no-history` or `--read-only`. The MCP tools never record
+history, and the REST `/analyze/*` routes record it only when a request sets
+`"save_history": true` (since v3.11.0).
 Run it repeatedly on the same codebase and the accumulated data becomes
 a continuous quality signal — showing which files improved, which degraded,
 and which patterns keep recurring.

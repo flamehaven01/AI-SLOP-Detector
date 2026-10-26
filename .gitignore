@@ -154,3 +154,6 @@ tests/e2e_v321/data/
 # Internal upgrade/working notes — checklists, blueprints, absorption reports.
 # Not part of the shipped product; kept local for development only.
 sovereign_upgrade/
+
+# Per-file test timings written by scripts/dev/parallel_tests.py
+/.pytest_durations.json

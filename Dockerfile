@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 LABEL maintainer="Flamehaven Labs <info@flamehaven.space>"
 LABEL description="AI SLOP Detector - static checks for empty, duplicated, phantom and over-claimed code"
-LABEL version="3.11.0"
+LABEL version="3.12.0"
 
 # Set working directory
 WORKDIR /app

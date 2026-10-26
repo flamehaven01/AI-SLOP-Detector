@@ -9,6 +9,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.0] - 2026-10-26
+
+Detection of code that looks finished but is not. Measured on a recall
+corpus of realistic, lint-clean hollow code (`benchmarks/recall`: 29 hollow
+and 22 genuine functions; `python benchmarks/recall/measure.py`): 4 of 29
+hollow found before, 12 of 29 now, 0 of 22 genuine flagged. The corpus is
+written by the maintainers; new findings on 14 public repositories were read
+in the source (2 added, both real).
+
+- `return_constant_stub` sees through logging: a body that only logs, prints
+  or passes before `return <constant>` is still a stub. Callbacks the module
+  hands over by value, functions whose job is to log, and log arguments that
+  call non-builtin code are left alone.
+- `return_input_stub` (new, Medium): logs, then returns an argument unchanged.
+- `failure_as_success` (new, High): a catch-all handler returns the same
+  result as the `try` body's only return, so a failure cannot be told apart.
+  `except Exception: return True` after a different success result is not
+  reported (often a deliberate fail-open or fail-closed choice).
+- `ignored_parameter` (new, Medium): a parameter the function never reads,
+  either an option (a parameter with a default) or any input of a top-level
+  function answering with a literal. A log line, `del name` and a nested
+  function reading it are uses. Signatures fixed elsewhere (overrides,
+  callbacks, decorated functions, sibling methods with the same parameters,
+  outside bases), stub bodies, parameters the docstring says are kept, and
+  command handlers returning exit codes are left alone. On the 14 public
+  repositories it adds 132 findings; of 33 read in the source, 23 are real
+  (an option documented and never applied, an API key accepted and never
+  sent), 5 unclear, 5 false alarms (protocol methods, parameters whose use the
+  docstring explains).
+- Recall corpus with all four changes: 18 of 29 hollow, 0 of 22 genuine.
+- Analysis cache `analysis-cache-v34` (old entries are recomputed).
+
+For scripts and agents: the four rules add findings (new pattern ids
+`return_input_stub`, `failure_as_success`, `ignored_parameter`); scores of
+files with such code go up by the existing penalty of the finding's severity.
+The scoring formula, band boundaries and JSON keys are unchanged.
+
+#### How a rule change is verified (development tools)
+
+- `scripts/dev/fast_replay.py`: replays only the selected patterns on external
+  repositories, in parallel, through the product's own discovery, config
+  resolution and `analyze_file`; records git HEAD, dirty files, coverage state
+  and each finding's file SHA-256. `parity` checks it against the full CLI
+  pipeline on `(file, line, pattern, message)`: 14 of 14 repositories
+  identical; 128-181 s for 14 repositories instead of about 10 minutes.
+- `scripts/dev/parallel_tests.py`: runs the suite in shards balanced on the
+  per-file seconds of the previous run (`.pytest_durations.json`), each
+  worker with its own `--basetemp`: 77-87 s instead of 270 s for 1,678 tests
+  on 8 logical cores (three consecutive runs).
+- Every rule in this release was narrowed on findings read in the source:
+  the stub extension added 6 findings, 5 of them callbacks, and 1 after the
+  callback exemption; `failure_as_success` 158 -> 1; `ignored_parameter`
+  1,006 -> 132.
+  Mutation: 21 of 21 rule breakages caught. Workflow:
+  [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#how-a-detection-rule-is-verified).
+
 ## [3.11.0] - 2026-10-23
 
 One scan engine for every surface, and safer defaults for the two that other

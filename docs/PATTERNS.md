@@ -42,6 +42,7 @@ The detailed sections below explain the main rules and may not cover every id.
 | `return_none_placeholder` | Python | Medium | Placeholder | No | `return None` as only statement (skips `Optional[T]` annotations) |
 | `return_constant_stub` | Python | High | Placeholder | No | Function returns a constant with nothing but logging in front of it |
 | `return_input_stub` | Python | Medium | Placeholder | No | Function only logs and returns an argument unchanged |
+| `ignored_parameter` | Python | Medium | Structural | No | Parameter the function never reads: an option (with a default), or any input of a module function answering with a literal |
 | `failure_as_success` | Python | High | Structural | No | Catch-all handler returns the same result as the success path, so a failure cannot be told apart |
 | `interface_only_class` | Python | High | Placeholder | No | Class with only abstract or placeholder methods |
 | `todo_comment` | Python | Medium | Placeholder | No | `# TODO` comment |
@@ -1056,6 +1057,40 @@ class Base:
 class Disabled(Base):
     def enabled(self):
         return False
+```
+
+---
+
+### ignored_parameter
+
+**Severity:** MEDIUM | **Axis:** QUALITY | **Added:** v3.12.0
+
+A parameter the function never reads, so it cannot shape the result. Reported:
+an option (a parameter with a default) that is never read, and any unused
+parameter of a top-level function whose returned values are literals reading
+no name (`return True`, `return {...}`). A log line, a nested function reading
+the outer parameter, and `del name` count as uses; a nested scope that binds the
+same name does not.
+
+Not reported (each found as deliberate on an external replay): `self`/`cls`,
+`_`-prefixed names, `*args`/`**kwargs`, dunder methods, stub bodies (reported
+by the placeholder patterns), decorated functions, contracts and overrides,
+callbacks registered by value, methods of a class with an outside base, sibling
+methods taking the same parameters (handlers dispatched by name), parameters
+the docstring says are kept (legacy, compatibility, unused, deprecated),
+positional parameters of functions returning nothing, nested functions and
+methods answering with a literal, and command handlers returning exit codes.
+
+```python
+# Flagged:
+def find_seed_matches(mirna_seq, utr_seq, seed_type="7mer-m8"):
+    """Seed types: 8mer, 7mer-m8, 7mer-A1, 6mer."""
+    return scan(mirna_seq[1:8], utr_seq)   # seed_type is never read
+
+# OK: kept on purpose, and said so
+def get_all_assemblies(file_format=""):
+    """file_format: a legacy parameter left to avoid breaking changes."""
+    return fetch()
 ```
 
 ---

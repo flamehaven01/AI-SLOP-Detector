@@ -39,6 +39,7 @@ def get_all_patterns(
         RubyEachPattern,
     )
     from slop_detector.patterns.failure_masking import FailureAsSuccessPattern
+    from slop_detector.patterns.ignored_parameter import IgnoredParameterPattern
     from slop_detector.patterns.placeholder import (
         EllipsisPlaceholderPattern,
         EmptyExceptPattern,
@@ -90,6 +91,7 @@ def get_all_patterns(
         ReturnConstantStubPattern(),
         ReturnInputStubPattern(),
         FailureAsSuccessPattern(),
+        IgnoredParameterPattern(),
         TodoCommentPattern(),
         FixmeCommentPattern(),
         InterfaceOnlyClassPattern(),

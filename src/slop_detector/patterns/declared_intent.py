@@ -212,6 +212,17 @@ class DeclaredIntent:
             for base in klass.bases
         )
 
+    def has_outside_base(self, function: FunctionNode) -> bool:
+        """A method of a class with a base the module does not define: the base may
+        fix the method's signature (`forward(self, x, mask)` on `nn.Module`)."""
+        klass = self.enclosing_class(function)
+        if klass is None:
+            return False
+        return any(
+            _simple_name(base) not in self._methods_by_class and _simple_name(base) != "object"
+            for base in klass.bases
+        )
+
     def is_registered_by_value(self, function: FunctionNode) -> bool:
         """The module hands the function over by value (a callback or a dispatch
         entry) instead of calling it: its fixed answer is the handler's job.

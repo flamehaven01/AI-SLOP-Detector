@@ -5,6 +5,56 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.12.0 — 2026-10-26
+
+### Summary
+
+v3.12.0 is a detection release: it reports code that looks finished but is not.
+A realistic, lint-clean hollow module (a fraud screen that always answers 0.0, a
+gateway that always answers `True`) scored clean on v3.11.0. Four rules now catch
+it; on a recall corpus of such code the detector finds 18 of 29 hollow functions
+instead of 4, and flags none of the 22 genuine ones. Each change is listed in the
+[Changelog](../CHANGELOG.md#3120---2026-10-26).
+
+### What moves when you upgrade
+
+- **Stubs hidden behind logging are stubs.** `logger.debug(...); return 0.0` is
+  reported like `return 0.0` (`return_constant_stub`); logging then returning an
+  argument unchanged is `return_input_stub` (Medium).
+- **A failure that answers like a success is reported.** A catch-all handler
+  returning the same result as the `try` body's only return is
+  `failure_as_success` (High).
+- **Ignored inputs are reported.** An option (a parameter with a default) that is
+  never read, or any input of a module function answering with a literal, is
+  `ignored_parameter` (Medium).
+- Scores of files with such code go up by the existing penalty of each finding.
+  The scoring formula, band boundaries and JSON keys are unchanged.
+
+### How the rules were checked
+
+Every added finding on 14 public repositories was read in the source before a
+rule shipped, and each rule was narrowed where it was wrong: callbacks handed
+over by value, documented fail-open / fail-closed handlers, default answers,
+parameters kept for compatibility, handler signatures fixed by their callers.
+Final additions: the stub and failure rules 2 findings, both real; for
+`ignored_parameter`, 132 findings, of which 23 of 33 read in the source are real,
+5 unclear and 5 false alarms. The recall corpus is written by the maintainers;
+an independent hold-out set is not part of this release.
+
+New development tools make this loop fast and exact:
+`scripts/dev/fast_replay.py` (selected patterns only, repositories in parallel,
+identical to the full pipeline on 14 of 14 repositories, about 2-3 minutes
+instead of 10) and `scripts/dev/parallel_tests.py` (balanced shards, 77-87 s
+instead of 270 s). See [DEVELOPMENT.md](DEVELOPMENT.md#how-a-detection-rule-is-verified).
+
+### Upgrade notes
+
+- New pattern ids: `return_input_stub`, `failure_as_success`, `ignored_parameter`.
+  Disable one with `--disable <id>` or `patterns.disabled` in `.slopconfig.yaml`.
+- The analysis cache is recomputed once (`analysis-cache-v34`).
+
+---
+
 ## v3.11.0 — 2026-10-23
 
 ### Summary

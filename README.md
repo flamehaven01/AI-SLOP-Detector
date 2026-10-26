@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.11.0" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.12.0" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
@@ -67,13 +67,30 @@ Python 3.12; times are the first run, and depend on the machine.
 | **Hand-reviewed findings** | 146 sampled findings from 12 outside repositories were read in the source and classified as true positives or named error classes; the v3.9.3 and v3.10 fixes come from that review, each listed with its measured effect in the [CHANGELOG](CHANGELOG.md). The tool is not independently validated; [VALIDATION.md](docs/VALIDATION.md) says what is and is not known. |
 | **Replayed before release** | Scoring changes are replayed on an 18-repository corpus and the CHANGELOG states what moved, finding by finding. |
 | **Says when it measured nothing** | Every project result carries `measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`) and `score_valid`. When nothing was measured, human reports read `NOT EVALUATED` instead of a clean verdict, and a scan whose files all failed to analyze fails `--fail-threshold`. |
-| **Its own tests are tested** | More than 1,500 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.11.0, 25 of 25 were caught. |
+| **Verified fast, and exactly** | Each rule change runs its own tests, a mutation run, the recall corpus and a replay on 14 public repositories that runs only the changed patterns in parallel and is checked against the full pipeline (14/14 identical); every added finding is read in the source before the rule ships. Full suite in balanced parallel shards: 77-87 s instead of 270 s. See [the verification workflow](docs/DEVELOPMENT.md#how-a-detection-rule-is-verified). |
+| **Its own tests are tested** | More than 1,500 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.12.0, 21 of 21 breakages of the new rules were caught (v3.11.0: 25 of 25). |
+
+**How a rule change is verified**
+
+```mermaid
+flowchart LR
+    A[Rule change] --> B[Owner tests<br/>fail first, then pass]
+    B --> C[Mutation run]
+    C --> D[Recall corpus]
+    D --> E[Fast replay<br/>14 public repos in parallel]
+    E --> F{Added findings<br/>read in source}
+    F -->|false alarm| A
+    F -->|real| G[Full suite<br/>parallel shards]
+    G --> H[CI exact commit]
+    E -. parity 14/14 .-> P[Full pipeline]
+```
 
 Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
 
 **Release track**
-- Stable tag: `v3.11.0`
-- Previous stable tag: `v3.10.1`
+- Stable tag: `v3.12.0`
+- Previous stable tag: `v3.11.0`
+- `v3.12.0`: catches code that only looks finished: stubs hidden behind logging (`return_constant_stub`), arguments returned unchanged (`return_input_stub`), catch-all handlers that return the success result (`failure_as_success`) and parameters a function never reads (`ignored_parameter`); measured on a recall corpus of lint-clean hollow code (4 of 29 found before, 18 of 29 now, 0 of 22 genuine flagged) and on 14 public repositories, with every added finding read in the source. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.11.0`: one scan engine (`ScanService`) behind the CLI, MCP and REST, with progress events, cancellation and typed errors; MCP and REST scans write nothing by default (REST history only with `"save_history": true`), the REST server binds `127.0.0.1`, and agent project responses say whether the score measured anything (`measurement_state`, `score_valid`, `reason`). Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.10.1`: function length counts logical lines and `try` / `with` are not nesting levels (far fewer false `god_function` and nesting findings); UTF-8 files with a byte order mark and single JS/TS/Go files are analyzed instead of scored as parse errors; scans of git repositories under non-ASCII folder names and HTML reports of projects no longer crash; a scan that measured nothing shows `NOT EVALUATED` and never passes `--fail-threshold`; an invalid or missing config stops the run before analysis. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.10.0`: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and cold scans are 2.6-3x faster. See [CHANGELOG.md](CHANGELOG.md).
@@ -114,7 +131,7 @@ AI-SLOP Detector is an **evidence-based static analyzer** that targets a defect 
 
 General linters flag style and convention. This tool flags structural risk.
 
-- **50 checks across Python, JS/TS and Go** (the [pattern registry](docs/PATTERNS.md)) — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
+- **51 checks across Python, JS/TS and Go** (the [pattern registry](docs/PATTERNS.md)) — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
 - **Keeps local history** — every scan is recorded locally with what measured it (detector version, configuration, project root); `--self-calibrate` reports what the comparable runs of your project suggest for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml`.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
@@ -155,7 +172,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.11.0"
+pip install "ai-slop-detector>=3.12.0"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -172,7 +189,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.11.0"
+pip install "ai-slop-detector>=3.12.0"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -332,7 +349,7 @@ Adoption and observability surfaces are intentionally separate from scoring:
 flowchart LR
     A[📄 Source File] --> R[FileRole\nClassifier]
     R --> B[AST Parser]
-    B --> C[33 Pattern Checks]
+    B --> C[34 Pattern Checks]
     B --> D[LDR · ICR · DDC\n+ Purity Metrics]
     C --> E[GQG Scorer\nWeighted Geometric Mean]
     D --> E
@@ -346,7 +363,7 @@ flowchart LR
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 33 pattern checks. Results are combined via a **weighted
+Purity) **and** 34 pattern checks. Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to local history; `--self-calibrate`
 turns that history into an advisory weight report and never writes weights.
@@ -396,7 +413,7 @@ dependency, and language-specific signals.** Full catalog:
 | Category | Patterns | Signal |
 |---|---|---|
 | **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `return_constant_stub`, `return_input_stub`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
-| **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement`, `failure_as_success` | Anti-patterns |
+| **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement`, `failure_as_success`, `ignored_parameter` | Anti-patterns |
 | **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_println`, `csharp_length`, `php_strlen` | Wrong-language syntax |
 | **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `nested_complexity`, `lint_escape`, `exact_duplicate_pair`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
 | **Phantom** | `phantom_import`, `phantom_member` | Hallucinated packages, and names an installed package does not define |
@@ -889,6 +906,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.12.0** | detection release: stubs behind logging, unchanged-argument stubs, catch-all handlers returning the success result, ignored parameters; recall corpus 4/29 -> 18/29 hollow with 0/22 genuine flagged; external replay with every added finding read in the source; parity-checked fast replay and balanced parallel test runner for development |
 | **v3.11.0** | one engine release: CLI, MCP and REST run the same `ScanService` (CLI output unchanged over 70 compared cases); MCP and REST are read-only by default, REST history is opt-in, the REST server binds `127.0.0.1`; agent responses carry `measurement_state` / `score_valid` / `reason`; findings and scores unchanged |
 | **v3.10.1** | correctness release: `god_function` counts logical lines and nesting rises only for `if`/`for`/`while`/`except` (corpus: -608 / -471 / -472 findings, none added); BOM files and single JS/TS/Go files analyzed; crashes fixed for git repositories under non-ASCII folders and project HTML reports; `scan_coverage.measurement_state` / `score_valid` / `reason`, `NOT EVALUATED` in human reports, `--fail-threshold` fails when every file failed; strict config validation before the run; working pre-commit hook installer; `--inspector-read-only` alias of `--read-only` |
 | **v3.10.0** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (cold scans 2.6-3x faster); cache `analysis-cache-v30`. See [CHANGELOG.md](CHANGELOG.md) |
