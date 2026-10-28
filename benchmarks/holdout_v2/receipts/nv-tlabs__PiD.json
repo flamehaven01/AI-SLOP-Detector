@@ -1,0 +1,1553 @@
+{
+ "repo": "nv-tlabs/PiD",
+ "dir": "nv-tlabs__PiD",
+ "commit": "2c8814c2b91cc41a2be7809962c891e0d0ccff5f",
+ "estimate_commit": "2c8814c2b91cc41a2be7809962c891e0d0ccff5f",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "README.md",
+  "assets/0072.jpg",
+  "assets/0107.jpg",
+  "assets/0114.jpg",
+  "assets/0135.jpg",
+  "assets/clean_image_manifest.jsonl",
+  "assets/clean_image_manifest_1024.jsonl",
+  "assets/gan_pdf.png",
+  "assets/sample_1024_1.jpg",
+  "assets/sample_1024_2.jpg",
+  "docker/Dockerfile",
+  "docker/Dockerfile.dockerignore",
+  "docker/README.md",
+  "docker/requirements-ngc-overlay.txt",
+  "docs/FLUX2_2kto4k_new_ckpt_compare.md",
+  "docs/boogu_image.md",
+  "docs/checkpointing_CN.md",
+  "docs/checkpointing_EN.md",
+  "docs/checkpoints.md",
+  "docs/dataloader_CN.md",
+  "docs/dataloader_EN.md",
+  "docs/dinov2_siglip.md",
+  "docs/hydra_CN.md",
+  "docs/hydra_EN.md",
+  "docs/inference.md",
+  "docs/repository_layout.md",
+  "docs/training.md",
+  "docs/webdataset_CN.md",
+  "docs/webdataset_EN.md",
+  "environment.yml",
+  "figures/teaser.jpg",
+  "justfile",
+  "pid/__init__.py",
+  "pid/_ext/__init__.py",
+  "pid/_ext/imaginaire/__init__.py",
+  "pid/_ext/imaginaire/checkpointer/__init__.py",
+  "pid/_ext/imaginaire/checkpointer/base.py",
+  "pid/_ext/imaginaire/checkpointer/dcp.py",
+  "pid/_ext/imaginaire/checkpointer/dummy.py",
+  "pid/_ext/imaginaire/checkpointer/s3_filesystem.py",
+  "pid/_ext/imaginaire/checkpointer/safe_broadcast.py",
+  "pid/_ext/imaginaire/config.py",
+  "pid/_ext/imaginaire/dataloaders/aspect_ratio_dataloader.py",
+  "pid/_ext/imaginaire/dataloaders/cached_replay_dataloader.py",
+  "pid/_ext/imaginaire/dataloaders/coupled_dataloader.py",
+  "pid/_ext/imaginaire/dataloaders/joint_dataloader.py",
+  "pid/_ext/imaginaire/datasets/__init__.py",
+  "pid/_ext/imaginaire/datasets/mock_dataset.py",
+  "pid/_ext/imaginaire/datasets/watchdog.py",
+  "pid/_ext/imaginaire/datasets/webdataset/__init__.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/augmentor.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/__init__.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/cropping.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/flip.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/misc.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/normalize.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/padding.py",
+  "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/resize.py",
+  "pid/_ext/imaginaire/datasets/webdataset/config/schema.py",
+  "pid/_ext/imaginaire/datasets/webdataset/dataloader.py",
+  "pid/_ext/imaginaire/datasets/webdataset/decoders/__init__.py",
+  "pid/_ext/imaginaire/datasets/webdataset/decoders/depth.py",
+  "pid/_ext/imaginaire/datasets/webdataset/decoders/image.py",
+  "pid/_ext/imaginaire/datasets/webdataset/decoders/json_decoder.py",
+  "pid/_ext/imaginaire/datasets/webdataset/decoders/pickle.py",
+  "pid/_ext/imaginaire/datasets/webdataset/decoders/tensor.py",
+  "pid/_ext/imaginaire/datasets/webdataset/decoders/video_decoder.py",
+  "pid/_ext/imaginaire/datasets/webdataset/distributors/__init__.py",
+  "pid/_ext/imaginaire/datasets/webdataset/distributors/basic.py",
+  "pid/_ext/imaginaire/datasets/webdataset/distributors/multi_aspect_ratio.py",
+  "pid/_ext/imaginaire/datasets/webdataset/distributors/multi_aspect_ratio_v2.py",
+  "pid/_ext/imaginaire/datasets/webdataset/distributors/multi_aspect_ratio_v2_test.py",
+  "pid/_ext/imaginaire/datasets/webdataset/distributors/parallel_sync_basic.py",
+  "pid/_ext/imaginaire/datasets/webdataset/distributors/parallel_sync_multi_aspect_ratio.py",
+  "pid/_ext/imaginaire/datasets/webdataset/utils/iterators.py",
+  "pid/_ext/imaginaire/datasets/webdataset/utils/misc.py",
+  "pid/_ext/imaginaire/datasets/webdataset/utils/stream.py",
+  "pid/_ext/imaginaire/datasets/webdataset/webdataset.py",
+  "pid/_ext/imaginaire/flags.py",
+  "pid/_ext/imaginaire/functional/batch_ops.py",
+  "pid/_ext/imaginaire/functional/lr_scheduler.py",
+  "pid/_ext/imaginaire/functional/multi_step.py",
+  "pid/_ext/imaginaire/functional/runge_kutta.py",
+  "pid/_ext/imaginaire/lazy_config/__init__.py",
+  "pid/_ext/imaginaire/lazy_config/file_io.py",
+  "pid/_ext/imaginaire/lazy_config/instantiate.py",
+  "pid/_ext/imaginaire/lazy_config/lazy.py",
+  "pid/_ext/imaginaire/lazy_config/omegaconf_patch.py",
+  "pid/_ext/imaginaire/lazy_config/registry.py",
+  "pid/_ext/imaginaire/model.py",
+  "pid/_ext/imaginaire/trainer.py",
+  "pid/_ext/imaginaire/types/denoise_prediction.py",
+  "pid/_ext/imaginaire/utils/__init__.py",
+  "pid/_ext/imaginaire/utils/callback.py",
+  "pid/_ext/imaginaire/utils/checkpointer.py",
+  "pid/_ext/imaginaire/utils/cluster_env.py",
+  "pid/_ext/imaginaire/utils/config_helper.py",
+  "pid/_ext/imaginaire/utils/context_managers.py",
+  "pid/_ext/imaginaire/utils/count_params.py",
+  "pid/_ext/imaginaire/utils/dataloader.py",
+  "pid/_ext/imaginaire/utils/dataset_utils.py",
+  "pid/_ext/imaginaire/utils/device.py",
+  "pid/_ext/imaginaire/utils/distributed.py",
+  "pid/_ext/imaginaire/utils/easy_io/__init__.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/__init__.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/auto_auth.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/base_backend.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/boto3_backend.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/boto3_client.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/http_backend.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/local_backend.py",
+  "pid/_ext/imaginaire/utils/easy_io/backends/registry_utils.py",
+  "pid/_ext/imaginaire/utils/easy_io/easy_io.py",
+  "pid/_ext/imaginaire/utils/easy_io/file_client.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/__init__.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/base.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/byte_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/csv_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/gzip_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/imageio_video_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/json_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/jsonl_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/np_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/pandas_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/pickle_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/pil_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/registry_utils.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/tarfile_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/torch_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/torchjit_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/trimesh_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/txt_handler.py",
+  "pid/_ext/imaginaire/utils/easy_io/handlers/yaml_handler.py",
+  "pid/_ext/imaginaire/utils/ema.py",
+  "pid/_ext/imaginaire/utils/ema_test.py",
+  "pid/_ext/imaginaire/utils/env_parsers/cred_env_parser.py",
+  "pid/_ext/imaginaire/utils/env_parsers/customization_env_parser.py",
+  "pid/_ext/imaginaire/utils/env_parsers/env_parser.py",
+  "pid/_ext/imaginaire/utils/env_parsers/inference_env_parser.py",
+  "pid/_ext/imaginaire/utils/fsdp_helper.py",
+  "pid/_ext/imaginaire/utils/fused_adam.py",
+  "pid/_ext/imaginaire/utils/fused_nan_to_num.py",
+  "pid/_ext/imaginaire/utils/graph.py",
+  "pid/_ext/imaginaire/utils/launch.py",
+  "pid/_ext/imaginaire/utils/log.py",
+  "pid/_ext/imaginaire/utils/misc.py",
+  "pid/_ext/imaginaire/utils/object_store.py",
+  "pid/_ext/imaginaire/utils/optim_instantiate.py",
+  "pid/_ext/imaginaire/utils/parallel_state_helper.py",
+  "pid/_ext/imaginaire/utils/profiling.py",
+  "pid/_ext/imaginaire/utils/registry.py",
+  "pid/_ext/imaginaire/utils/s3_utils.py",
+  "pid/_ext/imaginaire/utils/scheduler.py",
+  "pid/_ext/imaginaire/utils/validator.py",
+  "pid/_ext/imaginaire/utils/validator_params.py",
+  "pid/_ext/imaginaire/utils/wandb_util.py",
+  "pid/_ext/imaginaire/visualize/__init__.py",
+  "pid/_ext/imaginaire/visualize/img.py",
+  "pid/_ext/imaginaire/visualize/video.py",
+  "pid/_src/__init__.py",
+  "pid/_src/callbacks/__init__.py",
+  "pid/_src/callbacks/compile_tokenizer.py",
+  "pid/_src/callbacks/dataloading_monitor.py",
+  "pid/_src/callbacks/device_monitor.py",
+  "pid/_src/callbacks/eval_datasets.py",
+  "pid/_src/callbacks/every_n.py",
+  "pid/_src/callbacks/every_n_draw_sample.py",
+  "pid/_src/callbacks/every_n_evaluate.py",
+  "pid/_src/callbacks/grad_clip.py",
+  "pid/_src/callbacks/heart_beat.py",
+  "pid/_src/callbacks/iter_speed.py",
+  "pid/_src/callbacks/low_precision.py",
+  "pid/_src/callbacks/manual_gc.py",
+  "pid/_src/callbacks/model_param_stats.py",
+  "pid/_src/callbacks/model_weights_stats.py",
+  "pid/_src/callbacks/wandb_distill_log.py",
+  "pid/_src/callbacks/wandb_log.py",
+  "pid/_src/checkpointer/__init__.py",
+  "pid/_src/checkpointer/dcp_distill.py",
+  "pid/_src/configs/__init__.py",
+  "pid/_src/configs/common/__init__.py",
+  "pid/_src/configs/common/defaults/__init__.py",
+  "pid/_src/configs/common/defaults/callbacks.py",
+  "pid/_src/configs/common/defaults/checkpoint.py",
+  "pid/_src/configs/common/defaults/ckpt_type.py",
+  "pid/_src/configs/common/defaults/conditioner_pid.py",
+  "pid/_src/configs/common/defaults/conditioner_pixeldit.py",
+  "pid/_src/configs/common/defaults/dataloader.py",
+  "pid/_src/configs/common/defaults/ema.py",
+  "pid/_src/configs/common/defaults/net.py",
+  "pid/_src/configs/common/defaults/optimizer.py",
+  "pid/_src/configs/common/defaults/scheduler.py",
+  "pid/_src/configs/common/defaults/tokenizer.py",
+  "pid/_src/configs/pid/__init__.py",
+  "pid/_src/configs/pid/config.py",
+  "pid/_src/configs/pid/defaults/__init__.py",
+  "pid/_src/configs/pid/defaults/model_pid_inference.py",
+  "pid/_src/configs/pid/experiment_2k/flux.py",
+  "pid/_src/configs/pid/experiment_2k/flux2.py",
+  "pid/_src/configs/pid/experiment_2k/rae.py",
+  "pid/_src/configs/pid/experiment_2k/scale_rae.py",
+  "pid/_src/configs/pid/experiment_2k/sd3.py",
+  "pid/_src/configs/pid/experiment_2k/shared_config.py",
+  "pid/_src/configs/pid/experiment_2kto4k/__init__.py",
+  "pid/_src/configs/pid/experiment_2kto4k/sd3.py",
+  "pid/_src/configs/pid/experiment_2kto4k/sdxl.py",
+  "pid/_src/configs/pid/experiment_2kto4k/shared_config.py",
+  "pid/_src/configs/pid/experiment_2kto4k_v1pt5/flux.py",
+  "pid/_src/configs/pid/experiment_2kto4k_v1pt5/flux2.py",
+  "pid/_src/configs/pid/experiment_2kto4k_v1pt5/qwenimage.py",
+  "pid/_src/configs/pid/experiment_2kto4k_v1pt5/shared_config.py",
+  "pid/_src/configs/pid_training/config.py",
+  "pid/_src/configs/pid_training/defaults/callbacks.py",
+  "pid/_src/configs/pid_training/defaults/dataloader_pixeldit.py",
+  "pid/_src/configs/pid_training/defaults/model_pid.py",
+  "pid/_src/configs/pid_training/defaults/model_pixeldit.py",
+  "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux/distillation.py",
+  "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux/teacher.py",
+  "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux2/distillation.py",
+  "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux2/teacher.py",
+  "pid/_src/configs/pid_training/experiment_pid_v1pt5_qwenimage/distillation.py",
+  "pid/_src/configs/pid_training/experiment_pid_v1pt5_qwenimage/teacher.py",
+  "pid/_src/configs/pid_training/experiment_pixeldit_finetune/finetune.py",
+  "pid/_src/configs/pid_training/shared_utils.py",
+  "pid/_src/dataprep/__init__.py",
+  "pid/_src/dataprep/fix_batch_generation/__init__.py",
+  "pid/_src/dataprep/fix_batch_generation/create_pid_fix_batch_asset.py",
+  "pid/_src/dataprep/fix_batch_generation/generate_callback_assets.sh",
+  "pid/_src/dataprep/fix_batch_generation/pipeline_registry.py",
+  "pid/_src/dataprep/prompts/imagenet_classes.txt",
+  "pid/_src/dataprep/prompts/prompts_anime.txt",
+  "pid/_src/dataprep/prompts/prompts_example.txt",
+  "pid/_src/dataprep/prompts/prompts_harder_cases.txt",
+  "pid/_src/datasets/__init__.py",
+  "pid/_src/datasets/augmentor_provider.py",
+  "pid/_src/datasets/augmentors/add_aspect_ratio.py",
+  "pid/_src/datasets/augmentors/blur_kernels.py",
+  "pid/_src/datasets/augmentors/caption_augmentors.py",
+  "pid/_src/datasets/augmentors/format_conversion.py",
+  "pid/_src/datasets/augmentors/merge_datadict.py",
+  "pid/_src/datasets/augmentors/multi_resolution_aspect_ratio.py",
+  "pid/_src/datasets/augmentors/random_degradation_common.py",
+  "pid/_src/datasets/augmentors/random_degradation_np.py",
+  "pid/_src/datasets/augmentors/random_degradation_torch.py",
+  "pid/_src/datasets/data_sources/__init__.py",
+  "pid/_src/datasets/data_sources/data_registration.py",
+  "pid/_src/datasets/data_sources/data_source_local.py",
+  "pid/_src/datasets/data_sources/dataset_definition.py",
+  "pid/_src/datasets/data_sources/mock_data.py",
+  "pid/_src/datasets/dataset_provider.py",
+  "pid/_src/datasets/utils.py",
+  "pid/_src/degradation/__init__.py",
+  "pid/_src/evaluations/__init__.py",
+  "pid/_src/evaluations/metrics/__init__.py",
+  "pid/_src/evaluations/metrics/base.py",
+  "pid/_src/evaluations/metrics/deqa_score/__init__.py",
+  "pid/_src/evaluations/metrics/deqa_score/builder.py",
+  "pid/_src/evaluations/metrics/deqa_score/configuration_mplug_owl2.py",
+  "pid/_src/evaluations/metrics/deqa_score/constants.py",
+  "pid/_src/evaluations/metrics/deqa_score/conversation.py",
+  "pid/_src/evaluations/metrics/deqa_score/mm_utils.py",
+  "pid/_src/evaluations/metrics/deqa_score/modeling_attn_mask_utils.py",
+  "pid/_src/evaluations/metrics/deqa_score/modeling_llama2.py",
+  "pid/_src/evaluations/metrics/deqa_score/modeling_mplug_owl2.py",
+  "pid/_src/evaluations/metrics/deqa_score/scorer.py",
+  "pid/_src/evaluations/metrics/deqa_score/utils.py",
+  "pid/_src/evaluations/metrics/deqa_score/visual_encoder.py",
+  "pid/_src/evaluations/metrics/image_metrics.py",
+  "pid/_src/evaluations/metrics/video_metrics.py",
+  "pid/_src/inference/checkpoint_registry.py",
+  "pid/_src/inference/cli_utils.py",
+  "pid/_src/inference/decoder.py",
+  "pid/_src/inference/from_boogu.py",
+  "pid/_src/inference/from_clean.py",
+  "pid/_src/inference/from_ldm.py",
+  "pid/_src/inference/inference_utils.py",
+  "pid/_src/inference/pipeline_registry.py",
+  "pid/_src/inference/prompts/imagenet_classes.txt",
+  "pid/_src/inference/prompts/prompt_boogu_working_cases.txt",
+  "pid/_src/inference/prompts/prompt_creative.txt",
+  "pid/_src/inference/prompts/prompt_zimage_turbo.txt",
+  "pid/_src/inference/rae_generation.py",
+  "pid/_src/inference/scale_rae_generation.py",
+  "pid/_src/inference/step_capture.py",
+  "pid/_src/inference_internal/pid_inference.py",
+  "pid/_src/inference_internal/pixeldit.py",
+  "pid/_src/losses/__init__.py",
+  "pid/_src/losses/dmd_losses.py",
+  "pid/_src/losses/repa_loss.py",
+  "pid/_src/models/__init__.py",
+  "pid/_src/models/latent_noising.py",
+  "pid/_src/models/pid_distill_model.py",
+  "pid/_src/models/pid_distill_model_infer.py",
+  "pid/_src/models/pid_model.py",
+  "pid/_src/models/pixeldit_model.py",
+  "pid/_src/models/utils.py",
+  "pid/_src/modules/__init__.py",
+  "pid/_src/modules/conditioner.py",
+  "pid/_src/modules/dpmsolver/__init__.py",
+  "pid/_src/modules/dpmsolver/dpm_solver.py",
+  "pid/_src/modules/dpmsolver/flow_dpm.py",
+  "pid/_src/modules/dpmsolver/gaussian_diffusion.py",
+  "pid/_src/modules/ema.py",
+  "pid/_src/networks/__init__.py",
+  "pid/_src/networks/discriminators.py",
+  "pid/_src/networks/flow_matching.py",
+  "pid/_src/networks/lq_projection_2d.py",
+  "pid/_src/networks/pid_net.py",
+  "pid/_src/networks/pixeldit_official.py",
+  "pid/_src/networks/repa/feature_encoder.py",
+  "pid/_src/tokenizers/__init__.py",
+  "pid/_src/tokenizers/base_vae.py",
+  "pid/_src/tokenizers/dinov2_vae.py",
+  "pid/_src/tokenizers/flux2_vae.py",
+  "pid/_src/tokenizers/flux_vae.py",
+  "pid/_src/tokenizers/interface.py",
+  "pid/_src/tokenizers/qwenimage_vae.py",
+  "pid/_src/tokenizers/rae_decoder.py",
+  "pid/_src/tokenizers/scale_rae_decoder.py",
+  "pid/_src/tokenizers/scale_rae_vae.py",
+  "pid/_src/tokenizers/sdxl_vae.py",
+  "pid/_src/trainer/__init__.py",
+  "pid/_src/trainer/trainer_distillation.py",
+  "pid/_src/utils/__init__.py",
+  "pid/_src/utils/context_parallel.py",
+  "pid/_src/utils/misc.py",
+  "pid/_src/utils/model_loader.py",
+  "pid/_src/utils/torch_future.py",
+  "pyproject.toml",
+  "scripts/convert_distcp_to_pt.py",
+  "scripts/download_multiaspect_4k_1m.py",
+  "scripts/multinode_slurm.sh",
+  "scripts/sharding_wds.py",
+  "scripts/train.py",
+  "scripts/validate_from_clean_checkpoints.py",
+  "scripts/validate_from_ldm_backbones.py",
+  "scripts/validate_webdataset_consistency.py",
+  "uv.lock",
+  "verify_env.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "bd4e4612b8930119309362d6d87955fc30ae5cb265172732df377aa380f27313"
+  },
+  {
+   "path": "pid/__init__.py",
+   "sha256": "dd7d5f5e544e1d2923bf4f1aa548504255938f58a6e74a119356573e6ce9e36e"
+  },
+  {
+   "path": "pid/_ext/__init__.py",
+   "sha256": "c1bd9b73c90f0e34117d4c210a9f5219b81b70e45cb3992b8912cb66814ebecf"
+  },
+  {
+   "path": "pid/_ext/imaginaire/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/checkpointer/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/checkpointer/base.py",
+   "sha256": "d95817f3ac578ed36ba60b4481f58f4fa4a57863e49609c857329141d86f07c8"
+  },
+  {
+   "path": "pid/_ext/imaginaire/checkpointer/dcp.py",
+   "sha256": "aef0fcb9abd7d8a3f8c254bb3b35ad49b206d915b13d1053fcf3e97a5f4c2f39"
+  },
+  {
+   "path": "pid/_ext/imaginaire/checkpointer/dummy.py",
+   "sha256": "f739422a139e61f05eee1f0b799be648cd118372dfc3c623cc5b3c45724fc584"
+  },
+  {
+   "path": "pid/_ext/imaginaire/checkpointer/s3_filesystem.py",
+   "sha256": "d14950768a72437c4a11c02193a6d6a1d4d8059475b505864f21bf42d180e391"
+  },
+  {
+   "path": "pid/_ext/imaginaire/checkpointer/safe_broadcast.py",
+   "sha256": "360e2811e168895c9d0edc913cf883990905de507f296ccde92464bf8b2ce415"
+  },
+  {
+   "path": "pid/_ext/imaginaire/config.py",
+   "sha256": "b7ba34f6bb3854558fa34e497c63921c3e8191e4146a2f15261ce2b6cf034049"
+  },
+  {
+   "path": "pid/_ext/imaginaire/dataloaders/aspect_ratio_dataloader.py",
+   "sha256": "05e612c9409992e6c8703bda20b53ed932825eb821c8c0320b2df1ccd36b36cb"
+  },
+  {
+   "path": "pid/_ext/imaginaire/dataloaders/cached_replay_dataloader.py",
+   "sha256": "91cbe870a550d917a7771d276de9a75810c026eebae6dd1cc86b4f70fb1e7c27"
+  },
+  {
+   "path": "pid/_ext/imaginaire/dataloaders/coupled_dataloader.py",
+   "sha256": "9b37179e91c2fc79943e3a2d2e16bbda4f2c7ded65fb03a8e44f219186746870"
+  },
+  {
+   "path": "pid/_ext/imaginaire/dataloaders/joint_dataloader.py",
+   "sha256": "2cc14382b15556fa8f08541e208b4b43f151bac2f251d45382926158e7c86775"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/mock_dataset.py",
+   "sha256": "2a6a453df073c7716d58569cc3b14949241ff34a70d0f0f8e9d09d4e9f0fc277"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/watchdog.py",
+   "sha256": "c3c03ca2dda0acfb4db9a6e3b0ccf16271dcbace9257f339d202f65d5bf52100"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/augmentor.py",
+   "sha256": "57dbd8df63f7617d51307a13dab10dbf8a0aa0f127bdbe0ffd8d178c64269a86"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/cropping.py",
+   "sha256": "b4f792ac56228574bbc0802607f464c5cf963eb5e9b8fdabc663c327ce6fc1cd"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/flip.py",
+   "sha256": "48aa64a94313393590820a60d12764239f9c54a5994c9c7c74fff72c6f9ef345"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/misc.py",
+   "sha256": "a67156134accdc4e48c530ce439dbc7772a58b90ba076732e1637eeee2b8aa20"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/normalize.py",
+   "sha256": "02dd174ead06cf8b991858a0fd9f5f03ca170750629fcbad2548918475cca2f7"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/padding.py",
+   "sha256": "5563a21ea6b34e53f737c989d2b179184c2345892eed4b9d12bdc0b3515716df"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/augmentors/image/resize.py",
+   "sha256": "37b502a5bb62a0346f4c25ce3b4c96787fb74f5520eb608050101ef60f0a516f"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/config/schema.py",
+   "sha256": "75e610092112982d226b6d9a3e1d639b8b6badedb6b63ac0da9f1859e16e2be4"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/dataloader.py",
+   "sha256": "1c3b7d15f5315ac9097bb32add4b803e9bb6d8b4181ef85ad094f998ea051a06"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/decoders/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/decoders/depth.py",
+   "sha256": "a631e65f59fc53e7b8e3694190d62d8f886413766a47ca61e7f679d6586eb8da"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/decoders/image.py",
+   "sha256": "8dc5f09f15f3e2b05d52b29f7bb545983914f447c719472f148b317a8de53bfb"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/decoders/json_decoder.py",
+   "sha256": "b7513db5b0abc7c980167038cb5d41e8791268e3f9a8fb4a9de30928d8ddfaaa"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/decoders/pickle.py",
+   "sha256": "f8c6ad7d76893f788918e2ffbcfe1ee4ba432cc83456a69c3f08583ee66e7867"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/decoders/tensor.py",
+   "sha256": "0ce2c30a19be3a340ebe506be384d4e35e595ebd74d1db355ff874c85053dda7"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/decoders/video_decoder.py",
+   "sha256": "74a1fb2bd4c6601ff0437dd44e5ade1e086a7454074bd01c12d5eff04b91d306"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/distributors/__init__.py",
+   "sha256": "2f306122911adea77b72a430c8a6a432cc814cfacfa11714aa43bc9b585ffe69"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/distributors/basic.py",
+   "sha256": "16907cc437eb6bb940af4f19ea1856872ed763c9bdedd2ff0c599df4f9bcfd75"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/distributors/multi_aspect_ratio.py",
+   "sha256": "dbab82f3a8ccf54e869e902fa099faa0bb5c0c0c1f6a444d0281e32d59758a93"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/distributors/multi_aspect_ratio_v2.py",
+   "sha256": "244ce7734fc147f5d345a8d9cdf652ac96a7b0f1f7cca2374356179d44d5f43c"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/distributors/multi_aspect_ratio_v2_test.py",
+   "sha256": "5e9315d467eee3cdf174d9977b834f3e815199faade41f1ede04641270a14122"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/distributors/parallel_sync_basic.py",
+   "sha256": "8190c62d64cc7c2b629f2ab6277916438545582c37c34e7458dea520fe2b41d6"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/distributors/parallel_sync_multi_aspect_ratio.py",
+   "sha256": "976ed8546cf6debc0518003a1f883039d9fe725a3b43d026563b5c3e932abe47"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/utils/iterators.py",
+   "sha256": "cb99da5b4e6321f5267d9aad98d4447ab656504083db11695a3dec00af59d642"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/utils/misc.py",
+   "sha256": "74e39717c7a630e1817b046f338e1295e33434069cf57d0a780bd8d4e3ae2adc"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/utils/stream.py",
+   "sha256": "56d3258baf93b3f48c05f5c56f818e0da48c281603f1bd6294edc43cba9716e7"
+  },
+  {
+   "path": "pid/_ext/imaginaire/datasets/webdataset/webdataset.py",
+   "sha256": "4b3e4da23fd035b14b4ab641d1bed4f5daf812a06c0bb9d9329fb3a6600c983f"
+  },
+  {
+   "path": "pid/_ext/imaginaire/flags.py",
+   "sha256": "1430bafa85fb3a8b8d1fd29e75bebf0ce5edac430fd8337534aa152a96e83f7c"
+  },
+  {
+   "path": "pid/_ext/imaginaire/functional/batch_ops.py",
+   "sha256": "e915bddb5ad1838987cfca156439650c5e4cb8f7c6077ef34ebb8897bb3132c8"
+  },
+  {
+   "path": "pid/_ext/imaginaire/functional/lr_scheduler.py",
+   "sha256": "fa6b3d1ae7d4337344549e46cb79570ee83aaf1ebfbb6490e206efe9e6f8d4ee"
+  },
+  {
+   "path": "pid/_ext/imaginaire/functional/multi_step.py",
+   "sha256": "f8df3d83750ecd420c91433519ae2010225f9b4344dfcbb297bc4868bf1e53ff"
+  },
+  {
+   "path": "pid/_ext/imaginaire/functional/runge_kutta.py",
+   "sha256": "59a89e3acad031e1c56fc3a73ef40dcd6392b9473eece9d59cdfe1acfefdf797"
+  },
+  {
+   "path": "pid/_ext/imaginaire/lazy_config/__init__.py",
+   "sha256": "7363958697d85946d59a7f805838ccc943157aff0e788fdd793f8ee8400443c6"
+  },
+  {
+   "path": "pid/_ext/imaginaire/lazy_config/file_io.py",
+   "sha256": "c754f63f6a708aa6fde00fa5b20e09fdc93fd367ab0e7861b783a3ee449878ac"
+  },
+  {
+   "path": "pid/_ext/imaginaire/lazy_config/instantiate.py",
+   "sha256": "5462666d08d6ccbd6255e0ca0b15f25a03c035c125cd8703ff73d7ebb1f48eed"
+  },
+  {
+   "path": "pid/_ext/imaginaire/lazy_config/lazy.py",
+   "sha256": "90de2eeef55131caa585f80b6217acc2b73a62c242a516690d0459662f39ab12"
+  },
+  {
+   "path": "pid/_ext/imaginaire/lazy_config/omegaconf_patch.py",
+   "sha256": "1a866ec3edf0b0c0c8aa57922b5b7c5f48bad310fc83a8324798f6253a5ec765"
+  },
+  {
+   "path": "pid/_ext/imaginaire/lazy_config/registry.py",
+   "sha256": "625feab0922f61035c0f96068409cac8cc2a4746f867ebea17ed54fd93ee9910"
+  },
+  {
+   "path": "pid/_ext/imaginaire/model.py",
+   "sha256": "f3286aabb47887f7d28166c1da5fad155a671d55ee610dcea105bc0c24db95ac"
+  },
+  {
+   "path": "pid/_ext/imaginaire/trainer.py",
+   "sha256": "bd8a6cdb244faae384b46bd940d01add2167c3c1ac7a5021cc6a2a0724729b2b"
+  },
+  {
+   "path": "pid/_ext/imaginaire/types/denoise_prediction.py",
+   "sha256": "e12dd553f535245b5e2148a90d0e4fc09a070ed0faebcd37ca981eab2ef5ecb7"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/callback.py",
+   "sha256": "e1432087a90b02a0965628808072aa4267190154473bca8575d16ffab10cd1d8"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/checkpointer.py",
+   "sha256": "4734b77e522f8cdce1a404105ff9d6be0a80fe81dc2c8e1e67e2d1f36de3401f"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/cluster_env.py",
+   "sha256": "3928d218da4410af283eeec6a3d7b02c6e77fb5a750dc81871d0dd208c5cf731"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/config_helper.py",
+   "sha256": "026fcefc1e9bd1aed91b9b2e3aa333e58dc5ed25816f87f1e116861202563b36"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/context_managers.py",
+   "sha256": "0b33c4fe8db8ae8592fc14221ad82267ed63ff527240c244aea153e2c87c2358"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/count_params.py",
+   "sha256": "0807aea11fe0c41c081eed9cb1957037eabc242657bdd738b845f70a265acfbe"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/dataloader.py",
+   "sha256": "77315a618b401aa90461f193312ae1bc41eb4c5b3480924ba4bf65485afaa63a"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/dataset_utils.py",
+   "sha256": "35a60be54e60d0ed627cf833cdbb856ca8d7c7e69927b4860ad255a3f8ff67f4"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/device.py",
+   "sha256": "fbbc3b685727bdfce9df015bc1f6cf06d6dfa59df8e3c6db305ded8bb830a75e"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/distributed.py",
+   "sha256": "aeec443572ce53f0d7140bd49bb1bb98038051c7abcae1bf5440967251db43c3"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/__init__.py",
+   "sha256": "e0575e209ba0e5160757f69e4c01aaf1118762e88a0de08f5033664370564ea7"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/auto_auth.py",
+   "sha256": "33f45c3ca13d1af94b9bf76a1c86ae45f880e5b8d43e911a04af0dab246563cc"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/base_backend.py",
+   "sha256": "b83de569b9a17b70d7d8c258364a536a77af4241c0b07d82018f7c75084ae747"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/boto3_backend.py",
+   "sha256": "e5cd40702341307ede004fab93cba58d641154aad3c5af8dbdfab962b3f8d1ef"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/boto3_client.py",
+   "sha256": "b5376f6bd7b961bbae39f445d56e07255d393e51191ab43ff2df4c0345e45d02"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/http_backend.py",
+   "sha256": "d02b7b628165980a0947528320d1ffaa2cff25612c5c20a89b7f61845916cf35"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/local_backend.py",
+   "sha256": "62ae1af52816a1bf33c264daedeb6d0f2b5b20bf4d97b604d067b4d195570ed8"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/backends/registry_utils.py",
+   "sha256": "b960fc94b131d2ea5911fce210e66e3139a932b81ff6fb74ed3c4ef2f9e79a4b"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/easy_io.py",
+   "sha256": "fae1ee41577a2eb76d60d25d6ea0cbda8bf61917775f4a6993a8c73043acd98a"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/file_client.py",
+   "sha256": "be53ac097d13e42df5d08a1408fefc70dfca70370332f713196301ab6e05d4db"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/__init__.py",
+   "sha256": "772add8283a64d169c9e30b8cf1c3d181337482a4a02143a85d5a440baa5a955"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/base.py",
+   "sha256": "7e1238ec6ade897158ab742a73e0c9a898ec9fea9f875e5c5fb3b32b7daea246"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/byte_handler.py",
+   "sha256": "2f08f488877472f58499c49a83c19bea64307032bfdbc1119689ecec7b59818b"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/csv_handler.py",
+   "sha256": "5b03ecfe4796d8918080d6264a4a31557c4f68856b3a42fa9deed7780aec209a"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/gzip_handler.py",
+   "sha256": "3603f3a458bd54cc4154d7f9df41d62b15068420661965c530af73ac6398e362"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/imageio_video_handler.py",
+   "sha256": "a8d680e4d4a326e2ee39ec39143684c9a19e7800c3e718d969a245b28b2637ed"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/json_handler.py",
+   "sha256": "c9a573e681bac1aaa61a07514efacc7573defea824e62041cadf7a196a1093bf"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/jsonl_handler.py",
+   "sha256": "7fe54d41949e986af22013f05c1f708b24123a2111c0de046927e462ce4ec61e"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/np_handler.py",
+   "sha256": "08a18b10956e9d972ca4f764b0f6700512a8f5f1ba02ac7fff88a4b73e95ee03"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/pandas_handler.py",
+   "sha256": "f009b60c1af6e8ba12a258933deeb1ec69b2bdded4e219752d2de207e81dadd0"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/pickle_handler.py",
+   "sha256": "b60ea6b46b031404d10b606218bec94172f0d198f59887ce39f1d31604d7af78"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/pil_handler.py",
+   "sha256": "7ce32c0759951b16dd10d537c52f3444df0dfe357803e0d417252807c731ed33"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/registry_utils.py",
+   "sha256": "fc3020b7e12af262cebffdaac2667284030e6ed9e335f962a56e052a80165e54"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/tarfile_handler.py",
+   "sha256": "0f1368945ab7fedf26a658e508942fe8aca9c3811c0a2f137388958c907edc20"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/torch_handler.py",
+   "sha256": "fadc306d1523a31010ae478cdc71cb8fcfcd4a29e1780577da4bbb0e9e07cffd"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/torchjit_handler.py",
+   "sha256": "5e6880791564c487842624be47813e05f482712aa3a31e461d2e10481075e0a1"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/trimesh_handler.py",
+   "sha256": "1fbf5ccace7a2264e55398016284a112dca6e3907f1667bb92fa3168a85dff82"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/txt_handler.py",
+   "sha256": "877a64c48b409fb6fb73de9909bf2ae5ca93ecb6a95f53e54fa1d28eea5209bb"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/easy_io/handlers/yaml_handler.py",
+   "sha256": "96130ce6d495b1b36271f622a9cbc011c4ea3c6eaf149bafc4255e5a8d0a7beb"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/ema.py",
+   "sha256": "1a46bcb070877d32f45cf32163314691edb8d2a9f7381efc0ec59a1ca7e54731"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/ema_test.py",
+   "sha256": "a35a2db1a2517ad9217980fa10b9a5b04c0014652e5c2e8f163e0fbf162bdf62"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/env_parsers/cred_env_parser.py",
+   "sha256": "f31dc7df34e9de828e144c7af413448b263395e70d12a498fc2d9dd14ba3736b"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/env_parsers/customization_env_parser.py",
+   "sha256": "cde68b302038e0ca1b373bdbf97a0cb520493749eac95f4162c3530a41a579b4"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/env_parsers/env_parser.py",
+   "sha256": "feff6d9c60cdfae3cd6e5942a7b0ecd73501e535f7c8df067ef9a80d136c4871"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/env_parsers/inference_env_parser.py",
+   "sha256": "be238be46eeb40740da7af6bac5d12258d3895e2cdca3d63be95cd20032bfe2d"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/fsdp_helper.py",
+   "sha256": "2f69d89b31d4303f9f673206ee009acacf77d8e444ebe30047db32a2f4bce730"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/fused_adam.py",
+   "sha256": "27d12fd89d6edcfac559f88692c8f1f92698a62cad5783305c702e26615e4261"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/fused_nan_to_num.py",
+   "sha256": "162ba886fc2b970dc92c5a31952eab57287d7baef2baed167286cc7ace367d9b"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/graph.py",
+   "sha256": "54164d6da2d0d71f047f7171b540dc29870560a3d08eabcacfd64cbe9f7ddb33"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/launch.py",
+   "sha256": "2616eff731cbfb416cc9bdcc6a846571474f2e1e36254b7f6d2fdcc084cabd4c"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/log.py",
+   "sha256": "24badfe753754d025800eed0e4bce7243177067bd3db1db6b30a911425d5b3bf"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/misc.py",
+   "sha256": "1f6b84376e007a4fff406610a60929b53894cf4849d0400db741811d557364ed"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/object_store.py",
+   "sha256": "63a82012b3bee1bd89573a3dfa2b76ca2af56f32be17b78991bf60ef08afea02"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/optim_instantiate.py",
+   "sha256": "b4c2a963b16535f5a959df60ffea7f7949cf2608d4004b9e3fc3bdd942c79775"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/parallel_state_helper.py",
+   "sha256": "671ff527afc9d8de6ff9d00a503053bd4d479c0e97334ce3b7d041698cc29bd3"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/profiling.py",
+   "sha256": "48ed2cb8838c9e44c45783949c76f5515fb1116b877c6179473ed8a62d5920b9"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/registry.py",
+   "sha256": "0ba2be9b7c2f7bc0e7669f1439b27930396708641e4d142323b7b8c594dbffdf"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/s3_utils.py",
+   "sha256": "ca77c1cd7010b27948875a3dd617c6607a563cb346715b11472eab1f7e6ed84e"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/scheduler.py",
+   "sha256": "700725d63876ad42e66452a430a437c8c4b679471a13516138efd809ba0a3aa9"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/validator.py",
+   "sha256": "5848a4ce947a9286bb7fe32f00b64d296c6e99ee684fb79c8dc2465eeb3441f2"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/validator_params.py",
+   "sha256": "069f478d5ab35f24a351cd82de9435d8aa34ef059f4ea7b96763e8099a079fb2"
+  },
+  {
+   "path": "pid/_ext/imaginaire/utils/wandb_util.py",
+   "sha256": "c65f94727eaa866eb29a0ecb378f389855b3f1e33c71d2a79c6b65be4bc5cac4"
+  },
+  {
+   "path": "pid/_ext/imaginaire/visualize/__init__.py",
+   "sha256": "880c6fbbf064af7a8e9c91ec9e306e0bce67f218d980c819bd59b62658053afa"
+  },
+  {
+   "path": "pid/_ext/imaginaire/visualize/img.py",
+   "sha256": "62a94c3b29fd886f604a6999ce4f8c71fce32128c8aeff9f08479002367a59f0"
+  },
+  {
+   "path": "pid/_ext/imaginaire/visualize/video.py",
+   "sha256": "f381831802e1104731ad34dd9d03d090f464158417ab1cc1b0bfd452901d2d93"
+  },
+  {
+   "path": "pid/_src/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "pid/_src/callbacks/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/callbacks/compile_tokenizer.py",
+   "sha256": "a954251986a0662aa1b5b4d9cf7c0bb9fde2424633fb19fc72dc509ab57b2071"
+  },
+  {
+   "path": "pid/_src/callbacks/dataloading_monitor.py",
+   "sha256": "3c5cd5b00924ca549512e6db73fc04b3aa56464df8112cbeb12006051cf70b1a"
+  },
+  {
+   "path": "pid/_src/callbacks/device_monitor.py",
+   "sha256": "920b12fdd4b3e8a64e912a3a2df54f57e70f394a78b2ad71d1e26c44410e362d"
+  },
+  {
+   "path": "pid/_src/callbacks/eval_datasets.py",
+   "sha256": "d38173eb48cb388ddd732b9ddf97560cbbbf5888c61c8bfb8b83ba583d2481a5"
+  },
+  {
+   "path": "pid/_src/callbacks/every_n.py",
+   "sha256": "9d1d565c3f506f7d2ba4fe062f33e90909fb65b9efd4238657d3ef60f263bc48"
+  },
+  {
+   "path": "pid/_src/callbacks/every_n_draw_sample.py",
+   "sha256": "e6c5c626bf08930ff7851980f3128a350939a11f19ee718fc8b3a5fa3b5e53d5"
+  },
+  {
+   "path": "pid/_src/callbacks/every_n_evaluate.py",
+   "sha256": "cbbbc4ac273165dc5e94fb93077ab1e1b579e9b0baf7d531974a80e5925dedf4"
+  },
+  {
+   "path": "pid/_src/callbacks/grad_clip.py",
+   "sha256": "c0e1ae0715484fbeea706d8867bb23a2455ddca39c8788c074067758198e5eb6"
+  },
+  {
+   "path": "pid/_src/callbacks/heart_beat.py",
+   "sha256": "9b80f46178029125343ac229a51726b70def4a0db12289ccd3bf2f6fa5575d28"
+  },
+  {
+   "path": "pid/_src/callbacks/iter_speed.py",
+   "sha256": "80841659111ccb708ab49ea41e4091fa44e0edebea4476078f4d12f7ec18869b"
+  },
+  {
+   "path": "pid/_src/callbacks/low_precision.py",
+   "sha256": "47ab594a0f1fd01495c8f0d65a0a55f6e1179cb7b87c5dc318e336afd96acb04"
+  },
+  {
+   "path": "pid/_src/callbacks/manual_gc.py",
+   "sha256": "9b9a88286fe358f23b8f6523d2a921f042f3c16807c08aa4fd53be9d2c4251bf"
+  },
+  {
+   "path": "pid/_src/callbacks/model_param_stats.py",
+   "sha256": "eb9998f4d2a7e6367e0aedf2a4a3747cef25ea69094d7bed70095c128f5ba7ec"
+  },
+  {
+   "path": "pid/_src/callbacks/model_weights_stats.py",
+   "sha256": "56528e834858478233966a1802f821e197a572233cce4a232c399c4e8ca33813"
+  },
+  {
+   "path": "pid/_src/callbacks/wandb_distill_log.py",
+   "sha256": "ebc9601dcd2909ca7968f77510a0b572e78807ef30a2176a662a4b590a48ee53"
+  },
+  {
+   "path": "pid/_src/callbacks/wandb_log.py",
+   "sha256": "724b487b44ac02ef80f6003f91139a828c2d0f2a7d6a5f1f32fb8743ebbc64d1"
+  },
+  {
+   "path": "pid/_src/checkpointer/__init__.py",
+   "sha256": "39b67a3543de12fbe919327958818a53222b223688ef8ece33a12bc1e46d1f14"
+  },
+  {
+   "path": "pid/_src/checkpointer/dcp_distill.py",
+   "sha256": "a8f221f4889b7d696c4ba632149a6f78f709bc7c3686d1711712462620791eef"
+  },
+  {
+   "path": "pid/_src/configs/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "pid/_src/configs/common/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/callbacks.py",
+   "sha256": "3a25967dd86447879f9d3e0daa6f687e56e97bbc7c8d911f13ab5eded1b6dec5"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/checkpoint.py",
+   "sha256": "587cd77a2791e297ea833a0103ca1ff30f84d9903cc9d351910413a20b633c38"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/ckpt_type.py",
+   "sha256": "17f352aa4cfe6f6d9d0918b2b4890b8dfd81d837c6a34f130d554429dc902264"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/conditioner_pid.py",
+   "sha256": "d3340d87cb0ad220339c884a046672e5f4e85e64a4454da77629defacde55e42"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/conditioner_pixeldit.py",
+   "sha256": "fc407a0cf04cb60b7c195deb43f5ff63870d361430990423961cd052e60b3d7d"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/dataloader.py",
+   "sha256": "203381806e85bb60af52ca8de4c87094e803c9215a13dc4018a4496af948dac5"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/ema.py",
+   "sha256": "a3fefdc9887adf2c189bf1b8eedd8144353ae5e0f68a6d1b42838d3c3f4640cd"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/net.py",
+   "sha256": "5fcae3c4ca227ed324e7ee119bf9aca2ce295686f50b144bf5dd85fa56e280b7"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/optimizer.py",
+   "sha256": "6385eea55b4be0c6252d376ded9c3ebba5ea2e3c0e4e18a4918a4a00cb77c365"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/scheduler.py",
+   "sha256": "7e02f7dde15d08db50e26c89fb0d7831d86f9aebd6862ce83d46db900f64ba7b"
+  },
+  {
+   "path": "pid/_src/configs/common/defaults/tokenizer.py",
+   "sha256": "8a58c8fc341df42f377bf4dedd7ff9771ef095c27416ebcb87595da6efc2626e"
+  },
+  {
+   "path": "pid/_src/configs/pid/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/configs/pid/config.py",
+   "sha256": "9f479c7db18525dce5a270d9110c8d5775434bc6bf0ed98f059d2d446d86ee8c"
+  },
+  {
+   "path": "pid/_src/configs/pid/defaults/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/configs/pid/defaults/model_pid_inference.py",
+   "sha256": "7833d155c28475433984f46507fb4256ecc4655fda6636eca71bc116feb22ceb"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2k/flux.py",
+   "sha256": "0c540967dca0b47d2ebb8d21da5b12304994b17a7dc51db840ef0415b48def35"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2k/flux2.py",
+   "sha256": "d66216873e4d5d913788069ac65978c58c4ad53bc1b8f3de0bc7925dc517e7d9"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2k/rae.py",
+   "sha256": "e6cfcd0a19c7545b06e80b0646949e95b7714af8cefc90ffcae6dce156abb37c"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2k/scale_rae.py",
+   "sha256": "e6ea3ae3cadbd8a5c976ae4e8d314569ee78acd08a1a4bcf58c056fca2dc48ae"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2k/sd3.py",
+   "sha256": "df2c31cc57dabac8c971440257f4dc3e41dba2831861520a0accc02cb4fe656f"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2k/shared_config.py",
+   "sha256": "3c69c276b89e11cd7cb824870ca884cfc66a24f708bda2458d72661630c65c44"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k/sd3.py",
+   "sha256": "696b46ca978ded6ef94d91320ff62165f916b5a47ca8724048ed25da2c492d2f"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k/sdxl.py",
+   "sha256": "b5c92b7b616ed6cc2da912540e92a80852fd78f09d3f7f265c7e6bd1f0207ffe"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k/shared_config.py",
+   "sha256": "e3f2f059453109cae49a13066604b8d07e335f7eddbbe1df33deef10b5681d7c"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k_v1pt5/flux.py",
+   "sha256": "2f2de6a805ccbc91d920da45c948818b16b907336504183bcc886d9305676208"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k_v1pt5/flux2.py",
+   "sha256": "d6c2be9367663845bce5c7f48606018ac57ef9ced54e90a481b4b6c23d57c9b5"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k_v1pt5/qwenimage.py",
+   "sha256": "82474a61c0ed0a987e5553985602fa69326df2cc7f583ae8a70c88fb55a7a812"
+  },
+  {
+   "path": "pid/_src/configs/pid/experiment_2kto4k_v1pt5/shared_config.py",
+   "sha256": "d76be6a5cd913cac43aa793724689ef742d5d48ec497b2bd72de143f4d01bbf7"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/config.py",
+   "sha256": "8f6e46104cfb613b0209c4f34ce64f35a5fddf21c45a0369da71eab1a015aba6"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/defaults/callbacks.py",
+   "sha256": "40794241ea890bd01616a2e8c80d8fd2f53d1c345f03b31df782eb87c81a17a0"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/defaults/dataloader_pixeldit.py",
+   "sha256": "05e170c03d41d113862deb713bbed6ad4a9c788ef292cd03404b1fc72e1c31da"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/defaults/model_pid.py",
+   "sha256": "81b981393280614b7777b2036956f740e9ad630699823f094066a326490ed852"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/defaults/model_pixeldit.py",
+   "sha256": "c075a138c768bbfd269666be69eabd298dae96cd3ab536bfc93465527b3cb80e"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux/distillation.py",
+   "sha256": "0bbcb7d34f839e3d4220885236d01b86ffe65bf6db7b787fa284a25e77f43d9a"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux/teacher.py",
+   "sha256": "8966ef41d0eb7dfed6bc171b14ef5ee6d6c6ad92943459db0f90ebc73f33bd05"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux2/distillation.py",
+   "sha256": "278c6967e75287f6acf22fb85aeee8cf06ea695924c0028ce0ba25e842434362"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/experiment_pid_v1pt5_flux2/teacher.py",
+   "sha256": "8bd91465fb449956dadbf7c41109e7c12a250c9b3da0de11a762a0309a21df54"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/experiment_pid_v1pt5_qwenimage/distillation.py",
+   "sha256": "a974564c6fa69d202cfcae75ec4e7c82a5377513343a7815fe6c7727b261c672"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/experiment_pid_v1pt5_qwenimage/teacher.py",
+   "sha256": "70ffb5248b860d902d6311d27321e642cb40470a25dce01643e747adffe59b8e"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/experiment_pixeldit_finetune/finetune.py",
+   "sha256": "b3299edd3c72ed6021d52476c6a353709c57ba02e1ac2a7bd751ee11944b46a0"
+  },
+  {
+   "path": "pid/_src/configs/pid_training/shared_utils.py",
+   "sha256": "d1c9d9778ada54fe0fab0797160aa0e0d34daccf80800d0039b909949c8172b0"
+  },
+  {
+   "path": "pid/_src/dataprep/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/dataprep/fix_batch_generation/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/dataprep/fix_batch_generation/create_pid_fix_batch_asset.py",
+   "sha256": "d9f9c7ba02440a0b64693bac9a7a0da71149732a5e7b277de45406687cd9e539"
+  },
+  {
+   "path": "pid/_src/dataprep/fix_batch_generation/pipeline_registry.py",
+   "sha256": "8d6ffc67ee7752d96fb941fcdb566b762f341044a793ea484e161897ee5dfd88"
+  },
+  {
+   "path": "pid/_src/datasets/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/datasets/augmentor_provider.py",
+   "sha256": "23b0c08adf7048b61559957e759f6582224077dd01062bd3239a985ac6c6191a"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/add_aspect_ratio.py",
+   "sha256": "5def8dbf436c5d70dcdecbdce33554f1677e609f63e1d94861de6c1478e32c09"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/blur_kernels.py",
+   "sha256": "70d45b6655c36fc93f2be1c93dabbee1e2aa9b9a39429550a8516ee62fb5e363"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/caption_augmentors.py",
+   "sha256": "9e16dcf14a61e76f4fd0741ad1af4b4f697b155fa5ca97a36dc5544e92d81fcb"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/format_conversion.py",
+   "sha256": "5ae60ab895d3662893f1d1e9533b74a2a3df688d406e3d172a8a47db0883bd13"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/merge_datadict.py",
+   "sha256": "00865ea513a7f16693fc7879f6cd2ef422e5c79a44092ce4084f14c39f33dc99"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/multi_resolution_aspect_ratio.py",
+   "sha256": "6f354bfe3b48fdc41c05a1d00e3163d3c8fae5a9be3179d5e959099b9986a59f"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/random_degradation_common.py",
+   "sha256": "c75065a92e48d0391009fd9c771bca9082db44dba7c2247a74718fa32257b430"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/random_degradation_np.py",
+   "sha256": "76849ffe6d9c18877f1cdc49edd48b4fcf2eec82a10d317f28a80eeae5661719"
+  },
+  {
+   "path": "pid/_src/datasets/augmentors/random_degradation_torch.py",
+   "sha256": "400ee536eaddd9edecaaad60949fc30c681ae76bdc56c55ac3d03c2ef6dd96a6"
+  },
+  {
+   "path": "pid/_src/datasets/data_sources/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/datasets/data_sources/data_registration.py",
+   "sha256": "5710407095359b30380e4b821d3458af202b51f188119572e347a9ff045a0698"
+  },
+  {
+   "path": "pid/_src/datasets/data_sources/data_source_local.py",
+   "sha256": "1b1e6f5db65977530556b248404ff79c58305607b572b45a3ca765f12f0f6c02"
+  },
+  {
+   "path": "pid/_src/datasets/data_sources/dataset_definition.py",
+   "sha256": "0551fd7954ed5d603bb6d3f05f194da5a18057dfd3239fad7082395392ee4c6f"
+  },
+  {
+   "path": "pid/_src/datasets/data_sources/mock_data.py",
+   "sha256": "72d7028d902f5ee462dc930e2d893d0d2df84f4f372aed294ab4eff0e3fbeddc"
+  },
+  {
+   "path": "pid/_src/datasets/dataset_provider.py",
+   "sha256": "a6fed3a44f29e2a9dab68cc230cc204e946cad718d5e35d1e0e069888cd3491e"
+  },
+  {
+   "path": "pid/_src/datasets/utils.py",
+   "sha256": "d81f74b9927ed451bf63a7c977bff1d2d1171a2d5a983d9fd16e56cd2ef8fce7"
+  },
+  {
+   "path": "pid/_src/degradation/__init__.py",
+   "sha256": "44d1f1b913e8a4d74ca85fdb6781b3c21c8e7b0e5ff89cf33101a9499d938802"
+  },
+  {
+   "path": "pid/_src/evaluations/__init__.py",
+   "sha256": "29d9fdd1f3707c78c84c5988d793787f30047f64bce70e70d9a65195435d7020"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/__init__.py",
+   "sha256": "ed83438f4bbac5efff4fac2d3f50e8651584c2b12e3b484f66de6fc6f11b9c0b"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/base.py",
+   "sha256": "cbd776066ca4a25f28fb89f824347c7ea2b704794772514d057f04a839228f30"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/__init__.py",
+   "sha256": "fc53ba7b143cd218fbd1a4c3d7b6afec46ecfd1388fe16922a6163ba8a55a79b"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/builder.py",
+   "sha256": "64f0b2a7d86eb00f7b1c09e1f6516eface8e41311f064f88146bd1a239f19936"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/configuration_mplug_owl2.py",
+   "sha256": "b01411522bdfa8e855967036f65b732317463521f40825bb9bbc3b8c3639caf4"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/constants.py",
+   "sha256": "65ee095ddd66e2787d79d11a2193fb967a91ca758cb193163f098f52ef0d1865"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/conversation.py",
+   "sha256": "6ec641f1cbbbdbad1c581f34113af0a8e8fb61e29374f4ec8f329316ef529208"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/mm_utils.py",
+   "sha256": "b4842bbd6e4aa3600491a033d3dc73a9afcd0159ffb4c85dbb95901547e8a4fc"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/modeling_attn_mask_utils.py",
+   "sha256": "a855d14e58d5f7feac5a3097d2546b6e00dfc4e63434445ebfd935c8a1287396"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/modeling_llama2.py",
+   "sha256": "c4e20d9b32e15911b261bf881eb0e91eacfe3c7650237fec558ddc666efa2db8"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/modeling_mplug_owl2.py",
+   "sha256": "4a8302e9b362565512965d788626c389bf906349d0c670709c82326f016e1865"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/scorer.py",
+   "sha256": "5a76df8936e6c2d1346111a9b9839980d8e6bfe1cdc81250afafcadea6df7014"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/utils.py",
+   "sha256": "cd4bff9a87d0c2efd8c829345cf30b463ddd079c000c11c2fa1a397202e38ed7"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/deqa_score/visual_encoder.py",
+   "sha256": "3a2e9d1ebbd14d4904f203d1eff787ead2c89cde27d1959909ed3d82756554dd"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/image_metrics.py",
+   "sha256": "b37d8acaaaa2ecb714bca500c2af6df8b9f050746b97916c217241f638c5cf9a"
+  },
+  {
+   "path": "pid/_src/evaluations/metrics/video_metrics.py",
+   "sha256": "b9cee920d5343c1d21394656db0a070ac115344df0321c71e57cb39c79693e6d"
+  },
+  {
+   "path": "pid/_src/inference/checkpoint_registry.py",
+   "sha256": "da9a2ca1f0ed3664de6f3c6e32bef13d462f488aced91887d01550a41992187c"
+  },
+  {
+   "path": "pid/_src/inference/cli_utils.py",
+   "sha256": "979d62591b0dd0a8c38f12e228b587066d568eb619c4178b25e462fc38adb74f"
+  },
+  {
+   "path": "pid/_src/inference/decoder.py",
+   "sha256": "facd386b64fe64957824941e1dbf87bb7fac42b589177cd8b193323653c5fefb"
+  },
+  {
+   "path": "pid/_src/inference/from_boogu.py",
+   "sha256": "7429f8a6b70997037b65a42171d5e752e932872134b0119d364d5dcae37661da"
+  },
+  {
+   "path": "pid/_src/inference/from_clean.py",
+   "sha256": "185a98ccf4b5bea44dc5c18212f1042403444997eb4fc568dfb52bc48d4936ca"
+  },
+  {
+   "path": "pid/_src/inference/from_ldm.py",
+   "sha256": "06b3e4e9d03c51ac1f1b19632c0646f019631f13f45957711181dc04d869261a"
+  },
+  {
+   "path": "pid/_src/inference/inference_utils.py",
+   "sha256": "dc8ad3e5ef2d505388b593a4ec0e6df534b65006e1ff182754395593d6fe4e30"
+  },
+  {
+   "path": "pid/_src/inference/pipeline_registry.py",
+   "sha256": "638fc4c97d16602bc0d235a2ea66590a4e257248cfdc7f9d709836108d8e6fc7"
+  },
+  {
+   "path": "pid/_src/inference/rae_generation.py",
+   "sha256": "965527a697fc7601ac0712d4cec15f2207d608eca2fe1515c4c7dc0e5b68a4db"
+  },
+  {
+   "path": "pid/_src/inference/scale_rae_generation.py",
+   "sha256": "5485e390217a4c5898eeee90906b354f404e4762b5934fc35aa50981bc483eea"
+  },
+  {
+   "path": "pid/_src/inference/step_capture.py",
+   "sha256": "7ccdbacea4aeea1cbf503227b79fb549e11d31a82014acc6360831465d3b5370"
+  },
+  {
+   "path": "pid/_src/inference_internal/pid_inference.py",
+   "sha256": "9b163de2adcee30eed3c64d5a930855adeb0ea3b864417fe3c8126617c8c9bfd"
+  },
+  {
+   "path": "pid/_src/inference_internal/pixeldit.py",
+   "sha256": "ef24fcb3f926b9d8079471e0e739ca6eee98d21961abfac29b64de99a2bd9ad3"
+  },
+  {
+   "path": "pid/_src/losses/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/losses/dmd_losses.py",
+   "sha256": "3f4a8f8ec07099a9f7da0f75c1b08a1e1902449df3775f8fd69e50f33ac9d49c"
+  },
+  {
+   "path": "pid/_src/losses/repa_loss.py",
+   "sha256": "8e489e218b46c5d98f5a2a64213f41deb5bd68c809ec352b4512cffc9fbfb1ae"
+  },
+  {
+   "path": "pid/_src/models/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/models/latent_noising.py",
+   "sha256": "1b8217a2ace1d3366eede9a829c875bf24631b8ae04b3956aae1604fdcb41fdb"
+  },
+  {
+   "path": "pid/_src/models/pid_distill_model.py",
+   "sha256": "91ba86f540b8314e22475da6c7dfaf83ae168e601044d63d26dfd90e5bf30c23"
+  },
+  {
+   "path": "pid/_src/models/pid_distill_model_infer.py",
+   "sha256": "d3ed49a04eff8096ecee9bb4b827c534dc75ccb32490a394628bd46ba0acbd34"
+  },
+  {
+   "path": "pid/_src/models/pid_model.py",
+   "sha256": "38de18ca6b7e1c4b5c96bd7e9d032144575fe076053c9a02d0082af67929c71d"
+  },
+  {
+   "path": "pid/_src/models/pixeldit_model.py",
+   "sha256": "d4973bf1612cf39c6b1035154ef26fb698a0766492509600a351ab755f9c5326"
+  },
+  {
+   "path": "pid/_src/models/utils.py",
+   "sha256": "468a5d970273af7e9983a8c36f09f0c627946557ec4a591d915a68c770ecfdca"
+  },
+  {
+   "path": "pid/_src/modules/__init__.py",
+   "sha256": "bc20d584c3048d1f18f9fe62b25a2213b56f3dcd9952b196ef22110defa246ec"
+  },
+  {
+   "path": "pid/_src/modules/conditioner.py",
+   "sha256": "f7bbf463c9c8d6d7291dc16c1a31affc0688ed7060eaf7cb8db59c95571c89e4"
+  },
+  {
+   "path": "pid/_src/modules/dpmsolver/__init__.py",
+   "sha256": "48e72a636b1a98b9de05a21a5c20485e1f2ef9f630d5fefd465855345d29acef"
+  },
+  {
+   "path": "pid/_src/modules/dpmsolver/dpm_solver.py",
+   "sha256": "9167f9de85df06478dc717bddd4cb0a6a56ad5abc8b6f59b3bf8fcb057cc7311"
+  },
+  {
+   "path": "pid/_src/modules/dpmsolver/flow_dpm.py",
+   "sha256": "b3e782fb638125f186e626348c08c561defb2cecf0888dad2251038e85b202d1"
+  },
+  {
+   "path": "pid/_src/modules/dpmsolver/gaussian_diffusion.py",
+   "sha256": "e773e06c83e35bcc160e989d7877f39defd0a63f97a6f30589e0b344deb6df52"
+  },
+  {
+   "path": "pid/_src/modules/ema.py",
+   "sha256": "ff323e4a51cf95cf5e820e5efb63da58f2f8fd70a7ba3c8375d5d84b7813073d"
+  },
+  {
+   "path": "pid/_src/networks/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "pid/_src/networks/discriminators.py",
+   "sha256": "ad8d0df4b9da2a8ad45c47b2d813582fa850f3351f73af9afff1f83b783c1c81"
+  },
+  {
+   "path": "pid/_src/networks/flow_matching.py",
+   "sha256": "f0f9c5ee102c0a15c710a8e102550ea758a59290dbd110c49c7a40f3f4b718e2"
+  },
+  {
+   "path": "pid/_src/networks/lq_projection_2d.py",
+   "sha256": "6f0ff12a3ef9b4dc5a7b3a02779cd9a0633c3273cb29f9449d81c63607493146"
+  },
+  {
+   "path": "pid/_src/networks/pid_net.py",
+   "sha256": "ac0058a1896ebeb63320b20dbb2c24310ea8b93d0825f21e5ddd00e66fa5ecb6"
+  },
+  {
+   "path": "pid/_src/networks/pixeldit_official.py",
+   "sha256": "cef8825bbb5a10ae8c33ac04cc26faa4cb09db4c80e6f4783824e9d62ef5112b"
+  },
+  {
+   "path": "pid/_src/networks/repa/feature_encoder.py",
+   "sha256": "9ac95717fa6130611703debfcf5713a50d537d12743dcfe40c88eabeefc1b239"
+  },
+  {
+   "path": "pid/_src/tokenizers/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/tokenizers/base_vae.py",
+   "sha256": "ee2833351d21a2273739b24abf3737c3a4e07699f2cf0806407ed01a3da50700"
+  },
+  {
+   "path": "pid/_src/tokenizers/dinov2_vae.py",
+   "sha256": "50528a0a48bb4c4b3e3520b17e47d40406851fb7e7eb76e3f864343b5d7fe691"
+  },
+  {
+   "path": "pid/_src/tokenizers/flux2_vae.py",
+   "sha256": "7906ee10802690f1d75bfd7c958b45e4ee01407838bd36593f5af787812e136e"
+  },
+  {
+   "path": "pid/_src/tokenizers/flux_vae.py",
+   "sha256": "1dbc4b025a207b6affbeae0a5696a9e16dcab9f053b7b8cdc9ae0708f3b61aaa"
+  },
+  {
+   "path": "pid/_src/tokenizers/interface.py",
+   "sha256": "ebe5dd9fed23b7b8b55a62671958165c9fad86e5b1e02fd0dac086e2bcf6e671"
+  },
+  {
+   "path": "pid/_src/tokenizers/qwenimage_vae.py",
+   "sha256": "421873f5e4a928fdc1146c482a0ffb789c6b034568315744d4676272ab13b114"
+  },
+  {
+   "path": "pid/_src/tokenizers/rae_decoder.py",
+   "sha256": "fd42cd83c8e9e1338eebbe4f790a5e02e1fa899606c560746beaa4fc78198e70"
+  },
+  {
+   "path": "pid/_src/tokenizers/scale_rae_decoder.py",
+   "sha256": "c5813fd440650053fdf46d592d74d9136ea46ed581c80b0f3fb2762085626743"
+  },
+  {
+   "path": "pid/_src/tokenizers/scale_rae_vae.py",
+   "sha256": "9e1327361b2121a30c0a9d8d1824db105cc747b0b850820bdee349a01bf0e199"
+  },
+  {
+   "path": "pid/_src/tokenizers/sdxl_vae.py",
+   "sha256": "05695d2f3fff6509fdcdd9025d29b976d64519eb827cc87c6ecbdfe9776ff912"
+  },
+  {
+   "path": "pid/_src/trainer/__init__.py",
+   "sha256": "803363d471a988d8d8ed40008069b8c58f8c2316a2524a586509281b339e28b8"
+  },
+  {
+   "path": "pid/_src/trainer/trainer_distillation.py",
+   "sha256": "bd29e919360a25c66a9f909a1582922362621b105e378c1f4e249e4d4125dcaa"
+  },
+  {
+   "path": "pid/_src/utils/__init__.py",
+   "sha256": "c4dc0cf54a15db963e684ed996a7ceb38a3737390327929f05930ac903f33514"
+  },
+  {
+   "path": "pid/_src/utils/context_parallel.py",
+   "sha256": "61c632d1c54955f26cf708e4915d94e4ed360abf7fb8f7ec464806b9a6fa32e4"
+  },
+  {
+   "path": "pid/_src/utils/misc.py",
+   "sha256": "7aad6e696e57f4005e9014066e45f4d20b606b73c3a7d8faaeeaa6bf1af89dae"
+  },
+  {
+   "path": "pid/_src/utils/model_loader.py",
+   "sha256": "a37a553cb1f2c1ce1b57f560c1c58e159652052c02ee2b4f4f0a68d819c38371"
+  },
+  {
+   "path": "pid/_src/utils/torch_future.py",
+   "sha256": "33a5a3d0d42df91ed2ac1986793abb7f0117131ab7cb791e6a20d5bfe20dcae4"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "28e14c59f255fb6d4a0c67d294020911bc85a6afe7832929fbadbdbcbf059d19"
+  },
+  {
+   "path": "scripts/convert_distcp_to_pt.py",
+   "sha256": "1a0bef8c118f041c130b7210930c026e172745c4a5ab87cdea44d727ca7405b3"
+  },
+  {
+   "path": "scripts/download_multiaspect_4k_1m.py",
+   "sha256": "ef29a7ac307dc351d632c58f85e12b47adc353bbdc91d49dda0df145fe91e0b4"
+  },
+  {
+   "path": "scripts/sharding_wds.py",
+   "sha256": "9e218deaca2dc7685e6dee5324e55df4538f96df3b51e449b9f100190e41832b"
+  },
+  {
+   "path": "scripts/train.py",
+   "sha256": "ab22d0e14b51c0504e7d533c9a7df02145c8a49f9ae3e90f4c37674b2562ef13"
+  },
+  {
+   "path": "scripts/validate_from_clean_checkpoints.py",
+   "sha256": "67b5a4914a55f67afa0173314083619444c6e2f15fefdd66f95f2bbcb93d9ef2"
+  },
+  {
+   "path": "scripts/validate_from_ldm_backbones.py",
+   "sha256": "85366a93a21fcddccc1638ce26d9ed646271bf14483fd5edb7d78a23f3e03f20"
+  },
+  {
+   "path": "scripts/validate_webdataset_consistency.py",
+   "sha256": "e7392c97b26008cbac9d0dec53b7dae5c6fbca521307a0ed4c645a19fde2bf08"
+  },
+  {
+   "path": "verify_env.py",
+   "sha256": "3121a7a2e2a3381f38f46b64586833234309c136f2e4a5da00f06660bdb5e759"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 820482
+}

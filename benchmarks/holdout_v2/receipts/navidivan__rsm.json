@@ -1,0 +1,135 @@
+{
+ "repo": "navidivan/rsm",
+ "dir": "navidivan__rsm",
+ "commit": "4cc0aafc988b68c938618363b4a96c9a0729600e",
+ "estimate_commit": "4cc0aafc988b68c938618363b4a96c9a0729600e",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  "LICENSE",
+  "QuickStart.ipynb",
+  "README.md",
+  "assets/Perfect_Solve_Rate.png",
+  "assets/RSM_fig.png",
+  "assets/RSM_psuedocode.png",
+  "assets/SRM cells.png",
+  "assets/Sudoku time course.pptx",
+  "assets/histmazedownload.png",
+  "assets/maze_reasoning_idx_0.gif",
+  "assets/maze_reasoning_idx_5.gif",
+  "assets/smart_heatmap.png",
+  "assets/steps_to_solve.png",
+  "assets/sudoku_strict_18.gif",
+  "config/arch/hrm.yaml",
+  "config/arch/rsm.yaml",
+  "config/arch/transformers_baseline.yaml",
+  "config/arch/trm.yaml",
+  "config/arch/trm_hier6.yaml",
+  "config/arch/trm_singlez.yaml",
+  "config/cfg_pretrain.yaml",
+  "dataset/build_maze_dataset.py",
+  "dataset/build_sudoku_dataset.py",
+  "dataset/common.py",
+  "models/common.py",
+  "models/ema.py",
+  "models/layers.py",
+  "models/losses.py",
+  "models/recursive_reasoning/hrm.py",
+  "models/recursive_reasoning/rsm.py",
+  "models/recursive_reasoning/transformers_baseline.py",
+  "models/recursive_reasoning/trm.py",
+  "models/recursive_reasoning/trm_hier6.py",
+  "models/recursive_reasoning/trm_singlez.py",
+  "models/sparse_embedding.py",
+  "pretrain.py",
+  "puzzle_dataset.py",
+  "requirements.txt",
+  "specific_requirements.txt",
+  "utils/functions.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "862263fa1f46c20f0d1e4dac5ffcc75abd55c08211b2c3864c5f8764b9d87793"
+  },
+  {
+   "path": "dataset/build_maze_dataset.py",
+   "sha256": "839f29bf5f9fa98f3620572691bc7b869d818b4d38907c4a7b3bdaec6931965b"
+  },
+  {
+   "path": "dataset/build_sudoku_dataset.py",
+   "sha256": "9cd1c28c4b186d990b9d671f82e4697eac19ae63ac58c3c29a54c662f2da1ea4"
+  },
+  {
+   "path": "dataset/common.py",
+   "sha256": "be9d442d6a72a9351fda551ac1aeb05328512417faf6e8b7ed481915470f24d6"
+  },
+  {
+   "path": "models/common.py",
+   "sha256": "fa749ad9b68ac0852f9cda157baa3a9c2ff8abaee973751b32b7cd010a4cf859"
+  },
+  {
+   "path": "models/ema.py",
+   "sha256": "10f4dcbcda44dc044e51aeefa1344cc06e89b42c9d782d012dc018310e98c609"
+  },
+  {
+   "path": "models/layers.py",
+   "sha256": "519d38a4668c343868bf31a5853cab7f455f9dcac0cbcc36e02f95dce9fb01e7"
+  },
+  {
+   "path": "models/losses.py",
+   "sha256": "c6f28a8a75fe46dc3ffdd5e01535d806f9d36f471171e5b03b759c567e4e9724"
+  },
+  {
+   "path": "models/recursive_reasoning/hrm.py",
+   "sha256": "eb9e27416b95de989a52bf766230c090506b60cca2517e452fdc7db5d95af459"
+  },
+  {
+   "path": "models/recursive_reasoning/rsm.py",
+   "sha256": "e143c9298c0780db5f4177521f6fa55384f8d3e19b2de2a6bc65dc8e4fcdafdd"
+  },
+  {
+   "path": "models/recursive_reasoning/transformers_baseline.py",
+   "sha256": "b720059b622ffd55ddb68b7120ae8dc3738a2129819c149e989ee14b441c45f9"
+  },
+  {
+   "path": "models/recursive_reasoning/trm.py",
+   "sha256": "3454818b64a1abb45c062782d380aa4bb560e2cb35db9cc309cf367ca3ac262c"
+  },
+  {
+   "path": "models/recursive_reasoning/trm_hier6.py",
+   "sha256": "a39e104baa45f9519b281e6aea10c70f1b8f2578af6657ed0aa0664fb8e1d4ca"
+  },
+  {
+   "path": "models/recursive_reasoning/trm_singlez.py",
+   "sha256": "5f52e879b7b9fa84e52fc4b3100805f044132654a934d6b860fc5dc111dbda85"
+  },
+  {
+   "path": "models/sparse_embedding.py",
+   "sha256": "9429742ce022918751331acf92c1a9b8d0f2f364e9acef5d71fb81b886c7a2d0"
+  },
+  {
+   "path": "pretrain.py",
+   "sha256": "d0af0170b05f7bfd579415c4cb9e83865ed306164887ba25e8d91a7912a6038a"
+  },
+  {
+   "path": "puzzle_dataset.py",
+   "sha256": "559e880c05d4a36b352db1e85c1bf7238cb666016fd57b5a2f1469416870ce4a"
+  },
+  {
+   "path": "utils/functions.py",
+   "sha256": "a7c54723be9ade0317afd1fe42d42da5e7a33e1b5cffbf9bdfc66f3791a3caef"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 66451
+}

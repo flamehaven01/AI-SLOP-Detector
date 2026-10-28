@@ -1,0 +1,150 @@
+{
+ "repo": "Qsingle/open-medical-r1",
+ "dir": "Qsingle__open-medical-r1",
+ "commit": "d4daaea2072581735b58c69dcc7198838fd2b848",
+ "estimate_commit": "d4daaea2072581735b58c69dcc7198838fd2b848",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  "CITATION.cff",
+  "LICENSE",
+  "Makefile",
+  "README.md",
+  "assets/exp3_example.png",
+  "assets/log_dataset1.png",
+  "assets/log_dataset2.png",
+  "assets/log_dataset3.png",
+  "assets/model_out_dataset1.png",
+  "assets/model_out_dataset2.png",
+  "assets/plan-of-attack.png",
+  "recipes/DeepSeek-R1-Distill-Qwen-7B/grpo/config_demo.yaml",
+  "recipes/HuatuoGPT-o1/grpo/config_demo.yaml",
+  "recipes/HuatuoGPT-o1/grpo/config_medxpert_usmle.yaml",
+  "recipes/HuatuoGPT-o1/sft/config_demo.yaml",
+  "recipes/Qwen2.5-1.5B-Instruct/grpo/config_ddxplus.yaml",
+  "recipes/Qwen2.5-1.5B-Instruct/grpo/config_demo.yaml",
+  "recipes/Qwen2.5-1.5B-Instruct/grpo/config_medmcqa.yaml",
+  "recipes/Qwen2.5-1.5B-Instruct/grpo/config_medxpertqa.yaml",
+  "recipes/Qwen2.5-1.5B-Instruct/sft/config_demo.yaml",
+  "recipes/Qwen2.5-Math-7B/grpo/config_simple_rl.yaml",
+  "recipes/README.md",
+  "recipes/accelerate_configs/ddp.yaml",
+  "recipes/accelerate_configs/zero2.yaml",
+  "recipes/accelerate_configs/zero3.yaml",
+  "scripts/data_prepare.py",
+  "scripts/run_benchmarks.py",
+  "setup.cfg",
+  "setup.py",
+  "slurm/evaluate.slurm",
+  "slurm/generate.slurm",
+  "slurm/train.slurm",
+  "src/open_r1/__init__.py",
+  "src/open_r1/configs.py",
+  "src/open_r1/eval.py",
+  "src/open_r1/evaluate.py",
+  "src/open_r1/generate.py",
+  "src/open_r1/grpo.py",
+  "src/open_r1/rewards.py",
+  "src/open_r1/sft.py",
+  "src/open_r1/utils/__init__.py",
+  "src/open_r1/utils/callbacks.py",
+  "src/open_r1/utils/evaluation.py",
+  "src/open_r1/utils/hub.py",
+  "src/open_r1/utils/upload_details.py",
+  "tests/__init__.py",
+  "tests/test_rewards.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "3543c237069d2ed29699d46f68879ed5f2bb804cd1ba92be9414d8ab7eefeadf"
+  },
+  {
+   "path": "scripts/data_prepare.py",
+   "sha256": "a612a09ef58a3e1412ef6a1d1ac8571aa9c3ce632dc745aee2029f6283d9275b"
+  },
+  {
+   "path": "scripts/run_benchmarks.py",
+   "sha256": "0d7b23a49b3bc2695fa4a2b5ac1a91d943c2804b13edaf4da27c06d4d2ea3c9d"
+  },
+  {
+   "path": "setup.cfg",
+   "sha256": "ab1a3e0d4d16a6a0512d67189d4bd6f2bec1b0d396509e17f779e3d9ec18cd64"
+  },
+  {
+   "path": "setup.py",
+   "sha256": "9b2f579b190445394e8fffcb21891e6885522aa6c0421b27ba9faaaa5174b32b"
+  },
+  {
+   "path": "src/open_r1/__init__.py",
+   "sha256": "038ce6cee1c3d8e1e3439ce675f727b23d09782cc754fb69ce1fb00a3227ba00"
+  },
+  {
+   "path": "src/open_r1/configs.py",
+   "sha256": "f256d70d62219622627bf4e56052744b5e66d3ca9334f4a2a32be385b94ae035"
+  },
+  {
+   "path": "src/open_r1/eval.py",
+   "sha256": "a49c1dee4f103b9bba8518513f84b4567fc6a9e93483b3b38c2ce849f1c230df"
+  },
+  {
+   "path": "src/open_r1/evaluate.py",
+   "sha256": "b82f32a89200ffdc4d494357e284ef60132de842e4bd915afd6b3705cae77421"
+  },
+  {
+   "path": "src/open_r1/generate.py",
+   "sha256": "091297ce0cdcb2410874d4496a5eba27f0dbf73cc898cad3705ae57c7e87f809"
+  },
+  {
+   "path": "src/open_r1/grpo.py",
+   "sha256": "3b5d8fc41bd9945038557324ce6e6c9c5cf6a18436b378830ce1208068865cee"
+  },
+  {
+   "path": "src/open_r1/rewards.py",
+   "sha256": "1c3c4f70e785be993807481f76f392e8d16bd25351898f4a5b4a5b81e5fdec70"
+  },
+  {
+   "path": "src/open_r1/sft.py",
+   "sha256": "5497e60db439ffd54e6d6402bfd3f367a24b52716d2501933acdde90b7c8cccf"
+  },
+  {
+   "path": "src/open_r1/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/open_r1/utils/callbacks.py",
+   "sha256": "c44649eab2ee7df663cd31dd0ef4e30b234bab0eb484f8ec28f396914740e1c4"
+  },
+  {
+   "path": "src/open_r1/utils/evaluation.py",
+   "sha256": "d3587267d847a98dc377ceab06b5e69d149bd5610bc4ea4119d8eb50347a4cf5"
+  },
+  {
+   "path": "src/open_r1/utils/hub.py",
+   "sha256": "9be3b1a45cf9e9f90f1d4d0e92cce50eeb3d5652afc6178800ba22c17e7bb28d"
+  },
+  {
+   "path": "src/open_r1/utils/upload_details.py",
+   "sha256": "aacbcdc73897bbae4df93f4075febf505e1b1f0f1273c7e634cfdf795f5e2da1"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_rewards.py",
+   "sha256": "9442a231a437ede69eb17548fc982d393edb8458e7f5233f1ae1625c6bc7fbe3"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 63794
+}

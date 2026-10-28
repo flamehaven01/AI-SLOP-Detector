@@ -1,0 +1,359 @@
+{
+ "repo": "DeepGraphLearning/PerturbDiff",
+ "dir": "DeepGraphLearning__PerturbDiff",
+ "commit": "31be89cb8cce5dddef0782bac29d5c748ce55931",
+ "estimate_commit": "31be89cb8cce5dddef0782bac29d5c748ce55931",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  "LICENSE",
+  "README.md",
+  "asset/main_method_figure.png",
+  "asset/main_motivation_figure.png",
+  "configs/.DS_Store",
+  "configs/cov_encoding/trixie_onehot.yaml",
+  "configs/data/pbmc_finetune.yaml",
+  "configs/data/perturb_data/pbmc.yaml",
+  "configs/data/perturb_data/replogle.yaml",
+  "configs/data/perturb_data/tahoe100m.yaml",
+  "configs/data/replogle_finetune.yaml",
+  "configs/data/rna_data/cellxgene.yaml",
+  "configs/data/tahoe100m_finetune.yaml",
+  "configs/data/tahoe100m_pbmc_replogle_pretrain_cellxgene.yaml",
+  "configs/lightning/base.yaml",
+  "configs/model/base.yaml",
+  "configs/optimization/base.yaml",
+  "configs/optimization/optimizer/adam.yaml",
+  "configs/optimization/scheduler/cosine.yaml",
+  "configs/path/trixie_path.yaml",
+  "configs/rawdata_diffusion_sampling.yaml",
+  "configs/rawdata_diffusion_training.yaml",
+  "configs/trainer/base.yaml",
+  "examples/inference_only_tahoe_issue1_demo.ipynb",
+  "index.html",
+  "src/__init__.py",
+  "src/apps/__init__.py",
+  "src/apps/inference/__init__.py",
+  "src/apps/inference/inference_api.py",
+  "src/apps/run/__init__.py",
+  "src/apps/run/__pycache__/__init__.cpython-39.pyc",
+  "src/apps/run/__pycache__/rawdata_diffusion_sampling.cpython-39.pyc",
+  "src/apps/run/__pycache__/rawdata_diffusion_training.cpython-39.pyc",
+  "src/apps/run/predict_h5ad.py",
+  "src/apps/run/rawdata_diffusion_sampling.py",
+  "src/apps/run/rawdata_diffusion_training.py",
+  "src/apps/sampling/__init__.py",
+  "src/apps/sampling/__pycache__/__init__.cpython-39.pyc",
+  "src/apps/sampling/__pycache__/sampling_generation.cpython-39.pyc",
+  "src/apps/sampling/__pycache__/sampling_generation_helpers.cpython-39.pyc",
+  "src/apps/sampling/__pycache__/sampling_io.cpython-39.pyc",
+  "src/apps/sampling/__pycache__/sampling_setup.cpython-39.pyc",
+  "src/apps/sampling/__pycache__/sampling_utils.cpython-39.pyc",
+  "src/apps/sampling/sampling_generation.py",
+  "src/apps/sampling/sampling_generation_helpers.py",
+  "src/apps/sampling/sampling_io.py",
+  "src/apps/sampling/sampling_setup.py",
+  "src/apps/sampling/sampling_utils.py",
+  "src/apps/training/__init__.py",
+  "src/apps/training/__pycache__/__init__.cpython-39.pyc",
+  "src/apps/training/__pycache__/training_datamodule_builder.cpython-39.pyc",
+  "src/apps/training/__pycache__/training_model_builder.cpython-39.pyc",
+  "src/apps/training/__pycache__/training_model_checkpoint.cpython-39.pyc",
+  "src/apps/training/__pycache__/training_model_compare.cpython-39.pyc",
+  "src/apps/training/__pycache__/training_pipeline.cpython-39.pyc",
+  "src/apps/training/__pycache__/training_runtime.cpython-39.pyc",
+  "src/apps/training/__pycache__/training_runtime_helpers.cpython-39.pyc",
+  "src/apps/training/training_datamodule_builder.py",
+  "src/apps/training/training_model_builder.py",
+  "src/apps/training/training_model_checkpoint.py",
+  "src/apps/training/training_model_compare.py",
+  "src/apps/training/training_pipeline.py",
+  "src/apps/training/training_runtime.py",
+  "src/apps/training/training_runtime_helpers.py",
+  "src/common/__init__.py",
+  "src/common/paths.py",
+  "src/common/utils.py",
+  "src/data/__init__.py",
+  "src/data/data_module/__init__.py",
+  "src/data/data_module/__pycache__/__init__.cpython-39.pyc",
+  "src/data/data_module/__pycache__/data_module.cpython-39.pyc",
+  "src/data/data_module/__pycache__/data_module_setup.cpython-39.pyc",
+  "src/data/data_module/data_module.py",
+  "src/data/data_module/data_module_setup.py",
+  "src/data/dataset/__init__.py",
+  "src/data/dataset/__pycache__/__init__.cpython-39.pyc",
+  "src/data/dataset/__pycache__/dataset_core.cpython-39.pyc",
+  "src/data/dataset/__pycache__/dataset_grouping.cpython-39.pyc",
+  "src/data/dataset/__pycache__/dataset_io.cpython-39.pyc",
+  "src/data/dataset/dataset_core.py",
+  "src/data/dataset/dataset_grouping.py",
+  "src/data/dataset/dataset_io.py",
+  "src/data/file_handle.py",
+  "src/data/metadata_cache.py",
+  "src/data/sampler.py",
+  "src/data/split_strategy.py",
+  "src/models/__init__.py",
+  "src/models/architectures.py",
+  "src/models/covariate_encoding.py",
+  "src/models/cross_dit/__init__.py",
+  "src/models/cross_dit/__pycache__/__init__.cpython-39.pyc",
+  "src/models/cross_dit/__pycache__/cross_dit_blocks.cpython-39.pyc",
+  "src/models/cross_dit/__pycache__/cross_dit_component.cpython-39.pyc",
+  "src/models/cross_dit/__pycache__/cross_dit_init.cpython-39.pyc",
+  "src/models/cross_dit/__pycache__/cross_dit_main.cpython-39.pyc",
+  "src/models/cross_dit/cross_dit_blocks.py",
+  "src/models/cross_dit/cross_dit_component.py",
+  "src/models/cross_dit/cross_dit_init.py",
+  "src/models/cross_dit/cross_dit_main.py",
+  "src/models/diffusion/__init__.py",
+  "src/models/diffusion/__pycache__/__init__.cpython-39.pyc",
+  "src/models/diffusion/__pycache__/diffusion_core.cpython-39.pyc",
+  "src/models/diffusion/__pycache__/diffusion_sampling.cpython-39.pyc",
+  "src/models/diffusion/__pycache__/diffusion_schedules.cpython-39.pyc",
+  "src/models/diffusion/__pycache__/diffusion_training.cpython-39.pyc",
+  "src/models/diffusion/diffusion_core.py",
+  "src/models/diffusion/diffusion_sampling.py",
+  "src/models/diffusion/diffusion_schedules.py",
+  "src/models/diffusion/diffusion_training.py",
+  "src/models/lightning/__init__.py",
+  "src/models/lightning/__pycache__/__init__.cpython-39.pyc",
+  "src/models/lightning/__pycache__/lightning_factories.cpython-39.pyc",
+  "src/models/lightning/__pycache__/lightning_module.cpython-39.pyc",
+  "src/models/lightning/lightning_factories.py",
+  "src/models/lightning/lightning_module.py",
+  "src/models/resampling.py",
+  "src/models/weight_averaging_callback.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": "src/__init__.py",
+   "sha256": "45be07ecf62473229cdb415790869f516b8c19c53b9c345aba82bf77b7ed4971"
+  },
+  {
+   "path": "src/apps/__init__.py",
+   "sha256": "01c28703775f75c32f709f8ddc470cf333de5b5e34ffd9efc72e8641df0ddd54"
+  },
+  {
+   "path": "src/apps/inference/__init__.py",
+   "sha256": "d1d4cc4070003a249f0c032120e2322f5c9281028101de2bd07dc00f801db79f"
+  },
+  {
+   "path": "src/apps/inference/inference_api.py",
+   "sha256": "e45a7f8f5a976af9daf6765bc2a392a7bd10ebfada824b8b9d650229e14dff82"
+  },
+  {
+   "path": "src/apps/run/__init__.py",
+   "sha256": "125d5403249518df0064c0c51cd5c7852222f83954bf949888e745898d6e2f01"
+  },
+  {
+   "path": "src/apps/run/predict_h5ad.py",
+   "sha256": "0f436a6370595557fb64b31d2ac118cc2003dc0b3bbf9980d1fd69f83cbb808b"
+  },
+  {
+   "path": "src/apps/run/rawdata_diffusion_sampling.py",
+   "sha256": "178631adb0bf7d8b0ca3592cc911277359f81740c2ebcc09a9202d99edbe3b1f"
+  },
+  {
+   "path": "src/apps/run/rawdata_diffusion_training.py",
+   "sha256": "2bd740f6e44b91bc5d40548d462649896d8993042a940f1d9a363a75eae71e51"
+  },
+  {
+   "path": "src/apps/sampling/__init__.py",
+   "sha256": "c6156d6de7241dd6689524a3ae08db4314378cb0188965b3df6b9cf38ca1e928"
+  },
+  {
+   "path": "src/apps/sampling/sampling_generation.py",
+   "sha256": "ef1bc717655a723deaa3cf99c4f699d6148f14fe00171d87255b9a846f040152"
+  },
+  {
+   "path": "src/apps/sampling/sampling_generation_helpers.py",
+   "sha256": "6ee9dc081c4ad4c263d435de2b3e9530554a1b7d7681da41c8abcba91537c222"
+  },
+  {
+   "path": "src/apps/sampling/sampling_io.py",
+   "sha256": "f572419e7aa5989a00b7aef30ffc727e5299c01f381ffad0599476b000bccfd7"
+  },
+  {
+   "path": "src/apps/sampling/sampling_setup.py",
+   "sha256": "5fb7aae7f77e117370f647e39825cb93581548d008fceb2002c42a17e0c417d6"
+  },
+  {
+   "path": "src/apps/sampling/sampling_utils.py",
+   "sha256": "cd62724ac8d9c5a91f0d18c48e6dd355b57685217ee8a4362f9420f65a12932e"
+  },
+  {
+   "path": "src/apps/training/__init__.py",
+   "sha256": "f231fd55515aeafb694efa80132e57be960f2d547ad3fc63a4b73f82e9199c7b"
+  },
+  {
+   "path": "src/apps/training/training_datamodule_builder.py",
+   "sha256": "e12531daa9850861c0694e4fa8796f84da90dd7f26103bf387b076e61e1f285a"
+  },
+  {
+   "path": "src/apps/training/training_model_builder.py",
+   "sha256": "5ea7fbb71f3df10fd0150b633128a1ba11c15d193d0c353a181436dbcf0deddc"
+  },
+  {
+   "path": "src/apps/training/training_model_checkpoint.py",
+   "sha256": "1aba49a360c76f927913691adb15e772b3e29a716a9c3967006533195a2519da"
+  },
+  {
+   "path": "src/apps/training/training_model_compare.py",
+   "sha256": "a03b384e8a699333a89797f38f83fe2a8defb6b267c8e072df355b808fafbc42"
+  },
+  {
+   "path": "src/apps/training/training_pipeline.py",
+   "sha256": "f45f0c830590520af413868d8bcdbb57f0f60d510b62740618a7d901764e64bc"
+  },
+  {
+   "path": "src/apps/training/training_runtime.py",
+   "sha256": "a5649ece49ae3b1a6260dae5ff29dc8ff59e6c301fce585f91874a2e7f03ad51"
+  },
+  {
+   "path": "src/apps/training/training_runtime_helpers.py",
+   "sha256": "a6a045cedc7f0151dfa8f8dd1fa8046951835d11c502820c1867abd7c10e9c0e"
+  },
+  {
+   "path": "src/common/__init__.py",
+   "sha256": "e0f9bf60397cf52166d4cef3060acb5a4517d16ed31d0b692c49f35b317eda4a"
+  },
+  {
+   "path": "src/common/paths.py",
+   "sha256": "bdb3616e26fe4e99e2d30099b6889a42cc266f687569a1a5e25544de82511c69"
+  },
+  {
+   "path": "src/common/utils.py",
+   "sha256": "31602d458384cdfdb7d144b2b5ac9dcdaee9f6f3d5ca74fd7ff1e2a47025541e"
+  },
+  {
+   "path": "src/data/__init__.py",
+   "sha256": "cb01f2c525996e33096e2c79f5e430b5439c5a61fc186b2951d3d4f47e0419e9"
+  },
+  {
+   "path": "src/data/data_module/__init__.py",
+   "sha256": "49bf4f42d9369cd5292f2309e020ae05bb93b292f7ebc0611abc4739cb476da2"
+  },
+  {
+   "path": "src/data/data_module/data_module.py",
+   "sha256": "5a500dadafee01fe073af7965c9bebbdfd505dfc1947b738a12060888fc50b2b"
+  },
+  {
+   "path": "src/data/data_module/data_module_setup.py",
+   "sha256": "fc9391557d66c2bc8e30b8c603a4ac2eb177ab8bc78a1534f48606c0519dbb5e"
+  },
+  {
+   "path": "src/data/dataset/__init__.py",
+   "sha256": "79135ce8042b0578e3ab9b5256138811f31041b1759f3fbe2c5865428622c8c9"
+  },
+  {
+   "path": "src/data/dataset/dataset_core.py",
+   "sha256": "9c31e258100d1e07690910466f6d8b24e86fc3265bb77bb2e010e7c558f39f62"
+  },
+  {
+   "path": "src/data/dataset/dataset_grouping.py",
+   "sha256": "ea8b7e3b0c91a9c9f4ba6684097e6ee16475be0b7a4ac54355a76f667864553c"
+  },
+  {
+   "path": "src/data/dataset/dataset_io.py",
+   "sha256": "60fccab58bd7d7e59e3a5792717ecb3a60ad88fc699da6da6f35b785e2e595b6"
+  },
+  {
+   "path": "src/data/file_handle.py",
+   "sha256": "f50d925d6b618bc102b6ef433025f292e245b43cafd1a9bc59976caa8006c0d6"
+  },
+  {
+   "path": "src/data/metadata_cache.py",
+   "sha256": "3c7f3e71af735202fb005eb65370192b841f9de7128f309da14966eb17356fcc"
+  },
+  {
+   "path": "src/data/sampler.py",
+   "sha256": "aec29ab7a39c05c8e0bad9dc6422bc9030a858e27557a349e8294a07c092c63a"
+  },
+  {
+   "path": "src/data/split_strategy.py",
+   "sha256": "eaaaf88677f13856a2383e12450feebe4df4f0f0ce367c18758de998e03dd944"
+  },
+  {
+   "path": "src/models/__init__.py",
+   "sha256": "c38970d25504745bf4e374227f1e83561f61a2dee0d50db7cb887e1f9b2e534e"
+  },
+  {
+   "path": "src/models/architectures.py",
+   "sha256": "d82a5eedc9a93434c229f53954d0939e76bdf2faf053179a46b8bfa0bc924df3"
+  },
+  {
+   "path": "src/models/covariate_encoding.py",
+   "sha256": "b9045f6c7f09d9236b30afeffe85f0a474255b8a6ac9dc27d8e0064b543a9861"
+  },
+  {
+   "path": "src/models/cross_dit/__init__.py",
+   "sha256": "69d57bc6f8370f5a0719bcf6bd000d6990224d42b6e4c5683f0af0cabc11f2d0"
+  },
+  {
+   "path": "src/models/cross_dit/cross_dit_blocks.py",
+   "sha256": "93c0185af40ad2048963165e48f7b69f79c624cae06add5bcfbce8b6d7ed0538"
+  },
+  {
+   "path": "src/models/cross_dit/cross_dit_component.py",
+   "sha256": "c5c08985269faab1f5de879fd2c82383a8c02b3a60454c8cfbef19cad481ff70"
+  },
+  {
+   "path": "src/models/cross_dit/cross_dit_init.py",
+   "sha256": "eb0b666a3103cbb0b9e49867a72d6b7538c9823f9e64e9394eb313282ed30ab8"
+  },
+  {
+   "path": "src/models/cross_dit/cross_dit_main.py",
+   "sha256": "07cdece6bb0f0d69db74d5389b60bbbc3015ed65b31238c50cfa4955c76a03bd"
+  },
+  {
+   "path": "src/models/diffusion/__init__.py",
+   "sha256": "10adc3a234780338ae84bf07b610a79d79680119dd9dc1799c3d5b8f85a0eff6"
+  },
+  {
+   "path": "src/models/diffusion/diffusion_core.py",
+   "sha256": "9a77fb83f09da0a0eacb21dcc9d4f0efb6ce3cd6889324dc12a1221e182c6fac"
+  },
+  {
+   "path": "src/models/diffusion/diffusion_sampling.py",
+   "sha256": "9ff6844f6b014f0876b56c10671b8b1c3aebb0801a9f754259a3df10be62db17"
+  },
+  {
+   "path": "src/models/diffusion/diffusion_schedules.py",
+   "sha256": "2b26c21159b645c480019aeed2f990dfa5d5ada4b34f5947d8a7255b20c41b10"
+  },
+  {
+   "path": "src/models/diffusion/diffusion_training.py",
+   "sha256": "6a76dc473daa3476cc0270f9150f4a3b493fda129fd0ab3ef53cae52ec19783e"
+  },
+  {
+   "path": "src/models/lightning/__init__.py",
+   "sha256": "27e6ad8af26f1d140364770f3cbfde4994113895089c09efcd7d21b5f9a28da9"
+  },
+  {
+   "path": "src/models/lightning/lightning_factories.py",
+   "sha256": "0be2f4689af3d22edbad38f9eb7cb5540583acc5b28bb0825abcba2d86a2bc15"
+  },
+  {
+   "path": "src/models/lightning/lightning_module.py",
+   "sha256": "79654e5893ac8316f30ae011cb51c163692834615b9b90671c5ab4913a076257"
+  },
+  {
+   "path": "src/models/resampling.py",
+   "sha256": "5455d6be3166b575bc47b9a270ae84f0ce51802ba9969be5610ce283e9398122"
+  },
+  {
+   "path": "src/models/weight_averaging_callback.py",
+   "sha256": "46b77c7fe78315ac65685d599362e053896ebb2671ac57d9ecdb7d4c84c4e1ab"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 127458
+}

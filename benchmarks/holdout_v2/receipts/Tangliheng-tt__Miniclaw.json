@@ -1,0 +1,413 @@
+{
+ "repo": "Tangliheng-tt/Miniclaw",
+ "dir": "Tangliheng-tt__Miniclaw",
+ "commit": "1d27939f3d9d826a35463f449334a9b393db02f4",
+ "estimate_commit": "1d27939f3d9d826a35463f449334a9b393db02f4",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".env.example",
+  ".gitignore",
+  ".python-version",
+  "AGENTS.md",
+  "Dockerfile",
+  "LICENSE",
+  "README.md",
+  "agent/__init__.py",
+  "agent/dispatcher.py",
+  "agent/main.py",
+  "api/__init__.py",
+  "api/app.py",
+  "api/deps.py",
+  "api/routes/issues.py",
+  "api/routes/jobs.py",
+  "api/routes/tasks_bg.py",
+  "api/schemas.py",
+  "app/orders.py",
+  "channels/__init__.py",
+  "channels/base.py",
+  "channels/cli.py",
+  "channels/feishu.py",
+  "channels/feishu_ws.py",
+  "channels/handler.py",
+  "channels/session.py",
+  "channels/webhook.py",
+  "concurrency/__init__.py",
+  "deploy/prometheus.yml",
+  "docker-compose.prod.yml",
+  "eval/__init__.py",
+  "eval/baseline.json",
+  "eval/code_cases.py",
+  "eval/dataset.py",
+  "eval/exec_scorer.py",
+  "eval/judge.py",
+  "eval/run_eval.py",
+  "gateway/__init__.py",
+  "gateway/auth.py",
+  "gateway/limiter.py",
+  "infra/__init__.py",
+  "infra/db.py",
+  "infra/fallback.py",
+  "infra/idempotency.py",
+  "infra/llm_router.py",
+  "infra/logging.py",
+  "infra/persistence.py",
+  "infra/redis.py",
+  "infra/settings.py",
+  "loadtest/__init__.py",
+  "main.py",
+  "middleware/__init__.py",
+  "middleware/audit.py",
+  "middleware/concurrency.py",
+  "middleware/context.py",
+  "middleware/cost.py",
+  "obs/__init__.py",
+  "obs/metrics.py",
+  "profiles/__init__.py",
+  "profiles/_capability.py",
+  "profiles/qwen_profile.py",
+  "pyproject.toml",
+  "requirements.txt",
+  "resilience/__init__.py",
+  "sandbox/Dockerfile",
+  "sandbox/__init__.py",
+  "sandbox/docker_manager.py",
+  "sandbox/docker_sandbox.py",
+  "sandbox/manager.py",
+  "sandbox/pool.py",
+  "scripts/_common.py",
+  "scripts/start_web.sh",
+  "skills/fastapi-endpoint/SKILL.md",
+  "skills/unit-test/SKILL.md",
+  "subagents/__init__.py",
+  "subagents/profiles.py",
+  "subagents/reviewer.py",
+  "subagents/schemas.py",
+  "tasks/__init__.py",
+  "tasks/queue.py",
+  "tasks/store.py",
+  "tasks/worker.py",
+  "tests/test_agent_configuration.py",
+  "tests/test_orders.py",
+  "tools/__init__.py",
+  "tools/git_tools.py",
+  "tools/mcp.py",
+  "tools/registry.py",
+  "tools/test_tools.py",
+  "uv.lock",
+  "verify_env.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "c894a46302531d4351704cde8583a71382309e67cc676ab21871dbf0efb3e96d"
+  },
+  {
+   "path": "agent/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "agent/dispatcher.py",
+   "sha256": "7d6de37a763e171bdf2643034561aa5d287c967a59db7eef4d4dafe30cb34234"
+  },
+  {
+   "path": "agent/main.py",
+   "sha256": "74cb4d9a92f87d5b24975cccb6277ea8545462986d1169aaa1e429e7e4c12563"
+  },
+  {
+   "path": "api/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "api/app.py",
+   "sha256": "ea3bf632e8d41d6d7b9107e13df7b6a76a1bbb37c6be59594114d84ac0e52f06"
+  },
+  {
+   "path": "api/deps.py",
+   "sha256": "3b6bde6397a4b35ef6759ce1425776b4753a14631fa5dfc54e84add75cfc3b1d"
+  },
+  {
+   "path": "api/routes/issues.py",
+   "sha256": "185af6982497d0f9c0b4c52fe5f333dc813cb435ba427032d3000d27f12dc5dd"
+  },
+  {
+   "path": "api/routes/jobs.py",
+   "sha256": "db407f0f98a2aa205e417796343d65208d173ba5c82f1366d39ecd6ae3bbfb4d"
+  },
+  {
+   "path": "api/routes/tasks_bg.py",
+   "sha256": "17cc2eb71778fffa65f9968152eedc42bb382b70d98328f095624116f8497bc0"
+  },
+  {
+   "path": "api/schemas.py",
+   "sha256": "06b8069a244bf4fb1ceb3f7040eddafb3a6b9952b52ca0a071310795b39dd1a4"
+  },
+  {
+   "path": "app/orders.py",
+   "sha256": "c9571b9006e9988d594b8d9e286dd17e0902042b3fde4a378eff6d77e2082a5b"
+  },
+  {
+   "path": "channels/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "channels/base.py",
+   "sha256": "5b722f350323659022f92737d153831d4c668a48dbdd84adcd8e471ad3854233"
+  },
+  {
+   "path": "channels/cli.py",
+   "sha256": "09fc4a68173b6be77c719179249f2b25690e783fc6ab317e0141c13e4b689cee"
+  },
+  {
+   "path": "channels/feishu.py",
+   "sha256": "4c9f29f3a605de5a587b48707779a4f2b9cdb708599a157de5b4016e4a84b5e4"
+  },
+  {
+   "path": "channels/feishu_ws.py",
+   "sha256": "b776f20638210f73b48b22037eb66b369331f2a81ab4c8905f0f94ae759f9c91"
+  },
+  {
+   "path": "channels/handler.py",
+   "sha256": "add0f1bc1cdfcf6fb60d1b264ae0a976e44311da40519c4f1e332c6cfc64104e"
+  },
+  {
+   "path": "channels/session.py",
+   "sha256": "6580d23d479420a5c4bb87a4f0a4c532848ef2a794743882be2c6790674924f9"
+  },
+  {
+   "path": "channels/webhook.py",
+   "sha256": "822a5a1f54f54ba0c07c0235e7db1198aeda2aa19fef1ef5578ea9c79b21777a"
+  },
+  {
+   "path": "concurrency/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "eval/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "eval/code_cases.py",
+   "sha256": "877c3b0f6d64a55df40ed498421956089ce7366dbc62d0168e462d3b8f5c8123"
+  },
+  {
+   "path": "eval/dataset.py",
+   "sha256": "918db4f35d3c802b8300033d4ff68486aea62bce678aeb7e3c90740e8937f48b"
+  },
+  {
+   "path": "eval/exec_scorer.py",
+   "sha256": "8e709953d71601a0af13f72bc2ca6b7d4667f819a65b28b7e94106d164434573"
+  },
+  {
+   "path": "eval/judge.py",
+   "sha256": "fdcbc485ea028a0d1dc770ddb9b861c6f67d1522b913252e93fa82df3c896f9f"
+  },
+  {
+   "path": "eval/run_eval.py",
+   "sha256": "f2f24720d3a0da0a62de51776d0059c3a3306f44f84a01becf0d68359965b61a"
+  },
+  {
+   "path": "gateway/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "gateway/auth.py",
+   "sha256": "c550a98a18d46cb5a18df2978c1d21e837ba659b67c6a232d87e91c0cfbcd4d5"
+  },
+  {
+   "path": "gateway/limiter.py",
+   "sha256": "98046d6ced37199b6fec5662c2eeb39aacc8b616d3e96b111649eaaf244e7787"
+  },
+  {
+   "path": "infra/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "infra/db.py",
+   "sha256": "2ac3c351776b5c44a9dc57aeb0d8f68bce9a9f03b96427934230536aaadf491f"
+  },
+  {
+   "path": "infra/fallback.py",
+   "sha256": "fcad59b2193e15fdbde9ce35d25fe12e13a0bcf2d55a6ac6abaaeb8ef48f0294"
+  },
+  {
+   "path": "infra/idempotency.py",
+   "sha256": "b20a7306fb8356be792fdd1031063913af222301619263e596c9ea017233eb8d"
+  },
+  {
+   "path": "infra/llm_router.py",
+   "sha256": "dacfaea683246c25f6181344cbbf46f33fe42df83a397d6e349c6836eaf685b5"
+  },
+  {
+   "path": "infra/logging.py",
+   "sha256": "351b2e432edbefd3c7e1b42cc7e2b2e86df75388c7ca76351d19f08ddd2ca277"
+  },
+  {
+   "path": "infra/persistence.py",
+   "sha256": "2c482f46bbfdac10c4d4cfaaf5a64e45b150a52fdc19c505cc4b215b00409ef0"
+  },
+  {
+   "path": "infra/redis.py",
+   "sha256": "4502a137a6f0252ca7a7017c1f51d863c7688305f16bb55796561b0d24281dcd"
+  },
+  {
+   "path": "infra/settings.py",
+   "sha256": "457bacd6f938e57d39f904348975d474451dc04de842ca8653aa66dddc11c239"
+  },
+  {
+   "path": "loadtest/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "main.py",
+   "sha256": "888f25ef453999d02208539c4c0fd9ca4c2405404f07a9b1d7f1480bd2d4fa52"
+  },
+  {
+   "path": "middleware/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "middleware/audit.py",
+   "sha256": "5a19b16c03155eaa82df20a277fc3f5c9e26f65bdbc977924fd75fda6b428e05"
+  },
+  {
+   "path": "middleware/concurrency.py",
+   "sha256": "8c422950f4f0df3a6a3436730846e02bd6b6bdf139bdff6bcd04ee0904b64fa7"
+  },
+  {
+   "path": "middleware/context.py",
+   "sha256": "3ba5d9176800985d2ca25535e5ef500109986a56e016296069d566f599f2456e"
+  },
+  {
+   "path": "middleware/cost.py",
+   "sha256": "9c8ed64b97773484d3551c5e561e54e6b57ecf9bb996d7cf79c64037d93281da"
+  },
+  {
+   "path": "obs/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "obs/metrics.py",
+   "sha256": "df720f65e2147a78a5d45bf0d6d9770d49fd765950b57a819984a8b4011ac669"
+  },
+  {
+   "path": "profiles/__init__.py",
+   "sha256": "4402ee7ad9d97f0ed7788c95ec3f7a3ae63d68b72f603def99cb48974ce4bc19"
+  },
+  {
+   "path": "profiles/_capability.py",
+   "sha256": "d5589730880ee287619675fed31e249abd720468a035b807c535d1f4da06fb8b"
+  },
+  {
+   "path": "profiles/qwen_profile.py",
+   "sha256": "fe63f045b0d518b8a9ba26f691ba0414e6418fc365e472319a9461a8a4626d17"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "ab8b6f52774fb9e31d612e9a0447459d8c35ea7ebd7034e0aa9c9074a4942d43"
+  },
+  {
+   "path": "resilience/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/docker_manager.py",
+   "sha256": "14d4b30c219aaf55b582f5c7e6d4b70006a87abb1ef9937c0a3ea00759f96d29"
+  },
+  {
+   "path": "sandbox/docker_sandbox.py",
+   "sha256": "a734d560656cbce794e389896aa5f17d08f96cc930963228442b326dfc1f579b"
+  },
+  {
+   "path": "sandbox/manager.py",
+   "sha256": "bc28525853c92a3d0581d12064cc9c9fd3493e790383574a47404c5b3a1166ba"
+  },
+  {
+   "path": "sandbox/pool.py",
+   "sha256": "7b0e8526368f5a927ea0f978719ef534d3436fadca6feae8d1e8cd82d7e4e548"
+  },
+  {
+   "path": "scripts/_common.py",
+   "sha256": "69d86c98c50ab4c16db84f39bacf8a9d7b6d904743c374a8622acdcb3b98d9d6"
+  },
+  {
+   "path": "subagents/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "subagents/profiles.py",
+   "sha256": "d9278fe94cf55532f589510898b8fa8fb9c0534d6f40f585356311a136c5efc2"
+  },
+  {
+   "path": "subagents/reviewer.py",
+   "sha256": "2ddb46bd6d44e6b11876d487c88ea0e21b0ec1090fe60a879862b1905d63806c"
+  },
+  {
+   "path": "subagents/schemas.py",
+   "sha256": "fc0488b59049574674a5b58931f5abdb7d735ab713707f83c0051fb802e3e5ea"
+  },
+  {
+   "path": "tasks/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tasks/queue.py",
+   "sha256": "584666325ad6bc4f893e6d37625323eb2b495b0e89f6d5bbfa52ba1da1c44995"
+  },
+  {
+   "path": "tasks/store.py",
+   "sha256": "68ff06ccc273f289d23eb9e65da4aa41ccb530004daab8901c19b4621276f892"
+  },
+  {
+   "path": "tasks/worker.py",
+   "sha256": "19408855794e675b2c4e2a6d4852edc7bd124b9d4b29c59300c031cbaf3c7177"
+  },
+  {
+   "path": "tests/test_agent_configuration.py",
+   "sha256": "1fc5af44d128e4b0cf9368c423b66913ade7809741192857f2ccf2df4dd642fe"
+  },
+  {
+   "path": "tests/test_orders.py",
+   "sha256": "768aed92d9da15da38d75f2871cda4c0bac180164e5df32d74745ac343b0e201"
+  },
+  {
+   "path": "tools/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tools/git_tools.py",
+   "sha256": "65fdc151a1e815cf26a7c61cf09a2e1f57e6373266c1f35f45b39567a0cc2f6d"
+  },
+  {
+   "path": "tools/mcp.py",
+   "sha256": "1c53e7779f6003b3f50b00aaec7e8db0331fd1d9a2138c153e5a4087bbbc1483"
+  },
+  {
+   "path": "tools/registry.py",
+   "sha256": "4efc92f9bb7accd4d1f903df7019d59cb1b18a88093f821c8f4c2ca696b065b3"
+  },
+  {
+   "path": "tools/test_tools.py",
+   "sha256": "b6f97d4067d850a63361c237b8b7f21f35aa58e99556e2c3de2b28349346b915"
+  },
+  {
+   "path": "verify_env.py",
+   "sha256": "ce8682d4e59ad8b986f342edae82c7b85d7e6cb26b35b3a409f79aa740aba436"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 106841
+}

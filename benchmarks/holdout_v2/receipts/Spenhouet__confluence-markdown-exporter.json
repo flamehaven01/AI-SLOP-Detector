@@ -1,0 +1,314 @@
+{
+ "repo": "Spenhouet/confluence-markdown-exporter",
+ "dir": "Spenhouet__confluence-markdown-exporter",
+ "commit": "3cf5a7fa270d825746d5b50cd45e3ebc0cc9eb3a",
+ "estimate_commit": "3cf5a7fa270d825746d5b50cd45e3ebc0cc9eb3a",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".github/FUNDING.yml",
+  ".github/ISSUE_TEMPLATE/1_bug_report.yaml",
+  ".github/ISSUE_TEMPLATE/2_feature_request.yaml",
+  ".github/ISSUE_TEMPLATE/3_question.yaml",
+  ".github/ISSUE_TEMPLATE/config.yml",
+  ".github/PULL_REQUEST_TEMPLATE.md",
+  ".github/dependabot.yml",
+  ".github/workflows/docker-build.yml",
+  ".github/workflows/docker-publish.yml",
+  ".github/workflows/docs.yml",
+  ".github/workflows/python-build.yml",
+  ".github/workflows/python-publish.yml",
+  ".github/workflows/release.yml",
+  ".gitignore",
+  ".python-version",
+  ".vscode/extensions.json",
+  ".vscode/launch.json",
+  ".vscode/settings.json",
+  ".vscode/tasks.json",
+  "CONTRIBUTING.md",
+  "Dockerfile",
+  "LICENSE",
+  "README.md",
+  "confluence_markdown_exporter/__init__.py",
+  "confluence_markdown_exporter/api_clients.py",
+  "confluence_markdown_exporter/config.py",
+  "confluence_markdown_exporter/confluence.py",
+  "confluence_markdown_exporter/main.py",
+  "confluence_markdown_exporter/utils/__init__.py",
+  "confluence_markdown_exporter/utils/app_data_store.py",
+  "confluence_markdown_exporter/utils/config_interactive.py",
+  "confluence_markdown_exporter/utils/drawio_converter.py",
+  "confluence_markdown_exporter/utils/export.py",
+  "confluence_markdown_exporter/utils/lockfile.py",
+  "confluence_markdown_exporter/utils/measure_time.py",
+  "confluence_markdown_exporter/utils/page_registry.py",
+  "confluence_markdown_exporter/utils/rich_console.py",
+  "confluence_markdown_exporter/utils/table_converter.py",
+  "confluence_markdown_exporter/utils/type_converter.py",
+  "docs/compatibility.md",
+  "docs/configuration/authentication.md",
+  "docs/configuration/ci.md",
+  "docs/configuration/index.md",
+  "docs/configuration/options.md",
+  "docs/configuration/target-systems.md",
+  "docs/contributing.md",
+  "docs/docker.md",
+  "docs/features.md",
+  "docs/img/favicon.png",
+  "docs/img/favicon.svg",
+  "docs/img/logo.png",
+  "docs/index.md",
+  "docs/installation.md",
+  "docs/intro.md",
+  "docs/stylesheets/extra.css",
+  "docs/troubleshooting.md",
+  "docs/usage.md",
+  "logo.png",
+  "logo.svg",
+  "mkdocs.yml",
+  "overrides/main.html",
+  "pyproject.toml",
+  "scripts/bump-docs-version.sh",
+  "tests/__init__.py",
+  "tests/conftest.py",
+  "tests/integration/__init__.py",
+  "tests/integration/test_cli_integration.py",
+  "tests/unit/__init__.py",
+  "tests/unit/test_alert_conversion.py",
+  "tests/unit/test_api_clients.py",
+  "tests/unit/test_clientside_macros_conversion.py",
+  "tests/unit/test_confluence.py",
+  "tests/unit/test_emoticon_conversion.py",
+  "tests/unit/test_include_macro_conversion.py",
+  "tests/unit/test_main.py",
+  "tests/unit/test_nbsp_fix.py",
+  "tests/unit/test_pagetree_conversion.py",
+  "tests/unit/test_plantuml_code_block_detection.py",
+  "tests/unit/test_plantuml_conversion.py",
+  "tests/unit/test_plantumlcloud_conversion.py",
+  "tests/unit/test_space_scope_and_folders.py",
+  "tests/unit/test_template_placeholders.py",
+  "tests/unit/test_viewpdf_macro.py",
+  "tests/unit/utils/__init__.py",
+  "tests/unit/utils/test_app_data_store_env.py",
+  "tests/unit/utils/test_config_optional_fields.py",
+  "tests/unit/utils/test_drawio_converter.py",
+  "tests/unit/utils/test_export.py",
+  "tests/unit/utils/test_lockfile.py",
+  "tests/unit/utils/test_measure_time.py",
+  "tests/unit/utils/test_page_registry.py",
+  "tests/unit/utils/test_rich_console.py",
+  "tests/unit/utils/test_table_converter.py",
+  "tests/unit/utils/test_type_converter.py",
+  "uv.lock"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "d32b8044b05ad642294afae2829b176aafdf9042768cb19800bab230f9535f70"
+  },
+  {
+   "path": "confluence_markdown_exporter/__init__.py",
+   "sha256": "d4a6eba1693b2564dd076c3cc79962fb567a798f4066efd8670965d9c77a480a"
+  },
+  {
+   "path": "confluence_markdown_exporter/api_clients.py",
+   "sha256": "0aded3f73685bb3408da2966e17c7ed8f481cdaa918b041a0ca6ddf3cc6481be"
+  },
+  {
+   "path": "confluence_markdown_exporter/config.py",
+   "sha256": "d158fae0d83a6b150d0449922b82bfa0bb164a951698e4a87c2456d8c878233f"
+  },
+  {
+   "path": "confluence_markdown_exporter/confluence.py",
+   "sha256": "c1990e61b345bace5755b6c8259db53567726d3bb43277bc016394aafa2467e1"
+  },
+  {
+   "path": "confluence_markdown_exporter/main.py",
+   "sha256": "47c44fd189988bf7e53ef839d1eee69d8e5640fdafd039d405c8dd0aae2892b5"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/app_data_store.py",
+   "sha256": "bbe208051b8cf9b014123ce2d6bcb12e8c47edf81a3cd862477b07fcccad7db1"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/config_interactive.py",
+   "sha256": "9c307cc4ab3f984a7c399cd7dce2a7f36e4c3e7d00ce6f4a693c148d4f43d119"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/drawio_converter.py",
+   "sha256": "562a03fcc110e67caf2e75583a90d77ee67b7cdd426fa4a1f5c8e634601ac352"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/export.py",
+   "sha256": "8151b440d3b2426587d3c95c03fa85e0973f437da849b6f81f20e5a970e04f46"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/lockfile.py",
+   "sha256": "a215a098af9c55a7f37561b30d6203dec626ad5fb31369ed27f421afcf8af0ec"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/measure_time.py",
+   "sha256": "b9158fefa57bc12e69f7e7f48902c16085a44d9cc1a95d91a888b76be2d9bdbf"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/page_registry.py",
+   "sha256": "49f9a59318bf1d3785d8440e7553ab88ab544fe379afe64fbd029d746fe64f91"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/rich_console.py",
+   "sha256": "1765748080b86b5d82fb9053467f453162c0db3f627f1384fd2d789e99cd92c3"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/table_converter.py",
+   "sha256": "9773d1aa79141f17701b7cccb6426a59ca62376d5cebfe2705d779a426252557"
+  },
+  {
+   "path": "confluence_markdown_exporter/utils/type_converter.py",
+   "sha256": "ded4fce5660f5b8d5c83906c2a6af903b4ae820b3db5ade1f43055605c556171"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "959e7fa594ab566a418a84bcc317e21bc860ceb27fedfb6b8458ba25fd6a2c47"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "48aab0bcee5e0494d4e667b9a5ce8a060f40a729e46461f00c1283a086adef1f"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "89752e0752429c4c77f4a75a942db00ab51507c8807ff47241830a354d67f5a5"
+  },
+  {
+   "path": "tests/integration/__init__.py",
+   "sha256": "57b08fa0ef54c7f6d5fce046953667b3cb430ef034444800fc3685af78b3794e"
+  },
+  {
+   "path": "tests/integration/test_cli_integration.py",
+   "sha256": "0a273d522d5e67726b353f5e0f998fe24e8f70c97f9321ae94a59e127512a2bb"
+  },
+  {
+   "path": "tests/unit/__init__.py",
+   "sha256": "1de78dd737e476518bf979b2fc6226b627a939e8eb000a05c119e2fdd87b55ab"
+  },
+  {
+   "path": "tests/unit/test_alert_conversion.py",
+   "sha256": "59fe916af74f400db7b931e6259798837bb2a92759d1d02f7bec0c77aa939fc5"
+  },
+  {
+   "path": "tests/unit/test_api_clients.py",
+   "sha256": "44fe01c642938b003fa8a314fa132c19b98ab2f61921c31042af713f518442ee"
+  },
+  {
+   "path": "tests/unit/test_clientside_macros_conversion.py",
+   "sha256": "bbab48f595d55eb435d51e7ba7affb96f24bf2eb2c5acd1875636294e424a3a7"
+  },
+  {
+   "path": "tests/unit/test_confluence.py",
+   "sha256": "f1851c5b5fbd480c6cc4a37bce218a5c9be04aa4451e3d870771a1400c31e73b"
+  },
+  {
+   "path": "tests/unit/test_emoticon_conversion.py",
+   "sha256": "103dac3f3f082ef45af21e43c48f964c44f395318ac5eaa3cb269e8be5821cf5"
+  },
+  {
+   "path": "tests/unit/test_include_macro_conversion.py",
+   "sha256": "3e57eeafe50e0f6891e43e03122b451142aa882a95e1bf54543860e55d367dac"
+  },
+  {
+   "path": "tests/unit/test_main.py",
+   "sha256": "66b8e7a5cc15cf12be774fa6373a2d40a401a81a4f7a68da37f2d5ea66b772eb"
+  },
+  {
+   "path": "tests/unit/test_nbsp_fix.py",
+   "sha256": "6ad5244d60c2f6a0ba6dbbcb3fc8cb1871f1d6cf78d75d6e472e79b138eaa664"
+  },
+  {
+   "path": "tests/unit/test_pagetree_conversion.py",
+   "sha256": "beb52117a7ab91088d55859290c5d869d6b3b2c10de3665b1941cfbea81cedf8"
+  },
+  {
+   "path": "tests/unit/test_plantuml_code_block_detection.py",
+   "sha256": "493d3a2283b329981617e20ecc2e4d2d59e2540a7bc94be38fdabeb80d7c4528"
+  },
+  {
+   "path": "tests/unit/test_plantuml_conversion.py",
+   "sha256": "d0114bd6167dc0bfbd706a9c6ef9e82b250914ebd3d61fe8c7cd5021f0c4a7f7"
+  },
+  {
+   "path": "tests/unit/test_plantumlcloud_conversion.py",
+   "sha256": "537105f1e958498866af65bffcdb3a5aa8e9c2d2c7c7d6e589c0bc6633f69089"
+  },
+  {
+   "path": "tests/unit/test_space_scope_and_folders.py",
+   "sha256": "c035f2d2b3faf05f6b54ac4f84492a6bbb18aeb6fa2d5059f4e12ddc76e8384b"
+  },
+  {
+   "path": "tests/unit/test_template_placeholders.py",
+   "sha256": "7aa77a2ef20c3d1c814e93af9db4865c194bea8cc71b47b7f33502ab1a1496f3"
+  },
+  {
+   "path": "tests/unit/test_viewpdf_macro.py",
+   "sha256": "c7aa6bfddd3f9caeca6784eca0d468942d7eb096cd1f1c8a158b497733aeaae1"
+  },
+  {
+   "path": "tests/unit/utils/__init__.py",
+   "sha256": "91229ff2b0e889a57f9b82cedd6dabc79dba77f191c9425c39373833e846b40a"
+  },
+  {
+   "path": "tests/unit/utils/test_app_data_store_env.py",
+   "sha256": "5cb640df7621151a614ca57592b71b5343747b5d5d21e24e22b862d61e2bcb92"
+  },
+  {
+   "path": "tests/unit/utils/test_config_optional_fields.py",
+   "sha256": "da781f643b8983f3bc5d3284578094e2ff6ef1054904138ef86fcfa94dce79c3"
+  },
+  {
+   "path": "tests/unit/utils/test_drawio_converter.py",
+   "sha256": "32bd7149c5b3fd3316d34171c70f840ce47b4891e09425ac7a51dd2bb01b68f2"
+  },
+  {
+   "path": "tests/unit/utils/test_export.py",
+   "sha256": "6e5e5d896c606aa92f29942262e8b5f668c67a659f7fbb74951d4529ac54f2ab"
+  },
+  {
+   "path": "tests/unit/utils/test_lockfile.py",
+   "sha256": "bdd0bb3f9c41fafa0cc3347731a828cc2f42d56e1d6c1370f7ea45d431be8262"
+  },
+  {
+   "path": "tests/unit/utils/test_measure_time.py",
+   "sha256": "29a638de544141001eadc5728523f512a3623a9b39db65346db4008554cd4bcb"
+  },
+  {
+   "path": "tests/unit/utils/test_page_registry.py",
+   "sha256": "359cd2762ee82ef9adceb472dbe35b5351da08677839d2a4a6a35c1355391635"
+  },
+  {
+   "path": "tests/unit/utils/test_rich_console.py",
+   "sha256": "d0b881300998621dfb0d6bec107f8669898c2b1233884ccfc79b10b8182de5f4"
+  },
+  {
+   "path": "tests/unit/utils/test_table_converter.py",
+   "sha256": "99130f1fab2158c4c4289e59c814f040cbb11cf680d06f7ebe46934452f57628"
+  },
+  {
+   "path": "tests/unit/utils/test_type_converter.py",
+   "sha256": "7c217325c5b6779c3142843b0f51ab3b0b0e6fd8e8fb2b6c445914bcc5dade38"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 214172
+}

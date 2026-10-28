@@ -1,0 +1,603 @@
+{
+ "repo": "Pupok462/open-geo",
+ "dir": "Pupok462__open-geo",
+ "commit": "97bd17024393df10804ae90f719d81af1d306d9f",
+ "estimate_commit": "97bd17024393df10804ae90f719d81af1d306d9f",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".agents/skills/open-geo/SKILL.md",
+  ".agents/skills/open-geo/references/deliverables.md",
+  ".agents/skills/open-geo/references/gotchas.md",
+  ".agents/skills/open-geo/references/harvest.md",
+  ".agents/skills/open-geo/references/metrics.md",
+  ".agents/skills/open-geo/references/run.md",
+  ".agents/skills/open-geo/references/runtime.md",
+  ".agents/skills/open-geo/references/validation.md",
+  ".agents/skills/semantic-core/SKILL.md",
+  ".agentsmesh/.lock",
+  ".agentsmesh/agents/capture-worker.md",
+  ".agentsmesh/agents/core-worker.md",
+  ".agentsmesh/agents/harvest-skeptic.md",
+  ".agentsmesh/agents/harvest-worker.md",
+  ".agentsmesh/skills/open-geo/SKILL.md",
+  ".agentsmesh/skills/open-geo/references/deliverables.md",
+  ".agentsmesh/skills/open-geo/references/gotchas.md",
+  ".agentsmesh/skills/open-geo/references/harvest.md",
+  ".agentsmesh/skills/open-geo/references/metrics.md",
+  ".agentsmesh/skills/open-geo/references/run.md",
+  ".agentsmesh/skills/open-geo/references/runtime.md",
+  ".agentsmesh/skills/open-geo/references/validation.md",
+  ".agentsmesh/skills/semantic-core/SKILL.md",
+  ".claude-plugin/README.md",
+  ".claude-plugin/marketplace.json",
+  ".claude-plugin/plugin.json",
+  ".claude/agents/capture-worker.md",
+  ".claude/agents/core-worker.md",
+  ".claude/agents/harvest-skeptic.md",
+  ".claude/agents/harvest-worker.md",
+  ".claude/skills/open-geo/SKILL.md",
+  ".claude/skills/open-geo/references/deliverables.md",
+  ".claude/skills/open-geo/references/gotchas.md",
+  ".claude/skills/open-geo/references/harvest.md",
+  ".claude/skills/open-geo/references/metrics.md",
+  ".claude/skills/open-geo/references/run.md",
+  ".claude/skills/open-geo/references/runtime.md",
+  ".claude/skills/open-geo/references/validation.md",
+  ".claude/skills/semantic-core/SKILL.md",
+  ".codex/agents/capture-worker.toml",
+  ".codex/agents/core-worker.toml",
+  ".codex/agents/harvest-skeptic.toml",
+  ".codex/agents/harvest-worker.toml",
+  ".cursor/agents/capture-worker.md",
+  ".cursor/agents/core-worker.md",
+  ".cursor/agents/harvest-skeptic.md",
+  ".cursor/agents/harvest-worker.md",
+  ".cursor/skills/open-geo/SKILL.md",
+  ".cursor/skills/open-geo/references/deliverables.md",
+  ".cursor/skills/open-geo/references/gotchas.md",
+  ".cursor/skills/open-geo/references/harvest.md",
+  ".cursor/skills/open-geo/references/metrics.md",
+  ".cursor/skills/open-geo/references/run.md",
+  ".cursor/skills/open-geo/references/runtime.md",
+  ".cursor/skills/open-geo/references/validation.md",
+  ".cursor/skills/semantic-core/SKILL.md",
+  ".env.example",
+  ".gemini/agents/capture-worker.md",
+  ".gemini/agents/core-worker.md",
+  ".gemini/agents/harvest-skeptic.md",
+  ".gemini/agents/harvest-worker.md",
+  ".gemini/settings.json",
+  ".gemini/skills/open-geo/SKILL.md",
+  ".gemini/skills/open-geo/references/deliverables.md",
+  ".gemini/skills/open-geo/references/gotchas.md",
+  ".gemini/skills/open-geo/references/harvest.md",
+  ".gemini/skills/open-geo/references/metrics.md",
+  ".gemini/skills/open-geo/references/run.md",
+  ".gemini/skills/open-geo/references/runtime.md",
+  ".gemini/skills/open-geo/references/validation.md",
+  ".gemini/skills/semantic-core/SKILL.md",
+  ".github/workflows/ci.yml",
+  ".gitignore",
+  ".grok/agents/capture-worker.md",
+  ".grok/agents/core-worker.md",
+  ".grok/agents/harvest-skeptic.md",
+  ".grok/agents/harvest-worker.md",
+  ".grok/skills/open-geo/SKILL.md",
+  ".grok/skills/open-geo/references/deliverables.md",
+  ".grok/skills/open-geo/references/gotchas.md",
+  ".grok/skills/open-geo/references/harvest.md",
+  ".grok/skills/open-geo/references/metrics.md",
+  ".grok/skills/open-geo/references/run.md",
+  ".grok/skills/open-geo/references/runtime.md",
+  ".grok/skills/open-geo/references/validation.md",
+  ".grok/skills/semantic-core/SKILL.md",
+  "CHANGELOG.md",
+  "LICENSE",
+  "README.ar.md",
+  "README.md",
+  "README.ru.md",
+  "README.zh.md",
+  "REVIEW-BACKLOG.md",
+  "agentsmesh.yaml",
+  "assets/cover.svg",
+  "assets/dashboard-ar.png",
+  "assets/dashboard-en.png",
+  "assets/dashboard-ru.png",
+  "assets/dashboard-zh.png",
+  "assets/demo.gif",
+  "assets/report-cover.png",
+  "assets/report-metrics.png",
+  "assets/sample-report-example.pdf",
+  "assets/social-preview.png",
+  "bench/ENGINE_AUDIT.md",
+  "bench/FASTPATH_AB.md",
+  "bench/README.md",
+  "bench/candidates/fable.json",
+  "bench/candidates/haiku.json",
+  "bench/candidates/opus.json",
+  "bench/candidates/sonnet.json",
+  "bench/fixtures/chatgpt_search__ai_visibility_2026/01_get_page_text.txt",
+  "bench/fixtures/chatgpt_search__ai_visibility_2026/02_read_page_interactive.txt",
+  "bench/fixtures/chatgpt_search__ai_visibility_2026/03_dom_links.json",
+  "bench/fixtures/chatgpt_search__ai_visibility_2026/meta.json",
+  "bench/notes/chatgpt_search__ai_visibility_2026.md",
+  "bench/score.py",
+  "bench/task.md",
+  "bench/truth/chatgpt_search__ai_visibility_2026.json",
+  "conftest.py",
+  "dashboard/README.md",
+  "dashboard/__init__.py",
+  "dashboard/api.py",
+  "dashboard/seed_fixture.py",
+  "dashboard/web/.gitignore",
+  "dashboard/web/index.html",
+  "dashboard/web/package-lock.json",
+  "dashboard/web/package.json",
+  "dashboard/web/postcss.config.js",
+  "dashboard/web/src/redesign/RedesignApp.test.tsx",
+  "dashboard/web/src/redesign/RedesignApp.tsx",
+  "dashboard/web/src/redesign/components/CompetitorsPanel.test.tsx",
+  "dashboard/web/src/redesign/components/CompetitorsPanel.tsx",
+  "dashboard/web/src/redesign/components/EngineMatrix.test.tsx",
+  "dashboard/web/src/redesign/components/EngineMatrix.tsx",
+  "dashboard/web/src/redesign/components/LensBreakdown.test.tsx",
+  "dashboard/web/src/redesign/components/LensBreakdown.tsx",
+  "dashboard/web/src/redesign/components/LensSentiment.test.tsx",
+  "dashboard/web/src/redesign/components/LensSentiment.tsx",
+  "dashboard/web/src/redesign/components/MetricCard.test.tsx",
+  "dashboard/web/src/redesign/components/MetricCard.tsx",
+  "dashboard/web/src/redesign/components/MetricsChart.logic.test.tsx",
+  "dashboard/web/src/redesign/components/MetricsChart.render.test.tsx",
+  "dashboard/web/src/redesign/components/MetricsChart.tsx",
+  "dashboard/web/src/redesign/components/ResultsTable.test.tsx",
+  "dashboard/web/src/redesign/components/ResultsTable.tsx",
+  "dashboard/web/src/redesign/components/icons.test.tsx",
+  "dashboard/web/src/redesign/components/icons.tsx",
+  "dashboard/web/src/redesign/components/primitives.test.tsx",
+  "dashboard/web/src/redesign/components/primitives.tsx",
+  "dashboard/web/src/redesign/lib/api.test.ts",
+  "dashboard/web/src/redesign/lib/api.ts",
+  "dashboard/web/src/redesign/lib/format.test.ts",
+  "dashboard/web/src/redesign/lib/format.ts",
+  "dashboard/web/src/redesign/lib/i18n.test.tsx",
+  "dashboard/web/src/redesign/lib/i18n.tsx",
+  "dashboard/web/src/redesign/lib/metrics.test.ts",
+  "dashboard/web/src/redesign/lib/metrics.ts",
+  "dashboard/web/src/redesign/lib/theme.ssr.test.tsx",
+  "dashboard/web/src/redesign/lib/theme.test.tsx",
+  "dashboard/web/src/redesign/lib/theme.tsx",
+  "dashboard/web/src/redesign/main.tsx",
+  "dashboard/web/src/redesign/test/setup.ts",
+  "dashboard/web/src/redesign/theme.css",
+  "dashboard/web/src/redesign/tsconfig.json",
+  "dashboard/web/src/vite-env.d.ts",
+  "dashboard/web/tsconfig.app.json",
+  "dashboard/web/tsconfig.json",
+  "dashboard/web/tsconfig.node.json",
+  "dashboard/web/vite.config.ts",
+  "dashboard/web/vitest.config.ts",
+  "data/.gitkeep",
+  "demand/README.md",
+  "demand/__init__.py",
+  "demand/cache.py",
+  "demand/config.py",
+  "demand/core.py",
+  "demand/doctor.py",
+  "demand/expand.py",
+  "demand/lookup.py",
+  "demand/providers/__init__.py",
+  "demand/providers/base.py",
+  "demand/providers/bing.py",
+  "demand/providers/google_ads.py",
+  "demand/providers/suggest.py",
+  "demand/providers/wordstat.py",
+  "demand/schema.py",
+  "docs/.nojekyll",
+  "docs/.well-known/security.txt",
+  "docs/app.js",
+  "docs/feed.xml",
+  "docs/index.html",
+  "docs/robots.txt",
+  "docs/sitemap.xml",
+  "docs/styles.css",
+  "engines/FAST_PATH.md",
+  "engines/README.md",
+  "engines/chatgpt_search.md",
+  "engines/claude_search.md",
+  "engines/deepseek.md",
+  "engines/gemini.md",
+  "engines/google.md",
+  "engines/perplexity.md",
+  "engines/yandex_neuro.md",
+  "examples/questions.csv",
+  "fonts/NotoNaskhArabic-Bold.ttf",
+  "fonts/NotoNaskhArabic-Regular.ttf",
+  "fonts/NotoSansSC-Bold.ttf",
+  "fonts/NotoSansSC-Regular.ttf",
+  "fonts/OFL-NotoNaskhArabic.txt",
+  "fonts/OFL-NotoSansSC.txt",
+  "fonts/README.md",
+  "fonts/build.py",
+  "harvest/METHODOLOGY.md",
+  "harvest/README.md",
+  "harvest/__init__.py",
+  "harvest/build.py",
+  "harvest/schema.py",
+  "i18n/README.md",
+  "i18n/ar.json",
+  "i18n/en.json",
+  "i18n/locales.json",
+  "i18n/ru.json",
+  "i18n/zh.json",
+  "kernel/README.md",
+  "kernel/__init__.py",
+  "kernel/__main__.py",
+  "kernel/classify.py",
+  "kernel/cluster.py",
+  "kernel/collect.py",
+  "kernel/ingest.py",
+  "kernel/schema.py",
+  "kernel/serve.py",
+  "kernel/store.py",
+  "kernel/web/index.html",
+  "pipeline/INTERFACES.md",
+  "pipeline/__init__.py",
+  "pipeline/aggregate.py",
+  "pipeline/artifact.py",
+  "pipeline/db.py",
+  "pipeline/ingest.py",
+  "pipeline/lens_sentiment.py",
+  "pipeline/run.py",
+  "pipeline/schema.py",
+  "pipeline/seed_demo.py",
+  "pyproject.toml",
+  "report/__init__.py",
+  "report/_selftest_fixture.py",
+  "report/generate.py",
+  "report/i18n.py",
+  "report/textshape.py",
+  "reports/.gitkeep",
+  "requirements.txt",
+  "scripts/emit_grok_adapters.py",
+  "scripts/make_report_assets.py",
+  "scripts/setup.sh",
+  "scripts/sync_harness_adapters.sh",
+  "tests/__init__.py",
+  "tests/test_agent_tools.py",
+  "tests/test_aggregate.py",
+  "tests/test_api.py",
+  "tests/test_artifact.py",
+  "tests/test_db.py",
+  "tests/test_demand.py",
+  "tests/test_demand_core.py",
+  "tests/test_domain_stats.py",
+  "tests/test_fixtures.py",
+  "tests/test_github_card.py",
+  "tests/test_harvest.py",
+  "tests/test_ingest.py",
+  "tests/test_kernel.py",
+  "tests/test_lens_sentiment.py",
+  "tests/test_pipeline.py",
+  "tests/test_report_format.py",
+  "tests/test_report_i18n.py",
+  "tests/test_report_render.py",
+  "tests/test_review_backlog.py",
+  "tests/test_run_cli.py",
+  "tests/test_schema.py",
+  "tests/test_seed_demo.py",
+  "tests/test_skill_workflow.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "fb1e312bcfb00e09933528927025bb215d80414e50e34d5b90b187ab2eaebf41"
+  },
+  {
+   "path": "bench/score.py",
+   "sha256": "532af88c1b12724431bccc10e2907c04d80f2116e9345e5d293dfbb9c7302e0b"
+  },
+  {
+   "path": "conftest.py",
+   "sha256": "63bf0e644a803587febb126646b7609cde9af32f4454ab059b601ea54fa48bb0"
+  },
+  {
+   "path": "dashboard/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dashboard/api.py",
+   "sha256": "c4f566a3b63d059d37aa95f6c5613402b940f6fd8bafc87ffb93d0191b74308d"
+  },
+  {
+   "path": "dashboard/seed_fixture.py",
+   "sha256": "b2ab20b840c70868c8a259e3224eb224ed8af777870e01ff11ef5836014272b6"
+  },
+  {
+   "path": "dashboard/web/.gitignore",
+   "sha256": "0c4a9640f78fb9557fe65eca7ace6690465e5bfd430562e7ab136ad5893372c4"
+  },
+  {
+   "path": "demand/__init__.py",
+   "sha256": "f85b6b7db05783988a06cb70cc07dcf666bfdf19817c88c03188af9c1a4cce24"
+  },
+  {
+   "path": "demand/cache.py",
+   "sha256": "abe928b4a577056d06efeceb4e102e3478dcc41e6109308d3574d6cc673186a3"
+  },
+  {
+   "path": "demand/config.py",
+   "sha256": "79ac63341f000bcc66969eb5ae1dd94cce326bad7f15d17f5c5e7976295c51e8"
+  },
+  {
+   "path": "demand/core.py",
+   "sha256": "ea44e4ad518fb1164ccf63705f6bc5ac9721a34e1624a576edb26c1d483fbb4d"
+  },
+  {
+   "path": "demand/doctor.py",
+   "sha256": "d856095adc1bf6b27010b329296a97649356858973f588d18ed573733d39cb23"
+  },
+  {
+   "path": "demand/expand.py",
+   "sha256": "ec8129dd83e9f4ada90e10dee8bd68b8b4947ec39bfe052b81da369c1f91a3df"
+  },
+  {
+   "path": "demand/lookup.py",
+   "sha256": "2933f8de404d3970555c67091271f155f49a927fd3a1dbed22c961836110037a"
+  },
+  {
+   "path": "demand/providers/__init__.py",
+   "sha256": "c5d8551ed9dc9eea18d3330923bf1bda1ecbae754b20948e76a945a07e28dec1"
+  },
+  {
+   "path": "demand/providers/base.py",
+   "sha256": "0a10b35159c9d05cd7ec544bad990e4684224123de36ab9d7432c8f62efcd7b5"
+  },
+  {
+   "path": "demand/providers/bing.py",
+   "sha256": "080fd96dc0ad2f8af34181821a4ffe34ed338a387180f69eedf154834dacc514"
+  },
+  {
+   "path": "demand/providers/google_ads.py",
+   "sha256": "f0b06614c485ec5ad25dd76f74155a80e1ee84742d5e11fa34a046eecdb96388"
+  },
+  {
+   "path": "demand/providers/suggest.py",
+   "sha256": "c55bc65534ba8f16a12dd7c7505024d29a2074bef016782ca32062aed96cc599"
+  },
+  {
+   "path": "demand/providers/wordstat.py",
+   "sha256": "f194f7ee9e508eab48f85116f39cf18df0c6730d52cc41e9a62949cb2096fe74"
+  },
+  {
+   "path": "demand/schema.py",
+   "sha256": "598726b00c3d4ccb9ca3aa80c95e7846dabac4a5670234b955c044b346cc2c4e"
+  },
+  {
+   "path": "fonts/build.py",
+   "sha256": "3918cbda86f8d0b1ff274d28d19603075355d3ca328b8ca22747e2d33b9ee6c5"
+  },
+  {
+   "path": "harvest/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "harvest/build.py",
+   "sha256": "72dc9eb479058ef5327bc7f34bed31f0d0e6e7f01025151cd03cfc7dec4e0261"
+  },
+  {
+   "path": "harvest/schema.py",
+   "sha256": "9b4fff4707fc47ef62e54bc865498d3ffeafab4a9e9c103bd725549af371b96f"
+  },
+  {
+   "path": "kernel/__init__.py",
+   "sha256": "4b6b5d848645b4fc7d8b80ab09a2edaab39e72c3101c993f2f505a236c0c4e05"
+  },
+  {
+   "path": "kernel/__main__.py",
+   "sha256": "26dc840686422dcda8ab7c7a4a3ed5e171692f2b77661e793d7c9231773ecbe0"
+  },
+  {
+   "path": "kernel/classify.py",
+   "sha256": "5bd3a25d6ac4ee4d302715fed7516d628ceb6b35116f2810a3346c791fa4eecc"
+  },
+  {
+   "path": "kernel/cluster.py",
+   "sha256": "fb99f8654b380e9ad90bb4062e986e3cc15ef6fe00b0f9c6befa831a6e48de87"
+  },
+  {
+   "path": "kernel/collect.py",
+   "sha256": "35af4743e79e695d3343d95d579aaeb866ee2ed7fe412a529a65fbe2b562ade3"
+  },
+  {
+   "path": "kernel/ingest.py",
+   "sha256": "6f2d2db975cde037c58ca8bd60dda89dbbb527e70cd150ea9c16ff6dc8e3ea80"
+  },
+  {
+   "path": "kernel/schema.py",
+   "sha256": "001cc0ee8f04861c16078dc35e7a267cc829fd2db6c394547629cb7249ac3e27"
+  },
+  {
+   "path": "kernel/serve.py",
+   "sha256": "3a1059ac4e4c887f6a5ff20c6ec011cb45708d29581d106af00dfc0ba7d8d6a5"
+  },
+  {
+   "path": "kernel/store.py",
+   "sha256": "f4961026c36b896cdaef7c88ba9aa2f22ee725ba41742fb618f9c947dce9221a"
+  },
+  {
+   "path": "pipeline/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "pipeline/aggregate.py",
+   "sha256": "1b90b7fb3f38774bc3e923f185eee3b7d5e48e7ea51d896beb229d46e762062c"
+  },
+  {
+   "path": "pipeline/artifact.py",
+   "sha256": "a165b248850e78b5da568d798b647c500e099566fbf5b3a7b5efe507605eda6b"
+  },
+  {
+   "path": "pipeline/db.py",
+   "sha256": "a1303a7a4df2653845f8ed1dbf205d9668095436a50b3ca53a031fe83d778d0d"
+  },
+  {
+   "path": "pipeline/ingest.py",
+   "sha256": "82fe5658c659805221e03884327efbe016d85752432804e92c1d6a0afb8f890b"
+  },
+  {
+   "path": "pipeline/lens_sentiment.py",
+   "sha256": "706b6f4f86860247634c82ef67ab087b113d2eb8c6c115b74487276fed9e26ff"
+  },
+  {
+   "path": "pipeline/run.py",
+   "sha256": "2ece25ec172b72d24e2d6abf5875527ba06f0d29a1d6b796b62116f2f56d25a1"
+  },
+  {
+   "path": "pipeline/schema.py",
+   "sha256": "665929c39ed05a801cb39441d498117102168d8a0e55013476acbd6088055c71"
+  },
+  {
+   "path": "pipeline/seed_demo.py",
+   "sha256": "f350a83b26627dd32d3df482cc0cbb5ca8f6ff83689272c9eea20fad5abafccf"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "037984e38b9210d2c908b645d062ac40012146fd7a7b25a7c03e77bbe233f5d1"
+  },
+  {
+   "path": "report/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "report/_selftest_fixture.py",
+   "sha256": "e278eaae4da155121297e7aa9c667bd2fe9c41cf3f5b3c57a167ca21e4b9754e"
+  },
+  {
+   "path": "report/generate.py",
+   "sha256": "e0f15ff459dfc2d25ef0ba84470760dbbc75ab069c596d3d274ae7ac7c5764f1"
+  },
+  {
+   "path": "report/i18n.py",
+   "sha256": "5ca748b7ab5722957f40a05f88b68a6add328f3241d5528a34ad82847a6a34d1"
+  },
+  {
+   "path": "report/textshape.py",
+   "sha256": "897c304fb4b37249b01e93213a6531c44ee3b8491b121846bdc61da8f91de786"
+  },
+  {
+   "path": "scripts/emit_grok_adapters.py",
+   "sha256": "629c046f50401186d7ce18e24aeacb6581b2003f90782fa81a15cbffa90e348e"
+  },
+  {
+   "path": "scripts/make_report_assets.py",
+   "sha256": "2c09c15020fe70f0195076213e34a0f51e2d9a3f1f2f793bba24513698d6dea6"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_agent_tools.py",
+   "sha256": "b7fa0e25ea96cdec48cb3bdb2516560af0c7f19ac1abcc69c3b6b0dbd266b46c"
+  },
+  {
+   "path": "tests/test_aggregate.py",
+   "sha256": "3c3827ddfe1bbc3e5a456901cbe107c1a3ef3c0f528165e2a6b11e9d1dba2842"
+  },
+  {
+   "path": "tests/test_api.py",
+   "sha256": "7f8859b8b4e28114462fa3c4f405d7c94da86442437c67e4033de6b925d6bba7"
+  },
+  {
+   "path": "tests/test_artifact.py",
+   "sha256": "2855db76e1b8a93e1f39fc8565c558f37855e31a163633b2f73dbaa561e5e2a5"
+  },
+  {
+   "path": "tests/test_db.py",
+   "sha256": "841d19d8de126fb12cb7dce17501fd93acb6c739c57368148ac2eff0b66fb0fa"
+  },
+  {
+   "path": "tests/test_demand.py",
+   "sha256": "79cc79892087f92b39c31c57789c4e30bed300a4caabc058678b03a53928308d"
+  },
+  {
+   "path": "tests/test_demand_core.py",
+   "sha256": "f11fb48b00401ea93bb4cd7eb83435798d77061d59fb469411ccb1d70296ca84"
+  },
+  {
+   "path": "tests/test_domain_stats.py",
+   "sha256": "e11485e9f84f23008e502b5fde3b53484e22287b5751c54aab952f74592c8aa9"
+  },
+  {
+   "path": "tests/test_fixtures.py",
+   "sha256": "0d1ea229160d7a5ce9c479b5b6d34a779736c3978c6f115b18b3cdb74e199638"
+  },
+  {
+   "path": "tests/test_github_card.py",
+   "sha256": "e8124401af7b52d2ed714e31829af18895584b5a1cadcb8a2c949aeae8200a09"
+  },
+  {
+   "path": "tests/test_harvest.py",
+   "sha256": "cfe67d8e399e1daa06dffe4894fd45e06ba08df30a53026e9a7633d58a70581c"
+  },
+  {
+   "path": "tests/test_ingest.py",
+   "sha256": "2587f3e7e596a6739f8046bfee5b4a2a7a8d22f21faf90ec77b3d025a04af5f2"
+  },
+  {
+   "path": "tests/test_kernel.py",
+   "sha256": "59e3728b08ccea9e608a6d0dea7ff81168d649cbde5798bfaa6ccbf32c3163a4"
+  },
+  {
+   "path": "tests/test_lens_sentiment.py",
+   "sha256": "ac2b77aece3997c10ad77f540f34e23cd719e8f624fc6f84b73c9e8141ad9dc0"
+  },
+  {
+   "path": "tests/test_pipeline.py",
+   "sha256": "4478c2fcc0b1798636775cb7402a27f46f42c06f2fbda15c162daab51920497d"
+  },
+  {
+   "path": "tests/test_report_format.py",
+   "sha256": "581fa073fc05b2d811c13d7ade8544c97966387ec4a10cd61e762c66088a1897"
+  },
+  {
+   "path": "tests/test_report_i18n.py",
+   "sha256": "189535c4aa657708e56070d31f95e79b619e04bdb84a2cf914bd762f7872c269"
+  },
+  {
+   "path": "tests/test_report_render.py",
+   "sha256": "76ffbc9c4f65e15a694b7c8ef1824c9fab674dbb0f78cb38b217cc95ce2d5693"
+  },
+  {
+   "path": "tests/test_review_backlog.py",
+   "sha256": "b3629336545881fd6567fe0dc7eb59ecb37e90071435d82440597bbb813c8569"
+  },
+  {
+   "path": "tests/test_run_cli.py",
+   "sha256": "7d01d9bd41e73c424bf71b76133fee2049fb1b989fe654b975f45bb219d22e24"
+  },
+  {
+   "path": "tests/test_schema.py",
+   "sha256": "2adce32a35039d1702ba93a1b99131f95d253c467b35a2c71728b8eeec5f045f"
+  },
+  {
+   "path": "tests/test_seed_demo.py",
+   "sha256": "cf8b8f8b66f9f83b6c577c0ad6fd04cac79cb368570ff7994110aa44d2c2a949"
+  },
+  {
+   "path": "tests/test_skill_workflow.py",
+   "sha256": "3bc77504327c051d436735346e97ef582995ea739d857ca7e75ad33ce3fd0793"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 290607
+}

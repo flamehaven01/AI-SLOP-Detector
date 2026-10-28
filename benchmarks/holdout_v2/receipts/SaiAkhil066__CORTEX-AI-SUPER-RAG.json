@@ -1,0 +1,159 @@
+{
+ "repo": "SaiAkhil066/CORTEX-AI-SUPER-RAG",
+ "dir": "SaiAkhil066__CORTEX-AI-SUPER-RAG",
+ "commit": "91dc9c31e064e1e71c23324c61eff53aa8a1369d",
+ "estimate_commit": "91dc9c31e064e1e71c23324c61eff53aa8a1369d",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".env.example",
+  ".gitattributes",
+  ".github/workflows/tests.yml",
+  ".gitignore",
+  ".streamlit/config.toml",
+  "Dockerfile",
+  "LICENSE",
+  "README.md",
+  "app.py",
+  "assets/banner.svg",
+  "assets/demo.svg",
+  "assets/favicon.svg",
+  "assets/logo.svg",
+  "docker-compose.yml",
+  "eval/__init__.py",
+  "eval/analyze_answers.py",
+  "eval/datasets/__init__.py",
+  "eval/datasets/financebench.py",
+  "eval/golden_example.jsonl",
+  "eval/metrics.py",
+  "eval/run_eval.py",
+  "eval/sample_docs/northwind_handbook.md",
+  "install.sh",
+  "requirements-dev.txt",
+  "requirements.txt",
+  "tests/conftest.py",
+  "tests/test_advanced_rag.py",
+  "tests/test_build_graph.py",
+  "tests/test_eval_metrics.py",
+  "tests/test_generation.py",
+  "tests/test_routing.py",
+  "tests/test_store_and_pipeline.py",
+  "utils/advanced_rag.py",
+  "utils/build_graph.py",
+  "utils/doc_handler.py",
+  "utils/generation.py",
+  "utils/loaders.py",
+  "utils/retriever_pipeline.py",
+  "utils/routing.py",
+  "utils/store.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "efe94b73f0116e23335042969a84bfd9d72836e2fba28c95e6e449ce634e11df"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "3d4ccc599cdcd6b32bc1d6f0d5767f6eed4c66605e821f1717804baf8260537a"
+  },
+  {
+   "path": "app.py",
+   "sha256": "8104a79f31ac2b140e2ff53e4645dfe3a45d8726922e20237dba960835b40285"
+  },
+  {
+   "path": "eval/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "eval/analyze_answers.py",
+   "sha256": "fd4d8de6d67e7cd0f95672ff69fa65fef97b774488a7c5479b7aed33f9040182"
+  },
+  {
+   "path": "eval/datasets/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "eval/datasets/financebench.py",
+   "sha256": "976438bd3722587421a8b473b2d6e9ec64cb2f5d28edc8d64be160beefb74c58"
+  },
+  {
+   "path": "eval/metrics.py",
+   "sha256": "da714390ec8f4d63029fb32bdf97f9d59c33d94e9cc0c98ae05053b59d420eef"
+  },
+  {
+   "path": "eval/run_eval.py",
+   "sha256": "5b75941751773450c1395d9fe4cf187aeaffaa857f43e2ce152d28ec5a6d5420"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "c14e668d5405e68ee34b3572ef50e8f3733343c7d3c4f80ab3205bb851928afe"
+  },
+  {
+   "path": "tests/test_advanced_rag.py",
+   "sha256": "8fb447f349f81bf17bcfc531b37cce4db6abf8e9aa5afe1f406941326924b0a0"
+  },
+  {
+   "path": "tests/test_build_graph.py",
+   "sha256": "e64a9272a86ed9c7bf9168008dced465e0661b637df639478cdbbbdb45c6bcb2"
+  },
+  {
+   "path": "tests/test_eval_metrics.py",
+   "sha256": "c24e36efe2a63fd653d10efd786b2f4b9284941b35685fe929a6061c83534cc9"
+  },
+  {
+   "path": "tests/test_generation.py",
+   "sha256": "4461e9112aa9ea2a827f46b3446816726e57eceaa3be1467509842a6e896175f"
+  },
+  {
+   "path": "tests/test_routing.py",
+   "sha256": "4575126f26f1a3186a8419b046a08ba5bc7c7de23aee5bc8b1971f31ec879447"
+  },
+  {
+   "path": "tests/test_store_and_pipeline.py",
+   "sha256": "5612f1597914a5b92fb205458abb69726f3f6ed8b2c53535c825f1d6000150c5"
+  },
+  {
+   "path": "utils/advanced_rag.py",
+   "sha256": "5253d9bca28b3015100633a1a02dcebc90628188cf802ace8000ec3e24efe98b"
+  },
+  {
+   "path": "utils/build_graph.py",
+   "sha256": "bf78be9922e9bd9e61059d7bbe946168c903f68b4babd3a2cd9fcafaffa659bb"
+  },
+  {
+   "path": "utils/doc_handler.py",
+   "sha256": "9db92f1b1e38c97e1f98b0583b76b86791f108dda7797d782e113cb7e0ece669"
+  },
+  {
+   "path": "utils/generation.py",
+   "sha256": "35f7a1a06418789a11a6cb7963a36133907d93630f85f25cd8a54f767a8fc72e"
+  },
+  {
+   "path": "utils/loaders.py",
+   "sha256": "a09efe4a1dbc35433a2862db6409fbd80f3cf816a0bc67ba48d98377fe9f447d"
+  },
+  {
+   "path": "utils/retriever_pipeline.py",
+   "sha256": "6809601d2382c6b2d71d3eb02982332d1d64e57e8613e725485ae1d745188a99"
+  },
+  {
+   "path": "utils/routing.py",
+   "sha256": "39ac448d658b0493d2d38af63cd766f60d3f783944994bab815a5f05f8c2f9b0"
+  },
+  {
+   "path": "utils/store.py",
+   "sha256": "02421ad09c59d80082412df2d6672992be209d78cf51fbbefbd7c9568ff57ebe"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 80718
+}

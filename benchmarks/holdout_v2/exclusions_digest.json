@@ -1,0 +1,10 @@
+{
+ "private_file": ".internal/holdout_v2/exclusions.json",
+ "sha256": "b979f3303ca964ed7d180079c53796e8e88f78a92f86926f512a59a6a56a5221",
+ "counts": {
+  "owners": 3,
+  "repositories": 170,
+  "names": 270
+ },
+ "note": "the list names local and private repositories, so only its digest and counts are published; select_repos.py reads the private file"
+}

@@ -1,0 +1,482 @@
+{
+ "repo": "CastillonMiguel/pymycar",
+ "dir": "CastillonMiguel__pymycar",
+ "commit": "f0ab83fa44a5301f609fce472c5ce326f0519c48",
+ "estimate_commit": "f0ab83fa44a5301f609fce472c5ce326f0519c48",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".github/workflows/publish_pip_distribution.yml",
+  ".github/workflows/testing.yml",
+  ".gitignore",
+  ".readthedocs.yaml",
+  "AUTHORS.rst",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.rst",
+  "LICENSE",
+  "README.rst",
+  "docs/Makefile",
+  "docs/environment.yml",
+  "docs/make.bat",
+  "docs/requirements.txt",
+  "docs/source/_static/examples.png",
+  "docs/source/_static/generate_logo.py",
+  "docs/source/_static/logo.png",
+  "docs/source/_static/logo_social.png",
+  "docs/source/_static/pymycar_logo_shifted.png",
+  "docs/source/api/Cad/main.rst",
+  "docs/source/api/CarKinematic/main.rst",
+  "docs/source/api/Files/main.rst",
+  "docs/source/api/Logger/main.rst",
+  "docs/source/api/Vehicle/main.rst",
+  "docs/source/api/VerticalModels/main.rst",
+  "docs/source/api/index.rst",
+  "docs/source/conf.py",
+  "docs/source/extras/Acknowledgements/main.rst",
+  "docs/source/extras/DeveloperNotes/main.rst",
+  "docs/source/extras/References/main.rst",
+  "docs/source/extras/index.rst",
+  "docs/source/getting-started/Authors/main.rst",
+  "docs/source/getting-started/Installation/main.rst",
+  "docs/source/getting-started/Structure/main.rst",
+  "docs/source/getting-started/index.rst",
+  "docs/source/index.rst",
+  "docs/source/theory/car_kinematics/double_whisbone/images/base.png",
+  "docs/source/theory/car_kinematics/double_whisbone/images/configuration_1.png",
+  "docs/source/theory/car_kinematics/double_whisbone/images/configuration_2_a.png",
+  "docs/source/theory/car_kinematics/double_whisbone/images/configuration_2_b.png",
+  "docs/source/theory/car_kinematics/double_whisbone/images/configuration_2_c.png",
+  "docs/source/theory/car_kinematics/double_whisbone/main.rst",
+  "docs/source/theory/car_kinematics/main.rst",
+  "docs/source/theory/car_kinematics/multilink/images/base.png",
+  "docs/source/theory/car_kinematics/multilink/images/configuration_1.png",
+  "docs/source/theory/car_kinematics/multilink/main.rst",
+  "docs/source/theory/car_kinematics/parameters/images/animation.py",
+  "docs/source/theory/car_kinematics/parameters/images/camber_negative.png",
+  "docs/source/theory/car_kinematics/parameters/images/camber_neutral.png",
+  "docs/source/theory/car_kinematics/parameters/images/camber_possitive.png",
+  "docs/source/theory/car_kinematics/parameters/images/caster.py",
+  "docs/source/theory/car_kinematics/parameters/images/ratio.py",
+  "docs/source/theory/car_kinematics/parameters/images/si.py",
+  "docs/source/theory/car_kinematics/parameters/images/si_displacement.py",
+  "docs/source/theory/car_kinematics/parameters/images/side_view_negative.png",
+  "docs/source/theory/car_kinematics/parameters/images/side_view_neutral.png",
+  "docs/source/theory/car_kinematics/parameters/images/side_view_possitive.png",
+  "docs/source/theory/car_kinematics/parameters/images/toe_negative.png",
+  "docs/source/theory/car_kinematics/parameters/images/toe_neutral.png",
+  "docs/source/theory/car_kinematics/parameters/images/toe_possitive.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_base_negative.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_base_possitive.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_base_reference.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_jounce_negative.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_jounce_possitive.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_jounce_reference.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_track_negative.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_track_possitive.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheel_track_reference.png",
+  "docs/source/theory/car_kinematics/parameters/images/wheelbase.py",
+  "docs/source/theory/car_kinematics/parameters/main.rst",
+  "docs/source/theory/full_model/main.rst",
+  "docs/source/theory/index.rst",
+  "docs/source/theory/kinematic/images/ generate_aligned_three_point_image.py",
+  "docs/source/theory/kinematic/images/aligned_three_point_image.png",
+  "docs/source/theory/kinematic/images/four_bar_mechanism.png",
+  "docs/source/theory/kinematic/images/four_bar_mechanism.py",
+  "docs/source/theory/kinematic/images/generate_solid_2_points_image.py",
+  "docs/source/theory/kinematic/images/generate_solid_3_points_image.py",
+  "docs/source/theory/kinematic/images/solid_2_points.png",
+  "docs/source/theory/kinematic/images/solid_3_points.png",
+  "docs/source/theory/kinematic/main.rst",
+  "docs/source/theory/lateral_models/main.rst",
+  "docs/source/theory/motorcycle_kinematics/frame/main.rst",
+  "docs/source/theory/motorcycle_kinematics/front_assembly/images/forks.png",
+  "docs/source/theory/motorcycle_kinematics/front_assembly/main.rst",
+  "docs/source/theory/motorcycle_kinematics/main.rst",
+  "docs/source/theory/motorcycle_kinematics/rear_assembly/images/swingarm_conf_0.png",
+  "docs/source/theory/motorcycle_kinematics/rear_assembly/images/swingarm_conf_1.png",
+  "docs/source/theory/motorcycle_kinematics/rear_assembly/main.rst",
+  "docs/source/theory/vertical_models/full_car_model.rst",
+  "docs/source/theory/vertical_models/half_car_model.rst",
+  "docs/source/theory/vertical_models/images/quarter_car.png",
+  "docs/source/theory/vertical_models/images/quarter_car_one_dof.png",
+  "docs/source/theory/vertical_models/main.rst",
+  "docs/source/theory/vertical_models/quarter_car_model.rst",
+  "docs/source/theory/vertical_models/scripts/graph_car_7_dof.py",
+  "docs/source/theory/vertical_models/scripts/graph_quarter_car.py",
+  "docs/source/theory/vertical_models/scripts/graph_quarter_car_one_dof.py",
+  "environment.yml",
+  "examples/CadCar/README.rst",
+  "examples/CadCar/plot_chassis.py",
+  "examples/CadCar/plot_double_whisbone_base.py",
+  "examples/CadCar/plot_double_whisbone_base_2.py",
+  "examples/CadCar/plot_double_whisbone_conf_1.py",
+  "examples/CadCar/plot_double_whisbone_conf_2.py",
+  "examples/CadCar/plot_multilink_base.py",
+  "examples/CadCar/plot_multilink_configuration_1.py",
+  "examples/CadMotorcycle/README.rst",
+  "examples/CadMotorcycle/plot_front_assembly_forks.py",
+  "examples/CadMotorcycle/plot_motorcycle.py",
+  "examples/CadMotorcycle/plot_rear_assembly_swingarm_conf_0.py",
+  "examples/CadMotorcycle/plot_rear_assembly_swingarm_conf_1.py",
+  "examples/CarKinematics/README.rst",
+  "examples/CarKinematics/plot_double_whisbone_base.py",
+  "examples/CarKinematics/plot_double_whisbone_configuration_1.py",
+  "examples/CarKinematics/plot_double_whisbone_configuration_2.py",
+  "examples/CarKinematics/plot_multilink_base.py",
+  "examples/MotorcycleKinematics/README.rst",
+  "examples/MotorcycleKinematics/plot_front_assembly_forks.py",
+  "examples/MotorcycleKinematics/plot_rear_assembly_swingarm_conf_0.py",
+  "examples/MotorcycleKinematics/plot_rear_assembly_swingarm_conf_1.py",
+  "examples/README.rst",
+  "examples/VerticalModels/README.rst",
+  "examples/VerticalModels/plot_exitations.py",
+  "examples/VerticalModels/plot_full_car.py",
+  "examples/VerticalModels/plot_half_car.py",
+  "examples/VerticalModels/plot_quarter_car.py",
+  "pyproject.toml",
+  "references.bib",
+  "src/pymycar/Cad/Car/__init__.py",
+  "src/pymycar/Cad/Car/double_whisbone.py",
+  "src/pymycar/Cad/Car/frame.py",
+  "src/pymycar/Cad/Car/multilink.py",
+  "src/pymycar/Cad/Car/wheel.py",
+  "src/pymycar/Cad/MotorCycle/__init__.py",
+  "src/pymycar/Cad/MotorCycle/frame.py",
+  "src/pymycar/Cad/MotorCycle/front_assembly.py",
+  "src/pymycar/Cad/MotorCycle/rear_assembly.py",
+  "src/pymycar/Cad/MotorCycle/wheel.py",
+  "src/pymycar/Cad/__init__.py",
+  "src/pymycar/Cad/animation.py",
+  "src/pymycar/Cad/geometric_forms.py",
+  "src/pymycar/CarKinematic/__init__.py",
+  "src/pymycar/CarKinematic/double_whisbone.py",
+  "src/pymycar/CarKinematic/functions.py",
+  "src/pymycar/CarKinematic/multilink.py",
+  "src/pymycar/CarKinematic/suspension_files.py",
+  "src/pymycar/Logger/__init__.py",
+  "src/pymycar/Logger/library_versions.py",
+  "src/pymycar/MotorCycleKinematic/__init__.py",
+  "src/pymycar/MotorCycleKinematic/front_assembly.py",
+  "src/pymycar/MotorCycleKinematic/functions.py",
+  "src/pymycar/MotorCycleKinematic/rear_assembly.py",
+  "src/pymycar/Vehicle/__init__.py",
+  "src/pymycar/Vehicle/car.py",
+  "src/pymycar/Vehicle/chassis.py",
+  "src/pymycar/Vehicle/suspension.py",
+  "src/pymycar/Vehicle/wheel.py",
+  "src/pymycar/VerticalModels/__init__.py",
+  "src/pymycar/VerticalModels/exitations.py",
+  "src/pymycar/VerticalModels/models.py",
+  "src/pymycar/__init__.py",
+  "src/pymycar/files.py",
+  "test/test_version.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "41a1806526f5712f8988781039902af660f342c743c9251289eba36f056d1215"
+  },
+  {
+   "path": "docs/source/_static/generate_logo.py",
+   "sha256": "a31ffc42345860da67b8611dde852b9336466fa12d8cfbe14e72d048809f4e5d"
+  },
+  {
+   "path": "docs/source/conf.py",
+   "sha256": "94729fc41a9384158150e3f138f921cbd97f9568987c34484555dd0c4148d70e"
+  },
+  {
+   "path": "docs/source/theory/car_kinematics/parameters/images/animation.py",
+   "sha256": "43a756057f5c47d33628cc68013eb58c031e45fcc4978ef32e261b89342b0ecc"
+  },
+  {
+   "path": "docs/source/theory/car_kinematics/parameters/images/caster.py",
+   "sha256": "bf79aa6ee5a437c84c438cd4c00c7fad418ead3647d9cf3adc041ac587d7a545"
+  },
+  {
+   "path": "docs/source/theory/car_kinematics/parameters/images/ratio.py",
+   "sha256": "0b8b9cc3ec7a9da181da42894967685ac677786af94627acb651d8516300aebe"
+  },
+  {
+   "path": "docs/source/theory/car_kinematics/parameters/images/si.py",
+   "sha256": "163fdf22783e5c8c3b676608741a81907f5d13b14b163de1d5a54996adaaac0d"
+  },
+  {
+   "path": "docs/source/theory/car_kinematics/parameters/images/si_displacement.py",
+   "sha256": "0de52ecd1f016d81955e0c67d51e038961529824c144c613847c6c0809e8ec2a"
+  },
+  {
+   "path": "docs/source/theory/car_kinematics/parameters/images/wheelbase.py",
+   "sha256": "87e58267a08d27cb386e2ba778fdc5adc759b46b5b52a5680ab613bd2db3ede3"
+  },
+  {
+   "path": "docs/source/theory/kinematic/images/ generate_aligned_three_point_image.py",
+   "sha256": "f298ecdf9883201f7dda943f889970790a5e5e7d54ec99dd57e153660220a125"
+  },
+  {
+   "path": "docs/source/theory/kinematic/images/four_bar_mechanism.py",
+   "sha256": "0853f1ab708b0a0894364034389533e5cecc0ea12afcb606d52b8db52db7e343"
+  },
+  {
+   "path": "docs/source/theory/kinematic/images/generate_solid_2_points_image.py",
+   "sha256": "65b054663c75cfd43b10dad0051f1bdea49996670f793b2b9fc18122d5f30db6"
+  },
+  {
+   "path": "docs/source/theory/kinematic/images/generate_solid_3_points_image.py",
+   "sha256": "d7348a2c79a7d8c597573b100e28239fd6db2a3d5f6dcb454b4c03ed149bf4a8"
+  },
+  {
+   "path": "docs/source/theory/vertical_models/scripts/graph_car_7_dof.py",
+   "sha256": "5c10d9fa562a6502f4e6bd414d21347f93e51efb56a68212740be5ee4fa02a15"
+  },
+  {
+   "path": "docs/source/theory/vertical_models/scripts/graph_quarter_car.py",
+   "sha256": "e9ed37cdde9b2d48af394b950dea49b13143c9643f3bef918eb36e22fc517fb7"
+  },
+  {
+   "path": "docs/source/theory/vertical_models/scripts/graph_quarter_car_one_dof.py",
+   "sha256": "ae796d04bf4915b6ece2048d22c9621f145fced723d90cd25e10b6357f767322"
+  },
+  {
+   "path": "examples/CadCar/plot_chassis.py",
+   "sha256": "f03f17392260c601fa98ddd07c8017f4ad90ebc5851942733ee2b90a74768771"
+  },
+  {
+   "path": "examples/CadCar/plot_double_whisbone_base.py",
+   "sha256": "7c5612b0fce5b1b50897f2b72df9401c7f52c4d43b494cc50db9eaebb096b32d"
+  },
+  {
+   "path": "examples/CadCar/plot_double_whisbone_base_2.py",
+   "sha256": "657c7d4f561708db2af44eb8fed3f6940ab8c6143298c694bca773be54c4d0fb"
+  },
+  {
+   "path": "examples/CadCar/plot_double_whisbone_conf_1.py",
+   "sha256": "de5226118455b275f3c5e14f618a512271623e6ea6b51f3859410dcd23251e93"
+  },
+  {
+   "path": "examples/CadCar/plot_double_whisbone_conf_2.py",
+   "sha256": "a0566790acf30e1085ec904c4a64c0bca123c72c25fa7a67e6cf4abc90a2c5de"
+  },
+  {
+   "path": "examples/CadCar/plot_multilink_base.py",
+   "sha256": "60896b45482d6f5a4a1bbee577071617ef64f1b515714c5f467f34a8a56a38be"
+  },
+  {
+   "path": "examples/CadCar/plot_multilink_configuration_1.py",
+   "sha256": "91d9f65be8bf5932e6b5fe22e1032816ce9091969162efc5b2edfbdee1683f1f"
+  },
+  {
+   "path": "examples/CadMotorcycle/plot_front_assembly_forks.py",
+   "sha256": "7b935de682febbd082667f735d324af18e70fe5e78a5b642e9a459bb814710fe"
+  },
+  {
+   "path": "examples/CadMotorcycle/plot_motorcycle.py",
+   "sha256": "35b2b685a2f6f40051146d7d6db87dbdec5f253aad71cd7564aa1c94fd1c4552"
+  },
+  {
+   "path": "examples/CadMotorcycle/plot_rear_assembly_swingarm_conf_0.py",
+   "sha256": "e6db50411239b14d010fd134c4a3e8db3817d69fdf45861d3c488611b95ec5e2"
+  },
+  {
+   "path": "examples/CadMotorcycle/plot_rear_assembly_swingarm_conf_1.py",
+   "sha256": "7cc32a562640d9b39a7157233a9a25076d9b5da888788118d8ab6b66fc6f47cd"
+  },
+  {
+   "path": "examples/CarKinematics/plot_double_whisbone_base.py",
+   "sha256": "0805be5577af1f08f89df264139bd821b28d7a45bf236c4b526c63be34e30de4"
+  },
+  {
+   "path": "examples/CarKinematics/plot_double_whisbone_configuration_1.py",
+   "sha256": "a58452976a63098ceae0a7fad59675cbf485914ed6f1fa99f5c43b77147e3413"
+  },
+  {
+   "path": "examples/CarKinematics/plot_double_whisbone_configuration_2.py",
+   "sha256": "37accb0b8eb4456fb0da6c0162a7934cffd1b96a48754ec6ce1d5f3a2337222f"
+  },
+  {
+   "path": "examples/CarKinematics/plot_multilink_base.py",
+   "sha256": "480f86971ce01e157623754b6d513b769d810e6366736c0397ba22bdf712efb6"
+  },
+  {
+   "path": "examples/MotorcycleKinematics/plot_front_assembly_forks.py",
+   "sha256": "3a42cba085c3173fd1e98d559938a37d6ae181412e6351b2aa532bdf5067dea3"
+  },
+  {
+   "path": "examples/MotorcycleKinematics/plot_rear_assembly_swingarm_conf_0.py",
+   "sha256": "5e75a5036121b53af2b98783bd28de69c50d0c02427b9c30f5aca08f2f457e07"
+  },
+  {
+   "path": "examples/MotorcycleKinematics/plot_rear_assembly_swingarm_conf_1.py",
+   "sha256": "8faf4eb41c6dab70f2cbe0abde5510044194479a6edf238f7ab19defe581305d"
+  },
+  {
+   "path": "examples/VerticalModels/plot_exitations.py",
+   "sha256": "a341cdaacb8accdacc878e24aec4a246e4a2894681823de6ca7ed9aaf780b6a4"
+  },
+  {
+   "path": "examples/VerticalModels/plot_full_car.py",
+   "sha256": "d5781191a009e5b48237a7a56de99c2946e0b84ff691d1c0ce1232a5f0911d68"
+  },
+  {
+   "path": "examples/VerticalModels/plot_half_car.py",
+   "sha256": "49f75c6bdc2b8184342d79e187aa9334a02638b3025893cb7d627bc429c645eb"
+  },
+  {
+   "path": "examples/VerticalModels/plot_quarter_car.py",
+   "sha256": "6e7ab06a6d025e25947fbbdc713734b4f0cfc8751eedc75659f0cf32da93b82a"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "d66c0d98aa9eb40f2ee6950b3405d0255d948de43a7efb56ea1c6c94e0df0936"
+  },
+  {
+   "path": "src/pymycar/Cad/Car/__init__.py",
+   "sha256": "690065c54f3c19fb0755d4a11ab1521f38d666fa1157436dfad43474aca3f860"
+  },
+  {
+   "path": "src/pymycar/Cad/Car/double_whisbone.py",
+   "sha256": "d59c2f7b2d6473135bb7887778eb57ce6e94d4858afb97dcb7c1a81f8d34f8cc"
+  },
+  {
+   "path": "src/pymycar/Cad/Car/frame.py",
+   "sha256": "5b0196673fbf55cf4b5e20fe3872a4a41297c7492ee22842098a0e19e5e40a65"
+  },
+  {
+   "path": "src/pymycar/Cad/Car/multilink.py",
+   "sha256": "6960323f8c60c171a467f059ea47106ed9cdfdd35e8f81ab31cf8be7b4ab0890"
+  },
+  {
+   "path": "src/pymycar/Cad/Car/wheel.py",
+   "sha256": "4a5b4d8d7e703d52ec89eee1a84c5113c0b7a01a6a59611f0f9d6426c4a397c5"
+  },
+  {
+   "path": "src/pymycar/Cad/MotorCycle/__init__.py",
+   "sha256": "6812408cd029a0be9fef876d181a482cdc1b5229527c3221c00c550b50a8e4ac"
+  },
+  {
+   "path": "src/pymycar/Cad/MotorCycle/frame.py",
+   "sha256": "9fe88edc4d58b9f7529486b9d32ac79fa7deee993a6ba67ab6af29a7fd502d0d"
+  },
+  {
+   "path": "src/pymycar/Cad/MotorCycle/front_assembly.py",
+   "sha256": "367acf2c15556dd490b4eb558c0570eb3e1eb670295144c404e1ac48d27d0c66"
+  },
+  {
+   "path": "src/pymycar/Cad/MotorCycle/rear_assembly.py",
+   "sha256": "9eb8968b592c6dba728e362cb59cf3f8211107dab84bd9ea1940ce6d30ecb898"
+  },
+  {
+   "path": "src/pymycar/Cad/MotorCycle/wheel.py",
+   "sha256": "145014cd06a92f82b73b5ff24ef9e5600dd5cca8db8f3b6c7b381e8ad72784cc"
+  },
+  {
+   "path": "src/pymycar/Cad/__init__.py",
+   "sha256": "9c948dabcd85e02c9d58e3a1f40e5b057beddfd51bdf00c3fccae6b0431e5c41"
+  },
+  {
+   "path": "src/pymycar/Cad/animation.py",
+   "sha256": "5629c83f15d243e29f66f2944d773af15a56846c7c0a3e5303f7b96b36b290fd"
+  },
+  {
+   "path": "src/pymycar/Cad/geometric_forms.py",
+   "sha256": "58f2070bae3341884ccc392c8a3f04d50b584fe4ddf3d8fbc834e69ee46a4080"
+  },
+  {
+   "path": "src/pymycar/CarKinematic/__init__.py",
+   "sha256": "ba01c1ff6cdc921232ba6193f595cef4a0a0a44a161e33b664fd5569268b624b"
+  },
+  {
+   "path": "src/pymycar/CarKinematic/double_whisbone.py",
+   "sha256": "73b1cb2f1742018b517f4a793096d9e3dd991b10b423a5c30fb7cbac1325089d"
+  },
+  {
+   "path": "src/pymycar/CarKinematic/functions.py",
+   "sha256": "db999df1c646f2c7a2adfc473d1aafaaa6aec44788c47ea85381c5911cd26f09"
+  },
+  {
+   "path": "src/pymycar/CarKinematic/multilink.py",
+   "sha256": "eb56f9e60141022b353f2f94040a7ac5f50a02bfa19e1b5967e5b98b38d2bd8e"
+  },
+  {
+   "path": "src/pymycar/CarKinematic/suspension_files.py",
+   "sha256": "60f97e34209c739cb9dc58475b3686aac2305f5223341c4a6aab906d6d97cea9"
+  },
+  {
+   "path": "src/pymycar/Logger/__init__.py",
+   "sha256": "dd6746673eb0e14d65b4d897ceb6f2bb1859c39d496cc58f936c1170099e7120"
+  },
+  {
+   "path": "src/pymycar/Logger/library_versions.py",
+   "sha256": "89ff496b80de214505f1076cc31540dfd2bb7f51067afff3381b30e436c4cd5f"
+  },
+  {
+   "path": "src/pymycar/MotorCycleKinematic/__init__.py",
+   "sha256": "bafda22460c1246a62809546aee158efab80ec36373b06220e9715cab82d4a63"
+  },
+  {
+   "path": "src/pymycar/MotorCycleKinematic/front_assembly.py",
+   "sha256": "54233e794397d180fcef1a9ebab48f102a2b4698f9d165b21e3697526b20cba6"
+  },
+  {
+   "path": "src/pymycar/MotorCycleKinematic/functions.py",
+   "sha256": "66590755c649eb90a94593ed96034dfcfa0adc0773a1351e065fd3662d520cef"
+  },
+  {
+   "path": "src/pymycar/MotorCycleKinematic/rear_assembly.py",
+   "sha256": "3a68c9c7f72023159d4a16a938450a5c177941ae2b11e1ecf32d6e5c90e5f4f6"
+  },
+  {
+   "path": "src/pymycar/Vehicle/__init__.py",
+   "sha256": "708989d8ee8194b2a6cae970d386271be7d1a70e2cbe747086228c95384656e7"
+  },
+  {
+   "path": "src/pymycar/Vehicle/car.py",
+   "sha256": "eeca961ce3f7e4948ca0992713764156ba0459b7e18d7c7f6745d77f5b69c52a"
+  },
+  {
+   "path": "src/pymycar/Vehicle/chassis.py",
+   "sha256": "97c9a8a4e130544fadbb127b59d9647ccffe6c1f4b7d19adc77672a1e2a44c68"
+  },
+  {
+   "path": "src/pymycar/Vehicle/suspension.py",
+   "sha256": "d444ef8655b5e1d61a7652dfe9683c6b8eb0f6bd2ab7cc82659c1943a1dd300c"
+  },
+  {
+   "path": "src/pymycar/Vehicle/wheel.py",
+   "sha256": "6ba1b16f590a5880ab6dd82ea6371929b992e6228f0e7030b1333c8fc121ef1a"
+  },
+  {
+   "path": "src/pymycar/VerticalModels/__init__.py",
+   "sha256": "d9fe4cda87751e7176388e53fa0f23561cd93ce86b44123a7428a589449ac76a"
+  },
+  {
+   "path": "src/pymycar/VerticalModels/exitations.py",
+   "sha256": "d22635b6cdc5d78a8f8bee022c206652ddf19b4fb46467e9bfa0d487a5680e0e"
+  },
+  {
+   "path": "src/pymycar/VerticalModels/models.py",
+   "sha256": "49543c4ec9c4712c00b83993e1b5043c7d0789c7ccdc916f56d957952faf4de2"
+  },
+  {
+   "path": "src/pymycar/__init__.py",
+   "sha256": "fca5315f57324df0dd0b25092f8283ea045e77958f39bde8d038553ee085ff09"
+  },
+  {
+   "path": "src/pymycar/files.py",
+   "sha256": "596520b3369f0becdb6d8ffe792abb7c5af05d7127b32899e7035db400fbc544"
+  },
+  {
+   "path": "test/test_version.py",
+   "sha256": "5d4ebba5987d4cd04f909e59421237fcca53526044da1e2f029fe82a89e044d7"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 146456
+}

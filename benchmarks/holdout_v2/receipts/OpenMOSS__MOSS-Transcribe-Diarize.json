@@ -1,0 +1,203 @@
+{
+ "repo": "OpenMOSS/MOSS-Transcribe-Diarize",
+ "dir": "OpenMOSS__MOSS-Transcribe-Diarize",
+ "commit": "79c675f0670cc2f824bcbcdd98263704f40f1f7e",
+ "estimate_commit": "79c675f0670cc2f824bcbcdd98263704f40f1f7e",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitattributes",
+  ".gitignore",
+  "FINETUNING.md",
+  "LICENSE",
+  "README.md",
+  "README_zh.md",
+  "assets/Model_Architecture.png",
+  "assets/OpenMOSS_Logo.png",
+  "assets/OpenMOSS_Logo.svg",
+  "assets/mosi-logo.png",
+  "examples/prompts.md",
+  "finetune.py",
+  "moss_transcribe_diarize/__init__.py",
+  "moss_transcribe_diarize/app/__init__.py",
+  "moss_transcribe_diarize/app/cli.py",
+  "moss_transcribe_diarize/app/ffmpeg.py",
+  "moss_transcribe_diarize/app/jobs.py",
+  "moss_transcribe_diarize/app/model_runner.py",
+  "moss_transcribe_diarize/app/server.py",
+  "moss_transcribe_diarize/app/static/app.js",
+  "moss_transcribe_diarize/app/static/favicon.svg",
+  "moss_transcribe_diarize/app/static/i18n.js",
+  "moss_transcribe_diarize/app/static/index.html",
+  "moss_transcribe_diarize/app/static/locales/en.json",
+  "moss_transcribe_diarize/app/static/locales/zh-CN.json",
+  "moss_transcribe_diarize/app/static/styles.css",
+  "moss_transcribe_diarize/app/vllm_runner.py",
+  "moss_transcribe_diarize/app/web_cli.py",
+  "moss_transcribe_diarize/configuration_moss_transcribe_diarize.py",
+  "moss_transcribe_diarize/inference_utils.py",
+  "moss_transcribe_diarize/modeling_moss_transcribe_diarize.py",
+  "moss_transcribe_diarize/processing_moss_transcribe_diarize.py",
+  "moss_transcribe_diarize/subtitle/__init__.py",
+  "moss_transcribe_diarize/subtitle/export.py",
+  "moss_transcribe_diarize/subtitle/layout.py",
+  "moss_transcribe_diarize/subtitle/models.py",
+  "moss_transcribe_diarize/subtitle/postprocess.py",
+  "moss_transcribe_diarize/transcript_parser.py",
+  "pyproject.toml",
+  "tests/test_app_api.py",
+  "tests/test_app_ffmpeg.py",
+  "tests/test_app_i18n.py",
+  "tests/test_model_runner.py",
+  "tests/test_progress_streamer.py",
+  "tests/test_subtitle_export.py",
+  "tests/test_subtitle_layout.py",
+  "tests/test_subtitle_postprocess.py",
+  "tests/test_transcript_parser.py",
+  "tests/test_vllm_runner.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "b816449637e1d2fd55a0b8694ad106530d1370247a41fd83094743c1c240c225"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "b0fb67e7c268d9e6ec89880c0fe8a5c5cc38136ab40f45574123b98dd9a9cf39"
+  },
+  {
+   "path": "finetune.py",
+   "sha256": "ffb8fdc617d0010a7a64dd0a774cec642b58966dbef051fa37875d2f983f1fc7"
+  },
+  {
+   "path": "moss_transcribe_diarize/__init__.py",
+   "sha256": "989087110e877549ba7879e985d72f2d6e505524384cba51b1ce81c3b71711da"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/__init__.py",
+   "sha256": "395d13ad9dfac14d04fabfe1dc7b56676bd9234051b08e4ce1b48fac8884b0fb"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/cli.py",
+   "sha256": "a1e9074b8b5d5b6e95bcb56b62133f9432932e7b0438a20d2ecc121c577543b3"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/ffmpeg.py",
+   "sha256": "38a436b55783e7a40d37b5e036816d1eca92619d079bc4e6d8d23ee8ef34dcb9"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/jobs.py",
+   "sha256": "d2c688ecc70bf1aecdefed983da9349ff4c1c506aafd9387a8e0069c379d5a0f"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/model_runner.py",
+   "sha256": "083b0413dff3d3e6bc1dbb87d7bf429d9a726c983670fff61bb26c846c2643fb"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/server.py",
+   "sha256": "7ac67ab1744813044c2433ca720c34129524f4c53f755b35ed22b1383155ba98"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/vllm_runner.py",
+   "sha256": "0304d991567289147052c00a4a81d3ee2c281023859e5472dbfa1df252ace28a"
+  },
+  {
+   "path": "moss_transcribe_diarize/app/web_cli.py",
+   "sha256": "05c97d5be854ab0705ffd69c7d02a5a50c5b3d59d77639a41139758876ae9eed"
+  },
+  {
+   "path": "moss_transcribe_diarize/configuration_moss_transcribe_diarize.py",
+   "sha256": "b4d12b0f4609af69b61c2fe3aa5fbaf476af22278369e4540745bc47d1d37892"
+  },
+  {
+   "path": "moss_transcribe_diarize/inference_utils.py",
+   "sha256": "1d97700b83ed95438be2e3a59529b3726d7bf7f7cdd488ad2097180bad15b86b"
+  },
+  {
+   "path": "moss_transcribe_diarize/modeling_moss_transcribe_diarize.py",
+   "sha256": "e5fed522f246a315036a20d545e9f804ea01d81f5b0d246ba833ea635a1f4056"
+  },
+  {
+   "path": "moss_transcribe_diarize/processing_moss_transcribe_diarize.py",
+   "sha256": "86383310dd3ebf8e372c9bb09eb5d9b72ed226d01478097c1fd566a2a9d2e667"
+  },
+  {
+   "path": "moss_transcribe_diarize/subtitle/__init__.py",
+   "sha256": "3fda2cd684e05ebd6b709c8ff4a617288158c30ea4cc07e45f8b5f4df8b7023a"
+  },
+  {
+   "path": "moss_transcribe_diarize/subtitle/export.py",
+   "sha256": "8d5975c774b0bea00ed1d4f15bb7019584b386eefd9aed15d7a7fdf4be81b1ee"
+  },
+  {
+   "path": "moss_transcribe_diarize/subtitle/layout.py",
+   "sha256": "616b1c8fb931bc655d3bdc79f35ad013f1c1dd6493ab4659cecb9fa013e4a2b7"
+  },
+  {
+   "path": "moss_transcribe_diarize/subtitle/models.py",
+   "sha256": "ec234746bdf1e4dab1aa1656bc36127a1452e1d5b6f23ec4e356c73f02e074e0"
+  },
+  {
+   "path": "moss_transcribe_diarize/subtitle/postprocess.py",
+   "sha256": "808409a3768a519240f3a5d01e954cccde19cff7f7b8e7e8cace11dec8355243"
+  },
+  {
+   "path": "moss_transcribe_diarize/transcript_parser.py",
+   "sha256": "475c564edc128afde69ae27f1fe8575412b1d6ac8f9d6be38b6c7f4bd16b8412"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "181e406a953d1b6b1a18971dada4427732597fa592252fe8e63080169192d72b"
+  },
+  {
+   "path": "tests/test_app_api.py",
+   "sha256": "41ddee3f24d6278c06802c01da72f73caed5ec16511c5365ef8f76e0d050b62c"
+  },
+  {
+   "path": "tests/test_app_ffmpeg.py",
+   "sha256": "377d22720deab6540133e00659f0028f9be4cb0f8ce49c2f6bf8498e42989644"
+  },
+  {
+   "path": "tests/test_app_i18n.py",
+   "sha256": "daccb454d1c51546acbc3b43a4cacaeaa46ecaf826e314512a9f164a9f3b3688"
+  },
+  {
+   "path": "tests/test_model_runner.py",
+   "sha256": "c3a8850a910af206e5aa0fab3568438a18d83a0262d30d56ab985a935a681e70"
+  },
+  {
+   "path": "tests/test_progress_streamer.py",
+   "sha256": "d62caf6400fec3807cfad9572d1daeb2b0ba9164f50c99b862b98c2c7a2ee53f"
+  },
+  {
+   "path": "tests/test_subtitle_export.py",
+   "sha256": "52a2e86156a3f63479ea88357bfb82e0989f6512ed51fb9f42c954ac5d59cf62"
+  },
+  {
+   "path": "tests/test_subtitle_layout.py",
+   "sha256": "a21c0c3b5df89b452fb18a4112ba39544a484cf1f9569ab86b3e783475e4ad7a"
+  },
+  {
+   "path": "tests/test_subtitle_postprocess.py",
+   "sha256": "9d93197b0f3d341daae379a88eeb9fd9ca3e19995d1bff1d3d889d6c49d6f42b"
+  },
+  {
+   "path": "tests/test_transcript_parser.py",
+   "sha256": "321b6a12387089000f14978fccd0436d60e95d04c4cff9fc8089f8516747e584"
+  },
+  {
+   "path": "tests/test_vllm_runner.py",
+   "sha256": "3f817178f1d1da10c3e5de0d7abf947c8aa4226442973ca9a7742bd412aa17be"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 84625
+}

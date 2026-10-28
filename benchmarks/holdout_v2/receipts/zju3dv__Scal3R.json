@@ -1,0 +1,449 @@
+{
+ "repo": "zju3dv/Scal3R",
+ "dir": "zju3dv__Scal3R",
+ "commit": "26a2fa73898440fefe056a80dfb08763e5b81314",
+ "estimate_commit": "26a2fa73898440fefe056a80dfb08763e5b81314",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  "LICENSE",
+  "README.md",
+  "assets/logo.png",
+  "assets/teaser.gif",
+  "configs/base.yaml",
+  "configs/models/scal3r.yaml",
+  "docs/install.md",
+  "pyproject.toml",
+  "requirements.txt",
+  "scal3r/__init__.py",
+  "scal3r/dataloaders/__init__.py",
+  "scal3r/dataloaders/datasets/__init__.py",
+  "scal3r/dataloaders/datasets/image_folder_dataset.py",
+  "scal3r/engine/__init__.py",
+  "scal3r/engine/config.py",
+  "scal3r/engine/io.py",
+  "scal3r/engine/misc.py",
+  "scal3r/engine/path.py",
+  "scal3r/models/__init__.py",
+  "scal3r/models/scal3r.py",
+  "scal3r/pipelines/__init__.py",
+  "scal3r/pipelines/backend.py",
+  "scal3r/pipelines/inference.py",
+  "scal3r/run.py",
+  "scal3r/utils/__init__.py",
+  "scal3r/utils/base_utils.py",
+  "scal3r/utils/cam_utils.py",
+  "scal3r/utils/console_utils.py",
+  "scal3r/utils/data_utils.py",
+  "scal3r/utils/dist_utils.py",
+  "scal3r/utils/image_utils.py",
+  "scal3r/utils/loop/__init__.py",
+  "scal3r/utils/loop/detector.py",
+  "scal3r/utils/loop/fastloop/__init__.py",
+  "scal3r/utils/loop/fastloop/solve_python.py",
+  "scal3r/utils/loop/loop_utils.py",
+  "scal3r/utils/loop/models/__init__.py",
+  "scal3r/utils/loop/models/aggregators/__init__.py",
+  "scal3r/utils/loop/models/aggregators/salad.py",
+  "scal3r/utils/loop/models/backbones/__init__.py",
+  "scal3r/utils/loop/models/backbones/dinov2.py",
+  "scal3r/utils/loop/models/helper.py",
+  "scal3r/utils/loop/optimizer.py",
+  "scal3r/utils/math_utils.py",
+  "scal3r/utils/offload_utils.py",
+  "scal3r/utils/parallel_utils.py",
+  "scal3r/utils/pgo/__init__.py",
+  "scal3r/utils/pgo/aligner.py",
+  "scal3r/utils/pgo/constraint.py",
+  "scal3r/utils/pgo/optimizer.py",
+  "scal3r/utils/pgo/processor.py",
+  "scal3r/utils/pgo/submap.py",
+  "scal3r/utils/pgo/utils.py",
+  "scal3r/utils/ray_utils.py",
+  "scal3r/utils/result_utils.py",
+  "scal3r/utils/runtime_utils.py",
+  "scal3r/utils/ttt_utils.py",
+  "scal3r/utils/vggt/__init__.py",
+  "scal3r/utils/vggt/heads/__init__.py",
+  "scal3r/utils/vggt/heads/camera_head.py",
+  "scal3r/utils/vggt/heads/dpt_head.py",
+  "scal3r/utils/vggt/heads/head_act.py",
+  "scal3r/utils/vggt/heads/utils.py",
+  "scal3r/utils/vggt/layers/__init__.py",
+  "scal3r/utils/vggt/layers/attention.py",
+  "scal3r/utils/vggt/layers/block.py",
+  "scal3r/utils/vggt/layers/drop_path.py",
+  "scal3r/utils/vggt/layers/layer_scale.py",
+  "scal3r/utils/vggt/layers/mlp.py",
+  "scal3r/utils/vggt/layers/patch_embed.py",
+  "scal3r/utils/vggt/layers/rope.py",
+  "scal3r/utils/vggt/layers/swiglu_ffn.py",
+  "scal3r/utils/vggt/layers/vision_transformer.py",
+  "scal3r/utils/vggt/models/__init__.py",
+  "scal3r/utils/vggt/models/aggregator.py",
+  "scripts/clean.sh",
+  "scripts/install.sh",
+  "scripts/visualize/README.md",
+  "scripts/visualize/geometry/render/render_cameras.py",
+  "scripts/visualize/geometry/render/render_points.py",
+  "scripts/visualize/geometry/render/render_scene_from_viewpoints.py",
+  "scripts/visualize/geometry/utils/align_coordinate.py",
+  "scripts/visualize/geometry/utils/composite_frames.py",
+  "scripts/visualize/geometry/utils/downsample_ply.py",
+  "scripts/visualize/geometry/utils/visualize_cameras.py",
+  "scripts/visualize/geometry/viewer/open3d_viewer.py",
+  "scripts/visualize/requirements.txt",
+  "scripts/visualize/tools/images_to_video.py",
+  "scripts/visualize/utils/__init__.py",
+  "scripts/visualize/utils/camera_utils.py",
+  "scripts/visualize/utils/color_utils.py",
+  "scripts/visualize/utils/point_utils.py",
+  "scripts/visualize/utils/render_utils.py",
+  "scripts/visualize/viser_viewer.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "d09d1cf4bd597581b948cf63712eb4dab8870af1e6a95b6c29f8750698a429ed"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "572cf195183cba69a11e587538687fcf705e3ed3a3da84cce7129cef5b87bf12"
+  },
+  {
+   "path": "scal3r/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "scal3r/dataloaders/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "scal3r/dataloaders/datasets/__init__.py",
+   "sha256": "bb2456a1ee81c88458f8b53d60b1661a3cf2ee1aa10bf697b52dabb05e07e100"
+  },
+  {
+   "path": "scal3r/dataloaders/datasets/image_folder_dataset.py",
+   "sha256": "f32cfd122f5276893f3986124fbf2a9f846d135db2172b34b2d4b3433a3844ce"
+  },
+  {
+   "path": "scal3r/engine/__init__.py",
+   "sha256": "1b8ad4b3775d6a275ee176f70b96809da89170e398e4b326297153548d502327"
+  },
+  {
+   "path": "scal3r/engine/config.py",
+   "sha256": "0eae25585189e1189544db08a854e93ecd455ccf63e9829bc68b854fc67e31a4"
+  },
+  {
+   "path": "scal3r/engine/io.py",
+   "sha256": "f0639880e1318da7cf88e3071922adbaf3fb09b82118694a07297b03500b5914"
+  },
+  {
+   "path": "scal3r/engine/misc.py",
+   "sha256": "38ce8ee67457afbda06bc6e471ae382662c9778887e0632f1dc456c2a33649cf"
+  },
+  {
+   "path": "scal3r/engine/path.py",
+   "sha256": "4bf90d12f43f2688a7e1a13b68ea1154d946541a3e9d3a445dd2f71d57e41347"
+  },
+  {
+   "path": "scal3r/models/__init__.py",
+   "sha256": "49943348789a1cefd8541c7d650eea6ab62aef1702fb369e3c7a19665b934c73"
+  },
+  {
+   "path": "scal3r/models/scal3r.py",
+   "sha256": "9563df79ee652808fc78b690d56a78a3b6d2bf01dc2781329cd9355258b14ef3"
+  },
+  {
+   "path": "scal3r/pipelines/__init__.py",
+   "sha256": "2d9e1bd7c7e1a58f1c8288611a9239252f9fd6f1ca98da335ab39e9cede2c2cd"
+  },
+  {
+   "path": "scal3r/pipelines/backend.py",
+   "sha256": "fc3493b0f7e38bfa41980fe193c60c92b958fe91dea31f76912c428067942c63"
+  },
+  {
+   "path": "scal3r/pipelines/inference.py",
+   "sha256": "c73372bbff64af5c589baa92e09cec6a7e51dce949e6dd7d171b2c787acbf652"
+  },
+  {
+   "path": "scal3r/run.py",
+   "sha256": "acd7d3a2e5e9f297c40197836520333406d023d650d92553d2ae8bef720f6f1b"
+  },
+  {
+   "path": "scal3r/utils/__init__.py",
+   "sha256": "19017349b7f0073ce60ff8d1a46f506ad70fa1d048bf433753ee7a1d58334595"
+  },
+  {
+   "path": "scal3r/utils/base_utils.py",
+   "sha256": "a5d6bfac1eacf03fa9c1d25e5c703698cd01376aaa89cd03cebe3ae9ab01be7d"
+  },
+  {
+   "path": "scal3r/utils/cam_utils.py",
+   "sha256": "bfb981cc79ff4247154f18adc1046987de2281462226b0cb664c1a5911636459"
+  },
+  {
+   "path": "scal3r/utils/console_utils.py",
+   "sha256": "5f71d3a82b71ed6998039b5e114c8d7e2d8cf134e0022f33356284c08a56792d"
+  },
+  {
+   "path": "scal3r/utils/data_utils.py",
+   "sha256": "156a55a50f6d1942c97b2507378c6c188ca97a80908ff8b17155edbb1537922b"
+  },
+  {
+   "path": "scal3r/utils/dist_utils.py",
+   "sha256": "ae8c50e7fe179a3310b56197451538e293e8f48b326214e21a6083710f84ec5d"
+  },
+  {
+   "path": "scal3r/utils/image_utils.py",
+   "sha256": "8ee23b2007c70dee08fb85a38e5d268264fd22f01ae139bb3aee46e28f69be43"
+  },
+  {
+   "path": "scal3r/utils/loop/__init__.py",
+   "sha256": "a0a704bc1a08577f7e5a57a789a3a29ff92b3681c34f00078f3f017cdb3c687a"
+  },
+  {
+   "path": "scal3r/utils/loop/detector.py",
+   "sha256": "f5f4ff10e6186c083a412107666e7610d8b299a7190ad4a0502578dc888c2f58"
+  },
+  {
+   "path": "scal3r/utils/loop/fastloop/__init__.py",
+   "sha256": "75ad4f4c2943325f88064ad2beae890b59674be2bf0404b30afc5584dc4de4bb"
+  },
+  {
+   "path": "scal3r/utils/loop/fastloop/solve_python.py",
+   "sha256": "f126d81bc002d047968f7c25c252fa1f0331718939923fd83c2bd8630794870b"
+  },
+  {
+   "path": "scal3r/utils/loop/loop_utils.py",
+   "sha256": "c5718ce3fd74b38cb5844a0af60024cfd1d866604b06aaa1ebd35e96a3343b73"
+  },
+  {
+   "path": "scal3r/utils/loop/models/__init__.py",
+   "sha256": "9e4a9b5b75022c9040b21406bc07bf13ff7abc76cdf474578d72ba4a205de017"
+  },
+  {
+   "path": "scal3r/utils/loop/models/aggregators/__init__.py",
+   "sha256": "a4822324c2b69c5922d4a4a12386d1dbb5f33bc4de3b266dff0f457652a54f6e"
+  },
+  {
+   "path": "scal3r/utils/loop/models/aggregators/salad.py",
+   "sha256": "7047445c8e0b9e0afb942b9f4f8c09aa168d25390915871cd983f1f5738b9c2f"
+  },
+  {
+   "path": "scal3r/utils/loop/models/backbones/__init__.py",
+   "sha256": "092b4ac4169ac6f39d9714d126b76f58ede51c83017e7119dad117cf160b540b"
+  },
+  {
+   "path": "scal3r/utils/loop/models/backbones/dinov2.py",
+   "sha256": "651535ecda2e752ef62ed2821aa01048f86a534cd43e8e7200fa82113de3c833"
+  },
+  {
+   "path": "scal3r/utils/loop/models/helper.py",
+   "sha256": "337a578c23c4169d976f6dedcc9308c0e0116eb9becbd4b1d771674c0106c990"
+  },
+  {
+   "path": "scal3r/utils/loop/optimizer.py",
+   "sha256": "1cc97ba5022d294caab56d4f955127ae65af9a51dadc87616e52dd720b23f16b"
+  },
+  {
+   "path": "scal3r/utils/math_utils.py",
+   "sha256": "27001562bdbaead3f7842b851492e102138ea7be02deed21539d696176d802b4"
+  },
+  {
+   "path": "scal3r/utils/offload_utils.py",
+   "sha256": "be72b8ce757b0f9a10f97197b943141bc85dfd13f3f1d40f89d5ce40c568c74b"
+  },
+  {
+   "path": "scal3r/utils/parallel_utils.py",
+   "sha256": "2504b810c9fb5dc1c953e14dc6ec00ada37fc949316b9576289a03b7f29c328b"
+  },
+  {
+   "path": "scal3r/utils/pgo/__init__.py",
+   "sha256": "55aebf498b1793865d1760cd841ca98da28ba59a47b24f51296c718f606a3fcb"
+  },
+  {
+   "path": "scal3r/utils/pgo/aligner.py",
+   "sha256": "bdb9f09104fc6eaf77205af7d334aaf8adf045e8b53fb726bf04e50b18ea1ab9"
+  },
+  {
+   "path": "scal3r/utils/pgo/constraint.py",
+   "sha256": "598208e5df2fcd13d54253a05c2e8f5571cc242de7697c580bfeefb34c935966"
+  },
+  {
+   "path": "scal3r/utils/pgo/optimizer.py",
+   "sha256": "15d197d29f1eabdbce419e26699fc6ceb212edfc3ee3dcd2e836d9173c2475c4"
+  },
+  {
+   "path": "scal3r/utils/pgo/processor.py",
+   "sha256": "fb46fe9af96f2b0ed5cbb46179853601be2ba616da81d93ecd3d9e07cefea916"
+  },
+  {
+   "path": "scal3r/utils/pgo/submap.py",
+   "sha256": "0890a3ce4e18efb3ddce54591509cdb2a167a56cc090b02892061c71cabb8b54"
+  },
+  {
+   "path": "scal3r/utils/pgo/utils.py",
+   "sha256": "9607e5ab051d3dd564825bf7446fe4ec1db8a15b73498ce2bc3e9b8e49d43536"
+  },
+  {
+   "path": "scal3r/utils/ray_utils.py",
+   "sha256": "1e13655ad6cb2880dbbe2b46cd3a5faeca77834f3ee434679cad1cff387cbf64"
+  },
+  {
+   "path": "scal3r/utils/result_utils.py",
+   "sha256": "69ee7e9acce01081c09376cd029c1258a58ded46f506353a138828494c499a2d"
+  },
+  {
+   "path": "scal3r/utils/runtime_utils.py",
+   "sha256": "8474d38de6ca6054ce157a57cc9ae981f3ce70e911aa1bb2e196a854de926e99"
+  },
+  {
+   "path": "scal3r/utils/ttt_utils.py",
+   "sha256": "3236825d2abe59d233aabeb58e9c65ca86da8999353c85f036fd498bb8ef700d"
+  },
+  {
+   "path": "scal3r/utils/vggt/__init__.py",
+   "sha256": "3272202d1766d1652c90e980c0c06b269ed3ad2ba309746a993b14816103fb55"
+  },
+  {
+   "path": "scal3r/utils/vggt/heads/__init__.py",
+   "sha256": "c726c3fa7e9545366fb014369c28bde78116ff044d99ace1b811a6c206237a52"
+  },
+  {
+   "path": "scal3r/utils/vggt/heads/camera_head.py",
+   "sha256": "8fc9c16c07ba9a85897a45a679ce675a7544d85f0316380a4c78934dcf452f8f"
+  },
+  {
+   "path": "scal3r/utils/vggt/heads/dpt_head.py",
+   "sha256": "f087754f8a6f93980c2f8ec525e8fbdf34fb5d5bea79e4dec27019e44ccbcf7f"
+  },
+  {
+   "path": "scal3r/utils/vggt/heads/head_act.py",
+   "sha256": "f46a32fe0db33b372210a0e5d8dd272c99e1fc10c74bf9998a39fd1a14bc86ef"
+  },
+  {
+   "path": "scal3r/utils/vggt/heads/utils.py",
+   "sha256": "72b6c9edd0d0db49e780dd89e05c0f8c3e917df22b7ba373c3a1025fd598c468"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/__init__.py",
+   "sha256": "bd565ec0fda6e38c74979ccee19b26cb919fe66826bdc188dc879776a4999ede"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/attention.py",
+   "sha256": "79b71f36832cf34718dbc5ec7683beb6aa7e6ead79bd8ef035206e09bbab3c51"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/block.py",
+   "sha256": "c9e0b54da5d92de7392435a4c49ae6450df40b51dcf89bb31719e2bdb2209648"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/drop_path.py",
+   "sha256": "b9f8236e86054b9d9a71275efcad2a9ecaa1f86b529d4b8d6109ddb5e806f67a"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/layer_scale.py",
+   "sha256": "13c3682d1dc330ae83ff5eb2eb972e9ad8a82351f408a6186baa5d78cbc362b8"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/mlp.py",
+   "sha256": "d31cfd080ee3151fdd1e534cbbc7031a678902dd983ca83583318ccb5a3705a7"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/patch_embed.py",
+   "sha256": "7bc108e71f9aac6371188362f5c11f7d51a824268d083c50c44e069e0ddd1d80"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/rope.py",
+   "sha256": "7d64c13ad012f3d334d095b790de12644570eb79d16a824602c02191515956de"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/swiglu_ffn.py",
+   "sha256": "80a18ec61579bc2ba9bd21a850387aba2d6069ed27f38c8f0066b9314c68e4d5"
+  },
+  {
+   "path": "scal3r/utils/vggt/layers/vision_transformer.py",
+   "sha256": "d4e61731fd48aea03574c20129501dec6394714b9418f56e6eb41314e48592b1"
+  },
+  {
+   "path": "scal3r/utils/vggt/models/__init__.py",
+   "sha256": "4db0a8bee06065df8a40bdc8f10245f5aa861198a9f11805a6e44140be56e6a9"
+  },
+  {
+   "path": "scal3r/utils/vggt/models/aggregator.py",
+   "sha256": "76b4a64706e13a18b12d8bb38de830f5aa2b6ddd7c1eef3faea6d8f38e4abf5f"
+  },
+  {
+   "path": "scripts/visualize/geometry/render/render_cameras.py",
+   "sha256": "f8a144e7ac945e2ca0322383056ba0b11be1ba6f0550ff37ab6107793eaad6b3"
+  },
+  {
+   "path": "scripts/visualize/geometry/render/render_points.py",
+   "sha256": "3479650668bca76ef74c6e8f043e1866df1d4fb3e544bc1b87891091fe953703"
+  },
+  {
+   "path": "scripts/visualize/geometry/render/render_scene_from_viewpoints.py",
+   "sha256": "7b609af80d44a87186373760c6d97f8454dde078264e89f4538ea8ae4afa8c7b"
+  },
+  {
+   "path": "scripts/visualize/geometry/utils/align_coordinate.py",
+   "sha256": "63f3e4900500dfaf523c8b57215e8429cb00a79025b89f55d83e76d7fcaf9eaa"
+  },
+  {
+   "path": "scripts/visualize/geometry/utils/composite_frames.py",
+   "sha256": "b992adadef51ec544cb3445d6c14f2399cb12134c42573bc452528c918b06d2e"
+  },
+  {
+   "path": "scripts/visualize/geometry/utils/downsample_ply.py",
+   "sha256": "017d1d13f8d905c0a08dff083ef13d0d9a4720444cdf94295dc744ee5cef885f"
+  },
+  {
+   "path": "scripts/visualize/geometry/utils/visualize_cameras.py",
+   "sha256": "0692c20188cedec195f7e3a0fbd5ef11f293414ae2f444e66ada876a52b8be4a"
+  },
+  {
+   "path": "scripts/visualize/geometry/viewer/open3d_viewer.py",
+   "sha256": "6ded987e392e48775ff41a671b4d29df1d65312570c98489b762b6698a31dfa0"
+  },
+  {
+   "path": "scripts/visualize/tools/images_to_video.py",
+   "sha256": "57bd207d35160214a181f4c9b2afbc16657af24cbcd204a14948025cee7ef4bb"
+  },
+  {
+   "path": "scripts/visualize/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "scripts/visualize/utils/camera_utils.py",
+   "sha256": "33d7c362a35d9a635482b853b140d4c59a72b064e5877bf0dd71a30d212ebe7c"
+  },
+  {
+   "path": "scripts/visualize/utils/color_utils.py",
+   "sha256": "ce5d5e116b671b14a9e9632990fd2f340b4b547bcd4a4c06b270a694ecaafed7"
+  },
+  {
+   "path": "scripts/visualize/utils/point_utils.py",
+   "sha256": "585c58406f25d808d02fa3a92166b4d0c5f2c1222c3654d81fafe1c86a4bd18a"
+  },
+  {
+   "path": "scripts/visualize/utils/render_utils.py",
+   "sha256": "714e43df61c5c49ad699bd00d327fd175b122fd1600e1f5b2c5842ffe11c52ae"
+  },
+  {
+   "path": "scripts/visualize/viser_viewer.py",
+   "sha256": "d49bf5767174045311df2aaad563f0bcf09aa0d622e20bbe05a295970229dea8"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 197246
+}

@@ -1,0 +1,219 @@
+{
+ "repo": "AhmadHassan-BTed/CoDiver",
+ "dir": "AhmadHassan-BTed__CoDiver",
+ "commit": "74eb3445d2841a4e5f7ea3a6ce60fa6e7a833f1c",
+ "estimate_commit": "74eb3445d2841a4e5f7ea3a6ce60fa6e7a833f1c",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".editorconfig",
+  ".gitattributes",
+  ".github/ISSUE_TEMPLATE/bug_report.yml",
+  ".github/ISSUE_TEMPLATE/feature_request.yml",
+  ".github/pull_request_template.md",
+  ".github/workflows/ci.yml",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "CHANGELOG.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "README.md",
+  "SECURITY.md",
+  "app.py",
+  "data/defect_data.json",
+  "data/sprintJSON.json",
+  "docs/SMM_221775_Final-Report.pdf",
+  "docs/architecture.md",
+  "pyproject.toml",
+  "requirements.txt",
+  "src/java_analyzer/__init__.py",
+  "src/java_analyzer/analyzer_engine.py",
+  "src/java_analyzer/dashboard.py",
+  "src/java_analyzer/detectors/__init__.py",
+  "src/java_analyzer/detectors/base.py",
+  "src/java_analyzer/detectors/design.py",
+  "src/java_analyzer/detectors/implementation.py",
+  "src/java_analyzer/detectors/naming_docs.py",
+  "src/java_analyzer/utils/__init__.py",
+  "src/java_analyzer/utils/helpers.py",
+  "src/java_analyzer/utils/ui_components.py",
+  "src/software_metrics/__init__.py",
+  "src/software_metrics/calculators/__init__.py",
+  "src/software_metrics/calculators/agile.py",
+  "src/software_metrics/calculators/code_analyzer.py",
+  "src/software_metrics/calculators/estimation.py",
+  "src/software_metrics/core/__init__.py",
+  "src/software_metrics/core/models.py",
+  "src/software_metrics/ui/__init__.py",
+  "src/software_metrics/ui/components/__init__.py",
+  "src/software_metrics/ui/components/charts.py",
+  "src/software_metrics/ui/components/metrics_cards.py",
+  "src/software_metrics/ui/components/sidebar.py",
+  "src/software_metrics/ui/dashboard.py",
+  "src/software_metrics/utils/__init__.py",
+  "tests/sample_data/code_metrics.py",
+  "tests/sample_data/complexity_report.py",
+  "tests/sample_data/data_storage.py",
+  "tests/sample_data/effort_report.py",
+  "tests/sample_data/metrics_dashboard.py",
+  "tests/sample_data/project_health_report.py",
+  "tests/sample_data/quality_report.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "27f1b64b221f025aa389637677bd95dae49691200265c91e21c288023aec85fc"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "f8f0c9140ce86e8b1d4c2ebcd15b22bfcdec4a767a385861412af95aebc60a12"
+  },
+  {
+   "path": "app.py",
+   "sha256": "bdc485846e254423850be7700a5fdc27c4211b899c7668c766a3390b9e242f4f"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "cca97edf04cdde58d71ff7890deb00ec2df7ab80a4635f8df07e3f338b48c0d9"
+  },
+  {
+   "path": "src/java_analyzer/__init__.py",
+   "sha256": "b820e49e436d2b1af0d113644716debb948919eff5878983a3e2f7c0d03c1619"
+  },
+  {
+   "path": "src/java_analyzer/analyzer_engine.py",
+   "sha256": "c33a8c1825161909a54ed225fd36f4a709c0fa5afc77e9d758de09be322e8da6"
+  },
+  {
+   "path": "src/java_analyzer/dashboard.py",
+   "sha256": "557e24ab5d20f0740dec15dde159b5f8b3afff5b9d16bfdcb5f228855c1c6367"
+  },
+  {
+   "path": "src/java_analyzer/detectors/__init__.py",
+   "sha256": "ddf54840e11dbd39d08376fcdd306dc66e5ee399db9241d98961bfc564cf64ea"
+  },
+  {
+   "path": "src/java_analyzer/detectors/base.py",
+   "sha256": "fdceca4f30d21d8a028af11314eec0a3f2879751c21041b518c336dd922759c0"
+  },
+  {
+   "path": "src/java_analyzer/detectors/design.py",
+   "sha256": "d837c6c1e77349ad3d0b0e174330de2b62a1fe53d13a59cae60d196335936c92"
+  },
+  {
+   "path": "src/java_analyzer/detectors/implementation.py",
+   "sha256": "6216979b0280e84ba6ed725890e63517f1879f772c8e2e4d6ec7b34a1d9bf5bb"
+  },
+  {
+   "path": "src/java_analyzer/detectors/naming_docs.py",
+   "sha256": "39219aa5381b7f8bb9e3674dcd3bc5eeee97b809feeca6c1c704db72766866ab"
+  },
+  {
+   "path": "src/java_analyzer/utils/__init__.py",
+   "sha256": "b5540d6d3452cf489a8da2ab1ba9767383c0602f0423c032dfa95a92e052d629"
+  },
+  {
+   "path": "src/java_analyzer/utils/helpers.py",
+   "sha256": "6c7748b8a9336cefaa7ec58118fa4d29d1b2a9b2e0e966f5ba7d57326d871fdd"
+  },
+  {
+   "path": "src/java_analyzer/utils/ui_components.py",
+   "sha256": "0aed7f7eaeb18d01aba70f24b4529ac2c1448d15aa663c98495428e2a81897df"
+  },
+  {
+   "path": "src/software_metrics/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/software_metrics/calculators/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/software_metrics/calculators/agile.py",
+   "sha256": "24c618ff271646b1ae95ee8154ed4ab399ad8bbdf45f5145f515ea8b9ee42094"
+  },
+  {
+   "path": "src/software_metrics/calculators/code_analyzer.py",
+   "sha256": "0e77a7ca40c5e2f2084d7d5382855226a121fc98186a6fa8a356ee539974e04b"
+  },
+  {
+   "path": "src/software_metrics/calculators/estimation.py",
+   "sha256": "5cf2d06197529b9ad5dbb8e2e6b3804663a69fb9827fa48513139da1ff2b85eb"
+  },
+  {
+   "path": "src/software_metrics/core/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/software_metrics/core/models.py",
+   "sha256": "5bf4392758abf445101df3bd60f60e8d84940d4fec33a47c39586dfc3389592b"
+  },
+  {
+   "path": "src/software_metrics/ui/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/software_metrics/ui/components/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/software_metrics/ui/components/charts.py",
+   "sha256": "48743f3985beaf9486ecf5fc17872461d4d0874ac668da990ea86240a85de697"
+  },
+  {
+   "path": "src/software_metrics/ui/components/metrics_cards.py",
+   "sha256": "0f12b46e2ebd87cd5630407aab12cd49078dc8be151c8667cffbe6ce6472b787"
+  },
+  {
+   "path": "src/software_metrics/ui/components/sidebar.py",
+   "sha256": "40fde6c5c1b5e97501516a1a32bd78721f7690a6128007f5ad65ab38316d844a"
+  },
+  {
+   "path": "src/software_metrics/ui/dashboard.py",
+   "sha256": "5e8d212502facb085b255e820f6279550d1aac8768da26a540fdda2093b41541"
+  },
+  {
+   "path": "src/software_metrics/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/sample_data/code_metrics.py",
+   "sha256": "c502376bc60bdd4aacf23207b2621c5259593a5131493e5762a640f264c00bea"
+  },
+  {
+   "path": "tests/sample_data/complexity_report.py",
+   "sha256": "9860a2c2a9bf7f110fdb080fb56a4dab06be8059b019fefe949c6db15b351432"
+  },
+  {
+   "path": "tests/sample_data/data_storage.py",
+   "sha256": "258c8a6b3952b738bae57d284b74707ff40bbc52af8874a1b0fc03555385406e"
+  },
+  {
+   "path": "tests/sample_data/effort_report.py",
+   "sha256": "f27beb55af06c6b0f4dac839517b5d1f93b15aebacda65a9c130e23596495c82"
+  },
+  {
+   "path": "tests/sample_data/metrics_dashboard.py",
+   "sha256": "8740757a8f4c9211255d5865cf5d57e2d0c7ce3c70d449e7e88b2cf89713a135"
+  },
+  {
+   "path": "tests/sample_data/project_health_report.py",
+   "sha256": "c0e9599a99bbaa89578813b7b3384e4f854b61d9897a396b49f14bed9daaea00"
+  },
+  {
+   "path": "tests/sample_data/quality_report.py",
+   "sha256": "dec73bdde6ca4a83be9e09c42abc18fa6e41c6a0fceb4d3cc33091df0ac05cdc"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 64506
+}

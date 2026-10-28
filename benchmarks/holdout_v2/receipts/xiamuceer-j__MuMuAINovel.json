@@ -1,0 +1,1162 @@
+{
+ "repo": "xiamuceer-j/MuMuAINovel",
+ "dir": "xiamuceer-j__MuMuAINovel",
+ "commit": "743e5abec18beb8d73426527e6579538053bc6fd",
+ "estimate_commit": "743e5abec18beb8d73426527e6579538053bc6fd",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".gitattributes",
+  ".github/ISSUE_TEMPLATE/bug_report.md",
+  ".github/ISSUE_TEMPLATE/feature_request.md",
+  ".github/workflows/docker-build.yml",
+  ".gitignore",
+  "Dockerfile",
+  "LICENSE",
+  "README.md",
+  "backend/.env.example",
+  "backend/alembic-postgres.ini",
+  "backend/alembic-sqlite.ini",
+  "backend/alembic/README",
+  "backend/alembic/postgres/.gitkeep",
+  "backend/alembic/postgres/env.py",
+  "backend/alembic/postgres/script.py.mako",
+  "backend/alembic/postgres/versions/20251226_1008_ee0a189f1532_\u521d\u59cb\u6570\u636e\u5e93\u7ed3\u6784.py",
+  "backend/alembic/postgres/versions/20251226_1102_e411428f00c0_\u521d\u59cb\u5316\u9884\u7f6e\u6570\u636e.py",
+  "backend/alembic/postgres/versions/20251227_1541_a7e4408e1d5b_\u6dfb\u52a0system_prompt\u5b57\u6bb5\u5230settings\u8868.py",
+  "backend/alembic/postgres/versions/20260119_1729_6a73f37e9adb_\u6dfb\u52a0\u4f0f\u7b14\u7ba1\u7406\u8868.py",
+  "backend/alembic/postgres/versions/20260127_1404_421237957b27_\u6dfb\u52a0\u63d0\u793a\u8bcd\u5de5\u574a\u76f8\u5173\u8868\u7ed3\u6784.py",
+  "backend/alembic/postgres/versions/20260212_1244_d4d253e3f4c6_\u6dfb\u52a0\u89d2\u8272\u5fc3\u7406\u72b6\u6001\u8ffd\u8e2a\u5b57\u6bb5.py",
+  "backend/alembic/postgres/versions/20260316_1056_8e3ac0236b27_\u6dfb\u52a0\u5c0f\u8bf4\u5c01\u9762\u751f\u6210\u914d\u7f6e.py",
+  "backend/alembic/postgres/versions/20260320_0936_6eb27fce64de_\u65b0\u589estmp\u76f8\u5173\u914d\u7f6e.py",
+  "backend/alembic/postgres/versions/20260424_1006_9a1b2c3d4e5f_expand_password_hash_length.py",
+  "backend/alembic/postgres/versions/20260427_1200_abc12345_\u6dfb\u52a0\u540e\u53f0\u4efb\u52a1\u8868.py",
+  "backend/alembic/postgres/versions/20260513_1009_acdb1d611064_\u6dfb\u52a0\u516c\u544a\u8868.py",
+  "backend/alembic/postgres/versions/20260817_1700_7c1a9e4b2d10_add_project_agent_tables.py",
+  "backend/alembic/postgres/versions/20260818_0859_b6d3a8e1c520_add_agent_execution_steps.py",
+  "backend/alembic/postgres/versions/20260818_1200_f1a2b3c4d5e6_archive_analysis_tasks.py",
+  "backend/alembic/postgres/versions/20260826_1530_f0e1d2c3b4a5_\u6dfb\u52a0disable_thinking\u5b57\u6bb5\u5230settings\u8868.py",
+  "backend/alembic/postgres/versions/20260914_1924_20260914_knowledge_add_local_project_knowledge_base_tables.py",
+  "backend/alembic/sqlite/.gitkeep",
+  "backend/alembic/sqlite/env.py",
+  "backend/alembic/sqlite/script.py.mako",
+  "backend/alembic/sqlite/versions/20251226_1322_fbeb1038c728_\u521d\u59cb\u5316sqlite\u6570\u636e\u5e93.py",
+  "backend/alembic/sqlite/versions/20251227_0856_a1b2c3d4e5f6_\u521d\u59cb\u5316sqlite\u9884\u7f6e\u6570\u636e.py",
+  "backend/alembic/sqlite/versions/20251227_1700_7899f8d4d839_\u6dfb\u52a0system_prompt\u5b57\u6bb5\u5230settings\u8868.py",
+  "backend/alembic/sqlite/versions/20260119_1005_951919659e0f_\u6dfb\u52a0\u4f0f\u7b14\u7ba1\u7406\u8868.py",
+  "backend/alembic/sqlite/versions/20260127_1354_927bcb55b756_\u6dfb\u52a0\u63d0\u793a\u8bcd\u5de5\u574a\u76f8\u5173\u8868\u7ed3\u6784.py",
+  "backend/alembic/sqlite/versions/20260212_0922_642c76fc69d4_\u6dfb\u52a0\u89d2\u8272\u5fc3\u7406\u72b6\u6001\u8ffd\u8e2a\u5b57\u6bb5.py",
+  "backend/alembic/sqlite/versions/20260212_1007_d887fd1a30a6_\u65b0\u589e\u89d2\u8272\u72b6\u6001\u5b57\u6bb5.py",
+  "backend/alembic/sqlite/versions/20260316_1058_17ce752ed7cc_\u6dfb\u52a0\u5c0f\u8bf4\u5c01\u9762\u751f\u6210\u914d\u7f6e.py",
+  "backend/alembic/sqlite/versions/20260320_0939_6ff45db05863_\u65b0\u589estmp\u76f8\u5173\u914d\u7f6e.py",
+  "backend/alembic/sqlite/versions/20260424_1006_ab12cd34ef56_expand_password_hash_length.py",
+  "backend/alembic/sqlite/versions/20260427_1200_def45678ghi9_\u6dfb\u52a0\u540e\u53f0\u4efb\u52a1\u8868.py",
+  "backend/alembic/sqlite/versions/20260513_1019_3a08fc61773f_\u6dfb\u52a0\u516c\u544a\u8868.py",
+  "backend/alembic/sqlite/versions/20260817_1701_9d4e2f7a1b30_add_project_agent_tables.py",
+  "backend/alembic/sqlite/versions/20260818_0900_e4b8c2d7f901_add_agent_execution_steps.py",
+  "backend/alembic/sqlite/versions/20260818_1200_f1a2b3c4d5e6_archive_analysis_tasks.py",
+  "backend/alembic/sqlite/versions/20260826_1530_f0e1d2c3b4a5_\u6dfb\u52a0disable_thinking\u5b57\u6bb5\u5230settings\u8868.py",
+  "backend/alembic/sqlite/versions/20260914_1924_20260914_knowledge_add_local_project_knowledge_base_tables.py",
+  "backend/app/__init__.py",
+  "backend/app/api/__init__.py",
+  "backend/app/api/admin.py",
+  "backend/app/api/announcements.py",
+  "backend/app/api/auth.py",
+  "backend/app/api/book_import.py",
+  "backend/app/api/careers.py",
+  "backend/app/api/changelog.py",
+  "backend/app/api/chapters.py",
+  "backend/app/api/characters.py",
+  "backend/app/api/common.py",
+  "backend/app/api/foreshadows.py",
+  "backend/app/api/inspiration.py",
+  "backend/app/api/knowledge.py",
+  "backend/app/api/mcp_plugins.py",
+  "backend/app/api/memories.py",
+  "backend/app/api/organizations.py",
+  "backend/app/api/outline_transfer.py",
+  "backend/app/api/outlines.py",
+  "backend/app/api/polish.py",
+  "backend/app/api/project_agent.py",
+  "backend/app/api/project_covers.py",
+  "backend/app/api/projects.py",
+  "backend/app/api/prompt_templates.py",
+  "backend/app/api/prompt_workshop.py",
+  "backend/app/api/relationships.py",
+  "backend/app/api/settings.py",
+  "backend/app/api/skills.py",
+  "backend/app/api/tasks.py",
+  "backend/app/api/users.py",
+  "backend/app/api/wizard_stream.py",
+  "backend/app/api/writing_styles.py",
+  "backend/app/config.py",
+  "backend/app/constants/prompt_categories.py",
+  "backend/app/database.py",
+  "backend/app/init_relationship_types.py",
+  "backend/app/logger.py",
+  "backend/app/main.py",
+  "backend/app/mcp/__init__.py",
+  "backend/app/mcp/config.py",
+  "backend/app/mcp/facade.py",
+  "backend/app/mcp/status_sync.py",
+  "backend/app/middleware/__init__.py",
+  "backend/app/middleware/auth_middleware.py",
+  "backend/app/middleware/request_id.py",
+  "backend/app/models/__init__.py",
+  "backend/app/models/analysis_task.py",
+  "backend/app/models/announcement.py",
+  "backend/app/models/background_task.py",
+  "backend/app/models/batch_generation_task.py",
+  "backend/app/models/career.py",
+  "backend/app/models/chapter.py",
+  "backend/app/models/character.py",
+  "backend/app/models/foreshadow.py",
+  "backend/app/models/generation_history.py",
+  "backend/app/models/knowledge.py",
+  "backend/app/models/mcp_plugin.py",
+  "backend/app/models/memory.py",
+  "backend/app/models/outline.py",
+  "backend/app/models/project.py",
+  "backend/app/models/project_agent.py",
+  "backend/app/models/project_default_style.py",
+  "backend/app/models/prompt_template.py",
+  "backend/app/models/prompt_workshop.py",
+  "backend/app/models/regeneration_task.py",
+  "backend/app/models/relationship.py",
+  "backend/app/models/settings.py",
+  "backend/app/models/user.py",
+  "backend/app/models/writing_style.py",
+  "backend/app/schemas/__init__.py",
+  "backend/app/schemas/announcement.py",
+  "backend/app/schemas/book_import.py",
+  "backend/app/schemas/career.py",
+  "backend/app/schemas/chapter.py",
+  "backend/app/schemas/character.py",
+  "backend/app/schemas/foreshadow.py",
+  "backend/app/schemas/import_export.py",
+  "backend/app/schemas/knowledge.py",
+  "backend/app/schemas/mcp_plugin.py",
+  "backend/app/schemas/outline.py",
+  "backend/app/schemas/outline_transfer.py",
+  "backend/app/schemas/polish.py",
+  "backend/app/schemas/project.py",
+  "backend/app/schemas/project_agent.py",
+  "backend/app/schemas/prompt_template.py",
+  "backend/app/schemas/prompt_workshop.py",
+  "backend/app/schemas/regeneration.py",
+  "backend/app/schemas/relationship.py",
+  "backend/app/schemas/settings.py",
+  "backend/app/schemas/writing_style.py",
+  "backend/app/security.py",
+  "backend/app/services/__init__.py",
+  "backend/app/services/ai_clients/__init__.py",
+  "backend/app/services/ai_clients/anthropic_client.py",
+  "backend/app/services/ai_clients/base_client.py",
+  "backend/app/services/ai_clients/gemini_client.py",
+  "backend/app/services/ai_clients/openai_client.py",
+  "backend/app/services/ai_config.py",
+  "backend/app/services/ai_metrics.py",
+  "backend/app/services/ai_providers/__init__.py",
+  "backend/app/services/ai_providers/anthropic_provider.py",
+  "backend/app/services/ai_providers/base_provider.py",
+  "backend/app/services/ai_providers/gemini_provider.py",
+  "backend/app/services/ai_providers/openai_provider.py",
+  "backend/app/services/ai_service.py",
+  "backend/app/services/announcement_client.py",
+  "backend/app/services/auto_character_service.py",
+  "backend/app/services/auto_organization_service.py",
+  "backend/app/services/background_task_service.py",
+  "backend/app/services/book_import_service.py",
+  "backend/app/services/career_service.py",
+  "backend/app/services/career_update_service.py",
+  "backend/app/services/chapter_context_service.py",
+  "backend/app/services/chapter_regenerator.py",
+  "backend/app/services/character_state_update_service.py",
+  "backend/app/services/cover_generation_service.py",
+  "backend/app/services/cover_providers/base_cover_provider.py",
+  "backend/app/services/cover_providers/gemini_cover_provider.py",
+  "backend/app/services/cover_providers/grok_cover_provider.py",
+  "backend/app/services/email_service.py",
+  "backend/app/services/foreshadow_service.py",
+  "backend/app/services/import_export_service.py",
+  "backend/app/services/json_helper.py",
+  "backend/app/services/knowledge_parser.py",
+  "backend/app/services/knowledge_service.py",
+  "backend/app/services/knowledge_vector_store.py",
+  "backend/app/services/mcp_test_service.py",
+  "backend/app/services/mcp_tools_loader.py",
+  "backend/app/services/memory_service.py",
+  "backend/app/services/oauth_service.py",
+  "backend/app/services/onnx_embedding.py",
+  "backend/app/services/outline_transfer_service.py",
+  "backend/app/services/plot_analyzer.py",
+  "backend/app/services/plot_expansion_service.py",
+  "backend/app/services/project_agent_extended_tools.py",
+  "backend/app/services/project_agent_operational_tools.py",
+  "backend/app/services/project_agent_selectors.py",
+  "backend/app/services/project_agent_service.py",
+  "backend/app/services/project_agent_tools.py",
+  "backend/app/services/prompt_service.py",
+  "backend/app/services/skill_loader.py",
+  "backend/app/services/task_resources.py",
+  "backend/app/services/txt_parser_service.py",
+  "backend/app/services/workshop_client.py",
+  "backend/app/skills/README_HOW_TO_ADD_SKILL.md",
+  "backend/app/skills/story-deslop/SKILL.md",
+  "backend/app/skills/story-deslop/references/anti-ai-writing.md",
+  "backend/app/skills/story-deslop/references/banned-words.md",
+  "backend/app/skills/story-long-analyze/SKILL.md",
+  "backend/app/skills/story-long-analyze/references/deconstruction-notes.md",
+  "backend/app/skills/story-long-analyze/references/material-decomposition.md",
+  "backend/app/skills/story-long-analyze/references/output-templates.md",
+  "backend/app/skills/story-long-scan/SKILL.md",
+  "backend/app/skills/story-long-scan/references/genre-trends.md",
+  "backend/app/skills/story-long-scan/references/publishing-guide.md",
+  "backend/app/skills/story-long-scan/references/reader-profiling.md",
+  "backend/app/skills/story-long-write/SKILL.md",
+  "backend/app/skills/story-long-write/references/advanced-plot-techniques.md",
+  "backend/app/skills/story-long-write/references/anti-ai-writing.md",
+  "backend/app/skills/story-long-write/references/character-design.md",
+  "backend/app/skills/story-long-write/references/dialogue-mastery.md",
+  "backend/app/skills/story-long-write/references/emotional-arc-design.md",
+  "backend/app/skills/story-long-write/references/expectation-techniques.md",
+  "backend/app/skills/story-long-write/references/genre-frameworks-unified.md",
+  "backend/app/skills/story-long-write/references/genre-opening-database.md",
+  "backend/app/skills/story-long-write/references/hook-techniques.md",
+  "backend/app/skills/story-long-write/references/micro-innovation.md",
+  "backend/app/skills/story-long-write/references/opening-design.md",
+  "backend/app/skills/story-long-write/references/outline-arrangement.md",
+  "backend/app/skills/story-long-write/references/quality-checklist.md",
+  "backend/app/skills/story-long-write/references/reversal-toolkit.md",
+  "backend/app/skills/story-long-write/references/story-structure.md",
+  "backend/app/skills/story-long-write/references/style-modules.md",
+  "backend/app/skills/story-long-write/references/writer-psychology.md",
+  "backend/app/skills/story-short-analyze/SKILL.md",
+  "backend/app/skills/story-short-analyze/references/character-design.md",
+  "backend/app/skills/story-short-analyze/references/deconstruction-examples.md",
+  "backend/app/skills/story-short-analyze/references/genre-frameworks-unified.md",
+  "backend/app/skills/story-short-analyze/references/genre-writing-formulas.md",
+  "backend/app/skills/story-short-analyze/references/hook-techniques.md",
+  "backend/app/skills/story-short-analyze/references/output-templates.md",
+  "backend/app/skills/story-short-analyze/references/quality-checklist.md",
+  "backend/app/skills/story-short-analyze/references/real-market-data.md",
+  "backend/app/skills/story-short-analyze/references/zhihu-style.md",
+  "backend/app/skills/story-short-scan/SKILL.md",
+  "backend/app/skills/story-short-scan/references/real-market-data.md",
+  "backend/app/skills/story-short-write/SKILL.md",
+  "backend/app/skills/story-short-write/references/anti-ai-writing.md",
+  "backend/app/skills/story-short-write/references/character-design.md",
+  "backend/app/skills/story-short-write/references/dialogue-mastery.md",
+  "backend/app/skills/story-short-write/references/emotional-arc-design.md",
+  "backend/app/skills/story-short-write/references/female-audience-writing.md",
+  "backend/app/skills/story-short-write/references/genre-frameworks-unified.md",
+  "backend/app/skills/story-short-write/references/genre-writing-formulas.md",
+  "backend/app/skills/story-short-write/references/hook-techniques.md",
+  "backend/app/skills/story-short-write/references/opening-design.md",
+  "backend/app/skills/story-short-write/references/quality-checklist.md",
+  "backend/app/skills/story-short-write/references/reversal-toolkit.md",
+  "backend/app/user_manager.py",
+  "backend/app/user_password.py",
+  "backend/app/utils/data_consistency.py",
+  "backend/app/utils/reasoning_text.py",
+  "backend/app/utils/sse_response.py",
+  "backend/requirements-embedding-export.txt",
+  "backend/requirements.txt",
+  "backend/scripts/entrypoint.sh",
+  "backend/scripts/export_embedding_onnx.py",
+  "backend/scripts/init_postgres.sql",
+  "backend/scripts/migrate.py",
+  "backend/scripts/setup_postgres.py",
+  "docker-compose.yml",
+  "frontend/.gitignore",
+  "frontend/README.md",
+  "frontend/eslint.config.js",
+  "frontend/index.html",
+  "frontend/package-lock.json",
+  "frontend/package.json",
+  "frontend/pnpm-lock.yaml",
+  "frontend/public/10.png",
+  "frontend/public/20.png",
+  "frontend/public/5.png",
+  "frontend/public/50.png",
+  "frontend/public/99.png",
+  "frontend/public/WX.png",
+  "frontend/public/favicon.ico",
+  "frontend/public/logo.svg",
+  "frontend/public/qq.jpg",
+  "frontend/public/vite.svg",
+  "frontend/public/xx.png",
+  "frontend/src/App.css",
+  "frontend/src/App.tsx",
+  "frontend/src/assets/react.svg",
+  "frontend/src/components/AIProjectGenerator.tsx",
+  "frontend/src/components/AnnotatedText.tsx",
+  "frontend/src/components/AnnouncementModal.tsx",
+  "frontend/src/components/AnnouncementTimelineModal.tsx",
+  "frontend/src/components/AppFooter.tsx",
+  "frontend/src/components/CardStyles.tsx",
+  "frontend/src/components/ChangelogFloatingButton.tsx",
+  "frontend/src/components/ChangelogModal.tsx",
+  "frontend/src/components/ChapterAnalysis.tsx",
+  "frontend/src/components/ChapterContentComparison.tsx",
+  "frontend/src/components/ChapterReader.tsx",
+  "frontend/src/components/ChapterRegenerationModal.tsx",
+  "frontend/src/components/CharacterCard.tsx",
+  "frontend/src/components/CharacterCareerCard.tsx",
+  "frontend/src/components/ExpansionPlanEditor.tsx",
+  "frontend/src/components/FloatingIndexPanel.tsx",
+  "frontend/src/components/FloatingTaskPanel.tsx",
+  "frontend/src/components/MarkdownRenderer.tsx",
+  "frontend/src/components/MemorySidebar.tsx",
+  "frontend/src/components/PartialRegenerateModal.tsx",
+  "frontend/src/components/PartialRegenerateToolbar.tsx",
+  "frontend/src/components/ProtectedRoute.tsx",
+  "frontend/src/components/SSELoadingOverlay.tsx",
+  "frontend/src/components/SSEProgressBar.tsx",
+  "frontend/src/components/SSEProgressModal.tsx",
+  "frontend/src/components/SpringFestival.css",
+  "frontend/src/components/SpringFestival.tsx",
+  "frontend/src/components/ThemeSwitch.tsx",
+  "frontend/src/components/UserMenu.tsx",
+  "frontend/src/components/project-agent/ProjectAgentPanel.tsx",
+  "frontend/src/config/version.ts",
+  "frontend/src/hooks/useAnnouncements.ts",
+  "frontend/src/index.css",
+  "frontend/src/main.tsx",
+  "frontend/src/pages/AuthCallback.tsx",
+  "frontend/src/pages/BookImport.tsx",
+  "frontend/src/pages/BookshelfPage.tsx",
+  "frontend/src/pages/Careers.tsx",
+  "frontend/src/pages/ChapterAnalysis.tsx",
+  "frontend/src/pages/ChapterReader.tsx",
+  "frontend/src/pages/Chapters.tsx",
+  "frontend/src/pages/Characters.tsx",
+  "frontend/src/pages/Foreshadows.tsx",
+  "frontend/src/pages/Inspiration.tsx",
+  "frontend/src/pages/KnowledgeBase.css",
+  "frontend/src/pages/KnowledgeBase.tsx",
+  "frontend/src/pages/Login.tsx",
+  "frontend/src/pages/MCPPlugins.tsx",
+  "frontend/src/pages/Organizations.tsx",
+  "frontend/src/pages/Outline.tsx",
+  "frontend/src/pages/ProjectDetail.tsx",
+  "frontend/src/pages/ProjectList.tsx",
+  "frontend/src/pages/ProjectWizardNew.tsx",
+  "frontend/src/pages/PromptTemplates.tsx",
+  "frontend/src/pages/PromptWorkshop.tsx",
+  "frontend/src/pages/RelationshipGraph.tsx",
+  "frontend/src/pages/Relationships.tsx",
+  "frontend/src/pages/Settings.tsx",
+  "frontend/src/pages/SkillChat.tsx",
+  "frontend/src/pages/SkillManage.tsx",
+  "frontend/src/pages/Sponsor.tsx",
+  "frontend/src/pages/SystemSettings.tsx",
+  "frontend/src/pages/UserManagement.tsx",
+  "frontend/src/pages/WorldSetting.tsx",
+  "frontend/src/pages/WritingStyles.tsx",
+  "frontend/src/services/api.ts",
+  "frontend/src/services/backgroundTaskService.ts",
+  "frontend/src/services/changelogService.ts",
+  "frontend/src/services/versionService.ts",
+  "frontend/src/store/eventBus.ts",
+  "frontend/src/store/hooks.ts",
+  "frontend/src/store/index.ts",
+  "frontend/src/theme/ThemeProvider.tsx",
+  "frontend/src/theme/themeConfig.ts",
+  "frontend/src/theme/themeContext.ts",
+  "frontend/src/theme/themeStorage.ts",
+  "frontend/src/theme/useThemeMode.ts",
+  "frontend/src/types/index.ts",
+  "frontend/src/utils/sessionManager.ts",
+  "frontend/src/utils/sidebarState.ts",
+  "frontend/src/utils/sseClient.ts",
+  "frontend/tsconfig.app.json",
+  "frontend/tsconfig.json",
+  "frontend/tsconfig.node.json",
+  "frontend/vite.config.ts",
+  "images/1-1.png",
+  "images/1.png",
+  "images/2-1.png",
+  "images/2.png",
+  "images/3-1.png",
+  "images/3.png",
+  "images/4-1.png",
+  "images/4.png",
+  "images/CrazyToken.png",
+  "images/apophis.png",
+  "install-termux.sh"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "f7be81190f5b1db9ab3632a65942902f06676002d16a945fb2c07fe11cc22510"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "f44e077cc6efb0d96beec2160092125ea52c975d347362c526e1622e16ee7cde"
+  },
+  {
+   "path": "backend/alembic/postgres/env.py",
+   "sha256": "8367cdb636aa781e2b5983c8808fb1f8d468219cab015b77df8eb36ddc933e4d"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20251226_1008_ee0a189f1532_\u521d\u59cb\u6570\u636e\u5e93\u7ed3\u6784.py",
+   "sha256": "3c36bbf1f284462387b4ece7700cb8af9fbe12acd0e15fe5576a51fe3d3a1953"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20251226_1102_e411428f00c0_\u521d\u59cb\u5316\u9884\u7f6e\u6570\u636e.py",
+   "sha256": "0125693e343347e1c858450e419640bbedc13a11d6ebca422c1dde86bc44e840"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20251227_1541_a7e4408e1d5b_\u6dfb\u52a0system_prompt\u5b57\u6bb5\u5230settings\u8868.py",
+   "sha256": "e391c249efde943b318a069ff7bf30bd59c946c2fb5bfdd59ad82d0d8012f5b3"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260119_1729_6a73f37e9adb_\u6dfb\u52a0\u4f0f\u7b14\u7ba1\u7406\u8868.py",
+   "sha256": "80aba72a7ee585d4315171cd20cd63f7aa6f7b6ced5df9f2808bad7723cf871b"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260127_1404_421237957b27_\u6dfb\u52a0\u63d0\u793a\u8bcd\u5de5\u574a\u76f8\u5173\u8868\u7ed3\u6784.py",
+   "sha256": "f69a13df86188dee64298c8c43e8aa850d2141fa0a325c553f91671edf9307f1"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260212_1244_d4d253e3f4c6_\u6dfb\u52a0\u89d2\u8272\u5fc3\u7406\u72b6\u6001\u8ffd\u8e2a\u5b57\u6bb5.py",
+   "sha256": "49a0ecb6b29aab6e4f3489d1fa613845cbdbe57dc5df09dbf1c65f4208ccd8e9"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260316_1056_8e3ac0236b27_\u6dfb\u52a0\u5c0f\u8bf4\u5c01\u9762\u751f\u6210\u914d\u7f6e.py",
+   "sha256": "ba6ee085e70d339897cb420a7562aa3118e7d7dc93cc14f30a49a284e3a08a90"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260320_0936_6eb27fce64de_\u65b0\u589estmp\u76f8\u5173\u914d\u7f6e.py",
+   "sha256": "ab813e9141b20f5c9b1a6028202ec0bc049a961491d240f89b0ae89649d0ef4b"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260424_1006_9a1b2c3d4e5f_expand_password_hash_length.py",
+   "sha256": "144dd2723c9f07d81bee0fa53b5ba1b7a6bb8a5dbecfbcb46485a3087055475c"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260427_1200_abc12345_\u6dfb\u52a0\u540e\u53f0\u4efb\u52a1\u8868.py",
+   "sha256": "26e6f5934af186ec7bcd8816024652cb143f288fd4f92ee1b6d3a65f77466568"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260513_1009_acdb1d611064_\u6dfb\u52a0\u516c\u544a\u8868.py",
+   "sha256": "a3878d7abecbaf9750740958f4c54dcb78edc776c865c32c5a613cff51f802b0"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260817_1700_7c1a9e4b2d10_add_project_agent_tables.py",
+   "sha256": "e3f1af7902047881bc4f2a2fc8a9a3b6bcc2fe7b93e37a58d157f41658aab3ae"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260818_0859_b6d3a8e1c520_add_agent_execution_steps.py",
+   "sha256": "f0f61b839a92c0b6a0e65a283e827e149590c88b5cadf1ee6394117eb7716f84"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260818_1200_f1a2b3c4d5e6_archive_analysis_tasks.py",
+   "sha256": "6fe0757860f9d12c1baf3eb297536f7a331958f0e5dda1295eb9738aa31440a6"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260826_1530_f0e1d2c3b4a5_\u6dfb\u52a0disable_thinking\u5b57\u6bb5\u5230settings\u8868.py",
+   "sha256": "44b938bd24aa1dcba2e2e4ba84f3105394f36059e86178c97ce016392ff21a60"
+  },
+  {
+   "path": "backend/alembic/postgres/versions/20260914_1924_20260914_knowledge_add_local_project_knowledge_base_tables.py",
+   "sha256": "1feb76d071ee4d8a9058b2b3f19835d0332faf3382d9af065121831a69e31049"
+  },
+  {
+   "path": "backend/alembic/sqlite/env.py",
+   "sha256": "f9841fea808d0b2b4d1ef36c5e9a251151b7ad4954ccc001ee8056c8e8ec9596"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20251226_1322_fbeb1038c728_\u521d\u59cb\u5316sqlite\u6570\u636e\u5e93.py",
+   "sha256": "6536ace34d9d7f966888151d314b878854471c646b301e55da2ac0471cd5a68b"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20251227_0856_a1b2c3d4e5f6_\u521d\u59cb\u5316sqlite\u9884\u7f6e\u6570\u636e.py",
+   "sha256": "9ed670b20fe28562607ff7f4749abba37525fff5764f01a7b2761178c198e941"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20251227_1700_7899f8d4d839_\u6dfb\u52a0system_prompt\u5b57\u6bb5\u5230settings\u8868.py",
+   "sha256": "34cee6fb305ec8c1deacd297d68bf09f8e0f62f875d955732c60453b26b925b2"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260119_1005_951919659e0f_\u6dfb\u52a0\u4f0f\u7b14\u7ba1\u7406\u8868.py",
+   "sha256": "6a55b98a946b1e489fd38b876dbb508fdfc308bedeee633ef324cc320d9e6118"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260127_1354_927bcb55b756_\u6dfb\u52a0\u63d0\u793a\u8bcd\u5de5\u574a\u76f8\u5173\u8868\u7ed3\u6784.py",
+   "sha256": "919eb5be38a2496f5cf9f7fc2ebc6dc2fb6d2b14a15071b7e96ba8ddf49aaa36"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260212_0922_642c76fc69d4_\u6dfb\u52a0\u89d2\u8272\u5fc3\u7406\u72b6\u6001\u8ffd\u8e2a\u5b57\u6bb5.py",
+   "sha256": "f4f582c68e820c6a07cfeeaaac6dd1c9f7ab7e4db126b02bacea338185a085a6"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260212_1007_d887fd1a30a6_\u65b0\u589e\u89d2\u8272\u72b6\u6001\u5b57\u6bb5.py",
+   "sha256": "61b8da419a20224aecabc807e0c25c3c493728a53118dd45cf689503d4b0fc1c"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260316_1058_17ce752ed7cc_\u6dfb\u52a0\u5c0f\u8bf4\u5c01\u9762\u751f\u6210\u914d\u7f6e.py",
+   "sha256": "615c6d15ff3aa4fb67131157255a847ec3a4edcdb49df5f88a3e384416a49565"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260320_0939_6ff45db05863_\u65b0\u589estmp\u76f8\u5173\u914d\u7f6e.py",
+   "sha256": "572b9ef1afa3902eb9b9847640a6716a072cb49f2d77c85bd804b9e4c987ed61"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260424_1006_ab12cd34ef56_expand_password_hash_length.py",
+   "sha256": "f1e2cfb1517ade34b769da5c8bdfccb7bca202b4a2e55de6578db726be6aa57e"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260427_1200_def45678ghi9_\u6dfb\u52a0\u540e\u53f0\u4efb\u52a1\u8868.py",
+   "sha256": "a60bc03ab772288a42fa198515ffc62c361787e1611757100970bc2054244f8b"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260513_1019_3a08fc61773f_\u6dfb\u52a0\u516c\u544a\u8868.py",
+   "sha256": "160e59809a239576ab6193831e7d6dd10ea2ff4cfce3b1a2ba2ed325860538a0"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260817_1701_9d4e2f7a1b30_add_project_agent_tables.py",
+   "sha256": "3bd470845dc37fc9f4d47a20a59f3d22d613825434f29b791c1c1291ebc16fef"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260818_0900_e4b8c2d7f901_add_agent_execution_steps.py",
+   "sha256": "6cd9a64f49ebd1f2e10369b1fc9e2985b057c2f160a0902ad725c7bdcd1340c7"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260818_1200_f1a2b3c4d5e6_archive_analysis_tasks.py",
+   "sha256": "acc22718be4e4e3007d280f7e8b0071b4a1fa571a0bccf04c246c44d5e6d452b"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260826_1530_f0e1d2c3b4a5_\u6dfb\u52a0disable_thinking\u5b57\u6bb5\u5230settings\u8868.py",
+   "sha256": "f7ae01b60ec1fd51aed9c2e9e7792d106e2be89ae8587841306875fbfe16be28"
+  },
+  {
+   "path": "backend/alembic/sqlite/versions/20260914_1924_20260914_knowledge_add_local_project_knowledge_base_tables.py",
+   "sha256": "a9c14e26cc20b9289f92b935d9523588612c5b936c449a41edd76be5a9821d7f"
+  },
+  {
+   "path": "backend/app/__init__.py",
+   "sha256": "7e0671856576132063ce6a6f94cc2beba4ff5a49260209fe7caa4da4732fc112"
+  },
+  {
+   "path": "backend/app/api/__init__.py",
+   "sha256": "ff9d2f492ab490cb440a76b6f2a3b76fc8c5f7190acdf8c041838fca31955796"
+  },
+  {
+   "path": "backend/app/api/admin.py",
+   "sha256": "64e27466cacd281d61e25d6dfd263e15a29829c66197f18f9142b5f48b8211d5"
+  },
+  {
+   "path": "backend/app/api/announcements.py",
+   "sha256": "e0a374f3580455ea17ed75085c6aca552bbd05c9e0273733de9827283c5d5bc1"
+  },
+  {
+   "path": "backend/app/api/auth.py",
+   "sha256": "cb62ed8a92193961af0475901fdf2751712ba2a3407c0b272baae4bb9cb36fb2"
+  },
+  {
+   "path": "backend/app/api/book_import.py",
+   "sha256": "fcf2ee711bec95ee52e390d079b1007837566fd14beb9fcd89a51b3e18a1b154"
+  },
+  {
+   "path": "backend/app/api/careers.py",
+   "sha256": "36dbc04c7710064586068a301c5db7b94d4cf9c9f185433714366811806984c2"
+  },
+  {
+   "path": "backend/app/api/changelog.py",
+   "sha256": "8061c6eac4eedc449472c2c6c978a388230bcaaae498f5625465df34de6d9b8e"
+  },
+  {
+   "path": "backend/app/api/chapters.py",
+   "sha256": "94598aa2e71b2595d3fc229038f812c4a8882d8cca816cac41e8c54f6618d822"
+  },
+  {
+   "path": "backend/app/api/characters.py",
+   "sha256": "171737ac676b48299d167f638cfa68359c41179e622543e214908198fbad6a4a"
+  },
+  {
+   "path": "backend/app/api/common.py",
+   "sha256": "6b13929384b3000d1092535bd5a02348f1a0ed2f6e3c82cef23a366191adf318"
+  },
+  {
+   "path": "backend/app/api/foreshadows.py",
+   "sha256": "6e5eaf75ab3c303cb26185360e4ad4defe1372c6a67ab1167efd309eaed5cabd"
+  },
+  {
+   "path": "backend/app/api/inspiration.py",
+   "sha256": "071b45e0d6ca52f1de1bd6bc9069caf03d425efe66ecadedf2086f27d7c2a515"
+  },
+  {
+   "path": "backend/app/api/knowledge.py",
+   "sha256": "9356197adfe28e79d7d62e769419553b362370ac6e7729505e2d8279cda0ef29"
+  },
+  {
+   "path": "backend/app/api/mcp_plugins.py",
+   "sha256": "0885bc32a979263cf51a66fb0c033355b87bd12db7a11d8da7762c04e7280f87"
+  },
+  {
+   "path": "backend/app/api/memories.py",
+   "sha256": "13466012089d73a7bf89e717c6ef0f0a6ac87c7a3d828f398d01d32c511d4b3a"
+  },
+  {
+   "path": "backend/app/api/organizations.py",
+   "sha256": "4142a753864f6714b9eb15023556409983682d976e6bb1e96e3456b1ee215aed"
+  },
+  {
+   "path": "backend/app/api/outline_transfer.py",
+   "sha256": "a5eed293c1110ab89d403fef98d3728af33701fed5cf6183322d2fc245f7bb1e"
+  },
+  {
+   "path": "backend/app/api/outlines.py",
+   "sha256": "65a287fab2a6fd87e30e27314ea094aa7dad8f9eccdb5b549adeafec385ae05d"
+  },
+  {
+   "path": "backend/app/api/polish.py",
+   "sha256": "07cb305c6ef8c3248310fbbdbcd5ff4a81e6bed878856779738b0b81961143dc"
+  },
+  {
+   "path": "backend/app/api/project_agent.py",
+   "sha256": "93c9edcc780cc373118e134c3e664d729696ce32d81f1992f870a995c5a9c69a"
+  },
+  {
+   "path": "backend/app/api/project_covers.py",
+   "sha256": "a0ce37762fe900a4911bee8249ca0773a0520cecd8a39be3435ab93e93fde22b"
+  },
+  {
+   "path": "backend/app/api/projects.py",
+   "sha256": "8a4ae695146c88ae40f62b575cd74254da7bbb40c44898b087176310a2763927"
+  },
+  {
+   "path": "backend/app/api/prompt_templates.py",
+   "sha256": "dca1718dbd77b11037301fedb13852674ed0047f0751a3cbc6393a0ba11b450c"
+  },
+  {
+   "path": "backend/app/api/prompt_workshop.py",
+   "sha256": "4b3d1aa5f882c7574e1423b524c8fdc1460d994bfa477c58cc96c4e11b96b3a0"
+  },
+  {
+   "path": "backend/app/api/relationships.py",
+   "sha256": "c6425d17da1d45acc172c4463f7c5d5ba1d46b69a3cef25daf57dfda8531bcbb"
+  },
+  {
+   "path": "backend/app/api/settings.py",
+   "sha256": "6beff0702ed0a1d0b2783080dcad766d59ba426883217f1ea9a510b9df265b59"
+  },
+  {
+   "path": "backend/app/api/skills.py",
+   "sha256": "1861bdf365200695560926bd6d9d40ffe9489a7b269282623070cd167db345c5"
+  },
+  {
+   "path": "backend/app/api/tasks.py",
+   "sha256": "00907148946f2343d1ce9c4accb2e55b85d2c46a4f8b09e6da6698120f1315cd"
+  },
+  {
+   "path": "backend/app/api/users.py",
+   "sha256": "102d029428f863de5afeb00d96ec013693b1a62ea705a5fca7563c7153a275b6"
+  },
+  {
+   "path": "backend/app/api/wizard_stream.py",
+   "sha256": "9cece86de94421d130b1ae1f7a56b0dd5cb6130f86b457d7965c6c089b3c4e5e"
+  },
+  {
+   "path": "backend/app/api/writing_styles.py",
+   "sha256": "af7a91c2b8c34658c16140ec6a14002b4a1b47bb65e900b0d0f0993011d324e4"
+  },
+  {
+   "path": "backend/app/config.py",
+   "sha256": "80c697d06b58cea965aeddb338d476a9200c9571c6bf82940d681dd02a4f6b34"
+  },
+  {
+   "path": "backend/app/constants/prompt_categories.py",
+   "sha256": "e7b53f8ce87299b8a8447871dc0b021710e5ac9328f5e5a4db10b69bb078e9b6"
+  },
+  {
+   "path": "backend/app/database.py",
+   "sha256": "8502953a3162225827c6ab3bdebf5252227b9c50229e68b1a2ebcb0dd8c1c50c"
+  },
+  {
+   "path": "backend/app/init_relationship_types.py",
+   "sha256": "cb3e64ed9c29cd060c530e8f587f98f319db7f1dd07d1270da175f966e5cfa08"
+  },
+  {
+   "path": "backend/app/logger.py",
+   "sha256": "5a1bbf3ed620c05e5781a282f8e7bf38047b6768bd5cd8eb3e27cc57263f007f"
+  },
+  {
+   "path": "backend/app/main.py",
+   "sha256": "3fd05ce1e6b0c0f94831bd0d6b1967548c952a742302e5f90781ca73726fef9d"
+  },
+  {
+   "path": "backend/app/mcp/__init__.py",
+   "sha256": "fe58df1fd33004bb2b7d261e23d93fa8fa7349e118caa424d68a32c7be2a0058"
+  },
+  {
+   "path": "backend/app/mcp/config.py",
+   "sha256": "2fb6bed447ce6a9da44fcc93c62ac2b468b993e07d3a0c7f5bdafca6a35686a3"
+  },
+  {
+   "path": "backend/app/mcp/facade.py",
+   "sha256": "75735d9dbc5c80c2a98337ef80dd8aaff8fd0e134f0c79719769d578edc57e66"
+  },
+  {
+   "path": "backend/app/mcp/status_sync.py",
+   "sha256": "c1aa2d72df92ed4d0cd6edd893d01aef78c2f60dab000278c9f36554e56f25f8"
+  },
+  {
+   "path": "backend/app/middleware/__init__.py",
+   "sha256": "a26ab0e3bb575826b8930382595e0591ee6e2f59a9ff3c0e24dfa4e5002db388"
+  },
+  {
+   "path": "backend/app/middleware/auth_middleware.py",
+   "sha256": "6d861a35fc4ae6d7e288c6359656b486bd363b6bb7272f296f6f09c3d8762569"
+  },
+  {
+   "path": "backend/app/middleware/request_id.py",
+   "sha256": "d55a045a8c4fe6607dddbbb67f74c2c925aeca0eab558aa081174bdc5c1cfcc9"
+  },
+  {
+   "path": "backend/app/models/__init__.py",
+   "sha256": "a57a74ba0d6936043164f566999bf9230960a50e3cdf3adc7fa9e91a90ecdf15"
+  },
+  {
+   "path": "backend/app/models/analysis_task.py",
+   "sha256": "cf3a7d8a77e9a95206824ce5bc9e9e1e823e6a7d654c5ce3f5c243a2f5c331b4"
+  },
+  {
+   "path": "backend/app/models/announcement.py",
+   "sha256": "3f4b6d613022a235625ddce0143b213dd53981de786af193234966e4d4c2064f"
+  },
+  {
+   "path": "backend/app/models/background_task.py",
+   "sha256": "87547983fd69bbcd41d31e5d79a1aa54b7a8bc11dab925b8e7e228e01454675b"
+  },
+  {
+   "path": "backend/app/models/batch_generation_task.py",
+   "sha256": "66c8e28b1fa45b89c0ca67868827a147af71b0f9032be87e9050b5fd59114e0b"
+  },
+  {
+   "path": "backend/app/models/career.py",
+   "sha256": "89d1211bb3a1c93b2e6029f2bff206c4898e0ec5586e6c6fb613ef0cda5ace28"
+  },
+  {
+   "path": "backend/app/models/chapter.py",
+   "sha256": "edbf8d71994a12ee6fd744f1ce21afe983a82e35d34a6ac2b34057b40d9e01f2"
+  },
+  {
+   "path": "backend/app/models/character.py",
+   "sha256": "5ec8a4b2fdc3524719f2f5d539f57250c31b816938b483287a69af46045fff8d"
+  },
+  {
+   "path": "backend/app/models/foreshadow.py",
+   "sha256": "5642bad8180c68a012d04a3867d85759f0d5cae9e3bcb407473184a53a051293"
+  },
+  {
+   "path": "backend/app/models/generation_history.py",
+   "sha256": "dfc5e67b0c4d026a50b48c84bb6439ab725bc6a45ff01d19d2807cda84aa77a7"
+  },
+  {
+   "path": "backend/app/models/knowledge.py",
+   "sha256": "0c230e363bc9aeb066b8840b63917e9a4b5998cec2b6562b51a9c39d371c8d69"
+  },
+  {
+   "path": "backend/app/models/mcp_plugin.py",
+   "sha256": "bb417dfeff9dc355d6486110d751cb6f10e4c775820dc20c39741cd8592e1ac3"
+  },
+  {
+   "path": "backend/app/models/memory.py",
+   "sha256": "2d1079b519d62ddc3a2c026fa37ab9fdad451ef66d1d5db195c39759135227a0"
+  },
+  {
+   "path": "backend/app/models/outline.py",
+   "sha256": "4f016ff86d69378e6162f1813ab93db04d5d04f5440385e78be1e7d119a92253"
+  },
+  {
+   "path": "backend/app/models/project.py",
+   "sha256": "ab65d279990092d520b4a6181933dc98957697e015ba46ef1d7ab43752bb552a"
+  },
+  {
+   "path": "backend/app/models/project_agent.py",
+   "sha256": "e5ed19d2a460fcb8a5fd1748f1d80d20e4ecf5973bf89a4aaa1d582a28fcd4fb"
+  },
+  {
+   "path": "backend/app/models/project_default_style.py",
+   "sha256": "d118d90520edde5b7344dcd4fbf898f9e2a475c796bf5892e66b7433bbeb1b62"
+  },
+  {
+   "path": "backend/app/models/prompt_template.py",
+   "sha256": "ebecd1873c456c40a224c11fbd2e6956d9402bf074e9c5ca1d64fd51b7859299"
+  },
+  {
+   "path": "backend/app/models/prompt_workshop.py",
+   "sha256": "4b7a584c369e8972895f7619e01ff65ac9921f1f7fe816651b06194231580110"
+  },
+  {
+   "path": "backend/app/models/regeneration_task.py",
+   "sha256": "77e3b5425050849b9c6987759468f5bc2cf72f55d88630b694545a038c4f9b30"
+  },
+  {
+   "path": "backend/app/models/relationship.py",
+   "sha256": "b7f1db179f00593d8d9b0d6f8d65d7531b7c53f2fb3334b4d4960574fdaebfb5"
+  },
+  {
+   "path": "backend/app/models/settings.py",
+   "sha256": "5987331b0ec10b338157d3a1174cf5691587c24ae733e27091db77c4a19f6010"
+  },
+  {
+   "path": "backend/app/models/user.py",
+   "sha256": "c9a41e2617bec2d3f224910f35e3fd34a5a0c9c0851b12f28b52e19b0d7b7925"
+  },
+  {
+   "path": "backend/app/models/writing_style.py",
+   "sha256": "49d8bee65016d7d22b158f8eaafa615a2b805fbbe418324a4b025f4eef71c406"
+  },
+  {
+   "path": "backend/app/schemas/__init__.py",
+   "sha256": "644845fe8e56b119b476213f7515e18bf59902b835de2cff2ca9e5e8703e06ff"
+  },
+  {
+   "path": "backend/app/schemas/announcement.py",
+   "sha256": "9d892a2f39b8060c58a87cebd85079f4a4b0da3790e222335dd8863d348980de"
+  },
+  {
+   "path": "backend/app/schemas/book_import.py",
+   "sha256": "9764d9d4ceaa4553741368b28c1837a5f03820635075703ccf060a6d2eb5928d"
+  },
+  {
+   "path": "backend/app/schemas/career.py",
+   "sha256": "8ab9328158b45393baa7109f4dd6e7a58dafba9533dac933c2a09466829cacde"
+  },
+  {
+   "path": "backend/app/schemas/chapter.py",
+   "sha256": "df32054d747504bb22e3ea3f3ddcb840da2329bbe3972c08735e459ab176d8a3"
+  },
+  {
+   "path": "backend/app/schemas/character.py",
+   "sha256": "f6af7c1adba6b60a7c1f5cee18c57844bff7dfcf007620ce52d08066b3c5e774"
+  },
+  {
+   "path": "backend/app/schemas/foreshadow.py",
+   "sha256": "b9d961a449e3120ce4dfac7c163ac610fb78f95354627a64f6a8c5bd4f0c0a1b"
+  },
+  {
+   "path": "backend/app/schemas/import_export.py",
+   "sha256": "d1d949621021281f0192bbc7134422fcd89155447adc4d96781f4b0b2a812eae"
+  },
+  {
+   "path": "backend/app/schemas/knowledge.py",
+   "sha256": "5ab2eac9682540cb9963b7bd756ffb2ac6723c05cc6ae8c31cdf67c5aeb82a24"
+  },
+  {
+   "path": "backend/app/schemas/mcp_plugin.py",
+   "sha256": "fbc7e31662489e9696d8b5e7d41379cb9544d70c8e32a2f79ae85eb2d1f6bf60"
+  },
+  {
+   "path": "backend/app/schemas/outline.py",
+   "sha256": "8cc087feec8d1500de0526edf4d42d1dd56866e15ccb7baac43cb89ec34e138a"
+  },
+  {
+   "path": "backend/app/schemas/outline_transfer.py",
+   "sha256": "532b04b6109bc8a21938f9ea5055357353b283e52145cc9a4480b97b842e90bb"
+  },
+  {
+   "path": "backend/app/schemas/polish.py",
+   "sha256": "5773b5c15a7bcd283ce38918508b3cdde5e73716760c52452107071ce592498c"
+  },
+  {
+   "path": "backend/app/schemas/project.py",
+   "sha256": "d88182da2ac7463d8b0ff563453af692c4d03a320070eecf7de0d199975c18d5"
+  },
+  {
+   "path": "backend/app/schemas/project_agent.py",
+   "sha256": "640da5c278b3e83dcd52c2fe6682574430fb59544ba9116bcb8e746106ab1378"
+  },
+  {
+   "path": "backend/app/schemas/prompt_template.py",
+   "sha256": "0ebe5735fb7b7ae793a8c0ccee3f3e3c97609d3597f826d978c28020d46a1408"
+  },
+  {
+   "path": "backend/app/schemas/prompt_workshop.py",
+   "sha256": "b4e5018ccb93487c320fd97768bf81afe6ed7bdee58e4508f145d697b8686fcd"
+  },
+  {
+   "path": "backend/app/schemas/regeneration.py",
+   "sha256": "f684e16685d1cb9abcba06e8644a892ab9ad3c050add6a51ee731a4849c42812"
+  },
+  {
+   "path": "backend/app/schemas/relationship.py",
+   "sha256": "df3ff74a2d24c9cfd073b7834e317d958a35ca0a61a06be64844e60fc46a067a"
+  },
+  {
+   "path": "backend/app/schemas/settings.py",
+   "sha256": "be03c9e05f57822e0107ba2f2d05ac091a4a6caa883b009d47da1b972e2a89f9"
+  },
+  {
+   "path": "backend/app/schemas/writing_style.py",
+   "sha256": "5fcd81cca8984a988bff58e05bf865e764b7058bdc9b35a74c7c4ac15383510d"
+  },
+  {
+   "path": "backend/app/security.py",
+   "sha256": "ebaf7c5c9b9ac108fdb6dac37c847636df4e6154da12454b397e49363d07069e"
+  },
+  {
+   "path": "backend/app/services/__init__.py",
+   "sha256": "983cf875f7eef2f4121e602667c72407f7a34069e57770f9de2ef504ecad8c0c"
+  },
+  {
+   "path": "backend/app/services/ai_clients/__init__.py",
+   "sha256": "1bd4013d6b93b1a4df83077bae17b5ed287de5a5542dd6b677b4508315b60617"
+  },
+  {
+   "path": "backend/app/services/ai_clients/anthropic_client.py",
+   "sha256": "19d7fb43179dcbba137e7c6c49111c9ae84749d549b86a86fba31359b5709645"
+  },
+  {
+   "path": "backend/app/services/ai_clients/base_client.py",
+   "sha256": "c2e6168c46a28b9a47fe31310a5d09b83662038dee197d7e94a5129e1984398a"
+  },
+  {
+   "path": "backend/app/services/ai_clients/gemini_client.py",
+   "sha256": "79698041c3f6761fee108c6978b2b846b61a2b484f6093742ff507f59e777836"
+  },
+  {
+   "path": "backend/app/services/ai_clients/openai_client.py",
+   "sha256": "8d4c4e077f158d1cebf77ceb9d53994d201d888c9cb9e53b6c941fd0b5f2cf05"
+  },
+  {
+   "path": "backend/app/services/ai_config.py",
+   "sha256": "9c4346bf179516cc5828ade7e78ff50efbe5dbfb917375d02e1cee1a85b139df"
+  },
+  {
+   "path": "backend/app/services/ai_metrics.py",
+   "sha256": "646e62ecbede24942544eea80743baf62d464c1ec754ebae071e4ea914ec63d9"
+  },
+  {
+   "path": "backend/app/services/ai_providers/__init__.py",
+   "sha256": "5ba80b723b538ff1606345b1b2bc18b1e4840dc8920d521d4b94904773a6555d"
+  },
+  {
+   "path": "backend/app/services/ai_providers/anthropic_provider.py",
+   "sha256": "5698c3dc868d26068c6cf71647ecd14dad6602fc749ba2c7ce4fa15e96816217"
+  },
+  {
+   "path": "backend/app/services/ai_providers/base_provider.py",
+   "sha256": "20a992cace4c9f9efb2e396b4b55d745ee512a9ef9deb08119ba60ad17549a8f"
+  },
+  {
+   "path": "backend/app/services/ai_providers/gemini_provider.py",
+   "sha256": "bd50a08638e08a170dfd7f84ea76f5f2f28973c026aa994ddfb43bf90cc0ac26"
+  },
+  {
+   "path": "backend/app/services/ai_providers/openai_provider.py",
+   "sha256": "bdd2f08cec7a0b75d4c920a8c1dbf9961262f096ccc7a745b7a58748c1d88db6"
+  },
+  {
+   "path": "backend/app/services/ai_service.py",
+   "sha256": "5b93f74305218ef4b6fa6255814734c12ce23bdfccdb01208aaded51153ad1be"
+  },
+  {
+   "path": "backend/app/services/announcement_client.py",
+   "sha256": "75dbe36be0f536cc4dc0ae7c1ecfe4be0c052d3f4b4d06f20e8c30536276196b"
+  },
+  {
+   "path": "backend/app/services/auto_character_service.py",
+   "sha256": "52ff2232525adc94600d313e884bf92cc389985be7e26e73ccf2d1feb1871947"
+  },
+  {
+   "path": "backend/app/services/auto_organization_service.py",
+   "sha256": "f425b062a456df0a5985746c01cf22fbe93189b842b8ee778687a50640481871"
+  },
+  {
+   "path": "backend/app/services/background_task_service.py",
+   "sha256": "c4d66203369a29e8bfc3775d85a25629b755ff3e2b50dc99437d6b64545773d0"
+  },
+  {
+   "path": "backend/app/services/book_import_service.py",
+   "sha256": "0154b7f87deadba7d0a0fa63db120976fa4ff0ea6e233934eb3815b0d8836b26"
+  },
+  {
+   "path": "backend/app/services/career_service.py",
+   "sha256": "a1cbc6a1d973b89231317e0a8de42141abe1f18f20ad4b165c734a06ca59967b"
+  },
+  {
+   "path": "backend/app/services/career_update_service.py",
+   "sha256": "01166bae9e3595c2f636f33b4d4c4c35f9b3255aaac8a3a97c37a5974dec08eb"
+  },
+  {
+   "path": "backend/app/services/chapter_context_service.py",
+   "sha256": "973a95b0f227de127397aced1c67b4bd1df9184d4a4017a22521cd73592259c6"
+  },
+  {
+   "path": "backend/app/services/chapter_regenerator.py",
+   "sha256": "1ac4454935c35975ac1f2fb913b1e72f4a1c2f92b20b354e04f94eb2efec2319"
+  },
+  {
+   "path": "backend/app/services/character_state_update_service.py",
+   "sha256": "4bcb3b49cac9e008b48ed3d6d06ebef738f95f1f58fc7cdf4b3e804821268c7f"
+  },
+  {
+   "path": "backend/app/services/cover_generation_service.py",
+   "sha256": "af26449aa59fb3e4f6f500cefc3d92e6f9d4184348e8a7a24d0d04e455bd8d93"
+  },
+  {
+   "path": "backend/app/services/cover_providers/base_cover_provider.py",
+   "sha256": "ee6ee048c18b4c3f484ac160ef8b295f72716d21c0bc3c0ee370f897faaddfea"
+  },
+  {
+   "path": "backend/app/services/cover_providers/gemini_cover_provider.py",
+   "sha256": "cc412f11734dfb641de2472a5df633221bd708215991e646f29eb2499fc120cc"
+  },
+  {
+   "path": "backend/app/services/cover_providers/grok_cover_provider.py",
+   "sha256": "3025950a25c1f4b25a7c2a9a145df72fcf026e9c0604e4a95f1f5b45a529bb32"
+  },
+  {
+   "path": "backend/app/services/email_service.py",
+   "sha256": "49b5fd841f89f86bd6ac3ba40ae095df801cdfa17d8d508cf807881aa08573b0"
+  },
+  {
+   "path": "backend/app/services/foreshadow_service.py",
+   "sha256": "3bc726873edcbe82c430ab05775c6bd77948bad62e41d805a71d85620a7efe83"
+  },
+  {
+   "path": "backend/app/services/import_export_service.py",
+   "sha256": "b8dbc967d82085058d2242599422bf0409284cf97970b533463b927729000bc7"
+  },
+  {
+   "path": "backend/app/services/json_helper.py",
+   "sha256": "10383c0094a3ec7c55018b4b14dc7bd73e4bb734dbd3b2ce1d9ed52b8f2ba701"
+  },
+  {
+   "path": "backend/app/services/knowledge_parser.py",
+   "sha256": "4fa99af7fc857f2907c313eebe003662edde592520f55d8f1aa8103614c50371"
+  },
+  {
+   "path": "backend/app/services/knowledge_service.py",
+   "sha256": "17f9cc263dc8d6caeb289d5ba194c4a7bdae5eb0c9531bbe10cee78a5da0f70e"
+  },
+  {
+   "path": "backend/app/services/knowledge_vector_store.py",
+   "sha256": "38078eb86507e9d9df454dbdc87065e3d546c00957e75efcf30ed3f3010f4b0f"
+  },
+  {
+   "path": "backend/app/services/mcp_test_service.py",
+   "sha256": "fc7645d1bcae44d417a3b0881acd8039de1e0205705a8c430fd9066610ca6e41"
+  },
+  {
+   "path": "backend/app/services/mcp_tools_loader.py",
+   "sha256": "6c0b4c1586575d0fe4e03c1b0b5963763ca9b8c373b8f7681ee68d6b606cd910"
+  },
+  {
+   "path": "backend/app/services/memory_service.py",
+   "sha256": "fa83322537c9165a4e7449fcaf312cf7ca02e8ae7d0181b751b0eff5d051980d"
+  },
+  {
+   "path": "backend/app/services/oauth_service.py",
+   "sha256": "c525ed578dff15efa98c983e76b1dd5e031cb725a23cd9ae02fdb13102f8743f"
+  },
+  {
+   "path": "backend/app/services/onnx_embedding.py",
+   "sha256": "b03f23650382636a1cf4f147fcdcd567def5f4956606806f079c4d8cc22fd6db"
+  },
+  {
+   "path": "backend/app/services/outline_transfer_service.py",
+   "sha256": "25a83ccf0ef07bfdf3bde37eac6be7b8e711e85305db2ab3907047d6af1e6b48"
+  },
+  {
+   "path": "backend/app/services/plot_analyzer.py",
+   "sha256": "c3e9bcf90abed9acd2251e59ed611f7ddaa6e16e625211b70d88e79405d7ee65"
+  },
+  {
+   "path": "backend/app/services/plot_expansion_service.py",
+   "sha256": "1d94ced2cab4b495689fd9a9c652e169e7cf266be3cca63889fdff914f1a794a"
+  },
+  {
+   "path": "backend/app/services/project_agent_extended_tools.py",
+   "sha256": "5df67b3ad042377df4dac188f4b4a0c0bb966d34b91fde7f2eea696f614136a3"
+  },
+  {
+   "path": "backend/app/services/project_agent_operational_tools.py",
+   "sha256": "6533b8876b49b3b35a6e1af6364c3a70ef69dcf3d80d413e56a9af4f3309a07c"
+  },
+  {
+   "path": "backend/app/services/project_agent_selectors.py",
+   "sha256": "19c26ab16929290a56deedfc24e46e0f18012987bdec0623fac7df593f1505c7"
+  },
+  {
+   "path": "backend/app/services/project_agent_service.py",
+   "sha256": "391d2049733c288cdafe7eec70bc4c3671f0e54f2d0fe28bfcd11ee76ff098b1"
+  },
+  {
+   "path": "backend/app/services/project_agent_tools.py",
+   "sha256": "3bd0a86866854089a9e9074d197839af3e104e24ecf6f1e113bc44b85d85d8b2"
+  },
+  {
+   "path": "backend/app/services/prompt_service.py",
+   "sha256": "020d92ae2e1f6b9ff015f0a3ec4e0b84d7f5c5ec18e87e20fa340e2d82154bc2"
+  },
+  {
+   "path": "backend/app/services/skill_loader.py",
+   "sha256": "7b35f69551d78cc4bc9415bb3482a85c99d55f37f318b462ea68a48067064350"
+  },
+  {
+   "path": "backend/app/services/task_resources.py",
+   "sha256": "44684a23880d3be7f5c4f227b2691b8db30d996bf08fe220d67c293db2d39b69"
+  },
+  {
+   "path": "backend/app/services/txt_parser_service.py",
+   "sha256": "39d3b6615848232072917be6d5da3d0c053881811d6b0486135168fabf194b84"
+  },
+  {
+   "path": "backend/app/services/workshop_client.py",
+   "sha256": "419ee48cfa415b3090db62a4b65f589e4adeab6ba2a6f0df6a7a69abda5eedf1"
+  },
+  {
+   "path": "backend/app/user_manager.py",
+   "sha256": "aff8faa523f572d7b00310aa195ee791cfb631442a217cb361307b6f93e17ff9"
+  },
+  {
+   "path": "backend/app/user_password.py",
+   "sha256": "2f702d27a9f75e7f9635f9b509bc4da9e084483c4fa4045f3b07c955bf13f2c4"
+  },
+  {
+   "path": "backend/app/utils/data_consistency.py",
+   "sha256": "0c9773581d7ace305417a1b264939d7223c2b698eba0fb442001d52cc5aa97a3"
+  },
+  {
+   "path": "backend/app/utils/reasoning_text.py",
+   "sha256": "6c8bc25155d3878f65fa7c7efefd394b46c8f83d4e6a0fd254bece169a66a1ba"
+  },
+  {
+   "path": "backend/app/utils/sse_response.py",
+   "sha256": "073d7a084611015faa27a20f8de759b6e6a257724b93e3effa6ca5d5365a3dcc"
+  },
+  {
+   "path": "backend/scripts/export_embedding_onnx.py",
+   "sha256": "cd93fc0b90e22e95c9d50670002f0a57b5bbe17b7f9333d3fee6b03e19ef8236"
+  },
+  {
+   "path": "backend/scripts/migrate.py",
+   "sha256": "7a4ff4c8f7a00172c4c11e4731df61f0a88d283c24c3de3b6a3b19d29e4a11b9"
+  },
+  {
+   "path": "backend/scripts/setup_postgres.py",
+   "sha256": "4cb41fae35ead574e307b36f5dfbee247869241aa13c1a2e78c57998399709d9"
+  },
+  {
+   "path": "frontend/.gitignore",
+   "sha256": "fe718e7babb14f3cbad2d97f08889b9ce5215ed3fe0e43b2b8cfbfb3b9b844e8"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 697700
+}

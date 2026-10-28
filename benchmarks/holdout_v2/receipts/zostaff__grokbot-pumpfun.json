@@ -1,0 +1,277 @@
+{
+ "repo": "zostaff/grokbot-pumpfun",
+ "dir": "zostaff__grokbot-pumpfun",
+ "commit": "b430c35a8b048c0c9e2918261d2e2e4b5bb1268d",
+ "estimate_commit": "b430c35a8b048c0c9e2918261d2e2e4b5bb1268d",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".env.example",
+  ".github/workflows/ci.yml",
+  ".gitignore",
+  "CHANGELOG.md",
+  "CONTRIBUTING.md",
+  "Dockerfile",
+  "LICENSE",
+  "Makefile",
+  "README.md",
+  "RUNBOOK.md",
+  "SECURITY.md",
+  "config.example.yaml",
+  "conftest.py",
+  "docker-compose.yml",
+  "pyproject.toml",
+  "requirements-dev.txt",
+  "requirements.txt",
+  "scripts/dashboard.py",
+  "scripts/replay.py",
+  "scripts/tune.py",
+  "src/__init__.py",
+  "src/agents/__init__.py",
+  "src/agents/auditor.py",
+  "src/agents/base.py",
+  "src/agents/checker.py",
+  "src/agents/narrative.py",
+  "src/agents/timing.py",
+  "src/alerts.py",
+  "src/analyzer.py",
+  "src/cli.py",
+  "src/curve.py",
+  "src/doctor.py",
+  "src/executor.py",
+  "src/log.py",
+  "src/market.py",
+  "src/models.py",
+  "src/monitor.py",
+  "src/ops.py",
+  "src/pipeline.py",
+  "src/reputation.py",
+  "src/risk.py",
+  "src/scoring.py",
+  "src/state.py",
+  "tests/test_agents.py",
+  "tests/test_alerts.py",
+  "tests/test_analyzer.py",
+  "tests/test_cli.py",
+  "tests/test_config.py",
+  "tests/test_curve.py",
+  "tests/test_doctor.py",
+  "tests/test_executor.py",
+  "tests/test_filter.py",
+  "tests/test_log.py",
+  "tests/test_market.py",
+  "tests/test_ops.py",
+  "tests/test_pipeline.py",
+  "tests/test_reputation.py",
+  "tests/test_risk.py",
+  "tests/test_scoring.py",
+  "tests/test_simulation.py",
+  "tests/test_state.py",
+  "tests/test_tune.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "f73fd06ba0d8c09920d890ef175501e2ef226c562589bbec88203afa73829aa9"
+  },
+  {
+   "path": "conftest.py",
+   "sha256": "490239ba56de262ead6f2c463c8cb27c62d81bb6b51716c1bd51ead75421f7ff"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "2032741e06b3b3a966619563e5ee8952a73f850b0cde0859c4e133ecc17ce8ae"
+  },
+  {
+   "path": "scripts/dashboard.py",
+   "sha256": "ad6b60051c998ee2aafcefa63f4fb084d464a05a96a590da954534117df20c7d"
+  },
+  {
+   "path": "scripts/replay.py",
+   "sha256": "d01d1bd2c4a4eb6bde88029e1470d2fa5fc83fd386af0b26c7cb340f2c994e39"
+  },
+  {
+   "path": "scripts/tune.py",
+   "sha256": "ce2f16ff7a5547e330e11fa01cf88a4b79faf146658133e5898047d96d02449b"
+  },
+  {
+   "path": "src/__init__.py",
+   "sha256": "06266403818634fa97cf858c31883f24256df1d3b6aebe3ce2eb93eb37a0c20d"
+  },
+  {
+   "path": "src/agents/__init__.py",
+   "sha256": "bcae8754674a3d4942aa29b32c6d619a2dbb9fa7ea6387505f3a73aa842d8773"
+  },
+  {
+   "path": "src/agents/auditor.py",
+   "sha256": "7c8006d11c18d0ca41a3ebd7435542f5139de375c27da910e182a7811b8ac26c"
+  },
+  {
+   "path": "src/agents/base.py",
+   "sha256": "b9f27ada1cb3655cade60b39a6af41fe5de69e471ac87ed9af0ca7d93c6464f2"
+  },
+  {
+   "path": "src/agents/checker.py",
+   "sha256": "08b9ed1f710be6e2fa2085299c25bc700c0126b8980740ef801d8b6a6dacd543"
+  },
+  {
+   "path": "src/agents/narrative.py",
+   "sha256": "83305d06285590caceb5cdb11c783edec2549bf3f5e3eb61a3db652e8c8b7b47"
+  },
+  {
+   "path": "src/agents/timing.py",
+   "sha256": "39da11c09f2e001786f5c16f10c4fc3dc2ee6ba32cc2663be4f4d19c021375c6"
+  },
+  {
+   "path": "src/alerts.py",
+   "sha256": "83b33f92ef0c7ba934425a5fe9d9d28da6b7aa5555aede8b98c493ebdb6289e0"
+  },
+  {
+   "path": "src/analyzer.py",
+   "sha256": "ed57a34a304ec8c95c637f25705bfe515c963d95f2d5ed4c57b642bf2284017a"
+  },
+  {
+   "path": "src/cli.py",
+   "sha256": "f64ff62ef962035bf78c81a3fe91b0cc5d2e7397448c4192acdad3f072c5b27c"
+  },
+  {
+   "path": "src/curve.py",
+   "sha256": "7198cfe7916ba1e647b6f4859ddfe0eae0dd073f35a85d0be32bf0a9b6ffb209"
+  },
+  {
+   "path": "src/doctor.py",
+   "sha256": "842236fc91adb37220f5551208f86fd65f8961a3b1fd98672520bc8d026d7ad3"
+  },
+  {
+   "path": "src/executor.py",
+   "sha256": "4c7c713c7f5b679557fc661d08225282226d3c50a590f2591a19ea50cb62213e"
+  },
+  {
+   "path": "src/log.py",
+   "sha256": "732e2e42782ea4c99d887a1ec526f63b126f5731621dda4417f67941e8d2548d"
+  },
+  {
+   "path": "src/market.py",
+   "sha256": "ad2559a4a65d63b9da97698de1a466cd8e93c0e72858821058ba3a0c59a38aa5"
+  },
+  {
+   "path": "src/models.py",
+   "sha256": "0d741d05c2965e6bf3ba7cbc652832959f37a18e43be96c00b8d54555da9ff74"
+  },
+  {
+   "path": "src/monitor.py",
+   "sha256": "0e0976ddf93e6059dccd81ec8bdcfb8463778dead9cede0b4b23213e3337a5a3"
+  },
+  {
+   "path": "src/ops.py",
+   "sha256": "91b597116b5b3f6a67184f3e8ae0d00a6d22cdc22141abf21fadc0e74adfbf65"
+  },
+  {
+   "path": "src/pipeline.py",
+   "sha256": "0aa1b4d6767c892a6beb384f965ffa9a9ec92a85a948396089ea55b12bb9888e"
+  },
+  {
+   "path": "src/reputation.py",
+   "sha256": "df8b8b8a442c47dbdb45df95f3d8350072ebe747b568184f04bbd89bafdc8ed5"
+  },
+  {
+   "path": "src/risk.py",
+   "sha256": "0ce6cd70f4d39234f9fc3cac4c8d637350c44f8062e4a33ca03d6e99b2523bfb"
+  },
+  {
+   "path": "src/scoring.py",
+   "sha256": "afa7d48fcd0ce89b97b28c29ccc31555788695a472fe6b849a4ea52d98ab8301"
+  },
+  {
+   "path": "src/state.py",
+   "sha256": "5c8888593fb96c9cf7c075cd48a12487bd0b632a5f70e57817cbb21e09cd7b12"
+  },
+  {
+   "path": "tests/test_agents.py",
+   "sha256": "33e5a47916e8a4fde76e7195a437bc91e9f3bc7c028614abd0b97976d0660d6e"
+  },
+  {
+   "path": "tests/test_alerts.py",
+   "sha256": "41f1009d73b5c4658e1ca3f02667e278fd06b01bf5fdde7e336c6ef77707db39"
+  },
+  {
+   "path": "tests/test_analyzer.py",
+   "sha256": "985b0101d4f20b9acc2dcaf0628dd580e07141b37e7fc68aa9dfc6896569c1ab"
+  },
+  {
+   "path": "tests/test_cli.py",
+   "sha256": "b9cc7ad22a4548daa749c38c509f390be71b1878bcf1b736668fe577af2e1a7f"
+  },
+  {
+   "path": "tests/test_config.py",
+   "sha256": "7c8dd94b760de6496c1b9f27b4d50c872e8af0cefbcf348e6303f1adf5f49fe3"
+  },
+  {
+   "path": "tests/test_curve.py",
+   "sha256": "29e46ab75e5bc344f22120e688594a189ab4916e883c0e232e5b0b7cfd8df233"
+  },
+  {
+   "path": "tests/test_doctor.py",
+   "sha256": "82c2229aa084db2cd662f9297c6282815b6566a88f0363c4afa808b61cef8714"
+  },
+  {
+   "path": "tests/test_executor.py",
+   "sha256": "b67d3591d510157641bcf7d95ac0c8328e846367515710cae24a9778192805ee"
+  },
+  {
+   "path": "tests/test_filter.py",
+   "sha256": "18a5c58ac50bc3f4286b35204773a818c1af38c6a4eedc686d3aeefe152f59ff"
+  },
+  {
+   "path": "tests/test_log.py",
+   "sha256": "be911442bcd0db4a48a003f85605ebf93497ee7c07ead1cb92c094a3b5db460a"
+  },
+  {
+   "path": "tests/test_market.py",
+   "sha256": "e3b51a80866a95e334e31ac6fbfd3edeb3ab6e167b725cb6149c2262c3faf224"
+  },
+  {
+   "path": "tests/test_ops.py",
+   "sha256": "21921491ad0d41981575e8f949cb53768655be26017c8d3349e9f984bafa9102"
+  },
+  {
+   "path": "tests/test_pipeline.py",
+   "sha256": "ccabdea0b106e0e68f2a85108836babcc1d64f44ada5db126b31bcb710f21f56"
+  },
+  {
+   "path": "tests/test_reputation.py",
+   "sha256": "35ca49346de10a17c06d3709247e532bb494d1438abdfe2697378453c7283502"
+  },
+  {
+   "path": "tests/test_risk.py",
+   "sha256": "019c4e13994c3f948b6e4b6a3d3f5723ffad97e2d222f3fa98adeb9a70844ee2"
+  },
+  {
+   "path": "tests/test_scoring.py",
+   "sha256": "5d6d163d3cbdf92ce58ee4a69172e53b676ea47f647aee50032f8197579accf0"
+  },
+  {
+   "path": "tests/test_simulation.py",
+   "sha256": "2683610f5ad25fb57721477be6109603e0bcad79dfc5a845aace1915cc2cebb1"
+  },
+  {
+   "path": "tests/test_state.py",
+   "sha256": "1eefaa5afae1c97495e3d80c1f93c211ec106214305f4efc35c70390c5cbc338"
+  },
+  {
+   "path": "tests/test_tune.py",
+   "sha256": "dd7e184663a5385e5dd5bf407fe27ff1b877138c8fbd249509fbafc0aa74fe2c"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 199474
+}

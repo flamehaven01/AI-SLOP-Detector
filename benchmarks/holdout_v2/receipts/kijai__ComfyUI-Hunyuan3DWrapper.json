@@ -1,0 +1,664 @@
+{
+ "repo": "kijai/ComfyUI-Hunyuan3DWrapper",
+ "dir": "kijai__ComfyUI-Hunyuan3DWrapper",
+ "commit": "2609efa38f6a98292476f714839b7c1e5f9b699a",
+ "estimate_commit": "2609efa38f6a98292476f714839b7c1e5f9b699a",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitattributes",
+  ".github/workflows/publish.yml",
+  ".gitignore",
+  "LICENSE.txt",
+  "ODC/LICENSE.txt",
+  "ODC/occupancy_dual_contouring.py",
+  "__init__.py",
+  "configs/dit_config.yaml",
+  "configs/dit_config_2_1.yaml",
+  "configs/dit_config_mini.yaml",
+  "example_workflows/demo.png",
+  "example_workflows/example_workflow.png",
+  "example_workflows/hy3d_example_01.json",
+  "example_workflows/hy3d_multiview_example_02.json",
+  "hy3dgen/__init__.py",
+  "hy3dgen/rembg.py",
+  "hy3dgen/shapegen/__init__.py",
+  "hy3dgen/shapegen/bpt/README.md",
+  "hy3dgen/shapegen/bpt/miche/LICENSE",
+  "hy3dgen/shapegen/bpt/miche/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/encode.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/primitives/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/primitives/__pycache__/__init__.cpython-312.pyc",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/primitives/__pycache__/volume.cpython-312.pyc",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/primitives/volume.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/checkpoint.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/distributions.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/embedder.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/transformer_blocks.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/asl_pl_module.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/clip_asl_module.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/inference_utils.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/loss.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/sal_perceiver.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/tsal_base.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/utils/__init__.py",
+  "hy3dgen/shapegen/bpt/miche/michelangelo/utils/misc.py",
+  "hy3dgen/shapegen/bpt/model/__init__.py",
+  "hy3dgen/shapegen/bpt/model/data_utils.py",
+  "hy3dgen/shapegen/bpt/model/miche_conditioner.py",
+  "hy3dgen/shapegen/bpt/model/model.py",
+  "hy3dgen/shapegen/bpt/model/serializaiton.py",
+  "hy3dgen/shapegen/bpt/requirements.txt",
+  "hy3dgen/shapegen/bpt/shapevae-256.yaml",
+  "hy3dgen/shapegen/bpt/utils.py",
+  "hy3dgen/shapegen/models/__init__.py",
+  "hy3dgen/shapegen/models/autoencoders/__init__.py",
+  "hy3dgen/shapegen/models/autoencoders/attention_blocks.py",
+  "hy3dgen/shapegen/models/autoencoders/attention_processors.py",
+  "hy3dgen/shapegen/models/autoencoders/model.py",
+  "hy3dgen/shapegen/models/autoencoders/surface_extractors.py",
+  "hy3dgen/shapegen/models/autoencoders/volume_decoders.py",
+  "hy3dgen/shapegen/models/conditioner.py",
+  "hy3dgen/shapegen/models/hunyuan3ddit.py",
+  "hy3dgen/shapegen/models/vae_old.py",
+  "hy3dgen/shapegen/pipelines.py",
+  "hy3dgen/shapegen/postprocessors.py",
+  "hy3dgen/shapegen/preprocessors.py",
+  "hy3dgen/shapegen/schedulers.py",
+  "hy3dgen/shapegen/utils.py",
+  "hy3dgen/texgen/__init__.py",
+  "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/__init__.py",
+  "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/io_glb.py",
+  "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/io_obj.py",
+  "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/render.py",
+  "hy3dgen/texgen/custom_rasterizer/lib/custom_rasterizer_kernel/__init__.py",
+  "hy3dgen/texgen/custom_rasterizer/lib/custom_rasterizer_kernel/grid_neighbor.cpp",
+  "hy3dgen/texgen/custom_rasterizer/lib/custom_rasterizer_kernel/rasterizer.cpp",
+  "hy3dgen/texgen/custom_rasterizer/lib/custom_rasterizer_kernel/rasterizer.h",
+  "hy3dgen/texgen/custom_rasterizer/lib/custom_rasterizer_kernel/rasterizer_gpu.cu",
+  "hy3dgen/texgen/custom_rasterizer/setup.py",
+  "hy3dgen/texgen/differentiable_renderer/__init__.py",
+  "hy3dgen/texgen/differentiable_renderer/camera_utils.py",
+  "hy3dgen/texgen/differentiable_renderer/compile_mesh_painter.sh",
+  "hy3dgen/texgen/differentiable_renderer/mesh_processor.cp312-win_amd64.pyd",
+  "hy3dgen/texgen/differentiable_renderer/mesh_processor.cpp",
+  "hy3dgen/texgen/differentiable_renderer/mesh_processor.py",
+  "hy3dgen/texgen/differentiable_renderer/mesh_render.py",
+  "hy3dgen/texgen/differentiable_renderer/mesh_utils.py",
+  "hy3dgen/texgen/differentiable_renderer/setup.py",
+  "hy3dgen/texgen/hunyuanpaint/__init__.py",
+  "hy3dgen/texgen/hunyuanpaint/pipeline.py",
+  "hy3dgen/texgen/hunyuanpaint/unet/__init__.py",
+  "hy3dgen/texgen/hunyuanpaint/unet/modules.py",
+  "hy3dgen/texgen/pipelines.py",
+  "hy3dgen/texgen/utils/__init__.py",
+  "hy3dgen/texgen/utils/alignImg4Tex_utils.py",
+  "hy3dgen/texgen/utils/counter_utils.py",
+  "hy3dgen/texgen/utils/dehighlight_utils.py",
+  "hy3dgen/texgen/utils/multiview_utils.py",
+  "hy3dgen/texgen/utils/simplify_mesh_utils.py",
+  "hy3dgen/texgen/utils/uv_warp_utils.py",
+  "hy3dgen/text2image.py",
+  "hy3dshape/LICENSE",
+  "hy3dshape/configs/hunyuan3ddit-full-params-finetuning-flowmatching-dinog518-bf16-lr1e5-512.yaml",
+  "hy3dshape/configs/hunyuan3ddit-mini-overfitting-flowmatching-dinog518-bf16-lr1e4-512.yaml",
+  "hy3dshape/configs/hunyuandit-finetuning-flowmatching-dinog518-bf16-lr1e5-4096.yaml",
+  "hy3dshape/configs/hunyuandit-mini-overfitting-flowmatching-dinog518-bf16-lr1e4-4096.yaml",
+  "hy3dshape/configs/hunyuandit-mini-overfitting-flowmatching-dinog518-bf16-lr1e4-512.yaml",
+  "hy3dshape/hy3dshape/__init__.py",
+  "hy3dshape/hy3dshape/data/dit_asl.py",
+  "hy3dshape/hy3dshape/data/utils.py",
+  "hy3dshape/hy3dshape/models/__init__.py",
+  "hy3dshape/hy3dshape/models/autoencoders/__init__.py",
+  "hy3dshape/hy3dshape/models/autoencoders/attention_blocks.py",
+  "hy3dshape/hy3dshape/models/autoencoders/attention_processors.py",
+  "hy3dshape/hy3dshape/models/autoencoders/model.py",
+  "hy3dshape/hy3dshape/models/autoencoders/surface_extractors.py",
+  "hy3dshape/hy3dshape/models/autoencoders/volume_decoders.py",
+  "hy3dshape/hy3dshape/models/conditioner.py",
+  "hy3dshape/hy3dshape/models/denoisers/__init__.py",
+  "hy3dshape/hy3dshape/models/denoisers/hunyuan3ddit.py",
+  "hy3dshape/hy3dshape/models/denoisers/hunyuandit.py",
+  "hy3dshape/hy3dshape/models/denoisers/moe_layers.py",
+  "hy3dshape/hy3dshape/models/diffusion/flow_matching_sit.py",
+  "hy3dshape/hy3dshape/models/diffusion/transport/__init__.py",
+  "hy3dshape/hy3dshape/models/diffusion/transport/integrators.py",
+  "hy3dshape/hy3dshape/models/diffusion/transport/path.py",
+  "hy3dshape/hy3dshape/models/diffusion/transport/transport.py",
+  "hy3dshape/hy3dshape/models/diffusion/transport/utils.py",
+  "hy3dshape/hy3dshape/pipelines.py",
+  "hy3dshape/hy3dshape/postprocessors.py",
+  "hy3dshape/hy3dshape/preprocessors.py",
+  "hy3dshape/hy3dshape/rembg.py",
+  "hy3dshape/hy3dshape/schedulers.py",
+  "hy3dshape/hy3dshape/surface_loaders.py",
+  "hy3dshape/hy3dshape/utils/__init__.py",
+  "hy3dshape/hy3dshape/utils/ema.py",
+  "hy3dshape/hy3dshape/utils/misc.py",
+  "hy3dshape/hy3dshape/utils/trainings/__init__.py",
+  "hy3dshape/hy3dshape/utils/trainings/callback.py",
+  "hy3dshape/hy3dshape/utils/trainings/lr_scheduler.py",
+  "hy3dshape/hy3dshape/utils/trainings/mesh.py",
+  "hy3dshape/hy3dshape/utils/trainings/mesh_log_callback.py",
+  "hy3dshape/hy3dshape/utils/trainings/peft.py",
+  "hy3dshape/hy3dshape/utils/utils.py",
+  "hy3dshape/hy3dshape/utils/visualizers/__init__.py",
+  "hy3dshape/hy3dshape/utils/visualizers/color_util.py",
+  "hy3dshape/hy3dshape/utils/visualizers/html_util.py",
+  "hy3dshape/hy3dshape/utils/visualizers/pythreejs_viewer.py",
+  "hy3dshape/minimal_demo.py",
+  "hy3dshape/minimal_vae_demo.py",
+  "nodes.py",
+  "pyproject.toml",
+  "readme.md",
+  "requirements.txt",
+  "requirements_extras.txt",
+  "utils.py",
+  "web/js/jsnodes.js",
+  "wheels/custom_rasterizer-0.1-cp312-cp312-win_amd64.whl",
+  "wheels/custom_rasterizer-0.1.0+torch2100.cuda130-cp312-cp312-win_amd64.whl",
+  "wheels/custom_rasterizer-0.1.0+torch260.cuda126-cp312-cp312-win_amd64.whl",
+  "wheels/custom_rasterizer-0.1.0+torch270.cuda128-cp312-cp312-win_amd64.whl"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "ad94ba18f27b4fb4b3f0b1a5983502afe1d5443a5c7e2e38fb52d3413af18249"
+  },
+  {
+   "path": "ODC/occupancy_dual_contouring.py",
+   "sha256": "4366e8f6fcf4366bc3eb7d8996c64a49a1bc1374c85ab8e3300fbe9d04a7e3fb"
+  },
+  {
+   "path": "__init__.py",
+   "sha256": "dd21d184c80ab4b68e270c0f2325f3d212be35d47d323dbd608403e3ba9b2be6"
+  },
+  {
+   "path": "hy3dgen/__init__.py",
+   "sha256": "a04e1d72cd7197da4f3b5008ece5c19cb3d47c8ea9bee9096f388576e8c4c112"
+  },
+  {
+   "path": "hy3dgen/rembg.py",
+   "sha256": "a7c5667faa4655397d831a4777d00c459d35d0c64c8387d6908686adf6be2f63"
+  },
+  {
+   "path": "hy3dgen/shapegen/__init__.py",
+   "sha256": "ad3b8a76cd5678a9c4a857cdef5551dbbabe20aa1cbc5e9bda3e1f7e8e92283a"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/encode.py",
+   "sha256": "73d63807eb5623c20038d8e81f03c8a6ca110023b04790846925518ecc2821df"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/__init__.py",
+   "sha256": "8b084a9f378124b2b1a51563bf3c22444eb7ff33692017da28b2136ae56987ed"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/__init__.py",
+   "sha256": "8b084a9f378124b2b1a51563bf3c22444eb7ff33692017da28b2136ae56987ed"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/primitives/__init__.py",
+   "sha256": "7c1b83605fef23bd520dd947cc6183241a1efdfcffd663bf156abae58633aebd"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/graphics/primitives/volume.py",
+   "sha256": "0b48467c4d14601e6e04929a51baba06da3918c7f163af731d5356380ccd9fd1"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/__init__.py",
+   "sha256": "8b084a9f378124b2b1a51563bf3c22444eb7ff33692017da28b2136ae56987ed"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/__init__.py",
+   "sha256": "3b5d8cae7f1bec99e25a9e06a82766357312095e89b64ea6317427dea6d2a285"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/checkpoint.py",
+   "sha256": "3b4e16b22345513ba8d221083b5ad81e7a97ac8d15f0d1cd0c724bbf0ca3debb"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/distributions.py",
+   "sha256": "403b8dba175de9572b9349b297b3ed03b1db7de07328332a50ba566c0e11f137"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/embedder.py",
+   "sha256": "425d3d6f8b38ad6b2d7426923b75e577a509c995357001c85eecbc4ca9ad8b34"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/modules/transformer_blocks.py",
+   "sha256": "587956a80ca5329825d2b0add80d37b21bd3385322f4d5b022ee04865886d8e2"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/__init__.py",
+   "sha256": "8b084a9f378124b2b1a51563bf3c22444eb7ff33692017da28b2136ae56987ed"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/asl_pl_module.py",
+   "sha256": "9b16a195a1ae4372d0c9154845a355335b00d56833f8a3699c436b3a3e28c997"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/clip_asl_module.py",
+   "sha256": "7ea3fd7239693b0c15fcf0cc2cd248de16bc46ac6448e1b14f483df97172eecf"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/inference_utils.py",
+   "sha256": "65f8f7d4f7f7f7d538487e42b1793ceb3564e9ec53ebfa485e39033c827dfb0a"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/loss.py",
+   "sha256": "89d33dee79f0663e8b03466c7149e23f6a703e18d03755ebc28c2fce9c7467fe"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/sal_perceiver.py",
+   "sha256": "25eb0af066c90d43b84171133a2d021ce9ca688869784a7710f79d271d3cf8a6"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/models/tsal/tsal_base.py",
+   "sha256": "23ea3d570c1514fc1d0b003b0170a122fb9e6baf3ae01f4d602a0dfd9972b8ec"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/utils/__init__.py",
+   "sha256": "04c65d9071c56ca86d207ea72974ef69d3f95b6634e4d9bf83298b60e7555c93"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/miche/michelangelo/utils/misc.py",
+   "sha256": "91a43f367f92a771a744868a9beb1be3bd5f358f528d525dec3f02d056e733ad"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/model/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/model/data_utils.py",
+   "sha256": "9ddbd04367fb2f0f9168c3bbe369a26afaed8afa86140945df6501c290656cc1"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/model/miche_conditioner.py",
+   "sha256": "ec756ba184d2e173668979989bec88d441317ec68c1aa53d45430e608a77a892"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/model/model.py",
+   "sha256": "76f4d68dd1e651381dbb7ed528eeb157e8ec31189303456ca8c8a1b2f88a975f"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/model/serializaiton.py",
+   "sha256": "13bec985cce28d15e412d413a835cce6337200527026115c958c34822dfce938"
+  },
+  {
+   "path": "hy3dgen/shapegen/bpt/utils.py",
+   "sha256": "e7f0c4e78f57d86ecae8bd6e4e517da1248b8ea1265a9d46187febec6b502408"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/__init__.py",
+   "sha256": "c29a82a2e24af26e69ce0e58a3183192a9c420da8a0c2d3de273614f72e4dfdc"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/autoencoders/__init__.py",
+   "sha256": "f1c91751fa8db7ecf531189aae33a59b5b9e3e10aa0d524edf33f6857eea8cfd"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/autoencoders/attention_blocks.py",
+   "sha256": "a4f2ace4300fed7a216f69ebe6750ec56015707afa72a7c3ffdfd8db73318ddc"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/autoencoders/attention_processors.py",
+   "sha256": "9a461ddde9a2bf5ca0cd3961c3c1b86f9c81772066fe5b815bc497e0b5a8f053"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/autoencoders/model.py",
+   "sha256": "c849a7454fb42411365245daad2da41c4b9405a50d3fea383087436013de4047"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/autoencoders/surface_extractors.py",
+   "sha256": "0b775d0220ca3e5ee474bc1222ddaf4d7667fe0fad331486c9532c1092a2cd80"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/autoencoders/volume_decoders.py",
+   "sha256": "b6b13265902b0b8d2fd1f5f2de80a24927952d9fac27ab88dcdb75b79115ce1a"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/conditioner.py",
+   "sha256": "719bb78ad62947521077a25d7f36ae1cfd593269bc6a3497af9ef3329f0bb894"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/hunyuan3ddit.py",
+   "sha256": "ad898deff2d95cca72bd3c1bc4733739657623151b77afb0bda95a7526e282dd"
+  },
+  {
+   "path": "hy3dgen/shapegen/models/vae_old.py",
+   "sha256": "96ec248cccceb99326567898c7a8da780203a42fcce745ee3536b11dbade670e"
+  },
+  {
+   "path": "hy3dgen/shapegen/pipelines.py",
+   "sha256": "bda9e1d9e5357c21ab6058a1de736763c27dd74b2bcf9bfdc7c9afb14f1baa8f"
+  },
+  {
+   "path": "hy3dgen/shapegen/postprocessors.py",
+   "sha256": "19594880c5254d8c4badb84284628d5ce741b7f55fb456625211fc2a036eba36"
+  },
+  {
+   "path": "hy3dgen/shapegen/preprocessors.py",
+   "sha256": "5bf8af960b769b5e75f2de76a0f3ad091ee2563b6b534723c45791030aba9815"
+  },
+  {
+   "path": "hy3dgen/shapegen/schedulers.py",
+   "sha256": "514d7aa64d5a1631a79a84a7c051434414507690eb7603f17d10433db3a93f15"
+  },
+  {
+   "path": "hy3dgen/shapegen/utils.py",
+   "sha256": "075bb78486d0fa1f95d773974076f72df65c5c0c497ab639f693419ba6ac2f2c"
+  },
+  {
+   "path": "hy3dgen/texgen/__init__.py",
+   "sha256": "ab23a4ebef5cb95714662f637add11596fb5b4ff7c3c930f90c2080cdf82e7cf"
+  },
+  {
+   "path": "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/__init__.py",
+   "sha256": "eac9ea2fa2d678fca887a9580080d84c88f8a0bb1a8747553e0d438693677c6c"
+  },
+  {
+   "path": "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/io_glb.py",
+   "sha256": "48b110d6d2fe9b8cb1c839a16f5ab39c4d6e8956df26966b4ba1988c821377d2"
+  },
+  {
+   "path": "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/io_obj.py",
+   "sha256": "81c6735630767568d1a83fed9f6953666c338c757285f214b6af8ff53a0f3367"
+  },
+  {
+   "path": "hy3dgen/texgen/custom_rasterizer/custom_rasterizer/render.py",
+   "sha256": "30562c6d54fe51af9911fda33757d40677e7549a8695d39558090306b86b5215"
+  },
+  {
+   "path": "hy3dgen/texgen/custom_rasterizer/lib/custom_rasterizer_kernel/__init__.py",
+   "sha256": "a04e1d72cd7197da4f3b5008ece5c19cb3d47c8ea9bee9096f388576e8c4c112"
+  },
+  {
+   "path": "hy3dgen/texgen/custom_rasterizer/setup.py",
+   "sha256": "324fd23b23b8bf5af3bb794455a8bc96d315b9ff7151abb20f37e3940b27d03f"
+  },
+  {
+   "path": "hy3dgen/texgen/differentiable_renderer/__init__.py",
+   "sha256": "a04e1d72cd7197da4f3b5008ece5c19cb3d47c8ea9bee9096f388576e8c4c112"
+  },
+  {
+   "path": "hy3dgen/texgen/differentiable_renderer/camera_utils.py",
+   "sha256": "7a9a762e11303f80f4390a995e04cc431f205ccb1e215290995a9cf253502dd9"
+  },
+  {
+   "path": "hy3dgen/texgen/differentiable_renderer/mesh_processor.py",
+   "sha256": "8ea5c79238b06dd1300effe8759fd858ed233fb6da8b01839b89ea5f205bdeec"
+  },
+  {
+   "path": "hy3dgen/texgen/differentiable_renderer/mesh_render.py",
+   "sha256": "4d99a35217f8061f64a6049ef785b1aedb5f121581ff32d113b1713a3fc64448"
+  },
+  {
+   "path": "hy3dgen/texgen/differentiable_renderer/mesh_utils.py",
+   "sha256": "c5a685947a7d331a52f6d49e948813586c7b467255823c2654ac2817d06cc557"
+  },
+  {
+   "path": "hy3dgen/texgen/differentiable_renderer/setup.py",
+   "sha256": "58f241b10f1b1927d36a2792991061c3d5dd0cad60bdf0f26a0488583b0b8895"
+  },
+  {
+   "path": "hy3dgen/texgen/hunyuanpaint/__init__.py",
+   "sha256": "a04e1d72cd7197da4f3b5008ece5c19cb3d47c8ea9bee9096f388576e8c4c112"
+  },
+  {
+   "path": "hy3dgen/texgen/hunyuanpaint/pipeline.py",
+   "sha256": "734889f51f5823baa166293e3a394efca3e3a9eb7699780535c62f62f7653dba"
+  },
+  {
+   "path": "hy3dgen/texgen/hunyuanpaint/unet/__init__.py",
+   "sha256": "a04e1d72cd7197da4f3b5008ece5c19cb3d47c8ea9bee9096f388576e8c4c112"
+  },
+  {
+   "path": "hy3dgen/texgen/hunyuanpaint/unet/modules.py",
+   "sha256": "a3ab8c32b077a16d12106086307a5552bf207f6d4218f74b3b02d57e66b27aa2"
+  },
+  {
+   "path": "hy3dgen/texgen/pipelines.py",
+   "sha256": "5146169d229e043cfefe3dbd587aa74cb5331e10502a427d3c2b7290c50d8299"
+  },
+  {
+   "path": "hy3dgen/texgen/utils/__init__.py",
+   "sha256": "a04e1d72cd7197da4f3b5008ece5c19cb3d47c8ea9bee9096f388576e8c4c112"
+  },
+  {
+   "path": "hy3dgen/texgen/utils/alignImg4Tex_utils.py",
+   "sha256": "b27c284232b7613bd8304724cde2e87519b730634186cb069006117538459472"
+  },
+  {
+   "path": "hy3dgen/texgen/utils/counter_utils.py",
+   "sha256": "7c3cfddd1eb900bd61549c29be79ccf44d46908fd1c1936a898a947b0fb10c1b"
+  },
+  {
+   "path": "hy3dgen/texgen/utils/dehighlight_utils.py",
+   "sha256": "275ca98891424fb399724c2427197d659eb333b9cf60a266b17d06acbe2217af"
+  },
+  {
+   "path": "hy3dgen/texgen/utils/multiview_utils.py",
+   "sha256": "485c4fdf0ee2da320581c3dc94e6cd90175f9a529ecfa35e7666826674ff3755"
+  },
+  {
+   "path": "hy3dgen/texgen/utils/simplify_mesh_utils.py",
+   "sha256": "857ae9333eb439d9117876b9fb556d355a8acc438e653acd4fff37237035a3a4"
+  },
+  {
+   "path": "hy3dgen/texgen/utils/uv_warp_utils.py",
+   "sha256": "144e48939e256637eab4ace061fbd6450004853e728a07ba024e9c5ca54941c1"
+  },
+  {
+   "path": "hy3dgen/text2image.py",
+   "sha256": "f75c0bdef2300fec74a60a0d477ba30468912f289f0e582e785f1ce84c0f895d"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/__init__.py",
+   "sha256": "d233d923a912621c986201e482b1c7b9a5fc014974e6bb952ceb7b36f3c4020f"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/data/dit_asl.py",
+   "sha256": "ff5c8c9b57fec20998783100fb5fb4f5e4c57943afcafb0d9f6a985803e0eb87"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/data/utils.py",
+   "sha256": "a2c24c5243f0cacfd323ab969bd9ab26928e54393ce439eaf6ab4de73eb951fb"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/__init__.py",
+   "sha256": "2f56106c91dfc126f3e20551e8a7a48f049be7b33eda814ae1c184bc979328fe"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/autoencoders/__init__.py",
+   "sha256": "f1c91751fa8db7ecf531189aae33a59b5b9e3e10aa0d524edf33f6857eea8cfd"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/autoencoders/attention_blocks.py",
+   "sha256": "4be3dccc02da6f773c979175280ee0618ce5cc58917016a16c554745fc051537"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/autoencoders/attention_processors.py",
+   "sha256": "9a461ddde9a2bf5ca0cd3961c3c1b86f9c81772066fe5b815bc497e0b5a8f053"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/autoencoders/model.py",
+   "sha256": "b81a4586cc1148def7fe157c18071fb7dc50753cfbf1930932bbcbecbcb35829"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/autoencoders/surface_extractors.py",
+   "sha256": "203d1551ccef37e86f9809b9ac0fac68e8e4a2f633ca72a85408535595ae68e5"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/autoencoders/volume_decoders.py",
+   "sha256": "95ffab6bd0a11034bc2b7415fef1379e27c4d2238638f831a0456019d90484eb"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/conditioner.py",
+   "sha256": "c735ef7abbdd0fad089e684a237ef30a6cb7616c2faa49a30571d3640c2865c9"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/denoisers/__init__.py",
+   "sha256": "8ab24870a628fb94a3d903d7d149d3eb3d20b32cadf8f6680c6e457562384a41"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/denoisers/hunyuan3ddit.py",
+   "sha256": "0e47af4644344c0900adb216164b3be26b2d97085017711a72f27fda66f2b755"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/denoisers/hunyuandit.py",
+   "sha256": "27a74c5ba210468847aaf348bfd31ac2781dce094960ede0b2050d94233c531e"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/denoisers/moe_layers.py",
+   "sha256": "a8d756a5fbe6941ad0dd68e4d1b0ea4fc6a84418f4c2e2b0a28cb4f2144ec240"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/diffusion/flow_matching_sit.py",
+   "sha256": "93d3ce689d46d3d88da1e99630a1e248bad83953701978d8a8a26a4bf720e39e"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/diffusion/transport/__init__.py",
+   "sha256": "3a84f703c88bc0ad9b4be89cd2cb880e59763ef59548fc2d32ac35eab0a8ed42"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/diffusion/transport/integrators.py",
+   "sha256": "7edc1ed10518ccb0527ccf59deccbdfc4ddc14221c8299cac859a1e242094e2a"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/diffusion/transport/path.py",
+   "sha256": "16321f9f76ab0385ec7433e8500453a5bebc46029a87966926f961d641a64187"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/diffusion/transport/transport.py",
+   "sha256": "749ab441b9a301d50c323ebed7b2465a6dded439fe41fa8a1c0d30847b9ac90f"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/models/diffusion/transport/utils.py",
+   "sha256": "28aa55be314c180a57358215adb8cb0abf9d9a6e1992fb841f90578fde782ee0"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/pipelines.py",
+   "sha256": "a47468bdd061a2869cf469926cd48f19911923c7957efadec8c67d9b4dfd0974"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/postprocessors.py",
+   "sha256": "3899ef49fbc7453553d264d16c14305a9ee9c6f8a3341a8850b960f018640a17"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/preprocessors.py",
+   "sha256": "284dc24fabbf974bd6793ebd58e95b7700550d90371cacb96ad0889ec558de1e"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/rembg.py",
+   "sha256": "e372426c19bc51447129b72862e330777e7ce4a9e07212c1abdff5d1947292dc"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/schedulers.py",
+   "sha256": "d3b25b84dac26f0e862cfc866da08df2d6592f01a0aaeda965782ab0fc1d8bba"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/surface_loaders.py",
+   "sha256": "c4a821fffd9ea9f121ac07a034faaa9e52350859cc667db955ae91c17ee1c001"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/__init__.py",
+   "sha256": "0be86a4b0a9c7885550f80fd6f9900855246f6fb0d8df6000e07414258d6590f"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/ema.py",
+   "sha256": "cadb5b3a3ac8fb23a8fb3554fac3ac45c147f99d765cfa1f0af0db5f8ac9476c"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/misc.py",
+   "sha256": "e8f41fef6db65993b87d64f9a540e75c3b4f8c85f6c703683929d6250ee3ec16"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/trainings/__init__.py",
+   "sha256": "8b084a9f378124b2b1a51563bf3c22444eb7ff33692017da28b2136ae56987ed"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/trainings/callback.py",
+   "sha256": "e829e12bc17212dd8e343b4a2b263ae46d15755dd7aca0ca8f633a1740ff7e1d"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/trainings/lr_scheduler.py",
+   "sha256": "48462dc6c67b5ecfcdf15d780ffffa728b13b53b6d094e38b7402d45aa47e201"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/trainings/mesh.py",
+   "sha256": "c913ae260f7c535e38a501a2c17031e027884545cd8842fbe2953d8f64aa5656"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/trainings/mesh_log_callback.py",
+   "sha256": "c2a31fe3cdd45f03688862a0c9bc62dd0ecbae5b54e6f35521010f9751dcbb76"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/trainings/peft.py",
+   "sha256": "d9975eb27fc688f82265a6d116c80dd3de0dbadf0c6141539f73bcb5448a02cf"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/utils.py",
+   "sha256": "09fda07cb7e7aafbbc2d0a0a808d312d6687bcb1a939c33cdf9f88dc07d42ca0"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/visualizers/__init__.py",
+   "sha256": "8b084a9f378124b2b1a51563bf3c22444eb7ff33692017da28b2136ae56987ed"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/visualizers/color_util.py",
+   "sha256": "4805fade6c1ea57fa8ef661365cdf4bdad923ca9d58dcc9a448b3bc99e037f73"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/visualizers/html_util.py",
+   "sha256": "1ad73fe86a126c76f88d7a91bf3743788601801a3b53bf9f6439df7726ec6af8"
+  },
+  {
+   "path": "hy3dshape/hy3dshape/utils/visualizers/pythreejs_viewer.py",
+   "sha256": "3cb87aac8493e2a22c8a240b4a5d6a4f4869355ef4433f7a25313c406643de24"
+  },
+  {
+   "path": "hy3dshape/minimal_demo.py",
+   "sha256": "c686714b3e1f21b9610deae9c1d590ccb1e3fdc6d107363449c8f80fc8983d0a"
+  },
+  {
+   "path": "hy3dshape/minimal_vae_demo.py",
+   "sha256": "6f45195fc12a5fb5adb3574a39c86d010ff75a4ddcbf02a1d074d73d07bfaeb9"
+  },
+  {
+   "path": "nodes.py",
+   "sha256": "6c3998c3b01201456d48da33d097ea0e85610b0cfaa5c4260e3a191e5eb3e23e"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "82c5dff7f20cc5680f86713ccf5dea57c7f4fa6d2c1a37a92ab1309d67e2b5cb"
+  },
+  {
+   "path": "utils.py",
+   "sha256": "dbf57a9d47aec33a037c6e0dcdb65843ee155ca653b09a41290fb0c0ca30176b"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 268732
+}

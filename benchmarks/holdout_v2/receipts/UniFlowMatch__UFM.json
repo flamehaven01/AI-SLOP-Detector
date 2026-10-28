@@ -1,0 +1,121 @@
+{
+ "repo": "UniFlowMatch/UFM",
+ "dir": "UniFlowMatch__UFM",
+ "commit": "ff78d6c3db807c91578acccb58ee67d4394d5e5f",
+ "estimate_commit": "ff78d6c3db807c91578acccb58ee67d4394d5e5f",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  ".gitmodules",
+  ".gradio/certificate.pem",
+  ".pre-commit-config.yaml",
+  "LICENSE",
+  "README.md",
+  "assets/teaser.jpg",
+  "example_inference.py",
+  "examples/example_ufm_output.png",
+  "examples/image_pairs/bike_0.png",
+  "examples/image_pairs/bike_1.png",
+  "examples/image_pairs/building_0.png",
+  "examples/image_pairs/building_1.png",
+  "examples/image_pairs/cook_0.png",
+  "examples/image_pairs/cook_1.png",
+  "examples/image_pairs/fire_academy_0.png",
+  "examples/image_pairs/fire_academy_1.png",
+  "examples/image_pairs/scene_0.png",
+  "examples/image_pairs/scene_1.png",
+  "gradio_demo.py",
+  "pyproject.toml",
+  "setup.py",
+  "uniflowmatch/__init__.py",
+  "uniflowmatch/cli.py",
+  "uniflowmatch/models/__init__.py",
+  "uniflowmatch/models/base.py",
+  "uniflowmatch/models/ufm.py",
+  "uniflowmatch/models/unet_encoder.py",
+  "uniflowmatch/models/utils.py",
+  "uniflowmatch/utils/__init__.py",
+  "uniflowmatch/utils/flow_resizing.py",
+  "uniflowmatch/utils/geometry.py",
+  "uniflowmatch/utils/viz.py"
+ ],
+ "submodules": [
+  "UniCeption"
+ ],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "c93ff1146e0eefe3e247d33b946df3cb30875ea1468bfa362ae93fecf5aa98aa"
+  },
+  {
+   "path": "example_inference.py",
+   "sha256": "5df1bfab6120c691fe12032e0f746703724cb7fa40962802dfa2f6db8da3c134"
+  },
+  {
+   "path": "gradio_demo.py",
+   "sha256": "de950834c1ca7fecaf01796d4dd856188763c7d1baeb0f1138b9d74d62b1ad92"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "6b92bccfa40ee2ad58b9acafb23c8c2de61d1fda6269122d04ccd8f8a038f64a"
+  },
+  {
+   "path": "setup.py",
+   "sha256": "bb9968ce8959efa490fe4cafeecc1bd4e5dc4ec70d8204df9558508c835f9d80"
+  },
+  {
+   "path": "uniflowmatch/__init__.py",
+   "sha256": "37b9f91e61a5fd2cba1251fddaba8d5988c6a12ac6d987dcda838fde4f4008b7"
+  },
+  {
+   "path": "uniflowmatch/cli.py",
+   "sha256": "94322beb9660116f5cea332e3b7518ad4a34ed8891e8416219e5f029fae2bbc8"
+  },
+  {
+   "path": "uniflowmatch/models/__init__.py",
+   "sha256": "a9babe1756f14f02277fe4b7bb16ae779031dea88920d13ab1a54395d77bc1ed"
+  },
+  {
+   "path": "uniflowmatch/models/base.py",
+   "sha256": "efb2d2b804f25f37b47b6c12708f99bedb22181b4d42bc04990f2af019b9f671"
+  },
+  {
+   "path": "uniflowmatch/models/ufm.py",
+   "sha256": "17f1eb16039957ddf6ec47d360d2d584afc9005542c3790e7324c290ea014076"
+  },
+  {
+   "path": "uniflowmatch/models/unet_encoder.py",
+   "sha256": "de4826b4b52874423b77d9c0d11ba2df8d54d2c1686f8780f064e672c9ab91a9"
+  },
+  {
+   "path": "uniflowmatch/models/utils.py",
+   "sha256": "55fa6c75a01d4adbdb4185f7237ed5e194fad92a1b48b94500973c03a9ad03e1"
+  },
+  {
+   "path": "uniflowmatch/utils/__init__.py",
+   "sha256": "e27675b2dacb3239f86667f19f7e8c7b1e6474549efc88562941fe2062379e52"
+  },
+  {
+   "path": "uniflowmatch/utils/flow_resizing.py",
+   "sha256": "25d6256ae4b029a6026e9c06438f213d0d77b59901127d5d17fc38ccc757e600"
+  },
+  {
+   "path": "uniflowmatch/utils/geometry.py",
+   "sha256": "ad34044fc24a95e8ee78af15a8d1df258ada6cb8b8272bcdc07c5025971eea09"
+  },
+  {
+   "path": "uniflowmatch/utils/viz.py",
+   "sha256": "882438ba25162c09f9d034af2fa16976b6b8eff3c658253c631d359f05e54100"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 73918
+}

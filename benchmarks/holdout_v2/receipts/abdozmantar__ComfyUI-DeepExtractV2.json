@@ -1,0 +1,114 @@
+{
+ "repo": "abdozmantar/ComfyUI-DeepExtractV2",
+ "dir": "abdozmantar__ComfyUI-DeepExtractV2",
+ "commit": "37dcf7fe8d6569ede1277201259e51b7b2c2d271",
+ "estimate_commit": "37dcf7fe8d6569ede1277201259e51b7b2c2d271",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  "LICENSE.txt",
+  "README.md",
+  "__init__.py",
+  "apply.py",
+  "assets/Logo.png",
+  "assets/NodeInterface.png",
+  "assets/NodePath.png",
+  "assets/NodeUsage.png",
+  "assets/qr-code.png",
+  "audio.py",
+  "demucs/LICENSE.txt",
+  "demucs/__init__.py",
+  "demucs/demucs.py",
+  "demucs/hdemucs.py",
+  "demucs/htdemucs.py",
+  "helper.py",
+  "node.py",
+  "pretrained.py",
+  "remote/files.txt",
+  "remote/htdemucs.yaml",
+  "repo.py",
+  "requirements.txt",
+  "setup.bat",
+  "setup.py",
+  "spec.py",
+  "states.py",
+  "transformer.py",
+  "utils.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": "__init__.py",
+   "sha256": "9fb224b43bace0d04b796e0bc3107a834f8164dc97083d70faf35c062c61ad3f"
+  },
+  {
+   "path": "apply.py",
+   "sha256": "7f1f884793b77080a486884c35cdb06fc5ab9626a04f6e4b6fb3bf0974673ba4"
+  },
+  {
+   "path": "audio.py",
+   "sha256": "7af11eb0a0e17f7bb0153ca9b99f11a04f9f9b47b401b6775b7b40e6118b7a43"
+  },
+  {
+   "path": "demucs/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "demucs/demucs.py",
+   "sha256": "c0848b45dc4892a89dd2e73e40e61540bd42b66807f84a001cb6a494c8ad474e"
+  },
+  {
+   "path": "demucs/hdemucs.py",
+   "sha256": "4ba4f0d2773bb3cb3b8138ce98d242b8950472f8fb15022f986c694b48ccfcd3"
+  },
+  {
+   "path": "demucs/htdemucs.py",
+   "sha256": "36b86358416952b26612834a909f7be426e21b1ae271fe37d5d2f623fdd7167b"
+  },
+  {
+   "path": "helper.py",
+   "sha256": "3b5031358425a48f6aa983aa59ab4c04cbc1834e71dcb1fadd8af4ce1f7a2aef"
+  },
+  {
+   "path": "node.py",
+   "sha256": "fd530fa5e413fc98882bef447e8c0369ebb868439a73369e5d7da0c50c132bed"
+  },
+  {
+   "path": "pretrained.py",
+   "sha256": "f7f9426373fa12fd17b4fe93ba163f5a4c2350aa140ff1fb857aef1924761a61"
+  },
+  {
+   "path": "repo.py",
+   "sha256": "a8638de5612e62f90fa7f7af50f3e37a387a9456c526997d3cfeab0e0a542d62"
+  },
+  {
+   "path": "setup.py",
+   "sha256": "58e0c791835bb5cccc711378a2c48e47f52c8ccd783552f1a586073ae79c08d0"
+  },
+  {
+   "path": "spec.py",
+   "sha256": "9f1491538b5f4dd474bc65f01879042232f29f2b9982581716311c2b0fe281aa"
+  },
+  {
+   "path": "states.py",
+   "sha256": "d8eef60a8a184b79dced63a89d11ccbb3c18375d99a4a9d2a88531ef25a1780c"
+  },
+  {
+   "path": "transformer.py",
+   "sha256": "39178b58e97058c8476fa51803bc348b78c567b72a99473cbef3849241374bb3"
+  },
+  {
+   "path": "utils.py",
+   "sha256": "9353a8904b73f4c6723f53e809a9588a54fdb16b368868ce3934072987877a00"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 70579
+}

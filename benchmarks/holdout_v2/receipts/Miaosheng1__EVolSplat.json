@@ -1,0 +1,2139 @@
+{
+ "repo": "Miaosheng1/EVolSplat",
+ "dir": "Miaosheng1__EVolSplat",
+ "commit": "fe2893705eb6e986863768d1f3d3e52d35a3e671",
+ "estimate_commit": "fe2893705eb6e986863768d1f3d3e52d35a3e671",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  "LICENSE",
+  "README.md",
+  "config/Neuralsplat.yaml",
+  "docs/teaser.png",
+  "environment.yml",
+  "nerfstudio.egg-info/PKG-INFO",
+  "nerfstudio.egg-info/SOURCES.txt",
+  "nerfstudio.egg-info/dependency_links.txt",
+  "nerfstudio.egg-info/entry_points.txt",
+  "nerfstudio.egg-info/requires.txt",
+  "nerfstudio.egg-info/top_level.txt",
+  "nerfstudio/Encoder/ResNet34/ResNet34.py",
+  "nerfstudio/Encoder/ResNet34/__pycache__/ResNet34.cpython-310.pyc",
+  "nerfstudio/Encoder/ResNet34/__pycache__/ResNet34.cpython-38.pyc",
+  "nerfstudio/Encoder/ResNet34/__pycache__/custom_ecnoder.cpython-310.pyc",
+  "nerfstudio/Encoder/ResNet34/__pycache__/custom_ecnoder.cpython-38.pyc",
+  "nerfstudio/Encoder/ResNet34/__pycache__/util.cpython-310.pyc",
+  "nerfstudio/Encoder/ResNet34/__pycache__/util.cpython-38.pyc",
+  "nerfstudio/Encoder/ResNet34/custom_ecnoder.py",
+  "nerfstudio/Encoder/ResNet34/util.py",
+  "nerfstudio/__init__.py",
+  "nerfstudio/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/cameras/__init__.py",
+  "nerfstudio/cameras/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/cameras/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/cameras/__pycache__/camera_optimizers.cpython-310.pyc",
+  "nerfstudio/cameras/__pycache__/camera_optimizers.cpython-38.pyc",
+  "nerfstudio/cameras/__pycache__/camera_paths.cpython-310.pyc",
+  "nerfstudio/cameras/__pycache__/camera_paths.cpython-38.pyc",
+  "nerfstudio/cameras/__pycache__/camera_utils.cpython-310.pyc",
+  "nerfstudio/cameras/__pycache__/camera_utils.cpython-38.pyc",
+  "nerfstudio/cameras/__pycache__/cameras.cpython-310.pyc",
+  "nerfstudio/cameras/__pycache__/cameras.cpython-38.pyc",
+  "nerfstudio/cameras/__pycache__/lie_groups.cpython-310.pyc",
+  "nerfstudio/cameras/__pycache__/lie_groups.cpython-38.pyc",
+  "nerfstudio/cameras/__pycache__/rays.cpython-310.pyc",
+  "nerfstudio/cameras/__pycache__/rays.cpython-38.pyc",
+  "nerfstudio/cameras/camera_optimizers.py",
+  "nerfstudio/cameras/camera_paths.py",
+  "nerfstudio/cameras/camera_utils.py",
+  "nerfstudio/cameras/cameras.py",
+  "nerfstudio/cameras/lie_groups.py",
+  "nerfstudio/cameras/rays.py",
+  "nerfstudio/configs/__init__.py",
+  "nerfstudio/configs/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/configs/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/configs/__pycache__/base_config.cpython-310.pyc",
+  "nerfstudio/configs/__pycache__/base_config.cpython-38.pyc",
+  "nerfstudio/configs/__pycache__/config_utils.cpython-310.pyc",
+  "nerfstudio/configs/__pycache__/config_utils.cpython-38.pyc",
+  "nerfstudio/configs/__pycache__/dataparser_configs.cpython-310.pyc",
+  "nerfstudio/configs/__pycache__/dataparser_configs.cpython-38.pyc",
+  "nerfstudio/configs/__pycache__/experiment_config.cpython-310.pyc",
+  "nerfstudio/configs/__pycache__/experiment_config.cpython-38.pyc",
+  "nerfstudio/configs/__pycache__/external_methods.cpython-310.pyc",
+  "nerfstudio/configs/__pycache__/external_methods.cpython-38.pyc",
+  "nerfstudio/configs/__pycache__/method_configs.cpython-310.pyc",
+  "nerfstudio/configs/__pycache__/method_configs.cpython-38.pyc",
+  "nerfstudio/configs/base_config.py",
+  "nerfstudio/configs/config_utils.py",
+  "nerfstudio/configs/dataparser_configs.py",
+  "nerfstudio/configs/experiment_config.py",
+  "nerfstudio/configs/external_methods.py",
+  "nerfstudio/configs/method_configs.py",
+  "nerfstudio/data/__init__.py",
+  "nerfstudio/data/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/data/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/data/__pycache__/pixel_samplers.cpython-310.pyc",
+  "nerfstudio/data/__pycache__/pixel_samplers.cpython-38.pyc",
+  "nerfstudio/data/__pycache__/scene_box.cpython-310.pyc",
+  "nerfstudio/data/__pycache__/scene_box.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__init__.py",
+  "nerfstudio/data/datamanagers/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/base_datamanager.cpython-310.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/base_datamanager.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/evolsplat_datamanger.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/full_images_datamanager.cpython-310.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/full_images_datamanager.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/neuralsplat_datamanger.cpython-310.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/neuralsplat_datamanger.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/parallel_datamanager.cpython-310.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/parallel_datamanager.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/random_cameras_datamanager.cpython-310.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/random_cameras_datamanager.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/utils.cpython-310.pyc",
+  "nerfstudio/data/datamanagers/__pycache__/utils.cpython-38.pyc",
+  "nerfstudio/data/datamanagers/base_datamanager.py",
+  "nerfstudio/data/datamanagers/evolsplat_datamanger.py",
+  "nerfstudio/data/datamanagers/full_images_datamanager.py",
+  "nerfstudio/data/datamanagers/parallel_datamanager.py",
+  "nerfstudio/data/datamanagers/random_cameras_datamanager.py",
+  "nerfstudio/data/datamanagers/utils.py",
+  "nerfstudio/data/dataparsers/__init__.py",
+  "nerfstudio/data/dataparsers/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/arkitscenes_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/arkitscenes_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/base_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/base_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/blender_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/blender_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/colmap_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/colmap_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/dnerf_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/dnerf_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/dycheck_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/dycheck_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/evolsplat_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/instant_ngp_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/instant_ngp_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/minimal_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/minimal_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/nerfosr_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/nerfosr_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/nerfstudio_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/nerfstudio_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/neuralsplat_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/neuralsplat_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/neuralsplatwaymo_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/neuralsplatwaymo_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/nuscenes_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/nuscenes_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/phototourism_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/phototourism_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/scannet_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/scannet_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/scannetpp_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/scannetpp_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/sdfstudio_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/sdfstudio_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/sitcoms3d_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/sitcoms3d_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/zeroshot_dataparser.cpython-310.pyc",
+  "nerfstudio/data/dataparsers/__pycache__/zeroshot_dataparser.cpython-38.pyc",
+  "nerfstudio/data/dataparsers/arkitscenes_dataparser.py",
+  "nerfstudio/data/dataparsers/base_dataparser.py",
+  "nerfstudio/data/dataparsers/blender_dataparser.py",
+  "nerfstudio/data/dataparsers/colmap_dataparser.py",
+  "nerfstudio/data/dataparsers/dnerf_dataparser.py",
+  "nerfstudio/data/dataparsers/dycheck_dataparser.py",
+  "nerfstudio/data/dataparsers/evolsplat_dataparser.py",
+  "nerfstudio/data/dataparsers/instant_ngp_dataparser.py",
+  "nerfstudio/data/dataparsers/minimal_dataparser.py",
+  "nerfstudio/data/dataparsers/nerfosr_dataparser.py",
+  "nerfstudio/data/dataparsers/nerfstudio_dataparser.py",
+  "nerfstudio/data/dataparsers/nuscenes_dataparser.py",
+  "nerfstudio/data/dataparsers/phototourism_dataparser.py",
+  "nerfstudio/data/dataparsers/scannet_dataparser.py",
+  "nerfstudio/data/dataparsers/scannetpp_dataparser.py",
+  "nerfstudio/data/dataparsers/sdfstudio_dataparser.py",
+  "nerfstudio/data/dataparsers/sitcoms3d_dataparser.py",
+  "nerfstudio/data/dataparsers/zeroshot_dataparser.py",
+  "nerfstudio/data/datasets/__init__.py",
+  "nerfstudio/data/datasets/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/data/datasets/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/data/datasets/__pycache__/base_dataset.cpython-310.pyc",
+  "nerfstudio/data/datasets/__pycache__/base_dataset.cpython-38.pyc",
+  "nerfstudio/data/datasets/__pycache__/depth_dataset.cpython-310.pyc",
+  "nerfstudio/data/datasets/__pycache__/depth_dataset.cpython-38.pyc",
+  "nerfstudio/data/datasets/__pycache__/sdf_dataset.cpython-310.pyc",
+  "nerfstudio/data/datasets/__pycache__/sdf_dataset.cpython-38.pyc",
+  "nerfstudio/data/datasets/__pycache__/semantic_dataset.cpython-310.pyc",
+  "nerfstudio/data/datasets/__pycache__/semantic_dataset.cpython-38.pyc",
+  "nerfstudio/data/datasets/base_dataset.py",
+  "nerfstudio/data/datasets/depth_dataset.py",
+  "nerfstudio/data/datasets/sdf_dataset.py",
+  "nerfstudio/data/datasets/semantic_dataset.py",
+  "nerfstudio/data/pixel_samplers.py",
+  "nerfstudio/data/scene_box.py",
+  "nerfstudio/data/utils/__init__.py",
+  "nerfstudio/data/utils/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/data/utils/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/data/utils/__pycache__/colmap_parsing_utils.cpython-310.pyc",
+  "nerfstudio/data/utils/__pycache__/colmap_parsing_utils.cpython-38.pyc",
+  "nerfstudio/data/utils/__pycache__/data_utils.cpython-310.pyc",
+  "nerfstudio/data/utils/__pycache__/data_utils.cpython-38.pyc",
+  "nerfstudio/data/utils/__pycache__/dataloaders.cpython-310.pyc",
+  "nerfstudio/data/utils/__pycache__/dataloaders.cpython-38.pyc",
+  "nerfstudio/data/utils/__pycache__/dataparsers_utils.cpython-310.pyc",
+  "nerfstudio/data/utils/__pycache__/dataparsers_utils.cpython-38.pyc",
+  "nerfstudio/data/utils/__pycache__/nerfstudio_collate.cpython-310.pyc",
+  "nerfstudio/data/utils/__pycache__/nerfstudio_collate.cpython-38.pyc",
+  "nerfstudio/data/utils/__pycache__/pixel_sampling_utils.cpython-310.pyc",
+  "nerfstudio/data/utils/__pycache__/pixel_sampling_utils.cpython-38.pyc",
+  "nerfstudio/data/utils/colmap_parsing_utils.py",
+  "nerfstudio/data/utils/data_utils.py",
+  "nerfstudio/data/utils/dataloaders.py",
+  "nerfstudio/data/utils/dataparsers_utils.py",
+  "nerfstudio/data/utils/nerfstudio_collate.py",
+  "nerfstudio/data/utils/pixel_sampling_utils.py",
+  "nerfstudio/engine/__init__.py",
+  "nerfstudio/engine/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/engine/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/engine/__pycache__/callbacks.cpython-310.pyc",
+  "nerfstudio/engine/__pycache__/callbacks.cpython-38.pyc",
+  "nerfstudio/engine/__pycache__/optimizers.cpython-310.pyc",
+  "nerfstudio/engine/__pycache__/optimizers.cpython-38.pyc",
+  "nerfstudio/engine/__pycache__/schedulers.cpython-310.pyc",
+  "nerfstudio/engine/__pycache__/schedulers.cpython-38.pyc",
+  "nerfstudio/engine/__pycache__/trainer.cpython-310.pyc",
+  "nerfstudio/engine/__pycache__/trainer.cpython-38.pyc",
+  "nerfstudio/engine/callbacks.py",
+  "nerfstudio/engine/optimizers.py",
+  "nerfstudio/engine/schedulers.py",
+  "nerfstudio/engine/trainer.py",
+  "nerfstudio/exporter/__init__.py",
+  "nerfstudio/exporter/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/exporter/__pycache__/exporter_utils.cpython-38.pyc",
+  "nerfstudio/exporter/__pycache__/marching_cubes.cpython-38.pyc",
+  "nerfstudio/exporter/__pycache__/texture_utils.cpython-38.pyc",
+  "nerfstudio/exporter/__pycache__/tsdf_utils.cpython-38.pyc",
+  "nerfstudio/exporter/exporter_utils.py",
+  "nerfstudio/exporter/marching_cubes.py",
+  "nerfstudio/exporter/texture_utils.py",
+  "nerfstudio/exporter/tsdf_utils.py",
+  "nerfstudio/field_components/__init__.py",
+  "nerfstudio/field_components/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/activations.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/activations.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/base_field_component.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/base_field_component.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/embedding.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/embedding.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/encodings.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/encodings.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/field_heads.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/field_heads.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/mlp.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/mlp.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/spatial_distortions.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/spatial_distortions.cpython-38.pyc",
+  "nerfstudio/field_components/__pycache__/temporal_distortions.cpython-310.pyc",
+  "nerfstudio/field_components/__pycache__/temporal_distortions.cpython-38.pyc",
+  "nerfstudio/field_components/activations.py",
+  "nerfstudio/field_components/base_field_component.py",
+  "nerfstudio/field_components/embedding.py",
+  "nerfstudio/field_components/encodings.py",
+  "nerfstudio/field_components/field_heads.py",
+  "nerfstudio/field_components/mlp.py",
+  "nerfstudio/field_components/spatial_distortions.py",
+  "nerfstudio/field_components/temporal_distortions.py",
+  "nerfstudio/fields/__init__.py",
+  "nerfstudio/fields/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/background_nerf.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/background_nerf.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/base_field.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/base_field.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/density_fields.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/density_fields.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/generfacto_field.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/generfacto_field.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/initial_BgSphere.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/initial_BgSphere.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/initial_sky.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/nerfacto_field.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/nerfacto_field.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/sdf_field.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/sdf_field.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/tensorf_field.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/tensorf_field.cpython-38.pyc",
+  "nerfstudio/fields/__pycache__/vanilla_nerf_field.cpython-310.pyc",
+  "nerfstudio/fields/__pycache__/vanilla_nerf_field.cpython-38.pyc",
+  "nerfstudio/fields/background_nerf.py",
+  "nerfstudio/fields/base_field.py",
+  "nerfstudio/fields/density_fields.py",
+  "nerfstudio/fields/generfacto_field.py",
+  "nerfstudio/fields/initial_BgSphere.py",
+  "nerfstudio/fields/nerfacto_field.py",
+  "nerfstudio/fields/nerfw_field.py",
+  "nerfstudio/fields/sdf_field.py",
+  "nerfstudio/fields/semantic_nerf_field.py",
+  "nerfstudio/fields/tensorf_field.py",
+  "nerfstudio/fields/vanilla_nerf_field.py",
+  "nerfstudio/generative/__init__.py",
+  "nerfstudio/generative/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/generative/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/generative/__pycache__/deepfloyd.cpython-310.pyc",
+  "nerfstudio/generative/__pycache__/deepfloyd.cpython-38.pyc",
+  "nerfstudio/generative/__pycache__/positional_text_embeddings.cpython-310.pyc",
+  "nerfstudio/generative/__pycache__/positional_text_embeddings.cpython-38.pyc",
+  "nerfstudio/generative/__pycache__/stable_diffusion.cpython-310.pyc",
+  "nerfstudio/generative/__pycache__/stable_diffusion.cpython-38.pyc",
+  "nerfstudio/generative/deepfloyd.py",
+  "nerfstudio/generative/positional_text_embeddings.py",
+  "nerfstudio/generative/stable_diffusion.py",
+  "nerfstudio/model_components/__init__.py",
+  "nerfstudio/model_components/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/losses.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/losses.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/projection.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/projection.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/ray_generators.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/ray_generators.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/ray_samplers.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/ray_samplers.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/renderers.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/renderers.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/scene_colliders.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/scene_colliders.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/shaders.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/shaders.cpython-38.pyc",
+  "nerfstudio/model_components/__pycache__/sparse_conv.cpython-310.pyc",
+  "nerfstudio/model_components/__pycache__/sparse_conv.cpython-38.pyc",
+  "nerfstudio/model_components/losses.py",
+  "nerfstudio/model_components/projection.py",
+  "nerfstudio/model_components/ray_generators.py",
+  "nerfstudio/model_components/ray_samplers.py",
+  "nerfstudio/model_components/renderers.py",
+  "nerfstudio/model_components/scene_colliders.py",
+  "nerfstudio/model_components/shaders.py",
+  "nerfstudio/model_components/sparse_conv.py",
+  "nerfstudio/models/__init__.py",
+  "nerfstudio/models/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/base_model.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/base_model.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/base_surface_model.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/base_surface_model.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/depth_nerfacto.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/depth_nerfacto.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/evolsplat.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/generfacto.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/generfacto.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/instant_ngp.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/instant_ngp.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/mipnerf.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/mipnerf.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/nerfacto.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/nerfacto.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/neuralsplat.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/neuralsplat.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/neus.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/neus.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/neus_facto.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/neus_facto.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/semantic_nerfw.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/semantic_nerfw.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/splatfacto.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/splatfacto.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/tensorf.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/tensorf.cpython-38.pyc",
+  "nerfstudio/models/__pycache__/vanilla_nerf.cpython-310.pyc",
+  "nerfstudio/models/__pycache__/vanilla_nerf.cpython-38.pyc",
+  "nerfstudio/models/base_model.py",
+  "nerfstudio/models/base_surface_model.py",
+  "nerfstudio/models/depth_nerfacto.py",
+  "nerfstudio/models/evolsplat.py",
+  "nerfstudio/models/generfacto.py",
+  "nerfstudio/models/instant_ngp.py",
+  "nerfstudio/models/mipnerf.py",
+  "nerfstudio/models/nerfacto.py",
+  "nerfstudio/models/neus.py",
+  "nerfstudio/models/neus_facto.py",
+  "nerfstudio/models/semantic_nerfw.py",
+  "nerfstudio/models/splatfacto.py",
+  "nerfstudio/models/tensorf.py",
+  "nerfstudio/models/vanilla_nerf.py",
+  "nerfstudio/pipelines/__init__.py",
+  "nerfstudio/pipelines/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/pipelines/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/pipelines/__pycache__/base_pipeline.cpython-310.pyc",
+  "nerfstudio/pipelines/__pycache__/base_pipeline.cpython-38.pyc",
+  "nerfstudio/pipelines/__pycache__/dynamic_batch.cpython-310.pyc",
+  "nerfstudio/pipelines/__pycache__/dynamic_batch.cpython-38.pyc",
+  "nerfstudio/pipelines/base_pipeline.py",
+  "nerfstudio/pipelines/dynamic_batch.py",
+  "nerfstudio/plugins/__init__.py",
+  "nerfstudio/plugins/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/plugins/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/plugins/__pycache__/registry.cpython-310.pyc",
+  "nerfstudio/plugins/__pycache__/registry.cpython-38.pyc",
+  "nerfstudio/plugins/__pycache__/registry_dataparser.cpython-310.pyc",
+  "nerfstudio/plugins/__pycache__/registry_dataparser.cpython-38.pyc",
+  "nerfstudio/plugins/__pycache__/types.cpython-310.pyc",
+  "nerfstudio/plugins/__pycache__/types.cpython-38.pyc",
+  "nerfstudio/plugins/registry.py",
+  "nerfstudio/plugins/registry_dataparser.py",
+  "nerfstudio/plugins/types.py",
+  "nerfstudio/process_data/__init__.py",
+  "nerfstudio/process_data/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/process_data/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/process_data/__pycache__/colmap_utils.cpython-310.pyc",
+  "nerfstudio/process_data/__pycache__/colmap_utils.cpython-38.pyc",
+  "nerfstudio/process_data/__pycache__/process_data_utils.cpython-310.pyc",
+  "nerfstudio/process_data/__pycache__/process_data_utils.cpython-38.pyc",
+  "nerfstudio/process_data/base_converter_to_nerfstudio_dataset.py",
+  "nerfstudio/process_data/colmap_converter_to_nerfstudio_dataset.py",
+  "nerfstudio/process_data/colmap_utils.py",
+  "nerfstudio/process_data/equirect_utils.py",
+  "nerfstudio/process_data/hloc_utils.py",
+  "nerfstudio/process_data/images_to_nerfstudio_dataset.py",
+  "nerfstudio/process_data/metashape_utils.py",
+  "nerfstudio/process_data/odm_utils.py",
+  "nerfstudio/process_data/polycam_utils.py",
+  "nerfstudio/process_data/process_data_utils.py",
+  "nerfstudio/process_data/realitycapture_utils.py",
+  "nerfstudio/process_data/record3d_utils.py",
+  "nerfstudio/process_data/video_to_nerfstudio_dataset.py",
+  "nerfstudio/py.typed",
+  "nerfstudio/scripts/__init__.py",
+  "nerfstudio/scripts/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/scripts/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/scripts/__pycache__/eval.cpython-38.pyc",
+  "nerfstudio/scripts/__pycache__/exporter.cpython-38.pyc",
+  "nerfstudio/scripts/__pycache__/train.cpython-310.pyc",
+  "nerfstudio/scripts/__pycache__/train.cpython-38.pyc",
+  "nerfstudio/scripts/benchmarking/launch_eval_blender.sh",
+  "nerfstudio/scripts/benchmarking/launch_train_blender.sh",
+  "nerfstudio/scripts/blender/__init__.py",
+  "nerfstudio/scripts/blender/nerfstudio_blender.py",
+  "nerfstudio/scripts/completions/__init__.py",
+  "nerfstudio/scripts/completions/install.py",
+  "nerfstudio/scripts/completions/setup.bash",
+  "nerfstudio/scripts/completions/setup.zsh",
+  "nerfstudio/scripts/datasets/process_nuscenes_masks.py",
+  "nerfstudio/scripts/datasets/process_project_aria.py",
+  "nerfstudio/scripts/docs/__init__.py",
+  "nerfstudio/scripts/docs/add_nb_tags.py",
+  "nerfstudio/scripts/docs/build_docs.py",
+  "nerfstudio/scripts/downloads/__init__.py",
+  "nerfstudio/scripts/downloads/download_data.py",
+  "nerfstudio/scripts/downloads/eyeful_tower.py",
+  "nerfstudio/scripts/downloads/utils.py",
+  "nerfstudio/scripts/eval.py",
+  "nerfstudio/scripts/exporter.py",
+  "nerfstudio/scripts/github/__init__.py",
+  "nerfstudio/scripts/github/run_actions.py",
+  "nerfstudio/scripts/infer_zeroshot.py",
+  "nerfstudio/scripts/licensing/copyright.txt",
+  "nerfstudio/scripts/licensing/license_headers.sh",
+  "nerfstudio/scripts/only_inference.py",
+  "nerfstudio/scripts/process_data.py",
+  "nerfstudio/scripts/render.py",
+  "nerfstudio/scripts/texture.py",
+  "nerfstudio/scripts/train.py",
+  "nerfstudio/scripts/viewer/__init__.py",
+  "nerfstudio/scripts/viewer/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/scripts/viewer/__pycache__/run_viewer.cpython-38.pyc",
+  "nerfstudio/scripts/viewer/run_viewer.py",
+  "nerfstudio/scripts/viewer/sync_viser_message_defs.py",
+  "nerfstudio/transformer/__pycache__/backbone_cnn.cpython-38.pyc",
+  "nerfstudio/transformer/__pycache__/backbone_multiview.cpython-38.pyc",
+  "nerfstudio/transformer/__pycache__/multiview_tranformer.cpython-38.pyc",
+  "nerfstudio/transformer/__pycache__/position.cpython-38.pyc",
+  "nerfstudio/transformer/__pycache__/trident_conv.cpython-38.pyc",
+  "nerfstudio/transformer/__pycache__/utils.cpython-38.pyc",
+  "nerfstudio/transformer/backbone_cnn.py",
+  "nerfstudio/transformer/backbone_multiview.py",
+  "nerfstudio/transformer/multiview_tranformer.py",
+  "nerfstudio/transformer/position.py",
+  "nerfstudio/transformer/trident_conv.py",
+  "nerfstudio/transformer/utils.py",
+  "nerfstudio/utils/__init__.py",
+  "nerfstudio/utils/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/colormaps.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/colormaps.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/colors.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/colors.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/comms.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/comms.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/decorators.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/decorators.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/eval_utils.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/external.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/external.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/io.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/io.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/math.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/math.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/misc.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/misc.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/poses.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/poses.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/printing.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/printing.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/profiler.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/profiler.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/rich_utils.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/rich_utils.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/scripts.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/scripts.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/tensor_dataclass.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/tensor_dataclass.cpython-38.pyc",
+  "nerfstudio/utils/__pycache__/writer.cpython-310.pyc",
+  "nerfstudio/utils/__pycache__/writer.cpython-38.pyc",
+  "nerfstudio/utils/colormaps.py",
+  "nerfstudio/utils/colors.py",
+  "nerfstudio/utils/comms.py",
+  "nerfstudio/utils/decorators.py",
+  "nerfstudio/utils/eval_utils.py",
+  "nerfstudio/utils/external.py",
+  "nerfstudio/utils/install_checks.py",
+  "nerfstudio/utils/io.py",
+  "nerfstudio/utils/math.py",
+  "nerfstudio/utils/misc.py",
+  "nerfstudio/utils/plotly_utils.py",
+  "nerfstudio/utils/poses.py",
+  "nerfstudio/utils/printing.py",
+  "nerfstudio/utils/profiler.py",
+  "nerfstudio/utils/rich_utils.py",
+  "nerfstudio/utils/scripts.py",
+  "nerfstudio/utils/tensor_dataclass.py",
+  "nerfstudio/utils/writer.py",
+  "nerfstudio/viewer/__init__.py",
+  "nerfstudio/viewer/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/viewer/__pycache__/control_panel.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/control_panel.cpython-38.pyc",
+  "nerfstudio/viewer/__pycache__/export_panel.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/export_panel.cpython-38.pyc",
+  "nerfstudio/viewer/__pycache__/render_panel.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/render_panel.cpython-38.pyc",
+  "nerfstudio/viewer/__pycache__/render_state_machine.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/render_state_machine.cpython-38.pyc",
+  "nerfstudio/viewer/__pycache__/utils.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/utils.cpython-38.pyc",
+  "nerfstudio/viewer/__pycache__/viewer.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/viewer.cpython-38.pyc",
+  "nerfstudio/viewer/__pycache__/viewer_elements.cpython-310.pyc",
+  "nerfstudio/viewer/__pycache__/viewer_elements.cpython-38.pyc",
+  "nerfstudio/viewer/control_panel.py",
+  "nerfstudio/viewer/export_panel.py",
+  "nerfstudio/viewer/render_panel.py",
+  "nerfstudio/viewer/render_state_machine.py",
+  "nerfstudio/viewer/server/__init__.py",
+  "nerfstudio/viewer/server/viewer_elements.py",
+  "nerfstudio/viewer/utils.py",
+  "nerfstudio/viewer/viewer.py",
+  "nerfstudio/viewer/viewer_elements.py",
+  "nerfstudio/viewer_legacy/__init__.py",
+  "nerfstudio/viewer_legacy/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/app/package.json",
+  "nerfstudio/viewer_legacy/app/public/electron.js",
+  "nerfstudio/viewer_legacy/app/public/favicon.png",
+  "nerfstudio/viewer_legacy/app/public/index.html",
+  "nerfstudio/viewer_legacy/app/public/manifest.json",
+  "nerfstudio/viewer_legacy/app/public/robots.txt",
+  "nerfstudio/viewer_legacy/app/requirements.txt",
+  "nerfstudio/viewer_legacy/app/run_deploy.py",
+  "nerfstudio/viewer_legacy/app/src/App.jsx",
+  "nerfstudio/viewer_legacy/app/src/SceneNode.js",
+  "nerfstudio/viewer_legacy/app/src/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/index.scss",
+  "nerfstudio/viewer_legacy/app/src/modules/Banner/Banner.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/Banner/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/ConfigPanel/ConfigPanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/LandingModal/LandingModal.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/LandingModal/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/LoadPathModal/LoadPathModal.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/LoadPathModal/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/RenderModal/RenderModal.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/RenderModal/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/Scene/Scene.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/Scene/drawing.js",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/CameraPanel/CameraHelper.js",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/CameraPanel/CameraPanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/CameraPanel/CameraPropPanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/CameraPanel/curve.js",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/CameraPanel/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/ExportPanel/ExportPanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/ExportPanel/MeshSubPanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/ExportPanel/PointcloudSubPanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/ExportPanel/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/ScenePanel/ScenePanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/ScenePanel/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/SidePanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/StatusPanel/StatusPanel.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/SidePanel/StatusPanel/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/ViewerWindow/ViewerWindow.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/ViewerWindow/ViewerWindowSlice.js",
+  "nerfstudio/viewer_legacy/app/src/modules/ViewportControlsModal/ViewportControlsModal.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/ViewportControlsModal/index.jsx",
+  "nerfstudio/viewer_legacy/app/src/modules/WebSocket/ViserMessages.tsx",
+  "nerfstudio/viewer_legacy/app/src/modules/WebSocket/ViserWebSocket.tsx",
+  "nerfstudio/viewer_legacy/app/src/modules/WebSocketUrlField.jsx",
+  "nerfstudio/viewer_legacy/app/src/reducer.js",
+  "nerfstudio/viewer_legacy/app/src/setupTests.js",
+  "nerfstudio/viewer_legacy/app/src/store.js",
+  "nerfstudio/viewer_legacy/app/src/subscriber.js",
+  "nerfstudio/viewer_legacy/app/src/themes/leva_theme.json",
+  "nerfstudio/viewer_legacy/app/src/themes/theme.ts",
+  "nerfstudio/viewer_legacy/app/src/utils.js",
+  "nerfstudio/viewer_legacy/app/tsconfig.json",
+  "nerfstudio/viewer_legacy/app/yarn.lock",
+  "nerfstudio/viewer_legacy/server/__init__.py",
+  "nerfstudio/viewer_legacy/server/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/control_panel.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/control_panel.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/gui_utils.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/gui_utils.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/render_state_machine.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/render_state_machine.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/utils.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/utils.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/viewer_elements.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/viewer_elements.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/viewer_state.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/viewer_state.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/viewer_utils.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/server/__pycache__/viewer_utils.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/server/control_panel.py",
+  "nerfstudio/viewer_legacy/server/gui_utils.py",
+  "nerfstudio/viewer_legacy/server/path.py",
+  "nerfstudio/viewer_legacy/server/render_state_machine.py",
+  "nerfstudio/viewer_legacy/server/state/node.py",
+  "nerfstudio/viewer_legacy/server/state/state_node.py",
+  "nerfstudio/viewer_legacy/server/utils.py",
+  "nerfstudio/viewer_legacy/server/viewer_elements.py",
+  "nerfstudio/viewer_legacy/server/viewer_state.py",
+  "nerfstudio/viewer_legacy/server/viewer_utils.py",
+  "nerfstudio/viewer_legacy/viser/__init__.py",
+  "nerfstudio/viewer_legacy/viser/__pycache__/__init__.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/__init__.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/gui.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/gui.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/message_api.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/message_api.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/messages.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/messages.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/server.cpython-310.pyc",
+  "nerfstudio/viewer_legacy/viser/__pycache__/server.cpython-38.pyc",
+  "nerfstudio/viewer_legacy/viser/gui.py",
+  "nerfstudio/viewer_legacy/viser/message_api.py",
+  "nerfstudio/viewer_legacy/viser/messages.py",
+  "nerfstudio/viewer_legacy/viser/server.py",
+  "pixi.lock",
+  "pixi.toml",
+  "preprocess/ReadMe.md",
+  "preprocess/metric3d/.vscode/launch.json",
+  "preprocess/metric3d/LICENSE",
+  "preprocess/metric3d/README.md",
+  "preprocess/metric3d/data/gene_annos_kitti_demo.py",
+  "preprocess/metric3d/data/gene_annos_nyu_demo.py",
+  "preprocess/metric3d/data/kitti_demo/depth/0000000005.png",
+  "preprocess/metric3d/data/kitti_demo/depth/0000000050.png",
+  "preprocess/metric3d/data/kitti_demo/depth/0000000100.png",
+  "preprocess/metric3d/data/kitti_demo/rgb/0000000005.png",
+  "preprocess/metric3d/data/kitti_demo/rgb/0000000050.png",
+  "preprocess/metric3d/data/kitti_demo/rgb/0000000100.png",
+  "preprocess/metric3d/data/kitti_demo/test_annotations.json",
+  "preprocess/metric3d/data/nyu_demo/depth/sync_depth_00000.png",
+  "preprocess/metric3d/data/nyu_demo/depth/sync_depth_00050.png",
+  "preprocess/metric3d/data/nyu_demo/depth/sync_depth_00100.png",
+  "preprocess/metric3d/data/nyu_demo/rgb/rgb_00000.jpg",
+  "preprocess/metric3d/data/nyu_demo/rgb/rgb_00050.jpg",
+  "preprocess/metric3d/data/nyu_demo/rgb/rgb_00100.jpg",
+  "preprocess/metric3d/data/nyu_demo/test_annotations.json",
+  "preprocess/metric3d/data/wild_demo/david-kohler-VFRTXGw1VjU-unsplash.jpg",
+  "preprocess/metric3d/data/wild_demo/jonathan-borba-CnthDZXCdoY-unsplash.jpg",
+  "preprocess/metric3d/data/wild_demo/randy-fath-G1yhU1Ej-9A-unsplash.jpg",
+  "preprocess/metric3d/data_info/__init__.py",
+  "preprocess/metric3d/data_info/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/metric3d/data_info/__pycache__/pretrained_weight.cpython-38.pyc",
+  "preprocess/metric3d/data_info/__pycache__/public_datasets.cpython-38.pyc",
+  "preprocess/metric3d/data_info/pretrained_weight.py",
+  "preprocess/metric3d/data_info/public_datasets.py",
+  "preprocess/metric3d/media/gifs/0028.gif",
+  "preprocess/metric3d/media/gifs/0028_fv.gif",
+  "preprocess/metric3d/media/gifs/chess.gif",
+  "preprocess/metric3d/media/gifs/colo.gif",
+  "preprocess/metric3d/media/gifs/room.gif",
+  "preprocess/metric3d/media/icons/dji.jpg",
+  "preprocess/metric3d/media/icons/hkust.png",
+  "preprocess/metric3d/media/icons/intel.jpg",
+  "preprocess/metric3d/media/icons/tencent.png",
+  "preprocess/metric3d/media/icons/zju.png",
+  "preprocess/metric3d/media/screenshots/challenge.PNG",
+  "preprocess/metric3d/media/screenshots/pipeline.png",
+  "preprocess/metric3d/mono/configs/HourglassDecoder/convlarge.0.3_150.py",
+  "preprocess/metric3d/mono/configs/HourglassDecoder/test_kitti_convlarge.0.3_150.py",
+  "preprocess/metric3d/mono/configs/HourglassDecoder/test_nyu_convlarge.0.3_150.py",
+  "preprocess/metric3d/mono/configs/HourglassDecoder/vit.raft5.giant2.py",
+  "preprocess/metric3d/mono/configs/HourglassDecoder/vit.raft5.large.py",
+  "preprocess/metric3d/mono/configs/__init__.py",
+  "preprocess/metric3d/mono/configs/_base_/_data_base_.py",
+  "preprocess/metric3d/mono/configs/_base_/datasets/_data_base_.py",
+  "preprocess/metric3d/mono/configs/_base_/default_runtime.py",
+  "preprocess/metric3d/mono/configs/_base_/models/backbones/convnext_large.py",
+  "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_giant2_reg.py",
+  "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_large.py",
+  "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_large_reg.py",
+  "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_small_reg.py",
+  "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/convnext_large.hourglassdecoder.py",
+  "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_giant2_reg.dpt_raft.py",
+  "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_large.dpt_raft.py",
+  "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_large_reg.dpt_raft.py",
+  "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_small_reg.dpt_raft.py",
+  "preprocess/metric3d/mono/model/__init__.py",
+  "preprocess/metric3d/mono/model/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/__pycache__/monodepth_model.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/backbones/ConvNeXt.py",
+  "preprocess/metric3d/mono/model/backbones/ViT_DINO.py",
+  "preprocess/metric3d/mono/model/backbones/ViT_DINO_reg.py",
+  "preprocess/metric3d/mono/model/backbones/__init__.py",
+  "preprocess/metric3d/mono/model/backbones/__pycache__/ConvNeXt.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/backbones/__pycache__/ViT_DINO.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/backbones/__pycache__/ViT_DINO_reg.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/backbones/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/decode_heads/HourGlassDecoder.py",
+  "preprocess/metric3d/mono/model/decode_heads/RAFTDepthNormalDPTDecoder5.py",
+  "preprocess/metric3d/mono/model/decode_heads/__init__.py",
+  "preprocess/metric3d/mono/model/decode_heads/__pycache__/HourGlassDecoder.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/decode_heads/__pycache__/RAFTDepthNormalDPTDecoder5.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/decode_heads/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/model_pipelines/__base_model__.py",
+  "preprocess/metric3d/mono/model/model_pipelines/__init__.py",
+  "preprocess/metric3d/mono/model/model_pipelines/__pycache__/__base_model__.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/model_pipelines/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/model_pipelines/__pycache__/dense_pipeline.cpython-38.pyc",
+  "preprocess/metric3d/mono/model/model_pipelines/dense_pipeline.py",
+  "preprocess/metric3d/mono/model/monodepth_model.py",
+  "preprocess/metric3d/mono/tools/test_scale_cano.py",
+  "preprocess/metric3d/mono/utils/__init__.py",
+  "preprocess/metric3d/mono/utils/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/avg_meter.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/comm.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/custom_data.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/do_test.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/logger.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/mldb.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/running.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/transform.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/unproj_pcd.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/__pycache__/visualization.cpython-38.pyc",
+  "preprocess/metric3d/mono/utils/avg_meter.py",
+  "preprocess/metric3d/mono/utils/comm.py",
+  "preprocess/metric3d/mono/utils/custom_data.py",
+  "preprocess/metric3d/mono/utils/do_test.py",
+  "preprocess/metric3d/mono/utils/logger.py",
+  "preprocess/metric3d/mono/utils/mldb.py",
+  "preprocess/metric3d/mono/utils/running.py",
+  "preprocess/metric3d/mono/utils/transform.py",
+  "preprocess/metric3d/mono/utils/unproj_pcd.py",
+  "preprocess/metric3d/mono/utils/visualization.py",
+  "preprocess/metric3d/requirements.txt",
+  "preprocess/metric3d/test.sh",
+  "preprocess/metric3d/test_kitti.sh",
+  "preprocess/metric3d/test_nyu.sh",
+  "preprocess/nvi_sem/.runx",
+  "preprocess/nvi_sem/.vscode/launch.json",
+  "preprocess/nvi_sem/Dockerfile",
+  "preprocess/nvi_sem/LICENSE",
+  "preprocess/nvi_sem/PREPARE_DATASETS.md",
+  "preprocess/nvi_sem/README.md",
+  "preprocess/nvi_sem/__pycache__/config.cpython-38.pyc",
+  "preprocess/nvi_sem/config.py",
+  "preprocess/nvi_sem/datasets/__init__.py",
+  "preprocess/nvi_sem/datasets/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/__pycache__/base_loader.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/__pycache__/cityscapes.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/__pycache__/cityscapes_labels.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/__pycache__/randaugment.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/__pycache__/sampler.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/__pycache__/uniform.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/__pycache__/utils.cpython-38.pyc",
+  "preprocess/nvi_sem/datasets/base_loader.py",
+  "preprocess/nvi_sem/datasets/cityscapes.py",
+  "preprocess/nvi_sem/datasets/cityscapes_labels.py",
+  "preprocess/nvi_sem/datasets/mapillary.py",
+  "preprocess/nvi_sem/datasets/nullloader.py",
+  "preprocess/nvi_sem/datasets/randaugment.py",
+  "preprocess/nvi_sem/datasets/sampler.py",
+  "preprocess/nvi_sem/datasets/uniform.py",
+  "preprocess/nvi_sem/datasets/utils.py",
+  "preprocess/nvi_sem/imgs/composited_sf.png",
+  "preprocess/nvi_sem/imgs/test_imgs/nyc.jpg",
+  "preprocess/nvi_sem/imgs/test_imgs/sf.jpg",
+  "preprocess/nvi_sem/loss/__pycache__/optimizer.cpython-38.pyc",
+  "preprocess/nvi_sem/loss/__pycache__/radam.cpython-38.pyc",
+  "preprocess/nvi_sem/loss/__pycache__/rmi.cpython-38.pyc",
+  "preprocess/nvi_sem/loss/__pycache__/rmi_utils.cpython-38.pyc",
+  "preprocess/nvi_sem/loss/__pycache__/utils.cpython-38.pyc",
+  "preprocess/nvi_sem/loss/optimizer.py",
+  "preprocess/nvi_sem/loss/radam.py",
+  "preprocess/nvi_sem/loss/rmi.py",
+  "preprocess/nvi_sem/loss/rmi_utils.py",
+  "preprocess/nvi_sem/loss/utils.py",
+  "preprocess/nvi_sem/network/Resnet.py",
+  "preprocess/nvi_sem/network/SEresnext.py",
+  "preprocess/nvi_sem/network/__init__.py",
+  "preprocess/nvi_sem/network/__pycache__/Resnet.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/SEresnext.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/hrnetv2.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/mynn.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/ocr_utils.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/ocrnet.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/utils.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/wider_resnet.cpython-38.pyc",
+  "preprocess/nvi_sem/network/__pycache__/xception.cpython-38.pyc",
+  "preprocess/nvi_sem/network/attnscale.py",
+  "preprocess/nvi_sem/network/basic.py",
+  "preprocess/nvi_sem/network/bn_helper.py",
+  "preprocess/nvi_sem/network/deeper.py",
+  "preprocess/nvi_sem/network/deepv3.py",
+  "preprocess/nvi_sem/network/hrnetv2.py",
+  "preprocess/nvi_sem/network/mscale.py",
+  "preprocess/nvi_sem/network/mscale2.py",
+  "preprocess/nvi_sem/network/mynn.py",
+  "preprocess/nvi_sem/network/ocr_utils.py",
+  "preprocess/nvi_sem/network/ocrnet.py",
+  "preprocess/nvi_sem/network/utils.py",
+  "preprocess/nvi_sem/network/wider_resnet.py",
+  "preprocess/nvi_sem/network/xception.py",
+  "preprocess/nvi_sem/requirements.txt",
+  "preprocess/nvi_sem/scripts/dump_cityscapes.yml",
+  "preprocess/nvi_sem/scripts/dump_folder.yml",
+  "preprocess/nvi_sem/scripts/eval_cityscapes.yml",
+  "preprocess/nvi_sem/scripts/eval_mapillary.yml",
+  "preprocess/nvi_sem/scripts/train_cityscapes.yml",
+  "preprocess/nvi_sem/scripts/train_cityscapes_deepv3.yml",
+  "preprocess/nvi_sem/scripts/train_cityscapes_sota.yml",
+  "preprocess/nvi_sem/scripts/train_mapillary.yml",
+  "preprocess/nvi_sem/train.py",
+  "preprocess/nvi_sem/transforms/__init__.py",
+  "preprocess/nvi_sem/transforms/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/nvi_sem/transforms/__pycache__/joint_transforms.cpython-38.pyc",
+  "preprocess/nvi_sem/transforms/__pycache__/transforms.cpython-38.pyc",
+  "preprocess/nvi_sem/transforms/joint_transforms.py",
+  "preprocess/nvi_sem/transforms/transforms.py",
+  "preprocess/nvi_sem/utils/__init__.py",
+  "preprocess/nvi_sem/utils/__pycache__/__init__.cpython-38.pyc",
+  "preprocess/nvi_sem/utils/__pycache__/attr_dict.cpython-38.pyc",
+  "preprocess/nvi_sem/utils/__pycache__/misc.cpython-38.pyc",
+  "preprocess/nvi_sem/utils/__pycache__/results_page.cpython-38.pyc",
+  "preprocess/nvi_sem/utils/__pycache__/trnval_utils.cpython-38.pyc",
+  "preprocess/nvi_sem/utils/attr_dict.py",
+  "preprocess/nvi_sem/utils/f_boundary.py",
+  "preprocess/nvi_sem/utils/misc.py",
+  "preprocess/nvi_sem/utils/my_data_parallel.py",
+  "preprocess/nvi_sem/utils/results_page.py",
+  "preprocess/nvi_sem/utils/trnval_utils.py",
+  "preprocess/read_dataset/generate_pcd.py",
+  "preprocess/read_dataset/generate_waymo_pcd.py",
+  "preprocess/read_dataset/read_kitti360.py",
+  "preprocess/read_dataset/read_waymo.py",
+  "preprocess/requirements.txt",
+  "preprocess/run.py",
+  "pyproject.toml"
+ ],
+ "submodules": [
+  "preprocess/nvi_sem/apex"
+ ],
+ "snapshot_files": [
+  {
+   "path": "nerfstudio/Encoder/ResNet34/ResNet34.py",
+   "sha256": "501c0cee0b92ea053c924918b9275239d41bbb1f6da88d67608be9dec2af807e"
+  },
+  {
+   "path": "nerfstudio/Encoder/ResNet34/custom_ecnoder.py",
+   "sha256": "508b8958ff1a1e848f092bebc0ce7b1f3ff40dea3a56d323d1bcc34127e5a1de"
+  },
+  {
+   "path": "nerfstudio/Encoder/ResNet34/util.py",
+   "sha256": "44ef576a33b2f19ea23cf1c7ae88f4091162f64a86f37f3e589b2f9a24b8e4e1"
+  },
+  {
+   "path": "nerfstudio/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/cameras/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/cameras/camera_optimizers.py",
+   "sha256": "2b564eed04bdd3ec128ada4624e2ee5eee5618c1a9d2cd02c721b78cf6d55f0d"
+  },
+  {
+   "path": "nerfstudio/cameras/camera_paths.py",
+   "sha256": "63c8a06efc8e79903a90d1acfdb1d8778ea75d5bdf4fba8e78825e932e3f134e"
+  },
+  {
+   "path": "nerfstudio/cameras/camera_utils.py",
+   "sha256": "fd00495db6fe04be4a2dc17d3d9e33b23313f2298225b8d0aad299ecc033ae7b"
+  },
+  {
+   "path": "nerfstudio/cameras/cameras.py",
+   "sha256": "b82715aa53863d13afc4abe2248ce81814094990fdd7b52543252764bcf43c07"
+  },
+  {
+   "path": "nerfstudio/cameras/lie_groups.py",
+   "sha256": "f1f138186faab7d35488d5ae708adfbd0e2ba0b4da1b422d862a323b903aa557"
+  },
+  {
+   "path": "nerfstudio/cameras/rays.py",
+   "sha256": "a42f54574a93f3ce7262db5231314e19971a3175f7ff3591a7dcaafeff7e6627"
+  },
+  {
+   "path": "nerfstudio/configs/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/configs/base_config.py",
+   "sha256": "a8a8a131029a6300fd7a4b3efb11f7a10ebd5e1b9530f872cde2762e309b18aa"
+  },
+  {
+   "path": "nerfstudio/configs/config_utils.py",
+   "sha256": "6fe0614c4a4013fb72fe9eeeaef09f1265d04acac38ce64131b90489b08665c8"
+  },
+  {
+   "path": "nerfstudio/configs/dataparser_configs.py",
+   "sha256": "13b8ae55fefef3c84aa3e7ad030d9e879aebbcdb6db94f10ab6cc46cc4b55939"
+  },
+  {
+   "path": "nerfstudio/configs/experiment_config.py",
+   "sha256": "f485a6fd28a4fcfccc2ea33def3b575bb609546fa64f0b6e73bf03e9483af594"
+  },
+  {
+   "path": "nerfstudio/configs/external_methods.py",
+   "sha256": "f84a538e90cdee2574d7d00805fb82489901c97d8077461d47a5218c6a3d80dc"
+  },
+  {
+   "path": "nerfstudio/configs/method_configs.py",
+   "sha256": "a98ae1721207e0c6c1b915786f9e6260141eb176067f4e582dded313246d2f4d"
+  },
+  {
+   "path": "nerfstudio/data/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/data/datamanagers/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/data/datamanagers/base_datamanager.py",
+   "sha256": "eef78fc464c2aadd1743d6ea306a33c9c49ecf87a0c8a6a895422003a4bebfe0"
+  },
+  {
+   "path": "nerfstudio/data/datamanagers/evolsplat_datamanger.py",
+   "sha256": "365911c4c53f05c5d3286e1d57e679b3b8a51e14e552de08e19aaac5091b8b2d"
+  },
+  {
+   "path": "nerfstudio/data/datamanagers/full_images_datamanager.py",
+   "sha256": "971fdff61b6a75b5a5bf75aa54ef9a7cad5839897a6aa9290732e3f3ee02e8d9"
+  },
+  {
+   "path": "nerfstudio/data/datamanagers/parallel_datamanager.py",
+   "sha256": "f957dfb3776c944a7350b7594c2d865748c82ada2eb56d0746de55d588ccbe4e"
+  },
+  {
+   "path": "nerfstudio/data/datamanagers/random_cameras_datamanager.py",
+   "sha256": "f701d8adf1cdf31cc92ff05a37afb43b97078b4929cc0a7fc300d346783af928"
+  },
+  {
+   "path": "nerfstudio/data/datamanagers/utils.py",
+   "sha256": "500378ac9e738db06d7fa5d3e8a6bd0cb59dfdc390eb52a76eff63d1f09fa20a"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/arkitscenes_dataparser.py",
+   "sha256": "af9740ed6f928572d1f9069fc34567ed619443f82967d088e46b73dc018413ae"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/base_dataparser.py",
+   "sha256": "bf4baaafa06a7006ae8cb9a53cd779429614e050627913603ba51941eafa8898"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/blender_dataparser.py",
+   "sha256": "7685f6d618d0b4470202ed8bd1bafb9afb5090f1a3f411767410523688f71876"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/colmap_dataparser.py",
+   "sha256": "1120a35bfca3a00e52dbd997b2dc5241a72e280cc1e6e6bb59200df2238d6a98"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/dnerf_dataparser.py",
+   "sha256": "cc234cd13d1d90a3ee0e162bb99d4e4ac4dd816e535c95a788f1e162d8154837"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/dycheck_dataparser.py",
+   "sha256": "84b944efb02c150e34e963791d6c439305bf1bb1ed190b8757a1b8fc491e00e3"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/evolsplat_dataparser.py",
+   "sha256": "824091ccfba64497801770f2638b63869225d7a0814b4817beed82cbcd739e27"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/instant_ngp_dataparser.py",
+   "sha256": "09d18268a27d88c92025171a938b2e5f50672de800dba6c63c4b723cd8aa62d9"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/minimal_dataparser.py",
+   "sha256": "04ea1468cb7abef3c7918a754c26be3e3126bdbcc6c9d9eb74b6d4e4ad4a17bd"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/nerfosr_dataparser.py",
+   "sha256": "315dddcb40245675cfe30d6140df3666165e6199ebcfa61324484af883008abc"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/nerfstudio_dataparser.py",
+   "sha256": "11c30a2afb16042c247cc33f3ff4bdc1bca482e875fa18c9c476789efc08c4d9"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/nuscenes_dataparser.py",
+   "sha256": "3d5c79efdeac1a032b4df34a982d89d5bfb1e537aea2e96199226693366e9287"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/phototourism_dataparser.py",
+   "sha256": "58f3a4e2db21d5e89510d045fbeddec85f52873a6c5fceca4ac9b8f770898fe2"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/scannet_dataparser.py",
+   "sha256": "707369ee0610b0d72dc45a23a1ecaf2890cc0ed981eeb379460a82f3c4e0749b"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/scannetpp_dataparser.py",
+   "sha256": "a2fe812fa300fd5037bafc427823726dd4336f7173c292b16fb2dca94ebf9505"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/sdfstudio_dataparser.py",
+   "sha256": "1de7aa7ee2645061985c0098318e60967fd91668baa1b08a317a0cb39e4f3030"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/sitcoms3d_dataparser.py",
+   "sha256": "aaff86bcac06d7db3959db9689b6e217f8991898db0d8b644553464d5ac2a289"
+  },
+  {
+   "path": "nerfstudio/data/dataparsers/zeroshot_dataparser.py",
+   "sha256": "a72ac880bdef61d20c05cab3e0a3787084066abec4ffcc3dbe80d85a9ca42d99"
+  },
+  {
+   "path": "nerfstudio/data/datasets/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/data/datasets/base_dataset.py",
+   "sha256": "3fb45bb94685853460546655b8bf29c0fc5fe54c5b145a3bb5a19f79ef927d7c"
+  },
+  {
+   "path": "nerfstudio/data/datasets/depth_dataset.py",
+   "sha256": "3b4a3d2a225f0b6e5aaba438be8267b9b936517935b625050c944f3d25221ff9"
+  },
+  {
+   "path": "nerfstudio/data/datasets/sdf_dataset.py",
+   "sha256": "30e4a5ea9ab11126fc0d0eb74e122c6ab9f86a4a6c90bd53c675aefb2f6f4da5"
+  },
+  {
+   "path": "nerfstudio/data/datasets/semantic_dataset.py",
+   "sha256": "026ea0b18c90804a166ecf24c2e36c32146841eff804f0edc26dcd3bc0ddfef9"
+  },
+  {
+   "path": "nerfstudio/data/pixel_samplers.py",
+   "sha256": "6d8c244f4a1e05c64dfec83ed74bf6f00209c7fd26edc7a5b1a05279d20e4143"
+  },
+  {
+   "path": "nerfstudio/data/scene_box.py",
+   "sha256": "a7a460cde9100e4248ee711783ee3146d1fb491c9117eb8f2a859a16222fb077"
+  },
+  {
+   "path": "nerfstudio/data/utils/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/data/utils/colmap_parsing_utils.py",
+   "sha256": "6e8461c4d08149562ff8ee0045a08de3d01fe7c87cf9da277fc1bfc83723321e"
+  },
+  {
+   "path": "nerfstudio/data/utils/data_utils.py",
+   "sha256": "7de1a3ab478b488a877e2449d074f740bf254e5d8ff56153f7f9b43375bdad30"
+  },
+  {
+   "path": "nerfstudio/data/utils/dataloaders.py",
+   "sha256": "d2460b536b09c4c765060e4b6495a5d15006b7090f42352cd7b1a9b1dc0354a9"
+  },
+  {
+   "path": "nerfstudio/data/utils/dataparsers_utils.py",
+   "sha256": "1517a9fd9d9d78d2781536a82bb737f3ac62ae4f112787746f29ac1012256866"
+  },
+  {
+   "path": "nerfstudio/data/utils/nerfstudio_collate.py",
+   "sha256": "5f2d381b38bba2de504f79b7c49f009a1e7822045fc1b27f8cdb839edb550bad"
+  },
+  {
+   "path": "nerfstudio/data/utils/pixel_sampling_utils.py",
+   "sha256": "5f318f2ab7c6633712b09dfcb2e6d3829b89700a7bbdc74856353882200d580a"
+  },
+  {
+   "path": "nerfstudio/engine/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/engine/callbacks.py",
+   "sha256": "bc9f4efb76f88d5fd81b666c8f5b069a11996fcf69ee41dacf3065b0597f8d08"
+  },
+  {
+   "path": "nerfstudio/engine/optimizers.py",
+   "sha256": "1922eb660918f9e48cc6ce56d6a797e2e36b6d2b6ebb4680f906d6c0c33d344d"
+  },
+  {
+   "path": "nerfstudio/engine/schedulers.py",
+   "sha256": "79241c61ee20d20a75baf0769483f5ccb107c411a61cde7d8a17b67d91af467b"
+  },
+  {
+   "path": "nerfstudio/engine/trainer.py",
+   "sha256": "84fe3dedf9d82e451196e818246a9b5819c2622f2c4f24e73b756e2e641d9945"
+  },
+  {
+   "path": "nerfstudio/exporter/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/exporter/exporter_utils.py",
+   "sha256": "b72cd920cc80f052a5b753475a2c4c5ac649102f9bfd1f20dd58113dcda6a0a7"
+  },
+  {
+   "path": "nerfstudio/exporter/marching_cubes.py",
+   "sha256": "c16b2b8c2b1a697f25ee4b438575e50156a033f783893920a6dbfc8eda020feb"
+  },
+  {
+   "path": "nerfstudio/exporter/texture_utils.py",
+   "sha256": "e1ddf5d4e3a6e7291b3d507804f5be4374bc2326a25787888208b32adc4fc520"
+  },
+  {
+   "path": "nerfstudio/exporter/tsdf_utils.py",
+   "sha256": "9922612ade8045f7648e556bf98a32bb79c04f40d0a31279427d31f13811b610"
+  },
+  {
+   "path": "nerfstudio/field_components/__init__.py",
+   "sha256": "ca680e473f9bd4a3758062c40a850a9a1de299f04c46c37df306ce9e2a405ca5"
+  },
+  {
+   "path": "nerfstudio/field_components/activations.py",
+   "sha256": "889e33810a35042478259b543f77f20983b93de34ff74b3e52f8a9a7e24b6676"
+  },
+  {
+   "path": "nerfstudio/field_components/base_field_component.py",
+   "sha256": "ee15fd5248a739f02f4a05c9b282e6ae8f2c08f47fe21f72a7dc1ee1620b7ced"
+  },
+  {
+   "path": "nerfstudio/field_components/embedding.py",
+   "sha256": "a7bd2bf022720ec7540c78da007263fb01b46a16a2a3763428fca93a220adb6a"
+  },
+  {
+   "path": "nerfstudio/field_components/encodings.py",
+   "sha256": "e837032d115bd44b0013cbcb37451b76e676bcd066472e8858e0b24c3ce0db3f"
+  },
+  {
+   "path": "nerfstudio/field_components/field_heads.py",
+   "sha256": "8e454107efc8badea9ad880951e6d565d3c60f4fc73c9c35dd55bee722cb2e06"
+  },
+  {
+   "path": "nerfstudio/field_components/mlp.py",
+   "sha256": "0e2eec03c9cf2f932ac34722e7f225370a7ae876eee395c33febe56943c2b840"
+  },
+  {
+   "path": "nerfstudio/field_components/spatial_distortions.py",
+   "sha256": "1c53346b06b935c522379d115dc8a4ccda29dadf32f850b8f19bef598ea91a91"
+  },
+  {
+   "path": "nerfstudio/field_components/temporal_distortions.py",
+   "sha256": "39f836e6d2d99415f9adcecfbe0e66084b42ab0198a91252ef4fbf676e4e93b0"
+  },
+  {
+   "path": "nerfstudio/fields/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/fields/background_nerf.py",
+   "sha256": "65ff1da507e5339e24fb47bad0cf0b0555ad0a967144cb4f74194a21a22982c5"
+  },
+  {
+   "path": "nerfstudio/fields/base_field.py",
+   "sha256": "37c8c880c949b086af4293c238318e9840c84b4367b439bf5d3df99215723a22"
+  },
+  {
+   "path": "nerfstudio/fields/density_fields.py",
+   "sha256": "18446911715017f1838aee4dc7e198629f9522ea2ac8c1f19c4601b7130e3c98"
+  },
+  {
+   "path": "nerfstudio/fields/generfacto_field.py",
+   "sha256": "6833ae6ff97665f21576a6a114c6f5f132a022dd7defb6c363410e2bcbcf9f14"
+  },
+  {
+   "path": "nerfstudio/fields/initial_BgSphere.py",
+   "sha256": "d1a3f86e31e4ddea77405fcb809d274f8e085453293c21ce9f8db23ec2d54af1"
+  },
+  {
+   "path": "nerfstudio/fields/nerfacto_field.py",
+   "sha256": "ef9c654369435341a3bbf442971a312658af7792c3dc075dba53ede26fdd78e0"
+  },
+  {
+   "path": "nerfstudio/fields/nerfw_field.py",
+   "sha256": "1f737348c1f2d03ccccfc8903e7738d4879faa774c29c3cc0f72e9e481cb45de"
+  },
+  {
+   "path": "nerfstudio/fields/sdf_field.py",
+   "sha256": "361fccb56dd27fbe9f9e73c69825aeb1477dfb60f8ef66187fc9f40504900fd3"
+  },
+  {
+   "path": "nerfstudio/fields/semantic_nerf_field.py",
+   "sha256": "13edf3350c0a6ae2598909b6b3df69feb8a877c17242d7b530be59495b0a72bb"
+  },
+  {
+   "path": "nerfstudio/fields/tensorf_field.py",
+   "sha256": "c5b50e083a82515b72948c155ed6143da13eb6b95bab552404be9c7fa1f22553"
+  },
+  {
+   "path": "nerfstudio/fields/vanilla_nerf_field.py",
+   "sha256": "b610eefd31d86a1dc19c620c8eb659c71357f27ede3cfba8845fa3aa8d48d5e5"
+  },
+  {
+   "path": "nerfstudio/generative/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/generative/deepfloyd.py",
+   "sha256": "157f31f1e8b1b869c6efd300300bf67fa63aa16f85942f43b4d15355fdebd259"
+  },
+  {
+   "path": "nerfstudio/generative/positional_text_embeddings.py",
+   "sha256": "f3e9ab9507b6bc9301d82f3f14d4b84f360dd8f8ba2ffb0160279f6b8c3842f9"
+  },
+  {
+   "path": "nerfstudio/generative/stable_diffusion.py",
+   "sha256": "bd3180127f29ff60d64bb0826617a76c9cce8959b188d43423c94fdc52d42f5b"
+  },
+  {
+   "path": "nerfstudio/model_components/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/model_components/losses.py",
+   "sha256": "af58316189ab6ced4892c7b8376cc548453195d9891a72e211ed13aba429f36a"
+  },
+  {
+   "path": "nerfstudio/model_components/projection.py",
+   "sha256": "721575c3bda2a6c4edd556ba970d2630491b8f50a6d16244ab3648900cb2d146"
+  },
+  {
+   "path": "nerfstudio/model_components/ray_generators.py",
+   "sha256": "c5c9dcce13296efcd7bd0128a0e116155c853604463a43616823e0f9f041c52b"
+  },
+  {
+   "path": "nerfstudio/model_components/ray_samplers.py",
+   "sha256": "874433621a0af6bc030aa1595ee1ed9668a8c697369d68909799d6c5827fa106"
+  },
+  {
+   "path": "nerfstudio/model_components/renderers.py",
+   "sha256": "cc45a166f21dce11ea081f3ac86460263eeac29e454e126e3bcc016a7f22d468"
+  },
+  {
+   "path": "nerfstudio/model_components/scene_colliders.py",
+   "sha256": "44b6796fdfdad2bae58637048a6865cfe51cc03a7cc81b229b327b780905e480"
+  },
+  {
+   "path": "nerfstudio/model_components/shaders.py",
+   "sha256": "504cd32f4d21f701aed2ad0e7b47166b7cd782ec6c59a7935244ff30b4d52d0a"
+  },
+  {
+   "path": "nerfstudio/model_components/sparse_conv.py",
+   "sha256": "5fe58f9fa7a6a469c2ff62c099046ddc8dd7ba0dc0f66d461872a7b6d76708d0"
+  },
+  {
+   "path": "nerfstudio/models/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/models/base_model.py",
+   "sha256": "1a0732cabd26a05d316239bae035a83cb35b90316a387c465f78d3db67eddfa0"
+  },
+  {
+   "path": "nerfstudio/models/base_surface_model.py",
+   "sha256": "c28b8502e4e61716a260b20b4b7824cccc895ce03e9fe75aa382ddb1d428ed11"
+  },
+  {
+   "path": "nerfstudio/models/depth_nerfacto.py",
+   "sha256": "24543deb35a74dc71864f34e65da69ac746c3401c17fb46d6b601c952cc1208c"
+  },
+  {
+   "path": "nerfstudio/models/evolsplat.py",
+   "sha256": "1e67a7e6220a60a71385a5cb70fbc21467a7fe73beff2720a5e43c1f76c0416c"
+  },
+  {
+   "path": "nerfstudio/models/generfacto.py",
+   "sha256": "e73f46b73d39df001e7ef9ab4025e90654ce20988a77866ff5b29f5bcc425d59"
+  },
+  {
+   "path": "nerfstudio/models/instant_ngp.py",
+   "sha256": "eaed052a0a45cf7729dcd2a76433186e67c8b70bdb77161c5de76522aff142ed"
+  },
+  {
+   "path": "nerfstudio/models/mipnerf.py",
+   "sha256": "4c9ba45727938fbbb2e1c6a1481d531a6743b940ed1dc8eded1a33010886149d"
+  },
+  {
+   "path": "nerfstudio/models/nerfacto.py",
+   "sha256": "cd01492b50a93c110929aacfa8ed0a2500d03570e3c26e58af933e051544c529"
+  },
+  {
+   "path": "nerfstudio/models/neus.py",
+   "sha256": "a9e05c94203719cb2df2d9f29ca8f10895c6a601085d3730373f6355aa8ec278"
+  },
+  {
+   "path": "nerfstudio/models/neus_facto.py",
+   "sha256": "d279ae302b4be3d3022671fc76b1dc564f5fd29e9eebad7ccbbd27c3a802653f"
+  },
+  {
+   "path": "nerfstudio/models/semantic_nerfw.py",
+   "sha256": "2c6eade321a464e95dfdd01950f7637cb4a6e53e14157df4a7a72b4cad5acc97"
+  },
+  {
+   "path": "nerfstudio/models/splatfacto.py",
+   "sha256": "4142eeb08fe59601f8c3d949e0ec008b3850f9a82e34c63a088b8f6a27d350f0"
+  },
+  {
+   "path": "nerfstudio/models/tensorf.py",
+   "sha256": "bdf0342534f1389c9a6e723a3b473e79fdeb1e8e439d9b8aecab493ba0c10c1c"
+  },
+  {
+   "path": "nerfstudio/models/vanilla_nerf.py",
+   "sha256": "e599404629e61adc6d42fb235eeb821ead2fe8868b1a7fde565db5ab943079f9"
+  },
+  {
+   "path": "nerfstudio/pipelines/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/pipelines/base_pipeline.py",
+   "sha256": "d8c81357a73b9ad7a7bf536e7491a30b64054bcfa17ae7fefa6c2f8e016f9e0d"
+  },
+  {
+   "path": "nerfstudio/pipelines/dynamic_batch.py",
+   "sha256": "f18e32f6d7f629601a9f285540a2f7975b6ac442ffa64d67bf36b7877367e010"
+  },
+  {
+   "path": "nerfstudio/plugins/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/plugins/registry.py",
+   "sha256": "2c955c48ff6b42e7823c90fc36dca9344fc6010c511238337b1528aa36c6930f"
+  },
+  {
+   "path": "nerfstudio/plugins/registry_dataparser.py",
+   "sha256": "5e11963c4e9473225705b8b9f04d8c8338669a95035fb6be90b8f7ba124cbc44"
+  },
+  {
+   "path": "nerfstudio/plugins/types.py",
+   "sha256": "97c02d11b41188301e473c783fc2040412a59ec6ebf1cbefa941c66d8b187e4a"
+  },
+  {
+   "path": "nerfstudio/process_data/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/process_data/base_converter_to_nerfstudio_dataset.py",
+   "sha256": "8795f0878374b12cc4f2871d7550dce7e2d5203a60d2a167963411cf4a782d8e"
+  },
+  {
+   "path": "nerfstudio/process_data/colmap_converter_to_nerfstudio_dataset.py",
+   "sha256": "45cadbaa562bf8f261c98113aed302b491507bf830cda55b1ea7968e781468de"
+  },
+  {
+   "path": "nerfstudio/process_data/colmap_utils.py",
+   "sha256": "555d4dc48bf99ba29777ea88a226571cd647fc7e3641003fef89bb16f99bc49a"
+  },
+  {
+   "path": "nerfstudio/process_data/equirect_utils.py",
+   "sha256": "b596b9da733b837703174c17917c0b2c633612f141cac56687f09d89db41ff09"
+  },
+  {
+   "path": "nerfstudio/process_data/hloc_utils.py",
+   "sha256": "c9e08352fa73434e31acdd2641a2bfeebb1ca9e2087422e7ad902b4f772d89db"
+  },
+  {
+   "path": "nerfstudio/process_data/images_to_nerfstudio_dataset.py",
+   "sha256": "3cb28c3fcbc26bfb4d05719b979aa75e8b71c5ec983ec40379d82b0601ed6ebd"
+  },
+  {
+   "path": "nerfstudio/process_data/metashape_utils.py",
+   "sha256": "0604e7bbed357d0f0a9736c360687d97f6262891a6292f1de45af325a4e93047"
+  },
+  {
+   "path": "nerfstudio/process_data/odm_utils.py",
+   "sha256": "3a9d6b3e48a9d0fc3f39751adf0b4a7370b3e05a93a6a09a8cc80519c424734b"
+  },
+  {
+   "path": "nerfstudio/process_data/polycam_utils.py",
+   "sha256": "48be1d3369f2c5a9217e87ed90e3636bf5db9e3a045b20ff6ca885974424d4eb"
+  },
+  {
+   "path": "nerfstudio/process_data/process_data_utils.py",
+   "sha256": "25729f4c493949ca3bf6f7dd062ac0cf810b0d44269c0c5efe107935cde6eb38"
+  },
+  {
+   "path": "nerfstudio/process_data/realitycapture_utils.py",
+   "sha256": "540364cc64256f75c6b88de02ac7211e9640e1046a75f0b44cd24b75dbff09f0"
+  },
+  {
+   "path": "nerfstudio/process_data/record3d_utils.py",
+   "sha256": "21cdf5e9cdc7db8a2bdd619382828746229815562e68da89e04105565db99640"
+  },
+  {
+   "path": "nerfstudio/process_data/video_to_nerfstudio_dataset.py",
+   "sha256": "22e282cdd7d33e3e5051a0c95ee202ddb62fa2d017d0399340bc0409e1de0989"
+  },
+  {
+   "path": "nerfstudio/scripts/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/scripts/blender/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/scripts/blender/nerfstudio_blender.py",
+   "sha256": "10f434e2be43917e205e9ead0ec921f28dc5039c0fa8fec4f63c0aaac7632261"
+  },
+  {
+   "path": "nerfstudio/scripts/completions/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/scripts/completions/install.py",
+   "sha256": "f31b2d191614b6b2b383ba4af8cc78e22b21737be06b695be15902c7a3836f78"
+  },
+  {
+   "path": "nerfstudio/scripts/datasets/process_nuscenes_masks.py",
+   "sha256": "2f9bd46cd0e41edc41aeca8e4646d614536f4628f3a7a08ef0bba9fa4838a4d8"
+  },
+  {
+   "path": "nerfstudio/scripts/datasets/process_project_aria.py",
+   "sha256": "211fe9a3817017135148561a45e85ff8ef0fcc6e5326c8fa28d917ed7aed3b45"
+  },
+  {
+   "path": "nerfstudio/scripts/docs/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/scripts/docs/add_nb_tags.py",
+   "sha256": "f1f964a07625c3d65a68850620a26af59b193d636233fc92dcadd6284b3ab386"
+  },
+  {
+   "path": "nerfstudio/scripts/docs/build_docs.py",
+   "sha256": "70f42633aba1b3cb9f1a86b9ba24e9a7cf59bb9038670ba2411f54a93e436be1"
+  },
+  {
+   "path": "nerfstudio/scripts/downloads/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/scripts/downloads/download_data.py",
+   "sha256": "3b5a3b850f11a6c77dd36ee103f01dea5fb25095bf1b1014567b7923f7ddb2c2"
+  },
+  {
+   "path": "nerfstudio/scripts/downloads/eyeful_tower.py",
+   "sha256": "8a2a6d61ad003641ec307cea939e011e179b85eaab3dfc82bf74fe979fbc1d7a"
+  },
+  {
+   "path": "nerfstudio/scripts/downloads/utils.py",
+   "sha256": "7023264aa797fb758d90ba3e9aa0d6a173579bc1885eaf49b4087b46ad8fa1c2"
+  },
+  {
+   "path": "nerfstudio/scripts/eval.py",
+   "sha256": "5bf093e4dec9ffbb09754dc2a646db1440d910c78d71f7a6edfb6c9dcad2d31f"
+  },
+  {
+   "path": "nerfstudio/scripts/exporter.py",
+   "sha256": "5d2efa9293f6d131086bddb61067032f4c4bc76a0a84de12daacf03d0cc10309"
+  },
+  {
+   "path": "nerfstudio/scripts/github/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/scripts/github/run_actions.py",
+   "sha256": "6218bf7045e1da2103e619d61142c33553d1d49dffde2ff8b60b77b96e6ff1e9"
+  },
+  {
+   "path": "nerfstudio/scripts/infer_zeroshot.py",
+   "sha256": "c5b7872e79c43737826d78ec66e05b0f99cab7476e30cc5774e73996662821eb"
+  },
+  {
+   "path": "nerfstudio/scripts/only_inference.py",
+   "sha256": "8426e834e5adca794a9d65bf1dec794801b6e594aecde8b54502f22c47874f82"
+  },
+  {
+   "path": "nerfstudio/scripts/process_data.py",
+   "sha256": "4ab0046fa9acc695d5c40cf66f7500e0cf94711be4c0a77cedf186bc43b215d9"
+  },
+  {
+   "path": "nerfstudio/scripts/render.py",
+   "sha256": "f1d240183566297f6eb1be11155088b3ce3564e7ad6331de5bb1efd71ed19dbc"
+  },
+  {
+   "path": "nerfstudio/scripts/texture.py",
+   "sha256": "fd5d7f21e3e2d2796de31928b951fbc74681189598ba922e1f67222a08cb910b"
+  },
+  {
+   "path": "nerfstudio/scripts/train.py",
+   "sha256": "e0b32577eee59ad3b5987abffac14edbcb7f3400aaa9d2f4f01a4da26ee2fd0c"
+  },
+  {
+   "path": "nerfstudio/scripts/viewer/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/scripts/viewer/run_viewer.py",
+   "sha256": "e99e58cf446fac803af126d3c3719d43a9631d3ed482d1481c2bbfbd087bb836"
+  },
+  {
+   "path": "nerfstudio/scripts/viewer/sync_viser_message_defs.py",
+   "sha256": "ce41682950dafe025bdad4828d9b544b16bc9c6830d668ed12b92ae18c5ffd47"
+  },
+  {
+   "path": "nerfstudio/transformer/backbone_cnn.py",
+   "sha256": "8fe9c6c78895366770252798efacac2969342445979d57f85396e1ef46a67932"
+  },
+  {
+   "path": "nerfstudio/transformer/backbone_multiview.py",
+   "sha256": "67807825dd81b59418309a0c0af5c02f5332ef2b6fecd11415fa630b994a19ec"
+  },
+  {
+   "path": "nerfstudio/transformer/multiview_tranformer.py",
+   "sha256": "417d6c2f843075c0c57d1206c95cf731317d04bea17b7a0bcb32329114de54e3"
+  },
+  {
+   "path": "nerfstudio/transformer/position.py",
+   "sha256": "524c7191dae05db349c571180f89e725c6986edf641e62f277f67958685afb0a"
+  },
+  {
+   "path": "nerfstudio/transformer/trident_conv.py",
+   "sha256": "20d03f9239b535f961799d1293dab8ae47cf5e337cd753e3801c43534e2488db"
+  },
+  {
+   "path": "nerfstudio/transformer/utils.py",
+   "sha256": "e4d1774ed1e66697485f8fd0d545585bc465b52ced609f282c61d0858f0a62d0"
+  },
+  {
+   "path": "nerfstudio/utils/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/utils/colormaps.py",
+   "sha256": "9cdfd2168fa9f4778ce5a298c224f340765a2dfe7bb19d249ef926a5c8a7a02a"
+  },
+  {
+   "path": "nerfstudio/utils/colors.py",
+   "sha256": "3723ba339e95adfa6152585065bfd472efc81cdc509da7917b9f828d12520c23"
+  },
+  {
+   "path": "nerfstudio/utils/comms.py",
+   "sha256": "7d21bffa4309dec722d3bb3b968cde806c5874ca2e264ddad2769ac7c25ed17b"
+  },
+  {
+   "path": "nerfstudio/utils/decorators.py",
+   "sha256": "ac4ef258088baab3b80946fc715eeaa49fb7127844f16e98e43bbd3ba86b9e43"
+  },
+  {
+   "path": "nerfstudio/utils/eval_utils.py",
+   "sha256": "c1565045e7db071202a2145860a95876e66a846f0881478a97b50c0b38a8cc6d"
+  },
+  {
+   "path": "nerfstudio/utils/external.py",
+   "sha256": "55071931f23d2dc81cf31646a610831a9b1295a0ce0515689eebc0992dcf0938"
+  },
+  {
+   "path": "nerfstudio/utils/install_checks.py",
+   "sha256": "e9b899aa7c27b8e5229ef82ec7aed034770836b8f248c3d7e1d842d9b00915e9"
+  },
+  {
+   "path": "nerfstudio/utils/io.py",
+   "sha256": "9f6441ec2a35f4ff37aaa9c0f8148e292939c56064a560a00295f71c3224c1af"
+  },
+  {
+   "path": "nerfstudio/utils/math.py",
+   "sha256": "cd0ff9eccb1193b2cf2e5d228bb6b690a67cee0ee3d1663e5733a2eb9eb3a527"
+  },
+  {
+   "path": "nerfstudio/utils/misc.py",
+   "sha256": "ae6227200cc490dd617e3d039af01e1b163579baccaef8c2cc7d124b672bc911"
+  },
+  {
+   "path": "nerfstudio/utils/plotly_utils.py",
+   "sha256": "57de86112d0c039368283bd21473845efe85432bf77dfa0bde8758048c0904ee"
+  },
+  {
+   "path": "nerfstudio/utils/poses.py",
+   "sha256": "d877b61e37606574b6ed6e932bd7aee05d27ccec778481ed16e4bd85ec50e422"
+  },
+  {
+   "path": "nerfstudio/utils/printing.py",
+   "sha256": "89b2f950f8355ffa630a685adfd8dce8662d75cb577dcfe63fb3e052d9a135cd"
+  },
+  {
+   "path": "nerfstudio/utils/profiler.py",
+   "sha256": "c674547941c99ead6b3102c2c8f01f72377a20a75f26a76db7da69363a7790f6"
+  },
+  {
+   "path": "nerfstudio/utils/rich_utils.py",
+   "sha256": "583c39f9f92cfa8a61cf96be6ec4ce212ce323c582c8f9aab1188eba77af1623"
+  },
+  {
+   "path": "nerfstudio/utils/scripts.py",
+   "sha256": "fb4e789ee6a98eff8bb2e7a76a99bce53111a9aedfb840faea15721d29111781"
+  },
+  {
+   "path": "nerfstudio/utils/tensor_dataclass.py",
+   "sha256": "49d22f4b34c729269e962bfef301c6d62c4e8db76934eaf833556c9466c36d85"
+  },
+  {
+   "path": "nerfstudio/utils/writer.py",
+   "sha256": "e856fa752288da61b36875c845f6b4873fdbd8912d5c0d85ab5406de9d5f49c5"
+  },
+  {
+   "path": "nerfstudio/viewer/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/viewer/control_panel.py",
+   "sha256": "0ffde736a9218ab5d598a1d0dfb46ad46b72d866bfb88382736e4a2987f38fc7"
+  },
+  {
+   "path": "nerfstudio/viewer/export_panel.py",
+   "sha256": "3bae58caa8ff557b2d3b00bbce9431537283c37b483aae2b23201efdd415900d"
+  },
+  {
+   "path": "nerfstudio/viewer/render_panel.py",
+   "sha256": "9e1da6161cc3e6f8bd2f4d9b6684fb4a98681faf8468bd3f801fb7e4fcba0f48"
+  },
+  {
+   "path": "nerfstudio/viewer/render_state_machine.py",
+   "sha256": "87b4e90f638135e237e565b345883cb531153bd38a1204784fc2582e5ee87e9c"
+  },
+  {
+   "path": "nerfstudio/viewer/server/__init__.py",
+   "sha256": "a362d34a031d25ccf47f0ce9f8c679972cde965364da68051d2633c39f8edb29"
+  },
+  {
+   "path": "nerfstudio/viewer/server/viewer_elements.py",
+   "sha256": "dec8f153aa5e73a152601453ebea7d09f01ad43a68a0f818bf1ffc2ad897ed17"
+  },
+  {
+   "path": "nerfstudio/viewer/utils.py",
+   "sha256": "eb31e07bdf3849c14c19159b52c4505bbbbd4bbf8844d86bff6aca3e26ebe326"
+  },
+  {
+   "path": "nerfstudio/viewer/viewer.py",
+   "sha256": "3860c69d66a337b09736405c4e792d88e394975e4e61e16e3bd8889152e7e4ab"
+  },
+  {
+   "path": "nerfstudio/viewer/viewer_elements.py",
+   "sha256": "25f851935ae6c0c85b690aa140244a7bb529a7e86200b445f2f5e9704d9cbe41"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/app/run_deploy.py",
+   "sha256": "9078d5980d4025b1c39f817eb687f09f9f579328bc91ee7014a99add9186dd62"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/__init__.py",
+   "sha256": "7940cf8e95efe13a25bc857063575b89105146f9202952c1bc67e569ca19836f"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/control_panel.py",
+   "sha256": "37f60a7d2c3ebc462a02c8153e8a7b1b4fe585d5cd5e1df33277bc5caca89ba8"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/gui_utils.py",
+   "sha256": "82f4949df25550e96aa3f7a8542d8f6088a89ff50a50f53b898dc406dbe4e608"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/path.py",
+   "sha256": "2b3982736c70db4ca1150c4e6c8bc66e91de1b7324ada36e30b9b89b48fccf87"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/render_state_machine.py",
+   "sha256": "fa96fada5545ca8c585a1a3ac354d960d574cc6d9776e7aeb6c6bd4fdbe4f884"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/state/node.py",
+   "sha256": "457c097dea6f4f418369e0d3e7110349a96fda67f22989c363283a1e44524292"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/state/state_node.py",
+   "sha256": "6f3a830b9a44d00689c870f23bb8c06ba5b1c3a9a3c1ba3e3cca95d37261b578"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/utils.py",
+   "sha256": "699535603f310c4eca70331291710a373b4f847f5b8e89537dca6da6716d99c2"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/viewer_elements.py",
+   "sha256": "b747418f9868db3b12101bdd65f70280d5831a473f7397bbba39599d74996fe9"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/viewer_state.py",
+   "sha256": "e997b8c46e90f01e7340c90f2919ab6e70b3f263226e5568087f0a93de55878d"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/server/viewer_utils.py",
+   "sha256": "41a77fc7696e208d6cc84b10dae19a5749faae724f079412796a1dd2d174e619"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/viser/__init__.py",
+   "sha256": "6340bc0f9f1365a6fe45e5ab066438fc672166e5a280cd890b471aa4a53c4c5d"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/viser/gui.py",
+   "sha256": "406d421c118f8eea5984d53155430f1b6f9bab022d864fe0638f175f12e5940f"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/viser/message_api.py",
+   "sha256": "f87ba89099502a4ad9e85a7ccc333f1621d2468c286726a18acbaaf9c419d83d"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/viser/messages.py",
+   "sha256": "af6a9f37c8947334a97337f6991caebb9f463a00c5b84467fb5ffabf69e23c7f"
+  },
+  {
+   "path": "nerfstudio/viewer_legacy/viser/server.py",
+   "sha256": "f37f583151d015dde27311a131734d04a3eae65bbc16ecb4b1872b7d33cc85c0"
+  },
+  {
+   "path": "preprocess/metric3d/data/gene_annos_kitti_demo.py",
+   "sha256": "15f54c5310e1cb59cf91ed8cc4f0489ee63bb1ae1679abd060044cd8b9c35610"
+  },
+  {
+   "path": "preprocess/metric3d/data/gene_annos_nyu_demo.py",
+   "sha256": "5cd38562854cf16d5fb761500f0158a664b09ade114bd6edda163ed431d032a4"
+  },
+  {
+   "path": "preprocess/metric3d/data_info/__init__.py",
+   "sha256": "d7e9c7a71d16a179a790acb9b2e072562d0b30c41838e502432f91db0ace44a3"
+  },
+  {
+   "path": "preprocess/metric3d/data_info/pretrained_weight.py",
+   "sha256": "adc50904360477166ced9efaf530cb03128f00e7a4c6ed5f84b3b49d736e78c0"
+  },
+  {
+   "path": "preprocess/metric3d/data_info/public_datasets.py",
+   "sha256": "2914a524566f6c5e2ec7485c079b2262f0ae3425e7639925c4b462cb53e44430"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/HourglassDecoder/convlarge.0.3_150.py",
+   "sha256": "7ba170774f341f74fa77b1dc1e2ccd7ee27b4ae7ce117cf832f943d43d1fe56b"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/HourglassDecoder/test_kitti_convlarge.0.3_150.py",
+   "sha256": "319f5212255d210438a71be4fbd2f2fa1c126fcf0e434a4b6ba7ec33578fbba7"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/HourglassDecoder/test_nyu_convlarge.0.3_150.py",
+   "sha256": "8355e48bbd0c1eff785c7756969b5c8d1f425ac0508f7e72d2b7313d2315d870"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/HourglassDecoder/vit.raft5.giant2.py",
+   "sha256": "953d493f06b38f32f474c6819b6feefa0052de97cb32143b442699d487ea8416"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/HourglassDecoder/vit.raft5.large.py",
+   "sha256": "ac3d288e13f5330dcbf7ca6be037661ff1c25ff1cbd8785f2afcd2631db20811"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/__init__.py",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/_data_base_.py",
+   "sha256": "3b80a953883c5cdd9747d92c58aa44af826987ae37e5b38c8399a6139a9bd040"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/datasets/_data_base_.py",
+   "sha256": "72f67d71f48a1fc65d3bd2635ff9c81ab2c76c7b83719166736a4c8816d0ab11"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/default_runtime.py",
+   "sha256": "f41b0081fbb66b646e3dbcf4af68058068c48a4f0f2a7cbd126cc7bca486315b"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/backbones/convnext_large.py",
+   "sha256": "4977058116697b67c383c5cf70b730a30c8e777e35344437881803f0a4d8359b"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_giant2_reg.py",
+   "sha256": "7dd3481f056821aeda9c3b53924d19a49d9fa6b8cd51b232e1606d0cecda35a8"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_large.py",
+   "sha256": "524e92cd2d5575dd891a92cd51c5ea6a67a38bc179fb076d39195e9bd46097ee"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_large_reg.py",
+   "sha256": "4f44dd08d0117aacc127948dba90bc075d6eda974fe29dc72d1bbc6f6b33ad53"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/backbones/dino_vit_small_reg.py",
+   "sha256": "fdb13abcc753ad93b43dc6982c3567187f76b17becd923799e43a1e324ec5258"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/convnext_large.hourglassdecoder.py",
+   "sha256": "90bd8c11110a2206d9cc007e96606fb86dac8e6f592523278d5db681eff0ce56"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_giant2_reg.dpt_raft.py",
+   "sha256": "1ec07952d18ac5680764e850e86a0161238d3e5c1c33c1b692a6d3dba2d5f1d6"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_large.dpt_raft.py",
+   "sha256": "0e60ad842a04dfabb0b063c4db75b699fcb2f768a95b26673d962e8873987a6a"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_large_reg.dpt_raft.py",
+   "sha256": "451a56b64d803b2b3ba4e0a5e5df993bc3ab41e9b503b98372ce6c6041fbbc0f"
+  },
+  {
+   "path": "preprocess/metric3d/mono/configs/_base_/models/encoder_decoder/dino_vit_small_reg.dpt_raft.py",
+   "sha256": "2ac99f9ca6212153d1e21c899a9baa5bd47de2f34ef2dbfe8d0ef111e1fb026b"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/__init__.py",
+   "sha256": "a4a236c672cedcbbd5aa8ff2a7717d933cf698d761f9cf23609fec6ccdf4e3f1"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/backbones/ConvNeXt.py",
+   "sha256": "28e70d41372757740b9ae52ce899aee9ab1a02af34aadffa5ee7d5327a02e3fd"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/backbones/ViT_DINO.py",
+   "sha256": "b6e1053eb719d9ddcefb45fd79d9db9ab9c5c5107a466d670534ecdcf8eb7df7"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/backbones/ViT_DINO_reg.py",
+   "sha256": "70963202c3fca5f75e313bfd21223514251b273b132282cf100767f3942ea712"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/backbones/__init__.py",
+   "sha256": "0829c3ea579ca5aec2644dc797322384244dc82997724e15b776d9b9e953dd96"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/decode_heads/HourGlassDecoder.py",
+   "sha256": "d36c01f24afeeca636d388a7679fc1a3271b782f436cd1fbee49c35b9356f0f3"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/decode_heads/RAFTDepthNormalDPTDecoder5.py",
+   "sha256": "24b832c6e831d25a101ebb8c02b1b3df4b5d5474530481078d6df56c7ff93951"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/decode_heads/__init__.py",
+   "sha256": "554b15c589b59e11b254d490ee0413dc667d813c77649b5043dc62575cd5334c"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/model_pipelines/__base_model__.py",
+   "sha256": "55936a9ff96bcc5459741979761bc7a0c0ad2e603e0cdeaf39b0a324143de738"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/model_pipelines/__init__.py",
+   "sha256": "65d89c926bc790bb1afd13602198fb32f57fb30875e1faf76ceed34621ecd4db"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/model_pipelines/dense_pipeline.py",
+   "sha256": "574f9db164d3dbce07cb782ff793c609a68700dd0aa937f48439ac5c08de72d5"
+  },
+  {
+   "path": "preprocess/metric3d/mono/model/monodepth_model.py",
+   "sha256": "9f3cdea9a2f01cbfc54ee5049ff17eed22bb011d67158f83dd2efbbf7d3340d9"
+  },
+  {
+   "path": "preprocess/metric3d/mono/tools/test_scale_cano.py",
+   "sha256": "2028683df830f94a48caa8ca08775f1401c78ad245305dd8e45171c959f15062"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/__init__.py",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/avg_meter.py",
+   "sha256": "3f66216c22f5a84a3a4f9f59d333db6a070269ac0d24bb1fb794a5f512de2b30"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/comm.py",
+   "sha256": "6b4e341d970c6741cfdccf0d302c35896319470db608fce830180eca9193d354"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/custom_data.py",
+   "sha256": "ff29942b389e63937f76680ffaa5db82ee9be52234d3718035b6b6b3addce324"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/do_test.py",
+   "sha256": "c7c1007052be58846a2568d6d342540a4e3bb9e30cf1cd54687b84f1a6a915d6"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/logger.py",
+   "sha256": "538c294284db452ae17422550763d6d1a43fd8f389983c0ef0d2a3e3cb848994"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/mldb.py",
+   "sha256": "c81ae4064da5a902ce6d7b662f22ff6f35f5bd5cd1a71f95120d8bec62c4fc9d"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/running.py",
+   "sha256": "d9ecdcec5a65d0e492e8fe3cf557766228b7721fe6f4ec56fe67785dcd7309fd"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/transform.py",
+   "sha256": "aff20c4be0236ec11512f7933cc6972e99619af529207cf19b95aa07d568dcc1"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/unproj_pcd.py",
+   "sha256": "dfc2032d10fb691586c14bdb73df23a050f73460168c81dc259516bbd30d4474"
+  },
+  {
+   "path": "preprocess/metric3d/mono/utils/visualization.py",
+   "sha256": "5ee790165a201676b7ca004c8d3ed9b433c58782ca4a18cae74d7d6e4c15583a"
+  },
+  {
+   "path": "preprocess/nvi_sem/config.py",
+   "sha256": "aea7917ebfd432280391ec0452c392f8d268d38262b0de56d60d1fa3bf55f912"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/__init__.py",
+   "sha256": "92d5cb7d017a34868e0f1fe3235400409035128e844632892af2bcc21b62b22d"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/base_loader.py",
+   "sha256": "4d5e2be7c1412cff432c0f6d26dcf45682be797a1ce921690e9f1ea784446d03"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/cityscapes.py",
+   "sha256": "5945c9c8418be31f2883ba8b579f282efb9bc2694fe7258dbaca116b273741ee"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/cityscapes_labels.py",
+   "sha256": "c84fe36d3e731637f6b2a8fc6581a33ccb762874e6fccd21c23e6062f9fe12cb"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/mapillary.py",
+   "sha256": "3aa4a67980d56d40d097cf7c3f6eb0a0a02e99bd34521398449dd95c09f927ef"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/nullloader.py",
+   "sha256": "12e4d62a32533c09cf10269b5e1c05f4bc404394c0585d5dfbafb2c72e5659e1"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/randaugment.py",
+   "sha256": "c74e0a355ed07fead2592044bb0a0cf0051d91e5aa1895656b9e997c66e10a3f"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/sampler.py",
+   "sha256": "75deb0e792a92d4588247b85c33ef476025deb8d35f0edb66c597d8f321c6f06"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/uniform.py",
+   "sha256": "06f419e6e3305655451ecc7238b1fb3d0691ed51424d41db6c84b8400497d43d"
+  },
+  {
+   "path": "preprocess/nvi_sem/datasets/utils.py",
+   "sha256": "535943462c34820f51dee66e13b95d6e6d4dacfef3f4ad8fca229f6729293868"
+  },
+  {
+   "path": "preprocess/nvi_sem/loss/optimizer.py",
+   "sha256": "a737b4e9490b0b4ed63a7a520cede8371f8e32c8eb55da30bbfa5cd7960c94b4"
+  },
+  {
+   "path": "preprocess/nvi_sem/loss/radam.py",
+   "sha256": "f857e810aeefc1e2d084570b191d261c4ecdc4caaf5ddd4ac00fee1a957bd913"
+  },
+  {
+   "path": "preprocess/nvi_sem/loss/rmi.py",
+   "sha256": "869c3fdf23df415377a99fe0cb32bc40dc8aa3e3ff077a74c5b6b636bda9bea4"
+  },
+  {
+   "path": "preprocess/nvi_sem/loss/rmi_utils.py",
+   "sha256": "96b712e83cc295c7b48260b0aacf1063dc32bc2e7803ee70199ba49bab699b5c"
+  },
+  {
+   "path": "preprocess/nvi_sem/loss/utils.py",
+   "sha256": "cee37d8ecf068e0a561be123583d2525455fad4d20d14e7a1c9ebd6b2219a60c"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/Resnet.py",
+   "sha256": "cec6f9096c8833b2d8af841c80f45a9c9ae30557f1589744ad9799a8d5c38dcc"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/SEresnext.py",
+   "sha256": "59c8d93eee9ad9d788ee21cafd842824e5f462d25c9cfe1a0a32296f3dbbc5ca"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/__init__.py",
+   "sha256": "11bf280569ba9475842a71c72abad7d4bfb48eefe331108efdc28b1041cea167"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/attnscale.py",
+   "sha256": "25ab77dc20f42afbc42ab3298d23ea0113316ccd4c1d60ef87c9d6bc83f7e147"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/basic.py",
+   "sha256": "9a2914ac26aeef9d2eb8847316201ed9bd289d591a947002d040d4f68b3d4079"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/bn_helper.py",
+   "sha256": "465030f73c2844e39688befe16d677af0bdad81b647c3cb9f60a7164746b32ec"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/deeper.py",
+   "sha256": "b309c43439d891285cb0670793da34ee2da57e71727d727e9783b0d942f48842"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/deepv3.py",
+   "sha256": "18bc406c3124823cf13b851b0cb7f3e2bb83da0473db00e5313e6cdd598136f3"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/hrnetv2.py",
+   "sha256": "e8735c4bef143efc2973bc637850af9b6adaf4ef313048c508333ce8e4719e3a"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/mscale.py",
+   "sha256": "152859733d588d46c2942906daa3e7e641c1a94c34d956805e1701f17b5eccd8"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/mscale2.py",
+   "sha256": "99fb759b0689ff64bc66670ebae315a5125df5e9e7102289b2b197fed7cbe3c5"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/mynn.py",
+   "sha256": "fae860ee0d2d10e88cbe9732ada37ea382f2ea37b06c6dc08bbc624b652a4073"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/ocr_utils.py",
+   "sha256": "64a0a6305db5e2ea5d60656292340452f1725f2537696793128794d3fdc15f73"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/ocrnet.py",
+   "sha256": "85701bb065d13f2a9989ec4176befbe4c67859e2217012112323a3e7a2d63603"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/utils.py",
+   "sha256": "2f73e1bd17b0a771fecf1fee9509509d58fee39b4636335665874aab4be4e62d"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/wider_resnet.py",
+   "sha256": "a27609669a148561729b74c944cebd29b8e6a305600b6b0326f7e46bcf4cd1a7"
+  },
+  {
+   "path": "preprocess/nvi_sem/network/xception.py",
+   "sha256": "4edb10f98b126b08acdcb5b97f4b99b98633f2fbcbe07c7212c1e61cef35b29c"
+  },
+  {
+   "path": "preprocess/nvi_sem/train.py",
+   "sha256": "edd331225a1da6ceafe920d5b3b5504196932d42c9652c8a7d898eeb886335dc"
+  },
+  {
+   "path": "preprocess/nvi_sem/transforms/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "preprocess/nvi_sem/transforms/joint_transforms.py",
+   "sha256": "3a534fdcbc07b18d8b4d60ffb786e30aa219b62a534d272d21d713bacb25981c"
+  },
+  {
+   "path": "preprocess/nvi_sem/transforms/transforms.py",
+   "sha256": "abeac510539b824461262d63507c6099bbe43cd1b9f3201ca0ff3169e72160ae"
+  },
+  {
+   "path": "preprocess/nvi_sem/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "preprocess/nvi_sem/utils/attr_dict.py",
+   "sha256": "42c5f3e9e85de66537aff98f8954f7eaee46b213f608696e464d022f323833a1"
+  },
+  {
+   "path": "preprocess/nvi_sem/utils/f_boundary.py",
+   "sha256": "65c111a0fba0c8fd4b2ab5ff3816b9ddbeb12168ea6f814969a15eca44aebbf2"
+  },
+  {
+   "path": "preprocess/nvi_sem/utils/misc.py",
+   "sha256": "5bf89709b03d935fb755ea0024d4cb6d83506460972952d67835d83a58cb4d5a"
+  },
+  {
+   "path": "preprocess/nvi_sem/utils/my_data_parallel.py",
+   "sha256": "06f279432937e14348efc6534f511cc8506b5f45ed1734692c609f07106e8f54"
+  },
+  {
+   "path": "preprocess/nvi_sem/utils/results_page.py",
+   "sha256": "a452f78eda47056a7eb1585f749a860b2120cbae1eadc03894bfbcb6b8300062"
+  },
+  {
+   "path": "preprocess/nvi_sem/utils/trnval_utils.py",
+   "sha256": "06d7a48c1a88b647bd4c3467bb842848f3a42aaf6e579ba560df1d37efd77b6e"
+  },
+  {
+   "path": "preprocess/read_dataset/generate_pcd.py",
+   "sha256": "e646604b21bd5b8509e5021b1f9a14a69f267d76d8b8ac09936aff89cb4e2c4b"
+  },
+  {
+   "path": "preprocess/read_dataset/generate_waymo_pcd.py",
+   "sha256": "695c31492d4265c63ee2406eac5bff454e5008a5e5c817764beb71cad8112053"
+  },
+  {
+   "path": "preprocess/read_dataset/read_kitti360.py",
+   "sha256": "64b6ccfe415b0dce6dba5f73954071101a97c1a9c2fc4ec4090d2d7b9150a165"
+  },
+  {
+   "path": "preprocess/read_dataset/read_waymo.py",
+   "sha256": "9fd793775aaa7609a4a56ad2923d7c19d015ac86c081b0912d92378161c5f0c1"
+  },
+  {
+   "path": "preprocess/run.py",
+   "sha256": "13759d359ec5993d4a2a9b1447d2119b79385aa6cda2e2afddcdef164d0eff3a"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "91ff474e40043b08e3ed2167d69a37de13f64aa80d283cdfc21cd2f832c1e291"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 926022
+}

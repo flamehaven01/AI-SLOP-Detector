@@ -1,0 +1,4410 @@
+{
+ "band": "A4",
+ "range": [
+  2000,
+  5000
+ ],
+ "snapshot": "2026-10-26",
+ "queries": [
+  {
+   "stars": "2000..2150",
+   "repos": [
+    {
+     "createdAt": "2025-08-11T00:19:56Z",
+     "description": "ViPE: Video Pose Engine for Geometric 3D Perception",
+     "fullName": "nv-tlabs/vipe",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-10T19:26:31Z",
+     "size": 13467,
+     "stargazersCount": 2149
+    },
+    {
+     "createdAt": "2026-03-15T12:04:50Z",
+     "description": "Agent skill for Codex, Claude Code, and OpenClaw that translates entire books (PDF/DOCX/EPUB) into any language using parallel subagents.",
+     "fullName": "deusyu/translate-book",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-12T06:07:49Z",
+     "size": 11612,
+     "stargazersCount": 2148
+    },
+    {
+     "createdAt": "2026-10-05T20:57:05Z",
+     "description": "The animation engine for agents: blazingly fast math and 3D videos with Manim's Python API, on a Rust GPU core.",
+     "fullName": "academa-labs/manimgx",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-25T06:25:22Z",
+     "size": 159179,
+     "stargazersCount": 2141
+    },
+    {
+     "createdAt": "2025-08-19T18:27:53Z",
+     "description": "Private local AI assistant for your desktop. Voice and text chat, personal memory, dictation and MCP tools. Runs offline with Ollama or OpenAI-compatible servers on macOS, Windows and Linux.",
+     "fullName": "isair/jarvis",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-20T23:46:25Z",
+     "size": 16220,
+     "stargazersCount": 2138
+    },
+    {
+     "createdAt": "2026-01-18T02:31:54Z",
+     "description": "Claude Code for Financial Market",
+     "fullName": "ginlix-ai/LangAlpha",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T08:14:53Z",
+     "size": 91299,
+     "stargazersCount": 2135
+    },
+    {
+     "createdAt": "2025-11-29T09:19:54Z",
+     "description": "Cleanup your gmail | delete, mark as read, unsubsribe from uncessary things u dont like",
+     "fullName": "Gururagavendra/gmail-cleaner",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T06:29:30Z",
+     "size": 20006,
+     "stargazersCount": 2132
+    },
+    {
+     "createdAt": "2025-01-28T01:06:43Z",
+     "description": "[RSS 2025] \"ASAP: Aligning Simulation and Real-World Physics for Learning Agile Humanoid Whole-Body Skills\"",
+     "fullName": "LeCAR-Lab/ASAP",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-01-06T04:58:36Z",
+     "size": 58607,
+     "stargazersCount": 2132
+    },
+    {
+     "createdAt": "2026-05-17T11:25:47Z",
+     "description": "\u628a\u5c97\u4f4d\u63cf\u8ff0\u53d8\u9879\u76ee\uff0c\u628a\u9879\u76ee\u53d8\u7b80\u5386\uff0c\u628a\u7b80\u5386\u53d8\u9762\u8bd5\u3002",
+     "fullName": "LiuMengxuan04/shushu-internship-tool",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-06-24T12:02:43Z",
+     "size": 166,
+     "stargazersCount": 2130
+    },
+    {
+     "createdAt": "2025-08-18T15:09:49Z",
+     "description": "\u57fa\u4e8e AI Agent \u5de5\u4f5c\u6d41\u7684\u4fee\u4ed9\u4e16\u754c\u6a21\u62df\u5668\uff0c\u65e8\u5728\u8fd8\u539f\u667a\u80fd\u3001\u5f00\u653e\u7684\u4ed9\u4fa0\u4e16\u754c\u3002| An open-source Cultivation World Simulator using Agentic Workflow to create a dynamic, emerging Xianxia world. ",
+     "fullName": "4thfever/cultivation-world-simulator",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-08-16T11:21:40Z",
+     "size": 499410,
+     "stargazersCount": 2126
+    },
+    {
+     "createdAt": "2026-02-03T18:18:34Z",
+     "description": "A Python framework for AI-driven character animation using neural networks.",
+     "fullName": "facebookresearch/ai4animationpy",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-24T13:47:11Z",
+     "size": 1028899,
+     "stargazersCount": 2122
+    },
+    {
+     "createdAt": "2025-04-08T02:00:30Z",
+     "description": "2026\u5e74\u7a33\u5b9a\u9ad8\u901fVPN\u63a8\u8350\uff1a40\u6b3e\u6027\u4ef7\u6bd4\u7ffb\u5899\u68af\u5b50\u5b8c\u5168\u6307\u5357\uff0c\u6bcf\u5468\u6838\u67e5\u8dd1\u8def\u4e0e\u4ef7\u683c\u3002\u7ffb\u5899\u68af\u5b50/\u79d1\u5b66\u4e0a\u7f51/\u673a\u573a\u6d4b\u8bc4\uff0c\u89e3\u9501 YouTube\u3001Netflix\u3001TikTok\u3001ChatGPT\uff0c\u9002\u7528 Clash\u3001V2ray\u3001\u5c0f\u706b\u7bad\u3001sing-box\uff0c\u652f\u6301 Windows\u3001Mac\u3001iOS\u3001\u5b89\u5353\u3001\u8def\u7531\u5668",
+     "fullName": "John19187/The-40-Best-VPNs",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-09T13:19:17Z",
+     "size": 2330,
+     "stargazersCount": 2121
+    },
+    {
+     "createdAt": "2026-02-24T20:33:55Z",
+     "description": "Agent harness to publish your agent chat history as Huggingface datasets. ",
+     "fullName": "peteromallet/dataclaw",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-11T00:23:48Z",
+     "size": 15286,
+     "stargazersCount": 2119
+    },
+    {
+     "createdAt": "2025-04-29T17:38:09Z",
+     "description": "GenAI Processors is a lightweight Python library that enables efficient, parallel content processing.",
+     "fullName": "google-gemini/genai-processors",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-15T10:18:01Z",
+     "size": 2387,
+     "stargazersCount": 2119
+    },
+    {
+     "createdAt": "2026-03-31T09:17:51Z",
+     "description": "See your claude code logs in clear details in your dashboard",
+     "fullName": "Leanmcp/gateway-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-07T16:04:10Z",
+     "size": 10007,
+     "stargazersCount": 2118
+    },
+    {
+     "createdAt": "2026-04-08T01:29:08Z",
+     "description": "Windows pod system for Linux",
+     "fullName": "kernalix7/winpodx",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T03:38:19Z",
+     "size": 19629,
+     "stargazersCount": 2118
+    },
+    {
+     "createdAt": "2026-03-22T17:32:35Z",
+     "description": "",
+     "fullName": "GAIR-NLP/daVinci-MagiHuman",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-04-11T09:09:32Z",
+     "size": 23001,
+     "stargazersCount": 2118
+    },
+    {
+     "createdAt": "2025-08-05T09:28:24Z",
+     "description": "A guide on how to use the Figma MCP server",
+     "fullName": "figma/mcp-server-guide",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-20T19:50:56Z",
+     "size": 1481,
+     "stargazersCount": 2114
+    },
+    {
+     "createdAt": "2025-04-21T13:16:52Z",
+     "description": "Code, labs, and resources for O'Reilly AI Systems Performance Engineering: GPU optimization, distributed training, inference scaling, and full-stack tuning.",
+     "fullName": "cfregly/ai-performance-engineering",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T05:02:19Z",
+     "size": 2841202,
+     "stargazersCount": 2112
+    },
+    {
+     "createdAt": "2025-03-25T04:37:15Z",
+     "description": "A Model Context Protocol (MCP) server for creating, reading, and manipulating Microsoft Word documents. This server enables AI assistants to work with Word documents through a standardized interface, providing rich document editing capabilities.",
+     "fullName": "GongRzhe/Office-Word-MCP-Server",
+     "isArchived": true,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2025-12-31T13:23:05Z",
+     "size": 144,
+     "stargazersCount": 2110
+    },
+    {
+     "createdAt": "2026-02-01T03:52:49Z",
+     "description": "Adaptive Test-time Learning and Autonomous Specialization",
+     "fullName": "inferstep/ATLAS",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-10-26T10:53:59Z",
+     "size": 76021,
+     "stargazersCount": 2108
+    },
+    {
+     "createdAt": "2025-04-01T10:22:17Z",
+     "description": "\u0421\u0438\u0441\u0442\u0435\u043c\u0430 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439 \u0432 Telegram: \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c\u0441\u043a\u0438\u0445 \u0432\u043e\u043f\u0440\u043e\u0441\u043e\u0432 \u0447\u0435\u0440\u0435\u0437 \u0442\u0438\u043a\u0435\u0442-\u0441\u0438\u0441\u0442\u0435\u043c\u0443 \u0438 \u0433\u0435\u043d\u0435\u0440\u0430\u0446\u0438\u044f \u043e\u0442\u0432\u0435\u0442\u043e\u0432 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u0443 \u043a\u0430\u043a \u043d\u0430 \u043e\u0441\u043d\u043e\u0432\u0435 \u0431\u0430\u0437\u044b \u0437\u043d\u0430\u043d\u0438\u0439, \u0442\u0430\u043a \u0438 \u0441 \u043f\u043e\u043c\u043e\u0449\u044c\u044e AI.",
+     "fullName": "KEV0143/Telegram-MedicalBot",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2025-11-15T10:47:56Z",
+     "size": 9,
+     "stargazersCount": 2108
+    },
+    {
+     "createdAt": "2025-05-22T03:33:26Z",
+     "description": "Agentic AI Hedge Fund OS (AIMM)",
+     "fullName": "olaxbt/ai-market-maker",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-08-20T14:00:25Z",
+     "size": 8483,
+     "stargazersCount": 2107
+    },
+    {
+     "createdAt": "2026-07-10T12:20:50Z",
+     "description": "Waku Waku! Waku Agent is a local-first AI agent harness you actually own, including loop, memory, eval, all in code built to stay legible as it grows.",
+     "fullName": "ShenSeanChen/waku-agent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-23T18:49:21Z",
+     "size": 11153,
+     "stargazersCount": 2105
+    },
+    {
+     "createdAt": "2026-04-05T17:33:55Z",
+     "description": "On-device, real-time multimodal AI with features similar to GPT-Live",
+     "fullName": "fikrikarim/parlor",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-08-03T18:06:56Z",
+     "size": 672,
+     "stargazersCount": 2105
+    },
+    {
+     "createdAt": "2025-01-27T06:30:26Z",
+     "description": "Powerful & Easy-to-Use Video Face Swapping and Editing Software",
+     "fullName": "visomaster/VisoMaster",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "gpl-3.0",
+      "name": "GNU General Public License v3.0",
+      "url": "https://api.github.com/licenses/gpl-3.0"
+     },
+     "pushedAt": "2025-03-11T10:15:12Z",
+     "size": 30075,
+     "stargazersCount": 2105
+    },
+    {
+     "createdAt": "2025-02-19T17:28:25Z",
+     "description": "Official Repo for Open-Reasoner-Zero",
+     "fullName": "Open-Reasoner-Zero/Open-Reasoner-Zero",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2025-06-02T16:36:00Z",
+     "size": 16502,
+     "stargazersCount": 2100
+    },
+    {
+     "createdAt": "2025-04-29T12:26:49Z",
+     "description": "[NeurIPS 2025] Image editing is worth a single LoRA! 0.1% training data for fantastic image editing! Surpasses GPT-4o in ID persistence~ MoE ckpt released! Only 4GB VRAM is enough to run! ",
+     "fullName": "River-Zhang/ICEdit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2025-12-19T19:08:02Z",
+     "size": 30472,
+     "stargazersCount": 2098
+    },
+    {
+     "createdAt": "2025-09-28T07:29:37Z",
+     "description": "Official PyTorch Implementation of \"Diffusion Transformers with Representation Autoencoders\"",
+     "fullName": "bytetriper/RAE",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-02-25T23:07:26Z",
+     "size": 306,
+     "stargazersCount": 2095
+    },
+    {
+     "createdAt": "2025-03-25T03:56:46Z",
+     "description": "An on-premises, OCR-free unstructured data extraction, markdown conversion and benchmarking toolkit. (https://idp-leaderboard.org/)",
+     "fullName": "NanoNets/docext",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-03-17T09:41:55Z",
+     "size": 7065,
+     "stargazersCount": 2088
+    },
+    {
+     "createdAt": "2025-03-16T17:43:21Z",
+     "description": "Scalable toolkit for efficient model reinforcement",
+     "fullName": "NVIDIA-NeMo/RL",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T14:14:40Z",
+     "size": 168393,
+     "stargazersCount": 2085
+    },
+    {
+     "createdAt": "2026-04-19T18:01:42Z",
+     "description": "ADR secures enterprise AI agents through observability, security benchmarking, and threat detection. Deployed at Uber.",
+     "fullName": "uber/ADR",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-24T01:53:39Z",
+     "size": 14647,
+     "stargazersCount": 2082
+    },
+    {
+     "createdAt": "2026-07-31T06:40:09Z",
+     "description": "Simulate Before Reality. ",
+     "fullName": "MatrAIx-ai/MatrAIx-Persona-8B",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-18T00:28:41Z",
+     "size": 20750,
+     "stargazersCount": 2080
+    },
+    {
+     "createdAt": "2026-07-02T20:30:04Z",
+     "description": " Companion code for the global workspace interpretability paper",
+     "fullName": "anthropics/jacobian-lens",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-10T08:22:51Z",
+     "size": 1775,
+     "stargazersCount": 2078
+    },
+    {
+     "createdAt": "2026-09-14T04:12:17Z",
+     "description": "Qwen's most powerful open-source image generation model",
+     "fullName": "QwenLM/Qwen-Image-2.1",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-14T10:08:25Z",
+     "size": 16711,
+     "stargazersCount": 2076
+    },
+    {
+     "createdAt": "2025-07-18T02:40:42Z",
+     "description": "[ACL 2026] OxyGent: Making Multi-Agent Systems Modular, Observable, and Evolvable via Oxy Abstraction https://arxiv.org/abs/2604.25602",
+     "fullName": "jd-opensource/OxyGent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-07-21T08:34:07Z",
+     "size": 130072,
+     "stargazersCount": 2071
+    },
+    {
+     "createdAt": "2025-12-05T17:28:20Z",
+     "description": "Say goodbye to the complex, verbose, and laggy interaction mode of IDA Pro MCP",
+     "fullName": "P4nda0s/IDA-NO-MCP",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-07-26T14:32:43Z",
+     "size": 125,
+     "stargazersCount": 2068
+    },
+    {
+     "createdAt": "2025-09-27T02:17:05Z",
+     "description": "AgentFlow: In-the-Flow Agentic System Optimization",
+     "fullName": "lupantech/AgentFlow",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-02-08T14:00:53Z",
+     "size": 7362,
+     "stargazersCount": 2067
+    },
+    {
+     "createdAt": "2026-06-02T03:25:51Z",
+     "description": "JoyAI-Echo-1.5: Long-Horizon Audio-Visual Generation for Persistent Stories and Interactive Worlds",
+     "fullName": "jd-opensource/JoyAI-Echo",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-20T03:16:58Z",
+     "size": 45844,
+     "stargazersCount": 2061
+    },
+    {
+     "createdAt": "2025-11-18T04:06:24Z",
+     "description": "HunyuanOCR-1.5: Making Lightweight OCR VLMs Faster and Better",
+     "fullName": "Tencent-Hunyuan/HunyuanOCR",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-24T07:48:50Z",
+     "size": 172751,
+     "stargazersCount": 2058
+    },
+    {
+     "createdAt": "2025-11-19T06:07:06Z",
+     "description": "NVIDIA Alpamayo 1 Nano is an open 10B reasoning VLA model for autonomous vehicles that pairs driving trajectories with Chain-of-Causation reasoning.",
+     "fullName": "NVlabs/alpamayo",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-09T23:38:54Z",
+     "size": 632,
+     "stargazersCount": 2057
+    },
+    {
+     "createdAt": "2025-06-22T05:58:38Z",
+     "description": "Building a Neural Network-Native Engine (3N). Python authoring, C++ runtime, Vulkan/WebGPU. Windows, Linux, Android and Web.",
+     "fullName": "ChenlizheMe/Infernux",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-25T17:41:00Z",
+     "size": 108992,
+     "stargazersCount": 2057
+    },
+    {
+     "createdAt": "2025-06-05T08:07:26Z",
+     "description": "",
+     "fullName": "QwenLM/Qwen3-Embedding",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2025-09-30T06:10:27Z",
+     "size": 18355,
+     "stargazersCount": 2057
+    },
+    {
+     "createdAt": "2026-07-18T14:11:04Z",
+     "description": "Agent skill: design any process, idea, or problem into an ICM workspace (folder structure as agent architecture), or restructure an existing folder into one",
+     "fullName": "RinDig/icm-architect",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-24T02:19:43Z",
+     "size": 91,
+     "stargazersCount": 2050
+    },
+    {
+     "createdAt": "2026-06-01T13:38:37Z",
+     "description": "claude\u6ce8\u518c",
+     "fullName": "tiantianGPU/reg-factory",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-19T18:20:03Z",
+     "size": 5993,
+     "stargazersCount": 2049
+    },
+    {
+     "createdAt": "2025-05-11T01:05:52Z",
+     "description": "Continuous Thought Machines, because thought takes time and reasoning is a process.",
+     "fullName": "SakanaAI/continuous-thought-machines",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2025-12-29T03:52:23Z",
+     "size": 24819,
+     "stargazersCount": 2044
+    },
+    {
+     "createdAt": "2025-06-02T06:58:20Z",
+     "description": "\u0423\u043d\u0438\u0432\u0435\u0440\u0441\u0430\u043b\u044c\u043d\u0430\u044f SMM-\u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430 \u0434\u043b\u044f Telegram: \u0441\u0435\u0433\u043c\u0435\u043d\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0435 \u0440\u0430\u0441\u0441\u044b\u043b\u043a\u0438, \u0438\u043d\u0442\u0435\u043b\u043b\u0435\u043a\u0442\u0443\u0430\u043b\u044c\u043d\u0430\u044f \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439, \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0437\u0430\u0446\u0438\u044f \u0440\u0443\u0442\u0438\u043d\u044b \u0432 \u0447\u0430\u0442\u0430\u0445 \u0438 \u0446\u0435\u043d\u0442\u0440\u0430\u043b\u0438\u0437\u043e\u0432\u0430\u043d\u043d\u043e\u0435 \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043a\u043e\u043c\u043c\u0443\u043d\u0438\u043a\u0430\u0446\u0438\u044f\u043c\u0438.",
+     "fullName": "KEV0143/Telegram-Software-SMM",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2025-06-15T09:09:57Z",
+     "size": 116,
+     "stargazersCount": 2043
+    },
+    {
+     "createdAt": "2026-02-25T10:01:17Z",
+     "description": " Outlookmail Plus: Designed Specifically for Registration  |  Outlookmail Plus\uff1a\u4e13\u4e3a\u6ce8\u518c\u800c\u751f  |  ",
+     "fullName": "ZeroPointSix/outlookEmailPlus",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-08-24T13:11:04Z",
+     "size": 13929,
+     "stargazersCount": 2035
+    },
+    {
+     "createdAt": "2025-08-31T10:09:30Z",
+     "description": "\u5f00\u6e90\u526a\u6620\u5c0f\u52a9\u624b\uff5c\u526a\u6620API | \u6263\u5b50\u63d2\u4ef6 | Open-source CapCut automation toolkit to generate & download draft files.  | skills",
+     "fullName": "Hommy-master/capcut-mate",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-25T00:38:53Z",
+     "size": 63414,
+     "stargazersCount": 2034
+    },
+    {
+     "createdAt": "2026-05-13T18:57:15Z",
+     "description": "Nolanx, Open-sourced AI Netflix.",
+     "fullName": "nolanx-ai/nolanx.ai",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-05-26T11:01:27Z",
+     "size": 16852,
+     "stargazersCount": 2034
+    },
+    {
+     "createdAt": "2025-10-03T07:02:26Z",
+     "description": "\u590d\u5408\u591aAI\u667a\u80fd\u4f53\u80a1\u7968\u56e2\u961f\u5206\u6790\u76ef\u76d8\u7cfb\u7edf\uff0c\u57fa\u4e8e\u591a\u4e2aai\u667a\u80fd\u4f53\uff0c\u6a21\u62df\u8bc1\u5238\u5206\u6790\u5e08\u56e2\u961f\u5206\u6790\u8fc7\u7a0b\uff0c\u63d0\u4f9b\u5168\u65b9\u4f4d\u7684\u80a1\u7968\u6295\u8d44\u5206\u6790\u548c\u51b3\u7b56\u5efa\u8bae\uff0c\u65b0\u589e\u6e38\u8d44\u9f99\u864e\u699c\u8ddf\u8e2a\u5206\u6790\u3001\u677f\u5757\u9884\u8b66\u8f6e\u52a8\u5206\u6790\uff0c\u652f\u6301\u6279\u91cf\u591a\u7ebf\u7a0b\u5206\u6790\uff0c\u652f\u6301\u5b9e\u65f6\u76d1\u6d4b\u5173\u952e\u70b9\u4f4d\uff0c\u53d1\u9001\u8b66\u62a5\u4fe1\u606f\uff0c\u9884\u7559miniqmt\u63a5\u53e3\uff0c\u652f\u6301\u91cf\u5316\u4ea4\u6613\uff0c\u771f\u6b63\u505a\u5230\u4e86ai\u5e2e\u4f60\u6765\u7092\u80a1\uff0c\u9002\u5408\u5927\u9646A\u80a1\u3002\u4e0b\u65b9\u6d4b\u8bd5\u7f51\u7ad9\u8bf7\u586b\u5165deepseek\u4e34\u65f6key\uff0c\u6d4b\u8bd5\u5b8c\u8bf7\u5220\u9664\uff0c\u5426\u5219\u6709\u6cc4\u9732\u98ce\u9669\u3002\u6ce8\uff1a\u6d4b\u8bd5\u4e91\u670d\u52a1\u8bbf\u95ee\u8fc7\u591a\uff0c\u6570\u636e\u6e90\u6709\u53ef\u80fd\u4f1a\u62d2\u7edd\uff0c\u5982\u9700\u4f7f\u7528\uff0c\u8bf7\u90e8\u7f72\u672c\u5730\u3002",
+     "fullName": "oficcejo/aiagents-stock",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-10T10:42:49Z",
+     "size": 8798,
+     "stargazersCount": 2033
+    }
+   ]
+  },
+  {
+   "stars": "2151..2301",
+   "repos": [
+    {
+     "createdAt": "2025-01-21T12:38:10Z",
+     "description": "[CVPR 2025 Highlight] Video Depth Anything: Consistent Depth Estimation for Super-Long Videos",
+     "fullName": "DepthAnything/Video-Depth-Anything",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2025-10-07T06:00:12Z",
+     "size": 7784,
+     "stargazersCount": 2298
+    },
+    {
+     "createdAt": "2025-11-28T14:42:44Z",
+     "description": "STEP-GUI: The top GUI agent solution in the galaxy.  Developed by the StepFun-GELab team and powered by StepFun\u2019s cutting-edge research capabilities.",
+     "fullName": "stepfun-ai/gelab-zero",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-05-11T05:50:07Z",
+     "size": 165981,
+     "stargazersCount": 2291
+    },
+    {
+     "createdAt": "2026-07-20T15:48:25Z",
+     "description": "NVIDIA Object Oriented Agents: the Pythonic way to build AI Agents.",
+     "fullName": "NVIDIA-NeMo/labs-OO-Agents",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-26T14:11:48Z",
+     "size": 17939,
+     "stargazersCount": 2290
+    },
+    {
+     "createdAt": "2026-02-13T06:43:54Z",
+     "description": "\"FastCode: Accelerating and Streamlining Your Code Understanding\"",
+     "fullName": "HKUDS/FastCode",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-07-06T12:05:56Z",
+     "size": 960,
+     "stargazersCount": 2286
+    },
+    {
+     "createdAt": "2026-03-22T17:22:11Z",
+     "description": "\u8bf4\u4eba\u8bdd\uff5c\u4e2d\u6587\u4f18\u5148\u7684\u53bb AI \u5473\u6539\u5199 skill\uff1a\u4fdd\u4e8b\u5b9e\u3001\u5206\u573a\u666f\u3001\u6539\u5b8c\u53ef\u76f4\u63a5\u53d1\u3002Chinese-first rewrite skill for Codex / Claude Code / Cursor / ChatGPT \u2014 removes AI tone, preserves facts.",
+     "fullName": "MrGeDiao/shuorenhua",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T06:57:27Z",
+     "size": 4979,
+     "stargazersCount": 2284
+    },
+    {
+     "createdAt": "2026-04-07T02:50:46Z",
+     "description": "A curated collection of the best GPT Image 2 and GPT Image 2.5 prompts and examples. The prompts come from top creators on X.",
+     "fullName": "ZeroLu/awesome-gpt-image",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T04:07:38Z",
+     "size": 8477,
+     "stargazersCount": 2281
+    },
+    {
+     "createdAt": "2026-04-07T18:49:32Z",
+     "description": "A local dashboard for tracking your Claude Code token usage, costs, and session history. Pro and Max subscribers get a progress bar. This gives you the full picture.",
+     "fullName": "phuryn/claude-usage",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-07-10T10:08:48Z",
+     "size": 5721,
+     "stargazersCount": 2281
+    },
+    {
+     "createdAt": "2026-06-28T10:24:42Z",
+     "description": "",
+     "fullName": "yynxxxxx/Codex-5.5-codex-instruct-5.5",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-07-13T17:59:01Z",
+     "size": 1606,
+     "stargazersCount": 2281
+    },
+    {
+     "createdAt": "2026-02-24T19:47:38Z",
+     "description": "Write professional-grade skills for agents, validate them using LLMs, and maintain a lean context window.",
+     "fullName": "mgechev/skills-best-practices",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-07-27T16:27:51Z",
+     "size": 13,
+     "stargazersCount": 2278
+    },
+    {
+     "createdAt": "2025-06-27T02:37:38Z",
+     "description": "A platform for reproducible world model research and evaluation",
+     "fullName": "galilai-group/stable-worldmodel",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-02T16:15:55Z",
+     "size": 411345,
+     "stargazersCount": 2277
+    },
+    {
+     "createdAt": "2026-05-25T14:13:24Z",
+     "description": "aimili-vpngate\u662f\u4e00\u4e2a\u501f\u52a9vpngate.net\u8ba9Linux\u7528\u5e72\u51c0ip\u51fa\u7ad9\u7684\u4ee3\u7406\u5de5\u5177\u3002",
+     "fullName": "OpenMili/aimili-vpngate",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-14T06:55:07Z",
+     "size": 440,
+     "stargazersCount": 2275
+    },
+    {
+     "createdAt": "2026-01-30T13:54:17Z",
+     "description": "A self-learning data agent built with systems engineering principles. It grounds answers in 6 layers of context and improves with every query.",
+     "fullName": "agno-agi/dash",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-07-10T10:21:52Z",
+     "size": 260,
+     "stargazersCount": 2273
+    },
+    {
+     "createdAt": "2025-05-03T14:52:57Z",
+     "description": "Web Crawling and RAG Capabilities for AI Agents and AI Coding Assistants",
+     "fullName": "coleam00/mcp-crawl4ai-rag",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2025-07-25T15:17:13Z",
+     "size": 3790,
+     "stargazersCount": 2269
+    },
+    {
+     "createdAt": "2025-04-23T09:53:08Z",
+     "description": "A SOTA open-source image editing model, which aims to provide comparable performance against the closed-source models like GPT-4o and Gemini 2 Flash.",
+     "fullName": "stepfun-ai/Step1X-Edit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-04-29T14:31:44Z",
+     "size": 66143,
+     "stargazersCount": 2266
+    },
+    {
+     "createdAt": "2025-06-21T07:13:38Z",
+     "description": "Prompts, workflows and more for agentic engineering ",
+     "fullName": "Wirasm/prp",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-02T06:09:53Z",
+     "size": 3888,
+     "stargazersCount": 2266
+    },
+    {
+     "createdAt": "2025-03-28T03:42:42Z",
+     "description": "VeOmni: Scaling Any Modality Model Training with Model-Centric Distributed Recipe Zoo",
+     "fullName": "ByteDance-Seed/VeOmni",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T12:11:57Z",
+     "size": 32523,
+     "stargazersCount": 2265
+    },
+    {
+     "createdAt": "2026-05-19T01:10:16Z",
+     "description": "",
+     "fullName": "rosemarycox5334-debug/PA_Agent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-24T09:03:58Z",
+     "size": 8963,
+     "stargazersCount": 2264
+    },
+    {
+     "createdAt": "2026-06-30T10:55:02Z",
+     "description": "Let Claude (or any LLM) actually watch a video \u2014 scene-aware, deduplicated frames + transcript, from a URL or local file. Runs locally, MIT.",
+     "fullName": "HUANGCHIHHUNGLeo/claude-real-video",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-23T09:34:39Z",
+     "size": 140553,
+     "stargazersCount": 2264
+    },
+    {
+     "createdAt": "2026-03-18T11:32:08Z",
+     "description": "\ud83d\udcda \u6570\u5343\u7bc7 AI\u3001LLM\u3001NLP\u3001CV \u9876\u4f1a\u8bba\u6587\u89e3\u8bfb\uff0c\u6bcf\u7bc7 5 \u5206\u949f\u8bfb\u61c2\u6838\u5fc3\u601d\u60f3\u3002",
+     "fullName": "zhaoyang97/Paper-Notes",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-03T11:30:45Z",
+     "size": 379475,
+     "stargazersCount": 2263
+    },
+    {
+     "createdAt": "2026-02-28T08:37:49Z",
+     "description": "Local-first AI job intelligence workbench for scraping roles, ranking fit, and generating tailored application materials.",
+     "fullName": "vasu-devs/JustHireMe",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-10-09T18:02:32Z",
+     "size": 115296,
+     "stargazersCount": 2261
+    },
+    {
+     "createdAt": "2026-02-16T16:59:06Z",
+     "description": "A Python framework for self-hosted LLM tool-calling and multi-step agentic workflows",
+     "fullName": "antoinezambelli/forge",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-24T21:21:07Z",
+     "size": 4856,
+     "stargazersCount": 2261
+    },
+    {
+     "createdAt": "2026-01-22T03:28:37Z",
+     "description": "",
+     "fullName": "op7418/Youtube-clipper-skill",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-01-22T04:56:21Z",
+     "size": 56,
+     "stargazersCount": 2259
+    },
+    {
+     "createdAt": "2026-09-18T09:07:48Z",
+     "description": "Local typed decisions, contrastive data curation, and model evaluation.",
+     "fullName": "bespokelabsai/nimble",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-24T00:15:36Z",
+     "size": 6300,
+     "stargazersCount": 2257
+    },
+    {
+     "createdAt": "2026-01-07T09:02:02Z",
+     "description": "Refine and quantize messy AI pixel art into clean, perfect pixels.",
+     "fullName": "theamusing/perfectPixel",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-02-01T06:31:44Z",
+     "size": 5786,
+     "stargazersCount": 2254
+    },
+    {
+     "createdAt": "2026-04-23T05:42:29Z",
+     "description": "Portable AI agent orchestration with mechanical protocol enforcement. 186 agents, zero runtime dependencies.",
+     "fullName": "GammaLabTechnologies/harmonist",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-06-09T23:15:07Z",
+     "size": 2180,
+     "stargazersCount": 2251
+    },
+    {
+     "createdAt": "2026-02-17T17:59:32Z",
+     "description": "Reconstruct and validate C/C++ code from compiled programs with AI.",
+     "fullName": "Dryxio/reagent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-09T20:39:32Z",
+     "size": 224,
+     "stargazersCount": 2245
+    },
+    {
+     "createdAt": "2026-07-06T06:10:23Z",
+     "description": "An Open-World Foundation Model for General-Purpose Embodied Intelligence.",
+     "fullName": "dexmal/opendm",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-20T04:13:44Z",
+     "size": 5487,
+     "stargazersCount": 2245
+    },
+    {
+     "createdAt": "2025-09-01T07:56:46Z",
+     "description": "Build reliable Gen AI solutions without overhead \ud83c\udf55",
+     "fullName": "datapizza-labs/datapizza-ai",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-05-19T09:35:45Z",
+     "size": 4552,
+     "stargazersCount": 2242
+    },
+    {
+     "createdAt": "2026-08-15T09:10:56Z",
+     "description": "Serve large Qwen models fast on the GPUs you actually own. Qwen3.8-27B on a single 24 GB card with vLLM: 127 tok/s single-user (381 when the answer quotes the prompt), ~1,035 tok/s at 64 concurrent, 150k-262k context. vLLM patches, requant pipeline, benchmarks.",
+     "fullName": "syv-ai/HyperQwen",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-21T23:00:10Z",
+     "size": 37967,
+     "stargazersCount": 2240
+    },
+    {
+     "createdAt": "2025-07-16T09:41:37Z",
+     "description": "[ICLR 2026] \u03c0^3: Permutation-Equivariant Visual Geometry Learning",
+     "fullName": "yyfz/Pi3",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "bsd-3-clause",
+      "name": "BSD 3-Clause \"New\" or \"Revised\" License",
+      "url": "https://api.github.com/licenses/bsd-3-clause"
+     },
+     "pushedAt": "2026-07-03T13:17:10Z",
+     "size": 43925,
+     "stargazersCount": 2231
+    },
+    {
+     "createdAt": "2026-01-23T13:34:00Z",
+     "description": "PanWatch \u2014 AI stock monitoring for A-shares, HK & US markets, powered by TradingAgents. Portfolio insights, real-time alerts & automated reports.\uff5c\u76ef\u76d8\u4fa0\uff1a\u8986\u76d6 A\u80a1/\u6e2f\u80a1/\u7f8e\u80a1\u7684 AI \u76ef\u76d8\u3001\u6301\u4ed3\u5206\u6790\u3001\u5b9e\u65f6\u63d0\u9192\u4e0e\u81ea\u52a8\u62a5\u544a\u3002",
+     "fullName": "TNT-Likely/PanWatch",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-23T22:27:28Z",
+     "size": 19898,
+     "stargazersCount": 2231
+    },
+    {
+     "createdAt": "2026-05-18T03:10:52Z",
+     "description": "HRM-Text is a 1B text generation model based on the HRM architecture, strengthened by task completion and latent space reasoning.",
+     "fullName": "sapientinc/HRM-Text",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-21T21:24:01Z",
+     "size": 3457,
+     "stargazersCount": 2231
+    },
+    {
+     "createdAt": "2026-06-01T14:38:19Z",
+     "description": "Fill-in-your-own-data framework for YouTube / short-form video automation: CapCut JSON + ffmpeg tooling + an onboarding questionnaire. Ships with zero private data.",
+     "fullName": "Hao0321/video-autopilot-kit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T15:46:28Z",
+     "size": 4114,
+     "stargazersCount": 2230
+    },
+    {
+     "createdAt": "2025-07-14T15:38:20Z",
+     "description": "Communicate with an LLM provider using a single interface",
+     "fullName": "mozilla-ai/any-llm",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T08:22:13Z",
+     "size": 16355,
+     "stargazersCount": 2230
+    },
+    {
+     "createdAt": "2025-10-23T04:43:54Z",
+     "description": "All powerful skills of ClaudeKit.cc!",
+     "fullName": "mrgoonie/claudekit-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-04-03T06:19:25Z",
+     "size": 4312,
+     "stargazersCount": 2228
+    },
+    {
+     "createdAt": "2025-10-23T03:42:36Z",
+     "description": "Asynchronous coordination layer for AI coding agents: identities, inboxes, searchable threads, and advisory file leases over FastMCP + Git + SQLite",
+     "fullName": "Dicklesworthstone/mcp_agent_mail",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-23T19:00:23Z",
+     "size": 12146,
+     "stargazersCount": 2227
+    },
+    {
+     "createdAt": "2026-03-21T14:50:54Z",
+     "description": "codex-console \u662f\u4e00\u4e2a\u96c6\u6210\u5316\u63a7\u5236\u53f0\u9879\u76ee\uff0c\u652f\u6301\u4efb\u52a1\u7ba1\u7406\u3001\u6279\u91cf\u5904\u7406\u3001\u6570\u636e\u5bfc\u51fa\u3001\u81ea\u52a8\u4e0a\u4f20\u3001\u65e5\u5fd7\u67e5\u770b\u4e0e\u6253\u5305\u652f\u6301\u3002",
+     "fullName": "dou-jiang/codex-console",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-08-06T05:59:19Z",
+     "size": 3384,
+     "stargazersCount": 2225
+    },
+    {
+     "createdAt": "2026-03-02T13:37:00Z",
+     "description": "Helios: Real Real-Time Long Video Generation Model",
+     "fullName": "PKU-YuanGroup/Helios",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-08-24T07:26:04Z",
+     "size": 14496,
+     "stargazersCount": 2225
+    },
+    {
+     "createdAt": "2025-12-17T17:03:47Z",
+     "description": "A Foundation Model for Generalist Gaming Agents",
+     "fullName": "MineDojo/NitroGen",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-01-25T21:05:37Z",
+     "size": 27892,
+     "stargazersCount": 2225
+    },
+    {
+     "createdAt": "2025-05-09T05:42:15Z",
+     "description": "Official Python SDK for the Agent2Agent (A2A) Protocol",
+     "fullName": "a2aproject/a2a-python",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T14:18:45Z",
+     "size": 6630,
+     "stargazersCount": 2220
+    },
+    {
+     "createdAt": "2026-05-13T06:26:37Z",
+     "description": "A 0.9B model for long-form transcription in 50+ languages with speaker diarization, timestamps, and acoustic event awareness",
+     "fullName": "OpenMOSS/MOSS-Transcribe-Diarize",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-21T15:58:22Z",
+     "size": 263,
+     "stargazersCount": 2220
+    },
+    {
+     "createdAt": "2026-03-04T03:04:38Z",
+     "description": "\u54c8\u55bd\uff01\u9f99\u867e \ud83d\ude4b\u200d\u2640\ufe0f Adopt from scratch and build your first claw \ud83e\udd9e \u6765\u9886\u517b\u4f60\u7684\u7b2c\u4e00\u53ea\u9f99\u867e\uff01",
+     "fullName": "datawhalechina/hello-claw",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-12T14:44:50Z",
+     "size": 76386,
+     "stargazersCount": 2214
+    },
+    {
+     "createdAt": "2025-12-21T09:19:21Z",
+     "description": "\u7f51\u76d8\u6587\u4ef6\u7ba1\u7406\u589e\u5f3a\u5de5\u5177\uff0c\u652f\u6301115\u3001123\u3001\u5149\u9e2d\u7f51\u76d8\u8f6c\u5b58\u3001\u76d8\u5185\u5f71\u89c6\u4e0e\u97f3\u4e50\u6574\u7406\u3001STRM \u751f\u6210\uff0c\u4ee5\u53ca Emby\u3001\u98de\u725b\u5f71\u89c6\u548c\u98de\u725b\u97f3\u4e50\u53cd\u4ee3\u4e0e 302 \u64ad\u653e\u3002",
+     "fullName": "walkingddd/TgtoDrive",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-20T12:24:28Z",
+     "size": 14060,
+     "stargazersCount": 2213
+    },
+    {
+     "createdAt": "2025-01-14T06:17:25Z",
+     "description": "",
+     "fullName": "langchain-ai/executive-ai-assistant",
+     "isArchived": true,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-07-27T17:58:24Z",
+     "size": 1094,
+     "stargazersCount": 2206
+    },
+    {
+     "createdAt": "2026-04-23T14:11:31Z",
+     "description": "Open-source, end-to-end platform for evaluating, observing, and improving LLM and AI agent applications. Tracing \u00b7 Evals \u00b7 Simulations \u00b7 Datasets \u00b7 Gateway \u00b7 Guardrails. Self-hostable. Apache 2.0.",
+     "fullName": "future-agi/future-agi",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T14:31:57Z",
+     "size": 237267,
+     "stargazersCount": 2204
+    },
+    {
+     "createdAt": "2025-01-22T18:13:43Z",
+     "description": "A processing script for Bricklayers in Prusaslicer and Orcaslicer",
+     "fullName": "TengerTechnologies/Bricklayers",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "gpl-3.0",
+      "name": "GNU General Public License v3.0",
+      "url": "https://api.github.com/licenses/gpl-3.0"
+     },
+     "pushedAt": "2025-06-06T21:36:23Z",
+     "size": 66,
+     "stargazersCount": 2204
+    },
+    {
+     "createdAt": "2026-05-27T02:01:16Z",
+     "description": "\u502a\u6d77\u53a6\u4e2d\u533b\u8bfe\u7a0b\u8d44\u6599\u7684 Agent Skill\uff1a\u652f\u6301\u8bfe\u7a0b\u68c0\u7d22\u3001\u65b9\u8bc1\u7a74\u4f4d\u8fa8\u6790\u3001\u5b66\u4e60\u7b14\u8bb0\u6574\u7406\u4e0e\u677f\u4e66\u622a\u56fe\u8bc1\u636e\u7d22\u5f15\u3002 |  An Agent Skill for Ni Haisha TCM course study, formula-pattern lookup, acupoint reference, and screenshot evidence indexing.",
+     "fullName": "JuneYaooo/nihaisha-nishi-tcm",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-09-16T12:37:32Z",
+     "size": 96361,
+     "stargazersCount": 2199
+    },
+    {
+     "createdAt": "2026-07-22T20:57:39Z",
+     "description": "[SIGGRAPH Asia 2026] UniMate: One Unified Model to Animate Diverse Skeletons",
+     "fullName": "Friedrich-M/UniMate",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-08T02:52:24Z",
+     "size": 40387,
+     "stargazersCount": 2199
+    },
+    {
+     "createdAt": "2026-06-12T13:17:07Z",
+     "description": "Detection tools for the June 2026 atomic-lockfile AUR supply-chain attack. Consolidated from community Gists.",
+     "fullName": "lenucksi/aur-malware-check",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "gpl-3.0",
+      "name": "GNU General Public License v3.0",
+      "url": "https://api.github.com/licenses/gpl-3.0"
+     },
+     "pushedAt": "2026-07-07T17:16:17Z",
+     "size": 352,
+     "stargazersCount": 2198
+    },
+    {
+     "createdAt": "2026-10-02T09:43:06Z",
+     "description": "15 motion design styles, each made by Claude Opus 5.5 writing code from one prompt: watch the films, copy the prompts, read the full source.",
+     "fullName": "Vincentwei1021/mg-styles-15",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-05T11:23:17Z",
+     "size": 567916,
+     "stargazersCount": 2198
+    }
+   ]
+  },
+  {
+   "stars": "2302..2452",
+   "repos": [
+    {
+     "createdAt": "2025-04-07T17:40:20Z",
+     "description": "Official PyTorch implementation of One-Minute Video Generation with Test-Time Training",
+     "fullName": "test-time-training/ttt-video-dit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-02-25T04:11:26Z",
+     "size": 546,
+     "stargazersCount": 2452
+    },
+    {
+     "createdAt": "2025-04-22T17:33:31Z",
+     "description": "SkyRL: A Modular Full-stack RL Library for LLMs",
+     "fullName": "NovaSky-AI/SkyRL",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T05:12:51Z",
+     "size": 53791,
+     "stargazersCount": 2452
+    },
+    {
+     "createdAt": "2025-12-19T14:05:44Z",
+     "description": "iNTERCEPT, a free and open-source platform that unites the best signal intelligence tools into a single, accessible interface.",
+     "fullName": "smittix/intercept",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-24T14:40:56Z",
+     "size": 52082,
+     "stargazersCount": 2448
+    },
+    {
+     "createdAt": "2025-11-25T19:28:40Z",
+     "description": "Docker configuration for running VLLM on dual DGX Sparks",
+     "fullName": "eugr/spark-vllm-docker",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T14:41:39Z",
+     "size": 2485,
+     "stargazersCount": 2446
+    },
+    {
+     "createdAt": "2025-08-11T15:12:45Z",
+     "description": "",
+     "fullName": "HybridRobotics/whole_body_tracking",
+     "isArchived": true,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-16T00:32:27Z",
+     "size": 181,
+     "stargazersCount": 2445
+    },
+    {
+     "createdAt": "2026-04-28T10:08:59Z",
+     "description": "Community recipes for serving LLMs on RTX 3090/4090/5090 CUDA gpus. Multi-engine (vLLM, sglang, llama.cpp and other custom engines) and model-agnostic. Currently shipping Qwen3.8-27B Qwen3.6 35B Gemma 4 26B Gemma 4 31B configs for 1\u00d7/2\u00d7/4x/8x cards.",
+     "fullName": "noonghunna/club-3090",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T13:12:41Z",
+     "size": 62187,
+     "stargazersCount": 2444
+    },
+    {
+     "createdAt": "2025-11-14T13:07:28Z",
+     "description": "an unhealthy amount of work has been put into this...star it? ",
+     "fullName": "dusklinux/dusky",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T02:21:35Z",
+     "size": 34007,
+     "stargazersCount": 2433
+    },
+    {
+     "createdAt": "2025-03-12T23:10:57Z",
+     "description": "The official CLI for Agentic Document Extraction (ADE) by LandingAI \u2014 parse documents and extract schema-shaped data from your terminal",
+     "fullName": "landing-ai/ade-cli",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-24T00:47:53Z",
+     "size": 1133,
+     "stargazersCount": 2425
+    },
+    {
+     "createdAt": "2025-12-29T05:00:00Z",
+     "description": "Structured deep research skill for Claude Code/Open Code/Codex with human-in-the-loop control",
+     "fullName": "Weizhena/Deep-Research-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-08-23T03:25:28Z",
+     "size": 6956,
+     "stargazersCount": 2424
+    },
+    {
+     "createdAt": "2026-03-09T03:46:37Z",
+     "description": "Turn any MCP, OpenAPI, or GraphQL server into a CLI \u2014 at runtime, with zero codegen",
+     "fullName": "knowsuchagency/mcp2cli",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-12T06:15:17Z",
+     "size": 35803,
+     "stargazersCount": 2424
+    },
+    {
+     "createdAt": "2026-02-26T06:04:49Z",
+     "description": "News Aggregation \u00b7 AI Ratings \u00b7 Trading Signals \u00b7 Real-time Updates",
+     "fullName": "6551Team/opennews-mcp",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-14T08:50:40Z",
+     "size": 272,
+     "stargazersCount": 2421
+    },
+    {
+     "createdAt": "2026-02-04T14:46:47Z",
+     "description": "Open source implementation and extension of Google Research\u2019s PaperBanana for automated academic figures, diagrams, and research visuals, expanded to new domains like slide generation.",
+     "fullName": "llmsresearch/paperbanana",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-17T15:36:41Z",
+     "size": 142600,
+     "stargazersCount": 2418
+    },
+    {
+     "createdAt": "2025-10-18T15:01:46Z",
+     "description": "Build tested agent skills and govern their lifecycle through a user-defined marketplace: evidence, discovery, updates, rollback, quarantine, and 17-platform distribution.",
+     "fullName": "FrancyJGLisboa/agent-skills-platform",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-15T17:31:46Z",
+     "size": 8305,
+     "stargazersCount": 2408
+    },
+    {
+     "createdAt": "2025-07-07T15:54:16Z",
+     "description": "Unified Schema-Based Information Extraction",
+     "fullName": "fastino-ai/GLiNER2",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-20T17:52:57Z",
+     "size": 10633,
+     "stargazersCount": 2407
+    },
+    {
+     "createdAt": "2025-06-28T08:44:06Z",
+     "description": "GLM-4.6V/4.5V/4.1V-Thinking: Towards Versatile Multimodal Reasoning with Scalable Reinforcement Learning",
+     "fullName": "zai-org/GLM-V",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-23T22:46:45Z",
+     "size": 35322,
+     "stargazersCount": 2403
+    },
+    {
+     "createdAt": "2025-10-08T15:33:01Z",
+     "description": "A lightweight suite of motion imitation methods for training controllers.",
+     "fullName": "xbpeng/MimicKit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-17T19:56:15Z",
+     "size": 46554,
+     "stargazersCount": 2401
+    },
+    {
+     "createdAt": "2025-03-23T13:18:13Z",
+     "description": "verl-agent is an extension of veRL, designed for training LLM/VLM agents via RL. verl-agent is also the official code for paper \"Group-in-Group Policy Optimization for LLM Agent Training\"",
+     "fullName": "langfengQ/verl-agent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-06-09T13:35:49Z",
+     "size": 45754,
+     "stargazersCount": 2400
+    },
+    {
+     "createdAt": "2025-05-01T20:48:50Z",
+     "description": "AssetOpsBench - Industry 4.0: A unified benchmark and framework for building, orchestrating, and evaluating domain-specific AI agents for Industry 4.0 asset operations and maintenance, with 460+ scenarios, 5 specialist agents (IoT, FMSR, TSFM, Work Order,...), and multi-agent orchestration blueprints (MetaAgent, AgentHive) over MCP.",
+     "fullName": "IBM/AssetOpsBench",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T12:29:56Z",
+     "size": 114631,
+     "stargazersCount": 2399
+    },
+    {
+     "createdAt": "2025-04-26T09:31:17Z",
+     "description": "MiMo: Unlocking the Reasoning Potential of Language Model \u2013 From Pretraining to Posttraining",
+     "fullName": "XiaomiMiMo/MiMo",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2025-06-05T16:01:49Z",
+     "size": 7090,
+     "stargazersCount": 2395
+    },
+    {
+     "createdAt": "2026-04-03T21:33:10Z",
+     "description": "A desktop music library builder that turns Spotify, Youtube Music Apple Music, Amazon Music, Tidal, Qobuz, and Deezer links into fully tagged local library in FLAC, ALAC, Dolby Atmos, AAC, or MP3.",
+     "fullName": "anandprtp/Antra",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-26T02:04:10Z",
+     "size": 8892,
+     "stargazersCount": 2394
+    },
+    {
+     "createdAt": "2026-01-18T13:51:27Z",
+     "description": " \u4e00\u4e2a\u81ea\u52a8\u64b0\u5199\u5c0f\u7ea2\u4e66\u7b14\u8bb0\uff0c\u81ea\u52a8\u751f\u6210\u56fe\u7247\uff0c\u81ea\u52a8\u53d1\u5e03\u7684 Skills",
+     "fullName": "comeonzhj/Auto-Redbook-Skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-08-13T02:48:18Z",
+     "size": 8845,
+     "stargazersCount": 2394
+    },
+    {
+     "createdAt": "2026-08-17T14:37:23Z",
+     "description": "\u57fa\u4e8e\u9879\u76eePC2005-cloud/dsh-pet.git\uff0c\u5c06\u684c\u5ba0\u79fb\u690d\u5230Windows\u3001Linux\u548cMacOS\u4e0a\uff0c\u73b0\u5728\u53ef\u4ee5\u968f\u65f6\u770b\u5230\u84dd\u8272\u5927\u80a5\u9c7c\u4e86\uff1a\uff09\uff0c\u672c\u9879\u76ee\u8fd8\u989d\u5916\u5b9e\u73b0\u4e86\u5176\u4ed6\u4ea4\u4e92\u529f\u80fd\uff0c\u6b22\u8fce\u4f53\u9a8c",
+     "fullName": "MerZlin/dsh-pet-indesktop",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T08:01:45Z",
+     "size": 188376,
+     "stargazersCount": 2392
+    },
+    {
+     "createdAt": "2025-10-03T08:50:16Z",
+     "description": "Automatic Video Generation from Scientific Papers",
+     "fullName": "showlab/Paper2Video",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-03-05T09:05:41Z",
+     "size": 392229,
+     "stargazersCount": 2389
+    },
+    {
+     "createdAt": "2026-07-13T08:57:38Z",
+     "description": "AI agent skills for end-to-end hotel and flight booking\u2014compare live hotel rates across leading OTAs and suppliers, search and verify real-time airfares worldwide, book stays and flights, and manage reservations, hotel cancellations, and payments via the TourMind API.",
+     "fullName": "tourmind-com/Tourmind-Booking-Skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-19T09:29:07Z",
+     "size": 1223,
+     "stargazersCount": 2385
+    },
+    {
+     "createdAt": "2025-10-16T15:01:31Z",
+     "description": "\ud83c\udfa8 NeMo Data Designer: Generate high-quality synthetic data from scratch or from seed data.",
+     "fullName": "NVIDIA-NeMo/DataDesigner",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T14:44:48Z",
+     "size": 826184,
+     "stargazersCount": 2375
+    },
+    {
+     "createdAt": "2026-05-10T18:43:16Z",
+     "description": "\u6279\u91cf\u7a33\u5b9a\u6ce8\u518c Grok \u8d26\u53f7\uff0c\u652f\u6301 WebUI/GUI/CLI\u3001\u591a\u90ae\u7bb1\u670d\u52a1\u3001\u591a\u7ebf\u7a0b\u5e76\u53d1\u3001\u8d26\u53f7\u7ea7\u591a\u534f\u8bae\u4ee3\u7406\u6c60\u3001grok2api \u5165\u6c60\u3001SSO \u98ce\u63a7\u7b5b\u67e5\u4e0eCPA OIDC \u51ed\u8bc1\u5bfc\u51fa\u3002",
+     "fullName": "AaronL725/grok-register",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T07:36:20Z",
+     "size": 6474,
+     "stargazersCount": 2369
+    },
+    {
+     "createdAt": "2026-02-13T22:00:15Z",
+     "description": "DPI detection tool for internet censorship testing. Identifies TLS, TCP, HTTP, DNS blocking and 16-20KB connection drops",
+     "fullName": "Runnin4ik/dpi-detector",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-19T15:52:42Z",
+     "size": 81377,
+     "stargazersCount": 2367
+    },
+    {
+     "createdAt": "2025-02-23T07:13:00Z",
+     "description": "Di\u266a\u266aRhythm: Blazingly Fast and Embarrassingly Simple End-to-End Full-Length Song Generation with Latent Diffusion",
+     "fullName": "ASLP-lab/DiffRhythm",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2025-11-27T13:30:12Z",
+     "size": 144629,
+     "stargazersCount": 2354
+    },
+    {
+     "createdAt": "2026-09-30T03:55:35Z",
+     "description": "UI design skill for Claude Code, Codex and other AI agents: explore distinct directions, compare them side by side, refine against real screenshots. \u7ed9 AI Agent \u7528\u7684 UI \u8bbe\u8ba1 Skill\u3002",
+     "fullName": "oil-oil/oil-ui",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-24T16:19:43Z",
+     "size": 3156,
+     "stargazersCount": 2354
+    },
+    {
+     "createdAt": "2025-10-15T08:05:18Z",
+     "description": "Deep Eye orchestrates multiple AI providers (OpenAI, Claude, Grok, Gemini, OLLAMA, Groq, Mistral, OpenRouter, LiteLLM, LM Studio) for intelligent payload generation, scans targets for 45+ vulnerability types, and produces professional reports with compliance mapping.",
+     "fullName": "zakirkun/deep-eye",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-06T03:00:32Z",
+     "size": 2164,
+     "stargazersCount": 2352
+    },
+    {
+     "createdAt": "2025-01-27T22:28:56Z",
+     "description": "Fully open data curation for reasoning models",
+     "fullName": "open-thoughts/open-thoughts",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2025-12-02T21:57:07Z",
+     "size": 19912,
+     "stargazersCount": 2350
+    },
+    {
+     "createdAt": "2026-09-13T21:25:08Z",
+     "description": "Make videos on the computer you already own. FreeVideo runs MiniMax H3 in as little as 8 GB of VRAM and 16 GB of RAM, and adapts its acceleration path to your hardware.",
+     "fullName": "FlashML-org/FreeVideo",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-25T21:24:08Z",
+     "size": 33115,
+     "stargazersCount": 2347
+    },
+    {
+     "createdAt": "2025-02-12T15:11:51Z",
+     "description": "\u62fc\u597dRAG\uff1a\u624b\u6413\u5e76\u878d\u5408\u4e86GraphRAG\u3001LightRAG\u3001Neo4j-llm-graph-builder\u8fdb\u884c\u77e5\u8bc6\u56fe\u8c31\u6784\u5efa\u4ee5\u53ca\u641c\u7d22\uff1b\u6574\u5408DeepSearch\u6280\u672f\u5b9e\u73b0\u79c1\u57dfRAG\u7684\u63a8\u7406\uff1b\u81ea\u5236\u9488\u5bf9GraphRAG\u7684\u8bc4\u4f30\u6846\u67b6| Integrate GraphRAG, LightRAG, and Neo4j-llm-graph-builder for knowledge graph construction and search. Combine DeepSearch for private RAG reasoning. Create a custom evaluation framework for GraphRAG.",
+     "fullName": "1517005260/graph-rag-agent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2025-11-05T08:15:51Z",
+     "size": 91939,
+     "stargazersCount": 2347
+    },
+    {
+     "createdAt": "2025-12-09T20:33:03Z",
+     "description": "AI-native video production toolkit for Claude Code",
+     "fullName": "digitalsamba/claude-code-video-toolkit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-21T23:00:50Z",
+     "size": 37158,
+     "stargazersCount": 2346
+    },
+    {
+     "createdAt": "2026-03-01T15:56:58Z",
+     "description": "[NeurIPS 2026] Safety failures in coding agents and frontier LLMs. Reproducible workspaces for studying when AI agents generate unsafe data during task completion.",
+     "fullName": "wuyoscar/Internal-Safety-Collapse",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-23T08:37:45Z",
+     "size": 125151,
+     "stargazersCount": 2343
+    },
+    {
+     "createdAt": "2026-03-23T23:08:38Z",
+     "description": "Memory that AI Agents Love!",
+     "fullName": "moorcheh-ai/memanto",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-24T06:09:47Z",
+     "size": 22046,
+     "stargazersCount": 2342
+    },
+    {
+     "createdAt": "2025-10-03T16:16:12Z",
+     "description": "Polymarket Data Retriever that fetches, processes, and structures Polymarket data including markets, order events and trades.",
+     "fullName": "warproxxx/poly_data",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "gpl-3.0",
+      "name": "GNU General Public License v3.0",
+      "url": "https://api.github.com/licenses/gpl-3.0"
+     },
+     "pushedAt": "2026-09-08T18:45:15Z",
+     "size": 4585,
+     "stargazersCount": 2341
+    },
+    {
+     "createdAt": "2025-02-10T08:15:39Z",
+     "description": "JetBrains Maple Mono: The free and open-source font fused with JetBrains Mono & Maple Mono",
+     "fullName": "SpaceTimee/Fusion-JetBrainsMapleMono",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "ofl-1.1",
+      "name": "SIL Open Font License 1.1",
+      "url": "https://api.github.com/licenses/ofl-1.1"
+     },
+     "pushedAt": "2026-10-26T14:06:06Z",
+     "size": 147073,
+     "stargazersCount": 2336
+    },
+    {
+     "createdAt": "2025-09-20T10:20:54Z",
+     "description": "VLA-Adapter: An Effective Paradigm for Tiny-Scale Vision-Language-Action Model",
+     "fullName": "OpenHelix-Team/VLA-Adapter",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-03-19T14:09:37Z",
+     "size": 38674,
+     "stargazersCount": 2336
+    },
+    {
+     "createdAt": "2026-04-24T06:34:54Z",
+     "description": "\u5bf9\u4e8eDeepSeek-V4\u89d2\u8272\u626e\u6f14\u7684\u7279\u6b8a\u63a7\u5236\u6307\u4ee4\u7684\u8bf4\u660e",
+     "fullName": "victorchen96/deepseek_v4_rolepaly_instruct",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-05-28T07:57:56Z",
+     "size": 332,
+     "stargazersCount": 2332
+    },
+    {
+     "createdAt": "2026-02-21T17:06:46Z",
+     "description": "Automated YouTube Shorts pipeline: news \u2192 script \u2192 AI visuals \u2192 voiceover \u2192 captions \u2192 upload",
+     "fullName": "rushindrasinha/youtube-shorts-pipeline",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-06-09T23:55:00Z",
+     "size": 291,
+     "stargazersCount": 2332
+    },
+    {
+     "createdAt": "2025-07-11T10:03:18Z",
+     "description": "Open Cut API.",
+     "fullName": "sun-guannan/VectCutAPI",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-24T03:31:51Z",
+     "size": 616,
+     "stargazersCount": 2331
+    },
+    {
+     "createdAt": "2026-03-11T18:51:14Z",
+     "description": "ATLAS by General Intelligence Capital \u2014 Self-improving AI trading agents using Karpathy-style autoresearch",
+     "fullName": "chrisworsey55/atlas-gic",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-22T11:51:44Z",
+     "size": 179,
+     "stargazersCount": 2331
+    },
+    {
+     "createdAt": "2025-12-13T00:36:49Z",
+     "description": "\ud83d\udc7b Proxy API gateway for Kiro IDE & CLI (Amazon Q Developer / AWS CodeWhisperer). Use free Claude models with any client.",
+     "fullName": "jwadow/kiro-gateway",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-05-18T19:35:19Z",
+     "size": 880,
+     "stargazersCount": 2329
+    },
+    {
+     "createdAt": "2026-07-25T16:58:43Z",
+     "description": "Permanent memory for AI agents. A 426-token prompt, a script, plug and play.",
+     "fullName": "VictorTaelin/OptMem",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-07-31T02:19:57Z",
+     "size": 11229,
+     "stargazersCount": 2328
+    },
+    {
+     "createdAt": "2025-06-09T23:46:17Z",
+     "description": "\u03c4-Bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains",
+     "fullName": "sierra-research/tau2-bench",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-24T14:04:34Z",
+     "size": 462523,
+     "stargazersCount": 2325
+    },
+    {
+     "createdAt": "2025-03-10T08:25:11Z",
+     "description": "YOLOE: Real-Time Seeing Anything [ICCV 2025]",
+     "fullName": "THU-MIG/yoloe",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2025-06-26T03:45:33Z",
+     "size": 38534,
+     "stargazersCount": 2320
+    },
+    {
+     "createdAt": "2025-07-09T19:07:58Z",
+     "description": "Intelligent Music & Video Automation Platform",
+     "fullName": "Nezreka/SoulSync",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T08:45:16Z",
+     "size": 327968,
+     "stargazersCount": 2319
+    },
+    {
+     "createdAt": "2026-03-30T06:44:11Z",
+     "description": "Claude Code \u4e2d\u6587\u5168\u9762\u4e0a\u624b\u6307\u5357\u3002\u57fa\u4e8e luongnv89/claude-howto \u672c\u571f\u5316\u91cd\u5199\uff0c\u9762\u5411\u4e2d\u56fd\u5c0f\u767d\u7528\u6237\uff0c\u4fdd\u7559\u547d\u4ee4\u4e0e\u914d\u7f6e\u517c\u5bb9\u6027\uff0c\u5e76\u9644\u5b66\u4e60\u8def\u5f84\u4e0e\u672c\u5730\u5316\u6821\u9a8c\u62a4\u680f\u3002",
+     "fullName": "lhfer/claude-howto-zh-cn",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-08-06T01:38:02Z",
+     "size": 29298,
+     "stargazersCount": 2317
+    },
+    {
+     "createdAt": "2025-03-07T13:39:26Z",
+     "description": "An MCP server for interacting with the Financial Datasets stock market API.",
+     "fullName": "financial-datasets/mcp-server",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2025-06-05T19:50:38Z",
+     "size": 23,
+     "stargazersCount": 2313
+    }
+   ]
+  },
+  {
+   "stars": "3057..3207",
+   "repos": [
+    {
+     "createdAt": "2026-08-04T07:32:11Z",
+     "description": "FuXi is a fast, self-contained AI coding agent that lives in your terminal \u2014 edit code, run commands, and drive tools, with cost-aware routing across LLM providers.",
+     "fullName": "fuxicodex/Fuxi",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-20T15:31:59Z",
+     "size": 7960,
+     "stargazersCount": 3206
+    },
+    {
+     "createdAt": "2026-02-11T17:27:42Z",
+     "description": "Agent harness to make your slop code well-engineered and beautiful.",
+     "fullName": "peteromallet/desloppify",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-05-13T20:17:05Z",
+     "size": 27722,
+     "stargazersCount": 3205
+    },
+    {
+     "createdAt": "2026-08-20T19:47:14Z",
+     "description": "Enterprise-grade Shopify Admin API authentication adapter \u2014 OAuth 2.0 Client Credentials Grant with automatic token refresh.",
+     "fullName": "AhmadHassan-BTed/ShopifyAutoAuth",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-10T08:59:45Z",
+     "size": 372,
+     "stargazersCount": 3204
+    },
+    {
+     "createdAt": "2025-02-08T08:46:51Z",
+     "description": "",
+     "fullName": "stepfun-ai/Step-Video-T2V",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2025-03-17T03:26:54Z",
+     "size": 12090,
+     "stargazersCount": 3188
+    },
+    {
+     "createdAt": "2025-06-14T08:54:06Z",
+     "description": "MiniMax-M1, the world's first open-weight, large-scale hybrid-attention reasoning model.",
+     "fullName": "MiniMax-AI/MiniMax-M1",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2025-07-07T11:57:22Z",
+     "size": 7502,
+     "stargazersCount": 3185
+    },
+    {
+     "createdAt": "2025-11-28T09:21:08Z",
+     "description": "Your Bambu Lab. No Cloud. Your Rules.  Self-hosted command center for Bambu Lab \u2014 from one A1 to an entire print farm. ",
+     "fullName": "maziggy/bambuddy",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-10-26T08:09:18Z",
+     "size": 937671,
+     "stargazersCount": 3177
+    },
+    {
+     "createdAt": "2025-03-15T08:11:44Z",
+     "description": "Skywork-R1V is an advanced multimodal AI model series developed by Skywork AI, specializing in vision-language reasoning.",
+     "fullName": "SkyworkAI/Skywork-R1V",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-07-29T03:11:37Z",
+     "size": 74365,
+     "stargazersCount": 3175
+    },
+    {
+     "createdAt": "2025-08-04T08:59:43Z",
+     "description": "This is the official website for TuriX Computer-use-Agent",
+     "fullName": "TurixAI/TuriX-CUA",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-14T06:52:24Z",
+     "size": 146874,
+     "stargazersCount": 3173
+    },
+    {
+     "createdAt": "2025-04-07T14:31:26Z",
+     "description": "Security scanner for AI agents, MCP servers and agent skills.",
+     "fullName": "snyk/agent-scan",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T09:06:40Z",
+     "size": 5738,
+     "stargazersCount": 3171
+    },
+    {
+     "createdAt": "2026-02-12T22:13:37Z",
+     "description": "An autonomous company working 24/7 on your own PC - Windows/Linux/macOS.",
+     "fullName": "MaxMiksa/Autonomous-Company",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-23T17:56:20Z",
+     "size": 24135,
+     "stargazersCount": 3157
+    },
+    {
+     "createdAt": "2026-05-11T01:58:39Z",
+     "description": "Supports comfyui/API calls/modelscope calls",
+     "fullName": "hero8152/Infinite-Canvas",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-08-28T01:39:34Z",
+     "size": 40040,
+     "stargazersCount": 3157
+    },
+    {
+     "createdAt": "2026-07-29T09:14:34Z",
+     "description": "Make any agent harness multimodal-native.",
+     "fullName": "QwenLM/Qwen-MM-Plugins",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-23T08:05:51Z",
+     "size": 67018,
+     "stargazersCount": 3150
+    },
+    {
+     "createdAt": "2026-09-04T03:06:00Z",
+     "description": "",
+     "fullName": "Taichu-AI/ZDTaichu5.0-9B",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-17T06:47:25Z",
+     "size": 533391,
+     "stargazersCount": 3140
+    },
+    {
+     "createdAt": "2025-08-30T19:43:04Z",
+     "description": "\u57fa\u4e8emanga-image-translator \u5b9e\u73b0\u7684\u5f00\u6e90\u6f2b\u753bAI\u7ffb\u8bd1\u684c\u9762\u5de5\u5177\u3002\u652f\u6301\u65e5\u3001\u97e9\u3001\u82f1\u6587\u6f2b\u753b\u81ea\u52a8\u5904\u7406\uff0c\u96c6\u6210OpenAl\u3001Gemini\u7b49\u591a\u7ffb\u8bd1\u5f15\u64ce\uff1b\u5b9e\u73b0OCR\u6587\u5b57\u68c0\u6d4b\u3001\u539f\u6587\u64e6\u9664\u3001AI\u7ffb\u8bd1\u3001\u56fe\u50cf\u4fee\u590d\u3001\u8bd1\u6587\u6392\u7248\u5b8c\u6574\u94fe\u8def\uff0c\u81ea\u5e26\u53ef\u89c6\u5316\u7f16\u8f91\u5668\uff0c\u652f\u6301\u81ea\u5b9a\u4e49\u6587\u672c\u6837\u5f0f\uff0c\u4e00\u952e\u90e8\u7f72\u5f00\u7bb1\u5373\u7528\u3002",
+     "fullName": "hgmzhn/manga-translator-ui",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "gpl-3.0",
+      "name": "GNU General Public License v3.0",
+      "url": "https://api.github.com/licenses/gpl-3.0"
+     },
+     "pushedAt": "2026-10-14T15:21:15Z",
+     "size": 125228,
+     "stargazersCount": 3133
+    },
+    {
+     "createdAt": "2025-03-23T04:38:15Z",
+     "description": "AI Powered Knowledge Graph Generator",
+     "fullName": "robert-mcdermott/ai-knowledge-graph",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-13T23:17:28Z",
+     "size": 3162,
+     "stargazersCount": 3132
+    },
+    {
+     "createdAt": "2025-09-09T22:21:51Z",
+     "description": "",
+     "fullName": "microsoft/amplifier",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T04:11:23Z",
+     "size": 9823,
+     "stargazersCount": 3125
+    },
+    {
+     "createdAt": "2026-09-23T19:29:56Z",
+     "description": "Contrastive Language Models (CLMs) are a new class of System One model trained with a contrastive learning objective that connects states and actions.",
+     "fullName": "Contrastive-LM/CLM",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-05T21:13:17Z",
+     "size": 881,
+     "stargazersCount": 3121
+    },
+    {
+     "createdAt": "2025-08-05T09:43:34Z",
+     "description": "\ud83c\udfc6 Top-1 on 5+ benchmarks | Web UI | Supports MiroThinker, Claude, Kimi, OpenAI",
+     "fullName": "MiroMindAI/MiroFlow",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-07-06T14:50:43Z",
+     "size": 9617,
+     "stargazersCount": 3119
+    },
+    {
+     "createdAt": "2026-04-13T09:15:11Z",
+     "description": "Python terminal multitool \u2014 OSINT, network utilities, Rich TUI dashboard. Educational use only.",
+     "fullName": "v0id4real/Void-Tools",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-13T19:16:35Z",
+     "size": 664,
+     "stargazersCount": 3115
+    },
+    {
+     "createdAt": "2025-06-29T19:00:49Z",
+     "description": "A catgirl who lives with you in real time \u2014 reaching out first, sharing your media, and actually getting things done, powered by an embodied emotional engine.\ud83d\udc31\u2764\ufe0f\u4e00\u53ea\u4f1a\u4e3b\u52a8\u627e\u4f60\u73a9\u7684 AI \u732b\u5a18\u3002",
+     "fullName": "Project-N-E-K-O/N.E.K.O",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T02:40:23Z",
+     "size": 569994,
+     "stargazersCount": 3113
+    },
+    {
+     "createdAt": "2025-03-14T02:51:22Z",
+     "description": "QuantMind is an open source agent-native knowledge extraction and retrieval framework for quantitative finance.",
+     "fullName": "LLMQuant/quant-mind",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-08-15T07:49:16Z",
+     "size": 16055,
+     "stargazersCount": 3112
+    },
+    {
+     "createdAt": "2026-05-21T18:14:26Z",
+     "description": "Codex skill for converting slide images, PDFs, and image-based PPTX files into editable PowerPoint decks.",
+     "fullName": "ningzimu/image-to-editable-ppt-skill",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-16T06:41:12Z",
+     "size": 23825,
+     "stargazersCount": 3110
+    },
+    {
+     "createdAt": "2025-04-10T19:10:35Z",
+     "description": "The official repository for tariff",
+     "fullName": "hxu296/tariff",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2025-04-16T07:55:46Z",
+     "size": 10,
+     "stargazersCount": 3109
+    },
+    {
+     "createdAt": "2025-12-02T08:09:20Z",
+     "description": "Official code for world model Kairos",
+     "fullName": "DAXIAORobotics/kairos",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-15T08:04:29Z",
+     "size": 218483,
+     "stargazersCount": 3097
+    },
+    {
+     "createdAt": "2026-08-15T07:48:42Z",
+     "description": "AI/ML research agents from idea to paper-ready evidence. An EvoMap open-source project.",
+     "fullName": "EvoMap/AutoResearch",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-16T08:13:08Z",
+     "size": 825,
+     "stargazersCount": 3095
+    },
+    {
+     "createdAt": "2025-04-02T05:15:17Z",
+     "description": "Student version of Assignment 1 for Stanford CS336 - Language Modeling From Scratch",
+     "fullName": "stanford-cs336/assignment1-basics",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-04-07T20:49:12Z",
+     "size": 14763,
+     "stargazersCount": 3095
+    },
+    {
+     "createdAt": "2025-11-24T10:00:23Z",
+     "description": "\u65e0\u9650\u6b21\u6570\u7684banana pro\uff01\u9006\u5411\u8d26\u53f7\u6c60\uff0c\u652f\u6301\u8d1f\u8f7d\u5747\u8861\u3001AT\u81ea\u52a8\u5237\u65b0\u3001\u7f13\u5b58\u7b56\u7565\u3001\u4ee3\u7406\u7b49\u3002Q\u4ea4\u6d41\u7fa41073237297",
+     "fullName": "TheSmallHanCat/flow2api",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T02:38:47Z",
+     "size": 3003,
+     "stargazersCount": 3088
+    },
+    {
+     "createdAt": "2026-08-03T07:44:33Z",
+     "description": "Open-source AI stickman video generator for faceless YouTube channels. Automate visuals, voiceover, captions, and sound effects\u2014or direct each scene with video prompts.",
+     "fullName": "kaomei/stickman-video-director",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-25T14:20:16Z",
+     "size": 122483,
+     "stargazersCount": 3088
+    },
+    {
+     "createdAt": "2025-10-12T10:03:40Z",
+     "description": "\u57fa\u4e8eSelkies\u7684Linux\u7f51\u9875\u7248\u5fae\u4fe1/QQ/Telegram\uff0c\u652f\u6301\u672c\u5730\u4e2d\u6587\u8f93\u5165\u6cd5\uff0c\u652f\u6301\u4e09\u65b9\u5e94\u7528\uff0c\u652f\u6301AMD64\u548cARM64\u3002",
+     "fullName": "nickrunning/wechat-selkies",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-12T15:47:32Z",
+     "size": 149,
+     "stargazersCount": 3087
+    },
+    {
+     "createdAt": "2026-01-31T06:04:45Z",
+     "description": "A collection of Awesome Finance Agent Skills for free and easy to start | \u4e00\u7cfb\u5217\u5f00\u6e90\u514d\u8d39\u7684\u91d1\u878d\u5206\u6790Agent Skills",
+     "fullName": "RKiding/Awesome-finance-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-03-29T05:03:47Z",
+     "size": 2166,
+     "stargazersCount": 3084
+    },
+    {
+     "createdAt": "2026-03-08T09:43:52Z",
+     "description": "The largest open-source medical AI skills library for OpenClaw\ud83e\udd9e.",
+     "fullName": "FreedomIntelligence/OpenClaw-Medical-Skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-07-21T01:01:51Z",
+     "size": 77702,
+     "stargazersCount": 3081
+    },
+    {
+     "createdAt": "2026-09-21T02:12:24Z",
+     "description": "\u975e\u81ea\u56de\u5f52System 1\u51b3\u7b56\u5f15\u64ce\uff0c\u4e13\u4e3a\u7ed3\u6784\u5316\u7c7b\u578b\u51b3\u7b56\u573a\u666f\u8bbe\u8ba1  DeepOpen Multilingual, non-autoregressive System 1 decision engine. ",
+     "fullName": "deepopen-com/deepopen",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-23T10:35:42Z",
+     "size": 3064,
+     "stargazersCount": 3079
+    },
+    {
+     "createdAt": "2025-08-15T16:40:53Z",
+     "description": "Universal memory layer for AI Agents. It provides scalable, extensible, and interoperable memory storage and retrieval to streamline AI agent state management for next-generation autonomous systems.",
+     "fullName": "MemMachine/MemMachine",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T11:46:43Z",
+     "size": 35772,
+     "stargazersCount": 3076
+    },
+    {
+     "createdAt": "2025-12-16T05:20:34Z",
+     "description": "[AutoArk] GPA (General Purpose Audio) can do ASR, TTS and voice conversion with one tiny model!",
+     "fullName": "AutoArk/GPA",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-05-25T08:02:41Z",
+     "size": 167631,
+     "stargazersCount": 3066
+    },
+    {
+     "createdAt": "2025-10-31T03:56:27Z",
+     "description": "A minimal yet professional single agent demo project that showcases the core execution pipeline and production-grade features of agents.",
+     "fullName": "MiniMax-AI/Mini-Agent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-02-14T04:00:26Z",
+     "size": 4305,
+     "stargazersCount": 3065
+    }
+   ]
+  },
+  {
+   "stars": "3208..3358",
+   "repos": [
+    {
+     "createdAt": "2026-09-01T12:30:12Z",
+     "description": "Reference blueprint for building shopping and merchant agents with Claude. Examples in retail, commerce, telecom, and entertainment included.",
+     "fullName": "anthropics/commerce-agents",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-19T17:36:05Z",
+     "size": 1410,
+     "stargazersCount": 3350
+    },
+    {
+     "createdAt": "2026-05-13T16:17:41Z",
+     "description": "GDM Science Skills to speed up agentic scientific workflows with better grounding and higher token efficiency. Integrate insights from AlphaGenome, AFDB, UniProt and 30+ other databases and tools.",
+     "fullName": "google-deepmind/science-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-23T13:14:09Z",
+     "size": 2076,
+     "stargazersCount": 3337
+    },
+    {
+     "createdAt": "2026-04-09T17:28:59Z",
+     "description": "LLM-as-a-Verifier is a general-purpose framework that provides fine-grained feedback for any agent without requiring additional training. It achieves SOTA performance across coding, robotics, and medical agentic benchmarks.",
+     "fullName": "llm-as-a-verifier/llm-as-a-verifier",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-08T23:45:12Z",
+     "size": 84274,
+     "stargazersCount": 3336
+    },
+    {
+     "createdAt": "2026-01-09T05:02:44Z",
+     "description": "NanoBanana PPT Skills \u57fa\u4e8e AI \u81ea\u52a8\u751f\u6210\u9ad8\u8d28\u91cf PPT \u56fe\u7247\u548c\u89c6\u9891\u7684\u5f3a\u5927\u5de5\u5177\uff0c\u652f\u6301\u667a\u80fd\u8f6c\u573a\u548c\u4ea4\u4e92\u5f0f\u64ad\u653e",
+     "fullName": "op7418/NanoBanana-PPT-Skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-01-19T03:07:23Z",
+     "size": 2757,
+     "stargazersCount": 3334
+    },
+    {
+     "createdAt": "2025-08-16T21:49:49Z",
+     "description": "AI agents can now use real Android and iOS apps, just like a human.",
+     "fullName": "minitap-ai/mobile-use",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-18T17:34:26Z",
+     "size": 23579,
+     "stargazersCount": 3322
+    },
+    {
+     "createdAt": "2026-05-01T10:30:37Z",
+     "description": "100+ installable Claude skills covering Engineering areas such as, ISO 26262 functional safety, ISO/SAE 21434 cybersecurity, ISO 21448 SOTIF, AIAG-VDA quality (APQP/PPAP/FMEA), Automotive SPICE, and continuous improvement tools \u2014 every builder paired with a confirmation reviewer.",
+     "fullName": "jherrodthomas/automotive-skills-suite",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-16T11:10:47Z",
+     "size": 6026,
+     "stargazersCount": 3320
+    },
+    {
+     "createdAt": "2025-10-19T16:37:29Z",
+     "description": "Claude Code skills for equity investors and traders \u2014 market analysis, technical charting, economic calendars, screeners, and trading strategy development.",
+     "fullName": "tradermonty/claude-trading-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T04:26:33Z",
+     "size": 59308,
+     "stargazersCount": 3314
+    },
+    {
+     "createdAt": "2026-02-15T12:51:26Z",
+     "description": "Intercept and inspect Coding Agent API traffic from Claude Code, Codex CLI, Gemini CLI, Cursor CLI, OpenCode, Kimi/Kimi Code, Pi, and Hermes in a local trace viewer.",
+     "fullName": "liaohch3/claude-tap",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-25T21:35:44Z",
+     "size": 123488,
+     "stargazersCount": 3310
+    },
+    {
+     "createdAt": "2025-08-19T09:25:36Z",
+     "description": "\ud55c\uad6d \uc11c\ube44\uc2a4\uc5d0 \uc774\uc6a9 \uac00\ub2a5\ud55c Public API \ubaa8\uc74c | Public APIs Available for Korean Services",
+     "fullName": "yybmion/public-apis-4Kr",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-19T07:45:12Z",
+     "size": 975,
+     "stargazersCount": 3306
+    },
+    {
+     "createdAt": "2025-09-11T07:17:13Z",
+     "description": "A agent framework based on the tutorial hello-agents",
+     "fullName": "jjyaoao/HelloAgents",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-06T13:58:19Z",
+     "size": 1912,
+     "stargazersCount": 3299
+    },
+    {
+     "createdAt": "2025-02-03T12:26:07Z",
+     "description": "\u3010\u7981\u6b62\u63a5\u5165\u5fae\u4fe1\u3001QQ\u7b49\u817e\u8baf\u7cfb\u8f6f\u4ef6\u3011\u63a5\u5165\u7b2c\u4e09\u65b9\u5e73\u53f0\u3002\u57fa\u4e8eLLM\u7684\u66f4\u903c\u771f\u7684\u60c5\u611f\u966a\u4f34\u7a0b\u5e8f\u3002More realistic emotional companionship program based LLM, meet the characters in your dream.",
+     "fullName": "KouriChat/KouriChat",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-06T07:25:00Z",
+     "size": 36242,
+     "stargazersCount": 3298
+    },
+    {
+     "createdAt": "2026-09-26T05:35:17Z",
+     "description": "Motion films that never cut to the next slide: every beat grows out of the one before, one continuous camera, continuity measured by an oracle. Product launch films and feature demos, made with a coding agent.",
+     "fullName": "feitangyuan/onetake",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-21T17:58:00Z",
+     "size": 128600,
+     "stargazersCount": 3297
+    },
+    {
+     "createdAt": "2025-09-27T07:18:47Z",
+     "description": "HunyuanImage-3.0: A Powerful Native Multimodal Model for Image Generation",
+     "fullName": "Tencent-Hunyuan/HunyuanImage-3.0",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-06-23T13:12:44Z",
+     "size": 93461,
+     "stargazersCount": 3294
+    },
+    {
+     "createdAt": "2026-04-23T12:44:08Z",
+     "description": "Official, AWS-supported MCP servers, skills, and plugins to help AI agents build on AWS",
+     "fullName": "aws/agent-toolkit-for-aws",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T10:40:48Z",
+     "size": 13980,
+     "stargazersCount": 3286
+    },
+    {
+     "createdAt": "2025-08-09T02:47:19Z",
+     "description": "Stealth browser automation for AI agents over MCP and the Chrome DevTools Protocol: navigation, network hooks, DOM extraction, and pixel-accurate UI cloning.",
+     "fullName": "vibheksoni/stealth-browser-mcp",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T11:19:09Z",
+     "size": 20205,
+     "stargazersCount": 3284
+    },
+    {
+     "createdAt": "2025-02-08T17:30:18Z",
+     "description": "A modern selfhosted media management system for your media library",
+     "fullName": "maxdorninger/MediaManager",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-07-22T16:53:31Z",
+     "size": 32660,
+     "stargazersCount": 3277
+    },
+    {
+     "createdAt": "2025-06-10T02:34:09Z",
+     "description": "Isaac Lab API, powered by MuJoCo-Warp, for RL and robotics research",
+     "fullName": "mujocolab/mjlab",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T07:11:48Z",
+     "size": 101319,
+     "stargazersCount": 3272
+    },
+    {
+     "createdAt": "2025-08-09T09:56:55Z",
+     "description": "[NeurIPS 2026] DataFlex: A Unified Benchmark and Evaluation Platform for Data-Centric Training of Large Language Models",
+     "fullName": "OpenDCAI/DataFlex",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-21T11:53:48Z",
+     "size": 5210,
+     "stargazersCount": 3256
+    },
+    {
+     "createdAt": "2025-03-19T17:00:09Z",
+     "description": "Control Ableton Live with any LLM: create tracks, arrange clips & compose music via MCP",
+     "fullName": "ahujasid/ableton-mcp",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-22T10:37:13Z",
+     "size": 448,
+     "stargazersCount": 3251
+    },
+    {
+     "createdAt": "2025-05-30T19:37:20Z",
+     "description": "Building a Secure and Interoperable Future for AI-Driven Payments.",
+     "fullName": "google-agentic-commerce/AP2",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-06-17T01:24:46Z",
+     "size": 3333,
+     "stargazersCount": 3249
+    },
+    {
+     "createdAt": "2026-05-20T10:04:01Z",
+     "description": "Miso TTS is an 8 billion, highly emotive text-to-speech model",
+     "fullName": "MisoLabsAI/MisoTTS",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-06-09T20:41:00Z",
+     "size": 15,
+     "stargazersCount": 3246
+    },
+    {
+     "createdAt": "2026-06-05T00:51:06Z",
+     "description": "Claude Code skill: four-phase plan hardening (recon, interrogate, Codex adversarial review, cross-model build & inspection) \u2014 two AI models harden your plan before a line of code exists, then swap jobs to build it. Whoever built it never grades it.",
+     "fullName": "chaseai-yt/claudex-loop",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-14T17:20:17Z",
+     "size": 64,
+     "stargazersCount": 3245
+    },
+    {
+     "createdAt": "2025-05-06T00:20:31Z",
+     "description": "",
+     "fullName": "google-gemini/computer-use-preview",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-07-28T14:08:36Z",
+     "size": 312,
+     "stargazersCount": 3244
+    },
+    {
+     "createdAt": "2025-10-17T03:23:00Z",
+     "description": "Dexbotic: Open-Source Vision-Language-Action Toolbox",
+     "fullName": "dexmal/dexbotic",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T06:39:20Z",
+     "size": 34999,
+     "stargazersCount": 3231
+    },
+    {
+     "createdAt": "2025-02-24T16:18:37Z",
+     "description": "[CVPR 2025] MASt3R-SLAM: Real-Time Dense SLAM with 3D Reconstruction Priors",
+     "fullName": "rmurai0610/MASt3R-SLAM",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2025-11-09T07:36:29Z",
+     "size": 48453,
+     "stargazersCount": 3228
+    },
+    {
+     "createdAt": "2026-04-26T13:20:08Z",
+     "description": " An advanced, unified platform for code quality, architectural metrics, and Agile analytics. Features Python AST parsing, Java static analysis (code smells), and interactive project health dashboards built with Streamlit.",
+     "fullName": "AhmadHassan-BTed/CoDiver",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-06-30T14:35:48Z",
+     "size": 453,
+     "stargazersCount": 3228
+    },
+    {
+     "createdAt": "2026-04-16T03:05:42Z",
+     "description": "OpenTalking: An industrial-grade open-source AI digital human framework that supports real-time conversation, private deployment, and pluggable models.",
+     "fullName": "datascale-ai/opentalking",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-04T01:52:59Z",
+     "size": 667101,
+     "stargazersCount": 3220
+    },
+    {
+     "createdAt": "2025-10-30T01:24:24Z",
+     "description": "\u4e00\u6b3e\u57fa\u4e8e AI \u7684\u667a\u80fd\u5c0f\u8bf4\u521b\u4f5c\u52a9\u624b\uff0c\u5e2e\u52a9\u4f60\u8f7b\u677e\u521b\u4f5c\u7cbe\u5f69\u6545\u4e8b",
+     "fullName": "xiamuceer-j/MuMuAINovel",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "gpl-3.0",
+      "name": "GNU General Public License v3.0",
+      "url": "https://api.github.com/licenses/gpl-3.0"
+     },
+     "pushedAt": "2026-10-16T01:50:25Z",
+     "size": 15139,
+     "stargazersCount": 3219
+    },
+    {
+     "createdAt": "2025-12-29T14:59:18Z",
+     "description": "Open-source, self-hosted AI penetration testing framework: maps your attack surface into a graph, autonomously exploits it from a Kali sandbox with human approval gates, and opens PRs that fix what it finds. MCP both ways: plug in any MCP server as a tool, or drive RedAmon from Claude Code or your own agent.",
+     "fullName": "samugit83/redamon",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T17:21:18Z",
+     "size": 356780,
+     "stargazersCount": 3217
+    },
+    {
+     "createdAt": "2025-05-15T22:28:38Z",
+     "description": "PentestAgent is an AI agent framework for black-box security testing, supporting bug bounty, red-team, and penetration testing workflows.",
+     "fullName": "GH05TCREW/pentestagent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T11:22:04Z",
+     "size": 7877,
+     "stargazersCount": 3214
+    },
+    {
+     "createdAt": "2026-01-08T02:05:21Z",
+     "description": "\u57fa\u4e8e\u6df1\u5ea6\u5f3a\u5316\u5b66\u4e60\u7684\u5f00\u6e90\u81ea\u52a8\u56e0\u5b50\u5de5\u5382\u3002",
+     "fullName": "imbue-bit/AlphaGPT",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-06-12T11:57:51Z",
+     "size": 2266,
+     "stargazersCount": 3212
+    },
+    {
+     "createdAt": "2025-10-09T06:04:57Z",
+     "description": "Miles is an enterprise-facing reinforcement learning framework for LLM and VLM post-training, forked from and co-evolving with slime.",
+     "fullName": "radixark/miles",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T06:57:01Z",
+     "size": 98189,
+     "stargazersCount": 3211
+    },
+    {
+     "createdAt": "2026-04-01T04:30:32Z",
+     "description": "Harness engineering in two books: constraints, query loops, context governance and multi-agent verification in Claude Code and Codex. harness-books.agentway.dev",
+     "fullName": "wquguru/harness-books",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-04-19T03:01:21Z",
+     "size": 6403,
+     "stargazersCount": 3208
+    }
+   ]
+  },
+  {
+   "stars": "4114..4264",
+   "repos": [
+    {
+     "createdAt": "2026-02-07T14:05:49Z",
+     "description": "An open-source model family for long-form speech, dialogue synthesis, voice design, sound effects, and real-time streaming TTS",
+     "fullName": "OpenMOSS/MOSS-TTS",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-06T06:19:28Z",
+     "size": 11924,
+     "stargazersCount": 4253
+    },
+    {
+     "createdAt": "2026-03-16T12:01:06Z",
+     "description": "RFCs for Astrid public contract surfaces.",
+     "fullName": "astrid-runtime/rfcs",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-22T06:13:21Z",
+     "size": 453,
+     "stargazersCount": 4245
+    },
+    {
+     "createdAt": "2026-09-18T08:51:34Z",
+     "description": "An agent skill that finds where a photo was taken \u2014 OpenStreetMap geometry, elevation skylines, satellite imagery and street view \u2014 and shows its work. Works with Claude Code, Codex, Cursor, Gemini CLI, OpenCode and GitHub Copilot.",
+     "fullName": "Oldcircle/geo-sleuth",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-23T13:05:04Z",
+     "size": 18177,
+     "stargazersCount": 4243
+    },
+    {
+     "createdAt": "2026-04-02T06:06:43Z",
+     "description": "AI-powered penetration testing assistant using local LLM on linux (Parrot OS)",
+     "fullName": "sooryathejas/METATRON",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-04-11T07:16:57Z",
+     "size": 2138,
+     "stargazersCount": 4237
+    },
+    {
+     "createdAt": "2025-05-06T09:35:23Z",
+     "description": "\u2699\ufe0f Create and run workflows (RPA 2.0)",
+     "fullName": "browser-use/workflow-use",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-10-24T00:53:03Z",
+     "size": 4386,
+     "stargazersCount": 4234
+    },
+    {
+     "createdAt": "2026-08-05T01:19:41Z",
+     "description": "\u8ba9 AI \u5199\u7684\u4e2d\u6587\u8bfb\u8d77\u6765\u50cf\u4e00\u4e2a\u5177\u4f53\u7684\u4eba\u5728\u8bf4\u8bdd\u3002\u901a\u7528\u521b\u4f5c\u4e0e\u6539\u7a3f Skill\uff0c\u5f00\u7bb1\u5373\u7528\u3002",
+     "fullName": "KKKKhazix/human-writing",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-08-11T15:07:45Z",
+     "size": 481,
+     "stargazersCount": 4230
+    },
+    {
+     "createdAt": "2025-07-14T22:10:00Z",
+     "description": "Post-training with Tinker",
+     "fullName": "thinking-machines-lab/tinker-cookbook",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T04:47:58Z",
+     "size": 9743,
+     "stargazersCount": 4216
+    },
+    {
+     "createdAt": "2026-01-07T09:44:41Z",
+     "description": "Hypergraph is more powerful. Transform unstructured text into structured knowledge with LLMs. Graphs, hypergraphs, and spatio-temporal extractions \u2014 with one command.",
+     "fullName": "yifanfeng97/Hyper-Extract",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-15T15:31:46Z",
+     "size": 36750,
+     "stargazersCount": 4199
+    },
+    {
+     "createdAt": "2026-01-19T19:16:04Z",
+     "description": "Anthropic's original performance take-home, now open for you to try!",
+     "fullName": "anthropics/original_performance_takehome",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-01-22T01:11:08Z",
+     "size": 8,
+     "stargazersCount": 4198
+    },
+    {
+     "createdAt": "2026-03-03T04:58:21Z",
+     "description": "Your First AI Agents Company",
+     "fullName": "dataelement/Clawith",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-08-27T02:55:53Z",
+     "size": 137935,
+     "stargazersCount": 4176
+    },
+    {
+     "createdAt": "2025-03-06T19:01:51Z",
+     "description": "A live stream development of RL tunning for LLM agents",
+     "fullName": "OpenManus/OpenManus-RL",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-05-05T06:03:26Z",
+     "size": 152818,
+     "stargazersCount": 4170
+    },
+    {
+     "createdAt": "2026-08-20T09:07:59Z",
+     "description": "\u4e00\u4e2a\u57fa\u4e8e 283 \u4e07\u5b57\u8bed\u6599\u7edf\u8ba1\u7684\u53bb AI \u5473 skill \u00b7 An AI-tone removal skill grounded in a 2.83-million-character corpus study",
+     "fullName": "larashero3-dotcom/lieflat-less-ai-tone",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-08-24T06:57:13Z",
+     "size": 324,
+     "stargazersCount": 4142
+    },
+    {
+     "createdAt": "2025-09-18T13:45:22Z",
+     "description": "Agent Package Manager",
+     "fullName": "microsoft/apm",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T09:24:42Z",
+     "size": 49359,
+     "stargazersCount": 4131
+    },
+    {
+     "createdAt": "2025-05-05T07:22:51Z",
+     "description": "Speakr is a personal, self-hosted web application designed for transcribing audio recordings",
+     "fullName": "murtaza-nasir/speakr",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-10-25T19:34:24Z",
+     "size": 106056,
+     "stargazersCount": 4122
+    },
+    {
+     "createdAt": "2026-04-09T20:46:46Z",
+     "description": "Convert Claude Code or Codex into the most intelligent Deep Research Agent. Collect, search, and synthesize web research into a persistent, searchable wiki that builds on itself. Hosted API + MCP: hyperresearch.ai",
+     "fullName": "jordan-gibbs/hyperresearch",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-10T22:36:54Z",
+     "size": 6558,
+     "stargazersCount": 4120
+    },
+    {
+     "createdAt": "2026-05-04T06:24:37Z",
+     "description": "Serenity-inspired Agent Skill for supply-chain bottleneck stock research",
+     "fullName": "muxuuu/serenity-skill",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-11T06:10:53Z",
+     "size": 80,
+     "stargazersCount": 4120
+    },
+    {
+     "createdAt": "2026-03-08T19:58:11Z",
+     "description": "Open-source personal finance manager. Self-hosted, privacy-first.",
+     "fullName": "securo-finance/securo",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-10-26T14:49:59Z",
+     "size": 13364,
+     "stargazersCount": 4116
+    }
+   ]
+  },
+  {
+   "stars": "4265..4415",
+   "repos": [
+    {
+     "createdAt": "2025-03-30T10:03:03Z",
+     "description": "A simple, secure MCP-to-OpenAPI proxy server",
+     "fullName": "open-webui/mcpo",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-05-17T20:40:30Z",
+     "size": 327,
+     "stargazersCount": 4412
+    },
+    {
+     "createdAt": "2025-08-27T07:15:45Z",
+     "description": "LimiX: Unleashing Structured-Data Modeling Capability for Generalist Intelligence https://arxiv.org/abs/2609.17488",
+     "fullName": "limix-ldm-ai/LimiX",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-18T06:16:17Z",
+     "size": 16726,
+     "stargazersCount": 4394
+    },
+    {
+     "createdAt": "2025-02-18T17:15:37Z",
+     "description": "Your Ultimate IPTV & Stream Management Companion",
+     "fullName": "Dispatcharr/Dispatcharr",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "agpl-3.0",
+      "name": "GNU Affero General Public License v3.0",
+      "url": "https://api.github.com/licenses/agpl-3.0"
+     },
+     "pushedAt": "2026-10-26T13:51:34Z",
+     "size": 39000,
+     "stargazersCount": 4390
+    },
+    {
+     "createdAt": "2026-02-03T18:50:36Z",
+     "description": "",
+     "fullName": "ResearAI/AutoFigure-Edit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-07-25T06:48:38Z",
+     "size": 115612,
+     "stargazersCount": 4374
+    },
+    {
+     "createdAt": "2026-01-25T14:20:33Z",
+     "description": "\ud83c\udfad AI \u5199\u5c0f\u8bf4\uff1a\u4ece\u96f6\u751f\u6210 10-50 \u7ae0\u5b8c\u6574\u4e2d\u6587\u5c0f\u8bf4\uff0c\u4e09\u5c42\u95ee\u7b54 \u00b7 \u521b\u4f5c\u8bb0\u5fc6 \u00b7 \u60ac\u5ff5\u94a9\u5b50 \u00b7 \u81ea\u52a8\u6821\u9a8c\uff0c\u957f\u7bc7\u7f51\u6587\u8fde\u8f7d\u7686\u5b9c\uff5c\u5f00\u6e90\u514d\u8d39\uff0c\u9002\u914d\u4e3b\u6d41 coding agent\uff5c\ud83e\udd1d Infistar.cc \u8d5e\u52a9 \u00b7 \u6ce8\u518c\u9001 $5\uff5cAI novel writing skill",
+     "fullName": "PenglongHuang/chinese-novelist-skill",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-20T16:26:33Z",
+     "size": 1000,
+     "stargazersCount": 4370
+    },
+    {
+     "createdAt": "2026-04-22T12:56:33Z",
+     "description": "",
+     "fullName": "charlie947/social-media-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-18T20:20:39Z",
+     "size": 192,
+     "stargazersCount": 4362
+    },
+    {
+     "createdAt": "2025-08-16T19:20:31Z",
+     "description": "An MCP server plus a CLI tool that indexes local code into a graph database to provide context to AI assistants.",
+     "fullName": "CodeGraphContext/CodeGraphContext",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T20:32:19Z",
+     "size": 42594,
+     "stargazersCount": 4355
+    },
+    {
+     "createdAt": "2025-05-28T18:38:18Z",
+     "description": "NVIDIA Isaac Sim\u2122 is an open-source application on NVIDIA Omniverse for developing, simulating, and testing AI-driven robots in realistic virtual environments.",
+     "fullName": "isaac-sim/IsaacSim",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-23T14:17:15Z",
+     "size": 47211,
+     "stargazersCount": 4353
+    },
+    {
+     "createdAt": "2025-03-13T15:03:06Z",
+     "description": "Multi-Platform Live Stream Automatic Recording Tool | \u591a\u5e73\u53f0\u76f4\u64ad\u6d41\u81ea\u52a8\u5f55\u5236\u5ba2\u6237\u7aef \u00b7 \u57fa\u4e8eFFmpeg \u00b7 \u652f\u6301\u76d1\u63a7/\u5b9a\u65f6/\u8f6c\u7801",
+     "fullName": "ihmily/StreamCap",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-09-01T23:06:47Z",
+     "size": 8072,
+     "stargazersCount": 4351
+    },
+    {
+     "createdAt": "2026-02-06T04:17:28Z",
+     "description": "Skills for the Gemini API, SDK and model/agent interactions",
+     "fullName": "google-gemini/gemini-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-13T17:41:39Z",
+     "size": 337,
+     "stargazersCount": 4341
+    },
+    {
+     "createdAt": "2026-03-31T18:00:16Z",
+     "description": "\u300a\u5fa1\u8206\uff1a\u89e3\u7801 Agent Harness\u300b42\u4e07\u5b57\u62c6\u89e3 AI Agent \u7684Harness\u9aa8\u67b6\u4e0e\u795e\u7ecf \u2014\u2014 Claude Code \u67b6\u6784\u6df1\u5ea6\u5256\u6790\uff0c15 \u7ae0\u4ece\u5bf9\u8bdd\u5faa\u73af\u5230\u6784\u5efa\u4f60\u81ea\u5df1\u7684 Agent Harness\u3002\u5728\u7ebf\u9605\u8bfb\u7f51\u7ad9\uff1a",
+     "fullName": "lintsinghua/claude-code-book",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-16T08:17:39Z",
+     "size": 10515,
+     "stargazersCount": 4331
+    },
+    {
+     "createdAt": "2026-06-12T11:49:06Z",
+     "description": "Multi-protocol proxy management panel built with Python & FastAPI, deployable on Railway.",
+     "fullName": "arvin341az-glitch/RVG",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-13T16:14:59Z",
+     "size": 424,
+     "stargazersCount": 4302
+    },
+    {
+     "createdAt": "2026-01-12T00:47:24Z",
+     "description": "A curated resource list for learning AI performance engineering, from GPU fundamentals to production inference.",
+     "fullName": "wafer-ai/gpu-perf-engineering-resources",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-10-17T20:10:59Z",
+     "size": 2538,
+     "stargazersCount": 4284
+    },
+    {
+     "createdAt": "2025-06-13T15:45:50Z",
+     "description": "From Images to High-Fidelity 3D Assets with Production-Ready PBR Material",
+     "fullName": "Tencent-Hunyuan/Hunyuan3D-2.1",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2025-10-17T10:10:07Z",
+     "size": 152296,
+     "stargazersCount": 4281
+    },
+    {
+     "createdAt": "2025-02-12T06:39:48Z",
+     "description": "Excel MCP server: let AI (Claude, Cursor, Codex) create and edit Excel files with charts, PivotTables, slicers and formulas. No Excel required.",
+     "fullName": "haris-musa/excel-mcp-server",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T08:20:38Z",
+     "size": 1947,
+     "stargazersCount": 4268
+    },
+    {
+     "createdAt": "2026-06-03T13:00:34Z",
+     "description": "The coding intelligence and skills for Hermes Agent \u269a just install once. then type 'dag-ulw' to be graph engineering master.",
+     "fullName": "rlaope/oh-my-hermes",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T08:26:24Z",
+     "size": 228430,
+     "stargazersCount": 4267
+    }
+   ]
+  },
+  {
+   "stars": "4567..4717",
+   "repos": [
+    {
+     "createdAt": "2025-05-08T08:16:59Z",
+     "description": "An AI Gateway, registry, and proxy that sits in front of any MCP, A2A, or REST/gRPC APIs, exposing a unified endpoint with centralized discovery, guardrails and management. Optimizes Agent & Tool calling, and supports plugins.",
+     "fullName": "IBM/mcp-context-forge",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-25T19:40:38Z",
+     "size": 457501,
+     "stargazersCount": 4696
+    },
+    {
+     "createdAt": "2026-05-14T04:43:13Z",
+     "description": "[CVPR 2026 Oral] VGGT Omega",
+     "fullName": "facebookresearch/vggt-omega",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-22T23:55:26Z",
+     "size": 43003,
+     "stargazersCount": 4694
+    },
+    {
+     "createdAt": "2025-06-21T20:43:25Z",
+     "description": "Claude Code Guide - Setup, Commands, workflows, agents, skills & tips-n-tricks from beginner to power user!",
+     "fullName": "zebbern/claude-code-guide",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-24T00:53:05Z",
+     "size": 4990,
+     "stargazersCount": 4678
+    },
+    {
+     "createdAt": "2026-06-24T07:18:39Z",
+     "description": "74 game-dev skills for AI coding agents \u2014 Godot, Unity, Unreal, Phaser, PixiJS, three.js, Bevy, pygame, L\u00d6VE, Roblox. Portable SKILL.md Agent Skills (the format Anthropic launched as Claude Skills), with a router that loads the right skill for your engine and task. Runs in Claude Code, Cursor, Kiro, Codex, Copilot, Gemini CLI and more.",
+     "fullName": "gamedev-skills/awesome-gamedev-agent-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-24T02:31:50Z",
+     "size": 4418,
+     "stargazersCount": 4677
+    },
+    {
+     "createdAt": "2025-01-30T15:14:29Z",
+     "description": "Examples and tutorials to help developers build AI systems",
+     "fullName": "daveebbelaar/ai-cookbook",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-21T15:45:18Z",
+     "size": 11487,
+     "stargazersCount": 4673
+    },
+    {
+     "createdAt": "2026-10-06T15:09:33Z",
+     "description": "\u8ba9 Codex \u901a\u8fc7 USB \u64cd\u4f5c\u771f\u5b9e iPhone\uff1a\u5f15\u5bfc\u5b89\u88c5\u3001App \u81ea\u52a8\u5316\u3001\u5b9e\u65f6\u5c4f\u5e55\u4e0e\u622a\u56fe\u56de\u9000\u3002",
+     "fullName": "zhongerxin/iPhone-use",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T13:45:15Z",
+     "size": 44977,
+     "stargazersCount": 4670
+    },
+    {
+     "createdAt": "2025-07-11T16:19:14Z",
+     "description": "OpenRAG is a comprehensive, single package Retrieval-Augmented Generation platform built on Langflow, Docling, and Opensearch. ",
+     "fullName": "langflow-ai/openrag",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T14:53:45Z",
+     "size": 101681,
+     "stargazersCount": 4660
+    },
+    {
+     "createdAt": "2025-08-21T07:58:13Z",
+     "description": "A simple yet powerful agent framework that delivers with open-source models",
+     "fullName": "TencentCloudADP/youtu-agent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-03-21T07:18:28Z",
+     "size": 34639,
+     "stargazersCount": 4629
+    },
+    {
+     "createdAt": "2026-07-23T14:53:51Z",
+     "description": "",
+     "fullName": "slvDev/esp32-ai",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-23T08:08:10Z",
+     "size": 1386,
+     "stargazersCount": 4598
+    },
+    {
+     "createdAt": "2026-07-16T21:21:54Z",
+     "description": "A persistent workspace for development work that self-improves and continues beyond one session.",
+     "fullName": "kirodotdev/KiroCrew",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-26T14:54:21Z",
+     "size": 3210149,
+     "stargazersCount": 4581
+    },
+    {
+     "createdAt": "2025-11-20T06:15:42Z",
+     "description": "HunyuanVideo-1.5: A leading lightweight video generation model",
+     "fullName": "Tencent-Hunyuan/HunyuanVideo-1.5",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-04-10T06:14:59Z",
+     "size": 250,
+     "stargazersCount": 4579
+    },
+    {
+     "createdAt": "2026-04-23T20:52:52Z",
+     "description": "Agent Skill for generating 2D sprite sheets and map, transparent PNG frames, and animated GIFs from prompts.",
+     "fullName": "0x0funky/agent-sprite-forge",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-06T14:09:38Z",
+     "size": 88022,
+     "stargazersCount": 4577
+    },
+    {
+     "createdAt": "2026-04-02T20:44:58Z",
+     "description": "autonomous harness engineering",
+     "fullName": "thirdlayerinc/autoagent",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2026-04-03T21:11:51Z",
+     "size": 1252,
+     "stargazersCount": 4569
+    },
+    {
+     "createdAt": "2026-03-17T22:41:11Z",
+     "description": "Semantic search over videos using Gemini Embedding 2 or Qwen3-VL.",
+     "fullName": "ssrajadh/sentrysearch",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-18T20:00:36Z",
+     "size": 37588,
+     "stargazersCount": 4568
+    },
+    {
+     "createdAt": "2026-03-13T02:56:21Z",
+     "description": "Official code base for LeWorldModel: Stable End-to-End Joint-Embedding Predictive Architecture from Pixels",
+     "fullName": "lucas-maes/le-wm",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-05-26T17:22:05Z",
+     "size": 5402,
+     "stargazersCount": 4567
+    }
+   ]
+  },
+  {
+   "stars": "4718..4868",
+   "repos": [
+    {
+     "createdAt": "2026-03-31T06:29:06Z",
+     "description": "\"Single-image Layer Decomposition for Anime Characters\" (SIGGRAPH 2026 Conference Paper)",
+     "fullName": "shitagaki-lab/see-through",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-05T18:30:26Z",
+     "size": 7154,
+     "stargazersCount": 4854
+    },
+    {
+     "createdAt": "2026-06-06T21:47:43Z",
+     "description": "AI agent skills for social media research. Outlier posts, comment mining, competitor teardowns, ad libraries & trends across TikTok, Instagram, YouTube, Reddit, X, LinkedIn & more. Powered by ScrapeCreators. Works with Claude Code, Cursor, Codex, Gemini CLI.",
+     "fullName": "ScrapeCreators/social-media-research-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-08-26T17:26:01Z",
+     "size": 41,
+     "stargazersCount": 4829
+    },
+    {
+     "createdAt": "2026-02-11T06:14:09Z",
+     "description": "",
+     "fullName": "mcncarl/yichen-skills",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-23T03:14:30Z",
+     "size": 1095,
+     "stargazersCount": 4821
+    },
+    {
+     "createdAt": "2026-04-04T12:26:04Z",
+     "description": "OpenKB: Open LLM Knowledge Base",
+     "fullName": "VectifyAI/OpenKB",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-07-22T03:45:16Z",
+     "size": 33441,
+     "stargazersCount": 4813
+    },
+    {
+     "createdAt": "2025-04-25T23:15:31Z",
+     "description": "PyTorch code and models for VJEPA2 self-supervised learning from video.",
+     "fullName": "facebookresearch/vjepa2",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-03-23T10:13:05Z",
+     "size": 7894,
+     "stargazersCount": 4813
+    },
+    {
+     "createdAt": "2025-03-29T05:10:03Z",
+     "description": "\ud83e\udd9b CHONK docs with Chonkie \u2728 \u2014 The lightweight ingestion library for fast, efficient and robust RAG pipelines",
+     "fullName": "feyninc/chonkie",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-23T01:13:45Z",
+     "size": 24172,
+     "stargazersCount": 4807
+    },
+    {
+     "createdAt": "2025-04-19T20:01:33Z",
+     "description": "learn LLM inference system on Apple Silicon for systems engineers: build a tiny vLLM + Qwen",
+     "fullName": "skyzh/tiny-llm",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-22T01:06:02Z",
+     "size": 7485,
+     "stargazersCount": 4789
+    },
+    {
+     "createdAt": "2026-01-12T05:26:50Z",
+     "description": "Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models",
+     "fullName": "deepseek-ai/Engram",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-01-14T01:13:02Z",
+     "size": 2296,
+     "stargazersCount": 4788
+    },
+    {
+     "createdAt": "2026-06-28T04:38:07Z",
+     "description": "Versioned Codex instruction deployment with preview, ownership manifests, hook isolation, scenario evaluation, and recovery.",
+     "fullName": "Jia-Ethan/codex-keysmith",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-27T15:12:31Z",
+     "size": 24888,
+     "stargazersCount": 4786
+    },
+    {
+     "createdAt": "2025-01-16T08:11:40Z",
+     "description": "Like Vercel, but open source and for all languages.",
+     "fullName": "hunvreus/devpush",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-03-03T14:22:47Z",
+     "size": 2255,
+     "stargazersCount": 4780
+    },
+    {
+     "createdAt": "2025-10-11T11:19:21Z",
+     "description": "DeepAnalyze is the first agentic LLM for autonomous data science. \ud83c\udf88\u4f60\u7684AI\u6570\u636e\u5206\u6790\u5e08\uff0c\u81ea\u52a8\u5206\u6790\u5927\u91cf\u6570\u636e\uff0c\u4e00\u952e\u751f\u6210\u4e13\u4e1a\u5206\u6790\u62a5\u544a\uff01",
+     "fullName": "ruc-datalab/DeepAnalyze",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-13T07:10:50Z",
+     "size": 58007,
+     "stargazersCount": 4754
+    },
+    {
+     "createdAt": "2025-01-22T12:58:34Z",
+     "description": "Our library for RL environments + evals",
+     "fullName": "PrimeIntellect-ai/verifiers",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-26T14:39:20Z",
+     "size": 79111,
+     "stargazersCount": 4744
+    },
+    {
+     "createdAt": "2025-04-25T10:00:18Z",
+     "description": "Kimi-Audio, an open-source audio foundation model excelling in audio understanding, generation, and conversation",
+     "fullName": "MoonshotAI/Kimi-Audio",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "",
+      "name": "",
+      "url": ""
+     },
+     "pushedAt": "2025-06-21T15:30:28Z",
+     "size": 7581,
+     "stargazersCount": 4744
+    },
+    {
+     "createdAt": "2026-09-01T21:52:29Z",
+     "description": "Long-term memory runtime for AI agents \u2014 plain Markdown as the source of truth, local ranked retrieval, and an independent sleep-time Manage layer. Claude Code and Codex share one store. No API key.",
+     "fullName": "tigerless-labs/agent-memory",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T16:53:05Z",
+     "size": 120344,
+     "stargazersCount": 4733
+    }
+   ]
+  },
+  {
+   "stars": "4869..5000",
+   "repos": [
+    {
+     "createdAt": "2025-04-25T07:58:12Z",
+     "description": "Paper2Code: Automating Code Generation from Scientific Papers in Machine Learning",
+     "fullName": "going-doer/Paper2Code",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-03-25T01:00:05Z",
+     "size": 6809,
+     "stargazersCount": 4998
+    },
+    {
+     "createdAt": "2025-04-28T07:03:09Z",
+     "description": "ACE-Step: A Step Towards Music Generation Foundation Model",
+     "fullName": "ace-step/ACE-Step",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-02-15T04:57:54Z",
+     "size": 14337,
+     "stargazersCount": 4987
+    },
+    {
+     "createdAt": "2026-07-27T16:22:49Z",
+     "description": "\u5c06 SRT \u5b57\u5e55\u505a\u6210\u6696\u7c73\u9ec4\u7eb8\u5f20\u5e95\u7684\u6d41\u5f0f\u7b14\u8ff9\u767d\u677f\u624b\u7ed8\u52a8\u753b skill\uff1amask \u5206\u533a\u906e\u7f69\u7f16\u6392 + stream \u8fde\u7eed\u7b14\u8ff9\uff08ink\u2192color\uff09\u3002",
+     "fullName": "geeklee/srt-whiteboard-animation",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-07-27T16:24:52Z",
+     "size": 12316,
+     "stargazersCount": 4981
+    },
+    {
+     "createdAt": "2025-04-26T14:30:47Z",
+     "description": "\ud83c\udf1f100+ \u539f\u521b LLM / RL \u539f\u7406\u56fe\ud83d\udcda\uff0c\u300a\u5927\u6a21\u578b\u7b97\u6cd5\u300b\u4f5c\u8005\u5de8\u732e\uff01\ud83d\udca5\uff08100+  LLM/RL Algorithm Maps \uff09",
+     "fullName": "changyeyu/LLM-RL-Visualized",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-09-10T06:37:21Z",
+     "size": 138722,
+     "stargazersCount": 4972
+    },
+    {
+     "createdAt": "2026-03-29T15:39:49Z",
+     "description": "Awesome list for AI agent harness engineering: tools, patterns, evals, memory, MCP, permissions, observability, and orchestration.",
+     "fullName": "ai-boost/awesome-harness-engineering",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "other",
+      "name": "Other",
+      "url": ""
+     },
+     "pushedAt": "2026-10-25T09:13:02Z",
+     "size": 810,
+     "stargazersCount": 4971
+    },
+    {
+     "createdAt": "2026-03-24T15:58:22Z",
+     "description": "Curated list of the best truly open-source AI projects, models, tools, and infrastructure. Daily updated.",
+     "fullName": "alvinreal/awesome-opensource-ai",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "cc0-1.0",
+      "name": "Creative Commons Zero v1.0 Universal",
+      "url": "https://api.github.com/licenses/cc0-1.0"
+     },
+     "pushedAt": "2026-10-22T07:04:35Z",
+     "size": 4295,
+     "stargazersCount": 4941
+    },
+    {
+     "createdAt": "2026-03-24T11:58:12Z",
+     "description": "Persistent memory for Claude Code, Codex and 6 other AI agents, stored as plain markdown in your Obsidian vault. New: Crew, one shared logbook so Claude Code, Codex, Cursor and Grok Bot know what each other did. 48 commands: semantic search, self-rewriting notes, key-less research, scheduled agents.",
+     "fullName": "eugeniughelbur/obsidian-second-brain",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-25T17:36:29Z",
+     "size": 26744,
+     "stargazersCount": 4936
+    },
+    {
+     "createdAt": "2025-12-13T00:10:36Z",
+     "description": "A user friendly TUI for SQL databases. Written in python. Supports SQL server, Mysql, PostreSQL, SQLite, Turso and more.",
+     "fullName": "Maxteabag/sqlit",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-10-22T05:59:57Z",
+     "size": 28589,
+     "stargazersCount": 4929
+    },
+    {
+     "createdAt": "2026-01-26T11:19:26Z",
+     "description": "\ud83d\udd2c Harness Vibe Research with Self-evolving AI Scientists",
+     "fullName": "EvoScientist/EvoScientist",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://api.github.com/licenses/apache-2.0"
+     },
+     "pushedAt": "2026-10-24T11:22:24Z",
+     "size": 34988,
+     "stargazersCount": 4917
+    },
+    {
+     "createdAt": "2026-09-16T03:51:21Z",
+     "description": "Semantic ifs from open models, on a 3090 at home. Independent; not affiliated with Jev or TypeSafe.",
+     "fullName": "TheoLeeCJ/SemIf-OpenJev",
+     "isArchived": false,
+     "isFork": false,
+     "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "url": "https://api.github.com/licenses/mit"
+     },
+     "pushedAt": "2026-09-23T18:48:22Z",
+     "size": 9507,
+     "stargazersCount": 4886
+    }
+   ]
+  }
+ ]
+}

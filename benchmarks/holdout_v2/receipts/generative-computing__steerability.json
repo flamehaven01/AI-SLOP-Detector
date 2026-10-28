@@ -1,0 +1,2588 @@
+{
+ "repo": "generative-computing/steerability",
+ "dir": "generative-computing__steerability",
+ "commit": "aab2879de9ff22801801b42cdeac82cdd0a9a733",
+ "estimate_commit": "aab2879de9ff22801801b42cdeac82cdd0a9a733",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".github/ISSUE_TEMPLATE/BUG.md",
+  ".github/ISSUE_TEMPLATE/DOCUMENTATION.md",
+  ".github/ISSUE_TEMPLATE/FEATURE.md",
+  ".github/ISSUE_TEMPLATE/QUESTION.md",
+  ".github/ISSUE_TEMPLATE/STEERING_METHOD.md",
+  ".github/dco.yml",
+  ".github/workflows/ci.yml",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  ".secrets.baseline",
+  "AGENTS.md",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "NOTICE",
+  "README.md",
+  "docs/.nav.yml",
+  "docs/_hooks/bibtex_warnings.py",
+  "docs/assets/favicon.png",
+  "docs/assets/logo_darkmode.png",
+  "docs/assets/logo_slim_darkmode.png",
+  "docs/assets/logo_slim_lightmode.png",
+  "docs/assets/pipeline_darkmode.png",
+  "docs/assets/pipeline_lightmode.png",
+  "docs/assets/references.bib",
+  "docs/concepts/controls.md",
+  "docs/concepts/index.md",
+  "docs/concepts/probes.md",
+  "docs/concepts/spipe.md",
+  "docs/concepts/steering_pipelines.md",
+  "docs/examples",
+  "docs/home/installation.md",
+  "docs/home/quickstart.md",
+  "docs/index.md",
+  "docs/javascripts/mathjax.js",
+  "docs/reference/algorithms/core.md",
+  "docs/reference/algorithms/core/internals.md",
+  "docs/reference/algorithms/core/probes.md",
+  "docs/reference/algorithms/input_control/base_input_control.md",
+  "docs/reference/algorithms/input_control/common.md",
+  "docs/reference/algorithms/input_control/cpo.md",
+  "docs/reference/algorithms/input_control/few_shot.md",
+  "docs/reference/algorithms/input_control/gepa.md",
+  "docs/reference/algorithms/input_control/prewrite.md",
+  "docs/reference/algorithms/input_control/system_prompt.md",
+  "docs/reference/algorithms/input_control/user_prefix.md",
+  "docs/reference/algorithms/output_control/base_output_control.md",
+  "docs/reference/algorithms/output_control/best_of_n.md",
+  "docs/reference/algorithms/output_control/budget_forcing.md",
+  "docs/reference/algorithms/output_control/common.md",
+  "docs/reference/algorithms/output_control/constrained_decoding.md",
+  "docs/reference/algorithms/output_control/contrastive_decoding.md",
+  "docs/reference/algorithms/output_control/contrastive_guidance.md",
+  "docs/reference/algorithms/output_control/deal.md",
+  "docs/reference/algorithms/output_control/dexperts.md",
+  "docs/reference/algorithms/output_control/phased_decoding.md",
+  "docs/reference/algorithms/output_control/rad.md",
+  "docs/reference/algorithms/output_control/routed_decoding.md",
+  "docs/reference/algorithms/output_control/sasa.md",
+  "docs/reference/algorithms/output_control/search_decoding.md",
+  "docs/reference/algorithms/output_control/stopping_rules.md",
+  "docs/reference/algorithms/output_control/value_guidance.md",
+  "docs/reference/algorithms/state_control/act_add.md",
+  "docs/reference/algorithms/state_control/activation_adapter.md",
+  "docs/reference/algorithms/state_control/angular_steering.md",
+  "docs/reference/algorithms/state_control/base_state_control.md",
+  "docs/reference/algorithms/state_control/caa.md",
+  "docs/reference/algorithms/state_control/cast.md",
+  "docs/reference/algorithms/state_control/common.md",
+  "docs/reference/algorithms/state_control/directional_ablation.md",
+  "docs/reference/algorithms/state_control/iti.md",
+  "docs/reference/algorithms/state_control/pasta.md",
+  "docs/reference/algorithms/structural_control/base_structural_control.md",
+  "docs/reference/algorithms/structural_control/load_checkpoint.md",
+  "docs/reference/algorithms/structural_control/load_lora.md",
+  "docs/reference/algorithms/structural_control/mergekit_wrapper.md",
+  "docs/reference/algorithms/structural_control/trl_wrapper.md",
+  "docs/reference/backends.md",
+  "docs/reference/evaluation/batching.md",
+  "docs/reference/evaluation/plotting.md",
+  "docs/reference/evaluation/provider.md",
+  "docs/reference/evaluation/runner.md",
+  "docs/reference/evaluation/scorers.md",
+  "docs/reference/evaluation/solvers.md",
+  "docs/reference/evaluation/suite.md",
+  "docs/reference/index.md",
+  "docs/reference/spipe.md",
+  "docs/reference/utils.md",
+  "docs/stylesheets/extra.css",
+  "docs/tutorials/add_method_by_category/add_new_input_control.md",
+  "docs/tutorials/add_method_by_category/add_new_output_control.md",
+  "docs/tutorials/add_method_by_category/add_new_state_control.md",
+  "docs/tutorials/add_method_by_category/add_new_structural_control.md",
+  "docs/tutorials/add_new_steering_method.md",
+  "docs/tutorials/evaluate_steering_pipelines.md",
+  "docs/tutorials/index.md",
+  "examples/index.md",
+  "examples/notebooks/algorithms/act_add.ipynb",
+  "examples/notebooks/algorithms/angular_steering.ipynb",
+  "examples/notebooks/algorithms/best_of_n.ipynb",
+  "examples/notebooks/algorithms/budget_forcing.ipynb",
+  "examples/notebooks/algorithms/caa.ipynb",
+  "examples/notebooks/algorithms/cast.ipynb",
+  "examples/notebooks/algorithms/contrastive_decoding.ipynb",
+  "examples/notebooks/algorithms/cpo.ipynb",
+  "examples/notebooks/algorithms/deal.ipynb",
+  "examples/notebooks/algorithms/dexperts.ipynb",
+  "examples/notebooks/algorithms/directional_ablation.ipynb",
+  "examples/notebooks/algorithms/few_shot.ipynb",
+  "examples/notebooks/algorithms/generics/activation_adapter.ipynb",
+  "examples/notebooks/algorithms/generics/contrastive_guidance.ipynb",
+  "examples/notebooks/algorithms/generics/phased_decoding.ipynb",
+  "examples/notebooks/algorithms/generics/search_decoding.ipynb",
+  "examples/notebooks/algorithms/generics/stopping_rules.ipynb",
+  "examples/notebooks/algorithms/generics/value_guidance.ipynb",
+  "examples/notebooks/algorithms/gepa.ipynb",
+  "examples/notebooks/algorithms/iti.ipynb",
+  "examples/notebooks/algorithms/pasta.ipynb",
+  "examples/notebooks/algorithms/prewrite.ipynb",
+  "examples/notebooks/algorithms/rad.ipynb",
+  "examples/notebooks/algorithms/sasa.ipynb",
+  "examples/notebooks/algorithms/system_prompt.ipynb",
+  "examples/notebooks/algorithms/wrappers/mergekit.ipynb",
+  "examples/notebooks/algorithms/wrappers/trl.ipynb",
+  "examples/notebooks/recipes/honest_persona_prompting.ipynb",
+  "examples/notebooks/recipes/routed_decoding/data.py",
+  "examples/notebooks/recipes/routed_decoding/routed_decoding.ipynb",
+  "examples/notebooks/recipes/vllm_serve.ipynb",
+  "examples/notebooks/recipes/working_with_spipes.ipynb",
+  "examples/notebooks/studies/commonsense_mcqa/commonsense_mcqa.ipynb",
+  "examples/notebooks/studies/commonsense_mcqa/task.py",
+  "examples/notebooks/studies/instruction_following/artifacts/head_profile.json",
+  "examples/notebooks/studies/instruction_following/artifacts/head_profile.png",
+  "examples/notebooks/studies/instruction_following/artifacts/pasta_profiled.spipe",
+  "examples/notebooks/studies/instruction_following/instruction_following.ipynb",
+  "examples/notebooks/studies/instruction_following/task.py",
+  "examples/notebooks/studies/routing_vs_prompting.ipynb",
+  "examples/scripts/.gitkeep",
+  "mkdocs.yml",
+  "pyproject.toml",
+  "steerability/__init__.py",
+  "steerability/algorithms/__init__.py",
+  "steerability/algorithms/core/__init__.py",
+  "steerability/algorithms/core/base_args.py",
+  "steerability/algorithms/core/base_control.py",
+  "steerability/algorithms/core/execution/__init__.py",
+  "steerability/algorithms/core/execution/access.py",
+  "steerability/algorithms/core/execution/backend.py",
+  "steerability/algorithms/core/execution/contracts.py",
+  "steerability/algorithms/core/execution/fanout.py",
+  "steerability/algorithms/core/execution/params.py",
+  "steerability/algorithms/core/execution/payloads.py",
+  "steerability/algorithms/core/execution/session_utils.py",
+  "steerability/algorithms/core/execution/spec.py",
+  "steerability/algorithms/core/execution/staging.py",
+  "steerability/algorithms/core/identity.py",
+  "steerability/algorithms/core/internals/__init__.py",
+  "steerability/algorithms/core/internals/capture.py",
+  "steerability/algorithms/core/internals/data.py",
+  "steerability/algorithms/core/internals/encoding.py",
+  "steerability/algorithms/core/internals/facts.py",
+  "steerability/algorithms/core/internals/fingerprint.py",
+  "steerability/algorithms/core/internals/model_layout.py",
+  "steerability/algorithms/core/internals/pooling.py",
+  "steerability/algorithms/core/internals/probes/__init__.py",
+  "steerability/algorithms/core/internals/probes/fitting.py",
+  "steerability/algorithms/core/internals/probes/probe.py",
+  "steerability/algorithms/core/internals/probes/probe_set.py",
+  "steerability/algorithms/core/internals/render.py",
+  "steerability/algorithms/core/internals/stats.py",
+  "steerability/algorithms/core/output.py",
+  "steerability/algorithms/core/registry.py",
+  "steerability/algorithms/core/scoring.py",
+  "steerability/algorithms/core/specs.py",
+  "steerability/algorithms/core/steering_pipeline.py",
+  "steerability/algorithms/core/sweeps.py",
+  "steerability/algorithms/core/utils/__init__.py",
+  "steerability/algorithms/core/utils/assembly.py",
+  "steerability/algorithms/core/utils/auxiliary_pass.py",
+  "steerability/algorithms/core/utils/controls.py",
+  "steerability/algorithms/core/utils/generate_call.py",
+  "steerability/algorithms/core/utils/generation.py",
+  "steerability/algorithms/input_control/__init__.py",
+  "steerability/algorithms/input_control/base.py",
+  "steerability/algorithms/input_control/common/__init__.py",
+  "steerability/algorithms/input_control/common/budget.py",
+  "steerability/algorithms/input_control/common/formatters/__init__.py",
+  "steerability/algorithms/input_control/common/formatters/base.py",
+  "steerability/algorithms/input_control/common/formatters/chat_template_slot.py",
+  "steerability/algorithms/input_control/common/formatters/few_shot_block.py",
+  "steerability/algorithms/input_control/common/formatters/prepend_text.py",
+  "steerability/algorithms/input_control/common/formatters/system_prompt.py",
+  "steerability/algorithms/input_control/common/generation.py",
+  "steerability/algorithms/input_control/common/memory/__init__.py",
+  "steerability/algorithms/input_control/common/memory/base.py",
+  "steerability/algorithms/input_control/common/memory/pool.py",
+  "steerability/algorithms/input_control/common/memory/text.py",
+  "steerability/algorithms/input_control/common/pareto.py",
+  "steerability/algorithms/input_control/common/proposers/__init__.py",
+  "steerability/algorithms/input_control/common/proposers/base.py",
+  "steerability/algorithms/input_control/common/proposers/llm_meta_prompt.py",
+  "steerability/algorithms/input_control/common/proposers/retrieval.py",
+  "steerability/algorithms/input_control/common/proposers/utils/__init__.py",
+  "steerability/algorithms/input_control/common/proposers/utils/parsing.py",
+  "steerability/algorithms/input_control/common/scorers/__init__.py",
+  "steerability/algorithms/input_control/common/scorers/base.py",
+  "steerability/algorithms/input_control/common/scorers/task_evaluation.py",
+  "steerability/algorithms/input_control/common/selectors/__init__.py",
+  "steerability/algorithms/input_control/common/selectors/base.py",
+  "steerability/algorithms/input_control/common/selectors/dense_retrieval.py",
+  "steerability/algorithms/input_control/common/selectors/mmr.py",
+  "steerability/algorithms/input_control/common/selectors/random.py",
+  "steerability/algorithms/input_control/common/selectors/top_k.py",
+  "steerability/algorithms/input_control/cpo/__init__.py",
+  "steerability/algorithms/input_control/cpo/args.py",
+  "steerability/algorithms/input_control/cpo/control.py",
+  "steerability/algorithms/input_control/cpo/utils/__init__.py",
+  "steerability/algorithms/input_control/cpo/utils/causal_reward.py",
+  "steerability/algorithms/input_control/cpo/utils/embeddings.py",
+  "steerability/algorithms/input_control/cpo/utils/refinement_meta_prompt.py",
+  "steerability/algorithms/input_control/few_shot/__init__.py",
+  "steerability/algorithms/input_control/few_shot/args.py",
+  "steerability/algorithms/input_control/few_shot/control.py",
+  "steerability/algorithms/input_control/few_shot/selectors/__init__.py",
+  "steerability/algorithms/input_control/few_shot/selectors/epr/__init__.py",
+  "steerability/algorithms/input_control/few_shot/selectors/epr/selector.py",
+  "steerability/algorithms/input_control/few_shot/selectors/epr/utils/__init__.py",
+  "steerability/algorithms/input_control/few_shot/selectors/epr/utils/bm25_index.py",
+  "steerability/algorithms/input_control/few_shot/selectors/epr/utils/lm_labeling.py",
+  "steerability/algorithms/input_control/few_shot/selectors/epr/utils/train_encoder.py",
+  "steerability/algorithms/input_control/gepa/__init__.py",
+  "steerability/algorithms/input_control/gepa/args.py",
+  "steerability/algorithms/input_control/gepa/control.py",
+  "steerability/algorithms/input_control/gepa/utils/__init__.py",
+  "steerability/algorithms/input_control/gepa/utils/pareto_sampling.py",
+  "steerability/algorithms/input_control/gepa/utils/pool.py",
+  "steerability/algorithms/input_control/gepa/utils/reflective_dataset.py",
+  "steerability/algorithms/input_control/gepa/utils/reflective_meta_prompt.py",
+  "steerability/algorithms/input_control/prewrite/__init__.py",
+  "steerability/algorithms/input_control/prewrite/args.py",
+  "steerability/algorithms/input_control/prewrite/control.py",
+  "steerability/algorithms/input_control/prewrite/utils/__init__.py",
+  "steerability/algorithms/input_control/prewrite/utils/meta_prompts.py",
+  "steerability/algorithms/input_control/prewrite/utils/reward.py",
+  "steerability/algorithms/input_control/system_prompt/__init__.py",
+  "steerability/algorithms/input_control/system_prompt/args.py",
+  "steerability/algorithms/input_control/system_prompt/control.py",
+  "steerability/algorithms/input_control/user_prefix/__init__.py",
+  "steerability/algorithms/input_control/user_prefix/args.py",
+  "steerability/algorithms/input_control/user_prefix/control.py",
+  "steerability/algorithms/output_control/__init__.py",
+  "steerability/algorithms/output_control/base.py",
+  "steerability/algorithms/output_control/best_of_n/__init__.py",
+  "steerability/algorithms/output_control/best_of_n/args.py",
+  "steerability/algorithms/output_control/best_of_n/control.py",
+  "steerability/algorithms/output_control/budget_forcing/__init__.py",
+  "steerability/algorithms/output_control/budget_forcing/args.py",
+  "steerability/algorithms/output_control/budget_forcing/control.py",
+  "steerability/algorithms/output_control/common/__init__.py",
+  "steerability/algorithms/output_control/common/candidate_forward.py",
+  "steerability/algorithms/output_control/common/candidates.py",
+  "steerability/algorithms/output_control/common/criteria.py",
+  "steerability/algorithms/output_control/common/drivers/__init__.py",
+  "steerability/algorithms/output_control/common/drivers/frontier.py",
+  "steerability/algorithms/output_control/common/drivers/phased.py",
+  "steerability/algorithms/output_control/common/drivers/proposer.py",
+  "steerability/algorithms/output_control/common/drivers/search.py",
+  "steerability/algorithms/output_control/common/granite_heads.py",
+  "steerability/algorithms/output_control/common/kv_cache.py",
+  "steerability/algorithms/output_control/common/loading.py",
+  "steerability/algorithms/output_control/common/logit_sources.py",
+  "steerability/algorithms/output_control/common/processors/__init__.py",
+  "steerability/algorithms/output_control/common/processors/base.py",
+  "steerability/algorithms/output_control/common/processors/constraint.py",
+  "steerability/algorithms/output_control/common/processors/contrastive_mixture.py",
+  "steerability/algorithms/output_control/common/processors/value_guided.py",
+  "steerability/algorithms/output_control/common/resolve.py",
+  "steerability/algorithms/output_control/common/scorers/__init__.py",
+  "steerability/algorithms/output_control/common/scorers/base.py",
+  "steerability/algorithms/output_control/common/scorers/majority_vote.py",
+  "steerability/algorithms/output_control/common/scorers/reward_model.py",
+  "steerability/algorithms/output_control/common/scorers/sample.py",
+  "steerability/algorithms/output_control/common/values/__init__.py",
+  "steerability/algorithms/output_control/common/values/base.py",
+  "steerability/algorithms/output_control/common/values/callable.py",
+  "steerability/algorithms/output_control/common/values/classifier.py",
+  "steerability/algorithms/output_control/common/values/reward_model.py",
+  "steerability/algorithms/output_control/common/values/subspace_margin.py",
+  "steerability/algorithms/output_control/constrained_decoding/__init__.py",
+  "steerability/algorithms/output_control/constrained_decoding/args.py",
+  "steerability/algorithms/output_control/constrained_decoding/control.py",
+  "steerability/algorithms/output_control/constrained_decoding/utils/__init__.py",
+  "steerability/algorithms/output_control/constrained_decoding/utils/automaton.py",
+  "steerability/algorithms/output_control/contrastive_decoding/__init__.py",
+  "steerability/algorithms/output_control/contrastive_decoding/args.py",
+  "steerability/algorithms/output_control/contrastive_decoding/control.py",
+  "steerability/algorithms/output_control/contrastive_guidance/__init__.py",
+  "steerability/algorithms/output_control/contrastive_guidance/args.py",
+  "steerability/algorithms/output_control/contrastive_guidance/control.py",
+  "steerability/algorithms/output_control/deal/__init__.py",
+  "steerability/algorithms/output_control/deal/args.py",
+  "steerability/algorithms/output_control/deal/control.py",
+  "steerability/algorithms/output_control/dexperts/__init__.py",
+  "steerability/algorithms/output_control/dexperts/args.py",
+  "steerability/algorithms/output_control/dexperts/control.py",
+  "steerability/algorithms/output_control/phased_decoding/__init__.py",
+  "steerability/algorithms/output_control/phased_decoding/args.py",
+  "steerability/algorithms/output_control/phased_decoding/control.py",
+  "steerability/algorithms/output_control/rad/__init__.py",
+  "steerability/algorithms/output_control/rad/args.py",
+  "steerability/algorithms/output_control/rad/control.py",
+  "steerability/algorithms/output_control/rad/utils/__init__.py",
+  "steerability/algorithms/output_control/rad/utils/reward_training.py",
+  "steerability/algorithms/output_control/routed_decoding/__init__.py",
+  "steerability/algorithms/output_control/routed_decoding/actions.py",
+  "steerability/algorithms/output_control/routed_decoding/args.py",
+  "steerability/algorithms/output_control/routed_decoding/control.py",
+  "steerability/algorithms/output_control/routed_decoding/routing.py",
+  "steerability/algorithms/output_control/sasa/__init__.py",
+  "steerability/algorithms/output_control/sasa/args.py",
+  "steerability/algorithms/output_control/sasa/control.py",
+  "steerability/algorithms/output_control/search_decoding/__init__.py",
+  "steerability/algorithms/output_control/search_decoding/args.py",
+  "steerability/algorithms/output_control/search_decoding/control.py",
+  "steerability/algorithms/output_control/stopping_rules/__init__.py",
+  "steerability/algorithms/output_control/stopping_rules/args.py",
+  "steerability/algorithms/output_control/stopping_rules/control.py",
+  "steerability/algorithms/output_control/value_guidance/__init__.py",
+  "steerability/algorithms/output_control/value_guidance/args.py",
+  "steerability/algorithms/output_control/value_guidance/control.py",
+  "steerability/algorithms/state_control/__init__.py",
+  "steerability/algorithms/state_control/act_add/__init__.py",
+  "steerability/algorithms/state_control/act_add/args.py",
+  "steerability/algorithms/state_control/act_add/control.py",
+  "steerability/algorithms/state_control/activation_adapter/__init__.py",
+  "steerability/algorithms/state_control/activation_adapter/args.py",
+  "steerability/algorithms/state_control/activation_adapter/control.py",
+  "steerability/algorithms/state_control/angular_steering/__init__.py",
+  "steerability/algorithms/state_control/angular_steering/args.py",
+  "steerability/algorithms/state_control/angular_steering/control.py",
+  "steerability/algorithms/state_control/base.py",
+  "steerability/algorithms/state_control/caa/__init__.py",
+  "steerability/algorithms/state_control/caa/args.py",
+  "steerability/algorithms/state_control/caa/control.py",
+  "steerability/algorithms/state_control/cast/__init__.py",
+  "steerability/algorithms/state_control/cast/args.py",
+  "steerability/algorithms/state_control/cast/control.py",
+  "steerability/algorithms/state_control/common/__init__.py",
+  "steerability/algorithms/state_control/common/estimators/__init__.py",
+  "steerability/algorithms/state_control/common/estimators/base.py",
+  "steerability/algorithms/state_control/common/estimators/contrastive_direction.py",
+  "steerability/algorithms/state_control/common/estimators/mean_difference.py",
+  "steerability/algorithms/state_control/common/estimators/single_pair.py",
+  "steerability/algorithms/state_control/common/estimators/steering_plane.py",
+  "steerability/algorithms/state_control/common/fit_specs.py",
+  "steerability/algorithms/state_control/common/gating.py",
+  "steerability/algorithms/state_control/common/hook_utils.py",
+  "steerability/algorithms/state_control/common/layout_facts.py",
+  "steerability/algorithms/state_control/common/lowering.py",
+  "steerability/algorithms/state_control/common/runtime.py",
+  "steerability/algorithms/state_control/common/selectors/__init__.py",
+  "steerability/algorithms/state_control/common/selectors/base.py",
+  "steerability/algorithms/state_control/common/selectors/condition_point.py",
+  "steerability/algorithms/state_control/common/selectors/fixed_layer.py",
+  "steerability/algorithms/state_control/common/selectors/fractional_depth.py",
+  "steerability/algorithms/state_control/common/selectors/top_k_head.py",
+  "steerability/algorithms/state_control/common/selectors/utils/__init__.py",
+  "steerability/algorithms/state_control/common/selectors/utils/layer_heuristics.py",
+  "steerability/algorithms/state_control/common/sources.py",
+  "steerability/algorithms/state_control/common/specs.py",
+  "steerability/algorithms/state_control/common/steering_vector.py",
+  "steerability/algorithms/state_control/common/token_scope.py",
+  "steerability/algorithms/state_control/common/transforms/__init__.py",
+  "steerability/algorithms/state_control/common/transforms/additive.py",
+  "steerability/algorithms/state_control/common/transforms/alignment_adaptive.py",
+  "steerability/algorithms/state_control/common/transforms/base.py",
+  "steerability/algorithms/state_control/common/transforms/context.py",
+  "steerability/algorithms/state_control/common/transforms/head_additive.py",
+  "steerability/algorithms/state_control/common/transforms/norm_preserving.py",
+  "steerability/algorithms/state_control/common/transforms/projection.py",
+  "steerability/algorithms/state_control/common/transforms/rotation.py",
+  "steerability/algorithms/state_control/directional_ablation/__init__.py",
+  "steerability/algorithms/state_control/directional_ablation/args.py",
+  "steerability/algorithms/state_control/directional_ablation/control.py",
+  "steerability/algorithms/state_control/iti/__init__.py",
+  "steerability/algorithms/state_control/iti/args.py",
+  "steerability/algorithms/state_control/iti/control.py",
+  "steerability/algorithms/state_control/iti/utils/__init__.py",
+  "steerability/algorithms/state_control/iti/utils/estimator.py",
+  "steerability/algorithms/state_control/pasta/__init__.py",
+  "steerability/algorithms/state_control/pasta/args.py",
+  "steerability/algorithms/state_control/pasta/control.py",
+  "steerability/algorithms/state_control/pasta/profiling.py",
+  "steerability/algorithms/structural_control/__init__.py",
+  "steerability/algorithms/structural_control/base.py",
+  "steerability/algorithms/structural_control/load_checkpoint/__init__.py",
+  "steerability/algorithms/structural_control/load_checkpoint/args.py",
+  "steerability/algorithms/structural_control/load_checkpoint/control.py",
+  "steerability/algorithms/structural_control/load_lora/__init__.py",
+  "steerability/algorithms/structural_control/load_lora/args.py",
+  "steerability/algorithms/structural_control/load_lora/control.py",
+  "steerability/algorithms/structural_control/wrappers/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/mergekit/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/mergekit/args.py",
+  "steerability/algorithms/structural_control/wrappers/mergekit/control.py",
+  "steerability/algorithms/structural_control/wrappers/trl/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/trl/apotrainer/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/trl/apotrainer/args.py",
+  "steerability/algorithms/structural_control/wrappers/trl/apotrainer/control.py",
+  "steerability/algorithms/structural_control/wrappers/trl/args.py",
+  "steerability/algorithms/structural_control/wrappers/trl/base_mixin.py",
+  "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/args.py",
+  "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/base_mixin.py",
+  "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/control.py",
+  "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/args.py",
+  "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/base_mixin.py",
+  "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/control.py",
+  "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/args.py",
+  "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/base_mixin.py",
+  "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/control.py",
+  "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/__init__.py",
+  "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/args.py",
+  "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/base_mixin.py",
+  "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/control.py",
+  "steerability/algorithms/structural_control/wrappers/trl/utils/preference_schema.py",
+  "steerability/algorithms/structural_control/wrappers/trl/utils/prompt_schema.py",
+  "steerability/backends/__init__.py",
+  "steerability/backends/huggingface/__init__.py",
+  "steerability/backends/huggingface/backend.py",
+  "steerability/backends/huggingface/session.py",
+  "steerability/backends/vllm/__init__.py",
+  "steerability/backends/vllm/backend.py",
+  "steerability/backends/vllm/capabilities.py",
+  "steerability/backends/vllm/environment.py",
+  "steerability/backends/vllm/rendering.py",
+  "steerability/backends/vllm/session.py",
+  "steerability/evaluation/__init__.py",
+  "steerability/evaluation/batching.py",
+  "steerability/evaluation/plotting.py",
+  "steerability/evaluation/provider.py",
+  "steerability/evaluation/runner.py",
+  "steerability/evaluation/scorers.py",
+  "steerability/evaluation/solvers.py",
+  "steerability/evaluation/suite.py",
+  "steerability/spipe/__init__.py",
+  "steerability/spipe/codec.py",
+  "steerability/spipe/errors.py",
+  "steerability/spipe/format.py",
+  "steerability/spipe/freeze.py",
+  "steerability/spipe/spipe.py",
+  "steerability/spipe/store.py",
+  "steerability/utils/__init__.py",
+  "steerability/utils/answers.py",
+  "steerability/utils/optional.py",
+  "steerability/utils/rendering.py",
+  "steerability/utils/thinking.py",
+  "steerability/utils/tokenization.py",
+  "steerability/utils/verbosity.py",
+  "tests/__init__.py",
+  "tests/conftest.py",
+  "tests/controls/test_act_add.py",
+  "tests/controls/test_activation_adapter.py",
+  "tests/controls/test_after_prompt_semantics.py",
+  "tests/controls/test_angular_steering.py",
+  "tests/controls/test_best_of_n.py",
+  "tests/controls/test_budget_forcing.py",
+  "tests/controls/test_cast.py",
+  "tests/controls/test_cast_conditional.py",
+  "tests/controls/test_condition_point_reuse.py",
+  "tests/controls/test_condition_selector.py",
+  "tests/controls/test_constrained_decoding.py",
+  "tests/controls/test_contrastive_decoding.py",
+  "tests/controls/test_contrastive_estimator.py",
+  "tests/controls/test_cpo.py",
+  "tests/controls/test_deal.py",
+  "tests/controls/test_dexperts.py",
+  "tests/controls/test_directional_ablation.py",
+  "tests/controls/test_dpo_wrapper.py",
+  "tests/controls/test_driver_candidates.py",
+  "tests/controls/test_epr.py",
+  "tests/controls/test_estimator_pooling.py",
+  "tests/controls/test_few_shot.py",
+  "tests/controls/test_gating.py",
+  "tests/controls/test_gemma3_steering.py",
+  "tests/controls/test_generic_output_controls.py",
+  "tests/controls/test_gepa.py",
+  "tests/controls/test_grpo_wrapper.py",
+  "tests/controls/test_hybrid_attention_steering.py",
+  "tests/controls/test_input_control_common.py",
+  "tests/controls/test_intervention_export.py",
+  "tests/controls/test_intervention_ir.py",
+  "tests/controls/test_iti.py",
+  "tests/controls/test_layout_facts.py",
+  "tests/controls/test_load_artifact_controls.py",
+  "tests/controls/test_lora_composition.py",
+  "tests/controls/test_lora_target_scoping.py",
+  "tests/controls/test_max_rollouts.py",
+  "tests/controls/test_model_free_steer.py",
+  "tests/controls/test_model_layout.py",
+  "tests/controls/test_output_common.py",
+  "tests/controls/test_output_ports.py",
+  "tests/controls/test_pass_accounting_composition.py",
+  "tests/controls/test_pasta.py",
+  "tests/controls/test_pasta_alignment.py",
+  "tests/controls/test_phased_driver_batching.py",
+  "tests/controls/test_phased_token_boundaries.py",
+  "tests/controls/test_position_tracking_goldens.py",
+  "tests/controls/test_ppo_wrapper.py",
+  "tests/controls/test_preference_schema.py",
+  "tests/controls/test_prewrite.py",
+  "tests/controls/test_probe_condition.py",
+  "tests/controls/test_rad.py",
+  "tests/controls/test_rad_reward_training.py",
+  "tests/controls/test_render_parity.py",
+  "tests/controls/test_residual_norm_calibration.py",
+  "tests/controls/test_routed_decoding.py",
+  "tests/controls/test_routing.py",
+  "tests/controls/test_runtime_opener_offset.py",
+  "tests/controls/test_sasa.py",
+  "tests/controls/test_scores_helpers.py",
+  "tests/controls/test_search_driver.py",
+  "tests/controls/test_search_driver_reward_params.py",
+  "tests/controls/test_search_frontier.py",
+  "tests/controls/test_sources.py",
+  "tests/controls/test_spipe_freeze_input.py",
+  "tests/controls/test_spipe_freeze_state.py",
+  "tests/controls/test_spipe_freeze_structural.py",
+  "tests/controls/test_state_common.py",
+  "tests/controls/test_system_prompt.py",
+  "tests/controls/test_transform_hook_runtime.py",
+  "tests/controls/test_trl_release.py",
+  "tests/controls/test_trl_resume.py",
+  "tests/controls/test_trl_training_args.py",
+  "tests/controls/test_user_prefix.py",
+  "tests/controls/test_vector_ownership.py",
+  "tests/core/__init__.py",
+  "tests/core/test_attention_mask_inference.py",
+  "tests/core/test_backend_execution.py",
+  "tests/core/test_backend_seam.py",
+  "tests/core/test_base_args.py",
+  "tests/core/test_base_control.py",
+  "tests/core/test_capture_sessions.py",
+  "tests/core/test_construction_semantics.py",
+  "tests/core/test_controls.py",
+  "tests/core/test_data_specs.py",
+  "tests/core/test_declarative_phases.py",
+  "tests/core/test_docs_nav.py",
+  "tests/core/test_driver_rollout_anchor.py",
+  "tests/core/test_environment.py",
+  "tests/core/test_exclusive_session.py",
+  "tests/core/test_generate_padding_alignment.py",
+  "tests/core/test_generate_source_methods.py",
+  "tests/core/test_generated_tokens.py",
+  "tests/core/test_identity.py",
+  "tests/core/test_input_structural_multiplicity.py",
+  "tests/core/test_intervention_lowering.py",
+  "tests/core/test_merge_controls_identity.py",
+  "tests/core/test_model_access.py",
+  "tests/core/test_no_production_shadowing.py",
+  "tests/core/test_optional_deps.py",
+  "tests/core/test_output.py",
+  "tests/core/test_output_mechanisms.py",
+  "tests/core/test_polymorphic_generate.py",
+  "tests/core/test_registry.py",
+  "tests/core/test_runtime_kwargs_schema.py",
+  "tests/core/test_spec_hook_equivalence.py",
+  "tests/core/test_spipe_codec.py",
+  "tests/core/test_spipe_format.py",
+  "tests/core/test_spipe_identity.py",
+  "tests/core/test_spipe_recipe_only.py",
+  "tests/core/test_spipe_store.py",
+  "tests/core/test_staged_steer.py",
+  "tests/core/test_state_multiplicity.py",
+  "tests/core/test_steer_plan.py",
+  "tests/core/test_steering_pipeline.py",
+  "tests/core/test_steering_utils.py",
+  "tests/core/test_sweeps.py",
+  "tests/core/test_trust_remote_code.py",
+  "tests/core/test_verbosity.py",
+  "tests/core/test_version.py",
+  "tests/core/test_vllm_backend_construction.py",
+  "tests/core/test_vllm_engine.py",
+  "tests/core/test_vllm_engine_environment.py",
+  "tests/core/test_vllm_plugin_engine.py",
+  "tests/core/test_vllm_release.py",
+  "tests/core/test_vllm_serve_backend.py",
+  "tests/evaluation/__init__.py",
+  "tests/evaluation/conftest.py",
+  "tests/evaluation/test_batching.py",
+  "tests/evaluation/test_frames.py",
+  "tests/evaluation/test_inspect_integration.py",
+  "tests/evaluation/test_instruction_following_task.py",
+  "tests/evaluation/test_plotting.py",
+  "tests/evaluation/test_provider.py",
+  "tests/evaluation/test_runner.py",
+  "tests/evaluation/test_samples_frame.py",
+  "tests/evaluation/test_scorers.py",
+  "tests/evaluation/test_suite.py",
+  "tests/index.md",
+  "tests/internals/__init__.py",
+  "tests/internals/test_capture_move.py",
+  "tests/internals/test_encoding.py",
+  "tests/internals/test_fingerprint.py",
+  "tests/internals/test_fitting.py",
+  "tests/internals/test_layering.py",
+  "tests/internals/test_pooling.py",
+  "tests/internals/test_probe.py",
+  "tests/internals/test_probe_evaluation.py",
+  "tests/internals/test_probe_set.py",
+  "tests/internals/test_stats.py",
+  "tests/internals/test_venue_identity.py",
+  "tests/utils/__init__.py",
+  "tests/utils/ci_models.yaml",
+  "tests/utils/load_ci_models.py",
+  "tests/utils/runtime_helpers.py",
+  "tests/utils/sweep.py",
+  "tests/utils/test_answers.py",
+  "tests/utils/test_thinking.py",
+  "tests/utils/tiny_models.py",
+  "uv.lock"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "646cb9681dc84e86167eff6dbb21c8b574805e0031fb9d341f7986d1e878df9b"
+  },
+  {
+   "path": "docs/_hooks/bibtex_warnings.py",
+   "sha256": "41305aee4f583f6b03ffa6493bfbcd49f5eccce1cad811c7221522f44221503f"
+  },
+  {
+   "path": "examples/notebooks/recipes/routed_decoding/data.py",
+   "sha256": "0507834f295e39921039d1ac310873ff7e8cce5063fb2db775bc3fff4295b155"
+  },
+  {
+   "path": "examples/notebooks/studies/commonsense_mcqa/task.py",
+   "sha256": "e86d9b59d0721c6a33ce95628eb9a1b3d855e8348d0d8a86849935755cd23f72"
+  },
+  {
+   "path": "examples/notebooks/studies/instruction_following/task.py",
+   "sha256": "e591d1f8e27e6f21efb1917081cf49c52add0c8d59a3ff086934fbc203f45777"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "0ff2e3b63695e514ad022df49aa841cb0b1a0d4b5b21787179e40467f53a81a9"
+  },
+  {
+   "path": "steerability/__init__.py",
+   "sha256": "b8dc894c81096c3eaf107e9884f7dca65989928fb346f0f540e12a1410b0c927"
+  },
+  {
+   "path": "steerability/algorithms/__init__.py",
+   "sha256": "bac7c8afe92c4240992530a21f7c201b9dd1c7f2eedd54dffce9817f050afc3d"
+  },
+  {
+   "path": "steerability/algorithms/core/__init__.py",
+   "sha256": "82211803c9aaacec664f8a774389451c199718e729d8fa6b25932a601883686f"
+  },
+  {
+   "path": "steerability/algorithms/core/base_args.py",
+   "sha256": "e881a3c7da1989520ce5d7257748e9c24951f44e670368e9e340beb9599870c7"
+  },
+  {
+   "path": "steerability/algorithms/core/base_control.py",
+   "sha256": "eb90dd71ac596bfd7cbd2d651da8991662c52096b0559630c517b9fb2ac06c81"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/__init__.py",
+   "sha256": "ae8f1402de5094f7496c3fe703f70f0e8567c7b1a7f826affee1ceb46aacf500"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/access.py",
+   "sha256": "8ce6e3afe474dc8ac9bb2d6e29eeac65b52ec2778aab0e95584a8132cbc26111"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/backend.py",
+   "sha256": "fb26ccd955a5706821625c5b617ac44c62ebe746e026e49fcb5111be7b014e96"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/contracts.py",
+   "sha256": "09d25921e3a912336bd66643aabce1f69ebf33f241306636399feb21ae6fc6aa"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/fanout.py",
+   "sha256": "691b907fd161c597c4223df4ca6f04324eb86a390920bb11d18e4d3cde618657"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/params.py",
+   "sha256": "1a5fea9eebb896be9cdd38258c8d87b490445a48715ee37f6b5961f2781a98e5"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/payloads.py",
+   "sha256": "f26b0b1b1bcd8519493f210500f274c0b2bd506fb72b950b9aed8e6431b74064"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/session_utils.py",
+   "sha256": "5e27a9514ca6278414cf9421e62c85935b7c34244863fe7ab0adcb51871f0fd8"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/spec.py",
+   "sha256": "81b8c6e4c4919cf3fe045dfc8575e8cb89378a02384f24ad029ab56b1e626917"
+  },
+  {
+   "path": "steerability/algorithms/core/execution/staging.py",
+   "sha256": "43a7dc860d0864306f0aaa9521eda4f52a0c185173f0a60e7bb091bf42c617e6"
+  },
+  {
+   "path": "steerability/algorithms/core/identity.py",
+   "sha256": "3c1fe023a22ba82a05db4abfc084d7f10c7d2e0df0449c0726966af6b86179ce"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/__init__.py",
+   "sha256": "22241a2d66a99aacc74c925288bd11bb0aafaac818c56cc3bb7226f51ee3f498"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/capture.py",
+   "sha256": "de905a3a508473b44d70ec9996fd214bbcfb90d479a8c3be3ca4da0369781df2"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/data.py",
+   "sha256": "669b950df85a2746595b00c1e791af4d2a20562cef9e8cec8f9c727360f09d01"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/encoding.py",
+   "sha256": "0fb156152a804d9c5ace0ef86d4ed33557984e984d0d503c983b30a92b60a5bd"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/facts.py",
+   "sha256": "551bc095523ef6ad14e92c3b3dccd1ac9812b553b3ee7b75468edcc80316c626"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/fingerprint.py",
+   "sha256": "521b809ab9cab9969713aa27c83fc78230fe4eea66361da895ab6c8e22525822"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/model_layout.py",
+   "sha256": "c6597a147bb20a57182cc6f12f7d0f7a7b7564e37f642d2e8e6efbbc5d42956d"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/pooling.py",
+   "sha256": "333bcae0f0ee47c33f00aafd444bd8a624fc023052205a5ccad0016c40ba4112"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/probes/__init__.py",
+   "sha256": "ab4a2bdf8067602a71e97567d8ecd6f33e424fc39b27036b90d8107a41a61cef"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/probes/fitting.py",
+   "sha256": "a904a481d4de68b5fa412718e9132ce841a8df810e7be33cc3c29558295f8574"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/probes/probe.py",
+   "sha256": "a6a11638ff2c57ad059f1008b67fdcecdcb91665c2cd8cf21326cc0b6bff30a2"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/probes/probe_set.py",
+   "sha256": "5b1d5277847458f1e4810915d7b855c95b288270c34031e3b3a2a4f3cbea3a75"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/render.py",
+   "sha256": "054f2dfab0d3ca9b2cc36b0cfc4322b4ec5cc5c238f3869d9a345d6f1764fd65"
+  },
+  {
+   "path": "steerability/algorithms/core/internals/stats.py",
+   "sha256": "00aedc8b8af6b278cd6763c7b4a05dea7aa2ddc9ff64286134d9f5ae1738e7d3"
+  },
+  {
+   "path": "steerability/algorithms/core/output.py",
+   "sha256": "2cebe1dafb431ce8105046178581bc4b42640ff3e79122facb028b33f82d4cac"
+  },
+  {
+   "path": "steerability/algorithms/core/registry.py",
+   "sha256": "42a466f3a10780be9ecae5bcd3b548651d27f4de87881856bde869f1c525c90b"
+  },
+  {
+   "path": "steerability/algorithms/core/scoring.py",
+   "sha256": "9139e983e65ff63b1875b9809d32630058c44be81aac33aedc3afeb38b603860"
+  },
+  {
+   "path": "steerability/algorithms/core/specs.py",
+   "sha256": "f8f4a4c2306f28b0a5d9832ee188276e5edb85560c3f112051243a7bef4e5554"
+  },
+  {
+   "path": "steerability/algorithms/core/steering_pipeline.py",
+   "sha256": "6644e009be15e190d72883d321cc4b2d7338be34abfd01cf78f418f6063971b9"
+  },
+  {
+   "path": "steerability/algorithms/core/sweeps.py",
+   "sha256": "09f5bbcd21244dedc31780bbebaec05654044129d22aa66eac83631fde93b7e4"
+  },
+  {
+   "path": "steerability/algorithms/core/utils/__init__.py",
+   "sha256": "9347af1feb1f1fffee25e315295fb15aac650a12ffad6d72ec54af74f35d3855"
+  },
+  {
+   "path": "steerability/algorithms/core/utils/assembly.py",
+   "sha256": "802553546c05166022d44c60cc82de99e1ae0fff6b818cdbfcac569e42499659"
+  },
+  {
+   "path": "steerability/algorithms/core/utils/auxiliary_pass.py",
+   "sha256": "a14fdf1a481e9f5a92da61a1927a958e73fb1e431a85b61668417d894fe9efbc"
+  },
+  {
+   "path": "steerability/algorithms/core/utils/controls.py",
+   "sha256": "13563e6314a2e56c133e20ca819a59a92daa0bce645fcf9d0cadcd78995ddaa6"
+  },
+  {
+   "path": "steerability/algorithms/core/utils/generate_call.py",
+   "sha256": "21e5291d3551e4539f512e8df1b5bf01b9edc50154a67583eeb14d99f9e5d515"
+  },
+  {
+   "path": "steerability/algorithms/core/utils/generation.py",
+   "sha256": "c9b672fd400db3c35d009395659bd7aa08638e39c7e00be39ae21dbe64a375d2"
+  },
+  {
+   "path": "steerability/algorithms/input_control/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/input_control/base.py",
+   "sha256": "00f136de821b01ff9ef3288f6b68d0af1825e30719df2a1df091a179c61642ec"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/__init__.py",
+   "sha256": "bb35fade30a770670112b87489320f5795942757b08daa826842f1a7c65ba5a2"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/budget.py",
+   "sha256": "792a3c20d4f69aba6f4ecdb71c9fc48734dd8aab52cc5e911fa2c1fa50954e1f"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/formatters/__init__.py",
+   "sha256": "58bc3d8466c0ab862bd612a7ea5e804e7cee6e5927ba57d03174d7661e6df296"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/formatters/base.py",
+   "sha256": "68954c4a5910e488de74ef77a60aa9c3eff32eb42abf5760718b056a2c2b36cb"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/formatters/chat_template_slot.py",
+   "sha256": "17c885bb901af83f125549b61f99737ccfd01b218c4ebd03e60bff9ac1efc521"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/formatters/few_shot_block.py",
+   "sha256": "55cd7d18b62723d9f222eb14faa097a7c9c5eded08e3779d2b31e13d92a27b6d"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/formatters/prepend_text.py",
+   "sha256": "b2f8e92f05c274244513197bb54a6aac12aa200a3b25298867dd3aa2e594dc0b"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/formatters/system_prompt.py",
+   "sha256": "3b21af28eec842398825ccc06104bc8a8d35472f5bef7b989850a30b1da10de7"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/generation.py",
+   "sha256": "db0656a20937e197bc6149bd240b63df7cf1455282fd74db40b392fde61c1819"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/memory/__init__.py",
+   "sha256": "2f81a34bdb4ad80a6f118e2517a968927363f5b48cd3a76132f9734d8bcaef8d"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/memory/base.py",
+   "sha256": "93b2ed8d565e29fa629c838a6fed835ea7457f29565646b90624c5093ef684b3"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/memory/pool.py",
+   "sha256": "1dc23881cb0059d6be6b81b6b342810e20e23c1f2b74cf50ef1c384f7d6eda67"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/memory/text.py",
+   "sha256": "88f7428e85d7afaab6cdba3c9f09c75eef6f4b581e62b495ac025523ffdf7f66"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/pareto.py",
+   "sha256": "7ebd39ddcc49af05ca904ff8092889cbf263347ebc310a79ee0679a846dd0773"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/proposers/__init__.py",
+   "sha256": "3786cf24c3b271bd10db368742997e5c9b3caf6b0d08c2553338e21792e71eba"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/proposers/base.py",
+   "sha256": "06079dafc98906ea5fce41bef26d19c8d24d6be3d866617b8448c4aeaf1da64a"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/proposers/llm_meta_prompt.py",
+   "sha256": "c7d5b3c954b5feaa171969f7a517146f06cfa20371661c066339b3cb88ff4622"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/proposers/retrieval.py",
+   "sha256": "e67591e85d66ff92848071a7feb5b745a784224730e2f6e91a7e890a104c8f02"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/proposers/utils/__init__.py",
+   "sha256": "45073f3c0962b5c31405da67d6033b560698a93afa863aa2e359e041ff600eb5"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/proposers/utils/parsing.py",
+   "sha256": "209b94f0f7f6a7164359ca6bebaf0aa5b5f521b9c6f422d6c63274e56895355f"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/scorers/__init__.py",
+   "sha256": "04088f7f8a05f0dbd4cef0e607da4b090227b6f1b0d4db4ea6eeb68d86a8f9af"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/scorers/base.py",
+   "sha256": "95ca16a68a4d89f67045e4c95776a2797f870cd012bf5946022588eb30a12918"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/scorers/task_evaluation.py",
+   "sha256": "ac0a379b4d560370f449522c69df41ad909e14b5f51e0a6513993218cd29aa93"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/selectors/__init__.py",
+   "sha256": "32bb32e3392f81b01da0d5ee20a6e9c426b9a5b17236cc54c1d6379c8e5aeea6"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/selectors/base.py",
+   "sha256": "30995db5a131766708061fcca99080386c47d44268184e723dbce272064acf6d"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/selectors/dense_retrieval.py",
+   "sha256": "627cfe9485ff42b0112e475912217170f14b987ddbb3428bd117268b7d1c2f66"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/selectors/mmr.py",
+   "sha256": "06e5475ca1cae7152d9c8a4e70f21f6362e26e67433ad42ecb402e8f00250826"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/selectors/random.py",
+   "sha256": "fae205ef64dc71389a1b362c48656ec50fc397dcc4cbe0bd54e748227ef952a2"
+  },
+  {
+   "path": "steerability/algorithms/input_control/common/selectors/top_k.py",
+   "sha256": "7eb5a65b63430f4c6ee84012fc0d1d2efd2f676f6b1850502e849c67f926f43c"
+  },
+  {
+   "path": "steerability/algorithms/input_control/cpo/__init__.py",
+   "sha256": "18130c9ff8e08447a17b3f9ad810a024c4054499442af49f98e5146ee933a440"
+  },
+  {
+   "path": "steerability/algorithms/input_control/cpo/args.py",
+   "sha256": "7cbf707cb4d8a3b81fc4d3c347bec91279ae4e0523bed85bb8f5ef81ccd9b221"
+  },
+  {
+   "path": "steerability/algorithms/input_control/cpo/control.py",
+   "sha256": "adcc4fff16e38306a0a33f3b6d12b23c7ecdd732906912c0502a1e9220198b6d"
+  },
+  {
+   "path": "steerability/algorithms/input_control/cpo/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/input_control/cpo/utils/causal_reward.py",
+   "sha256": "d655481b7c4d2ee6990ab4a1fddbee06620619a930ac10def1ef7becb3691056"
+  },
+  {
+   "path": "steerability/algorithms/input_control/cpo/utils/embeddings.py",
+   "sha256": "0502517061c5baa73c264a438b7a6a6394266821a82018769b148158e394601c"
+  },
+  {
+   "path": "steerability/algorithms/input_control/cpo/utils/refinement_meta_prompt.py",
+   "sha256": "0ff73b37a3bbfa44d608e983e57e091296c3a9ecb49e3357d9341626e3855600"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/__init__.py",
+   "sha256": "31a252b567744adacee045111c2721cc1d56a96edcaa67c5e3e836243574b78b"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/args.py",
+   "sha256": "b035b04ad83914c4f157609d775f7ea0ac482cc9ead50ce486ba59f1ce7c3bab"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/control.py",
+   "sha256": "c322c1e5f4350c342a9b2c01ede32c1c73451570c87444424936795a188c89a8"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/selectors/__init__.py",
+   "sha256": "0831136492e5c8bf88ddaeeac65ed3fbbbb131e53d19233fe6752b07e6ad41c3"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/selectors/epr/__init__.py",
+   "sha256": "e576b3129d99fe50e538abd855f3ceffe9210e06bb31e2d3ad92b66b834218d7"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/selectors/epr/selector.py",
+   "sha256": "65b1f2b6a3993f28c8ef48ed93665c4390c56bffcbc6a9f0e36138c5ca969a52"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/selectors/epr/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/selectors/epr/utils/bm25_index.py",
+   "sha256": "346515abb0826e862228134eeac7b6797cbc4d9dbb918f2e79fdba98144e07c0"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/selectors/epr/utils/lm_labeling.py",
+   "sha256": "e381e7de1019b278ea4ac5e8e3061af47962a1f1c41d0eb2c91013d477e86715"
+  },
+  {
+   "path": "steerability/algorithms/input_control/few_shot/selectors/epr/utils/train_encoder.py",
+   "sha256": "0f3f4db94c9565c77ae2d22affb321d22c2ec57e28740d916301b16f7ef7344f"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/__init__.py",
+   "sha256": "c8b061c86c1a94bfea9a3851b0d12c02240429d275202a6f0d773b135f3f221a"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/args.py",
+   "sha256": "705c35535ae7b83b48d95ffc366da368c0805458ae37dd40e5f6166e710c4340"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/control.py",
+   "sha256": "3055b0a5b074ddeddc616527abb6755e52108706dfc8239a2af6258dcd3dd508"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/utils/pareto_sampling.py",
+   "sha256": "fea5ea8b79b8c6cb4c82a6b4119cee6b342f406badd3fdf28adb02304c5ad81c"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/utils/pool.py",
+   "sha256": "5656aa2b5d81e3499459fea900969c613728f59b75a72994b5e2c3d49b92c9bf"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/utils/reflective_dataset.py",
+   "sha256": "6be4f50a7c011c413dada2881b397756d97397d465da525e638edf7e8701772f"
+  },
+  {
+   "path": "steerability/algorithms/input_control/gepa/utils/reflective_meta_prompt.py",
+   "sha256": "05981951149bb2f5b10992c532f4a0b2416c08287dc9cfe30a271e23a4a8c867"
+  },
+  {
+   "path": "steerability/algorithms/input_control/prewrite/__init__.py",
+   "sha256": "7eef033cda3c796df989bd8b6f883bd20b658cad4773da1d1ca9eff926a308b6"
+  },
+  {
+   "path": "steerability/algorithms/input_control/prewrite/args.py",
+   "sha256": "b498ce6a9109c6c5d27180db60ec9746ed5318b76dbabd7098c3904e7712199d"
+  },
+  {
+   "path": "steerability/algorithms/input_control/prewrite/control.py",
+   "sha256": "ddf6e2de3efe4303888335cbe96b39085369b20b571160d799d5c242dc4f6b46"
+  },
+  {
+   "path": "steerability/algorithms/input_control/prewrite/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/input_control/prewrite/utils/meta_prompts.py",
+   "sha256": "73e49f677f4fa5a8c09a1fc994734049c2c60631d7b7a67c71cd67309c4ee9fc"
+  },
+  {
+   "path": "steerability/algorithms/input_control/prewrite/utils/reward.py",
+   "sha256": "b58f693c360e2e76b5702d51aa85994cd1150a65d67796992fcacb67f67d373f"
+  },
+  {
+   "path": "steerability/algorithms/input_control/system_prompt/__init__.py",
+   "sha256": "9c4a3e8087c22ed37afd43212f85bbdb07940169afeff11ea03026c9744f57f4"
+  },
+  {
+   "path": "steerability/algorithms/input_control/system_prompt/args.py",
+   "sha256": "eec8774b628cec891e3f95f38199c1993aae4e2afdaf5b62f0d096d337b491c9"
+  },
+  {
+   "path": "steerability/algorithms/input_control/system_prompt/control.py",
+   "sha256": "7eac139bb39c26d2b10803f9676ae577dc1997c777b7ced2cebfaa031196bafe"
+  },
+  {
+   "path": "steerability/algorithms/input_control/user_prefix/__init__.py",
+   "sha256": "23202de00d337e09cb3a5455aa5d71b7e686c4bccb2ae9b90f759a0d9f9293e1"
+  },
+  {
+   "path": "steerability/algorithms/input_control/user_prefix/args.py",
+   "sha256": "21a22d0385bc255e4d6e5653a54c8f2f58ba1662f1626f1b2d6b89d132888144"
+  },
+  {
+   "path": "steerability/algorithms/input_control/user_prefix/control.py",
+   "sha256": "f7bf96e076feb11f6b70cab843c1d5b17863915da12a07d430c5a176c5d42d05"
+  },
+  {
+   "path": "steerability/algorithms/output_control/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/output_control/base.py",
+   "sha256": "d79996416dd7d7fe91a27217dec812e2e25a26711257a6041af0cd058a0fd7c1"
+  },
+  {
+   "path": "steerability/algorithms/output_control/best_of_n/__init__.py",
+   "sha256": "ab88221b50faa4cb49664da13270b866e09721af6538339f881c8132068cb707"
+  },
+  {
+   "path": "steerability/algorithms/output_control/best_of_n/args.py",
+   "sha256": "40a1c30fcaa2ecc05593b97eb890f15f0ad2c368af44f0c73661255cae4d07b8"
+  },
+  {
+   "path": "steerability/algorithms/output_control/best_of_n/control.py",
+   "sha256": "12b28906145b8b1f88b2605d51d3e91390058a881cc64663137f8f10a17b23bf"
+  },
+  {
+   "path": "steerability/algorithms/output_control/budget_forcing/__init__.py",
+   "sha256": "77b36542b86b5d0065b584969603e5efbb93c9c860bbd0c615cabebfc102c4e6"
+  },
+  {
+   "path": "steerability/algorithms/output_control/budget_forcing/args.py",
+   "sha256": "1c9d3f3bbd9ba7c9fe38d6fe06b84a65b6e245a2b3455f235abd248121c94c65"
+  },
+  {
+   "path": "steerability/algorithms/output_control/budget_forcing/control.py",
+   "sha256": "4334965ad4093cea02bd42d1fe5baeb534da88af262b1a97229cf1b102f1d09f"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/__init__.py",
+   "sha256": "87fbf76dc9684c608bd7b45a1a399c1741bbbbebd4e231d3bae940eb3b7b23ce"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/candidate_forward.py",
+   "sha256": "a9649e5cfb28f663201d74a7efbea85089241811bc3a5bdd8e6f7c8001ff8338"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/candidates.py",
+   "sha256": "186d6596e32e827a9c5b57a13be393904811a488040411c705a06402a2550c42"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/criteria.py",
+   "sha256": "85fdb916d0df56fd3fdfddaafb4a22452af6aac4e04ec78904f642be1114c503"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/drivers/__init__.py",
+   "sha256": "35c18528710aa0702c455766717dc0e78bd01b3c8f9a1b22eaf6e1bf8a67a94f"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/drivers/frontier.py",
+   "sha256": "76deb99f39f996f88e4d328d9f98b7eaefcda14281b46b1d5a03698650c5d151"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/drivers/phased.py",
+   "sha256": "8607c039cc81994a9e19552b50c69fb62bf4083c48b619d258122763f7cf5137"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/drivers/proposer.py",
+   "sha256": "159e23882973a4ccae027d9081d16bd65ac23211dee73ba0d20aeba71bf56b15"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/drivers/search.py",
+   "sha256": "93dd45552f6ccd339ddd6dfad65a27e3555859fe40f26a7c92cb525c0d0400bb"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/granite_heads.py",
+   "sha256": "9e292d07c3447bfc22445a1f1482e83562b6c7b448bc4adaa0ffb5f2a15d38f7"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/kv_cache.py",
+   "sha256": "a74e6d2fabfe73a16c5f8d1c178fa134f8430445e15ffb2bb3ae1bafb0659762"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/loading.py",
+   "sha256": "86b60af5b8d23291103a80d65755e9c9a3325c09f4fbb252ea0cee66bbf2874e"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/logit_sources.py",
+   "sha256": "45f50672035f69ce76a028a6512086fe7a796448e706c4d70a0dcba1fb877626"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/processors/__init__.py",
+   "sha256": "ed95781ea809d209a5d8f31297580c423760de575a6149cee9e0002dcffdd616"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/processors/base.py",
+   "sha256": "94b25469a3bfc4cc7e17e820d46892543df4a5374db30264d107e66a1b745963"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/processors/constraint.py",
+   "sha256": "c56e241ecdca20740db58afbfd1d1ff0cb8f90e39257c2b34b127bba3876b183"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/processors/contrastive_mixture.py",
+   "sha256": "fbb95055bfb58ce2b32aa32d1089b0988adb8d411d2ac96d5a1c214a29d60f3e"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/processors/value_guided.py",
+   "sha256": "08910f90f93ed27ed1cd2e87e4ebd19e68fb0a53333e0bb9230902f0252d1432"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/resolve.py",
+   "sha256": "2b13af66fe72027ebc8d8538756c9c24c433d5fcb52fbc137f892fdfbf8eda37"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/scorers/__init__.py",
+   "sha256": "a3bee8001792ab308cd946632222df3ef7814b0a6aa34a03924311f58f6d372c"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/scorers/base.py",
+   "sha256": "c794c059342a1c301ab592235ebf4a26c2ebb7d6fc174659e75c58d82fc899d7"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/scorers/majority_vote.py",
+   "sha256": "e67824e9ca3b5384923e95e4012b305fca4f3b75c6c4761516e0650e5b8d7d59"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/scorers/reward_model.py",
+   "sha256": "739a8c79b1e1cbc9f04d1db64b55fdd80eed3ee9cfe5417e9947ef749cca6286"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/scorers/sample.py",
+   "sha256": "e827eed180c9f41ae897ba99e57a32cee485131169837373e0c6ee741206fbb2"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/values/__init__.py",
+   "sha256": "c4ce5a572a08309742ac9371ffe07efb23e3387eb7e46f8da3a74e8ecf92634c"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/values/base.py",
+   "sha256": "1ea15249104b1a35a84d5a79626519a06db60c9b24f2903e1399f3b3624e40db"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/values/callable.py",
+   "sha256": "fabb88974b49428b01afa13de51151eb150690edb3a9acc665cee553ad61a61b"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/values/classifier.py",
+   "sha256": "074fb395259895812dd584fbc87baf10f1f8d705d53a6d5503c18e034731d8f1"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/values/reward_model.py",
+   "sha256": "a40e9d51fef5f28a86f574ff3d9aaac7ddccb534199152c64303ef42b32c8513"
+  },
+  {
+   "path": "steerability/algorithms/output_control/common/values/subspace_margin.py",
+   "sha256": "e10887fde927c09360b9ac53c4394dd837b9e56b3b039e74e81e462595c96f3e"
+  },
+  {
+   "path": "steerability/algorithms/output_control/constrained_decoding/__init__.py",
+   "sha256": "5f4743f08b7cebaa6dd74eabd774bf4fc282498b77f35cbe8224e5392a783eca"
+  },
+  {
+   "path": "steerability/algorithms/output_control/constrained_decoding/args.py",
+   "sha256": "f6d33c5751cc0e77d4a7bb29e96ce8bde22cd13f9e84466a082d7a1f0b477361"
+  },
+  {
+   "path": "steerability/algorithms/output_control/constrained_decoding/control.py",
+   "sha256": "467ad2b517dc09975d3cde7a54c8bf79b22ef20ad5a9af138f7b9e67560c60ca"
+  },
+  {
+   "path": "steerability/algorithms/output_control/constrained_decoding/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/output_control/constrained_decoding/utils/automaton.py",
+   "sha256": "63443f567164e2e6ca0bfd1b93cdfa408afe0726b2f92078a13f3d3e69080ae9"
+  },
+  {
+   "path": "steerability/algorithms/output_control/contrastive_decoding/__init__.py",
+   "sha256": "30437355893bc7e249bb1303d1573524e8abe1a16414c9883804088b77e80598"
+  },
+  {
+   "path": "steerability/algorithms/output_control/contrastive_decoding/args.py",
+   "sha256": "244aab2f59cecd851aaa7775b322f1877eff10bd44f9cdafbf999d64177921c9"
+  },
+  {
+   "path": "steerability/algorithms/output_control/contrastive_decoding/control.py",
+   "sha256": "ef02c1f8082f68f40c83103e40919d1afadd611f9e282b69a0d5fdc806c42623"
+  },
+  {
+   "path": "steerability/algorithms/output_control/contrastive_guidance/__init__.py",
+   "sha256": "6f5ace12ec8ad40cdc86e6d062dcb465eda41e7bbf72ab85c99e5e6fca3ef680"
+  },
+  {
+   "path": "steerability/algorithms/output_control/contrastive_guidance/args.py",
+   "sha256": "e475cd95db45e3641a43d72d7af1cbd6a20b0c518d84eb54486830057b447895"
+  },
+  {
+   "path": "steerability/algorithms/output_control/contrastive_guidance/control.py",
+   "sha256": "fcdb86f544514fd1370e850f4c8fbc26087540ef4054139deb9a0f5a197bba36"
+  },
+  {
+   "path": "steerability/algorithms/output_control/deal/__init__.py",
+   "sha256": "958695fa2f5217a5f50176026b55381be57c2fb2cd100f065637af6cf811f7b3"
+  },
+  {
+   "path": "steerability/algorithms/output_control/deal/args.py",
+   "sha256": "8a3966b3eb227d65f3a49b1d889f571826df741e626be1cfa9837baa22e8088e"
+  },
+  {
+   "path": "steerability/algorithms/output_control/deal/control.py",
+   "sha256": "ead33c1548a5753f2d2e40305a51e474d14200fa45f27b866758e781506f93ac"
+  },
+  {
+   "path": "steerability/algorithms/output_control/dexperts/__init__.py",
+   "sha256": "d628072d4f9a1a914d9442082a4cc93f68355ade399be1dbd93df804bb0ca501"
+  },
+  {
+   "path": "steerability/algorithms/output_control/dexperts/args.py",
+   "sha256": "503a8cf2b787cbe1ddbf9e0bbb384505cd7d8d456faa47f511f4edcaaa41ab54"
+  },
+  {
+   "path": "steerability/algorithms/output_control/dexperts/control.py",
+   "sha256": "62120f7c79520287cacde5dc86c2833ce7f4ceb89598ded82fd011855bb9766b"
+  },
+  {
+   "path": "steerability/algorithms/output_control/phased_decoding/__init__.py",
+   "sha256": "1d3995c1510c9d68b11ae75c728708758e90ab0ade436b8340b77dcbb81d7c94"
+  },
+  {
+   "path": "steerability/algorithms/output_control/phased_decoding/args.py",
+   "sha256": "e40358e949f2e40e7cb63a1c3974343c476dc0ed75df857eb48fcafe2e2b4cd5"
+  },
+  {
+   "path": "steerability/algorithms/output_control/phased_decoding/control.py",
+   "sha256": "22b95ee0c3a4bad6920dbca7d104d30db6954f8ff734cc2f8a22ec3206c347c4"
+  },
+  {
+   "path": "steerability/algorithms/output_control/rad/__init__.py",
+   "sha256": "e6d0df2fbda0bd16d91589a81eec6b07b754d98ec1d52f1a1f28db06efb43a3c"
+  },
+  {
+   "path": "steerability/algorithms/output_control/rad/args.py",
+   "sha256": "2a204579a99c99b010f40958d10eec37196fbadb80d44e261db279338ed0791c"
+  },
+  {
+   "path": "steerability/algorithms/output_control/rad/control.py",
+   "sha256": "6e9cc9d204ab72ef5a7ff758d50bbb93c6f12541205309b3b264fb278ac33ca1"
+  },
+  {
+   "path": "steerability/algorithms/output_control/rad/utils/__init__.py",
+   "sha256": "198d0bc260c014ff66807e6b30b63d16bd9d0d201243790affe6061021801f89"
+  },
+  {
+   "path": "steerability/algorithms/output_control/rad/utils/reward_training.py",
+   "sha256": "4c06180ca70d5eccedde64bab7ff1fe42412a26ec39d6b67009012e253eace0c"
+  },
+  {
+   "path": "steerability/algorithms/output_control/routed_decoding/__init__.py",
+   "sha256": "2e33cabec1d098f6c3fb3477e2703f3ed15315fb43f5c6e291290a02ade7e169"
+  },
+  {
+   "path": "steerability/algorithms/output_control/routed_decoding/actions.py",
+   "sha256": "e4a7e05eac46ea940c03a6183c8737c25239a56229c5e514de26649fe770b86c"
+  },
+  {
+   "path": "steerability/algorithms/output_control/routed_decoding/args.py",
+   "sha256": "b1ab3e4945dd0e4d565c42fb42d545a2a681875d2c50021cd2286a081553c113"
+  },
+  {
+   "path": "steerability/algorithms/output_control/routed_decoding/control.py",
+   "sha256": "5e82e165c269bd349397c15a3658ee75980f3a6f879bd6a4b0aea471fb56c8b3"
+  },
+  {
+   "path": "steerability/algorithms/output_control/routed_decoding/routing.py",
+   "sha256": "848afec5c1c88979756d22f2c402c95cf1f2a2afb49aea390c16499a17fda89f"
+  },
+  {
+   "path": "steerability/algorithms/output_control/sasa/__init__.py",
+   "sha256": "85eb37d289863601c07a5d7e971cb8a3a00622c530709ba35b4301b0673a0f66"
+  },
+  {
+   "path": "steerability/algorithms/output_control/sasa/args.py",
+   "sha256": "72110a80f31d8b99e96a9990cd6f82459d67e7e0b459b7ad9178cfce489bea0c"
+  },
+  {
+   "path": "steerability/algorithms/output_control/sasa/control.py",
+   "sha256": "10629f167a09378d8750a9c180fbff0ced6b3484544f12166ec3aaefc1a2906a"
+  },
+  {
+   "path": "steerability/algorithms/output_control/search_decoding/__init__.py",
+   "sha256": "4f9118127e8670bbc54da13ec955f879546b8026f7da1be4fa839d42f0fa2ff1"
+  },
+  {
+   "path": "steerability/algorithms/output_control/search_decoding/args.py",
+   "sha256": "ef1e08733494fa639ba677304f5167bab8e524f3a43aafe933c373614741d832"
+  },
+  {
+   "path": "steerability/algorithms/output_control/search_decoding/control.py",
+   "sha256": "892a09e58a73956492dbd239a585fefc6a238cff6bdf9ecb76accb0e694fea39"
+  },
+  {
+   "path": "steerability/algorithms/output_control/stopping_rules/__init__.py",
+   "sha256": "a8ab36d8721dab99ed3a5bfc8ee53e60aa5e007188fbb961a0a3dbf8085986b6"
+  },
+  {
+   "path": "steerability/algorithms/output_control/stopping_rules/args.py",
+   "sha256": "2b59270e13d9b0a82c90590c87588685b66de65f8a790ce906f8c7c63622cead"
+  },
+  {
+   "path": "steerability/algorithms/output_control/stopping_rules/control.py",
+   "sha256": "125dcfc5697b6ae9cfdaa9b12fa31b4a4e008f148cdc15930bcc29f275ed1121"
+  },
+  {
+   "path": "steerability/algorithms/output_control/value_guidance/__init__.py",
+   "sha256": "0ecb5852c8428bbafea199f264cdf0dd5668cd1ac131f6596fd913f17819c3d2"
+  },
+  {
+   "path": "steerability/algorithms/output_control/value_guidance/args.py",
+   "sha256": "67cd6a576400c868ceabe6fb368b5fb9c4b3af2c4e29c18f65c7b46b31fe66b9"
+  },
+  {
+   "path": "steerability/algorithms/output_control/value_guidance/control.py",
+   "sha256": "079a66051e04aca1dd585b7548e7ac5a65e4b470adf82ca9377a746bf0788c4d"
+  },
+  {
+   "path": "steerability/algorithms/state_control/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/state_control/act_add/__init__.py",
+   "sha256": "617a4ecaa90348669acb1aee5c10bb59cd0047dfe152c74ec6a6b1d7515e8a45"
+  },
+  {
+   "path": "steerability/algorithms/state_control/act_add/args.py",
+   "sha256": "41d94f4bb6ecd23ff2bf28f713e0abdbb97efa6c3af010f6aca036b9b69cfbf4"
+  },
+  {
+   "path": "steerability/algorithms/state_control/act_add/control.py",
+   "sha256": "972217e80837459bd1fb2c06c63821d0b9867f0423fb5c0eacc4e5700b9e7d9a"
+  },
+  {
+   "path": "steerability/algorithms/state_control/activation_adapter/__init__.py",
+   "sha256": "f54a74f8e5134e7249cf81664798a04b74cdcaa8f9a9fdee62b909b3d3f5fc20"
+  },
+  {
+   "path": "steerability/algorithms/state_control/activation_adapter/args.py",
+   "sha256": "3e490e1d3a1423c5d9755e24fb362a2d6f6e9feb4829bc947be1b4ca54ea77e8"
+  },
+  {
+   "path": "steerability/algorithms/state_control/activation_adapter/control.py",
+   "sha256": "52ac89729491d6c705f4b361af999c2db5705dcbfbabbd2657bac3b5ee981942"
+  },
+  {
+   "path": "steerability/algorithms/state_control/angular_steering/__init__.py",
+   "sha256": "fea2d91b46364e287626ba1cc7d79e9d6196909eaec923c8c71e3fc97a985a94"
+  },
+  {
+   "path": "steerability/algorithms/state_control/angular_steering/args.py",
+   "sha256": "0315fcb539c3963e98a332b9bbf22660d81ec5239bd956d6df10554ad7a0f04a"
+  },
+  {
+   "path": "steerability/algorithms/state_control/angular_steering/control.py",
+   "sha256": "889e24ce0855842af9ea96143f0d6de8c0e8ce6ca2b20c63f4f356e0f0b32bfc"
+  },
+  {
+   "path": "steerability/algorithms/state_control/base.py",
+   "sha256": "3ce377832ac3433991b147fd116c2c08589da4fe955368d961172522b93699e7"
+  },
+  {
+   "path": "steerability/algorithms/state_control/caa/__init__.py",
+   "sha256": "ee7ae0eaa1cdffe57e329b88074047005328bac52a63d8a0588b26f24c8b0e46"
+  },
+  {
+   "path": "steerability/algorithms/state_control/caa/args.py",
+   "sha256": "763f283f4391a25e7d16d02597bd9053e448f1e6820fa5b733e47cb1761e2302"
+  },
+  {
+   "path": "steerability/algorithms/state_control/caa/control.py",
+   "sha256": "8baaf4c380b7e7ad139e9a1b56ed7b7b30daa6b1eda77122bb54dc02197aeeef"
+  },
+  {
+   "path": "steerability/algorithms/state_control/cast/__init__.py",
+   "sha256": "bc6dfec735e8e9d7edbfaaaae342c8dbc91ad2ab3b86998f987a77bf9e42da74"
+  },
+  {
+   "path": "steerability/algorithms/state_control/cast/args.py",
+   "sha256": "d86774c90b8f023d48290528b5fc0c47661b832607eb64a54ace9ea1ff87a75b"
+  },
+  {
+   "path": "steerability/algorithms/state_control/cast/control.py",
+   "sha256": "19ef7e473d049108e07ed7958777bae64ab992f1d1b491ac90c140deae51a71d"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/__init__.py",
+   "sha256": "8966637d64b852d04fa91c6007777a73075813c2fd266eaacb57e14bfe27fc9d"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/estimators/__init__.py",
+   "sha256": "4a328d6e9669fa848f15d6d886c9e0644b9b6a83741ba5f77647c8feb443c1f0"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/estimators/base.py",
+   "sha256": "bddf0ef782a2827e140a1020aff5dc94eed1f1489743fa45e4891f174e3a6396"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/estimators/contrastive_direction.py",
+   "sha256": "ae7c3eb3570428807cefab944e10854b93c7c78dff2c92fc50890c72a6e0499c"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/estimators/mean_difference.py",
+   "sha256": "f5118cbad09ced81b85ce1ba36e0980a1b4e5a68017ca90739c4ee840766db9a"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/estimators/single_pair.py",
+   "sha256": "be401b61727c8dcc07723455eb2186430a3f3061722750c2077ba8ae82a8def2"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/estimators/steering_plane.py",
+   "sha256": "99dafdc0d57a7873fbff2be41ebc82666faeee888c0d2db030a20d45d0c93955"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/fit_specs.py",
+   "sha256": "6803de46c2cb08cfafde8a5fada99aa991c211789bb47f06471f0c825ff0b6f6"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/gating.py",
+   "sha256": "9321106670036c89e2ccfac73e28278b0996a63e0b262248230906c5e623b982"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/hook_utils.py",
+   "sha256": "0db417a2908fee5df58f1e4bb6d63a7d2ef9358dacb37ece481bf407104d8181"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/layout_facts.py",
+   "sha256": "5d7f5833b2a1bc5a09c690810ecfbb5c938df43d151edcc930eef265aa0e1174"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/lowering.py",
+   "sha256": "5c882c84d89c2ca972d9109c7a2482e4633c3b8bf401fd6261ceb3ee0111b2c5"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/runtime.py",
+   "sha256": "b0ce6e9344e09ac593e7ba72e5438da50dde92edc731269a7072a6af1d7e1132"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/__init__.py",
+   "sha256": "0a79d81af5ea1db039f9f09f41c59c941282b5a09e38b992dd33aa50a61e1214"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/base.py",
+   "sha256": "fbcf9e492b3c996c022ef636424bb8f321ebece8ec290416dc276a3f4b6fd220"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/condition_point.py",
+   "sha256": "4f9f0a2b780c919ae10f8ccb7f3b03344818aa6b979d499297a3133717fac015"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/fixed_layer.py",
+   "sha256": "f5b1f92d84d4be3cc298d40711d0225f77e48a38bf20e0fc72ee735fa920a28c"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/fractional_depth.py",
+   "sha256": "4c539304c3a0eef1bf217fa8cce0e90b40186a13e2910fb0f58a48322274e4a1"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/top_k_head.py",
+   "sha256": "0e035d802b5c48684e2e5e65077b0b14ad4e3341e8371c180aa3d9eec8919fcb"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/utils/__init__.py",
+   "sha256": "356487627a749727e9e370076716cb0a21ec3f604a0fb3edb53c4ecaa42fbbf6"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/selectors/utils/layer_heuristics.py",
+   "sha256": "9595712e4df093a48a2b901645ad7c3ef320d70780e2fbea6ba28fe8896c08e3"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/sources.py",
+   "sha256": "1d503b8205a05931485a2e364ed839d7252885946015df5b85a3d997aaff67d6"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/specs.py",
+   "sha256": "7af1f58c7347d11d7cc30a5c7aa46c8a735758d9765a8a3f8e4fa075b55a16cc"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/steering_vector.py",
+   "sha256": "00305ac55a076a0e66cc598014e579708835f57cb50d0e1a67e26f2cacf158e6"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/token_scope.py",
+   "sha256": "455af5d2553775cf6f30f98811e2d675c6bd578cc4057f7e1cc326d81ce1da97"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/__init__.py",
+   "sha256": "69aab369d78fe00fb63cef9540dab2b453e175661fce73b88c08807a7590f46c"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/additive.py",
+   "sha256": "355fb851994a0641049037b3d035a6f3c713176800f9891a92e66d8119138689"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/alignment_adaptive.py",
+   "sha256": "1dcdef3a116394ea276a7eed7382d02556eeff4328a14b7a85a03a4faa145d2f"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/base.py",
+   "sha256": "e482c3186d504e6711301b2766f7e88796d863d509f4c7235409d15f03efd2ce"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/context.py",
+   "sha256": "fb6bceb4cc3cf9bf2d989eb7eee2d1f88bf6ffc9a09121442f34ebe71dfc15a2"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/head_additive.py",
+   "sha256": "b9609b63b78df562355a65ccfb03f8a46271e9c8db665a0564b136c00624b001"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/norm_preserving.py",
+   "sha256": "9ea90cda4bd43d17d5ba85759a45035c53651aa0258c1a2e982b8c871786a65b"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/projection.py",
+   "sha256": "d7188ffa80b200c8058454d60944fdf666a9419a86169f5d748c187c6b2e7df4"
+  },
+  {
+   "path": "steerability/algorithms/state_control/common/transforms/rotation.py",
+   "sha256": "199a4cbab40fa015d2b264781eac89177d209394a34f639169ef5bac9d656a0e"
+  },
+  {
+   "path": "steerability/algorithms/state_control/directional_ablation/__init__.py",
+   "sha256": "2ab9c23d15c0825dd6f90a9c1a5841e0bb1eaf6d55b33268e05a9cd1f9bd98a1"
+  },
+  {
+   "path": "steerability/algorithms/state_control/directional_ablation/args.py",
+   "sha256": "ac85a00dd16d0ee0b553051301577e2a4e2860b8395710399921e26d328d343f"
+  },
+  {
+   "path": "steerability/algorithms/state_control/directional_ablation/control.py",
+   "sha256": "355678a412748bbbc31be6808889926ed43d9e1af38eda27fb0aa78c41455aaa"
+  },
+  {
+   "path": "steerability/algorithms/state_control/iti/__init__.py",
+   "sha256": "19356b06470e2bf1026347bda7337eecdf0e2c281732fc90fb0e3e5208060658"
+  },
+  {
+   "path": "steerability/algorithms/state_control/iti/args.py",
+   "sha256": "92eb02f29ff58b776b81e970648915a77dacd9bff084c04f454886fa7c281d4d"
+  },
+  {
+   "path": "steerability/algorithms/state_control/iti/control.py",
+   "sha256": "acc955e54d263630a19270f271df3e972e0eb4c719b4ba2f7a0b2e37cd351f35"
+  },
+  {
+   "path": "steerability/algorithms/state_control/iti/utils/__init__.py",
+   "sha256": "a948c31056457998dd945d38e2e2bd9812197c30b65ca69dbd2bad87ebb9493c"
+  },
+  {
+   "path": "steerability/algorithms/state_control/iti/utils/estimator.py",
+   "sha256": "9d73e651e4fad63b4c866ab08b9d77fa6a024ed879e7ee5c735594b448689b8c"
+  },
+  {
+   "path": "steerability/algorithms/state_control/pasta/__init__.py",
+   "sha256": "91f16484b495c8bef85a7ae6fa2e8f831f97b5758fad14ab3623bdbf6361b0fc"
+  },
+  {
+   "path": "steerability/algorithms/state_control/pasta/args.py",
+   "sha256": "cc004929e264cec8b0206ebaa6cb0987e0638f0ed9361bba0a56c888f6b0f370"
+  },
+  {
+   "path": "steerability/algorithms/state_control/pasta/control.py",
+   "sha256": "05918696ad9eecb3ddbbefbeb1ee56cb52ebaf839c135ce04ae294105e97a5e8"
+  },
+  {
+   "path": "steerability/algorithms/state_control/pasta/profiling.py",
+   "sha256": "f963ce70c8ca81544a4b722356d9c3b3bb68f905a49760c429dd85d6d29d64af"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/base.py",
+   "sha256": "25cdc41caac65c32488e8d58ba6e62b48fc66fccf5fcd54ae66c58202c1178c3"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/load_checkpoint/__init__.py",
+   "sha256": "606d890517b5fd3ac52023000bb976f4708600b8fb85af431b0025f15e6194a5"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/load_checkpoint/args.py",
+   "sha256": "658451db76736ed8c8d4f37702a3d7885f5fe1800780dbdb34063a1142c20b41"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/load_checkpoint/control.py",
+   "sha256": "d5a2a06fd32e5887f9a4deb1dc484c5c7aaa22038fe19e592209d59b09894b38"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/load_lora/__init__.py",
+   "sha256": "259b8371731453ec9bd4ea749efc037cdab760f00dd6f330ae6e01ad6a942c45"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/load_lora/args.py",
+   "sha256": "033c626375cdfbe957e8f01e8b09c77bba3290f3949f433fac6da3036216749e"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/load_lora/control.py",
+   "sha256": "503dd83bd8c6863edba8e1294fd9d8442b11b35d279c7e15a7a61428683f3d22"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/mergekit/__init__.py",
+   "sha256": "4849bfb978b4263adfa0729413b08d9d7cf81db9dbb2f53b9c41c4ca29c023cf"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/mergekit/args.py",
+   "sha256": "120755d57a769222dbd5d0c04a2df0b0d2f97e0ab8b4420dddc03fc6445453f8"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/mergekit/control.py",
+   "sha256": "c370c60c3e8b16ab25b4ff0b8e935581cebb6677fd5936406bfa4db251c2e518"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/__init__.py",
+   "sha256": "3996f327b3659dce8e407ca3c43e7dd82d488006991f793e5242cfcd2df4f24a"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/apotrainer/__init__.py",
+   "sha256": "9dc8e38e03a08a7a46e095b9f7bdf63ccceb0b40885d5c69f7ea7d76726e95ae"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/apotrainer/args.py",
+   "sha256": "725674a02280ab9022d4df3d4fae93afd6fa80a2f7ae17b0a7bd07e37a451b93"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/apotrainer/control.py",
+   "sha256": "680bc5ce7c047a4f2dcdc9be1ad7db6e35b57df56fb65453a950f223c5663c89"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/args.py",
+   "sha256": "1fd4dcbb3d4b4ae9e48c70f98d0d8fc2e10d06413c67e7421d386d32134e3810"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/base_mixin.py",
+   "sha256": "615a71aed20abfcfec96732811d7d4a637c669bd15064711d809272694dc32c6"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/__init__.py",
+   "sha256": "55d97adf697116bd54ed44a13d4b28d6f8ab938353bf3a8d9d6012cd5675a112"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/args.py",
+   "sha256": "812502ecbd6551e63a3002ce2b749303048335564b7c67f8bfd72c82094e8bef"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/base_mixin.py",
+   "sha256": "4789f5bb6565d094694dbdc5a063c9aea7a6592e890dca0aa7f75ce87acebdc1"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/dpotrainer/control.py",
+   "sha256": "48961cb0c03ae8693af8a3c65e2a4472382b41e0b67528f3370ebb9091187d80"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/__init__.py",
+   "sha256": "3b6f5de96e552d825c90239eefc8d79c3b090e6120ee9ff969c77d2539d4a0ef"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/args.py",
+   "sha256": "92af0582531f193bdc573ff6a474857ee4b70902657e2f6f0ef4b0e6e1926320"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/base_mixin.py",
+   "sha256": "431b57754f772d70af318e1fb889d454588dcb73a83b2736df8a307579cb20c8"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/grpotrainer/control.py",
+   "sha256": "7dad8096e6ce484fd19d8333e485571fc4613b75bfe7824a04dd98c9eff95097"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/__init__.py",
+   "sha256": "699bbf4a4c58ec52ede4d015f2ec889a23d789b2417b5a3af879443868268c75"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/args.py",
+   "sha256": "90279bfbb7750a566963d3f254bbfc7d3debda66ef26b610b02e1209da8bfc5f"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/base_mixin.py",
+   "sha256": "53041a3580718cfd2c7e56a9e0137aeff4643a0b5ab15de863f7b4c48d5d706f"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/ppotrainer/control.py",
+   "sha256": "567433d0640230b4365514fb20e6b8351a07f5000a824e9e712f7b745545f72b"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/__init__.py",
+   "sha256": "8b3310ef9559bf71033df311f3cb1fc6658225b8000c6dd3b51cd498bfec709d"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/args.py",
+   "sha256": "f862e22e76a46d9014a57c9fa07a9d0c832bc7d05d1959d809f9ef5888a484cb"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/base_mixin.py",
+   "sha256": "6dfbedc968568906bbc2df58df440675e45eacbf4dd8f958e5731cabb262406c"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/sfttrainer/control.py",
+   "sha256": "d0e4362d54c2e3dc4106f7c65ccdba17ed104843a0abd448064537ec85b68b02"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/utils/preference_schema.py",
+   "sha256": "e1999e94785ea8c2b6e813f7dcba2df6f9b967744e4767e7bc2afc445245e46d"
+  },
+  {
+   "path": "steerability/algorithms/structural_control/wrappers/trl/utils/prompt_schema.py",
+   "sha256": "d2ed1cb2f6c921072ac3d8e9c04794b6f887b775901497c7d422ad6ac15f7fe7"
+  },
+  {
+   "path": "steerability/backends/__init__.py",
+   "sha256": "04e2c5f82ba181fd6db91a351a92ea8a2762836388e6e78b2d2156844402a0cf"
+  },
+  {
+   "path": "steerability/backends/huggingface/__init__.py",
+   "sha256": "8d3165ba7aa82ddd01c1a9d09b43e34d3167e2567392bb37131e2ecdb0f57696"
+  },
+  {
+   "path": "steerability/backends/huggingface/backend.py",
+   "sha256": "f10fd73e3b68145cc16e2316fd1c60ebadc716b6cd46f230d6af144f163e7cb7"
+  },
+  {
+   "path": "steerability/backends/huggingface/session.py",
+   "sha256": "02903d5c90d88769d27f0ccc1f58115c9dd8e16a13f1c028bb223dc3d2a4636b"
+  },
+  {
+   "path": "steerability/backends/vllm/__init__.py",
+   "sha256": "198666c95963af959191046123eed03bf869d8e5d3aa043dadea19237abf1668"
+  },
+  {
+   "path": "steerability/backends/vllm/backend.py",
+   "sha256": "2157c7bf6753b9c9f013ca52481b481af59ce699d4155fa6e87c413264861665"
+  },
+  {
+   "path": "steerability/backends/vllm/capabilities.py",
+   "sha256": "85b97f0763eed48a48d32ae27a0174b041a811bed2e06dc0efddb756b4d51e35"
+  },
+  {
+   "path": "steerability/backends/vllm/environment.py",
+   "sha256": "70cd47aa365d242111c01d5bd5fd17397a7d102341476a1003496e6be8a58616"
+  },
+  {
+   "path": "steerability/backends/vllm/rendering.py",
+   "sha256": "59e6ef88464728d6f5da28e43fd1361d8ee5f006129ed58a9594eac872c38bf0"
+  },
+  {
+   "path": "steerability/backends/vllm/session.py",
+   "sha256": "5594802f2cfd31ec4fe883454d17d3562491a68dbc665bd54a96041fd76f2ef6"
+  },
+  {
+   "path": "steerability/evaluation/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/evaluation/batching.py",
+   "sha256": "69b78c6bbc188a18c73547f42a3c2b6a312580121284d759947bfb46783c95c6"
+  },
+  {
+   "path": "steerability/evaluation/plotting.py",
+   "sha256": "103e6a177ff3a347494611abff3290d8b2c3d15381729f7f9644c834f08bdee3"
+  },
+  {
+   "path": "steerability/evaluation/provider.py",
+   "sha256": "a13b91da5f5a2d8bc83a3969ade148c3878778f9a90c82ace71d399cc5aa2b4f"
+  },
+  {
+   "path": "steerability/evaluation/runner.py",
+   "sha256": "6adc9e5431bbf4c7411f26fb995b331d9d0e713b3ae1721c42c8868abf5d06cf"
+  },
+  {
+   "path": "steerability/evaluation/scorers.py",
+   "sha256": "28649ff8a3410aa41d8a59fe60146730e791d78ca395f9ea9ea17fa6d4083b15"
+  },
+  {
+   "path": "steerability/evaluation/solvers.py",
+   "sha256": "accae745fb6f893450517a86fedd21c834b8f5c0870134f811f1a44e352def5e"
+  },
+  {
+   "path": "steerability/evaluation/suite.py",
+   "sha256": "8c3538a64ba70df9068106f5a12a6aa66da1c46912404100def8818c0f47052d"
+  },
+  {
+   "path": "steerability/spipe/__init__.py",
+   "sha256": "f1a3c1a641108079dd512707b9c7b30b40e406bd0f3511a80d70ea4d791a9b00"
+  },
+  {
+   "path": "steerability/spipe/codec.py",
+   "sha256": "052619327cc1bb6ab254bf6ef0e1d555b3762558181123015226a9a4a04655e8"
+  },
+  {
+   "path": "steerability/spipe/errors.py",
+   "sha256": "14b1da4665793befe0e7f8ed3765c6b2ee9c829bf7399d3641ffff506f050b33"
+  },
+  {
+   "path": "steerability/spipe/format.py",
+   "sha256": "b89ba7e4cb5c4e6be364dc040940a822735808b326ee2c3f566017e296f860bb"
+  },
+  {
+   "path": "steerability/spipe/freeze.py",
+   "sha256": "ced889d7c965e33e521e018e07d539ed65b413b627fe5f56051606cb0ed7f5f0"
+  },
+  {
+   "path": "steerability/spipe/spipe.py",
+   "sha256": "90160060011c5e8b27607c7bc4f54935c1ac164c3dd6f895ae2001ddea81c153"
+  },
+  {
+   "path": "steerability/spipe/store.py",
+   "sha256": "5c4bab4bc95abc1f797ecf6b1a3b1b0584eb68fa7bc36f0d6b93574f935e5753"
+  },
+  {
+   "path": "steerability/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "steerability/utils/answers.py",
+   "sha256": "db445edb6c96bf885a6f73782fa1342863215658c06d3631750f3ad6e16e7f29"
+  },
+  {
+   "path": "steerability/utils/optional.py",
+   "sha256": "ff3951ea89ab2852db9d07da854014930d336ec93fad9cde397afad78e915dbb"
+  },
+  {
+   "path": "steerability/utils/rendering.py",
+   "sha256": "ca18b25fc68b1711226c74935014397f1b4c6534f9a73afc599f74dbabe1a9a8"
+  },
+  {
+   "path": "steerability/utils/thinking.py",
+   "sha256": "e3d968e469480fdd7479537d6f0f6b7120bcb8c69e8eb3b3723bd54228fa124e"
+  },
+  {
+   "path": "steerability/utils/tokenization.py",
+   "sha256": "fdd72332d4709c882e880f16b0e7379160854c6e4d4558e8999049be69692aaa"
+  },
+  {
+   "path": "steerability/utils/verbosity.py",
+   "sha256": "b92129b88c3fff33d229941d34215dfc91b7be4a29456fef96c2714e79b24734"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "714c7cb7488e1b72a54b95fe35497bc850a0c31abb3d2cc3032fbbc36b6fb0a8"
+  },
+  {
+   "path": "tests/controls/test_act_add.py",
+   "sha256": "26c1f2fae959bf92bba65f99f7df2e4a9f3cc43cc789d86a7e3e13ee8f300f3b"
+  },
+  {
+   "path": "tests/controls/test_activation_adapter.py",
+   "sha256": "5644c3d444853564e2c605bc8a03cd2c0c2d895e96493578f61c7859da85f1ef"
+  },
+  {
+   "path": "tests/controls/test_after_prompt_semantics.py",
+   "sha256": "0503901e260070a5701776796df7ebce98a8fa3c952a965a2dee753d6d03031a"
+  },
+  {
+   "path": "tests/controls/test_angular_steering.py",
+   "sha256": "e2524307dadb22b380aa20d462f0d9e2c9748400c0c86fc5410853298dfe8dcb"
+  },
+  {
+   "path": "tests/controls/test_best_of_n.py",
+   "sha256": "7784e2e3820c6a213c10add2e160d155e48d042d75021c702afa77466b05a585"
+  },
+  {
+   "path": "tests/controls/test_budget_forcing.py",
+   "sha256": "00bc29dd29d206e3e8fec849843ee0d23115603c96c7e74da163737814e6fa38"
+  },
+  {
+   "path": "tests/controls/test_cast.py",
+   "sha256": "56add4cd108f782a752be18e7dc9dfaedc26fc4a578cee22e0311676c5fa9fba"
+  },
+  {
+   "path": "tests/controls/test_cast_conditional.py",
+   "sha256": "a22259cd4108a8cdcf87837b4874c32e98426f9af2acab7fd30a1f33e37382b5"
+  },
+  {
+   "path": "tests/controls/test_condition_point_reuse.py",
+   "sha256": "19e3bc8b50aeed75747b1e77c3d31c0ae0a59fc63fb0661d6da6526a923cba4b"
+  },
+  {
+   "path": "tests/controls/test_condition_selector.py",
+   "sha256": "0b2d29188f1aca97a78ef9c14baa325104befcc7ccc3a1c2421f8b679fdde39f"
+  },
+  {
+   "path": "tests/controls/test_constrained_decoding.py",
+   "sha256": "12c232b5bd7460c583ce0f02c63c8a3887aae167e5dcb9bbebfffd0053415ba9"
+  },
+  {
+   "path": "tests/controls/test_contrastive_decoding.py",
+   "sha256": "bb6ad8836c04708cc7fdfe204d4ebfc280db7bc424cd2d3c93455862ce7ff21f"
+  },
+  {
+   "path": "tests/controls/test_contrastive_estimator.py",
+   "sha256": "6478ff2b6d8e19e97cd2f05bb714ea3d6c3555c86610c499ae6270c76f0ec9c3"
+  },
+  {
+   "path": "tests/controls/test_cpo.py",
+   "sha256": "d6ed6de65ca35f56227c691ac92bd418369c8d820dd02259b23b81ffe227d041"
+  },
+  {
+   "path": "tests/controls/test_deal.py",
+   "sha256": "d0e8f6b168878d51c6ed14168b49f39ec0e07c67e78c80862126833386960074"
+  },
+  {
+   "path": "tests/controls/test_dexperts.py",
+   "sha256": "0f3776189a4e680e26a5e11fa75a7be513da9be467d89006deaa53031fffe56d"
+  },
+  {
+   "path": "tests/controls/test_directional_ablation.py",
+   "sha256": "8c80d6101388323c08da970bfc0408ae5302d1571c5b3f4063ed67dd69a272ee"
+  },
+  {
+   "path": "tests/controls/test_dpo_wrapper.py",
+   "sha256": "a2ff7461a80c9bc5fd75ef51bbddc151c88c5157951b2417914ba9c623a356b9"
+  },
+  {
+   "path": "tests/controls/test_driver_candidates.py",
+   "sha256": "869eb94748937a9dd5e9a6e34e3a471f360cc6dfaf7eeb785da62e5bf86d08dc"
+  },
+  {
+   "path": "tests/controls/test_epr.py",
+   "sha256": "2db407895ef692d1fb56325e80fabdae9c71ccc714c946456f2cd73343e43e4c"
+  },
+  {
+   "path": "tests/controls/test_estimator_pooling.py",
+   "sha256": "354f35627512997c1c8f86443731a6176396a787f9d72704136e24f1f96a65ea"
+  },
+  {
+   "path": "tests/controls/test_few_shot.py",
+   "sha256": "6f26fde2b2c58ad6242f3ea96a995923686aa8bcc68d6fcb4b13368f59a2287f"
+  },
+  {
+   "path": "tests/controls/test_gating.py",
+   "sha256": "572415bc7801754090bb4830e7773b7a9f5487a9b6d2e486576fc03158f3113a"
+  },
+  {
+   "path": "tests/controls/test_gemma3_steering.py",
+   "sha256": "69ad4093e04b184464687110885c543740df7782188a60a551f0bb1f3d66d644"
+  },
+  {
+   "path": "tests/controls/test_generic_output_controls.py",
+   "sha256": "e7564ad3215c446c800d504f5564acf89bbfcc679fd7f95d435ac7820828925e"
+  },
+  {
+   "path": "tests/controls/test_gepa.py",
+   "sha256": "22f5e3fd36b90489713c86b9cc607ff98c819d8b06180e690a8fe33bfaa748c5"
+  },
+  {
+   "path": "tests/controls/test_grpo_wrapper.py",
+   "sha256": "3598e14ad48b77464cc2512fcd13731930d441f0620c227dc055cd02bef11a56"
+  },
+  {
+   "path": "tests/controls/test_hybrid_attention_steering.py",
+   "sha256": "edb1d542436d63f812eadbb192206011526f22ad4a2cbebeddb04a02ac905bc8"
+  },
+  {
+   "path": "tests/controls/test_input_control_common.py",
+   "sha256": "67ded3c65a0335d6e3191053a4d7bad0ecbd3cfd9e13f3888ae0d39a7f39905b"
+  },
+  {
+   "path": "tests/controls/test_intervention_export.py",
+   "sha256": "6feacc9266892e38e4f51c9f76f05a23dcec19231edbf64509b6e563d91ef59f"
+  },
+  {
+   "path": "tests/controls/test_intervention_ir.py",
+   "sha256": "b1f4a755e4e45212a84ab36a5bfd5ca7cc169fb24a54cb6ed0fcd3a6897e7c0a"
+  },
+  {
+   "path": "tests/controls/test_iti.py",
+   "sha256": "9364441ee3cef9cdcb677e7e9358982a8d452ec7707b2e04bdd7db8599dbbfcf"
+  },
+  {
+   "path": "tests/controls/test_layout_facts.py",
+   "sha256": "dd82b84225b0143bd36378a6f4c13e2915bba24b95cc8e66c01777ec4661203d"
+  },
+  {
+   "path": "tests/controls/test_load_artifact_controls.py",
+   "sha256": "809925917b33fb6a881e49914ed0003a427ae6ffbac83ebf2dac14af6310b6f1"
+  },
+  {
+   "path": "tests/controls/test_lora_composition.py",
+   "sha256": "9e74568483a2e824f2c9181e04e033944090b75b669af0310cbb9c1ef32e1965"
+  },
+  {
+   "path": "tests/controls/test_lora_target_scoping.py",
+   "sha256": "6482b43caa6899365c8dc1d515c27d632ff4223d1e26fb442c412a02b995b329"
+  },
+  {
+   "path": "tests/controls/test_max_rollouts.py",
+   "sha256": "81fc7720da2eb3d8cac385239817232d74e2f7e801bc81e254f5a8aed476ac58"
+  },
+  {
+   "path": "tests/controls/test_model_free_steer.py",
+   "sha256": "a647847a43db12ca9b0d459ccd3c6a69985d0d52d0c2fd370641f3fdda70dde6"
+  },
+  {
+   "path": "tests/controls/test_model_layout.py",
+   "sha256": "ce9d772381df9e07df73c138c138a5bd4eedebeefa0fc564fca94065e1f9bb3b"
+  },
+  {
+   "path": "tests/controls/test_output_common.py",
+   "sha256": "26c58ff63eca5f1600e93398103e2688e9659157ee0f5ef36c0ddd807431696b"
+  },
+  {
+   "path": "tests/controls/test_output_ports.py",
+   "sha256": "1c0b36f00ad1c798ac7b854b261b39efd03fb0e9314c59b47a70052a5b6573b4"
+  },
+  {
+   "path": "tests/controls/test_pass_accounting_composition.py",
+   "sha256": "5475827b4352deadb7ab6b95aa870bb7f2739e203e9bcf27c0976de9bc2c4c41"
+  },
+  {
+   "path": "tests/controls/test_pasta.py",
+   "sha256": "575bbe3baf6d00df2f4a9a21c6ebf781e40625a927d89294657f838ae57f841b"
+  },
+  {
+   "path": "tests/controls/test_pasta_alignment.py",
+   "sha256": "dd25922dcb88dd87c5b3f36673aedbb822a2e5d9e55cea902cf3e253e9401fc2"
+  },
+  {
+   "path": "tests/controls/test_phased_driver_batching.py",
+   "sha256": "123b16626def051e4a80bbcd09079b6b6cd6030fba6a340e26c2dc0478eb0f05"
+  },
+  {
+   "path": "tests/controls/test_phased_token_boundaries.py",
+   "sha256": "8fd30feaac03d5eef86cac85f6a36f7c11ecf7028b97c9884c2ebf4284bbf374"
+  },
+  {
+   "path": "tests/controls/test_position_tracking_goldens.py",
+   "sha256": "a53f4caba9c3797be346bf50d76e7ad3b8b90394ae5ee540de85ddba648065b0"
+  },
+  {
+   "path": "tests/controls/test_ppo_wrapper.py",
+   "sha256": "2015ba57ee6898fcfebd5ad6adb8a11c827309d1b47e3c81994ee44ab2d284d4"
+  },
+  {
+   "path": "tests/controls/test_preference_schema.py",
+   "sha256": "9c2ee20092ca171642c1155b1867701d78bcd0549342ebb65c8a570e59551c31"
+  },
+  {
+   "path": "tests/controls/test_prewrite.py",
+   "sha256": "0f076f85262b7621c1772f5f975e536f9fc0226c817e6402b034a24553267593"
+  },
+  {
+   "path": "tests/controls/test_probe_condition.py",
+   "sha256": "a2a7a4db9663880e55d167c9a5c7831a5beb995e8a43dbbd2576b592659712fc"
+  },
+  {
+   "path": "tests/controls/test_rad.py",
+   "sha256": "2127bed6e8e2627da9ba1a3c79363ea0559fef53080f636fb515184bcf3a8e48"
+  },
+  {
+   "path": "tests/controls/test_rad_reward_training.py",
+   "sha256": "842b720af29da7e354e630ca018a02c3cd7481f6d14be62c0087969ddfef8aef"
+  },
+  {
+   "path": "tests/controls/test_render_parity.py",
+   "sha256": "c0396f21c5ae572aa790be9cb5bd01adc169aaf24528e957c797c6e50713be1c"
+  },
+  {
+   "path": "tests/controls/test_residual_norm_calibration.py",
+   "sha256": "031a162f2700d772bf104ad2ae9c7a888d3810d6ce0c63edab1b6d81ef860520"
+  },
+  {
+   "path": "tests/controls/test_routed_decoding.py",
+   "sha256": "3575f27e39293a63dcdfda3bc82aa166f99875b23e3e2b4f243f4eadaf214025"
+  },
+  {
+   "path": "tests/controls/test_routing.py",
+   "sha256": "fbc30f457ec6a9e9a86927e49a00b86af423de6434deafbbc373b8130fac95c9"
+  },
+  {
+   "path": "tests/controls/test_runtime_opener_offset.py",
+   "sha256": "ee33f2be635ac86cde96638bcab7f71b067d84aa8af27ec0a41228af92014ecd"
+  },
+  {
+   "path": "tests/controls/test_sasa.py",
+   "sha256": "308f945457856310cb2dd55a606a4603d08b0028f88fbfe09fb632ace29f56d6"
+  },
+  {
+   "path": "tests/controls/test_scores_helpers.py",
+   "sha256": "9a1b7c7219ff7d72a554ca561013b3efce353d973544fe2cf32e68838f22f5fb"
+  },
+  {
+   "path": "tests/controls/test_search_driver.py",
+   "sha256": "197f742dfaa54f5e5e8e6b46f249be3b44d9d322886882cbf8f56c747653d003"
+  },
+  {
+   "path": "tests/controls/test_search_driver_reward_params.py",
+   "sha256": "9bcd81f5d925ca05d26a1d8f5ebc1e0e28eb9dc8350a316efed2294fcc556ee0"
+  },
+  {
+   "path": "tests/controls/test_search_frontier.py",
+   "sha256": "ed0efd329d05e12adcdb6421f7e9209d08ec8e4c7b9ecc801b030da63d1bf183"
+  },
+  {
+   "path": "tests/controls/test_sources.py",
+   "sha256": "602fc080505ce8c78060d72f7c131a9da22ba34d2fffcf6b1ff20f4d385440a4"
+  },
+  {
+   "path": "tests/controls/test_spipe_freeze_input.py",
+   "sha256": "16ac1d6fc7329c8e739721c2654cb05da5b446b4d83db7b12c42c77d9c8b69ba"
+  },
+  {
+   "path": "tests/controls/test_spipe_freeze_state.py",
+   "sha256": "107267afcc5334d013b9ab19ab3414e267c513731462f419fad82b4304425822"
+  },
+  {
+   "path": "tests/controls/test_spipe_freeze_structural.py",
+   "sha256": "759b55803d8869246c009a7a3033e07e5183da7d90cedeec3e09743210b76410"
+  },
+  {
+   "path": "tests/controls/test_state_common.py",
+   "sha256": "fe14a9d8692fe9617c9b52f4ae7e2eb241dd004c54621efcfde549ec757e4639"
+  },
+  {
+   "path": "tests/controls/test_system_prompt.py",
+   "sha256": "6c0013e62a7f7573cc2bf684f44e4c23a11dad12cd2bfc0a6d16e61750496e7f"
+  },
+  {
+   "path": "tests/controls/test_transform_hook_runtime.py",
+   "sha256": "7187d0acf2d7d8580c6dc5a7bb42f91e278b1b51880807da4cf3e3fa48e0e202"
+  },
+  {
+   "path": "tests/controls/test_trl_release.py",
+   "sha256": "92afbbb6d252d035b7be340e58bee2fc5233c906284b4760d0044348f34b1042"
+  },
+  {
+   "path": "tests/controls/test_trl_resume.py",
+   "sha256": "18f2d14839656049dbd940520fc27600e418ec4fd13771cb9395461f6a37a9cd"
+  },
+  {
+   "path": "tests/controls/test_trl_training_args.py",
+   "sha256": "5bb9d5487be6906bf7029bda329b7ce3f6bcbe401a48e14bb555c8976c802db4"
+  },
+  {
+   "path": "tests/controls/test_user_prefix.py",
+   "sha256": "73ad7f484895eef5c430dde3121a20d122521e64e6fee4439612a2e04c91d33e"
+  },
+  {
+   "path": "tests/controls/test_vector_ownership.py",
+   "sha256": "715e36ed167b07036faf9dd9f82c15868ea7ee3d4500d3a9298a84456cdf7971"
+  },
+  {
+   "path": "tests/core/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/core/test_attention_mask_inference.py",
+   "sha256": "ca68bedbc3bc6cc7e7a809a1eb627afcae29f271c1ce6c44d36cb3a65f9c47e8"
+  },
+  {
+   "path": "tests/core/test_backend_execution.py",
+   "sha256": "fc567d4a9d7a5318d63b0b9587352f41165977d93827de5830d9d8216c14075f"
+  },
+  {
+   "path": "tests/core/test_backend_seam.py",
+   "sha256": "3411a45ff2fa1e78a7123e41ae0184cd99252596039fa04d62f7bb2c16562b11"
+  },
+  {
+   "path": "tests/core/test_base_args.py",
+   "sha256": "8566f0c984bd3f395e7ae8f1edacc6f0702ae5a5e7bfa20f85f73aa56e21e01a"
+  },
+  {
+   "path": "tests/core/test_base_control.py",
+   "sha256": "68aae8d353dcc98ee5a8ac3a13156cc8e761f5b6751433f04599c4d4b1eba797"
+  },
+  {
+   "path": "tests/core/test_capture_sessions.py",
+   "sha256": "0f2bca35c36e99619c9a89d50b8f72e04322e7e4671221257677bef74169a94e"
+  },
+  {
+   "path": "tests/core/test_construction_semantics.py",
+   "sha256": "e04c0b9d4ec89ec389f8ff1994cce1ce029532bebf19da8d6f4d89d60ef96dbf"
+  },
+  {
+   "path": "tests/core/test_controls.py",
+   "sha256": "61a3a799809e3b943008b422af9680e75dd5d80f58149e61a5188a9eba2d85e9"
+  },
+  {
+   "path": "tests/core/test_data_specs.py",
+   "sha256": "c14fa1ee94034507c4633d9841c15e32577218c4009ce6949d58ed4379810984"
+  },
+  {
+   "path": "tests/core/test_declarative_phases.py",
+   "sha256": "8a9ee13054390fc83605ebeb26f1027d4ffa82b03d36f4364091411df5f94e55"
+  },
+  {
+   "path": "tests/core/test_docs_nav.py",
+   "sha256": "2d5a1a5390be4b7579c72907e365f5087de8c82283eff1dd92bbb018f557b799"
+  },
+  {
+   "path": "tests/core/test_driver_rollout_anchor.py",
+   "sha256": "4c34264024f4ec6890a22b52822ed0b35a7fdb4e12b62b8a6c42b7ecb7b563aa"
+  },
+  {
+   "path": "tests/core/test_environment.py",
+   "sha256": "e905eeeb038605fb910b82955563b1da1e81f82cdffd8ddcc14e16d8377496cd"
+  },
+  {
+   "path": "tests/core/test_exclusive_session.py",
+   "sha256": "c8c3e1a6782f422a44d5b397f860ee9f57c127ca90653ac40cf7eaf6bbf237f8"
+  },
+  {
+   "path": "tests/core/test_generate_padding_alignment.py",
+   "sha256": "bcd052cea8287ae3ec195b16c432a2743de51711e771cd3ab0b1cd3003c3620f"
+  },
+  {
+   "path": "tests/core/test_generate_source_methods.py",
+   "sha256": "0b7010d3404dc13caeb22edf7c4bc52312d7271039a62739f4e759d810ec5bb6"
+  },
+  {
+   "path": "tests/core/test_generated_tokens.py",
+   "sha256": "57420f8f261bb061955c9f810be497215e261796c3e8e8468207eacd448a506a"
+  },
+  {
+   "path": "tests/core/test_identity.py",
+   "sha256": "29a8705012cf0207ab6f6df1146daa56e2fbc08c4d405611f2a775b613337f1d"
+  },
+  {
+   "path": "tests/core/test_input_structural_multiplicity.py",
+   "sha256": "f6372430558b962352844d87865a2e301d527cee364efb21a5b84cef8d2ab270"
+  },
+  {
+   "path": "tests/core/test_intervention_lowering.py",
+   "sha256": "4ad0fe6d59e5254dfa0583bbdf67d986b7a9e680c44810d8212368510c6bc985"
+  },
+  {
+   "path": "tests/core/test_merge_controls_identity.py",
+   "sha256": "7885f0a50a8b304527e4217818b53d913a41776b74edb5e895715992e3f05530"
+  },
+  {
+   "path": "tests/core/test_model_access.py",
+   "sha256": "6516da4c060abfcec2202c1ff64c351d80480f64217ff74981c7ea7455595cbf"
+  },
+  {
+   "path": "tests/core/test_no_production_shadowing.py",
+   "sha256": "f2e713f01a2ff94d8830b6bfd1b889fe35aa624c6f1ab1e55799c8601a8d54cf"
+  },
+  {
+   "path": "tests/core/test_optional_deps.py",
+   "sha256": "9c044db54dac430e998f2e331f9bad682dae98e7c6b9ceac5f5e1ace7279a043"
+  },
+  {
+   "path": "tests/core/test_output.py",
+   "sha256": "490064b417f8aa20e2c79323d936e811eaea694604c169ba8d4e61ba0c6ada40"
+  },
+  {
+   "path": "tests/core/test_output_mechanisms.py",
+   "sha256": "ae1384ec76f48efe9430aa86b4f508aeb83cfdb6ac16ec6bb7754254402dff36"
+  },
+  {
+   "path": "tests/core/test_polymorphic_generate.py",
+   "sha256": "a5bc487ec0b9aca77c5780a4bae49039d83cc15a407fe3f3bfe073f1c61e9a6b"
+  },
+  {
+   "path": "tests/core/test_registry.py",
+   "sha256": "ecf78b9e748dfdf469a76495a612e528b78976f051c1e20eee3bc35e3952bc61"
+  },
+  {
+   "path": "tests/core/test_runtime_kwargs_schema.py",
+   "sha256": "fb4ef09af3c302865930d7891578c0a3dc1853a56f15d6f733986bcc88f5aa64"
+  },
+  {
+   "path": "tests/core/test_spec_hook_equivalence.py",
+   "sha256": "c885f96dbf538362509d14efcbc3ccadc1b37a9cd9c5fa3ebe1f23815ed97341"
+  },
+  {
+   "path": "tests/core/test_spipe_codec.py",
+   "sha256": "00b741ac20a56c092b096572fc611b749058e2b96378f39258f21c906654d8aa"
+  },
+  {
+   "path": "tests/core/test_spipe_format.py",
+   "sha256": "a50df0dbe368b1505dee87aef8a30845f7a8982301d7af42312c2bea0022a7e3"
+  },
+  {
+   "path": "tests/core/test_spipe_identity.py",
+   "sha256": "b5ead1cad17f6a2426f3d3284199f64f556d109eb410f1499e195e06ea4727ca"
+  },
+  {
+   "path": "tests/core/test_spipe_recipe_only.py",
+   "sha256": "1234add6d13b6527d638421417f26a768eb03cdf64060586c063339ae97acdc2"
+  },
+  {
+   "path": "tests/core/test_spipe_store.py",
+   "sha256": "86f44b5025b7979cfc68c4cf1193abb7bc0e11264800937dc86897f9a3b2f080"
+  },
+  {
+   "path": "tests/core/test_staged_steer.py",
+   "sha256": "83d04550b0b1dfef3e035e376e6b3f0b50e43976442a12fabc4e33d33c1e178c"
+  },
+  {
+   "path": "tests/core/test_state_multiplicity.py",
+   "sha256": "059fd99efacdf0fb65d54cdb240fa14388769c36909cf610884b1482b5aa2257"
+  },
+  {
+   "path": "tests/core/test_steer_plan.py",
+   "sha256": "16e5ce1fae6cf42d4be3b24e90727fd153853bb2f2464561a860744d52b14ccd"
+  },
+  {
+   "path": "tests/core/test_steering_pipeline.py",
+   "sha256": "138e4ffcf53494d9cd1335bf909b88b7e8631db1dd7e0f305f22e7564409e5f6"
+  },
+  {
+   "path": "tests/core/test_steering_utils.py",
+   "sha256": "ca0843a3680db287692241c47f8f81ccded329271449919bc090ae4c9cdff802"
+  },
+  {
+   "path": "tests/core/test_sweeps.py",
+   "sha256": "f1fe4e1ea35296fb7d3f5b7c9b7696257ec07799b8521aa2f90c6e4c2c88bfdd"
+  },
+  {
+   "path": "tests/core/test_trust_remote_code.py",
+   "sha256": "4e2677311ee99e7ba9cd3864fd2a75ebfc07543e69efe1f9b848b03a1f55ebf9"
+  },
+  {
+   "path": "tests/core/test_verbosity.py",
+   "sha256": "0632e3693a6c373b451cf73e0226e70bafffbab7e3bb0845c92a7b97dac5a244"
+  },
+  {
+   "path": "tests/core/test_version.py",
+   "sha256": "f20df670397432deeffe981bd2232f20a95eeec66657f8a95e5917759e8d6653"
+  },
+  {
+   "path": "tests/core/test_vllm_backend_construction.py",
+   "sha256": "ef1dd5905dd1343b6052c1685dc5437247664ca38c74dbbe24bcdcf630c5195b"
+  },
+  {
+   "path": "tests/core/test_vllm_engine.py",
+   "sha256": "05d2e35dd3c50e10c996af29de762326213aef0f406a860a11ee8121b13c8b32"
+  },
+  {
+   "path": "tests/core/test_vllm_engine_environment.py",
+   "sha256": "bf6632d5ec7f5fa1caf11e978da2c615624325afc3e63e94fb0100795f161019"
+  },
+  {
+   "path": "tests/core/test_vllm_plugin_engine.py",
+   "sha256": "bab515e96260e235a190e2608002a4a90952d152c4632784b1defc1a46e23847"
+  },
+  {
+   "path": "tests/core/test_vllm_release.py",
+   "sha256": "818afebcdfd88cfb41b8dc8b9f20a752da93c78b711116c7249d77d50d80f04d"
+  },
+  {
+   "path": "tests/core/test_vllm_serve_backend.py",
+   "sha256": "50d25674d44370b14d937410c17628b9de4fff21259acba499d7953373989568"
+  },
+  {
+   "path": "tests/evaluation/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/evaluation/conftest.py",
+   "sha256": "3f01db39f2c209457d4bbed91fc275e044274076a356a6783337b4a70bf7ba82"
+  },
+  {
+   "path": "tests/evaluation/test_batching.py",
+   "sha256": "f6bad2cfcf647f7e682b3bea878e925d7928aa6cb9e93778bde52a8ca12cf0bb"
+  },
+  {
+   "path": "tests/evaluation/test_frames.py",
+   "sha256": "0d77faff9a7c139abbe877033a8771cf1ee41b05f5f147ae500e9d406dbce9af"
+  },
+  {
+   "path": "tests/evaluation/test_inspect_integration.py",
+   "sha256": "a9af79de8c90702e9a6bb6fc8d8382ed0f1d219c46514735ebb96ebb08dea759"
+  },
+  {
+   "path": "tests/evaluation/test_instruction_following_task.py",
+   "sha256": "d3ad6d76c4703f6fa0a78f3afcbdb4489f1f7441fac14bca4d8004ce7e0801c8"
+  },
+  {
+   "path": "tests/evaluation/test_plotting.py",
+   "sha256": "4e182bb3b52fde55d319dbc97eccbb66328f1c59deeb8964980eea0f05c7a57a"
+  },
+  {
+   "path": "tests/evaluation/test_provider.py",
+   "sha256": "5eabce5a0a01ba0c12d82c933ea8301d1b509de450209440281d0f0e1ca7a90d"
+  },
+  {
+   "path": "tests/evaluation/test_runner.py",
+   "sha256": "0a2d327ea279818ef5870dc2fd520d6b977ebd839a81f191a38ba3f3b1f8ec58"
+  },
+  {
+   "path": "tests/evaluation/test_samples_frame.py",
+   "sha256": "38ed4715fd49a5bdad9271aefd7a4665c48492ea276828ba46451cb0b25a6a9c"
+  },
+  {
+   "path": "tests/evaluation/test_scorers.py",
+   "sha256": "c75de388144a48bdc2f2cc38ed20a64cdc400d637d29b632c249efbcedb59847"
+  },
+  {
+   "path": "tests/evaluation/test_suite.py",
+   "sha256": "7cdb920ce45317104b4d692df1026977105377d0ab8f590768d2b178ead613c1"
+  },
+  {
+   "path": "tests/internals/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/internals/test_capture_move.py",
+   "sha256": "274d137182190f7bbfe7a65770e61cd5c35e85f4a7b1f6d2978651e2b40f1e36"
+  },
+  {
+   "path": "tests/internals/test_encoding.py",
+   "sha256": "ed688901267fc94366603ddd9c9a52e7fec52f303ada6a57320e714527a2a6ca"
+  },
+  {
+   "path": "tests/internals/test_fingerprint.py",
+   "sha256": "74f500efa4288058b2d1d9d0871ac80ba247189987ce8a068b3034632cf8577c"
+  },
+  {
+   "path": "tests/internals/test_fitting.py",
+   "sha256": "c8c2a103e5b20742f388922914725fd0051d7695ca558cd43a005355db94c37b"
+  },
+  {
+   "path": "tests/internals/test_layering.py",
+   "sha256": "d49defc98c0ffa20b67b53cca0b6f9c26f0415b546e49e259628484cd68af97a"
+  },
+  {
+   "path": "tests/internals/test_pooling.py",
+   "sha256": "5291927c7273386aacbd57cdfc152cc1c4b3c5285f1349f3ea7ca5a1be4f293f"
+  },
+  {
+   "path": "tests/internals/test_probe.py",
+   "sha256": "39b8973c0f11b5fcff5bf7c06e1795ab16686b1ff43cca5576631e2167e16540"
+  },
+  {
+   "path": "tests/internals/test_probe_evaluation.py",
+   "sha256": "d91335da346a696f5a81ea03b2e3ca83b82aab9da55c4120552318b00abbe2f5"
+  },
+  {
+   "path": "tests/internals/test_probe_set.py",
+   "sha256": "dc2b852ed7d306d667dede72c9352ad07f3a5c8597357b69c6d520869e8ed427"
+  },
+  {
+   "path": "tests/internals/test_stats.py",
+   "sha256": "ae6d5ec37fe426853af6ba5b914fee3e928304628ad02af73e19d597fc3347a3"
+  },
+  {
+   "path": "tests/internals/test_venue_identity.py",
+   "sha256": "e2cb86caca476a419493f442bfce77ed9c05507e7b9d4678992eb1505920d312"
+  },
+  {
+   "path": "tests/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/utils/load_ci_models.py",
+   "sha256": "ea97ed6bb3e9b85b66dca278918dd92a154d209a67b744719e8822987d06d1aa"
+  },
+  {
+   "path": "tests/utils/runtime_helpers.py",
+   "sha256": "4871de94ef2aede12ebb755613c1c581ee565024d6456b945113ce8129622e1a"
+  },
+  {
+   "path": "tests/utils/sweep.py",
+   "sha256": "ddaa837ed8394c2e82cf32596b43563b41f59b8e17268ccc89f6d427643b7285"
+  },
+  {
+   "path": "tests/utils/test_answers.py",
+   "sha256": "812b12fa500aa8e62ce54189b5be78fde58b84ec77cf9590e15ad5bd772f2c3a"
+  },
+  {
+   "path": "tests/utils/test_thinking.py",
+   "sha256": "21c46842da798d2bc7935695a6bfdf0b1b7531636646be95f8506fc76d60a8cb"
+  },
+  {
+   "path": "tests/utils/tiny_models.py",
+   "sha256": "6094ace3299439aea2f4ea6d91c6c6569294df5864725290b5eee0a5c93cd1b3"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 1313668
+}

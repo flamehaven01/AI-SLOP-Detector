@@ -1,0 +1,399 @@
+{
+ "repo": "Pancakes-Labs/astrbot_plugin_proactive_chat",
+ "dir": "Pancakes-Labs__astrbot_plugin_proactive_chat",
+ "commit": "77a1d408ccd003a9d34ad4f51acfb8fc17bc35f5",
+ "estimate_commit": "77a1d408ccd003a9d34ad4f51acfb8fc17bc35f5",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".devin/wiki.json",
+  ".gitattributes",
+  ".github/ISSUE_TEMPLATE/bug_report.yml",
+  ".github/ISSUE_TEMPLATE/design.yml",
+  ".github/ISSUE_TEMPLATE/discussion.yml",
+  ".github/ISSUE_TEMPLATE/docs.yml",
+  ".github/ISSUE_TEMPLATE/feature_request.yml",
+  ".github/PULL_REQUEST_TEMPLATE.md",
+  ".github/dependabot.yml",
+  ".github/workflows/release.yml",
+  ".github/workflows/ruff-format.yml",
+  ".github/workflows/shit-mountain.yml",
+  ".github/workflows/stale.yml",
+  ".gitignore",
+  "CHANGELOG.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "README.md",
+  "README_EN.md",
+  "README_JP.md",
+  "__init__.py",
+  "_conf_schema.json",
+  "admin/css/style.css",
+  "admin/fonts/outfit-400.ttf",
+  "admin/fonts/outfit-500.ttf",
+  "admin/fonts/outfit-600.ttf",
+  "admin/fonts/outfit-700.ttf",
+  "admin/fonts/outfit-800.ttf",
+  "admin/fonts/outfit.css",
+  "admin/index.html",
+  "admin/js/app.jsx",
+  "admin/js/components/config/ConfigRenderer.jsx",
+  "admin/js/components/layout/Header.jsx",
+  "admin/js/components/layout/Sidebar.jsx",
+  "admin/js/context/AppContext.jsx",
+  "admin/js/hooks/useApi.js",
+  "admin/js/hooks/useWebSocket.js",
+  "admin/js/utils/auth.js",
+  "admin/js/utils/formatters.js",
+  "admin/js/utils/http.js",
+  "admin/js/utils/markdown.js",
+  "admin/js/views/ConfigView.jsx",
+  "admin/js/views/MarkdownDocsView.jsx",
+  "admin/js/views/NotificationsView.jsx",
+  "admin/js/views/StatusView.jsx",
+  "admin/js/views/TasksView.jsx",
+  "assets/PluginRank.svg",
+  "assets/ShitMountain.svg",
+  "assets/StarRank.svg",
+  "core/__init__.py",
+  "core/adapters/__init__.py",
+  "core/adapters/astrbot_conversation.py",
+  "core/adapters/astrbot_event.py",
+  "core/adapters/astrbot_platform.py",
+  "core/adapters/astrbot_provider.py",
+  "core/adapters/event_handlers.py",
+  "core/console/__init__.py",
+  "core/console/api_routes.py",
+  "core/console/realtime_channel.py",
+  "core/console/runtime_server.py",
+  "core/console/state_builder.py",
+  "core/console/token_auth.py",
+  "core/domain/__init__.py",
+  "core/domain/content_text.py",
+  "core/domain/context_block.py",
+  "core/domain/delivery_report.py",
+  "core/domain/domain_enums.py",
+  "core/domain/llm_outcome.py",
+  "core/domain/prompt_block.py",
+  "core/domain/request_context.py",
+  "core/domain/session_config.py",
+  "core/domain/session_key.py",
+  "core/features/__init__.py",
+  "core/features/context/__init__.py",
+  "core/features/context/conversation_source.py",
+  "core/features/deliver/__init__.py",
+  "core/features/deliver/split_delivery.py",
+  "core/features/feature_base.py",
+  "core/features/feature_manifest.py",
+  "core/features/gating_feature.py",
+  "core/features/prompt/__init__.py",
+  "core/features/prompt/single_prompt.py",
+  "core/features/record/__init__.py",
+  "core/features/record/history_writer.py",
+  "core/features/review_feature.py",
+  "core/pipeline/__init__.py",
+  "core/pipeline/feature_registry.py",
+  "core/pipeline/flow_context.py",
+  "core/pipeline/flow_orchestrator.py",
+  "core/pipeline/hook_registry.py",
+  "core/pipeline/pipeline_runner.py",
+  "core/pipeline/stage_protocol.py",
+  "core/remote/__init__.py",
+  "core/remote/notification_center.py",
+  "core/remote/telemetry_manager.py",
+  "core/services/__init__.py",
+  "core/services/config_service.py",
+  "core/services/context_service.py",
+  "core/services/lifecycle_service.py",
+  "core/services/llm_service.py",
+  "core/services/scheduler_service.py",
+  "core/services/sender_service.py",
+  "core/services/session_service.py",
+  "core/services/storage_service.py",
+  "core/store/__init__.py",
+  "core/store/override_store.py",
+  "core/store/session_store.py",
+  "docs/notification-api-spec.md",
+  "logo.png",
+  "main.py",
+  "metadata.yaml",
+  "requirements.txt",
+  "run_ruff.bat",
+  "utils/__init__.py",
+  "utils/time_utils.py",
+  "utils/version_utils.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "b12750b2059e196c300c16d69697eb485dc40ff6f7d8675623284342ac6a65a7"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "1700bc335e66d22614c0c43fc9d2cd4776d01b38a484e5538b158a8f55676517"
+  },
+  {
+   "path": "__init__.py",
+   "sha256": "dfe137629a42af7596fa9d4db56eee56aa34eb8ab4f842948886e82fe3cd0d14"
+  },
+  {
+   "path": "core/__init__.py",
+   "sha256": "e0fada2ae46bbf7e560897280fab7e4554cc22bdbd1c2b4dd9c6bd8b687da51d"
+  },
+  {
+   "path": "core/adapters/__init__.py",
+   "sha256": "8e56d27469191d83f8849c3da032f1a4fc59472414edad0456cd5ad7fa87f407"
+  },
+  {
+   "path": "core/adapters/astrbot_conversation.py",
+   "sha256": "353e55e688d1877987606a772d7437d8f3e389206bb0c16fca70e3b44a6b84bf"
+  },
+  {
+   "path": "core/adapters/astrbot_event.py",
+   "sha256": "ceada4804836fc9700e31a5c90c5fe99ac6d1e88fb6919b859aa9ec721f10f7f"
+  },
+  {
+   "path": "core/adapters/astrbot_platform.py",
+   "sha256": "fc76fac62081c0633da07d2e87f200ac25ef7d586ef53b7d7f8849a0eeca276e"
+  },
+  {
+   "path": "core/adapters/astrbot_provider.py",
+   "sha256": "b1d3772cb01a390287c66c2420058c4e9f4fef7b782b4da44ebaa64143587c93"
+  },
+  {
+   "path": "core/adapters/event_handlers.py",
+   "sha256": "0bc3dcdd8777e20ea618f156fe6f0a3d1ab128cf34bdb9d9259d26016b8e19e1"
+  },
+  {
+   "path": "core/console/__init__.py",
+   "sha256": "016e2758ed63289e394c445eb9fbd53b1b7f256d597a111f2c55f73bc2271be5"
+  },
+  {
+   "path": "core/console/api_routes.py",
+   "sha256": "2a2e12e81b685dc14992ad9b12dabdeaf4c6cb8730abfc0fe565d62560efebbc"
+  },
+  {
+   "path": "core/console/realtime_channel.py",
+   "sha256": "f18298b4b78d7c9f0f69176a8c254100d192b8dad2c4e50acb960d9b6b7161e2"
+  },
+  {
+   "path": "core/console/runtime_server.py",
+   "sha256": "ca5ffc80f2ef5a2f298b35224b6e5ab077c5c539b02707e9cccf6793149c0d42"
+  },
+  {
+   "path": "core/console/state_builder.py",
+   "sha256": "b535d7bafd389d964b435125bb56a1f9ca08a97f624cea96bf7c3d8612cd2de8"
+  },
+  {
+   "path": "core/console/token_auth.py",
+   "sha256": "61876f24ce22b4c05d00480235d236fdaf84a4877338e5610424d1fa4a9945bf"
+  },
+  {
+   "path": "core/domain/__init__.py",
+   "sha256": "690d13a6a7c1055c4e438db854465f7f008194fa37d0b0def0c7bdf5b39ea200"
+  },
+  {
+   "path": "core/domain/content_text.py",
+   "sha256": "a41d6947dd0faad2380f5a7aac73d249ea2da14f73ef251d0eccad862680a430"
+  },
+  {
+   "path": "core/domain/context_block.py",
+   "sha256": "969bc34d7d7ccc69dafd90ed6d83ed09b8b945488351dbba5fd64053396cc14c"
+  },
+  {
+   "path": "core/domain/delivery_report.py",
+   "sha256": "c765e80fc18174af20eafe0feada21377cdbba68c36c8c8cfeffd1fa3f186d7e"
+  },
+  {
+   "path": "core/domain/domain_enums.py",
+   "sha256": "b83ec4865f85b187d596dbbf9a919756356fb88278c0b34ffa3a09f73cd51a84"
+  },
+  {
+   "path": "core/domain/llm_outcome.py",
+   "sha256": "eea3b1252961ccb30469caddfad42a015ae914bf84d1fd42a45d89b64209adee"
+  },
+  {
+   "path": "core/domain/prompt_block.py",
+   "sha256": "edd7dc269a92415459672774f345b05ed54917aabe579f6f056d81f5ad264147"
+  },
+  {
+   "path": "core/domain/request_context.py",
+   "sha256": "3a7685ffe5bdfeba8a6ef1ad75a3740f750e8d6569e9663ac9c6703f2224bcc2"
+  },
+  {
+   "path": "core/domain/session_config.py",
+   "sha256": "e9aa517bcb0aa1bf1b4fdbd2b1cc4b808f96de1943165ed128fb365dff5441e5"
+  },
+  {
+   "path": "core/domain/session_key.py",
+   "sha256": "fc010d815874e93fcf228162e3e10d527c73c24fd5575861fb9fc3e7ab0eb4d0"
+  },
+  {
+   "path": "core/features/__init__.py",
+   "sha256": "e569b5f8b402d227ad11a96f3f67c1ecbedca5b127dc2408e54f3373febf781e"
+  },
+  {
+   "path": "core/features/context/__init__.py",
+   "sha256": "a2db3adb097fb3299f2881480eed06b6e3946a9359399eb457ca827edf5d1f5b"
+  },
+  {
+   "path": "core/features/context/conversation_source.py",
+   "sha256": "37f93a0a6b3641bc3810b00780e83a7823d1e8a053a2e3748cede42ff2533e68"
+  },
+  {
+   "path": "core/features/deliver/__init__.py",
+   "sha256": "23f79af185df505477af3dc11b60268792ca5aee9e24cc634a6a5860245b5da9"
+  },
+  {
+   "path": "core/features/deliver/split_delivery.py",
+   "sha256": "63797f268285b1323e1823d7c4b2f707aa27e4d2461b52206563836378e46ab7"
+  },
+  {
+   "path": "core/features/feature_base.py",
+   "sha256": "6d010c74fd9f462c33ce5f8deae19a67ddc9466c4555b3c02294ad76c8db1909"
+  },
+  {
+   "path": "core/features/feature_manifest.py",
+   "sha256": "953aadeedcf5db37db90d28cfcbcc839ed3bd4f3b052b62989f009da96b85f94"
+  },
+  {
+   "path": "core/features/gating_feature.py",
+   "sha256": "7835da02d7eaf877c2ac8668823c1ba5cabf9a034d5b7222bcacd9776fc6ac8f"
+  },
+  {
+   "path": "core/features/prompt/__init__.py",
+   "sha256": "cfee93738d5648d4114632498a8ef0e431185ae532e2bf42980bb96312f2094b"
+  },
+  {
+   "path": "core/features/prompt/single_prompt.py",
+   "sha256": "9568ecc24b86581d5b67ed775879c9a88c37487be6236b512e6b58efa69b3322"
+  },
+  {
+   "path": "core/features/record/__init__.py",
+   "sha256": "8ecf73ed3db3e2942a68daa71a436f92f68e5c4cb18b1abc147e0ec4cc68d2c9"
+  },
+  {
+   "path": "core/features/record/history_writer.py",
+   "sha256": "f59f5845fa9c9f60f860924b096108821338748bc5a7e92cbabe9451fc76f8af"
+  },
+  {
+   "path": "core/features/review_feature.py",
+   "sha256": "ee7bb51f8de934efdc628875ee8f18fb16c2fc91cd4de4026b7089002ceece83"
+  },
+  {
+   "path": "core/pipeline/__init__.py",
+   "sha256": "be895c0648021eeb96ac1deb7b522361ff93c97499c213841a2add4c360091f2"
+  },
+  {
+   "path": "core/pipeline/feature_registry.py",
+   "sha256": "db213137970127c67ecb3d2146c0597941c06ad3142aaa3e6135774321806ed4"
+  },
+  {
+   "path": "core/pipeline/flow_context.py",
+   "sha256": "65da4e5813deff3a595db809e5ca4b09690939bffc40f67b3a327348a2e22d3b"
+  },
+  {
+   "path": "core/pipeline/flow_orchestrator.py",
+   "sha256": "9f256e51bd3b8f9f469b89d95e128d9af0c5a2cf45d59193d48e126c4c756968"
+  },
+  {
+   "path": "core/pipeline/hook_registry.py",
+   "sha256": "aa54f68dff9947267d81b2e68c5e3fcb01b3c7172e5d4600519553eb1afd6c4e"
+  },
+  {
+   "path": "core/pipeline/pipeline_runner.py",
+   "sha256": "a17ae14a0dddd5acae4e802f88f3c23245174176b5b2bbd013797d4d1d2961f9"
+  },
+  {
+   "path": "core/pipeline/stage_protocol.py",
+   "sha256": "e787a1a7f4365a15859a752b2f307b5473c997cd52ee6bac78da36c251489b28"
+  },
+  {
+   "path": "core/remote/__init__.py",
+   "sha256": "7e4c082172d044f7103ec974db032799a3f041b0977e82af84d2027f14b06878"
+  },
+  {
+   "path": "core/remote/notification_center.py",
+   "sha256": "8d8a63b90dd9da83d6c95f00c6c1c97763f1eac5c32a366bea66f321d576bba3"
+  },
+  {
+   "path": "core/remote/telemetry_manager.py",
+   "sha256": "97a2998382ac7f398185dd611fd2945b2db8872811e31111086c3e51909f56c5"
+  },
+  {
+   "path": "core/services/__init__.py",
+   "sha256": "b213085945bec6fe377ac44ee550e90e88f1ad9e2a6af50c02da1bd52af9da2a"
+  },
+  {
+   "path": "core/services/config_service.py",
+   "sha256": "e7912954520c57220da3783006b8cf445fcfc7576a6f992e4160e9ea6ef98cbb"
+  },
+  {
+   "path": "core/services/context_service.py",
+   "sha256": "9cb1a64008547523b688ae3b1d693c94777a19fd471b1ba7057831428a6b1be1"
+  },
+  {
+   "path": "core/services/lifecycle_service.py",
+   "sha256": "cd961de0a5bc8bcbd1d28567767016a184821ebc9bd858da8a1f9dc37b9f757b"
+  },
+  {
+   "path": "core/services/llm_service.py",
+   "sha256": "50e093367b8d26a3ae1ca9762248224e237bdc7c6e7b8f43194a29c7900c27e1"
+  },
+  {
+   "path": "core/services/scheduler_service.py",
+   "sha256": "c416607490c0ffa1d9dc73c90647731a569723ea083139b6762a1bbe990e8851"
+  },
+  {
+   "path": "core/services/sender_service.py",
+   "sha256": "3e33be4bd19d4747d08cd4b6db66689a51d67b78923f003fb76af7e4c27c64bf"
+  },
+  {
+   "path": "core/services/session_service.py",
+   "sha256": "3e59c911aecaf181572111efbfd3a3331fa2c96c97f004a3c9062022e9e47540"
+  },
+  {
+   "path": "core/services/storage_service.py",
+   "sha256": "12162509172ba8def7201ae093243e4842f4ec853195f3a7acfcbcd48b5c94fb"
+  },
+  {
+   "path": "core/store/__init__.py",
+   "sha256": "57e52fa8856ecd1d2648742f0f57f65a0aec84d2fd8c0a60a076c2ffa44d3184"
+  },
+  {
+   "path": "core/store/override_store.py",
+   "sha256": "78cded4e4e0397a3b96228eb99da2a3dae6be529bafaf5b7900cdb5fc9c115d2"
+  },
+  {
+   "path": "core/store/session_store.py",
+   "sha256": "f162dc2e81dfedd3240e413e4115c80cbbb34327639fa581b0fe8f87be700677"
+  },
+  {
+   "path": "main.py",
+   "sha256": "563ca01f336faeb1c27cf58150da9ede7914a91109d5d0f5d3038a7927734ba5"
+  },
+  {
+   "path": "utils/__init__.py",
+   "sha256": "2fad00435e2dbacc63eca57d62f9577cec38e73b26ee6ec390d4862fca870ea8"
+  },
+  {
+   "path": "utils/time_utils.py",
+   "sha256": "ef220e663debed6b9ad993b4ea53f0a09483602c752c0060fa3aae4325886bab"
+  },
+  {
+   "path": "utils/version_utils.py",
+   "sha256": "df6f5b38fd9ed0063b2db297809b2b3055f09768c7a6eabc34c0475cbd0c37b8"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 164370
+}

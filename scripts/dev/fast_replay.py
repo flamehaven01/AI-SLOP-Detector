@@ -162,6 +162,8 @@ def _full_pipeline(src: str, repo: Path, patterns: set) -> tuple:
             env=env,
             cwd=home,
         )
+    if done.returncode != 0:  # a failed run is never a measurement, whatever it printed
+        return set(), 0, f"EXIT_{done.returncode}"
     data = json.loads(done.stdout.decode("utf-8"))
     found = set()
     results = data.get("file_results", [])
