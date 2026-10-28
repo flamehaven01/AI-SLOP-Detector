@@ -4,9 +4,12 @@
 `predict_batch(..., batch_size=64)` that never batches, accepts an input its
 result ignores. Reported: an option (a parameter with a default) that is never
 read, and any unused parameter of a
-function whose returned value depends on none of its inputs. An unused
-positional parameter of a function returning nothing (a handler, a printer) is
-not reported: such signatures are usually fixed by the caller. Functions whose signature is fixed
+function whose returned value depends on none of its inputs, or whose body only
+builds values it discards. An unused positional parameter of a function
+returning nothing (a handler, a printer) is not reported: such signatures are
+usually fixed by the caller (measured: requiring only that the module calls the
+function with the argument added 62-104 findings on the 14-repository replay,
+mostly dispatch handlers and leftover helper arguments). Functions whose signature is fixed
 elsewhere are left alone (declared intent): contracts and overrides, callbacks
 registered by value, decorated functions, dunder methods, and methods of a
 class with a base the module does not define.
@@ -20,7 +23,7 @@ from typing import List, Optional, Set
 
 from slop_detector.patterns.base import Axis, Issue, Severity
 from slop_detector.patterns.declared_intent import _SCOPE_NODES, _local_names
-from slop_detector.patterns.placeholder import _IntentAwarePattern
+from slop_detector.patterns.placeholder import _PURE_BUILTINS, _IntentAwarePattern, _is_cosmetic
 
 _IMPLICIT = frozenset({"self", "cls"})
 
@@ -160,6 +163,54 @@ def _literal_results(function: ast.AST) -> bool:
     return found and not (exit_codes and not other_results)
 
 
+def _pure_value(value: ast.expr) -> bool:
+    """Builds a value without acting: literals, names, operators, pure builtins and
+    methods of a literal (`"...".strip()`)."""
+    for node in ast.walk(value):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if isinstance(func, ast.Name) and func.id in _PURE_BUILTINS:
+            continue
+        if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Constant):
+            continue
+        return False
+    return True
+
+
+def _discarded_locals(function: ast.AST) -> List[str]:
+    """Locals the body only builds and drops, when that is all it does.
+
+    Every statement after the docstring is `pass`, a log line, or an assignment
+    of a pure value to a plain name the function never reads, and nothing is
+    returned: `def prompt_fn(question): TEMPLATE = "...".strip()`.
+    """
+    body = list(function.body)  # type: ignore[attr-defined]
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+        body = body[1:]
+    used = _uses(function)
+    dropped: List[str] = []
+    for stmt in body:
+        if _is_cosmetic(stmt):
+            continue
+        names = _dead_store(stmt, used)
+        if not names:
+            return []
+        dropped += names
+    return dropped
+
+
+def _dead_store(stmt: ast.stmt, used: Set[str]) -> List[str]:
+    """The names a pure assignment binds when none is read later (public names
+    only: `_x = ...` is a deliberate discard); [] otherwise."""
+    if not (isinstance(stmt, ast.Assign) and _pure_value(stmt.value)):
+        return []
+    names = [t.id for t in stmt.targets if isinstance(t, ast.Name)]
+    if len(names) != len(stmt.targets) or any(n in used or n.startswith("_") for n in names):
+        return []
+    return names
+
+
 def _parameter_names(function: ast.AST) -> List[str]:
     args = function.args  # type: ignore[attr-defined]
     return [a.arg for a in args.posonlyargs + args.args + args.kwonlyargs]
@@ -230,6 +281,21 @@ class IgnoredParameterPattern(_IntentAwarePattern):
         finally:
             self._top_level = frozenset()
 
+    def _result_ignores_inputs(self, node) -> tuple:
+        """(whether a module function's result reads no input, the locals it only
+        builds and drops)."""
+        if node not in self._top_level:
+            return False, []
+        dropped = _discarded_locals(node)
+        return bool(dropped) or _literal_results(node), dropped
+
+    @staticmethod
+    def _evidence(dropped: List[str]) -> str:
+        """What the body does instead of using its input, for the message."""
+        if dropped:
+            return f"; the body only builds {', '.join(dropped)} and discards it"
+        return ""
+
     def check_node(self, node: ast.AST, file, content) -> Optional[List[Issue]]:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return None
@@ -256,22 +322,24 @@ class IgnoredParameterPattern(_IntentAwarePattern):
         used = _uses(node)
         options = _with_defaults(args)
         # A positional parameter left unused is reported only when a module
-        # function answers with a literal that reads no input at all; handlers,
-        # printers and class hooks take fixed arguments.
-        result_ignores_inputs = node in self._top_level and _literal_results(node)
+        # function answers with a literal that reads no input at all or only
+        # builds values it discards; handlers, printers and class hooks take
+        # fixed arguments.
+        result_ignores_inputs, dropped = self._result_ignores_inputs(node)
         issues = []
         for name in names:
             if name in used or _documented_as_kept(node, name):
                 continue
             if name not in options and name not in documented and not result_ignores_inputs:
                 continue
+            evidence = self._evidence(dropped)
             issues.append(
                 self.create_issue_from_node(
                     node,
                     file,
                     message=(
-                        f"Parameter '{name}' of '{node.name}' is never used - it does not affect "
-                        "the result"
+                        f"Parameter '{name}' of '{node.name}' is never used{evidence} - it does "
+                        "not affect the result"
                     ),
                     suggestion=f"Use '{name}' as the function promises, or remove it",
                 )

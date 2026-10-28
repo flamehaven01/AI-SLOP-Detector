@@ -11,7 +11,17 @@ way. Evidence the module states:
   constant answer is a hook implementation;
 - a `property` / `cached_property` / `classmethod` / `staticmethod` is a
   declared accessor;
-- another decorator supplies the body (a `...` body under it is a signature).
+- another decorator supplies the body (a `...` body under it is a signature),
+  or registers it (an empty `pass` / `return None` body under it, such as a
+  `click.group`, does nothing and claims nothing);
+- the class name says it is a default: a null object (`NullRenderer`,
+  `NoopSink`) or a base (`BaseFeature`, `AirLLMBaseModel`), so its one-line
+  bodies are the defaults; a `return` in a subclass of such a named base is a
+  hook answer;
+- `raise NotImplementedError` in a method of a class with a base the module
+  does not define (the base fixes the interface; the method declares the
+  operation unsupported), or of a class with two or more such methods (an
+  interface written without `ABC`).
 
 Only the module is read, so a file's result never depends on other files.
 """
@@ -19,6 +29,7 @@ Only the module is read, so a file's result never depends on other files.
 from __future__ import annotations
 
 import ast
+import re
 from typing import Dict, Optional, Set, Union
 
 from slop_detector.ast_index import walk_nodes
@@ -29,6 +40,52 @@ _ABSTRACT_BASES = frozenset({"ABC", "Protocol"})
 _ABSTRACT_METACLASSES = frozenset({"ABCMeta"})
 _ACCESSOR_DECORATORS = frozenset({"property", "cached_property", "classmethod", "staticmethod"})
 _SIGNATURE_DECORATORS = frozenset({"abstractmethod", "overload"})
+# Class-name words declaring the class a null object or a base of defaults.
+_DEFAULT_CLASS_WORDS = frozenset({"null", "noop", "base", "abstract"})
+
+
+def _name_words(name: str) -> Set[str]:
+    """`AirLLMBaseModel` -> {air, llm, base, model}; `NoOpSink` also gives noop."""
+    words = {w.lower() for w in re.findall(r"[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+", name)}
+    if "noop" in name.lower().replace("_", ""):
+        words.add("noop")
+    return words
+
+
+def _body_without_docstring(function: ast.AST) -> list:
+    return [
+        n
+        for n in getattr(function, "body", [])
+        if not (isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant))
+    ]
+
+
+_PLACEHOLDER_DOC = re.compile(
+    r"\b(placeholder|stub|todo|not yet implemented|to be implemented)\b", re.I
+)
+
+
+def _says_placeholder(function: ast.AST) -> bool:
+    """The docstring calls the body a placeholder ("Placeholder for CDA construction")."""
+    doc = (
+        ast.get_docstring(function)
+        if isinstance(function, (ast.FunctionDef, ast.AsyncFunctionDef))
+        else None
+    )
+    return bool(doc and _PLACEHOLDER_DOC.search(doc))
+
+
+def _raises_not_implemented(function: ast.AST) -> bool:
+    """The body (after a docstring) is `raise NotImplementedError`, `pass` aside."""
+    body = _body_without_docstring(function)
+    if not body or not isinstance(body[-1], ast.Raise):
+        return False
+    exc = body[-1].exc
+    if isinstance(exc, ast.Call):
+        exc = exc.func
+    if not (isinstance(exc, ast.Name) and exc.id == "NotImplementedError"):
+        return False
+    return all(isinstance(n, ast.Pass) for n in body[:-1])
 
 
 def _simple_name(node: ast.expr) -> str:
@@ -237,6 +294,32 @@ class DeclaredIntent:
         return (scope, function.name) in self._name_refs
 
     @staticmethod
+    def is_default_class(klass: ast.ClassDef) -> bool:
+        """The class name says null object or base: `NullRenderer`, `BaseFeature`."""
+        return bool(_name_words(klass.name) & _DEFAULT_CLASS_WORDS)
+
+    @staticmethod
+    def has_named_base(klass: ast.ClassDef) -> bool:
+        """A base whose name says it is a base: `class Qwen(AirLLMBaseModel)`."""
+        return any(_name_words(_simple_name(b)) & {"base", "abstract"} for b in klass.bases)
+
+    def declares_unsupported(self, function: FunctionNode) -> bool:
+        """`raise NotImplementedError` where a base or the class itself fixes the
+        interface: a class with a base the module does not define, or a class
+        with two or more such methods."""
+        klass = self.enclosing_class(function)
+        if klass is None:
+            return False
+        if self.has_outside_base(function):
+            return True
+        siblings = [
+            n
+            for n in klass.body
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and _raises_not_implemented(n)
+        ]
+        return len(siblings) >= 2
+
+    @staticmethod
     def is_accessor(function: FunctionNode) -> bool:
         return any(_simple_name(d) in _ACCESSOR_DECORATORS for d in function.decorator_list)
 
@@ -258,15 +341,49 @@ def declared_intent(tree: ast.AST) -> DeclaredIntent:
     return cached
 
 
+def _plain_body(function: FunctionNode, stmt: ast.stmt) -> bool:
+    """`stmt` is the whole body, the docstring does not call it a placeholder, and
+    it does not construct its answer (`SendResult(success=True)`)."""
+    if _body_without_docstring(function) != [stmt] or _says_placeholder(function):
+        return False
+    return not (isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Call))
+
+
+def _is_empty(stmt: ast.stmt) -> bool:
+    """`pass`, `return` or `return None`."""
+    if isinstance(stmt, ast.Pass):
+        return True
+    if not isinstance(stmt, ast.Return):
+        return False
+    return stmt.value is None or (isinstance(stmt.value, ast.Constant) and stmt.value.value is None)
+
+
+def _named_default(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
+    """A default the class name or its interface declares; plain bodies only, so a
+    log line in front or a "placeholder" docstring keeps a stub reported."""
+    klass = intent.enclosing_class(function)
+    if klass is None or not _plain_body(function, stmt):
+        return False
+    if intent.is_default_class(klass):
+        return True
+    if isinstance(stmt, ast.Return):
+        return intent.has_named_base(klass)
+    return isinstance(stmt, ast.Raise) and intent.declares_unsupported(function)
+
+
 def is_declared_body(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
     """The one-statement body `stmt` is declared intent, not an unfinished stub.
 
     A contract method is declared whatever its body. A `return` is declared in
     an accessor or in an override of a module base (a hook answering a
-    question); a `...` body is declared under an implementing decorator. An
-    override that is `pass` or raises stays a placeholder.
+    question); a `...` body is declared under an implementing decorator, an
+    empty one under any registering decorator. An override that is `pass` or
+    raises stays a placeholder unless its class name or interface declares it
+    (`_named_default`).
     """
-    if intent.is_contract(function):
+    if intent.is_contract(function) or _named_default(intent, function, stmt):
+        return True
+    if _is_empty(stmt) and intent.has_implementing_decorator(function):
         return True
     if isinstance(stmt, ast.Return):
         return intent.is_accessor(function) or intent.overrides_module_base(function)

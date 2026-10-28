@@ -91,13 +91,16 @@ def test_abstract_async_method_is_exempt_like_sync(tmp_path, case):
     body = BODIES[case][0]
     template = (
         "from abc import ABC, abstractmethod\n\n\n"
-        "class Base(ABC):\n"
+        "class Source(ABC):\n"
         "    @abstractmethod\n"
         "    {prefix}def fetch(self):\n"
         "        {body}\n"
     )
     body = body.replace("\n    ", "\n        ")
-    plain = template.replace("    @abstractmethod\n", "").replace("class Base(ABC):", "class Base:")
+    # Not named Base: a class named as a base holds defaults (declared_intent).
+    plain = template.replace("    @abstractmethod\n", "").replace(
+        "class Source(ABC):", "class Source:"
+    )
     seen = _ids(tmp_path, "u.py", plain.format(prefix="async ", body=body))
     assert BODIES[case][1] in seen, f"plain async twin not flagged: {seen}"
     # An ABC subclass is exempt for sync methods even without the decorator; async follows.
@@ -116,7 +119,7 @@ def test_abstractmethod_alone_exempts_async_like_sync(tmp_path, case):
     body = BODIES[case][0].replace("\n    ", "\n        ")
     template = (
         "from abc import abstractmethod\n\n\n"
-        "class Base:\n"
+        "class Source:\n"
         "{decorator}"
         "    {prefix}def fetch(self):\n"
         "        {body}\n"

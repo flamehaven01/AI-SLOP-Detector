@@ -445,7 +445,9 @@ class NotImplementedPattern(_IntentAwarePattern):
     """Detect functions that raise NotImplementedError.
 
     Skips @abstractmethod decorated methods — raise NotImplementedError in an
-    ABC interface is the correct Python pattern, not a placeholder.
+    ABC interface is the correct Python pattern, not a placeholder. Print or
+    log lines in front of the raise do not make it an implementation
+    (`print("authorize", args); raise NotImplementedError()`).
     """
 
     id = "not_implemented"
@@ -459,11 +461,14 @@ class NotImplementedPattern(_IntentAwarePattern):
         if _has_abstractmethod(node):
             return None
         body = _strip_docstring(node.body)
-        if len(body) != 1 or not isinstance(body[0], ast.Raise):
+        if not body or not isinstance(body[-1], ast.Raise):
             return None
-        if self._declared(node, body[0]):
+        if not all(_is_cosmetic(stmt, self._shadowed()) for stmt in body[:-1]):
             return None
-        exc = body[0].exc
+        if self._declared(node, body[-1]):
+            return None
+        note = _cosmetic_note(body)
+        exc = body[-1].exc
         is_not_impl = (
             isinstance(exc, ast.Call)
             and isinstance(exc.func, ast.Name)
@@ -471,7 +476,15 @@ class NotImplementedPattern(_IntentAwarePattern):
         ) or (isinstance(exc, ast.Name) and exc.id == "NotImplementedError")
         if is_not_impl:
             return self.create_issue_from_node(
-                node, file, suggestion="Implement the function or use ABC if intentional"
+                node,
+                file,
+                message=(
+                    f"Function '{node.name}'{note} raises NotImplementedError"
+                    " - placeholder not implemented"
+                    if note
+                    else None
+                ),
+                suggestion="Implement the function or use ABC if intentional",
             )
         return None
 
