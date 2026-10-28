@@ -5,6 +5,56 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## Unreleased (main)
+
+### Summary
+
+Blind hold-out benchmarks, and the fixes they pointed to. On 842 functions from
+public GitHub repositories (hold-out v2), 3.12.0 found 3 of 12 hollow functions
+and flagged 12 genuine ones, most of them null objects, base-class defaults and
+framework hooks. main finds 6 of 12 and flags 4. These are development numbers:
+the fixes were written from the same samples. The independent measurement is
+hold-out v3, whose protocol is fixed before any v3 repository is drawn.
+
+### What moves when you upgrade
+
+- **Declared defaults are not stubs.** A class named as a null object or a base
+  (`NullRenderer`, `BaseFeature`), a constant answer in a subclass of such a
+  base, an empty `@click.group()` body, and `raise NotImplementedError` where a
+  base or sibling methods fix the interface no longer produce placeholder
+  findings. A log line in front, a constructed success answer or a docstring
+  that says "placeholder" keeps the finding.
+- **More stubs are caught.** Print or log lines before `raise
+  NotImplementedError`, a class built from literals with a success mark, a
+  swallowed failure followed by a constant the comment calls invented, a
+  documented parameter never read, and a function that only builds values it
+  throws away.
+- Scores of files with declared defaults go down; the scoring formula, bands
+  and JSON keys are unchanged. Analysis cache `analysis-cache-v36`.
+
+### How it was measured
+
+- Hold-out v1 (180 functions, 35 repositories) and v2 (842 functions, seeded
+  star-band frames) were labeled from the source before any scan; the scorer
+  checks every function's source digest and counts failed scans as excluded,
+  never as clean or missed.
+- Every changed finding on the 14-repository replay was read in the source.
+- Tried and dropped: reporting an unused argument because the module passes
+  it. It caught 2 more hollow functions on v2 but added 62 to 104 replay
+  findings, mostly argparse handlers and arguments left behind by a refactor.
+
+### Known limitations
+
+- 4 v2 false alarms remain, each needing evidence one file does not hold or a
+  name does not state: a base no-op overridden in another file, a no-op hook
+  whose reason is only in its docstring, a null object not named as one, and a
+  helper returning a fixed symbol.
+- An ignored input whose call site is in another module, and a hollow result
+  only the meaning of names reveals (a "mail sent" with no recipient), are not
+  found.
+
+---
+
 ## v3.12.0 — 2026-10-26
 
 ### Summary

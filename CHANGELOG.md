@@ -9,6 +9,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Fewer findings on code that declares its defaults, a few more stubs caught,
+and blind hold-out benchmarks to measure both. The hold-out v1 and v2 numbers
+below are development data: the rules were written from those samples, so
+they are not an independent result. The independent measurement is hold-out
+v3 (`benchmarks/holdout_v3/PROTOCOL.md`, fixed before any v3 repository is
+drawn; not run yet).
+
+- Hold-out benchmarks: `benchmarks/holdout` (v1, 180 functions from 35 public
+  repositories) and `benchmarks/holdout_v2` (842 functions from seeded GitHub
+  star-band frames), labeled from the source before any scan, with source
+  binding and a scorer that fails closed. 3.12.0 baseline: v1 recall 1/9,
+  false alarms 5/170; v2 recall 3/12, false alarms 12/828.
+- `return_constant_stub`: a function that only returns a class built from
+  literals with a success mark (`Result(ok=True)`, a `HEALTHY` / `SUCCESS`
+  member) is reported.
+- `failure_as_success`: a catch-all that swallows the failure and falls
+  through to a constant its comment calls invented (placeholder, dummy, fake)
+  is reported.
+- `ignored_parameter`: a parameter the docstring documents is reported when
+  never read, with or without a default (in a sibling family only when a
+  sibling reads it); `Annotated[...]`, `Depends()` / `Security()` and
+  "tracking only" arguments are not. A module function that only builds values
+  it discards and returns nothing ignores its inputs
+  (`def prompt_fn(question): TEMPLATE = "...".strip()`).
+- Placeholder findings respect declared defaults: methods of a class named as a
+  null object or a base (`NullRenderer`, `NoopSink`, `BaseFeature`), a constant
+  answer in a subclass of such a named base, an empty body under a registering
+  decorator (`@click.group()`), and `raise NotImplementedError` in a class with
+  a base the module does not define or with two or more such methods. A log
+  line in front, a constructed answer (`SendResult(success=True)`) or a
+  docstring calling the body a placeholder keeps the finding.
+- `not_implemented`: print or log lines before `raise NotImplementedError` do not
+  make it an implementation. An empty `__init__` is not `pass_placeholder`.
+- Measured: recall corpus unchanged (18/29 hollow, 0/22 genuine); replay on 14
+  public repositories, every changed finding read in the source: the v1 fixes
+  +21/-2, the declared defaults and discarded values +0/-42 (all 42 removed
+  placeholder findings are declared defaults); development data v1 recall 7/9,
+  false alarms 3/170; v2 recall 6/12, false alarms 4/828.
+- Not adopted, measured: reporting an unused positional parameter because the
+  module calls the function with that argument (+62 to +104 replay findings,
+  mostly dispatch handlers and leftover helper arguments).
+- Analysis cache `analysis-cache-v36`.
+
 ## [3.12.0] - 2026-10-26
 
 Detection of code that looks finished but is not. Measured on a recall
