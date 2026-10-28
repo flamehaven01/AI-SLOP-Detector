@@ -15,6 +15,7 @@ class with a base the module does not define.
 from __future__ import annotations
 
 import ast
+import re
 from typing import List, Optional, Set
 
 from slop_detector.patterns.base import Axis, Issue, Severity
@@ -64,6 +65,7 @@ _KEPT_WORDS = (
     "kept for",
     "backward",
     "no longer",
+    "tracking only",
 )
 
 
@@ -74,6 +76,46 @@ def _documented_as_kept(function: ast.AST, name: str) -> bool:
         name in line and any(word in line.lower() for word in _KEPT_WORDS)
         for line in doc.splitlines()
     )
+
+
+def _documented(function: ast.AST, name: str) -> bool:
+    """The docstring has an argument entry for the parameter: `name: ...`,
+    `name (type): ...` or `name : type` at the start of a line."""
+    doc = ast.get_docstring(function) or ""  # type: ignore[arg-type]
+    entry = re.compile(r"^\s*[-*]?\s*" + re.escape(name) + r"\s*(\([^)]*\))?\s*:")
+    return any(entry.match(line) for line in doc.splitlines())
+
+
+# Defaults that inject a value (FastAPI): the framework uses the parameter.
+_INJECTORS = frozenset({"Depends", "Security"})
+
+
+def _injected(args: ast.arguments) -> Set[str]:
+    """Parameters whose default is `Depends(...)` / `Security(...)`."""
+    positional = args.posonlyargs + args.args
+    pairs = list(zip(positional[len(positional) - len(args.defaults) :], args.defaults))
+    pairs += [(a, d) for a, d in zip(args.kwonlyargs, args.kw_defaults) if d is not None]
+    found = set()
+    for arg, default in pairs:
+        if isinstance(default, ast.Call):
+            func = default.func
+            callee = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
+            if callee in _INJECTORS:
+                found.add(arg.arg)
+    return found
+
+
+def _annotated(args: ast.arguments) -> Set[str]:
+    """Parameters annotated `Annotated[...]` (or `typing.Annotated[...]`)."""
+    found = set()
+    for arg in args.posonlyargs + args.args + args.kwonlyargs:
+        ann = arg.annotation
+        if isinstance(ann, ast.Subscript):
+            head = ann.value
+            name = head.attr if isinstance(head, ast.Attribute) else getattr(head, "id", "")
+            if name == "Annotated":
+                found.add(arg.arg)
+    return found
 
 
 def _is_stub_body(function: ast.AST) -> bool:
@@ -131,31 +173,48 @@ class IgnoredParameterPattern(_IntentAwarePattern):
     axis = Axis.QUALITY
     message = "Parameter is never used - it does not affect the result"
 
-    def _fixed_signature(self, node) -> bool:
+    def _fixed_signature(self, node) -> Optional[str]:
+        """Why the signature is fixed elsewhere, or None.
+
+        "fixed": declared by the module (dunder, decorator, contract, override,
+        callback) or by a base the module does not define ("outside base").
+        "family": sibling methods take the same arguments (see _family).
+        """
         intent = self._intent
         if intent is None:
-            return True
+            return "fixed"
         if node.name.startswith("__") or node.decorator_list:
-            return True
+            return "fixed"
         if (
             intent.is_contract(node)
             or intent.overrides_module_base(node)
-            or intent.has_outside_base(node)
             or intent.is_registered_by_value(node)
         ):
-            return True
+            return "fixed"
         # Methods of one class taking the same arguments form an interface
         # (handlers dispatched by name): their arguments are fixed by the family.
         klass = intent.enclosing_class(node)
-        if klass is None:
-            return False
+        if klass is not None:
+            mine = set(_parameter_names(node))
+            if any(
+                isinstance(other, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and other is not node
+                and set(_parameter_names(other)) == mine
+                for other in klass.body
+            ):
+                return "family"
+        return "outside base" if intent.has_outside_base(node) else None
+
+    def _family(self, node) -> list:
+        klass = self._intent.enclosing_class(node) if self._intent else None
         mine = set(_parameter_names(node))
-        return any(
-            isinstance(other, (ast.FunctionDef, ast.AsyncFunctionDef))
+        return [
+            other
+            for other in (klass.body if klass is not None else [])
+            if isinstance(other, (ast.FunctionDef, ast.AsyncFunctionDef))
             and other is not node
             and set(_parameter_names(other)) == mine
-            for other in klass.body
-        )
+        ]
 
     _top_level: frozenset = frozenset()
 
@@ -174,11 +233,22 @@ class IgnoredParameterPattern(_IntentAwarePattern):
     def check_node(self, node: ast.AST, file, content) -> Optional[List[Issue]]:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             return None
-        if self._fixed_signature(node):
+        fixed = self._fixed_signature(node)
+        if fixed in ("fixed", "outside base"):
             return None
         args = node.args
         names = [a.arg for a in args.posonlyargs + args.args + args.kwonlyargs]
         names = [n for n in names if n not in _IMPLICIT and not n.startswith("_")]
+        names = [n for n in names if n not in _injected(args)]
+        # A docstring entry is the function's own promise about the argument.
+        # `Annotated[...]` arguments are a framework's schema (tool or route
+        # parameters), whatever their description says.
+        documented = {n for n in names if _documented(node, n) and n not in _annotated(args)}
+        if fixed == "family":
+            # In a family the argument is fixed by convention, unless a sibling
+            # reads it: then it means something, and this method ignores it.
+            siblings = self._family(node)
+            names = [n for n in names if n in documented and any(n in _uses(s) for s in siblings)]
         if not names:
             return None
         if _is_stub_body(node):
@@ -193,7 +263,7 @@ class IgnoredParameterPattern(_IntentAwarePattern):
         for name in names:
             if name in used or _documented_as_kept(node, name):
                 continue
-            if name not in options and not result_ignores_inputs:
+            if name not in options and name not in documented and not result_ignores_inputs:
                 continue
             issues.append(
                 self.create_issue_from_node(

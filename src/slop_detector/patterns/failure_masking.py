@@ -23,6 +23,8 @@ _CATCH_ALL = frozenset({"Exception", "BaseException"})
 _STATUS_KEYS = frozenset({"status", "state", "ok", "success", "healthy", "result"})
 # Status values that say the work succeeded; the same one on both paths hides a failure.
 _SUCCESS_STATUSES = frozenset({"up", "ok", "healthy", "success", "succeeded", "running", True})
+# Comment words that call a fallback value invented rather than a chosen default.
+_INVENTED_WORDS = ("placeholder", "unreliable", "dummy", "fake", "made up", "made-up", "arbitrary")
 
 
 def _catches_everything(handler: ast.ExceptHandler) -> bool:
@@ -163,6 +165,8 @@ class FailureAsSuccessPattern(ASTPattern):
     message = "Catch-all handler returns the same result as the success path"
 
     def check_node(self, node: ast.AST, file, content) -> Optional[List[Issue]]:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return self._swallowed_then_placeholder(node, file, content)
         if not isinstance(node, ast.Try):
             return None
         success = _success_return(node)
@@ -197,3 +201,58 @@ class FailureAsSuccessPattern(ASTPattern):
                 )
             )
         return issues or None
+
+    def _swallowed_then_placeholder(self, function, file, content) -> Optional[List[Issue]]:
+        """`try: ... return measured` / `except Exception: pass` / `return 8 * 1.0`.
+
+        The handler lets the failure fall through to a final return of a
+        constant that is not a neutral value and that a comment calls invented
+        ("placeholder", "unreliable"), so the caller gets a made-up result where
+        the measurement failed.
+        """
+        body = function.body
+        final = body[-1] if body else None
+        if not isinstance(final, ast.Return) or final.value is None:
+            return None
+        value = final.value
+        if _is_failure_value(value) or not any(
+            isinstance(n, ast.Constant) for n in ast.walk(value)
+        ):
+            return None
+        args = function.args
+        local = _changed(body) | {a.arg for a in args.posonlyargs + args.args + args.kwonlyargs}
+        if {n.id for n in ast.walk(value) if isinstance(n, ast.Name)} & local:
+            return None
+        # The try is the last statement before the return, apart from logging.
+        index = len(body) - 2
+        while index >= 0 and _is_cosmetic(body[index]):
+            index -= 1
+        node = body[index] if index >= 0 else None
+        if not isinstance(node, ast.Try) or not _returns(node.body):
+            return None
+        # A default after a failed lookup is a decision (`return "us-east-1"`);
+        # only a value its own comment calls invented is a fabricated result.
+        lines = content.splitlines()[node.end_lineno : final.end_lineno]
+        notes = [line.split("#", 1)[1].strip() for line in lines if "#" in line]
+        note = next((n for n in notes if any(w in n.lower() for w in _INVENTED_WORDS)), None)
+        if note is None:
+            return None
+        for handler in node.handlers:
+            if not _catches_everything(handler) or not handler.body:
+                continue
+            if not all(_is_cosmetic(stmt) for stmt in handler.body):
+                continue
+            shown = ast.get_source_segment(content, value) or "a constant"
+            shown = " ".join(shown.split())[:60]
+            return [
+                self.create_issue_from_node(
+                    handler,
+                    file,
+                    message=(
+                        f"Catch-all handler swallows the failure, then '{function.name}' "
+                        f"returns {shown} as if it had a result (its comment: '{note[:60]}')"
+                    ),
+                    suggestion="Raise, or return a value the caller can tell is a failure",
+                )
+            ]
+        return None

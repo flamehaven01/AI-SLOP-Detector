@@ -186,6 +186,96 @@ def _is_placeholder_stmt(stmt: ast.stmt) -> bool:
     return False
 
 
+# Enum members and flags that say an operation succeeded.
+_SUCCESS_MEMBERS = frozenset(
+    {"HEALTHY", "OK", "SUCCESS", "SUCCEEDED", "PASSED", "READY", "CONNECTED"}
+)
+_PLACEHOLDER_WORDS = ("placeholder", "simulated", "stub", "dummy", "fake")
+
+
+def _attribute_root(node: ast.expr) -> Optional[str]:
+    """`Health.HEALTHY` -> 'Health'; None when the chain is not names and attributes."""
+    while isinstance(node, ast.Attribute):
+        node = node.value
+    return node.id if isinstance(node, ast.Name) else None
+
+
+def _literal_argument(node: ast.expr, parameters: frozenset) -> bool:
+    """A literal, an enum-style constant, or an f-string whose fields are literals or
+    parameters (a parameter elsewhere would make the value depend on the input)."""
+    if isinstance(node, ast.Constant):
+        return True
+    if isinstance(node, ast.UnaryOp) and isinstance(node.operand, ast.Constant):
+        return True
+    if isinstance(node, ast.Attribute):
+        root = _attribute_root(node)
+        return root is not None and root not in parameters and root not in ("self", "cls")
+    if isinstance(node, ast.JoinedStr):
+        for part in node.values:
+            value = part.value if isinstance(part, ast.FormattedValue) else part
+            if isinstance(value, ast.Constant):
+                continue
+            if isinstance(value, ast.Name) and value.id in parameters:
+                continue
+            return False
+        return True
+    return False
+
+
+# A keyword True marks success only under one of these names (`verbose=True` does not).
+_SUCCESS_KEYWORDS = frozenset(
+    {"ok", "success", "succeeded", "passed", "ready", "connected", "healthy", "available"}
+)
+
+
+def _success_mark(node: ast.expr, keyword: Optional[str] = None) -> Optional[str]:
+    if isinstance(node, ast.Constant) and node.value is True:
+        if keyword is None or keyword.lower() in _SUCCESS_KEYWORDS:
+            return "True" if keyword is None else f"{keyword}=True"
+        return None
+    if isinstance(node, ast.Attribute) and node.attr.upper() in _SUCCESS_MEMBERS:
+        root = _attribute_root(node)
+        return f"{root}.{node.attr}" if root else node.attr
+    return None
+
+
+def _constant_success_report(value: ast.expr, function, content: str) -> Optional[str]:
+    """`Report('ssh', True, f'placeholder for {target}')` -> "Report(... True ...)".
+
+    A call whose every argument is a literal and one of them marks success
+    (True, or a member such as HEALTHY): the result is the same whatever
+    happened, and it says the work succeeded.
+    """
+    if not isinstance(value, ast.Call):
+        return None
+    # A constructed report: the callee is a class (`SendResult`, `health.Report`);
+    # a method such as `var.set(True)` acts and is not a report.
+    callee_name = value.func.attr if isinstance(value.func, ast.Attribute) else ""
+    callee_name = callee_name or getattr(value.func, "id", "")
+    if not callee_name[:1].isupper():
+        return None
+    arguments = list(value.args) + [k.value for k in value.keywords]
+    args = function.args
+    parameters = frozenset(a.arg for a in args.posonlyargs + args.args + args.kwonlyargs)
+    if not arguments or not all(_literal_argument(a, parameters) for a in arguments):
+        return None
+    marked = [_success_mark(a) for a in value.args]
+    marked += [_success_mark(k.value, k.arg) for k in value.keywords]
+    marks = [m for m in marked if m]
+    if not marks:
+        return None
+    callee = _exception_type_text(value.func, content) or "a constructor"
+    shown = f"{callee}(... {marks[0]} ...)"
+    texts = [
+        s.value
+        for a in arguments
+        for s in ast.walk(a)
+        if isinstance(s, ast.Constant) and isinstance(s.value, str)
+    ]
+    word = next((w for t in texts for w in _PLACEHOLDER_WORDS if w in t.lower()), None)
+    return f"{shown}, whose text says '{word}'" if word else shown
+
+
 def _exception_type_text(node: ast.expr, content: str) -> Optional[str]:
     """Text of an except clause's type without ast.unparse (3.9+; CI runs 3.8).
 
@@ -247,6 +337,9 @@ class PassPlaceholderPattern(_IntentAwarePattern):
         if _has_abstractmethod(node):
             return None
         body = _strip_docstring(node.body)
+        # An empty __init__ has nothing to set up; it promises nothing.
+        if node.name == "__init__":
+            return None
         if len(body) == 1 and isinstance(body[0], ast.Pass) and not self._declared(node, body[0]):
             return self.create_issue_from_node(
                 node, file, suggestion="Implement the function or remove it"
@@ -581,6 +674,19 @@ class ReturnConstantStubPattern(_IntentAwarePattern):
                 file,
                 message=f"Function '{node.name}'{note} returns empty {container} - likely stub",
                 suggestion="Implement meaningful logic or remove the function",
+            )
+
+        # return Report(<literals>, True, ...): a success built from constants
+        report = _constant_success_report(ret_val, node, content)
+        if report is not None:
+            return self.create_issue_from_node(
+                node,
+                file,
+                message=(
+                    f"Function '{node.name}'{note} returns a constant success report "
+                    f"{report} - nothing is checked or done"
+                ),
+                suggestion="Report the outcome of real work, or a failure the caller can see",
             )
 
         return None
