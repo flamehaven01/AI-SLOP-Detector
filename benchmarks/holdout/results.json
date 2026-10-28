@@ -1,0 +1,2030 @@
+{
+ "labels_sha256": "2b7cb65c996b2393cf89f4313a105f4b6cfcd61888c8bc01038981e0ce86fc20",
+ "detector_version": "3.12.0",
+ "src_sha256": "05375110dc6abaa5acfbf0e99d24c6cf02b106adffbd8ca5d6da86368276c1d6",
+ "functions_in_unanalyzed_files": 0,
+ "measurement_states": {
+  "BioClaw": "COMPLETE",
+  "BioReason-Pro": "COMPLETE",
+  "Biomni": "COMPLETE",
+  "ClawBio": "COMPLETE",
+  "ComfyUI": "COMPLETE",
+  "HRM": "COMPLETE",
+  "NAAb": "COMPLETE",
+  "NOVAGENE": "COMPLETE",
+  "OpenGauss": "COMPLETE",
+  "PixelRAG": "COMPLETE",
+  "RAG-Anything": "COMPLETE",
+  "TheAnalystsProblem": "COMPLETE",
+  "VideoAgent": "COMPLETE",
+  "academic-observatory-workflows": "COMPLETE",
+  "agent-governance-toolkit": "COMPLETE",
+  "andartis": "COMPLETE",
+  "claude-scientific-skills": "COMPLETE",
+  "claw-code": "COMPLETE",
+  "cocoindex": "COMPLETE",
+  "docling": "COMPLETE",
+  "doctobert": "COMPLETE",
+  "fallow": "COMPLETE",
+  "fieldbioinformatics": "COMPLETE",
+  "langflow": "COMPLETE",
+  "neuroai": "COMPLETE",
+  "opendataloader-pdf": "COMPLETE",
+  "openmed": "COMPLETE",
+  "openrag": "COMPLETE",
+  "the_well": "COMPLETE",
+  "tiktok-agent": "COMPLETE"
+ },
+ "hollow_patterns": [
+  "ellipsis_placeholder",
+  "failure_as_success",
+  "ignored_parameter",
+  "not_implemented",
+  "pass_placeholder",
+  "return_constant_stub",
+  "return_input_stub",
+  "return_none_placeholder"
+ ],
+ "recall": {
+  "flagged": 1,
+  "total": 9,
+  "ci95": [
+   0.02,
+   0.435
+  ]
+ },
+ "false_alarms": {
+  "flagged": 5,
+  "total": 170,
+  "ci95": [
+   0.013,
+   0.067
+  ]
+ },
+ "false_alarms_by_stratum": {
+  "R": {
+   "flagged": 3,
+   "total": 119,
+   "ci95": [
+    0.009,
+    0.072
+   ]
+  },
+  "M": {
+   "flagged": 2,
+   "total": 51,
+   "ci95": [
+    0.011,
+    0.132
+   ]
+  }
+ },
+ "any_pattern_on_genuine": 46,
+ "recall_by_class": {
+  "ALWAYS_PASS_CHECK": {
+   "flagged": 0,
+   "total": 1,
+   "ci95": [
+    0.0,
+    0.793
+   ]
+  },
+  "FAILURE_AS_SUCCESS": {
+   "flagged": 0,
+   "total": 2,
+   "ci95": [
+    0.0,
+    0.658
+   ]
+  },
+  "HARDCODED_RESULT": {
+   "flagged": 0,
+   "total": 1,
+   "ci95": [
+    0.0,
+    0.793
+   ]
+  },
+  "IGNORED_INPUT": {
+   "flagged": 1,
+   "total": 2,
+   "ci95": [
+    0.095,
+    0.905
+   ]
+  },
+  "STUB_DISGUISED": {
+   "flagged": 0,
+   "total": 3,
+   "ci95": [
+    0.0,
+    0.562
+   ]
+  }
+ },
+ "findings_by_pattern": {
+  "pass_placeholder": 1,
+  "ignored_parameter": 4,
+  "return_none_placeholder": 1
+ },
+ "unclear": [
+  {
+   "id": "H069",
+   "stratum": "R",
+   "label": "UNCLEAR",
+   "where": "TheAnalystsProblem/VOLUME_XII_FINAL_ASSEMBLY/VOLUME_XII_FINAL_ASSEMBLY_PROOF/VOLUME_XII_LEMMA_GAP.py::adaptive_num_samples_refined",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  }
+ ],
+ "missed_hollow": [
+  {
+   "id": "H123",
+   "stratum": "M",
+   "label": "IGNORED_INPUT",
+   "where": "BioReason-Pro/bioreason2/models/go_graph_encoder.py::GOGraphEncoderUnified.forward",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H124",
+   "stratum": "M",
+   "label": "STUB_DISGUISED",
+   "where": "claw-code/src/remote_runtime.py::run_ssh_mode",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H128",
+   "stratum": "M",
+   "label": "FAILURE_AS_SUCCESS",
+   "where": "tiktok-agent/models/engagement_model.py::EngagementModel._fallback_scoring",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "bare_except",
+    "god_function",
+    "runtime_unavailable_dependency"
+   ]
+  },
+  {
+   "id": "H147",
+   "stratum": "M",
+   "label": "STUB_DISGUISED",
+   "where": "claw-code/src/prefetch.py::start_mdm_raw_read",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H149",
+   "stratum": "M",
+   "label": "FAILURE_AS_SUCCESS",
+   "where": "claude-scientific-skills/scientific-skills/timesfm-forecasting/scripts/check_system.py::_get_total_ram_gb",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "empty_except",
+    "lint_escape"
+   ]
+  },
+  {
+   "id": "H157",
+   "stratum": "M",
+   "label": "HARDCODED_RESULT",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/examples/self-evaluating/examples/example_orchestration_ai.py::ai_product_manager",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H160",
+   "stratum": "M",
+   "label": "STUB_DISGUISED",
+   "where": "claw-code/src/remote_runtime.py::run_remote_mode",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H162",
+   "stratum": "M",
+   "label": "ALWAYS_PASS_CHECK",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/src/agent_os/integrations/health.py::HealthChecker._check_audit_backend",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  }
+ ],
+ "flagged_genuine": [
+  {
+   "id": "H017",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/model/retriever.py::ToolRetriever.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "pass_placeholder"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H061",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_I_FORMAL_REDUCTION/VOLUME_I_FORMAL_REDUCTION_PROOF/VOLUME_I_FORMAL_REDUCTION.py::build_toeplitz_matrix",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "ignored_parameter"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H119",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/api/settings.py::update_docling_preset",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "ignored_parameter"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H143",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "academic-observatory-workflows/academic-observatory-workflows/academic_observatory_workflows/model.py::make_orcid",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "ignored_parameter"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H165",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "OpenGauss/environments/benchmarks/terminalbench_2/terminalbench2_env.py::TerminalBench2EvalEnv.score",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "return_none_placeholder"
+   ],
+   "other_findings": []
+  }
+ ],
+ "functions": [
+  {
+   "id": "H001",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/sec-report/sec_pipeline.py::SECPlotter.plot_zone_fractions",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H002",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/sec-report/sec_pipeline.py::_normalize_renderer",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H003",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/report-template/report_builder.py::ReportBuilder.text",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "exact_duplicate_pair"
+   ]
+  },
+  {
+   "id": "H004",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/sec-report/sec_pipeline.py::SECDataParser._read_text_file",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H005",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/sec-report/sec_report_typst.py::_star",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H006",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/sec-report/sec_report_common.py::assign_cohorts",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H007",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/bio-manuscript-common/scripts/integrate_omicsclaw.py::OmicsClawRunner.find_markers",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H008",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/report-template/report_builder.py::T.italic",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H009",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/report-template/report_builder.py::T.callout",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H010",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/bio-tools/templates/volcano_plot_template.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H011",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/physiology.py::simulate_thyroid_hormone_pharmacokinetics",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H012",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/database.py::query_clinicaltrials",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H013",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/database.py::query_interpro",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H014",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/utils.py::format_lists_in_text",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H015",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/physiology.py::reconstruct_3d_face_from_mri",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function",
+    "phantom_import"
+   ]
+  },
+  {
+   "id": "H016",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/bioimaging.py::SegmentationTool._download_and_extract_model",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H017",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/model/retriever.py::ToolRetriever.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "pass_placeholder"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H018",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/physiology.py::analyze_endolysosomal_calcium_dynamics",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H019",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/immunology.py::analyze_bacterial_growth_curve",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H020",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/database.py::query_dailymed",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H021",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/pretrain.py::compute_lr",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H022",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/models/layers.py::rms_norm",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H023",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/models/layers.py::RotaryEmbedding.forward",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H024",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/dataset/build_maze_dataset.py::preprocess_data",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H025",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/models/losses.py::ACTLossHead.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H026",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/models/losses.py::s",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H027",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/models/hrm/hrm_act_v1.py::HierarchicalReasoningModel_ACTV1.initial_carry",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H028",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/models/sparse_embedding.py::_sparse_emb_signsgd_dist",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H029",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/utils/functions.py::get_model_source_path",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H030",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "HRM/models/layers.py::_find_multiple",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H031",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/docs/book/verification/ch0_full_projects/Helix/legacy/legacy_vortex.py::process_vortex",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H032",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/docs/book/verification/ch0_full_projects/Vigilant/analyst/entropy_engine.py::AnalystHandler.analyze",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H033",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/docs/book/verification/ch0_full_projects/Helix/legacy/legacy_vortex.py::heavy_calculation",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H034",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/docs/book/verification/ch0_full_projects/Helix/legacy/legacy_settlement.py::process_ledger",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H035",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/docs/book/verification/ch0_full_projects/Vigilant/analyst/entropy_engine.py::AnalystHandler.calculate_entropy",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H036",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/docs/book/verification/ch0_full_projects/Helix/legacy/legacy_vortex.py::secure_signature",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H037",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/benchmarks/web_apis/socket_rt.py::server_fn",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H038",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/benchmarks/concurrency/prodcons_10k.py::consumer",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H039",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/benchmarks/concurrency/prodcons_10k.py::producer",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H040",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "NAAb/docs/book/verification/ch0_full_projects/Helix/legacy/legacy_enterprise.py::process_monolith",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H041",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/eval/lib/retrieval.py::_save_worldvqa_query_image",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H042",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/serve/src/pixelrag_serve/zim_server_async.py::ZimApp._read_entry",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H043",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/eval/lib/retrieval.py::TextAPIRetriever.prefetch",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H044",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/eval/lib/simpleqa_data.py::extract_url_from_metadata",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "empty_except",
+    "god_function",
+    "nested_complexity"
+   ]
+  },
+  {
+   "id": "H045",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/render/src/pixelrag_render/strategies/cdp_oneshot.py::_launch_oneshot",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H046",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/train/generate_text_query_pairs.py::is_list_like_paragraph",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H047",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/eval/lib/simpleqa_data.py::prepare_tiles_for_screenshots",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H048",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/train/sft/eval_baseline.py::run_inference",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H049",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/embed/src/pixelrag_embed/index.py::_merge_all_shards",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H050",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "PixelRAG/train/train_contrastors.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "god_function",
+    "nested_complexity",
+    "runtime_unavailable_dependency"
+   ]
+  },
+  {
+   "id": "H051",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/processor.py::ProcessorMixin._batch_extract_entities_lightrag_style_type_aware",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "phantom_import"
+   ]
+  },
+  {
+   "id": "H052",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/parser.py::Parser._unique_output_dir",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H053",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/examples/vllm_integration_example.py::VLLMRAGIntegration.simple_query_example",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H054",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/parser.py::Parser.check_installation",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H055",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/modalprocessors.py::ImageModalProcessor.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H056",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/reproduce/llm_answer_evaluator.py::LLMAnswerEvaluator.get_comprehensive_evaluation_prompt",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H057",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/query.py::QueryMixin.query",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H058",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/examples/batch_processing_example.py::demonstrate_error_handling",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H059",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/prompt_manager.py::set_prompt_language",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "global_statement"
+   ]
+  },
+  {
+   "id": "H060",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/config.py::RAGAnythingConfig.mineru_parse_method",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H061",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_I_FORMAL_REDUCTION/VOLUME_I_FORMAL_REDUCTION_PROOF/VOLUME_I_FORMAL_REDUCTION.py::build_toeplitz_matrix",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "ignored_parameter"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H062",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_X_UNIFORMITY_EDGE_CASES/VOLUME_X_UNIFORMITY_EDGE_CASES_PROOF/VOLUME_X_UNIFORMITY_EDGE_CASES.py::print_header",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H063",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_II_KERNAL_DECOMPOSITION/VOLUME_II_KERNAL_DECOMPOSITION_PROOF/KERNAL_DECOMPOSITION_PROBLEM.py::bochner_psd_check",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H064",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_VI_LARGE_SIEVE_BRIDGE/VOLUME_VI_LARGE_SIEVE_BRIDGE_PROOF/VOLUME_VI_LARGE_SIEVE_BRIDGE.py::scaling_study",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H065",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_II_KERNAL_DECOMPOSITION/VOLUME_II_KERNAL_DECOMPOSITION_PROOF/KERNAL_DECOMPOSITION_PROBLEM.py::k_H_sech4_closed_form",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H066",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_I_FORMAL_REDUCTION/VOLUME_I_FORMAL_REDUCTION_PROOF/VOLUME_I_FORMAL_REDUCTION.py::M1_diagonal_term",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H067",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_IV_SPECTRAL_EXPANSION/VOLUME_IV_SPECTRAL_EXPANSION_PROOF/SPECTRAL_EXPANSION.py::scan_sigma_selector_direct",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H068",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_IV_SPECTRAL_EXPANSION/VOLUME_IV_SPECTRAL_EXPANSION_PROOF/SPECTRAL_EXPANSION.py::run_volume_iv_suite",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H069",
+   "stratum": "R",
+   "label": "UNCLEAR",
+   "where": "TheAnalystsProblem/VOLUME_XII_FINAL_ASSEMBLY/VOLUME_XII_FINAL_ASSEMBLY_PROOF/VOLUME_XII_LEMMA_GAP.py::adaptive_num_samples_refined",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H070",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "TheAnalystsProblem/VOLUME_XII_FINAL_ASSEMBLY/VOLUME_XII_FINAL_ASSEMBLY_PROOF/VOLUME_XII_LEMMA_GAP.py::jackson_window",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H071",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/jwk.py::to_jwks",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H072",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/src/agent_os_observability/tracer.py::trace_operation",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H073",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/credentials.py::CredentialManager.issue",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H074",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/benchmarks/prompt-injection/harness/check-corpus.py::sha256",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H075",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/modules/caas/src/caas/caching.py::ContextCache.strategy",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H076",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/interfaces/plugin_interface.py::ValidatorInterface.validate_request",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H077",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/src/agent_os/prompt_injection.py::DetectionEvidenceBackend.evaluate",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H078",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/policy-engine/sdk/python/agent_control_specification/_adapters/_shared.py::_ObjectProxy.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H079",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/evidence_pipeline.py::EvidencePipeline.run",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H080",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/src/agent_os/integrations/guardrails_adapter.py::GuardrailsKernel._validate",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H081",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/capabilities/conversational_orchestrator.py::ConversationalOrchestrator.train",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H082",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/core/ingestor.py::DeepIngestor.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H083",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/capabilities/base.py::BaseCapability.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H084",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/core/ingestor.py::DeepIngestor._sentence_split",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H085",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/core/ingestor.py::DeepIngestor.extract_metadata_semantic",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H086",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/core/extractors.py::BaseExtractor.extract",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H087",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/capabilities/base.py::BaseCapability.train",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H088",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/capabilities/base.py::BaseCapability.close",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H089",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/text_classifier.py::get_vocabulary",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H090",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "andartis/python/capabilities/conversational_orchestrator.py::ConversationalOrchestrator._analyze_data",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "god_function",
+    "nested_complexity"
+   ]
+  },
+  {
+   "id": "H091",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/deprecated/gather.py::write_fastq",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H092",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/margin_cons.py::go",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "bare_except",
+    "deep_nesting",
+    "god_function",
+    "nested_complexity"
+   ]
+  },
+  {
+   "id": "H093",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/deprecated/reconstitute.py::go",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H094",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/runs.py::load_runs",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H095",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/vcfextract.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H096",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/minion.py::run",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "god_function",
+    "nested_complexity"
+   ]
+  },
+  {
+   "id": "H097",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/utils.py::identify_bed_file",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H098",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/deprecated/basecaller.py::print_basecallers",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H099",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/fasta_header.py::fasta_header",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H100",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "fieldbioinformatics/artic/deprecated/demultiplex.py::run",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H101",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/interop/athena.py::_dedupe",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H102",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/core/quality_gates.py::_valid_offsets",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H103",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/ner/families/base.py::SupportsPrediction.predict",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H104",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/eval/attacks/reid.py::_record_id",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H105",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/service/app.py::_pii_deidentify_payload",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H106",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/mlx/inference.py::_tokenizer_has_list_extra_special_tokens",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H107",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/eval/report.py::read_reports",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H108",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/core/hf_publish.py::_repo_exists",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H109",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/eval/metrics.py::_f1_over_docs",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H110",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openmed/openmed/utils/profiling.py::InferenceMetrics.chars_per_second",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H111",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/db/migrations_runtime.py::run_alembic_upgrade_async",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H112",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/services/default_docs_service.py::_get_documents_dir",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H113",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/services/session_ownership_service.py::SessionOwnershipService.filter_sessions_for_user",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H114",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/services/langflow_mcp_service.py::LangflowMCPService.patch_mcp_server_url",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H115",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/services/langflow_history_service.py::LangflowHistoryService.get_user_conversation_history",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H116",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/tui/managers/docling_manager.py::DoclingManager._recover_from_pid_file",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H117",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/services/session_ownership_service.py::SessionOwnershipService.get_ownership_stats",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "lint_escape"
+   ]
+  },
+  {
+   "id": "H118",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/api/admin/rbac.py::list_roles",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H119",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/api/settings.py::update_docling_preset",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "ignored_parameter"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H120",
+   "stratum": "R",
+   "label": "GENUINE",
+   "where": "openrag/src/db/repositories/role_repo.py::RoleRepo.list_user_roles",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H121",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "ClawBio/bot/roboterri_whatsapp.py::handle_whatsapp_message",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "god_function",
+    "nested_complexity"
+   ]
+  },
+  {
+   "id": "H122",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "neuroai/neuralbench-repo/neuralbench/plots/_style.py::build_grouped_legend",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H123",
+   "stratum": "M",
+   "label": "IGNORED_INPUT",
+   "where": "BioReason-Pro/bioreason2/models/go_graph_encoder.py::GOGraphEncoderUnified.forward",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H124",
+   "stratum": "M",
+   "label": "STUB_DISGUISED",
+   "where": "claw-code/src/remote_runtime.py::run_ssh_mode",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H125",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "the_well/the_well/data/augmentation.py::RandomAxisPermute.__call__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H126",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "the_well/the_well/data/augmentation.py::RandomAxisFlip.__call__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H127",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "langflow/src/backend/base/langflow/api/v1/endpoints.py::webhook_run_flow",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H128",
+   "stratum": "M",
+   "label": "FAILURE_AS_SUCCESS",
+   "where": "tiktok-agent/models/engagement_model.py::EngagementModel._fallback_scoring",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "bare_except",
+    "god_function",
+    "runtime_unavailable_dependency"
+   ]
+  },
+  {
+   "id": "H129",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "VideoAgent/tools/CosyVoice/third_party/Matcha-TTS/matcha/onnx/export.py::get_inputs",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H130",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "BioClaw/container/skills/bio-manuscript-common/scripts/generate_figure_image.py::FigureImageGenerator.__init__",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H131",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "docling/docling/backend/md_backend.py::MarkdownDocumentBackend._iterate_elements",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "god_function",
+    "lint_escape",
+    "nested_complexity"
+   ]
+  },
+  {
+   "id": "H132",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/genetics.py::perform_pcr_and_gel_electrophoresis",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function",
+    "phantom_import"
+   ]
+  },
+  {
+   "id": "H133",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "ComfyUI/comfy_extras/mesh3d/postprocess/remesh.py::_dual_contour",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function",
+    "placeholder_variable_naming"
+   ]
+  },
+  {
+   "id": "H134",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "docling/docling/backend/html_backend.py::HTMLDocumentBackend._extract_input_like_text",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H135",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "claude-scientific-skills/scientific-skills/simpy/scripts/basic_simulation_template.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H136",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "PixelRAG/eval/run_livevqa.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H137",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/src/agent_os/secure_codegen.py::CodeSecurityValidator._check_hardcoded_secrets",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H138",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "doctobert/data_curation/data_synthesis/llm_rewrite.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H139",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "tiktok-agent/app/routers/jobs.py::start_youtube_job",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H140",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "ComfyUI/comfy/ldm/depth_anything_3/ray_pose.py::_find_homography_weighted_lsq_batched",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H141",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "neuroai/neuralbench-repo/neuralbench/pl_module.py::BrainModule.configure_optimizers",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "lint_escape"
+   ]
+  },
+  {
+   "id": "H142",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "langflow/src/lfx/src/lfx/components/ollama/ollama.py::ChatOllamaComponent._parse_format_field",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H143",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "academic-observatory-workflows/academic-observatory-workflows/academic_observatory_workflows/model.py::make_orcid",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "ignored_parameter"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H144",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "cocoindex/python/cocoindex/_internal/memo_fingerprint.py::_stable_sort_key",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H145",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "RAG-Anything/raganything/parser.py::Parser.convert_text_to_pdf",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "empty_except",
+    "god_function"
+   ]
+  },
+  {
+   "id": "H146",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "cocoindex/dev/generate_cli_docs.py::escape_html_tags",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H147",
+   "stratum": "M",
+   "label": "STUB_DISGUISED",
+   "where": "claw-code/src/prefetch.py::start_mdm_raw_read",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H148",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "tiktok-agent/app/services/job_manager.py::JobManager.get_all_jobs",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H149",
+   "stratum": "M",
+   "label": "FAILURE_AS_SUCCESS",
+   "where": "claude-scientific-skills/scientific-skills/timesfm-forecasting/scripts/check_system.py::_get_total_ram_gb",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "empty_except",
+    "lint_escape"
+   ]
+  },
+  {
+   "id": "H150",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "<redacted: local file that is not part of the public repository>",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ],
+   "redacted": true
+  },
+  {
+   "id": "H151",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "the_well/the_well/data/miniwell.py::process_dataset",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H152",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "PixelRAG/train/fake_data.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H153",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "claude-scientific-skills/scientific-skills/xlsx/scripts/office/helpers/simplify_redlines.py::simplify_redlines",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H154",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "RAG-Anything/examples/enhanced_markdown_example.py::create_sample_markdown_content",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H155",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "the_well/the_well/data/augmentation.py::Resize.resize",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H156",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "openmed/openmed/core/pii.py::_shift_date",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H157",
+   "stratum": "M",
+   "label": "HARDCODED_RESULT",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/examples/self-evaluating/examples/example_orchestration_ai.py::ai_product_manager",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H158",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "neuroai/neuralbench-repo/neuralbench/plots/tables.py::_collapse_feature_based_baselines",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H159",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "VideoAgent/tools/seed-vc/dac/nn/loss.py::GANLoss.generator_loss",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H160",
+   "stratum": "M",
+   "label": "STUB_DISGUISED",
+   "where": "claw-code/src/remote_runtime.py::run_remote_mode",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H161",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "ComfyUI/comfy_extras/sam3d_body/export/glb_openpose.py::build_glb_openpose",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H162",
+   "stratum": "M",
+   "label": "ALWAYS_PASS_CHECK",
+   "where": "agent-governance-toolkit/agent-governance-python/agent-os/src/agent_os/integrations/health.py::HealthChecker._check_audit_backend",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H163",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "openrag/src/tui/screens/config.py::ConfigScreen._render_standard_field",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H164",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "cocoindex/python/cocoindex/connectors/postgres/_target.py::_RowHandler._execute_delete_chunk",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H165",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "OpenGauss/environments/benchmarks/terminalbench_2/terminalbench2_env.py::TerminalBench2EvalEnv.score",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "return_none_placeholder"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H166",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "NOVAGENE/src/drug_database.py::load_drugbank",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H167",
+   "stratum": "M",
+   "label": "IGNORED_INPUT",
+   "where": "tiktok-agent/core/captioner.py::Captioner._generate_ass_file",
+   "file_analyzed": true,
+   "hollow_findings": [
+    "ignored_parameter"
+   ],
+   "other_findings": []
+  },
+  {
+   "id": "H168",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "Biomni/biomni/tool/systems_biology.py::model_protein_dimerization_network",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H169",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "tiktok-agent/web_api.py::render_clips",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H170",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "fallow/scripts/public-config-corpus.py::main",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H171",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "opendataloader-pdf/python/opendataloader-pdf-mcp/src/opendataloader_pdf_mcp/server.py::convert_pdf",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H172",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "docling/docling/pipeline/vlm_pipeline.py::VlmPipeline._convert_text_with_backend",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "fixme_comment"
+   ]
+  },
+  {
+   "id": "H173",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "VideoAgent/tools/DiffSinger/utils/text_norm.py::create_system",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H174",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "ClawBio/bot/roboterri_discord.py::on_message",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "god_function",
+    "nested_complexity"
+   ]
+  },
+  {
+   "id": "H175",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "ComfyUI/comfy_extras/sam3d_body/face_expression.py::fill_detection_gaps",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "god_function"
+   ]
+  },
+  {
+   "id": "H176",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "BioReason-Pro/eval.py::filter_unprocessed_samples",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H177",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "openrag/src/connectors/google_drive/connector.py::GoogleDriveConnector.list_files",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H178",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "academic-observatory-workflows/academic-observatory-workflows/academic_observatory_workflows/model.py::make_unpaywall",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H179",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "andartis/python/core/engine.py::SimilarityEngine.find_similar",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": []
+  },
+  {
+   "id": "H180",
+   "stratum": "M",
+   "label": "GENUINE",
+   "where": "OpenGauss/gauss_cli/setup.py::setup_model_provider",
+   "file_analyzed": true,
+   "hollow_findings": [],
+   "other_findings": [
+    "deep_nesting",
+    "empty_except",
+    "god_function",
+    "nested_complexity"
+   ]
+  }
+ ]
+}

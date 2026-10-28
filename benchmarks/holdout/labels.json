@@ -1,0 +1,2727 @@
+{
+ "meta": {
+  "protocol": "benchmarks/holdout/sample.py (seed 20261026): R = 12 random repos x 10 random functions; M = up to 5 marker-text functions per repo, 60 in all",
+  "population": "files picked by the product's discovery in 35 public repositories never named in the detector's benchmarks, tests, docs, changelog, internal notes or memory",
+  "labeler": "rule author (Claude), blind: labels fixed and committed before the detector ran on these repositories",
+  "display": "functions <= 80 lines read in full; longer ones from signature, first 20 and last 15 lines, every return/raise/except/yield line, and parameter names absent from the body text",
+  "rules": {
+   "hollow": "the body does not do what its name, docstring or signature promises; class names follow benchmarks/recall/labels.json",
+   "GENUINE includes": "abstract/protocol/interface methods, fixed signatures (framework callbacks, dependency injection, CLI subcommand signatures), documented intentional no-ops and fixtures, test doubles, and handlers that log the failure and return an empty/neutral value",
+   "FAILURE_AS_SUCCESS": "a failure path that returns fabricated or success-shaped data (not an empty/neutral value)",
+   "UNCLEAR": "excluded from rates, counted"
+  },
+  "classes": {
+   "STUB_DISGUISED": "returns a constant or its input; only cosmetic statements (logging) around it",
+   "FAILURE_AS_SUCCESS": "an exception handler reports success or a benign result instead of the failure",
+   "CLAIM_WITHOUT_MECHANISM": "the docstring promises a mechanism (retry, cache, parallel, pagination, weighting, filtering) the body does not have",
+   "IGNORED_INPUT": "a parameter the contract depends on is never used",
+   "ALWAYS_PASS_CHECK": "a check, validator or authorization that passes regardless of its input",
+   "HARDCODED_RESULT": "returns canned data where the docstring promises computed or fetched data",
+   "PLACEHOLDER_PLAIN": "an obvious stub: pass, ..., NotImplementedError or a TODO with a default return"
+  },
+  "erratum_H150": "H150's file is a local artifact inside a clone, not part of the public repository; its path is redacted here (full record in the private store, sha256 2b7cb65c996b2393cf89f4313a105f4b6cfcd61888c8bc01038981e0ce86fc20)"
+ },
+ "functions": [
+  {
+   "id": "H001",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/sec-report/sec_pipeline.py",
+   "function": "SECPlotter.plot_zone_fractions",
+   "span": [
+    593,
+    632
+   ],
+   "sha256": "5b527e16fde4904839fea0ac8f2a0c89011cb524c961a15dec9ec50ed0f16f34",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H002",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/sec-report/sec_pipeline.py",
+   "function": "_normalize_renderer",
+   "span": [
+    825,
+    832
+   ],
+   "sha256": "c9ac49b43e431a976e7950934b1c864a85c16d66fbf91dd44905f89816727460",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H003",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/report-template/report_builder.py",
+   "function": "ReportBuilder.text",
+   "span": [
+    150,
+    152
+   ],
+   "sha256": "2b7034fa553c740790d951ac447f15810300ca8e129f81afe71c009a08fb21b3",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H004",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/sec-report/sec_pipeline.py",
+   "function": "SECDataParser._read_text_file",
+   "span": [
+    194,
+    240
+   ],
+   "sha256": "24a1ab08888e9945d66ed596b0da587ada1a1e5fe1ffdc632f78b3ad1dd9f361",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H005",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/sec-report/sec_report_typst.py",
+   "function": "_star",
+   "span": [
+    56,
+    58
+   ],
+   "sha256": "f4a91cd541775f3038c71f8f192f171f676a71fe5fc510ce4c28ed541a701585",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H006",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/sec-report/sec_report_common.py",
+   "function": "assign_cohorts",
+   "span": [
+    135,
+    165
+   ],
+   "sha256": "4e62d108227b609775d1cc751ab0e3a8911940b83a15df605e323f309204e237",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H007",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/bio-manuscript-common/scripts/integrate_omicsclaw.py",
+   "function": "OmicsClawRunner.find_markers",
+   "span": [
+    118,
+    133
+   ],
+   "sha256": "8527614e5baeb20b041dad3509ef2cb3d3291a79b473a881e09a283271edf725",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H008",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/report-template/report_builder.py",
+   "function": "T.italic",
+   "span": [
+    100,
+    102
+   ],
+   "sha256": "34a709845aaab8ba8f323f2b9396f1a6aaaf9377c28fbd1f0ed50dd9477765a2",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H009",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/report-template/report_builder.py",
+   "function": "T.callout",
+   "span": [
+    58,
+    61
+   ],
+   "sha256": "890a4fee40a729a87271bbf2a7df41da27b2270a8f2dfe0fad079cae84d271c0",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H010",
+   "stratum": "R",
+   "repo": "BioClaw",
+   "file": "container/skills/bio-tools/templates/volcano_plot_template.py",
+   "function": "main",
+   "span": [
+    31,
+    99
+   ],
+   "sha256": "4f9542182a332a3cff1df0d87414f61ccae8d6530916c3db4e2d22b360a2243a",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H011",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/physiology.py",
+   "function": "simulate_thyroid_hormone_pharmacokinetics",
+   "span": [
+    1099,
+    1248
+   ],
+   "sha256": "99d3f7832bd5830ae1b04117c5fc29b041ebd15f150fac55b6510f205717c908",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H012",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/database.py",
+   "function": "query_clinicaltrials",
+   "span": [
+    4486,
+    4599
+   ],
+   "sha256": "5daa0ed37b4f45b78c4b122226f7e6976a80f90819e5e9322c9acfee0ba42e23",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H013",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/database.py",
+   "function": "query_interpro",
+   "span": [
+    693,
+    797
+   ],
+   "sha256": "ca9d5f1564ae7ec505135a4e4746be0781753e9969bffe945516eb37464035cb",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": "bug, not hollow: `format` is the builtin (no such parameter), so params['format'] is always set"
+  },
+  {
+   "id": "H014",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/utils.py",
+   "function": "format_lists_in_text",
+   "span": [
+    1746,
+    1792
+   ],
+   "sha256": "87dd80010e02847bd1c7d6d224287a4515fa25a47fa15f00599066f6083b0411",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H015",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/physiology.py",
+   "function": "reconstruct_3d_face_from_mri",
+   "span": [
+    1,
+    147
+   ],
+   "sha256": "5c1a8c9ccf985ff22f55e20945e65de9de908c87b189fb23d6b21ee00abd0e19",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H016",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/bioimaging.py",
+   "function": "SegmentationTool._download_and_extract_model",
+   "span": [
+    225,
+    276
+   ],
+   "sha256": "73d525a51ac53417cab4259f0c1dbd9e62b7614b698f78255e983e563abc2bec",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H017",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/model/retriever.py",
+   "function": "ToolRetriever.__init__",
+   "span": [
+    11,
+    12
+   ],
+   "sha256": "8da0b8b4d1415086813f3dd71fb2003f9581f732e1db85435cee5deb37b12abb",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": "empty __init__, nothing to initialise"
+  },
+  {
+   "id": "H018",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/physiology.py",
+   "function": "analyze_endolysosomal_calcium_dynamics",
+   "span": [
+    738,
+    886
+   ],
+   "sha256": "d532473471b28c21ed23ccd4be09f724d565d46ffc0f58422390a69d73f6f481",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H019",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/immunology.py",
+   "function": "analyze_bacterial_growth_curve",
+   "span": [
+    185,
+    308
+   ],
+   "sha256": "baf5a2cfc4562728f4b062c7089b4bc9b6cbe7cf77779a897e1da30fbc2cc7b4",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H020",
+   "stratum": "R",
+   "repo": "Biomni",
+   "file": "biomni/tool/database.py",
+   "function": "query_dailymed",
+   "span": [
+    4602,
+    4703
+   ],
+   "sha256": "d92a1ded6206c5fc9d67f9322d2a3aed2f069d9e9ac0c48c5cf7d3ea424c394d",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H021",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "pretrain.py",
+   "function": "compute_lr",
+   "span": [
+    199,
+    206
+   ],
+   "sha256": "c201923e46d00f74ba027c6b1bc054d924ef67de37d80c8e4aeced6da7898890",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H022",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "models/layers.py",
+   "function": "rms_norm",
+   "span": [
+    151,
+    157
+   ],
+   "sha256": "49e3ac273290f5f2d9349c8fc70f9e08dcc27802d89762c30a370b5083ae1b5d",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H023",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "models/layers.py",
+   "function": "RotaryEmbedding.forward",
+   "span": [
+    94,
+    95
+   ],
+   "sha256": "0849f3794c213fcec77fd3deb9214bace56cf3e79327dbdc1f1758f6a4e43282",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H024",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "dataset/build_maze_dataset.py",
+   "function": "preprocess_data",
+   "span": [
+    135,
+    138
+   ],
+   "sha256": "5dcdd738b058bd85231a41b01eba4b7c480a5f5deb7080e083e57614954618ff",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H025",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "models/losses.py",
+   "function": "ACTLossHead.__init__",
+   "span": [
+    41,
+    44
+   ],
+   "sha256": "7be465e759ff36dd56f749f3e784d132a2582a4f30a392e605e8611a85f670d2",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H026",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "models/losses.py",
+   "function": "s",
+   "span": [
+    11,
+    16
+   ],
+   "sha256": "df6b325ca46dcca6b36e0ad9f1b6a8042b0ed8ff9abf92337d3c6b4f369200c0",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H027",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "models/hrm/hrm_act_v1.py",
+   "function": "HierarchicalReasoningModel_ACTV1.initial_carry",
+   "span": [
+    228,
+    238
+   ],
+   "sha256": "dbca2fb7e4be72e35ca619a9d9536505f67f2b4644f0e3e82eaae785bdd63c0a",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H028",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "models/sparse_embedding.py",
+   "function": "_sparse_emb_signsgd_dist",
+   "span": [
+    98,
+    132
+   ],
+   "sha256": "29d3694c98b4495273677c45eac2e45eee0db15dbd9e6c29bfcd62a7bfbe13ab",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H029",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "utils/functions.py",
+   "function": "get_model_source_path",
+   "span": [
+    15,
+    19
+   ],
+   "sha256": "0070913d58fdd961a4acf4bd56b33c577835b7d9bd535a5cfbef3a8bc4cb4334",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H030",
+   "stratum": "R",
+   "repo": "HRM",
+   "file": "models/layers.py",
+   "function": "_find_multiple",
+   "span": [
+    19,
+    20
+   ],
+   "sha256": "643fa7bc390fa3e5b11859482a96a40ea2950447e3b56bc0d13b8d251e537317",
+   "commit": "42410daaaf6ac8b266536d105a6e2362ffe40929",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H031",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "docs/book/verification/ch0_full_projects/Helix/legacy/legacy_vortex.py",
+   "function": "process_vortex",
+   "span": [
+    25,
+    36
+   ],
+   "sha256": "ff503352b018e917819421192485af9e6e8370ea14b15c1224be0cc635b7ca02",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H032",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "docs/book/verification/ch0_full_projects/Vigilant/analyst/entropy_engine.py",
+   "function": "AnalystHandler.analyze",
+   "span": [
+    31,
+    39
+   ],
+   "sha256": "cfa2497a9e721bc554fe1754bd60b071edbff65748dda615745a651202e342b2",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H033",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "docs/book/verification/ch0_full_projects/Helix/legacy/legacy_vortex.py",
+   "function": "heavy_calculation",
+   "span": [
+    10,
+    15
+   ],
+   "sha256": "9c83d9afea4e3d0e616d46b5250c67c09d34c4adc4a6ea97811316dbae41ca7d",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H034",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "docs/book/verification/ch0_full_projects/Helix/legacy/legacy_settlement.py",
+   "function": "process_ledger",
+   "span": [
+    4,
+    37
+   ],
+   "sha256": "630f989a6d4492010e20cd47ceaad25efd6a5535e2e66ad812bf9e63c555e447",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H035",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "docs/book/verification/ch0_full_projects/Vigilant/analyst/entropy_engine.py",
+   "function": "AnalystHandler.calculate_entropy",
+   "span": [
+    26,
+    29
+   ],
+   "sha256": "c01b0dc592fb3805b16aa4a36c522245651f4edd8461a65b3055212851ad3b86",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H036",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "docs/book/verification/ch0_full_projects/Helix/legacy/legacy_vortex.py",
+   "function": "secure_signature",
+   "span": [
+    17,
+    19
+   ],
+   "sha256": "a76bd916d9e7ded4d88feb242610288fd971e9500c67c3af1143a97b613f4ab2",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H037",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "benchmarks/web_apis/socket_rt.py",
+   "function": "server_fn",
+   "span": [
+    2,
+    8
+   ],
+   "sha256": "06881d7b35f068fa295f7783f83791981dd817ea291867bc4eef56100290b65b",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H038",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "benchmarks/concurrency/prodcons_10k.py",
+   "function": "consumer",
+   "span": [
+    8,
+    14
+   ],
+   "sha256": "a53c85564c95f72a0e794a87f51140fa2e6b98f0a2b995026073f07256cfda6b",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H039",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "benchmarks/concurrency/prodcons_10k.py",
+   "function": "producer",
+   "span": [
+    4,
+    7
+   ],
+   "sha256": "a3ab25552faad43bb40c15620d4dd44b5167a7d363f53a27e1f1d8d5e8c16e83",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H040",
+   "stratum": "R",
+   "repo": "NAAb",
+   "file": "docs/book/verification/ch0_full_projects/Helix/legacy/legacy_enterprise.py",
+   "function": "process_monolith",
+   "span": [
+    4,
+    24
+   ],
+   "sha256": "07602eaaea2294d6e82e3360f5e2aaabd9518c898f4fadc708fe0ca47c322eab",
+   "commit": "c99dcdfbd38261d586aba8126ac3195c96bce935",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H041",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "eval/lib/retrieval.py",
+   "function": "_save_worldvqa_query_image",
+   "span": [
+    516,
+    552
+   ],
+   "sha256": "dae85d4deac2a09973c9556c50d01a513805ad9259523a8922cb9ad51713a276",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H042",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "serve/src/pixelrag_serve/zim_server_async.py",
+   "function": "ZimApp._read_entry",
+   "span": [
+    27,
+    35
+   ],
+   "sha256": "ea492ac0868feec64659b40d0bc362b392b394873991916f48d84bf6f0820d68",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H043",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "eval/lib/retrieval.py",
+   "function": "TextAPIRetriever.prefetch",
+   "span": [
+    3293,
+    3369
+   ],
+   "sha256": "0ce42dfca2352d542966553047ddc99c692dda14d12a403944beb157c5164c2f",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H044",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "eval/lib/simpleqa_data.py",
+   "function": "extract_url_from_metadata",
+   "span": [
+    215,
+    283
+   ],
+   "sha256": "9a3ea539dc6924082afca4a6b7d593a5acd6e1ca14fc9416b55c730692c40405",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H045",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "render/src/pixelrag_render/strategies/cdp_oneshot.py",
+   "function": "_launch_oneshot",
+   "span": [
+    68,
+    113
+   ],
+   "sha256": "6a36766f93354e11ccee64e28ab8d8a664d9888d58e6562b51d3ff675b0ce01b",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H046",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "train/generate_text_query_pairs.py",
+   "function": "is_list_like_paragraph",
+   "span": [
+    227,
+    247
+   ],
+   "sha256": "0d3e1ae5f4fa67f2e7cfac37d289932c0f852704188c71a4cf3ab17b48b4ffe0",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H047",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "eval/lib/simpleqa_data.py",
+   "function": "prepare_tiles_for_screenshots",
+   "span": [
+    753,
+    784
+   ],
+   "sha256": "b3a63f911e646ea8d41c5b81d4f50c26f74ad47f649f1723540f2cc8bfcc7c57",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H048",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "train/sft/eval_baseline.py",
+   "function": "run_inference",
+   "span": [
+    61,
+    126
+   ],
+   "sha256": "7a03a88f433b76509e896b0d22ebdb4f76189c6f7ec2551e789e1f37ab451e7f",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H049",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "embed/src/pixelrag_embed/index.py",
+   "function": "_merge_all_shards",
+   "span": [
+    56,
+    139
+   ],
+   "sha256": "43cfd248c0789ad1c0b533681a6c5d990e7c7aa61fdf223fdfab1e2f2b6aa682",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H050",
+   "stratum": "R",
+   "repo": "PixelRAG",
+   "file": "train/train_contrastors.py",
+   "function": "main",
+   "span": [
+    1762,
+    3305
+   ],
+   "sha256": "3cfc6986301e025d7d9036c6f9a96019f60b8445e08730e8ef9a733240da3553",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H051",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "raganything/processor.py",
+   "function": "ProcessorMixin._batch_extract_entities_lightrag_style_type_aware",
+   "span": [
+    1240,
+    1267
+   ],
+   "sha256": "16f9108cf0eaef74b106bda061ef1365c78a777cc1911f2e32fa747ad4e96700",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H052",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "raganything/parser.py",
+   "function": "Parser._unique_output_dir",
+   "span": [
+    80,
+    100
+   ],
+   "sha256": "c3ab79a7a4b7ed9fc622ad2d87dab42fe0497ac42568ae18249d2106e4a0c9c1",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H053",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "examples/vllm_integration_example.py",
+   "function": "VLLMRAGIntegration.simple_query_example",
+   "span": [
+    259,
+    311
+   ],
+   "sha256": "5502f9ad4674726aa227ee93f19cbc6be9f3638322677dc05dee683404621177",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H054",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "raganything/parser.py",
+   "function": "Parser.check_installation",
+   "span": [
+    592,
+    602
+   ],
+   "sha256": "59678ba1e1e3f3b50766bac63fb5de80d6095a22ee00a353ea3dd8e03e65d3fa",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": "abstract contract, docstring says subclasses implement it"
+  },
+  {
+   "id": "H055",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "raganything/modalprocessors.py",
+   "function": "ImageModalProcessor.__init__",
+   "span": [
+    823,
+    836
+   ],
+   "sha256": "fb420a9dee8915fa18f3b465e227492ddd4497e37a25d6c51eee5df3a4a1d195",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H056",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "reproduce/llm_answer_evaluator.py",
+   "function": "LLMAnswerEvaluator.get_comprehensive_evaluation_prompt",
+   "span": [
+    89,
+    157
+   ],
+   "sha256": "ac6adae58d2018a97be7656813bee4a98bac5697663dbc14c99c7cc2123c2f6e",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H057",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "raganything/query.py",
+   "function": "QueryMixin.query",
+   "span": [
+    807,
+    823
+   ],
+   "sha256": "615c4e5557a8e777517c67b997ce82fbf73bdbc00f0eb8b1cab9a2e530557058",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H058",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "examples/batch_processing_example.py",
+   "function": "demonstrate_error_handling",
+   "span": [
+    400,
+    484
+   ],
+   "sha256": "dc33a8e45d46c1f27faabf67bda76cc5bb6f310c663d9a374afb46f267fe3b8c",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H059",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "raganything/prompt_manager.py",
+   "function": "set_prompt_language",
+   "span": [
+    84,
+    131
+   ],
+   "sha256": "139579303128204570d6b8dc9a426f19501627cfb1bd2cc3de721cf6177c3cfd",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H060",
+   "stratum": "R",
+   "repo": "RAG-Anything",
+   "file": "raganything/config.py",
+   "function": "RAGAnythingConfig.mineru_parse_method",
+   "span": [
+    142,
+    152
+   ],
+   "sha256": "fe3cad8f5714b1fdc223e612e66f40b3756ed34e0a9523e305304800e462ef35",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H061",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_I_FORMAL_REDUCTION/VOLUME_I_FORMAL_REDUCTION_PROOF/VOLUME_I_FORMAL_REDUCTION.py",
+   "function": "build_toeplitz_matrix",
+   "span": [
+    521,
+    537
+   ],
+   "sha256": "1353372b76533d4871597d70ca333bb417a03efb07a3a47e200bf718213a76d8",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": "sigma unused, but the documented formula K[m,n]=k_H(log m - log n) does not involve sigma"
+  },
+  {
+   "id": "H062",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_X_UNIFORMITY_EDGE_CASES/VOLUME_X_UNIFORMITY_EDGE_CASES_PROOF/VOLUME_X_UNIFORMITY_EDGE_CASES.py",
+   "function": "print_header",
+   "span": [
+    92,
+    96
+   ],
+   "sha256": "2acaa37aabd23f58e34b5d7ce45cb955da97f29a7fa407a0ec2e10fd18147a18",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H063",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_II_KERNAL_DECOMPOSITION/VOLUME_II_KERNAL_DECOMPOSITION_PROOF/KERNAL_DECOMPOSITION_PROBLEM.py",
+   "function": "bochner_psd_check",
+   "span": [
+    419,
+    431
+   ],
+   "sha256": "8ba3ad071a4b6bc3223822013bc23f2f5ec097d6ddfd9a65b719b3411a4e9e32",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H064",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_VI_LARGE_SIEVE_BRIDGE/VOLUME_VI_LARGE_SIEVE_BRIDGE_PROOF/VOLUME_VI_LARGE_SIEVE_BRIDGE.py",
+   "function": "scaling_study",
+   "span": [
+    449,
+    487
+   ],
+   "sha256": "7a72cfa5ca8098cb351953ea908d0847840706d14d685df51c421df7ae5af94b",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H065",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_II_KERNAL_DECOMPOSITION/VOLUME_II_KERNAL_DECOMPOSITION_PROOF/KERNAL_DECOMPOSITION_PROBLEM.py",
+   "function": "k_H_sech4_closed_form",
+   "span": [
+    312,
+    322
+   ],
+   "sha256": "6710628e27b188b4d5f8dd075444ebff5b59de8b0dadc96cee23db1f2880844f",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H066",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_I_FORMAL_REDUCTION/VOLUME_I_FORMAL_REDUCTION_PROOF/VOLUME_I_FORMAL_REDUCTION.py",
+   "function": "M1_diagonal_term",
+   "span": [
+    585,
+    592
+   ],
+   "sha256": "fc2bd0aea34bdd6027c804f203baed001ee8bee88485cd4256795f529075e89e",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H067",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_IV_SPECTRAL_EXPANSION/VOLUME_IV_SPECTRAL_EXPANSION_PROOF/SPECTRAL_EXPANSION.py",
+   "function": "scan_sigma_selector_direct",
+   "span": [
+    640,
+    657
+   ],
+   "sha256": "7673a947320ee013a993e8bc239e246b149991340d3696089891b6790d7b7676",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H068",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_IV_SPECTRAL_EXPANSION/VOLUME_IV_SPECTRAL_EXPANSION_PROOF/SPECTRAL_EXPANSION.py",
+   "function": "run_volume_iv_suite",
+   "span": [
+    719,
+    813
+   ],
+   "sha256": "036cd7f325d6e9ae9de191e3be69bd269c68b598c2430abe5ac8c6b70bf4d352",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H069",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_XII_FINAL_ASSEMBLY/VOLUME_XII_FINAL_ASSEMBLY_PROOF/VOLUME_XII_LEMMA_GAP.py",
+   "function": "adaptive_num_samples_refined",
+   "span": [
+    510,
+    527
+   ],
+   "sha256": "b636107136cc6f8a717e75ca395eae33f3e046a428a042cb0f6ee76e1d4a6df4",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "UNCLEAR",
+   "note": "N unused; a Nyquist bound for a length-N Dirichlet sum may depend on N (B_default fixed), docstring silent"
+  },
+  {
+   "id": "H070",
+   "stratum": "R",
+   "repo": "TheAnalystsProblem",
+   "file": "VOLUME_XII_FINAL_ASSEMBLY/VOLUME_XII_FINAL_ASSEMBLY_PROOF/VOLUME_XII_LEMMA_GAP.py",
+   "function": "jackson_window",
+   "span": [
+    243,
+    254
+   ],
+   "sha256": "e11a25cc42d9fb6d693e0d47fee2ae99fe19c567addb1b702698dd0f4cd24227",
+   "commit": "db413466975489f1c489f88303b124bf83af141e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H071",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-mesh/src/agentmesh/identity/jwk.py",
+   "function": "to_jwks",
+   "span": [
+    138,
+    148
+   ],
+   "sha256": "0f0bc397423bf85da3acc3222a36ce9d5e2be4c519b4c47ab0c4bccbd876bf5b",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H072",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/modules/observability/src/agent_os_observability/tracer.py",
+   "function": "trace_operation",
+   "span": [
+    213,
+    232
+   ],
+   "sha256": "0986245bad4cb5db8b90037bba6d0034410c62aa08295063315e5e657e01790f",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H073",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-mesh/src/agentmesh/identity/credentials.py",
+   "function": "CredentialManager.issue",
+   "span": [
+    263,
+    292
+   ],
+   "sha256": "e30cf09dd266616d7b338fc94bfd870d08d3b84bf316360242e93cda053ffd22",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H074",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "benchmarks/prompt-injection/harness/check-corpus.py",
+   "function": "sha256",
+   "span": [
+    60,
+    65
+   ],
+   "sha256": "54c3b737e52cec3041df8c8526df51d02ade181120ed228c0c742dbd14c045a6",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H075",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/modules/caas/src/caas/caching.py",
+   "function": "ContextCache.strategy",
+   "span": [
+    579,
+    582
+   ],
+   "sha256": "0795667410f71615946fb3ae1fd9164dfa640f4a24c0d665f77e41983ba44128",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H076",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/interfaces/plugin_interface.py",
+   "function": "ValidatorInterface.validate_request",
+   "span": [
+    146,
+    162
+   ],
+   "sha256": "04f49989b3964d8a2efa77d0afddf2d09f9a6e01e1e41897343bcdd5dde09341",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H077",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/src/agent_os/prompt_injection.py",
+   "function": "DetectionEvidenceBackend.evaluate",
+   "span": [
+    147,
+    149
+   ],
+   "sha256": "2908fe5762b784ba9b6887356adf2eaaebac0cf103c020d76a0935de5d2d89af",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H078",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "policy-engine/sdk/python/agent_control_specification/_adapters/_shared.py",
+   "function": "_ObjectProxy.__init__",
+   "span": [
+    22,
+    31
+   ],
+   "sha256": "2e428c0e2b8684a6628b150b03fb20f1e92aff40d7a95806354abbaf85472ba9",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H079",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-mesh/src/agentmesh/governance/evidence_pipeline.py",
+   "function": "EvidencePipeline.run",
+   "span": [
+    187,
+    248
+   ],
+   "sha256": "399cac799d7f0ef9d6aa985da3a15ffecdbceba4f9052f63a1556887416d45e8",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H080",
+   "stratum": "R",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/src/agent_os/integrations/guardrails_adapter.py",
+   "function": "GuardrailsKernel._validate",
+   "span": [
+    499,
+    559
+   ],
+   "sha256": "321a25fe14fc28ba1f59c936fd73342fd5a4dd4c3b1a334945346193eb8023df",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H081",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/capabilities/conversational_orchestrator.py",
+   "function": "ConversationalOrchestrator.train",
+   "span": [
+    53,
+    71
+   ],
+   "sha256": "77830bc6105caa619a870d43db325e0b61b469b6fbb1bf8caca5a68cc096d92a",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": "fixed-signature override of abstract train(); orchestrator has nothing to fit, the compile step is real"
+  },
+  {
+   "id": "H082",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/core/ingestor.py",
+   "function": "DeepIngestor.__init__",
+   "span": [
+    22,
+    38
+   ],
+   "sha256": "635c17d1728422e2682d5f581504a6a2a3225ba8d8c35bf66dfec4b7d5c78a9b",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H083",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/capabilities/base.py",
+   "function": "BaseCapability.__init__",
+   "span": [
+    12,
+    38
+   ],
+   "sha256": "3b3bad33bf3ea66ed12a09b6dc479decbfb55852241d22c9f916fd76936fd9d1",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H084",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/core/ingestor.py",
+   "function": "DeepIngestor._sentence_split",
+   "span": [
+    363,
+    366
+   ],
+   "sha256": "d12bfebaafb3084f593e6fc19376a11d4d72ecd736221a680260544f5efc954a",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H085",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/core/ingestor.py",
+   "function": "DeepIngestor.extract_metadata_semantic",
+   "span": [
+    211,
+    253
+   ],
+   "sha256": "16ed4dac81b10d95f90552934b249bb2cea2fe5d82a44b56c6e3d51c98341a2e",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": "best-effort enrichment: failure logged and empty dict returned (no success claim)"
+  },
+  {
+   "id": "H086",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/core/extractors.py",
+   "function": "BaseExtractor.extract",
+   "span": [
+    9,
+    10
+   ],
+   "sha256": "69f8f7501cd0017f1115405950a6cd2c6cbaba1fa3da7b7273fac7b5233d259c",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H087",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/capabilities/base.py",
+   "function": "BaseCapability.train",
+   "span": [
+    133,
+    136
+   ],
+   "sha256": "cc2a75da983b9e32b75040db3838aa0e0701a31129d15210d2f346dca2b61a7f",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H088",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/capabilities/base.py",
+   "function": "BaseCapability.close",
+   "span": [
+    143,
+    152
+   ],
+   "sha256": "45233bfd5391f6f40cb0d2b20faa5dca88ef43b25d8cd703127c9069f0f1fd46",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H089",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/text_classifier.py",
+   "function": "get_vocabulary",
+   "span": [
+    23,
+    28
+   ],
+   "sha256": "46574b84b24f93fac161fc3d54f4cadace2735f909b1050354707bcda379bf24",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H090",
+   "stratum": "R",
+   "repo": "andartis",
+   "file": "python/capabilities/conversational_orchestrator.py",
+   "function": "ConversationalOrchestrator._analyze_data",
+   "span": [
+    103,
+    182
+   ],
+   "sha256": "32b709660986040c4f96221e4b224c01adcc0e3df9660b4f24163eb1243492b9",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H091",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/deprecated/gather.py",
+   "function": "write_fastq",
+   "span": [
+    51,
+    52
+   ],
+   "sha256": "4141de00e4721dcce202d72426a5d67f8e5de11ffa11484ab1be3eca16633950",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H092",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/margin_cons.py",
+   "function": "go",
+   "span": [
+    57,
+    136
+   ],
+   "sha256": "fe109e24599d43c7eae0b1feca88ced3092bbc90a9b678e406789db2fd83e2ea",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H093",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/deprecated/reconstitute.py",
+   "function": "go",
+   "span": [
+    13,
+    20
+   ],
+   "sha256": "d1932ff55c31b808dddeb1883e3536f005c240b64d84e4433a947d80eb5ef043",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H094",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/runs.py",
+   "function": "load_runs",
+   "span": [
+    4,
+    13
+   ],
+   "sha256": "7de70eb29310607b41a19de7997822e8298d145706dc444ea07633263cb85163",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H095",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/vcfextract.py",
+   "function": "main",
+   "span": [
+    32,
+    91
+   ],
+   "sha256": "b8ab560b9c71ad1b62ccbed5ea52af1b0171e9551badeea3a075e1a68783dda7",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H096",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/minion.py",
+   "function": "run",
+   "span": [
+    16,
+    433
+   ],
+   "sha256": "628810846131d4d9095107b78ba12b59fb3a3e67533504f387aafd1db82ae089",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": "subcommand signature run(parser, args) shared by all commands"
+  },
+  {
+   "id": "H097",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/utils.py",
+   "function": "identify_bed_file",
+   "span": [
+    214,
+    303
+   ],
+   "sha256": "8e703e0c5b44f6936ff9f69152a0a441a175e56dc3d81545b3c46a7630ff7ee1",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H098",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/deprecated/basecaller.py",
+   "function": "print_basecallers",
+   "span": [
+    38,
+    40
+   ],
+   "sha256": "f52b2d31e3343b8d9f6a2b8e2e97b39f8824861d3001eda3ca681a35392c3fc0",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H099",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/fasta_header.py",
+   "function": "fasta_header",
+   "span": [
+    5,
+    20
+   ],
+   "sha256": "077986ca5eb9b0f4d24ee5b462753a48183137b6daff39928d52162e286d6490",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H100",
+   "stratum": "R",
+   "repo": "fieldbioinformatics",
+   "file": "artic/deprecated/demultiplex.py",
+   "function": "run",
+   "span": [
+    13,
+    43
+   ],
+   "sha256": "fd064a87cba2c607b2aee28585dafea2ca61ad74e59c65e91094d2cfc232d020",
+   "commit": "8008b4c97c2193a82308ff6f0be507b1d9306e36",
+   "label": "GENUINE",
+   "note": "subcommand signature run(parser, args) shared by all commands"
+  },
+  {
+   "id": "H101",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/interop/athena.py",
+   "function": "_dedupe",
+   "span": [
+    310,
+    314
+   ],
+   "sha256": "4185e52ffcbb7eb5ecc9abb9cbe0c84e12cbda0175c89efbd7e774efc7121a5f",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H102",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/core/quality_gates.py",
+   "function": "_valid_offsets",
+   "span": [
+    212,
+    213
+   ],
+   "sha256": "c8ceca64c1b3af336010d6fb34fe4f4ccd0f936ac0a594b6768b3715f345836e",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H103",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/ner/families/base.py",
+   "function": "SupportsPrediction.predict",
+   "span": [
+    20,
+    20
+   ],
+   "sha256": "05b80539e46c240326abc2c4c062d6cf3e54471decfca48dbf848efbe5ab53ae",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H104",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/eval/attacks/reid.py",
+   "function": "_record_id",
+   "span": [
+    345,
+    348
+   ],
+   "sha256": "69c40fa2b0ddee0d4bd0093c4e5692ad49039dde15e011d7fb6c1fb4cc6b5092",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H105",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/service/app.py",
+   "function": "_pii_deidentify_payload",
+   "span": [
+    312,
+    345
+   ],
+   "sha256": "0a97a5abd2f5df75d578dcafaf6fc03764aa4c33b51cf288e4bee7f279bf8c75",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H106",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/mlx/inference.py",
+   "function": "_tokenizer_has_list_extra_special_tokens",
+   "span": [
+    45,
+    61
+   ],
+   "sha256": "74092102d8a53be7aaaa06e2dd7344971d1abd1f652f99b2b2bb78e2bf9aecff",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H107",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/eval/report.py",
+   "function": "read_reports",
+   "span": [
+    278,
+    281
+   ],
+   "sha256": "0eaf8b7955cf7f59b4ef97115359e3ab5de440d44232891296925d40f606287f",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H108",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/core/hf_publish.py",
+   "function": "_repo_exists",
+   "span": [
+    458,
+    465
+   ],
+   "sha256": "4c12cb783546459ac60bea398158678a21900538193aa2ec09851569bcbbe58e",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H109",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/eval/metrics.py",
+   "function": "_f1_over_docs",
+   "span": [
+    939,
+    947
+   ],
+   "sha256": "21bc0391af1acf19839eabbd79e36dafaf9e7ea640eaf411f057bf02670a0f5c",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H110",
+   "stratum": "R",
+   "repo": "openmed",
+   "file": "openmed/utils/profiling.py",
+   "function": "InferenceMetrics.chars_per_second",
+   "span": [
+    317,
+    322
+   ],
+   "sha256": "b33fd227dca37e9101b0549e5918b0241aab58c5b81a65f6e6ed731154d7f3c9",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H111",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/db/migrations_runtime.py",
+   "function": "run_alembic_upgrade_async",
+   "span": [
+    353,
+    361
+   ],
+   "sha256": "1faf2b6b7ae674aec2261739b3678ecf37407180ec74d2b3d3c7f5058e2c2127",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H112",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/services/default_docs_service.py",
+   "function": "_get_documents_dir",
+   "span": [
+    42,
+    46
+   ],
+   "sha256": "24b648870c8f16d66430a42162f1b344bc608a9ca6a45430ae28ce8c14eab974",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H113",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/services/session_ownership_service.py",
+   "function": "SessionOwnershipService.filter_sessions_for_user",
+   "span": [
+    125,
+    129
+   ],
+   "sha256": "cfc21998cf1d80b016de4452810bbc0d0cfc9f96c1e3a0b24407ba595a197fdf",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H114",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/services/langflow_mcp_service.py",
+   "function": "LangflowMCPService.patch_mcp_server_url",
+   "span": [
+    156,
+    249
+   ],
+   "sha256": "07ea4f64debeb285ebeb264017ded221c092db4a9520f35eb81e6a9a12e33fa8",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H115",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/services/langflow_history_service.py",
+   "function": "LangflowHistoryService.get_user_conversation_history",
+   "span": [
+    133,
+    177
+   ],
+   "sha256": "807e17fa2e317ac888d99e1276d4180206bdcccf2c590120585a9c1698929c31",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H116",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/tui/managers/docling_manager.py",
+   "function": "DoclingManager._recover_from_pid_file",
+   "span": [
+    103,
+    118
+   ],
+   "sha256": "b4fe27a39082305189f29551fe651330929f33f21297ebe049b6cc4811c99c17",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H117",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/services/session_ownership_service.py",
+   "function": "SessionOwnershipService.get_ownership_stats",
+   "span": [
+    151,
+    188
+   ],
+   "sha256": "6dd6e352f0d918c3903839e81e37b1577d0ec7ed1a20df1ed47059ef14099661",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": "best-effort stats: DB failure logged, neutral zero summary (no success claim)"
+  },
+  {
+   "id": "H118",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/api/admin/rbac.py",
+   "function": "list_roles",
+   "span": [
+    388,
+    394
+   ],
+   "sha256": "25ba02455ace846f7c666616b726c1c01b268b7023aec8a2245cfeb0ffe5dd12",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": "FastAPI Depends parameter enforces the permission"
+  },
+  {
+   "id": "H119",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/api/settings.py",
+   "function": "update_docling_preset",
+   "span": [
+    2010,
+    2077
+   ],
+   "sha256": "720dc936e00b8c1f0d5d51ec0cf380ddff76b9f4c73806d38802dd9da15e6626",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": "FastAPI Depends parameters enforce session/permission"
+  },
+  {
+   "id": "H120",
+   "stratum": "R",
+   "repo": "openrag",
+   "file": "src/db/repositories/role_repo.py",
+   "function": "RoleRepo.list_user_roles",
+   "span": [
+    48,
+    54
+   ],
+   "sha256": "676c8865fc5b6ae4900fe0fede511879d41f32f7868f39d83cb797f031567775",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H121",
+   "stratum": "M",
+   "repo": "ClawBio",
+   "file": "bot/roboterri_whatsapp.py",
+   "function": "handle_whatsapp_message",
+   "span": [
+    1245,
+    1605
+   ],
+   "sha256": "a2c855104f75595567eab570c38aa9c94c925577029fc045d88874e8e19f393d",
+   "commit": "c2a73bd621edab1db823315007abdc5649af9b1f",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H122",
+   "stratum": "M",
+   "repo": "neuroai",
+   "file": "neuralbench-repo/neuralbench/plots/_style.py",
+   "function": "build_grouped_legend",
+   "span": [
+    381,
+    415
+   ],
+   "sha256": "c4709231502b1010f51c1a19b3ac7115e1bad21892d6e0bc8efc43c58984a780",
+   "commit": "06a4d37400c6cfb0d9e887a7f997ccc889685279",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H123",
+   "stratum": "M",
+   "repo": "BioReason-Pro",
+   "file": "bioreason2/models/go_graph_encoder.py",
+   "function": "GOGraphEncoderUnified.forward",
+   "span": [
+    419,
+    454
+   ],
+   "sha256": "71d039300d2b2be4fff631eabd70ee140c9544277930f1bf379278ce02813625",
+   "commit": "c4bf4160392fcfd0c957f95259cfee5efbdcffad",
+   "label": "IGNORED_INPUT",
+   "note": "docstring: namespace selects BP/MF/CC/all; body never reads it ('for now ... all terms')"
+  },
+  {
+   "id": "H124",
+   "stratum": "M",
+   "repo": "claw-code",
+   "file": "src/remote_runtime.py",
+   "function": "run_ssh_mode",
+   "span": [
+    20,
+    21
+   ],
+   "sha256": "6ec285390cee352ee59d8cace44134a60db937c575179e7dd18bea024233c181",
+   "commit": "7030d26e7a9ca7fef5c74f463eede01a59403847",
+   "label": "STUB_DISGUISED",
+   "note": "returns success=True with 'SSH proxy placeholder prepared'; nothing is prepared"
+  },
+  {
+   "id": "H125",
+   "stratum": "M",
+   "repo": "the_well",
+   "file": "the_well/data/augmentation.py",
+   "function": "RandomAxisPermute.__call__",
+   "span": [
+    202,
+    214
+   ],
+   "sha256": "8741bfa19b70890d924edd627eef6d401224aaab9f4bb84d8316abe426bd46e5",
+   "commit": "718df875d1b138ab401e2ddc307794ce2bbdbb01",
+   "label": "GENUINE",
+   "note": "identity for non-cartesian grids, limitation stated in comment"
+  },
+  {
+   "id": "H126",
+   "stratum": "M",
+   "repo": "the_well",
+   "file": "the_well/data/augmentation.py",
+   "function": "RandomAxisFlip.__call__",
+   "span": [
+    125,
+    135
+   ],
+   "sha256": "a0e606b5aa932d388f9fbae6aee4287a18d30e015e46f8affc8294e50687c5ba",
+   "commit": "718df875d1b138ab401e2ddc307794ce2bbdbb01",
+   "label": "GENUINE",
+   "note": "identity for non-cartesian grids, limitation stated in comment"
+  },
+  {
+   "id": "H127",
+   "stratum": "M",
+   "repo": "langflow",
+   "file": "src/backend/base/langflow/api/v1/endpoints.py",
+   "function": "webhook_run_flow",
+   "span": [
+    767,
+    845
+   ],
+   "sha256": "4d2ef92f7a8f1714b899be11c27b021bec91b133861cbdfba239e685cb7a2959",
+   "commit": "a4d875a9a1acb013e6956010fa5ec377a3d5de91",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H128",
+   "stratum": "M",
+   "repo": "tiktok-agent",
+   "file": "models/engagement_model.py",
+   "function": "EngagementModel._fallback_scoring",
+   "span": [
+    381,
+    548
+   ],
+   "sha256": "69ebbdb6b96be6aadb83f2aa57c419dbe4bd7473993b3a24941831f34f4da233",
+   "commit": "e3c95b1deaddd4bcd48525c27a1a9b79b9ceb207",
+   "label": "FAILURE_AS_SUCCESS",
+   "note": "last-resort branch returns fabricated position-based scores (dummy 300 s duration) when all scoring fails"
+  },
+  {
+   "id": "H129",
+   "stratum": "M",
+   "repo": "VideoAgent",
+   "file": "tools/CosyVoice/third_party/Matcha-TTS/matcha/onnx/export.py",
+   "function": "get_inputs",
+   "span": [
+    63,
+    88
+   ],
+   "sha256": "3ddb962f91b3abf65b815a54f4ee0e145133d3791211c45a53fad2714b498dca",
+   "commit": "f207987e3cffb554aaa6ffdbe733efb30f4b51ed",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H130",
+   "stratum": "M",
+   "repo": "BioClaw",
+   "file": "container/skills/bio-manuscript-common/scripts/generate_figure_image.py",
+   "function": "FigureImageGenerator.__init__",
+   "span": [
+    15,
+    24
+   ],
+   "sha256": "d1b31b5475c0e1953c7d47ccac26de5226686a0a38bab6e62f250033adbd2d71",
+   "commit": "faae6a2778e992b1cc6a4b1639e530a147d8b463",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H131",
+   "stratum": "M",
+   "repo": "docling",
+   "file": "docling/backend/md_backend.py",
+   "function": "MarkdownDocumentBackend._iterate_elements",
+   "span": [
+    273,
+    559
+   ],
+   "sha256": "f0e6977ab1deac5cfcc461c00f712978d410389cb076ac9d8b85529d0c293d86",
+   "commit": "251c8b217a72453205242993e03ca8004cb2877e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H132",
+   "stratum": "M",
+   "repo": "Biomni",
+   "file": "biomni/tool/genetics.py",
+   "function": "perform_pcr_and_gel_electrophoresis",
+   "span": [
+    1237,
+    1442
+   ],
+   "sha256": "9993bf1fcf3ae90516d963b28d50edd44e02cff9400edb8cb0ff7dbda10e8f39",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H133",
+   "stratum": "M",
+   "repo": "ComfyUI",
+   "file": "comfy_extras/mesh3d/postprocess/remesh.py",
+   "function": "_dual_contour",
+   "span": [
+    316,
+    480
+   ],
+   "sha256": "ba672d83f3d44f611c96e91f107f8a3666b24203c5a3775dda551333e997def3",
+   "commit": "7a0b5eede3f9721c8faab290689893f36edc6d66",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H134",
+   "stratum": "M",
+   "repo": "docling",
+   "file": "docling/backend/html_backend.py",
+   "function": "HTMLDocumentBackend._extract_input_like_text",
+   "span": [
+    3024,
+    3058
+   ],
+   "sha256": "4a69c475083ece543bdaecb854b37f2c392878d22fd48e8c6c2210c88db2ef9f",
+   "commit": "251c8b217a72453205242993e03ca8004cb2877e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H135",
+   "stratum": "M",
+   "repo": "claude-scientific-skills",
+   "file": "scientific-skills/simpy/scripts/basic_simulation_template.py",
+   "function": "main",
+   "span": [
+    174,
+    189
+   ],
+   "sha256": "1a89fee9c664532016d966a73abc29f70803d5aa6d6f5662feef6e21fadb2d3f",
+   "commit": "c84622c08adb7a4619bb0bbfcf43224541ef22dd",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H136",
+   "stratum": "M",
+   "repo": "PixelRAG",
+   "file": "eval/run_livevqa.py",
+   "function": "main",
+   "span": [
+    1049,
+    1229
+   ],
+   "sha256": "170a44cf49a0863ed9c5aaabd3d1322c7b58572afc7bb6907a151137945063bf",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H137",
+   "stratum": "M",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/src/agent_os/secure_codegen.py",
+   "function": "CodeSecurityValidator._check_hardcoded_secrets",
+   "span": [
+    346,
+    360
+   ],
+   "sha256": "a68f04754cd3870e32e10148f94ed6cdf952a0b8843f2c74171583c6f89f6192",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H138",
+   "stratum": "M",
+   "repo": "doctobert",
+   "file": "data_curation/data_synthesis/llm_rewrite.py",
+   "function": "main",
+   "span": [
+    771,
+    971
+   ],
+   "sha256": "7ea7862808838d8bd469508d5eadb3063d71c2d7868cea4ef41554e0def6ef2d",
+   "commit": "90a8bbe7260d9daaa64bfbd0e8a167769da7646e",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H139",
+   "stratum": "M",
+   "repo": "tiktok-agent",
+   "file": "app/routers/jobs.py",
+   "function": "start_youtube_job",
+   "span": [
+    47,
+    90
+   ],
+   "sha256": "e50db7964b0862ba307809cb759f59703f5fc276521fc661278f2d67e6ea7221",
+   "commit": "e3c95b1deaddd4bcd48525c27a1a9b79b9ceb207",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H140",
+   "stratum": "M",
+   "repo": "ComfyUI",
+   "file": "comfy/ldm/depth_anything_3/ray_pose.py",
+   "function": "_find_homography_weighted_lsq_batched",
+   "span": [
+    62,
+    78
+   ],
+   "sha256": "47f9a468cc10ecf1b115e0984d257d697aa2931491bdea4b5dca49e89434d2e2",
+   "commit": "7a0b5eede3f9721c8faab290689893f36edc6d66",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H141",
+   "stratum": "M",
+   "repo": "neuroai",
+   "file": "neuralbench-repo/neuralbench/pl_module.py",
+   "function": "BrainModule.configure_optimizers",
+   "span": [
+    198,
+    216
+   ],
+   "sha256": "38ff5c4882f43053f4164e472aead50657a7d6f60ea74a62c039ec5a93e16276",
+   "commit": "06a4d37400c6cfb0d9e887a7f997ccc889685279",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H142",
+   "stratum": "M",
+   "repo": "langflow",
+   "file": "src/lfx/src/lfx/components/ollama/ollama.py",
+   "function": "ChatOllamaComponent._parse_format_field",
+   "span": [
+    456,
+    483
+   ],
+   "sha256": "06c7c0ccd68b5a23dab37fead9509793c712d3e936904ef32bdf06f0786a8f69",
+   "commit": "a4d875a9a1acb013e6956010fa5ec377a3d5de91",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H143",
+   "stratum": "M",
+   "repo": "academic-observatory-workflows",
+   "file": "academic-observatory-workflows/academic_observatory_workflows/model.py",
+   "function": "make_orcid",
+   "span": [
+    1052,
+    1142
+   ],
+   "sha256": "2b7526a0e361a0c96b8f7fea3d2fc8221b815bfc2d94eef9150830a3544aed34",
+   "commit": "1f67d8523df95788df4d92d629278f4b12670c69",
+   "label": "GENUINE",
+   "note": "intentional single fake record, comment explains why (snapshot table must not be empty)"
+  },
+  {
+   "id": "H144",
+   "stratum": "M",
+   "repo": "cocoindex",
+   "file": "python/cocoindex/_internal/memo_fingerprint.py",
+   "function": "_stable_sort_key",
+   "span": [
+    197,
+    224
+   ],
+   "sha256": "a13e878b1c01570fe99b942a0bc6f1413cdc702710c83205f38f700e062fe5bc",
+   "commit": "0416a616b9961c98f1c8d06f63a76699f8eb6926",
+   "label": "GENUINE",
+   "note": "documented catch-all sort key"
+  },
+  {
+   "id": "H145",
+   "stratum": "M",
+   "repo": "RAG-Anything",
+   "file": "raganything/parser.py",
+   "function": "Parser.convert_text_to_pdf",
+   "span": [
+    254,
+    473
+   ],
+   "sha256": "97df93c80785ff83eed375f9423e90bc64f4bd7e6deca0e5bb86e49a838ece6a",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H146",
+   "stratum": "M",
+   "repo": "cocoindex",
+   "file": "dev/generate_cli_docs.py",
+   "function": "escape_html_tags",
+   "span": [
+    31,
+    58
+   ],
+   "sha256": "4a0387098a73c4f5441da5bbe742799034fc534e2c62a8dc32c6c69aefaeb5b5",
+   "commit": "0416a616b9961c98f1c8d06f63a76699f8eb6926",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H147",
+   "stratum": "M",
+   "repo": "claw-code",
+   "file": "src/prefetch.py",
+   "function": "start_mdm_raw_read",
+   "span": [
+    14,
+    15
+   ],
+   "sha256": "d20d507a137a1a7ff167576d9d1936e96cac1eee5425a414a8456022c701f118",
+   "commit": "7030d26e7a9ca7fef5c74f463eede01a59403847",
+   "label": "STUB_DISGUISED",
+   "note": "returns success=True 'Simulated MDM raw-read prefetch'; no prefetch happens"
+  },
+  {
+   "id": "H148",
+   "stratum": "M",
+   "repo": "tiktok-agent",
+   "file": "app/services/job_manager.py",
+   "function": "JobManager.get_all_jobs",
+   "span": [
+    71,
+    75
+   ],
+   "sha256": "e9114414ed09f3ff8eada47df099ae76a70e1ab4583ffea120cae8cb86f9edd7",
+   "commit": "e3c95b1deaddd4bcd48525c27a1a9b79b9ceb207",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H149",
+   "stratum": "M",
+   "repo": "claude-scientific-skills",
+   "file": "scientific-skills/timesfm-forecasting/scripts/check_system.py",
+   "function": "_get_total_ram_gb",
+   "span": [
+    126,
+    170
+   ],
+   "sha256": "41fbe3f88d0a33e6886d3c43962c6d7e5e0f020ed4ce8de4a3b2a76b0ee754e8",
+   "commit": "c84622c08adb7a4619bb0bbfcf43224541ef22dd",
+   "label": "FAILURE_AS_SUCCESS",
+   "note": "exception swallowed (pass); unknown platform or failure returns placeholder 8.0 GB as if measured"
+  },
+  {
+   "id": "H150",
+   "stratum": "M",
+   "repo": "doctobert",
+   "file": "<redacted: local file that is not part of the public repository>",
+   "function": "pillar5_reproducibility",
+   "span": [
+    527,
+    595
+   ],
+   "sha256": "5f7e11c01e1701ff343eac5e0f5470ecd5736eac7a77ad539346b4215a4fbfb8",
+   "commit": "90a8bbe7260d9daaa64bfbd0e8a167769da7646e",
+   "label": "GENUINE",
+   "note": "",
+   "redacted": true
+  },
+  {
+   "id": "H151",
+   "stratum": "M",
+   "repo": "the_well",
+   "file": "the_well/data/miniwell.py",
+   "function": "process_dataset",
+   "span": [
+    169,
+    281
+   ],
+   "sha256": "16aff0237bac1f7b8319a701c0da574dfd96864e981511950638d7b77a557222",
+   "commit": "718df875d1b138ab401e2ddc307794ce2bbdbb01",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H152",
+   "stratum": "M",
+   "repo": "PixelRAG",
+   "file": "train/fake_data.py",
+   "function": "main",
+   "span": [
+    73,
+    143
+   ],
+   "sha256": "2963fb09c9549508bbe49cbbec9cb3603c0246c225c071a2bdd3950819273a87",
+   "commit": "8d5c607f9e8864823a93dc6b3644fea72e4ebd31",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H153",
+   "stratum": "M",
+   "repo": "claude-scientific-skills",
+   "file": "scientific-skills/xlsx/scripts/office/helpers/simplify_redlines.py",
+   "function": "simplify_redlines",
+   "span": [
+    22,
+    44
+   ],
+   "sha256": "1391fc8cb6003fd4a7f2081716e7afba1eeab1bb5a0c3e06b8108051e504971c",
+   "commit": "c84622c08adb7a4619bb0bbfcf43224541ef22dd",
+   "label": "GENUINE",
+   "note": "failure returned as (0, 'Error: ...'), not hidden"
+  },
+  {
+   "id": "H154",
+   "stratum": "M",
+   "repo": "RAG-Anything",
+   "file": "examples/enhanced_markdown_example.py",
+   "function": "create_sample_markdown_content",
+   "span": [
+    29,
+    369
+   ],
+   "sha256": "f53ffbde7e06a43a1f965465b6b8c3cc3be6b73429e2fcbd518db83ef5062017",
+   "commit": "9125356804bf95a798972b0bf1803e01e5ddaa21",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H155",
+   "stratum": "M",
+   "repo": "the_well",
+   "file": "the_well/data/augmentation.py",
+   "function": "Resize.resize",
+   "span": [
+    446,
+    494
+   ],
+   "sha256": "edee42b4265f4b1a5d8baa66c14cc3eadee3e3831e8af7f48890af89238e0a47",
+   "commit": "718df875d1b138ab401e2ddc307794ce2bbdbb01",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H156",
+   "stratum": "M",
+   "repo": "openmed",
+   "file": "openmed/core/pii.py",
+   "function": "_shift_date",
+   "span": [
+    1703,
+    1766
+   ],
+   "sha256": "206f0f457e129803af51189ecc476f855af1c7be14c4e389b9b6b228ff917538",
+   "commit": "09d99d84d735f6d573dd19c3bf83b81f4afd4b7e",
+   "label": "GENUINE",
+   "note": "documented masking placeholder for unparseable dates in de-identification"
+  },
+  {
+   "id": "H157",
+   "stratum": "M",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/examples/self-evaluating/examples/example_orchestration_ai.py",
+   "function": "ai_product_manager",
+   "span": [
+    41,
+    87
+   ],
+   "sha256": "91b4b75518b5715c241f7b64488752cdee67eb35d19db2fc02482a40ec600746",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "HARDCODED_RESULT",
+   "note": "docstring: creates specifications; AI path ignores the AI output and returns the same canned spec ('for this demo')"
+  },
+  {
+   "id": "H158",
+   "stratum": "M",
+   "repo": "neuroai",
+   "file": "neuralbench-repo/neuralbench/plots/tables.py",
+   "function": "_collapse_feature_based_baselines",
+   "span": [
+    30,
+    57
+   ],
+   "sha256": "af5594cd89acd382ee5487352ecdb01a54494b2a598ff6d1a2793bd6abeb35a8",
+   "commit": "06a4d37400c6cfb0d9e887a7f997ccc889685279",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H159",
+   "stratum": "M",
+   "repo": "VideoAgent",
+   "file": "tools/seed-vc/dac/nn/loss.py",
+   "function": "GANLoss.generator_loss",
+   "span": [
+    356,
+    368
+   ],
+   "sha256": "14e62f130f3566832ca831c16d9e317c48a37aade197b5c8fd807bcf3a54363d",
+   "commit": "f207987e3cffb554aaa6ffdbe733efb30f4b51ed",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H160",
+   "stratum": "M",
+   "repo": "claw-code",
+   "file": "src/remote_runtime.py",
+   "function": "run_remote_mode",
+   "span": [
+    16,
+    17
+   ],
+   "sha256": "95ea465b6e451d483f2cc95c3b3df9375909f82305476d384b2824821d8cd0cf",
+   "commit": "7030d26e7a9ca7fef5c74f463eede01a59403847",
+   "label": "STUB_DISGUISED",
+   "note": "returns success=True with 'Remote control placeholder prepared'; nothing is prepared"
+  },
+  {
+   "id": "H161",
+   "stratum": "M",
+   "repo": "ComfyUI",
+   "file": "comfy_extras/sam3d_body/export/glb_openpose.py",
+   "function": "build_glb_openpose",
+   "span": [
+    634,
+    1047
+   ],
+   "sha256": "453c272ecbfcb748ccca196a8436990684f0f87f63f592d1d04df1072d15b809",
+   "commit": "7a0b5eede3f9721c8faab290689893f36edc6d66",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H162",
+   "stratum": "M",
+   "repo": "agent-governance-toolkit",
+   "file": "agent-governance-python/agent-os/src/agent_os/integrations/health.py",
+   "function": "HealthChecker._check_audit_backend",
+   "span": [
+    162,
+    168
+   ],
+   "sha256": "90aa111ec74175db1b46c884ac31359bd777c6251ab53f0bdc295663d78d83da",
+   "commit": "54a2c5227817530d400200601f647b7f71ace298",
+   "label": "ALWAYS_PASS_CHECK",
+   "note": "health check 'stub' always reports HEALTHY 'audit backend reachable' without checking"
+  },
+  {
+   "id": "H163",
+   "stratum": "M",
+   "repo": "openrag",
+   "file": "src/tui/screens/config.py",
+   "function": "ConfigScreen._render_standard_field",
+   "span": [
+    230,
+    268
+   ],
+   "sha256": "af3ee9d80d5920ac96373ab578550ff13705e197b4f548cb211197dc7d0f88bb",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H164",
+   "stratum": "M",
+   "repo": "cocoindex",
+   "file": "python/cocoindex/connectors/postgres/_target.py",
+   "function": "_RowHandler._execute_delete_chunk",
+   "span": [
+    726,
+    749
+   ],
+   "sha256": "6aa231419be949e76033af5902fcfb6765e5d492381b5c935229ffc134a7cda1",
+   "commit": "0416a616b9961c98f1c8d06f63a76699f8eb6926",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H165",
+   "stratum": "M",
+   "repo": "OpenGauss",
+   "file": "environments/benchmarks/terminalbench_2/terminalbench2_env.py",
+   "function": "TerminalBench2EvalEnv.score",
+   "span": [
+    353,
+    355
+   ],
+   "sha256": "7efac66eca838ecdd6f2fe8398df117f3ebdd1a58beef6cc192aebb80f3cfa78",
+   "commit": "fef30c8c83a1751779c13f93bcbdd5460251ece4",
+   "label": "GENUINE",
+   "note": "docstring declares the override unused in eval-only mode"
+  },
+  {
+   "id": "H166",
+   "stratum": "M",
+   "repo": "NOVAGENE",
+   "file": "src/drug_database.py",
+   "function": "load_drugbank",
+   "span": [
+    646,
+    678
+   ],
+   "sha256": "11b713bf6396189a94911bf78d71fbf4a098f5f5d4049220cb59bff029b9932f",
+   "commit": "a3a468de22c41e78dc2fa1f3472c11c222af6dae",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H167",
+   "stratum": "M",
+   "repo": "tiktok-agent",
+   "file": "core/captioner.py",
+   "function": "Captioner._generate_ass_file",
+   "span": [
+    113,
+    167
+   ],
+   "sha256": "23e8305908c4fb40956d13b25fb557f1ac210b8a4ee58bee82ed8976967fb766",
+   "commit": "e3c95b1deaddd4bcd48525c27a1a9b79b9ceb207",
+   "label": "IGNORED_INPUT",
+   "note": "style='highlight' never read; one hard-wired style ('for now')"
+  },
+  {
+   "id": "H168",
+   "stratum": "M",
+   "repo": "Biomni",
+   "file": "biomni/tool/systems_biology.py",
+   "function": "model_protein_dimerization_network",
+   "span": [
+    150,
+    291
+   ],
+   "sha256": "48cd2ae46d3186dec1845cc1e4f0cfa7e5d5e005b6f3cf0141a3d98b5fed4ddb",
+   "commit": "400c1f366b96a35ca253e13c9b06c5076af41d65",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H169",
+   "stratum": "M",
+   "repo": "tiktok-agent",
+   "file": "web_api.py",
+   "function": "render_clips",
+   "span": [
+    619,
+    686
+   ],
+   "sha256": "7fed41b8dc8c16f941419fc7256a3a43627835df8add3d25561205b6bf9d5c9e",
+   "commit": "e3c95b1deaddd4bcd48525c27a1a9b79b9ceb207",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H170",
+   "stratum": "M",
+   "repo": "fallow",
+   "file": "scripts/public-config-corpus.py",
+   "function": "main",
+   "span": [
+    73,
+    194
+   ],
+   "sha256": "2a0f51f70f9780561a938461d3cde685062c4e9425262b0d1593577239c34f0f",
+   "commit": "4d019eeb4785ea71412d8e7f56dc8a208d03e94f",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H171",
+   "stratum": "M",
+   "repo": "opendataloader-pdf",
+   "file": "python/opendataloader-pdf-mcp/src/opendataloader_pdf_mcp/server.py",
+   "function": "convert_pdf",
+   "span": [
+    14,
+    171
+   ],
+   "sha256": "79c42042f6ea07c8bcd1798d46d3731493e35a9dd6d36ebffa3edc8aba096c3a",
+   "commit": "c3391dec454dc64c429c6019a581cc6010caf99d",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H172",
+   "stratum": "M",
+   "repo": "docling",
+   "file": "docling/pipeline/vlm_pipeline.py",
+   "function": "VlmPipeline._convert_text_with_backend",
+   "span": [
+    457,
+    518
+   ],
+   "sha256": "be817e5bfa21e907e4d7bada3ff63162547b79a357a2c7f9794f464a7860a5b3",
+   "commit": "251c8b217a72453205242993e03ca8004cb2877e",
+   "label": "GENUINE",
+   "note": "conversion real; placeholder bbox flagged by FIXME"
+  },
+  {
+   "id": "H173",
+   "stratum": "M",
+   "repo": "VideoAgent",
+   "file": "tools/DiffSinger/utils/text_norm.py",
+   "function": "create_system",
+   "span": [
+    191,
+    230
+   ],
+   "sha256": "3db4081f75f6d012f848b36e01f953cb7485de0aaba513ed4d50f14660f7c047",
+   "commit": "f207987e3cffb554aaa6ffdbe733efb30f4b51ed",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H174",
+   "stratum": "M",
+   "repo": "ClawBio",
+   "file": "bot/roboterri_discord.py",
+   "function": "on_message",
+   "span": [
+    1156,
+    1571
+   ],
+   "sha256": "a273496b7aa08e2273015a2c731baf4eedbad71408243f226550aa075186b876",
+   "commit": "c2a73bd621edab1db823315007abdc5649af9b1f",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H175",
+   "stratum": "M",
+   "repo": "ComfyUI",
+   "file": "comfy_extras/sam3d_body/face_expression.py",
+   "function": "fill_detection_gaps",
+   "span": [
+    217,
+    272
+   ],
+   "sha256": "8499c60f22c886b82dc703fe910f7922d04450cc4a8efad5316ad1ec3b801c0a",
+   "commit": "7a0b5eede3f9721c8faab290689893f36edc6d66",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H176",
+   "stratum": "M",
+   "repo": "BioReason-Pro",
+   "file": "eval.py",
+   "function": "filter_unprocessed_samples",
+   "span": [
+    141,
+    178
+   ],
+   "sha256": "6351fa8ecf4f8d8132f506ec1a5f292c496224c1390ff54d93f4f9017710d05c",
+   "commit": "c4bf4160392fcfd0c957f95259cfee5efbdcffad",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H177",
+   "stratum": "M",
+   "repo": "openrag",
+   "file": "src/connectors/google_drive/connector.py",
+   "function": "GoogleDriveConnector.list_files",
+   "span": [
+    573,
+    610
+   ],
+   "sha256": "e7d8ec3ac1b7e9c5df69cd0469749529981120e0df1ca71b0ed44099fdac39ad",
+   "commit": "e74483c04069166699e142372803e2f353723f70",
+   "label": "GENUINE",
+   "note": "**kwargs is interface surface; simulated pagination documented"
+  },
+  {
+   "id": "H178",
+   "stratum": "M",
+   "repo": "academic-observatory-workflows",
+   "file": "academic-observatory-workflows/academic_observatory_workflows/model.py",
+   "function": "make_unpaywall",
+   "span": [
+    942,
+    1009
+   ],
+   "sha256": "2d043c4d7867a2a1b387e5684c72ae9f8c370dd5921a0f3c8eafea62923029b3",
+   "commit": "1f67d8523df95788df4d92d629278f4b12670c69",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H179",
+   "stratum": "M",
+   "repo": "andartis",
+   "file": "python/core/engine.py",
+   "function": "SimilarityEngine.find_similar",
+   "span": [
+    118,
+    149
+   ],
+   "sha256": "4f7d36633eb7cbe7ca174b5cc6b5506bf70a7948df2d0b8e844a7913e2f0584c",
+   "commit": "12bcd1176955a9af5d9f4be5cbf2556677a3ebb1",
+   "label": "GENUINE",
+   "note": ""
+  },
+  {
+   "id": "H180",
+   "stratum": "M",
+   "repo": "OpenGauss",
+   "file": "gauss_cli/setup.py",
+   "function": "setup_model_provider",
+   "span": [
+    647,
+    1468
+   ],
+   "sha256": "d44a71eedb9732c1f2c7a5cebcd6fe49011ebab14f52a746539d4c119452cf93",
+   "commit": "fef30c8c83a1751779c13f93bcbdd5460251ece4",
+   "label": "GENUINE",
+   "note": ""
+  }
+ ]
+}
