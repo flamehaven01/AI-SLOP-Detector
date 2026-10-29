@@ -119,8 +119,7 @@ slop-detector verify-governance ./.cr-ep
 ## Node, MCP, And Local Observability
 
 ```bash
-pip install ai-slop-detector
-npm install --save-dev /path/to/AI-SLOP-Detector/npm-wrapper   # not on the npm registry
+npm install --save-dev ai-slop-detector     # or run it with npx, no install
 npx ai-slop-detector review . --format json
 
 slop-detector mcp
@@ -128,6 +127,6 @@ slop-detector impact enable
 slop-detector telemetry inspect --example
 ```
 
-The npm wrapper is not published to npm (its package.json is private); install it from a checkout of this repository. It delegates to the installed Python CLI. It does not implement a second analyzer. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
+The npm wrapper (`ai-slop-detector` on npm) has the same version as the PyPI release. It delegates to an installed Python CLI, or, when none is installed, runs that PyPI release through uvx or pipx. It does not implement a second analyzer. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
 
 For agent-specific guidance, see [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) and [CLAUDE_CODE_SKILL.md](CLAUDE_CODE_SKILL.md).

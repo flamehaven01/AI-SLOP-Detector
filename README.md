@@ -7,6 +7,8 @@
 <p align="center">
   <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.12.0" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
+  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg" alt="npm version"/></a>
+  <a href="https://socket.dev/npm/package/ai-slop-detector"><img src="https://img.shields.io/badge/socket-report-6e56cf" alt="Socket"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
   <br/>
@@ -211,12 +213,12 @@ slop-detector --project . --ci-mode hard --ci-report  # CI gate
 pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
 pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
 
-# Thin npm wrapper (delegates to the Python CLI). Not published to npm
-# (package.json is private): install it from a checkout of this repository.
-pip install ai-slop-detector                       # Python backend required
-npm install --save-dev /path/to/AI-SLOP-Detector/npm-wrapper
+# npm wrapper (delegates to the Python CLI). With no Python backend installed
+# it runs the PyPI release of the same version through uvx or pipx.
+npx ai-slop-detector --project .
+npm install --save-dev ai-slop-detector
 
-npx ai-slop-detector scan .                        # runs the locally installed wrapper
+npx ai-slop-detector scan .
 npx ai-slop-detector review . --format json
 npx ai-slop-detector pulse . --format json
 npx ai-slop-detector sweep dead-code . --format json
@@ -242,6 +244,7 @@ node ./bin/ai-slop-detector.js --version
 
 # No install required
 uvx ai-slop-detector mycode.py
+npx ai-slop-detector mycode.py   # same, through the npm wrapper
 ```
 
 The npm surface is intentionally thin:
@@ -249,11 +252,13 @@ The npm surface is intentionally thin:
 - it does **not** reimplement analysis logic
 - it delegates into the Python CLI/runtime
 - it exists for Node-first teams that want `npx`-style entry without changing
-  product semantics; it is not on the npm registry, so `npm install
-  ai-slop-detector` by name does not install it
-- it requires a Python backend and discovers it in this order:
-  `AI_SLOP_DETECTOR_EXECUTABLE` -> active `VIRTUAL_ENV` -> PATH executables ->
-  `python -m slop_detector.cli`
+  product semantics; it is published on npm as `ai-slop-detector` with the
+  same version as the PyPI release
+- it discovers a backend in this order: `AI_SLOP_DETECTOR_EXECUTABLE` ->
+  active `VIRTUAL_ENV` -> PATH executables -> `python -m slop_detector.cli` ->
+  `uvx` / `pipx` running the PyPI release of the wrapper's own version (uv
+  can also fetch Python), so `npx` works without a Python install when uv or
+  pipx is present
 - it ships version-pinned TypeScript interfaces at `ai-slop-detector/types`
 - it exports a small async Node API for `scanProject`, `reviewChanges`,
   `computeHealth`, and `runCleanupFamily`

@@ -45,10 +45,10 @@ pip install "ai-slop-detector[js]"   # optional JS/TS support
 pip install "ai-slop-detector[go]"   # optional Go support
 ```
 
-Optional Node-first wrapper (not published to npm (its package.json is private); install it from a checkout of this repository):
+Optional Node-first wrapper (`ai-slop-detector` on npm, same version as the PyPI release):
 
 ```bash
-npm install --save-dev /path/to/AI-SLOP-Detector/npm-wrapper
+npm install --save-dev ai-slop-detector
 ```
 
 Verify:

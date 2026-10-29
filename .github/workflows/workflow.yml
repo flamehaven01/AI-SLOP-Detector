@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish to PyPI and npm
 
 on:
   release:
@@ -35,3 +35,39 @@ jobs:
 
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
+
+  npm-publish:
+    name: Publish the npm wrapper
+    # After PyPI: the wrapper's uvx / pipx fallback runs the PyPI release of its own version.
+    needs: pypi-publish
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/ai-slop-detector
+    permissions:
+      contents: read
+      id-token: write  # npm trusted publishing (OIDC); provenance is attached
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+        registry-url: "https://registry.npmjs.org"
+
+    - name: Use an npm with trusted publishing
+      run: npm install -g npm@11
+
+    - name: Check the wrapper version is the release version
+      working-directory: npm-wrapper
+      run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+
+    - name: Test the wrapper
+      working-directory: npm-wrapper
+      run: npm test
+
+    - name: Publish to npm
+      working-directory: npm-wrapper
+      run: npm publish --provenance --access public

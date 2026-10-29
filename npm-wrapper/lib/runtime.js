@@ -3,6 +3,8 @@
 const path = require("node:path");
 const { spawn, spawnSync } = require("node:child_process");
 
+const PACKAGE_VERSION = require("../package.json").version;
+
 function _scriptDirName(platform) {
   return platform === "win32" ? "Scripts" : "bin";
 }
@@ -77,6 +79,24 @@ function buildBackendCandidates(options = {}) {
     });
   }
 
+  // Nothing installed: run the PyPI release of this package's own version
+  // through uv (which can also fetch Python) or pipx.
+  const spec = `ai-slop-detector==${options.version || PACKAGE_VERSION}`;
+  candidates.push(
+    {
+      kind: "fetch",
+      command: "uvx",
+      args: ["--from", spec, "slop-detector"],
+      label: `uvx ${spec}`,
+    },
+    {
+      kind: "fetch",
+      command: "pipx",
+      args: ["run", "--spec", spec, "slop-detector"],
+      label: `pipx run ${spec}`,
+    },
+  );
+
   return candidates;
 }
 
@@ -84,6 +104,8 @@ function _probeArgs(candidate) {
   if (candidate.kind === "module") {
     return [...candidate.args, "--version"];
   }
+  // A fetch candidate is probed for the tool alone: probing the package would
+  // download it before the user's command runs.
   return ["--version"];
 }
 
@@ -122,7 +144,8 @@ function runWrapper(forwardedArgs, options = {}) {
   if (!candidate) {
     stderr.write(
       "[ai-slop-detector npm wrapper] Python backend not found. " +
-        "Install the Python package or set AI_SLOP_DETECTOR_EXECUTABLE.\n",
+        "Run `pip install ai-slop-detector`, install uv (https://docs.astral.sh/uv/) " +
+        "or pipx, or set AI_SLOP_DETECTOR_EXECUTABLE.\n",
     );
     return Promise.resolve(1);
   }

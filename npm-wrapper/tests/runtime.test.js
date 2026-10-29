@@ -96,3 +96,44 @@ test("runWrapper returns actionable failure when backend is missing", async () =
   assert.match(stderr, /Python backend not found/i);
   assert.match(stderr, /AI_SLOP_DETECTOR_EXECUTABLE/);
 });
+
+test("fetch candidates come last and pin the PyPI release to this package version", () => {
+  const candidates = buildBackendCandidates({ env: {}, platform: "linux", version: "9.9.9" });
+  const fetchers = candidates.filter((c) => c.kind === "fetch");
+  assert.deepEqual(
+    fetchers.map((c) => [c.command, ...c.args]),
+    [
+      ["uvx", "--from", "ai-slop-detector==9.9.9", "slop-detector"],
+      ["pipx", "run", "--spec", "ai-slop-detector==9.9.9", "slop-detector"],
+    ],
+  );
+  assert.equal(candidates.indexOf(fetchers[0]), candidates.length - 2);
+});
+
+test("default pin is the version in package.json", () => {
+  const { version } = require("../package.json");
+  const uvx = buildBackendCandidates({ env: {}, platform: "linux" }).find((c) => c.command === "uvx");
+  assert.ok(uvx.args.includes(`ai-slop-detector==${version}`));
+});
+
+test("with nothing installed, uvx is chosen and probed for the tool only", () => {
+  const probes = [];
+  const backend = discoverBackend({
+    env: {},
+    platform: "linux",
+    version: "1.2.3",
+    probeImpl(command, args) {
+      probes.push([command, ...args]);
+      return { status: command === "uvx" ? 0 : 1 };
+    },
+  });
+  assert.equal(backend.command, "uvx");
+  assert.deepEqual(probes[probes.length - 1], ["uvx", "--version"]);
+  assert.deepEqual(buildInvocation(backend, ["--json", "."]).args, [
+    "--from",
+    "ai-slop-detector==1.2.3",
+    "slop-detector",
+    "--json",
+    ".",
+  ]);
+});

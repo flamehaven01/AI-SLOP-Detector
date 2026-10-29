@@ -31,6 +31,12 @@ Supported backend discovery order:
 4. `python -m slop_detector.cli`
 5. `python3 -m slop_detector.cli`
 6. `py -m slop_detector.cli` on Windows
+7. `uvx --from ai-slop-detector==<this package's version> slop-detector`
+8. `pipx run --spec ai-slop-detector==<this package's version> slop-detector`
+
+With nothing installed, steps 7-8 run the PyPI release of the same version as
+this npm package, fetched by uv (which can also fetch Python) or pipx. An
+installed backend from steps 1-6 is used as it is, whatever its version.
 
 Recommended Python install:
 

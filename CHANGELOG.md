@@ -60,6 +60,9 @@ drawn; not run yet).
   module calls the function with that argument (+62 to +104 replay findings,
   mostly dispatch handlers and leftover helper arguments).
 - Analysis cache `analysis-cache-v37`.
+- npm: the wrapper is published as `ai-slop-detector` with the PyPI version;
+  with no Python backend installed it runs that PyPI release through `uvx` or
+  `pipx`, so `npx ai-slop-detector` needs no Python install when uv is present.
 
 ## [3.12.0] - 2026-10-26
 
