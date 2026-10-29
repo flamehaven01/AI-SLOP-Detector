@@ -40,17 +40,26 @@ drawn; not run yet).
   a base the module does not define or with two or more such methods. A log
   line in front, a constructed answer (`SendResult(success=True)`) or a
   docstring calling the body a placeholder keeps the finding.
+- An empty body (`pass`, `return`, `return None`) whose docstring summary
+  sentence declares it a no-op ("IRC has no typing indicator - no-op.") is not
+  a placeholder when its signature is fixed elsewhere: a method of a class with
+  an outside or module base, a subclass of a named base, or a callback
+  registered by value. Not when the sentence denies or demands (not, never,
+  must, should), the docstring says placeholder / todo or limits it in time
+  (for now, currently, future), the declaration is only in a later sentence,
+  or the function has no such anchor.
 - `not_implemented`: print or log lines before `raise NotImplementedError` do not
   make it an implementation. An empty `__init__` is not `pass_placeholder`.
 - Measured: recall corpus unchanged (18/29 hollow, 0/22 genuine); replay on 14
   public repositories, every changed finding read in the source: the v1 fixes
   +21/-2, the declared defaults and discarded values +0/-42 (all 42 removed
-  placeholder findings are declared defaults); development data v1 recall 7/9,
+  placeholder findings are declared defaults), the declared no-ops +0/-3
+  (predicted before the run); development data v1 recall 7/9,
   false alarms 3/170; v2 recall 6/12, false alarms 4/828.
 - Not adopted, measured: reporting an unused positional parameter because the
   module calls the function with that argument (+62 to +104 replay findings,
   mostly dispatch handlers and leftover helper arguments).
-- Analysis cache `analysis-cache-v36`.
+- Analysis cache `analysis-cache-v37`.
 
 ## [3.12.0] - 2026-10-26
 

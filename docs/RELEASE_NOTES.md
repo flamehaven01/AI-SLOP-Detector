@@ -24,13 +24,19 @@ hold-out v3, whose protocol is fixed before any v3 repository is drawn.
   base or sibling methods fix the interface no longer produce placeholder
   findings. A log line in front, a constructed success answer or a docstring
   that says "placeholder" keeps the finding.
+- **A declared no-op is not a stub.** An empty body whose docstring summary
+  sentence says no-op or does nothing, in a method whose signature a base fixes
+  or a callback registered by value, is no longer reported. The words alone
+  never exempt: a denial or demand in that sentence, "placeholder", "for now",
+  a declaration only in a later sentence, or a function with no base or
+  registration keeps the finding.
 - **More stubs are caught.** Print or log lines before `raise
   NotImplementedError`, a class built from literals with a success mark, a
   swallowed failure followed by a constant the comment calls invented, a
   documented parameter never read, and a function that only builds values it
   throws away.
 - Scores of files with declared defaults go down; the scoring formula, bands
-  and JSON keys are unchanged. Analysis cache `analysis-cache-v36`.
+  and JSON keys are unchanged. Analysis cache `analysis-cache-v37`.
 
 ### How it was measured
 

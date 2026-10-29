@@ -358,6 +358,15 @@ def _is_empty(stmt: ast.stmt) -> bool:
     return stmt.value is None or (isinstance(stmt.value, ast.Constant) and stmt.value.value is None)
 
 
+def _is_ellipsis(stmt: ast.stmt) -> bool:
+    """A `...` statement."""
+    return (
+        isinstance(stmt, ast.Expr)
+        and isinstance(stmt.value, ast.Constant)
+        and stmt.value.value is ...
+    )
+
+
 def _named_default(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
     """A default the class name or its interface declares; plain bodies only, so a
     log line in front or a "placeholder" docstring keeps a stub reported."""
@@ -371,6 +380,56 @@ def _named_default(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stm
     return isinstance(stmt, ast.Raise) and intent.declares_unsupported(function)
 
 
+_NOOP_PHRASE = re.compile(
+    r"\b(no-?op|does nothing|do nothing|nothing to do|intentionally empty)\b", re.I
+)
+# In the declaring sentence these deny the no-op or demand an action; "no" and
+# "required" are allowed ("has no typing indicator", "hook required by the SDK").
+_NOOP_DENIAL = re.compile(r"\b(not|never|cannot|must|should|shall)\b|n't\b", re.I)
+_TIME_LIMITED = re.compile(r"\b(for now|currently|yet|until|temporar\w*|future|later)\b", re.I)
+
+
+def _first_sentence(doc: str) -> str:
+    text = " ".join(doc.split())
+    match = re.match(r"(.+?[.!?])(\s|$)", text)
+    return match.group(1) if match else text
+
+
+def _declares_noop(function: FunctionNode) -> bool:
+    """The docstring's summary sentence declares the body a no-op, with no denial
+    or demand in it, and nothing calls it a placeholder or limits it in time."""
+    doc = ast.get_docstring(function) or ""
+    if not doc or _says_placeholder(function) or _TIME_LIMITED.search(doc):
+        return False
+    first = _first_sentence(doc)
+    return bool(_NOOP_PHRASE.search(first)) and not _NOOP_DENIAL.search(first)
+
+
+def _only_statement(function: FunctionNode, stmt: ast.stmt) -> bool:
+    """`stmt` is the whole body once the leading docstring (only) is removed."""
+    body = list(function.body)
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+        if isinstance(body[0].value.value, str):
+            body = body[1:]
+    return body == [stmt]
+
+
+def _declared_noop(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
+    """An empty body its own summary sentence declares a no-op, in a place whose
+    signature something else fixes (an outside or module base, a named base, a
+    callback registered by value). The words alone never exempt."""
+    if not (_is_empty(stmt) and _only_statement(function, stmt) and _declares_noop(function)):
+        return False
+    klass = intent.enclosing_class(function)
+    if klass is not None and (
+        intent.has_outside_base(function)
+        or intent.overrides_module_base(function)
+        or intent.has_named_base(klass)
+    ):
+        return True
+    return intent.is_registered_by_value(function)
+
+
 def is_declared_body(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
     """The one-statement body `stmt` is declared intent, not an unfinished stub.
 
@@ -379,17 +438,17 @@ def is_declared_body(intent: DeclaredIntent, function: FunctionNode, stmt: ast.s
     question); a `...` body is declared under an implementing decorator, an
     empty one under any registering decorator. An override that is `pass` or
     raises stays a placeholder unless its class name or interface declares it
-    (`_named_default`).
+    (`_named_default`), or its summary sentence declares an empty body a no-op
+    where a base or a registration fixes the signature (`_declared_noop`).
     """
-    if intent.is_contract(function) or _named_default(intent, function, stmt):
+    if (
+        intent.is_contract(function)
+        or _named_default(intent, function, stmt)
+        or _declared_noop(intent, function, stmt)
+    ):
         return True
     if _is_empty(stmt) and intent.has_implementing_decorator(function):
         return True
     if isinstance(stmt, ast.Return):
         return intent.is_accessor(function) or intent.overrides_module_base(function)
-    is_ellipsis = (
-        isinstance(stmt, ast.Expr)
-        and isinstance(stmt.value, ast.Constant)
-        and stmt.value.value is ...
-    )
-    return is_ellipsis and intent.has_implementing_decorator(function)
+    return _is_ellipsis(stmt) and intent.has_implementing_decorator(function)
