@@ -109,23 +109,45 @@ function _probeArgs(candidate) {
   return ["--version"];
 }
 
-function probeCandidate(candidate, options = {}) {
+function _probe(candidate, options) {
   const probe = options.probeImpl || spawnSync;
-  const result = probe(candidate.command, _probeArgs(candidate), {
+  return probe(candidate.command, _probeArgs(candidate), {
     encoding: "utf8",
     stdio: "pipe",
   });
+}
+
+function probeCandidate(candidate, options = {}) {
+  const result = _probe(candidate, options);
   return Boolean(result && result.status === 0);
+}
+
+function _reportedVersion(result) {
+  const match = /ai-slop-detector (\S+)/.exec((result && result.stdout) || "");
+  return match ? match[1] : null;
 }
 
 function discoverBackend(options = {}) {
   const candidates = buildBackendCandidates(options);
   for (const candidate of candidates) {
-    if (probeCandidate(candidate, options)) {
-      return candidate;
+    const result = _probe(candidate, options);
+    if (result && result.status === 0) {
+      // A fetch candidate runs this package's own version; an installed one
+      // reports its version, which may be older or newer than the wrapper.
+      return candidate.kind === "fetch" ? candidate : { ...candidate, version: _reportedVersion(result) };
     }
   }
   return null;
+}
+
+function _versionWarning(candidate, expected) {
+  if (!candidate.version || candidate.version === expected) {
+    return null;
+  }
+  return (
+    `[ai-slop-detector npm wrapper] using backend ${candidate.version} ` +
+    `(${candidate.label}); this wrapper is ${expected}. Output follows the backend's version.\n`
+  );
 }
 
 function buildInvocation(candidate, forwardedArgs) {
@@ -150,6 +172,10 @@ function runWrapper(forwardedArgs, options = {}) {
     return Promise.resolve(1);
   }
 
+  const warning = _versionWarning(candidate, options.version || PACKAGE_VERSION);
+  if (warning) {
+    stderr.write(warning);
+  }
   const invocation = buildInvocation(candidate, forwardedArgs);
 
   return new Promise((resolve, reject) => {

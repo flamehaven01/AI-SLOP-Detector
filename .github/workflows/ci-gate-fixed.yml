@@ -20,16 +20,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install AI SLOP Detector
+      - name: Install AI SLOP Detector (this checkout)
         run: |
-          pip install "ai-slop-detector>=3.7.3"
+          pip install .
+          slop-detector --version
 
       - name: Run Quality Analysis
         id: quality_check
         run: |
           slop-detector --project . --json > analysis_result.json
           cat analysis_result.json
-        continue-on-error: true
 
       - name: Generate Report
         if: always()
@@ -59,9 +59,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install AI SLOP Detector
+      - name: Install AI SLOP Detector (this checkout)
         run: |
-          pip install "ai-slop-detector>=3.7.3"
+          pip install .
+          slop-detector --version
 
       - name: Run Quality Gate with Threshold
         run: |
@@ -90,28 +91,43 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install AI SLOP Detector
+      - name: Install AI SLOP Detector (this checkout)
         run: |
-          pip install "ai-slop-detector>=3.7.3"
+          pip install .
+          slop-detector --version
 
       - name: Run Analysis
         id: analysis
         run: |
+          set +e
           slop-detector --project . -o report.md
-          echo "REPORT<<EOF" >> $GITHUB_OUTPUT
-          cat report.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-        continue-on-error: true
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
+      # The report holds file names and messages from the PR's code: it is read
+      # from the file as data, never interpolated into the script source.
       - name: Comment PR
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        env:
+          ANALYSIS_EXIT: ${{ steps.analysis.outputs.exit_code }}
         with:
           script: |
-            const report = `${{ steps.analysis.outputs.REPORT }}`;
+            const fs = require('fs');
+            const limit = 60000;  // GitHub caps a comment at 65536 characters
+            let body;
+            if (process.env.ANALYSIS_EXIT !== '0' || !fs.existsSync('report.md')) {
+              body = `Analysis failed (exit code ${process.env.ANALYSIS_EXIT}); no report was produced.`;
+            } else {
+              const report = fs.readFileSync('report.md', 'utf8');
+              body = report.length > limit ? report.slice(0, limit) + '\n\n(report truncated)' : report;
+            }
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## AI Code Quality Analysis\n\n${report}`
+              body: '## AI Code Quality Analysis\n\n' + body
             });
+
+      - name: Fail when the analysis failed
+        if: steps.analysis.outputs.exit_code != '0'
+        run: exit 1

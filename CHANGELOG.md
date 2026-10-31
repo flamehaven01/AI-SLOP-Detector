@@ -76,6 +76,15 @@ v3, run once on the frozen detector (`benchmarks/holdout_v3/FINDINGS.md`).
   From this release the npm package is published by the release workflow with
   provenance.
 - Package metadata: the PyPI project links point at the public repository.
+- npm wrapper: an installed backend of another version is named on stderr
+  (`using backend 3.12.0 (path:ai-slop-detector); this wrapper is 3.13.0`).
+- CI: the example quality-gate workflow analyzes the checked-out source, not
+  the latest PyPI release; its PR comment reads the report from the file
+  instead of placing it in the script source (a file name or finding message
+  could break or inject into the script), and a failed analysis fails the job
+  instead of being posted as a report. The release workflow publishes only a
+  tagged commit on `main` whose `pyproject.toml` and `__version__` match the
+  tag.
 
 ## [3.12.0] - 2026-10-26
 

@@ -137,3 +137,34 @@ test("with nothing installed, uvx is chosen and probed for the tool only", () =>
     ".",
   ]);
 });
+
+function runWithBackend(reported, expected) {
+  let stderr = "";
+  return runWrapper(["--json", "."], {
+    version: expected,
+    probeImpl(command) {
+      return command === "ai-slop-detector"
+        ? { status: 0, stdout: `ai-slop-detector ${reported}\n` }
+        : { status: 1 };
+    },
+    env: {},
+    platform: "linux",
+    stderr: { write(chunk) { stderr += chunk; } },
+    spawnImpl() {
+      const child = new EventEmitter();
+      process.nextTick(() => child.emit("exit", 0, null));
+      return child;
+    },
+  }).then((code) => ({ code, stderr }));
+}
+
+test("an installed backend of another version is named on stderr", async () => {
+  const { code, stderr } = await runWithBackend("3.12.0", "3.13.0");
+  assert.equal(code, 0);
+  assert.match(stderr, /using backend 3\.12\.0 \(path:ai-slop-detector\); this wrapper is 3\.13\.0/);
+});
+
+test("an installed backend of the wrapper's version runs silently", async () => {
+  const { stderr } = await runWithBackend("3.13.0", "3.13.0");
+  assert.equal(stderr, "");
+});

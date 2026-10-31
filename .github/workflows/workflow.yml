@@ -19,11 +19,23 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.x"
+
+    # Publish only a commit that is on main and whose versions match the tag.
+    - name: Check the tag, the package versions and main
+      run: |
+        version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+        module=$(python -c "import re; print(re.search(r'__version__ = \"(.+)\"', open('src/slop_detector/__init__.py').read()).group(1))")
+        echo "tag ${GITHUB_REF_NAME}, pyproject ${version}, __version__ ${module}, commit ${GITHUB_SHA}"
+        test "v${version}" = "${GITHUB_REF_NAME}"
+        test "${module}" = "${version}"
+        git merge-base --is-ancestor "${GITHUB_SHA}" origin/main
 
     - name: Install build tools
       run: |
