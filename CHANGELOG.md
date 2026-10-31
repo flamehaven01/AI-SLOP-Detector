@@ -11,26 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.13.0] - 2026-10-31
 
-Fewer findings on code that declares its defaults, a few more stubs caught,
-and blind hold-out benchmarks to measure both. The hold-out v1 and v2 numbers
-below are development data: the rules were written from those samples, so
-they are not an independent result. The independent measurement is hold-out
-v3, run once on the frozen detector (`benchmarks/holdout_v3/FINDINGS.md`).
+Fewer findings on code that declares its defaults, and a few more stubs caught.
 
-- Hold-out v3 (1119 functions from 47 public repositories drawn after the
-  detector was frozen at `13f08e3`; labels committed before the scan; 47/47
-  measured, 0 excluded). Genuine functions flagged: A+B 9/374 (random stratum
-  4/128), AI_ASSOCIATED 10/741 (random stratum 4/248). Hollow functions found:
-  A+B 0/1, AI_ASSOCIATED 3/3. Only 4 of 1119 functions are hollow, so these
-  numbers do not establish a recall rate. The labeler is the rule author. The
-  miss and the 19 false alarms are listed with their cause; none is fixed in
-  this release, so v3 stays a measurement of the shipped rules. The source
-  shipped differs from the measured one only in the version string.
-- Hold-out benchmarks: `benchmarks/holdout` (v1, 180 functions from 35 public
-  repositories) and `benchmarks/holdout_v2` (842 functions from seeded GitHub
-  star-band frames), labeled from the source before any scan, with source
-  binding and a scorer that fails closed. 3.12.0 baseline: v1 recall 1/9,
-  false alarms 5/170; v2 recall 3/12, false alarms 12/828.
 - `return_constant_stub`: a function that only returns a class built from
   literals with a success mark (`Result(ok=True)`, a `HEALTHY` / `SUCCESS`
   member) is reported.
@@ -60,15 +42,6 @@ v3, run once on the frozen detector (`benchmarks/holdout_v3/FINDINGS.md`).
   or the function has no such anchor.
 - `not_implemented`: print or log lines before `raise NotImplementedError` do not
   make it an implementation. An empty `__init__` is not `pass_placeholder`.
-- Measured: recall corpus unchanged (18/29 hollow, 0/22 genuine); replay on 14
-  public repositories, every changed finding read in the source: the v1 fixes
-  +21/-2, the declared defaults and discarded values +0/-42 (all 42 removed
-  placeholder findings are declared defaults), the declared no-ops +0/-3
-  (predicted before the run); development data v1 recall 7/9,
-  false alarms 3/170; v2 recall 6/12, false alarms 4/828.
-- Not adopted, measured: reporting an unused positional parameter because the
-  module calls the function with that argument (+62 to +104 replay findings,
-  mostly dispatch handlers and leftover helper arguments).
 - Analysis cache `analysis-cache-v37`.
 - npm: the wrapper is published as `ai-slop-detector` with the PyPI version;
   with no Python backend installed it runs that PyPI release through `uvx` or
@@ -91,12 +64,7 @@ v3, run once on the frozen detector (`benchmarks/holdout_v3/FINDINGS.md`).
 
 ## [3.12.0] - 2026-10-26
 
-Detection of code that looks finished but is not. Measured on a recall
-corpus of realistic, lint-clean hollow code (`benchmarks/recall`: 29 hollow
-and 22 genuine functions; `python benchmarks/recall/measure.py`): 4 of 29
-hollow found before, 12 of 29 now, 0 of 22 genuine flagged. The corpus is
-written by the maintainers; new findings on 14 public repositories were read
-in the source (2 added, both real).
+Detection of code that looks finished but is not.
 
 - `return_constant_stub` sees through logging: a body that only logs, prints
   or passes before `return <constant>` is still a stub. Callbacks the module
@@ -113,12 +81,7 @@ in the source (2 added, both real).
   function reading it are uses. Signatures fixed elsewhere (overrides,
   callbacks, decorated functions, sibling methods with the same parameters,
   outside bases), stub bodies, parameters the docstring says are kept, and
-  command handlers returning exit codes are left alone. On the 14 public
-  repositories it adds 132 findings; of 33 read in the source, 23 are real
-  (an option documented and never applied, an API key accepted and never
-  sent), 5 unclear, 5 false alarms (protocol methods, parameters whose use the
-  docstring explains).
-- Recall corpus with all four changes: 18 of 29 hollow, 0 of 22 genuine.
+  command handlers returning exit codes are left alone.
 - Analysis cache `analysis-cache-v34` (old entries are recomputed).
 
 For scripts and agents: the four rules add findings (new pattern ids
@@ -128,12 +91,6 @@ The scoring formula, band boundaries and JSON keys are unchanged.
 
 #### How a rule change is verified (development tools)
 
-- `scripts/dev/fast_replay.py`: replays only the selected patterns on external
-  repositories, in parallel, through the product's own discovery, config
-  resolution and `analyze_file`; records git HEAD, dirty files, coverage state
-  and each finding's file SHA-256. `parity` checks it against the full CLI
-  pipeline on `(file, line, pattern, message)`: 14 of 14 repositories
-  identical; 128-181 s for 14 repositories instead of about 10 minutes.
 - `scripts/dev/parallel_tests.py`: runs the suite in shards balanced on the
   per-file seconds of the previous run (`.pytest_durations.json`), each
   worker with its own `--basetemp`: 77-87 s instead of 270 s for 1,678 tests

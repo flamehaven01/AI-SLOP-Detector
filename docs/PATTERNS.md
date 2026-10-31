@@ -1072,7 +1072,7 @@ no name (`return True`, `return {...}`). A log line, a nested function reading
 the outer parameter, and `del name` count as uses; a nested scope that binds the
 same name does not.
 
-Not reported (each found as deliberate on an external replay): `self`/`cls`,
+Not reported: `self`/`cls`,
 `_`-prefixed names, `*args`/`**kwargs`, dunder methods, stub bodies (reported
 by the placeholder patterns), decorated functions, contracts and overrides,
 callbacks registered by value, methods of a class with an outside base, sibling
@@ -1106,7 +1106,7 @@ neither rebinds nor fills (`x = ...`, `x[k] = ...`, `x.append(...)`), or a dict
 with the same success status (`"up"`, `"ok"`, ...). The result then does not
 depend on whether the work happened.
 
-Not reported (each found as a deliberate decision on an external replay):
+Not reported:
 - a `try` body with several returns: its last is usually the default answer
   ("deny", "not found"), and answering an error with that default is a choice;
 - `except Exception: return True` after a `try` that returns something else

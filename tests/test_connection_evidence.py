@@ -540,7 +540,7 @@ def test_summary_says_how_many_test_files_were_seen(root):
 
 
 # ---------------------------------------------------------------------------
-# found by the 9-repo measurement: resolution the import graph cannot make
+# resolution the import graph cannot make
 # ---------------------------------------------------------------------------
 
 

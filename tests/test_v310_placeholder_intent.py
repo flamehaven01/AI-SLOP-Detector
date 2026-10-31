@@ -1,10 +1,8 @@
 """v3.10 placeholder intent: a declared contract is not unfinished code.
 
-Found by the cross-domain precision study (stage-1 sample: 0 true positives in
-42 `return_constant_stub` / `not_implemented` / `interface_only_class` /
-`ellipsis_placeholder` findings) and measured on the 18-repository corpus:
-of 514 placeholder-family findings, 336 sit where the code declares its
-intent: a constant property or class-level accessor (141), an ABC or
+Most placeholder-family findings (`return_constant_stub`, `not_implemented`,
+`interface_only_class`, `ellipsis_placeholder`) sat where the code declares
+its intent: a constant property or class-level accessor (141), an ABC or
 Protocol class (74), a base method its subclasses override (57), an override
 of a base method (52), a decorator-implemented body (12).
 

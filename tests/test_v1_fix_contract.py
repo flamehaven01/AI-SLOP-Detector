@@ -1,7 +1,6 @@
-"""The four changes of benchmarks/holdout/FIX_CONTRACT.md, from hold-out v1 shapes.
+"""Four placeholder and evidence changes, each with its negative control.
 
-Fixtures follow the shapes of the v1 evidence (H124/H147/H160/H162, H149, H123,
-H119, H017); they are written here, not copied from the third-party source.
+Fixtures are written here, not copied from third-party source.
 Each positive has a genuine neighbour that must stay clean.
 """
 

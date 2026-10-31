@@ -1,7 +1,7 @@
 """v3.10 partial measurement: a pattern that could not measure a file is visible.
 
 Found by the P0-1 differential: under resource exhaustion one rerun lost two
-import findings in sentence-transformers' reranking.py while the scan still
+import findings in one file while the scan still
 said `complete: true`. `_module_exists` turned any lookup exception into
 "installed" (no finding, no trace), and a pattern that raised was recorded
 per file (`pattern_errors`, state "unmeasured") but never reached the scan

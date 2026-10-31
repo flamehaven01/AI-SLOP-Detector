@@ -1,10 +1,6 @@
 """v3.10 clone intent: protocol and polymorphic methods are not fragmentation.
 
-Found by the cross-domain precision study (stage-1 sample: 5 of 9 CRITICAL
-`function_clone_cluster` findings were false) and measured on the
-18-repository corpus: of 27 findings (16 CRITICAL), 2 CRITICAL groups were
-operator protocols (`__and__`, `__or__`, `__xor__`, ...) and 8 CRITICAL groups
-were the same method implemented by sibling classes (`generate` in five
+`function_clone_cluster` reported operator protocols (`__and__`, `__or__`, `__xor__`, ...) and the same method implemented by sibling classes (`generate` in five
 generators, `description` per chain type, `cut_once` per enzyme class).
 The finding says "possible god function fragmented into helpers"; a protocol
 method or a polymorphic implementation is neither.
@@ -66,8 +62,8 @@ def test_operator_protocol_is_not_a_clone_cluster(tmp_path):
 
 
 def test_sibling_implementations_are_not_a_clone_cluster(tmp_path):
-    # Two methods per chain type, as in alphafold3's ProteinChain / RnaChain /
-    # DnaChain (one shared name would already be exempt as a dispatcher prefix).
+    # Two methods per chain type, as in ProteinChain / RnaChain / DnaChain
+    # (one shared name would already be exempt as a dispatcher prefix).
     classes = [
         f"class Chain{i}(Base):\n"
         + _function("describe", i, "    ")

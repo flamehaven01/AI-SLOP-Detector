@@ -9,26 +9,8 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ### Summary
 
-Blind hold-out benchmarks, and the fixes they pointed to. On 842 functions from
-public GitHub repositories (hold-out v2), 3.12.0 found 3 of 12 hollow functions
-and flagged 12 genuine ones, most of them null objects, base-class defaults and
-framework hooks. This release finds 6 of 12 and flags 4. These are development
-numbers: the fixes were written from the same samples.
-
-The independent measurement is hold-out v3: 1119 functions from 47 public
-repositories drawn after the detector was frozen, labeled and committed before
-the scan, scored once. It flagged 9 of 374 genuine functions in the A+B tier
-(4 of 128 in the random stratum) and 10 of 741 in repositories with AI
-instruction files or AI co-author trailers (4 of 248 random). Hollow code was
-rare: 4 of 1119 functions, of which 3 were found. That is too few to state a
-recall rate; the false-alarm rate is what v3 measures. The labeler is the
-rule author, so the labels are blind to the detector output but not
-independent of the rules. Details, every miss and false alarm with its cause:
-[benchmarks/holdout_v3/FINDINGS.md](../benchmarks/holdout_v3/FINDINGS.md).
-
-v3 found defects; this release fixes none of them, so v3 remains a measurement
-of the rules that ship. The shipped source differs from the measured commit
-`13f08e3` only in the version string.
+Fewer placeholder findings on null objects, base-class defaults and framework
+hooks that declare their defaults, and a few more stubs caught.
 
 ### What moves when you upgrade
 
@@ -52,39 +34,23 @@ of the rules that ship. The shipped source differs from the measured commit
 - Scores of files with declared defaults go down; the scoring formula, bands
   and JSON keys are unchanged. Analysis cache `analysis-cache-v37`.
 
-### How it was measured
-
-- Hold-out v1 (180 functions, 35 repositories) and v2 (842 functions, seeded
-  star-band frames) were labeled from the source before any scan; the scorer
-  checks every function's source digest and counts failed scans as excluded,
-  never as clean or missed.
-- Every changed finding on the 14-repository replay was read in the source.
-- Tried and dropped: reporting an unused argument because the module passes
-  it. It caught 2 more hollow functions on v2 but added 62 to 104 replay
-  findings, mostly argparse handlers and arguments left behind by a refactor.
-
 ### Known limitations
 
-- 4 v2 false alarms remain, each needing evidence one file does not hold or a
-  name does not state: a base no-op overridden in another file, a no-op hook
-  whose reason is only in its docstring, a null object not named as one, and a
-  helper returning a fixed symbol.
+- A base no-op overridden in another file, a no-op hook whose reason is only
+  in its docstring, a null object not named as one, and a helper returning a
+  fixed symbol can still be reported: the evidence is not in one file or name.
 - An ignored input whose call site is in another module, and a hollow result
   only the meaning of names reveals (a "mail sent" with no recipient), are not
   found.
-- From hold-out v3, not fixed in this release:
-  - An empty `pass` body under a registering decorator is treated as declared
-    (`@register(...) def load_checkpoint(...): pass` is not reported); the one
-    v3 miss.
-  - `ignored_parameter` gave 1 true and 9 false flags: parameters kept by a
-    signature that siblings, a framework callback (a DSPy metric's `trace`) or
-    a base interface fix.
-  - `return_constant_stub` gave 0 true and 7 false flags: functions whose name
-    or docstring says the constant is the answer (`*_prompt`, `*_message`,
-    `create_done_message`, a `@tool` acknowledgement, a local `ping`).
-  - 5 interface no-ops are reported when their base is outside the module or
-    their reason is only in a comment, including a `@singledispatch` default
-    that raises `NotImplementedError`.
+- An empty `pass` body under a registering decorator is treated as declared
+  (`@register(...) def load_checkpoint(...): pass` is not reported).
+- `ignored_parameter` can report parameters kept by a signature that siblings,
+  a framework callback or a base interface fix.
+- `return_constant_stub` can report functions whose name or docstring says the
+  constant is the answer (`*_prompt`, `*_message`, a tool acknowledgement).
+- Interface no-ops are reported when their base is outside the module or their
+  reason is only in a comment, including a `@singledispatch` default that
+  raises `NotImplementedError`.
 
 ---
 
@@ -95,8 +61,7 @@ of the rules that ship. The shipped source differs from the measured commit
 v3.12.0 is a detection release: it reports code that looks finished but is not.
 A realistic, lint-clean hollow module (a fraud screen that always answers 0.0, a
 gateway that always answers `True`) scored clean on v3.11.0. Four rules now catch
-it; on a recall corpus of such code the detector finds 18 of 29 hollow functions
-instead of 4, and flags none of the 22 genuine ones. Each change is listed in the
+it. Each change is listed in the
 [Changelog](../CHANGELOG.md#3120---2026-10-26).
 
 ### What moves when you upgrade
@@ -112,23 +77,6 @@ instead of 4, and flags none of the 22 genuine ones. Each change is listed in th
   `ignored_parameter` (Medium).
 - Scores of files with such code go up by the existing penalty of each finding.
   The scoring formula, band boundaries and JSON keys are unchanged.
-
-### How the rules were checked
-
-Every added finding on 14 public repositories was read in the source before a
-rule shipped, and each rule was narrowed where it was wrong: callbacks handed
-over by value, documented fail-open / fail-closed handlers, default answers,
-parameters kept for compatibility, handler signatures fixed by their callers.
-Final additions: the stub and failure rules 2 findings, both real; for
-`ignored_parameter`, 132 findings, of which 23 of 33 read in the source are real,
-5 unclear and 5 false alarms. The recall corpus is written by the maintainers;
-an independent hold-out set is not part of this release.
-
-New development tools make this loop fast and exact:
-`scripts/dev/fast_replay.py` (selected patterns only, repositories in parallel,
-identical to the full pipeline on 14 of 14 repositories, about 2-3 minutes
-instead of 10) and `scripts/dev/parallel_tests.py` (balanced shards, 77-87 s
-instead of 270 s). See [DEVELOPMENT.md](DEVELOPMENT.md#how-a-detection-rule-is-verified).
 
 ### Upgrade notes
 

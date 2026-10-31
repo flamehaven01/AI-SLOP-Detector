@@ -1,9 +1,7 @@
 """v3.10 analysis capability: a score says which checks it could run.
 
-Found by the cross-domain study: JS/TS without the [js] extra is analyzed by a
-regex fallback that cannot find god functions, dead code or complexity
-(hermes-agent: 0 god functions vs 2,703 with tree-sitter; project 33.35 vs
-39.72). v3.9.3 put the mode in `scan_coverage.analysis_modes` (JSON only, JS
+JS/TS without the [js] extra is analyzed by a regex fallback that cannot
+find god functions, dead code or complexity. v3.9.3 put the mode in `scan_coverage.analysis_modes` (JSON only, JS
 only); the human reports mixed fallback scores into the project score without
 a word, and Go was not described at all.
 

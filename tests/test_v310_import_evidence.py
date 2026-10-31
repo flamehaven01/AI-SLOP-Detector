@@ -1,7 +1,6 @@
 """v3.10 import evidence: a module with evidence is never reported as phantom.
 
-Found by the cross-domain study (1,116 `phantom_import`, 11 repositories) and
-re-measured on the 3.9.3 source:
+Imports the resolver reported as phantom although evidence exists:
 - 100 imports are declared in a conda `environment.yml` that sits between the
   importing file and its project root, a format and a location the resolver
   never read; setup.py and setup.cfg were project markers whose
@@ -189,8 +188,8 @@ def test_package_directory_next_to_the_script_is_local(tmp_path):
 def test_subpackage_directory_inside_a_package_is_not_the_imported_module(tmp_path):
     # Inside a regular package `import zzdatasets` is absolute: the
     # `zzdatasets/` subpackage next to the module is not what it loads
-    # (sentence-transformers: `datasets` the library vs `datasets/` subpackage).
-    # One level below the top package, as in sentence-transformers (a direct
+    # (`datasets` the library vs a `datasets/` subpackage).
+    # One level below the top package (a direct
     # child of the root is a layout root of its own and resolves either way).
     _write(tmp_path, "requirements.txt", "")
     _write(tmp_path, "pkg/__init__.py", "")

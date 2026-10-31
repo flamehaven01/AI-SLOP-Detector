@@ -1,13 +1,12 @@
 """v3.10 P2-B: static literal data modules do not dilute the project score.
 
-Measured (18 repositories): jieba's dict-literal modules held 99.4% of the
-line weight (project 0.09); biopython's Restriction_Dictionary.py (23,115
-lines of dict) moved the project band. A file with no code to judge scored 0
+Dict-literal data modules could hold almost all of a project's line weight
+and move its band. A file with no code to judge scored 0
 and counted as that many lines of defect-free code.
 
 Contract:
 - `literal_data_module` (file flag) needs: only a module docstring, leading
-  `from __future__ import ...` directives (R1: jieba's tables) and
+  `from __future__ import ...` directives and
   assignments of static literals to plain names (constants, containers of
   them, signed numbers); no other import, def, class, control flow, call,
   comprehension, f-string, name reference, operator or unpacking (also of a
@@ -97,7 +96,7 @@ def test_any_code_disqualifies(tmp_path, extra):
     ],
 )
 def test_future_directive_at_the_top_is_allowed(tmp_path, head):
-    # jieba's probability tables: a compiler directive, then one dict.
+    # Probability tables: a compiler directive, then one dict.
     assert FLAG in _flags(tmp_path, head + "TABLE = {'a': -3.6, 'b': -10.5}\n")
 
 

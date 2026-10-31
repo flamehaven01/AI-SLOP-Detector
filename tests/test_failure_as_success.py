@@ -8,8 +8,7 @@ a success. `failure_as_success` reports a handler that catches everything
 value equal to the success path's: the same constant, the same expression over
 names the `try` body does not reassign, or a dict with the same success status.
 
-Not reported (external replay, 2026-10-23: 151 findings of a first version,
-mostly documented fail-open / fail-closed decisions): `except Exception:
+Not reported (mostly documented fail-open / fail-closed decisions): `except Exception:
 return True` after a `try` that returns something else, since a static reader
 cannot tell "report success" from a deliberate safe default; failure values
 (`False`, `None`, empty, `{"success": False, ...}`); values the `try` body
@@ -171,8 +170,8 @@ def test_a_handler_doing_work_before_returning_is_not_reported(tmp_path):
 
 
 def test_a_default_answer_after_several_returns_is_not_reported(tmp_path):
-    """External replay: config reads and lookups end the try with a default and
-    answer errors with the same default (hermes-agent approval modes, max_skew)."""
+    """Config reads and lookups end the try with a default and answer errors
+    with the same default."""
     source = """
     def approval_mode(config):
         try:
@@ -203,7 +202,7 @@ def test_a_container_filled_in_the_try_is_not_the_same_result(tmp_path):
 
 
 def test_a_catch_all_beside_a_handler_that_reports_failure_is_a_decision(tmp_path):
-    """External replay: `except AuthError: return False` then `except Exception:
+    """`except AuthError: return False` then `except Exception:
     return True` classifies transient errors as still valid (documented)."""
     source = """
     def token_valid(token):
@@ -219,7 +218,7 @@ def test_a_catch_all_beside_a_handler_that_reports_failure_is_a_decision(tmp_pat
 
 
 def test_the_saved_path_returned_when_saving_failed_is_reported(tmp_path):
-    """External replay true positive: a plotting script returns the save path
+    """A plotting script returns the save path
     even when drawing or saving raised."""
     source = """
     def visualize(graph, save_path=None):
@@ -235,7 +234,7 @@ def test_the_saved_path_returned_when_saving_failed_is_reported(tmp_path):
 
 
 def test_a_single_early_return_inside_the_try_is_not_the_success_path(tmp_path):
-    """External replay: the try's one return is an early failure exit; success
+    """The try's one return is an early failure exit; success
     is returned after the try."""
     source = """
     def usage(client):

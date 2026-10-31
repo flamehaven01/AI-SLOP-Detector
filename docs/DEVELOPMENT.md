@@ -66,47 +66,16 @@ external validity, or release readiness.
 
 ### How a detection rule is verified
 
-```mermaid
-flowchart LR
-    A[Rule change] --> B[Owner tests<br/>fail first, then pass]
-    B --> C[Mutation run<br/>each rule broken on purpose]
-    C --> D[Recall corpus<br/>29 hollow, 22 genuine]
-    D --> E[Fast external replay<br/>14 public repos, 4 workers]
-    E --> F{Every added finding<br/>read in the source}
-    F -->|false alarm| A
-    F -->|real| G[Full suite<br/>balanced parallel shards]
-    G --> H[CI on the exact commit<br/>Python 3.8-3.12]
-    E -. parity .-> P[Full CLI pipeline<br/>same findings]
-```
-
 1. **Owner tests** for the new or changed rule fail before the change and pass after it,
    with negative controls for every exemption.
 2. **Mutation run**: each condition of the rule is broken in turn; a test must fail for each.
-3. **Recall corpus** (`benchmarks/recall`): `python benchmarks/recall/measure.py` reports hollow
-   functions caught per class and genuine functions flagged. The corpus is written by the
-   maintainers; the external replay is the check against fitting rules to it.
-4. **Fast external replay** (`scripts/dev/fast_replay.py`): runs only the selected patterns
-   through the product's own discovery, config resolution and `analyze_file`, repositories in
-   parallel, and records git HEAD, dirty files, coverage state and each finding's file
-   SHA-256. `parity` mode compares it with the full CLI pipeline on
-   `(file, line, pattern, message)`.
-5. **Read every added finding** in the source; narrow the rule where it is wrong, and replay.
-6. **Full suite** in balanced parallel shards (`scripts/dev/parallel_tests.py`), then CI on the
+3. **Read every added finding** in the source; narrow the rule where it is wrong.
+4. **Full suite** in balanced parallel shards (`scripts/dev/parallel_tests.py`), then CI on the
    exact commit.
 
 ```bash
 python -P scripts/dev/parallel_tests.py --workers 4
-python -P scripts/dev/fast_replay.py run    --src src --repos <dir> --patterns ignored_parameter --out new.json <repo> ...
-python -P scripts/dev/fast_replay.py parity --src src --repos <dir> --patterns ignored_parameter <repo> ...
-python -P scripts/dev/fast_replay.py diff   old.json new.json
 ```
-
-Measured on one Windows desktop with 8 logical cores (2026-10-26):
-
-| Step | Before | With the tools |
-|---|---:|---:|
-| Full suite (1,678 tests) | 270 s on one core | 77-87 s (three consecutive runs), 4 shards balanced on recorded per-file time |
-| External replay, 14 repositories | ~10 min per full-pipeline pass | 128-181 s, 14/14 identical to the full pipeline |
 
 The parallel runner assigns test files longest-first to the least-loaded worker using the
 seconds recorded by its previous run (`.pytest_durations.json`, git-ignored); the first
@@ -117,8 +86,6 @@ a test that failed only in parallel:
   a shared root, which deleted another worker's `tmp_path` while it was in use;
 - workers keep the real HOME: git refuses a fresh one ("dubious ownership"); tests that need
   an isolated HOME set their own.
-
-Selecting tests by the source files a change touches is the next step and is not built yet.
 
 ## Documentation Rules
 

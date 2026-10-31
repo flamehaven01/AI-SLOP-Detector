@@ -1,15 +1,14 @@
 """P1: a function that only builds values it discards ignores its inputs.
 
-From the hold-out v2 development data: `def prompt_fn(question)` assigns a
+`def prompt_fn(question)` assigns a
 template and returns nothing, so `question` shapes nothing. Reported when
 every statement is `pass`, a log line, or a pure value assigned to a name the
 function never reads.
 
-Not adopted (measured, not assumed): reporting an unused positional parameter
-because the module calls the function with that argument. On the 14-repository
-replay it added 62-104 findings, mostly argparse dispatch handlers and helper
-arguments left behind by a refactor; on v2 it caught 2 hollow functions and
-flagged 2 genuine ones. Such a parameter stays unreported (see the last test).
+Not adopted: reporting an unused positional parameter because the module
+calls the function with that argument; it mostly finds argparse dispatch
+handlers and helper arguments left behind by a refactor. Such a parameter
+stays unreported (see the last test).
 """
 
 from __future__ import annotations

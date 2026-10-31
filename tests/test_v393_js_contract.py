@@ -1,6 +1,6 @@
 """v3.9.3 JS contract: one JS pass, one JSON document, a disclosed analysis mode.
 
-Found by the cross-domain precision study on the published 3.9.2:
+Defects of 3.9.2:
 
 - Project analysis runs the JS/TS pass, then `--js` ran a second pass
   (`run_optional_features` -> `_run_js_analysis`) that ignored the exclusions
@@ -8,8 +8,8 @@ Found by the cross-domain precision study on the published 3.9.2:
   JSON (also with no JS file at all) and the two passes disagreed on the file
   count (typia: 2,216 vs 1,500).
 - Each JS result carries `ast_mode`, but no project-level surface said whether
-  JS was analyzed with tree-sitter or the regex fallback; on hermes-agent the
-  project score is 33.35 in regex mode and 39.72 with tree-sitter.
+  JS was analyzed with tree-sitter or the regex fallback, and the two modes
+  give different project scores.
 """
 
 from __future__ import annotations

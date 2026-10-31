@@ -1,7 +1,5 @@
 """P0 placeholder semantics: declared defaults are not stubs, logged stubs are.
 
-From the hold-out v2 development data (12 false alarms, 2 missed stubs):
-
 - a null object or a base of defaults says so in its class name
   (`NullRenderer`, `BaseFeature`); its one-line bodies are the defaults, and a
   `return` in a subclass of such a named base is a hook answer;
@@ -121,7 +119,7 @@ def test_logged_not_implemented_is_reported(tmp_path):
 
 
 def test_named_bases_do_not_excuse_logged_or_declared_stubs(tmp_path):
-    """Replay drops that were real: a logged success report, a logged empty
+    """Drops that were real: a logged success report, a logged empty
     answer the docstring calls a placeholder, a NotImplementedError the
     docstring calls a placeholder."""
     source = """

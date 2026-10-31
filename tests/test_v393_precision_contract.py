@@ -1,11 +1,10 @@
 """v3.9.3 precision contract: elif nesting, typing.overload, no executable code.
 
-Found by the cross-domain precision study on the published 3.9.2:
+Defects of 3.9.2:
 
 - An `elif` is an `If` in the parent's `orelse` at the same column; the nesting
-  depth added a level for each one, so a flat dispatch chain (langdetect
-  `NGram.normalize`) was reported at depth 11 (real depth 2). 1,158 of 3,291
-  nesting findings in 11 Python repositories existed only through `elif`.
+  depth added a level for each one, so a flat dispatch chain of eleven
+  branches was reported at depth 11 (real depth 2).
 - An `@overload` signature (a typing construct whose body is `...` by
   definition) was reported as an unimplemented placeholder.
 - A module with no executable code (0 bytes, whitespace, comments, or only a

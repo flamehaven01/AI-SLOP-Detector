@@ -1,11 +1,10 @@
 """v3.9.3 coverage integrity: a file whose analysis fails is counted, never lost.
 
-Found by the cross-domain precision study on the published 3.9.2: project
+In 3.9.2 project
 analysis caught a per-file exception, logged it and dropped the file
 (`core.py` Python and JS loops), and `scan_coverage.analyzed` counted results,
 so the file appeared nowhere (not analyzed, excluded or unsupported) and the
-project score and gate silently covered fewer files. Observed once on
-hermes-agent: 167 Python files missing under memory pressure.
+project score and gate silently covered fewer files (observed under memory pressure).
 
 Contract: the failed file is listed in `scan_coverage.failed` (path, language,
 error type, totals by language and error type), the scan says it is not

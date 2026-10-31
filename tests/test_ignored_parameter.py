@@ -2,7 +2,7 @@
 
 `upload(..., timeout_s=30.0)` that never applies the timeout, `verify_token(token,
 secret)` that never checks the signature, `fetch_exchange_rates(base)` that logs
-the base and returns a fixed table (recall corpus: 8 functions). `ignored_parameter`
+the base and returns a fixed table. `ignored_parameter`
 reports each such parameter.
 
 Not reported: `self` / `cls`, names starting with `_`, `*args` / `**kwargs`,
@@ -43,8 +43,8 @@ def test_an_unused_parameter_is_reported(tmp_path):
 
 
 def test_a_parameter_read_only_by_logging_is_not_reported(tmp_path):
-    """External replay: `logging_name` (AlphaFold3), `reason` (hermes-agent) exist to be
-    logged; a log line is a use."""
+    """Parameters such as `logging_name` or `reason` exist to be logged; a log
+    line is a use."""
     source = """
     import logging
     logger = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ def test_signatures_fixed_elsewhere_are_not_reported(tmp_path, source):
 
 
 def test_an_unused_positional_in_a_function_returning_nothing_is_not_reported(tmp_path):
-    """External replay: SAX-style handlers `_start_x(self, name, attributes)` and
+    """SAX-style handlers `_start_x(self, name, attributes)` and
     output helpers `print_step(message)` take fixed arguments and return nothing."""
     source = """
     def start_element(name, attributes):
@@ -158,9 +158,9 @@ def test_an_unused_positional_beside_a_result_that_uses_another_input_is_not_rep
 @pytest.mark.parametrize(
     "source",
     [
-        # (a) an explicit discard (alphafold3 table.get_row_by_key)
+        # (a) an explicit discard
         "def get_row(key, column_name_map=None):\n    del column_name_map\n    return TABLE[key]\n",
-        # (c) the docstring says why it is kept (biopython, HealthChain)
+        # (c) the docstring says why it is kept
         'def get_all(file_format=""):\n    """file_format: a legacy parameter left to avoid breaking changes."""\n    return fetch()\n',
         'def demographics(patients, admissions=None):\n    """admissions: not used, kept for compatibility."""\n    return patients.age\n',
         # (d) the body is a stub; other patterns report stubs
@@ -173,12 +173,12 @@ def test_an_unused_positional_beside_a_result_that_uses_another_input_is_not_rep
         "class Location:\n    def _flip(self, length):\n        return self\n",
     ],
 )
-def test_declared_or_derived_cases_from_the_external_replay_are_not_reported(tmp_path, source):
+def test_declared_or_derived_cases_are_not_reported(tmp_path, source):
     assert _found(tmp_path, source) == []
 
 
 def test_methods_sharing_a_parameter_list_are_an_interface(tmp_path):
-    """(e) biopython PrintFormat: `_make_map_only(self, ls, title, nc=(), s1="")` and its
+    """(e) `_make_map_only(self, ls, title, nc=(), s1="")` and its
     siblings take the same arguments and are dispatched by name."""
     source = """
     class PrintFormat:
@@ -192,7 +192,7 @@ def test_methods_sharing_a_parameter_list_are_an_interface(tmp_path):
 
 
 def test_an_option_the_docstring_promises_and_the_body_ignores_is_reported(tmp_path):
-    """External replay true positive (jieba lac_small): `for_infer` is documented, unused."""
+    """`for_infer` is documented and never used."""
     source = '''
     def lex_net(word, vocab_size, for_infer=True):
         """for_infer: whether the model is built for training or predicting."""
@@ -204,7 +204,7 @@ def test_an_option_the_docstring_promises_and_the_body_ignores_is_reported(tmp_p
 
 
 def test_a_nested_default_callback_is_not_reported(tmp_path):
-    """External replay (biopython Phylo): a nested default answering with a literal."""
+    """A nested default answering with a literal."""
     source = """
     def draw(tree, label_colors=None):
         if label_colors:
@@ -229,7 +229,7 @@ def test_sibling_methods_with_the_same_names_in_another_order_are_an_interface(t
 
 
 def test_a_command_handler_returning_exit_codes_is_not_reported(tmp_path):
-    """External replay (hermes-agent CLI): `_cmd_open(args) -> int` answers 0 or 1."""
+    """`_cmd_open(args) -> int` answers 0 or 1."""
     source = """
     def cmd_open(args):
         if not launch():

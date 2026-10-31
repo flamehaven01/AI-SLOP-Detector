@@ -1,8 +1,8 @@
 """A stub stays a stub when it logs before returning.
 
 `return_constant_stub` read a body of exactly one `return <constant>`, so one
-logging line in front of the constant hid the stub (recall corpus:
-`FraudScreen.score`, `PaymentGateway.submit`). A body that only logs, prints
+logging line in front of the constant hid the stub (`FraudScreen.score`,
+`PaymentGateway.submit`). A body that only logs, prints
 or passes before its final `return` is judged by that return.
 `return_input_stub` reports the same shape when the return hands back an
 argument unchanged (`normalize`, `calibrate`).
@@ -193,8 +193,8 @@ def test_declared_intent_still_exempts_logged_bodies(tmp_path, source):
     ],
 )
 def test_a_logged_callback_registered_by_value_is_not_a_stub(tmp_path, registration):
-    """External replay: approval callbacks and dispatch handlers answer with a fixed
-    token and their log line is the action (hermes-agent, 5 of 6 new findings)."""
+    """Approval callbacks and dispatch handlers answer with a fixed token and
+    their log line is the action."""
     source = (
         LOGGING_HEADER
         + f"""
@@ -330,7 +330,7 @@ def {name}_ok(event):
 
 
 def test_a_nested_callback_registered_in_its_own_scope_is_not_a_stub(tmp_path):
-    """External replay regression: `def deny(...)` then `set_callback(deny)` in one function."""
+    """Regression: `def deny(...)` then `set_callback(deny)` in one function."""
     source = (
         LOGGING_HEADER
         + """
