@@ -1,0 +1,14 @@
+{
+ "scored_at_repository_head": "76f50eae4301b67fd4d7c1b1240f64cb07bc9778",
+ "detector_commit": "13f08e31af46023fd0889d9e18c3b50d2d272c7d",
+ "detector_src_sha256": "87a9c63b10d142af982859eeb6a914a1cde2e054970f27fe40913d2cd013fcb2",
+ "scorer_sha256": "8c0ab62c3ab9c67519d0052ef1e196997c5e08bddaf8dcb6c256f5489b73fe90",
+ "protocol_sha256": "e56c0b75260224fb1c29bdfe154da18a3ed08e1197c4996c0f4f975537a25f3f",
+ "frames_sha256": "6b2cc36658cd1eae6938c176eb245d34c53e00f58fb32db0ed8574a5bc4caf9a",
+ "selection_sha256": "8b15e0ddd5ac457f89d20eb49d0579825c8a000c165e75b560a0eef95ff297c2",
+ "snapshot_receipts_sha256": "3dd8102c4b85dade61d59c4ef39403744dc0672ba4894325a9387d2ae6a60a7b",
+ "exclusions_digest_sha256": "9c60e5fd15d9d62c9edaebfd5caaad9eb795cd4f5acf0f4c867f0687fab064a2",
+ "labels_sha256": "2cec900116cc3368a970d94670673d5ff609c9cde99a763af994b69d4ba96364",
+ "results_sha256": "01a3fcade0281dac1bda2d181c9acce9aaa5b26009ac394ef9feeb28558bbb02",
+ "single_use": "v3 is scored once; any rule change after these results makes it development data"
+}
