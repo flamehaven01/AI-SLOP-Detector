@@ -1,0 +1,1170 @@
+{
+ "3DTopia/4DNeX": {
+  "commit": "011bbb3331d7b64488df54a98c3b0b422eb6e2aa",
+  "instruction_files": [],
+  "py_files": 36,
+  "sparse_bytes": 249410,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "88lin/workbuddy-auto-signin": {
+  "commit": "da2bc7f395d6a6d10334a7735f2f37d35766e003",
+  "instruction_files": [],
+  "py_files": 10,
+  "sparse_bytes": 243918,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "AI-X-Labs/TS-Haystack": {
+  "commit": "5e8d3162d47176e19fbd9c5f3d3cf9c6e0e9a7d4",
+  "instruction_files": [],
+  "py_files": 294,
+  "sparse_bytes": 2492304,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "ANRlm/dotfiles": {
+  "commit": "21ae067e1f9940589ab9eadd215f268da7c2bd6f",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 6,
+  "sparse_bytes": 23537,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "AbdelStark/jev-benchmarks": {
+  "commit": "0d610cc53e79bcbec691312b0c4adb4a0e371642",
+  "instruction_files": [
+   "AGENTS.md"
+  ],
+  "py_files": 23,
+  "sparse_bytes": 52363,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Alibaba-NLP/ZeroSearch": {
+  "commit": "67de52289c584348dd6517339dde285d5cc1822f",
+  "instruction_files": [],
+  "py_files": 174,
+  "sparse_bytes": 1346806,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "BotaiYuan/Medical_LVLM_Sycophancy": {
+  "commit": "695eaa2a0fa2f39994f5be33294596d8b19cd163",
+  "instruction_files": [],
+  "py_files": 298,
+  "sparse_bytes": 2792171,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "ClimBin/RestorMixer": {
+  "commit": "e2c8d7e8360351b92e39ba79cb64f0be4bc94fd9",
+  "instruction_files": [],
+  "py_files": 5,
+  "sparse_bytes": 28503,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Clinical-Copilot/Medical_Deep_Research": {
+  "commit": "38ed61c31446c15a9b8d982880a46d663b328258",
+  "instruction_files": [],
+  "py_files": 71,
+  "sparse_bytes": 231987,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Cocoillok0812/FocusLife": {
+  "commit": "cafbc30d51ea29fee79965c21cbdcb0ea40cdba8",
+  "instruction_files": [],
+  "py_files": 6,
+  "sparse_bytes": 60134,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Dataojitori/nocturne_memory": {
+  "commit": "1858957bf797722a9b731fb197bd9530f7ae67e4",
+  "instruction_files": [],
+  "py_files": 75,
+  "sparse_bytes": 758119,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "DeepExperience/VAD_Multimodal_OPD": {
+  "commit": "4f2dd54103904a07dc39c3a60b2ad7bc29d8cb99",
+  "instruction_files": [],
+  "py_files": 344,
+  "sparse_bytes": 3718816,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "DeepRoboticsLab/rl_training": {
+  "commit": "9c0e710421b165a444b2c73e5a9d65ee3fafa299",
+  "instruction_files": [],
+  "py_files": 87,
+  "sparse_bytes": 500160,
+  "submodules": 1,
+  "tree_truncated": false
+ },
+ "GanymedeNil/poxiaoxing-skills": {
+  "commit": "417ceca85d09ad587cd524fc7a81b946792dd367",
+  "instruction_files": [],
+  "py_files": 20,
+  "sparse_bytes": 125714,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "GragasLab/nufftax": {
+  "commit": "ba1ed8de9a17fc879fda76288a9306d2072b2a77",
+  "instruction_files": [],
+  "py_files": 38,
+  "sparse_bytes": 412947,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "GuglielmoCerri/TubeTrim": {
+  "commit": "142f8556fe103ca30ec9e8d83ac4aad6f14a85a2",
+  "instruction_files": [],
+  "py_files": 9,
+  "sparse_bytes": 30678,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Hellek1/ib-mcp": {
+  "commit": "e11065c34209baff683ffa099d4f0ef90e6ffb75",
+  "instruction_files": [
+   ".github/copilot-instructions.md"
+  ],
+  "py_files": 6,
+  "sparse_bytes": 75094,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "HumpbackLab/tidesense": {
+  "commit": "13c1542373c68651f292f8684b56bc0c34204c34",
+  "instruction_files": [
+   "AGENTS.md"
+  ],
+  "py_files": 112,
+  "sparse_bytes": 537676,
+  "submodules": 1,
+  "tree_truncated": false
+ },
+ "KAY53N/rusty-req": {
+  "commit": "d4490a22805fd4d25ce5d36e93c5ce9b2c21ab71",
+  "instruction_files": [],
+  "py_files": 7,
+  "sparse_bytes": 80135,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "KRSHH/Sonosano": {
+  "commit": "ed1d892f8099845d16f16d71237fb1f5758cbb53",
+  "instruction_files": [],
+  "py_files": 58,
+  "sparse_bytes": 876945,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "KohakuBlueleaf/TIPO-Agent": {
+  "commit": "ea52c5f73e5f42e92dd6fadb0e51bcfc3670003a",
+  "instruction_files": [],
+  "py_files": 3,
+  "sparse_bytes": 34689,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Kunjoe7/texgisa-survival": {
+  "commit": "596c83fa98fb2b2cb0fc7195f96bd280f9018665",
+  "instruction_files": [],
+  "py_files": 38,
+  "sparse_bytes": 413023,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "LING71671/open-reverselab": {
+  "commit": "d0ccbdca39419b0f2261c32659fe4fa16664f435",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 89,
+  "sparse_bytes": 893470,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "LQTS/VTDexManip": {
+  "commit": "8663e473b101cf326a984331b730beb22bae3248",
+  "instruction_files": [],
+  "py_files": 67,
+  "sparse_bytes": 1052056,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Larryvrh/gpt-image-2-artifact-cleaner": {
+  "commit": "885543891103456f87b49afa809c15a1c25cb78a",
+  "instruction_files": [],
+  "py_files": 2,
+  "sparse_bytes": 45907,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Luo-Yihao/FaithC": {
+  "commit": "c8e7c78e804e9a7afa067a9f81184a22658e10cc",
+  "instruction_files": [],
+  "py_files": 13,
+  "sparse_bytes": 174195,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "MICS-Lab/thunder": {
+  "commit": "be25af613fc532257d7c4c2418f12d0c3a18cc83",
+  "instruction_files": [],
+  "py_files": 63,
+  "sparse_bytes": 347294,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "MINT-SJTU/Evo-RL": {
+  "commit": "ec9842d8a8dd0371b4b50021547552e4608ec5ee",
+  "instruction_files": [],
+  "py_files": 521,
+  "sparse_bytes": 5753331,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "MeiGen-AI/PosterCraft": {
+  "commit": "420532949cd4f06be4c8a021c870b0136b500d8c",
+  "instruction_files": [],
+  "py_files": 3,
+  "sparse_bytes": 30278,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "MomentDerek/warp-translation": {
+  "commit": "efea555ae2d4bc83444f12312e3f964bd5036a8a",
+  "instruction_files": [
+   ".agents/skills/trellis-meta/references/platform-files/agents.md",
+   ".claude/skills/trellis-meta/references/platform-files/agents.md",
+   "AGENTS.md"
+  ],
+  "py_files": 74,
+  "sparse_bytes": 845976,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "NovaSky-AI/SkyRL": {
+  "commit": "cc4e3bbf766e2292a0f610dc923ca317f03eb12a",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 903,
+  "sparse_bytes": 9606774,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "OpenDCAI/DataMind": {
+  "commit": "36e189d69e207d57410803c93c6d0a950be68921",
+  "instruction_files": [],
+  "py_files": 191,
+  "sparse_bytes": 1329572,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "OpenHelix-Team/OpenHelix": {
+  "commit": "d88867fa56977f401a7c89d62b9ebce87d8078f0",
+  "instruction_files": [],
+  "py_files": 82,
+  "sparse_bytes": 795132,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "OpenMOSS/MOSS-Audio": {
+  "commit": "66326e6e0db34f036c86a76ba005efa4830c69dd",
+  "instruction_files": [],
+  "py_files": 9,
+  "sparse_bytes": 66096,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "OpenMOSS/rope_pp": {
+  "commit": "91ba3357c49beb22e132ed096557baee503f3486",
+  "instruction_files": [],
+  "py_files": 32,
+  "sparse_bytes": 496354,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Pinperepette/context-kernel": {
+  "commit": "81a5c31ae9a2aa40404b99a9cebd5f46b0f8a01a",
+  "instruction_files": [],
+  "py_files": 66,
+  "sparse_bytes": 723202,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "PrunaAI/pruna": {
+  "commit": "3795e6374267d18e9bc68048061d4de734dbf695",
+  "instruction_files": [],
+  "py_files": 245,
+  "sparse_bytes": 1650356,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "RUC-NLPIR/WebThinker": {
+  "commit": "db387eb3261de9b5e2db7d2d7fb20af2aceb7882",
+  "instruction_files": [],
+  "py_files": 59,
+  "sparse_bytes": 572070,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Sallyn0225/eidolon-sc": {
+  "commit": "cd1c61751eddeaf1bd4cdef4133e5e67f3af4ec5",
+  "instruction_files": [
+   "AGENTS.md",
+   "frontend/AGENTS.md",
+   "frontend/CLAUDE.md"
+  ],
+  "py_files": 365,
+  "sparse_bytes": 4389583,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Shasnow/ok-starrailassistant": {
+  "commit": "59c7535bcea57047912f0457779c95bab3598520",
+  "instruction_files": [],
+  "py_files": 15,
+  "sparse_bytes": 35856,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Simpleyyt/ai-manus": {
+  "commit": "496547ce6a5f599333138342ec126a7ea8ec9646",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 225,
+  "sparse_bytes": 999592,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Spongebobbbbbbbb/FDTA": {
+  "commit": "b3b3b778acf93fa4269663b5ea1fd1d5ff8c6730",
+  "instruction_files": [],
+  "py_files": 124,
+  "sparse_bytes": 873201,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Stability-AI/stable-audio-3": {
+  "commit": "4bf31f77c651378155dbbc9100897f220a212b9b",
+  "instruction_files": [],
+  "py_files": 175,
+  "sparse_bytes": 2290754,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "TeleHuman/umi-vista": {
+  "commit": "db68bae024abbfb08c362c678771aa4624619671",
+  "instruction_files": [],
+  "py_files": 424,
+  "sparse_bytes": 5122702,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Tencent-Hunyuan/HunyuanVideo-1.5": {
+  "commit": "60783e704160023913bee78f0b47036d393d4dfa",
+  "instruction_files": [],
+  "py_files": 39,
+  "sparse_bytes": 501477,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Varnan-Tech/opendirectory": {
+  "commit": "caac7cda5621e289591e4e74b400e66ac72ad25b",
+  "instruction_files": [],
+  "py_files": 42,
+  "sparse_bytes": 435851,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "Victor-Kipruto-Rop/Agent_Network_Analytics-Safaricom-": {
+  "commit": "d594ab301f7f91b4c58baec3bbb5eb2d36f830fd",
+  "instruction_files": [],
+  "py_files": 27,
+  "sparse_bytes": 106289,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "William-Lu-stack/Flawless": {
+  "commit": "147c5e848c23da5f6de390d894580f3082d5507e",
+  "instruction_files": [
+   "AGENTS.md"
+  ],
+  "py_files": 121,
+  "sparse_bytes": 2537931,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "abergmanx/simple_agent": {
+  "commit": "7f1e0f1738d1f8019daee80bbac8152dd5a4dcde",
+  "instruction_files": [],
+  "py_files": 4,
+  "sparse_bytes": 34199,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "air-embodied-brain/Zetta-Embodiment": {
+  "commit": "d7fd15ee63a5a1e7d546c5fc5b52db3b38331bc8",
+  "instruction_files": [],
+  "py_files": 483,
+  "sparse_bytes": 6337734,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "amanaiproduct/personal-os": {
+  "commit": "34aa5918ea59bafdb664cca097b30a61001ab57a",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md",
+   "core/templates/AGENTS.md"
+  ],
+  "py_files": 1,
+  "sparse_bytes": 40649,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "axcslmd/video-auto-maker": {
+  "commit": "3f4ae460ddd50f3b16e17bc3c9715a9829e01bc6",
+  "instruction_files": [
+   "AGENTS.md"
+  ],
+  "py_files": 160,
+  "sparse_bytes": 3790784,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "baoerger/editable-ppt-rebuilder": {
+  "commit": "d45fe0c37c08df13f49b6709b403522787e01187",
+  "instruction_files": [],
+  "py_files": 3,
+  "sparse_bytes": 114130,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "behdanisohrab/carburetor": {
+  "commit": "465834e3c444c3520c39ed0c44dea302c0aaa97a",
+  "instruction_files": [],
+  "py_files": 6,
+  "sparse_bytes": 34020,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "benchflow-ai/benchflow": {
+  "commit": "ce79d75134dc2f43e9f9832a17327495f8d2d5c1",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 792,
+  "sparse_bytes": 10298267,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "bingreeky/JIT": {
+  "commit": "ababa06c2f54d799fd9fbc356e5368f61a452260",
+  "instruction_files": [],
+  "py_files": 189,
+  "sparse_bytes": 1931146,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "bytedance/Multi-Reward-Editing": {
+  "commit": "e72d7826b8ffc87cb3b6b224666fe913ec97c5e8",
+  "instruction_files": [],
+  "py_files": 9,
+  "sparse_bytes": 152479,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "cdssywc/pyqt5-urdf-vtk": {
+  "commit": "f9484812ffa6de697218f6e2f4791d3144d2d679",
+  "instruction_files": [],
+  "py_files": 4,
+  "sparse_bytes": 187699,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "chenmisss/shanghai-landing-kit": {
+  "commit": "7815b37dcf9450d7ea7d00b1d4566965726b2479",
+  "instruction_files": [],
+  "py_files": 2,
+  "sparse_bytes": 51002,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "chidvi123/AI_Resume_Analyzer": {
+  "commit": "d619155bd0da1dc6e2c93860c1b1ae48cd03d231",
+  "instruction_files": [],
+  "py_files": 32,
+  "sparse_bytes": 120867,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "chiphuyen/sniffly": {
+  "commit": "a237d7e9a9b37181626c049046c99b496f6c33c5",
+  "instruction_files": [],
+  "py_files": 47,
+  "sparse_bytes": 474611,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "cruxible-ai/cruxible": {
+  "commit": "e848cbb6787262db349912c48d9c008d8068ede8",
+  "instruction_files": [
+   "AGENTS.md"
+  ],
+  "py_files": 539,
+  "sparse_bytes": 9666326,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "dbt-labs/dbt-mcp": {
+  "commit": "88cfb9ffe08e97ed45cf935516906d3e817dce92",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 277,
+  "sparse_bytes": 1547709,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "decider/claude-hooks": {
+  "commit": "5278ebda86544cf3d06cfdde6d1c0f8f36727a46",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 18,
+  "sparse_bytes": 60053,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "dexmal/dexbotic": {
+  "commit": "d8135fa7645558355a48c6374bb5767a6576a5b5",
+  "instruction_files": [],
+  "py_files": 234,
+  "sparse_bytes": 2347328,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "djskncxm/DuckAgent": {
+  "commit": "d4024313a89855657d3e4520e5d41ae3e0ad0769",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 51,
+  "sparse_bytes": 217391,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "dsdtx/video_license_plates_blur": {
+  "commit": "a033297e3c5f315c5a88ee1a5511f93b45bd02dc",
+  "instruction_files": [],
+  "py_files": 9,
+  "sparse_bytes": 184427,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "dsphper/lanhu-mcp": {
+  "commit": "6ded5bd906992b0acdd504ce9358e0608a750de1",
+  "instruction_files": [],
+  "py_files": 28,
+  "sparse_bytes": 632647,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "embodied-computation-group/gastropy": {
+  "commit": "319d4162eedb99f434f5860e2d5b9aada626c014",
+  "instruction_files": [],
+  "py_files": 59,
+  "sparse_bytes": 328706,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "ericjiang18/Agent-Q-Mix": {
+  "commit": "c1154769f9ab27707a35d331f3727c52a5c05ec8",
+  "instruction_files": [
+   "agent_baseline/agent-framework/docs/features/durable-agents/AGENTS.md",
+   "agent_baseline/agent-framework/dotnet/AGENTS.md",
+   "agent_baseline/agent-framework/dotnet/samples/AGENTS.md",
+   "agent_baseline/agent-framework/python/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/a2a/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/ag-ui/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/anthropic/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/azure-ai-search/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/azure-ai/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/azure-cosmos/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/azurefunctions/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/bedrock/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/chatkit/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/claude/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/copilotstudio/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/core/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/declarative/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/devui/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/durabletask/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/foundry_local/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/github_copilot/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/lab/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/mem0/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/ollama/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/purview/AGENTS.md",
+   "agent_baseline/agent-framework/python/packages/redis/AGENTS.md",
+   "agent_baseline/agent-framework/python/samples/AGENTS.md",
+   "agent_baseline/langgraph/AGENTS.md",
+   "agent_baseline/langgraph/CLAUDE.md"
+  ],
+  "py_files": 1825,
+  "sparse_bytes": 20010756,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "fasouto/termaid": {
+  "commit": "78a6f312c4ffeda8b1e20be3887a4f2be1ebf026",
+  "instruction_files": [],
+  "py_files": 123,
+  "sparse_bytes": 896509,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "ferretgeek/cliproxyapi-dashboard": {
+  "commit": "75f124895798a7b45e538a9b132f0dd17bc8f112",
+  "instruction_files": [
+   "AGENTS.md"
+  ],
+  "py_files": 10,
+  "sparse_bytes": 312932,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "franknobox/Ludens-Flow": {
+  "commit": "a8bc7679643ff6a7ba52f78329a24cb1fa8d7803",
+  "instruction_files": [],
+  "py_files": 103,
+  "sparse_bytes": 920015,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "gavrielc/Nano-PDF": {
+  "commit": "9b9ddae5833c72d19a28ce2a5712a2e6f35870be",
+  "instruction_files": [],
+  "py_files": 4,
+  "sparse_bytes": 26029,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "googlefonts/googlesans-code": {
+  "commit": "abf4852535816f5dfc0fb7779e2c8fd928ef2082",
+  "instruction_files": [],
+  "py_files": 4,
+  "sparse_bytes": 17166,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "handsome-rich/Awesome-Auto-Research-Tools": {
+  "commit": "d5f1787fb83bdc31fd62a355e945c235b144003d",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 2,
+  "sparse_bytes": 11485,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "hlsv02/ELV-Halluc": {
+  "commit": "40a193b876e337e651202c14191ac927734f04be",
+  "instruction_files": [],
+  "py_files": 1,
+  "sparse_bytes": 2792,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "howyoungchen/deepRolePlay": {
+  "commit": "a45667df2e36c04fddbef8f025dd289b139ad28a",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 42,
+  "sparse_bytes": 327734,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "huangjia2019/a2a-in-action": {
+  "commit": "6fae016fbce6cc04249fd26db30ab6d68dd83ce6",
+  "instruction_files": [],
+  "py_files": 118,
+  "sparse_bytes": 2171677,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "huggingface/screenenv": {
+  "commit": "fc33207ad119eceae597e49791fc0a32702df7d8",
+  "instruction_files": [],
+  "py_files": 18,
+  "sparse_bytes": 136812,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "huynhtrankhanh/TocKiTiengViet": {
+  "commit": "03feca7c2223c3bfd05febce7b541f16846c52c7",
+  "instruction_files": [],
+  "py_files": 2,
+  "sparse_bytes": 12849,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "hzcar/ReCAP": {
+  "commit": "36ea4b21f112020dad294b36be312d23addc94d0",
+  "instruction_files": [],
+  "py_files": 16,
+  "sparse_bytes": 114141,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "inclusionAI/Ming-UniAudio": {
+  "commit": "33f86a0a611b16ff1f29f6373303096d230c66dc",
+  "instruction_files": [],
+  "py_files": 39,
+  "sparse_bytes": 488908,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "inssekt/CocoonFE": {
+  "commit": "3a1f2c296175f2b264dcf119a16b224ee91848e1",
+  "instruction_files": [],
+  "py_files": 2,
+  "sparse_bytes": 12353,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "jayrodge/ai-agents": {
+  "commit": "06e7d632e258029550d0822f2cb7ae61b34c3e1b",
+  "instruction_files": [],
+  "py_files": 3,
+  "sparse_bytes": 48108,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "jessielw/Reclaimerr": {
+  "commit": "537db15d1ae7e0470ba5d9ad809115f0477c21cd",
+  "instruction_files": [],
+  "py_files": 500,
+  "sparse_bytes": 5888237,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "jheuel/typst_embed_pdf": {
+  "commit": "4c09a4e922183c479c7f775f3f73ea7fbce08380",
+  "instruction_files": [],
+  "py_files": 1,
+  "sparse_bytes": 18862,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "johnhalloran321/mcpSafetyScanner": {
+  "commit": "c3e83194bdf3b7f68ed02549ad2546e8fbaaf0ad",
+  "instruction_files": [],
+  "py_files": 1,
+  "sparse_bytes": 19230,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "joinly-ai/joinly": {
+  "commit": "4ea1259de329aa6965d9fdb806db64a7cdeeb683",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 73,
+  "sparse_bytes": 394169,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "jolie-z/Auto-JobHunter": {
+  "commit": "e69e1354483cd040af783eda9918d1a8b09c5087",
+  "instruction_files": [],
+  "py_files": 43,
+  "sparse_bytes": 582166,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "jtydhr88/screenwriting-skills": {
+  "commit": "51115f18d160aa8b2ac5813e4432b6f0b425358f",
+  "instruction_files": [],
+  "py_files": 1,
+  "sparse_bytes": 3017,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "juew/Skill-Routing-Kit": {
+  "commit": "40036f416742f095137c0942b293fc57942e9814",
+  "instruction_files": [],
+  "py_files": 4,
+  "sparse_bytes": 60767,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "karpathy/hn-time-capsule": {
+  "commit": "ca02ebb4de5e953bf1629689abd1f82b454b6905",
+  "instruction_files": [],
+  "py_files": 1,
+  "sparse_bytes": 58852,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "khscience/OSkhQuant": {
+  "commit": "84b8eb8df70c97288074a0f55f6122043a331bad",
+  "instruction_files": [],
+  "py_files": 130,
+  "sparse_bytes": 2912330,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "krea-ai/realtime-video": {
+  "commit": "acf4b7b4e1a3049a0e04782e751d12203334038d",
+  "instruction_files": [],
+  "py_files": 66,
+  "sparse_bytes": 666594,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "kumaran-is/claude-code-onboarding": {
+  "commit": "a7f2fc5cbd389b09d08f10a8cddf88d20cd6e116",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 38,
+  "sparse_bytes": 390603,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "lack-jpg/gov_AP": {
+  "commit": "58cfbef61938010551e678b7bae8a750a77fc91c",
+  "instruction_files": [],
+  "py_files": 182,
+  "sparse_bytes": 1600286,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "lambertae/drifting": {
+  "commit": "8861066430db11d2fb0858d042c7845b99df49f1",
+  "instruction_files": [],
+  "py_files": 28,
+  "sparse_bytes": 229306,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "liangdabiao/whiteboard-teacher-video": {
+  "commit": "4d0a0cac7da5a62ecf4b38741a83c607b60db6c7",
+  "instruction_files": [],
+  "py_files": 8,
+  "sparse_bytes": 85474,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "liufanfanlff/C3-Context-Cascade-Compression": {
+  "commit": "6f30ac1a27b5180d816b98624b64313b3f19d582",
+  "instruction_files": [],
+  "py_files": 13,
+  "sparse_bytes": 75845,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "livekit/eot-bench": {
+  "commit": "b1cc6abceca916d994c4d044aa8285cba7fab9b2",
+  "instruction_files": [],
+  "py_files": 45,
+  "sparse_bytes": 366960,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "lopopolo/harness-engineering": {
+  "commit": "226c8d35fb6ea3ed55467753dba6dea2b5fd5778",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md",
+   "docs/AGENTS.md",
+   "docs/CLAUDE.md",
+   "playbooks/AGENTS.md",
+   "playbooks/CLAUDE.md",
+   "sources/AGENTS.md",
+   "sources/CLAUDE.md",
+   "sources/scripts/AGENTS.md",
+   "sources/scripts/CLAUDE.md"
+  ],
+  "py_files": 5,
+  "sparse_bytes": 94860,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "mahm/dspy-demo": {
+  "commit": "5817f6ef3930ca5b03b0dfa7955f5e49953909cb",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 14,
+  "sparse_bytes": 103595,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "manthanguptaa/real-world-llm-apps": {
+  "commit": "3692ddb08c40b6b1a4fd757ed2bbc6c97526fb8a",
+  "instruction_files": [],
+  "py_files": 14,
+  "sparse_bytes": 175886,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "mozilla-ai/speech-to-text-finetune": {
+  "commit": "dff8cbda2ce5c993eeb5b89dc914a3853f45ed8f",
+  "instruction_files": [],
+  "py_files": 16,
+  "sparse_bytes": 61860,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "mstan/MegaManX6Recomp": {
+  "commit": "288918a735f3b68da25cc967955a3d917ac3cb89",
+  "instruction_files": [
+   "CLAUDE.md"
+  ],
+  "py_files": 61,
+  "sparse_bytes": 900860,
+  "submodules": 2,
+  "tree_truncated": false
+ },
+ "nulib/treetop-discovery": {
+  "commit": "7611f6378ace8498c1c6eccc2b0b1a7e2f1df722",
+  "instruction_files": [],
+  "py_files": 25,
+  "sparse_bytes": 112438,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "nv-tlabs/3dgrut": {
+  "commit": "bb203b1fa990e044412396483d4dbc1f3164ae02",
+  "instruction_files": [],
+  "py_files": 143,
+  "sparse_bytes": 1565061,
+  "submodules": 2,
+  "tree_truncated": false
+ },
+ "open-webui/oikb": {
+  "commit": "e60d106167f728c9d520bd41e48bbbad5d6a6257",
+  "instruction_files": [],
+  "py_files": 68,
+  "sparse_bytes": 379685,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "porterminal/porterminal": {
+  "commit": "a643cc34e3dc23ffed510ae3ed1fa03bf1aeb1f4",
+  "instruction_files": [
+   ".github/copilot-instructions.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 127,
+  "sparse_bytes": 609845,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "profitopsai/ProRCA": {
+  "commit": "af6b33ce107d85b277a8e7ae42a08a26c199ad8f",
+  "instruction_files": [],
+  "py_files": 10,
+  "sparse_bytes": 46654,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "rushindrasinha/youtube-shorts-pipeline": {
+  "commit": "48835dea9c0cc9d119e19ad9365717006d6f59a6",
+  "instruction_files": [],
+  "py_files": 42,
+  "sparse_bytes": 163268,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "sametbrr/llm-wiki-manager": {
+  "commit": "99892ec2282246968f1ce430fe230691e0c04eb7",
+  "instruction_files": [],
+  "py_files": 5,
+  "sparse_bytes": 62565,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "seal-rg/recurrent-pretraining": {
+  "commit": "1ea7220ec7eb42d13e89db0663df254d0bcdc28e",
+  "instruction_files": [],
+  "py_files": 60,
+  "sparse_bytes": 1175313,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "sensepost/depscanner": {
+  "commit": "1dad71cb01417bd21366b25f2bbb6a4d95c9312b",
+  "instruction_files": [],
+  "py_files": 15,
+  "sparse_bytes": 118728,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "simovilab/infobus-screens": {
+  "commit": "dab304f3614364872e9a11a92f3209c05287d0a3",
+  "instruction_files": [],
+  "py_files": 24,
+  "sparse_bytes": 21244,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "spideymooon/McOracle": {
+  "commit": "63875f571f23847c300de342b91bc7d26209b62f",
+  "instruction_files": [],
+  "py_files": 6,
+  "sparse_bytes": 58631,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "tatookan/comfyui_ssl_gemini_EXP": {
+  "commit": "2822942e11458a8606a14aecdcd850ed4ad8e92a",
+  "instruction_files": [],
+  "py_files": 2,
+  "sparse_bytes": 20262,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "tokoroten/prompt-review": {
+  "commit": "0a83fd9eeead58fe92d0b04522da9e6840a71940",
+  "instruction_files": [],
+  "py_files": 1,
+  "sparse_bytes": 48771,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "tommasobbianchi/mesh2step": {
+  "commit": "90d6c79c7410a8069fcfcb0b2b5f23c2fe421f62",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 174,
+  "sparse_bytes": 1632130,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "toon-format/toon-python": {
+  "commit": "536a508d486847cb01ec1869cf21d1f7556b0db0",
+  "instruction_files": [
+   "AGENTS.md",
+   "CLAUDE.md"
+  ],
+  "py_files": 18,
+  "sparse_bytes": 97283,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "tourmind-com/Tourmind-Booking-Skills": {
+  "commit": "c5403610a48acbfba24617df54e3554830c0a47d",
+  "instruction_files": [],
+  "py_files": 3,
+  "sparse_bytes": 21874,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "ustc-time-series/Cast-R1": {
+  "commit": "c14fdda764cf8e111e433c8a714252f5038e72d1",
+  "instruction_files": [],
+  "py_files": 49,
+  "sparse_bytes": 605375,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "valqore/valqore": {
+  "commit": "32712db9b62691221fd106b669d012cf228ce86e",
+  "instruction_files": [],
+  "py_files": 6,
+  "sparse_bytes": 25344,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "victorcalixto/Hippo3D": {
+  "commit": "707b879ef86d59fa38c870c85b51e9cd62d63925",
+  "instruction_files": [],
+  "py_files": 29,
+  "sparse_bytes": 711051,
+  "submodules": 1,
+  "tree_truncated": false
+ },
+ "vllm-project/vllm-metal": {
+  "commit": "93562f12c3c87462919c0b4a19f854825c1dedd7",
+  "instruction_files": [
+   "AGENTS.md"
+  ],
+  "py_files": 426,
+  "sparse_bytes": 5316495,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "wenconggan/whole-body-mimic-lab": {
+  "commit": "1fa5986c41418fccbcf126657733101ffcf62267",
+  "instruction_files": [],
+  "py_files": 47,
+  "sparse_bytes": 186271,
+  "submodules": 1,
+  "tree_truncated": false
+ },
+ "worldbench/DanceOPD": {
+  "commit": "f856e877ef3e09b688414b4a8592023c6c1c6f14",
+  "instruction_files": [],
+  "py_files": 30,
+  "sparse_bytes": 167472,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "xuc865/roleagent": {
+  "commit": "0ceb695424183fc21b5109e5561223654f06dc89",
+  "instruction_files": [],
+  "py_files": 547,
+  "sparse_bytes": 4454559,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "xudonmao/PairEdit": {
+  "commit": "db8868d34f646b7ac16ab04eb0c721a8458c71fd",
+  "instruction_files": [],
+  "py_files": 14,
+  "sparse_bytes": 154504,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "yangqi0/petitgpt": {
+  "commit": "a129f3b709d44ad6a53aef0d44a7054281099df2",
+  "instruction_files": [],
+  "py_files": 295,
+  "sparse_bytes": 5331137,
+  "submodules": 0,
+  "tree_truncated": false
+ },
+ "zes0v0inn/DWT_EEG_Reconstruction": {
+  "commit": "b7144772ce8fe8536b6f3f9c3c88006b7ace54d0",
+  "instruction_files": [],
+  "py_files": 23,
+  "sparse_bytes": 189311,
+  "submodules": 0,
+  "tree_truncated": false
+ }
+}

@@ -1,0 +1,1281 @@
+{
+ "repo": "dexmal/dexbotic",
+ "dir": "dexmal__dexbotic",
+ "commit": "d8135fa7645558355a48c6374bb5767a6576a5b5",
+ "estimate_commit": "d8135fa7645558355a48c6374bb5767a6576a5b5",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitattributes",
+  ".github/pull_request_template.md",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "Dockerfile",
+  "LICENSE",
+  "README.md",
+  "README.zh-CN.md",
+  "dexbotic/client.py",
+  "dexbotic/config/rl/libero_10_ppo_dexbotic_dm0.yaml",
+  "dexbotic/config/rl/libero_10_ppo_dexbotic_pi0.yaml",
+  "dexbotic/config/rl/libero_90_ppo_dexbotic_dm0.yaml",
+  "dexbotic/config/rl/libero_90_ppo_dexbotic_pi0.yaml",
+  "dexbotic/config/rl/libero_goal_ppo_dexbotic_dm0.yaml",
+  "dexbotic/config/rl/libero_goal_ppo_dexbotic_pi0.yaml",
+  "dexbotic/config/rl/libero_object_ppo_dexbotic_dm0.yaml",
+  "dexbotic/config/rl/libero_object_ppo_dexbotic_pi0.yaml",
+  "dexbotic/config/rl/libero_spatial_ppo_dexbotic_dm0.yaml",
+  "dexbotic/config/rl/libero_spatial_ppo_dexbotic_pi0.yaml",
+  "dexbotic/config/rl/model/dexbotic_dm0.yaml",
+  "dexbotic/config/rl/model/dexbotic_pi0.yaml",
+  "dexbotic/config/rl/training_backend/fsdp.yaml",
+  "dexbotic/constants.py",
+  "dexbotic/data/__init__.py",
+  "dexbotic/data/collator.py",
+  "dexbotic/data/data_source/__init__.py",
+  "dexbotic/data/data_source/calvin_official.py",
+  "dexbotic/data/data_source/libero_official.py",
+  "dexbotic/data/data_source/maniskill2_official.py",
+  "dexbotic/data/data_source/navila_official.py",
+  "dexbotic/data/data_source/register.py",
+  "dexbotic/data/data_source/robotwin2_official.py",
+  "dexbotic/data/data_source/simpler_official.py",
+  "dexbotic/data/data_source/sonic_official.py",
+  "dexbotic/data/data_source/uninavid_official.py",
+  "dexbotic/data/dataset/__init__.py",
+  "dexbotic/data/dataset/augmentations.py",
+  "dexbotic/data/dataset/depth_preprocess.py",
+  "dexbotic/data/dataset/dex_dataset.py",
+  "dexbotic/data/dataset/dex_mem_dataset.py",
+  "dexbotic/data/dataset/dex_navila_dataset.py",
+  "dexbotic/data/dataset/dex_rl_dataset.py",
+  "dexbotic/data/dataset/dex_uninavid_dataset.py",
+  "dexbotic/data/dataset/dm05_data.py",
+  "dexbotic/data/dataset/gr00tsonic_data.py",
+  "dexbotic/data/dataset/rgb_preprocess.py",
+  "dexbotic/data/dataset/tokenization.py",
+  "dexbotic/data/dataset/transform/__init__.py",
+  "dexbotic/data/dataset/transform/action.py",
+  "dexbotic/data/dataset/transform/common.py",
+  "dexbotic/data/dataset/transform/default_transform.py",
+  "dexbotic/data/dataset/transform/language.py",
+  "dexbotic/data/dataset/transform/multimodal.py",
+  "dexbotic/data/dataset/transform/output.py",
+  "dexbotic/data/utils/normalize.py",
+  "dexbotic/exp/backend_resolver.py",
+  "dexbotic/exp/base_exp.py",
+  "dexbotic/exp/cogact_exp.py",
+  "dexbotic/exp/cogact_lora.py",
+  "dexbotic/exp/discrete_vla_exp.py",
+  "dexbotic/exp/dm05_exp.py",
+  "dexbotic/exp/dm0_exp.py",
+  "dexbotic/exp/dm0_lora.py",
+  "dexbotic/exp/gr00tn1_exp.py",
+  "dexbotic/exp/gr00tsonic_exp.py",
+  "dexbotic/exp/hybrid_cogact_exp.py",
+  "dexbotic/exp/hybrid_dm0_exp.py",
+  "dexbotic/exp/hybrid_pi05_exp.py",
+  "dexbotic/exp/lora_utils.py",
+  "dexbotic/exp/mem_trainer.py",
+  "dexbotic/exp/memvla_exp.py",
+  "dexbotic/exp/muvla_exp.py",
+  "dexbotic/exp/navila_exp.py",
+  "dexbotic/exp/navila_trainer.py",
+  "dexbotic/exp/oft_discrete_exp.py",
+  "dexbotic/exp/oft_exp.py",
+  "dexbotic/exp/pi05_exp.py",
+  "dexbotic/exp/pi05_lora.py",
+  "dexbotic/exp/pi0_exp.py",
+  "dexbotic/exp/pi0_lora.py",
+  "dexbotic/exp/rl/rl_base.py",
+  "dexbotic/exp/rl/rl_rollout_redis.py",
+  "dexbotic/exp/rl/rl_trainer.py",
+  "dexbotic/exp/rl/rl_utils.py",
+  "dexbotic/exp/simplevla_rl_exp.py",
+  "dexbotic/exp/trainer.py",
+  "dexbotic/exp/uninavid_exp.py",
+  "dexbotic/exp/uninavid_trainer.py",
+  "dexbotic/exp/utils.py",
+  "dexbotic/history/__init__.py",
+  "dexbotic/history/batch.py",
+  "dexbotic/history/images.py",
+  "dexbotic/infer/__init__.py",
+  "dexbotic/infer/artifacts.py",
+  "dexbotic/infer/calibration.py",
+  "dexbotic/infer/cuda_graph.py",
+  "dexbotic/infer/history.py",
+  "dexbotic/infer/profiles.py",
+  "dexbotic/infer/runtime.py",
+  "dexbotic/infer/trt.py",
+  "dexbotic/model/cogact/action_model/__init__.py",
+  "dexbotic/model/cogact/action_model/action_models.py",
+  "dexbotic/model/cogact/action_model/builder.py",
+  "dexbotic/model/cogact/action_model/diffusion.py",
+  "dexbotic/model/cogact/action_model/dit.py",
+  "dexbotic/model/cogact/cogact_arch.py",
+  "dexbotic/model/cogact/hybrid_cogact_arch.py",
+  "dexbotic/model/dexbotic_arch.py",
+  "dexbotic/model/discrete_vla/discrete_vla_arch.py",
+  "dexbotic/model/dm0/__init__.py",
+  "dexbotic/model/dm0/dm0_arch.py",
+  "dexbotic/model/dm0/dm0_prog_arch.py",
+  "dexbotic/model/dm0/dm0_utils.py",
+  "dexbotic/model/dm0/hybrid_dm0_arch.py",
+  "dexbotic/model/dm0/realtime/__init__.py",
+  "dexbotic/model/dm0/realtime/convert_dm0_triton_weight.py",
+  "dexbotic/model/dm0/realtime/dm0_triton_infer.py",
+  "dexbotic/model/dm05/__init__.py",
+  "dexbotic/model/dm05/dm05_arch.py",
+  "dexbotic/model/dm05/dm05_lora.py",
+  "dexbotic/model/dm05/dm05_utils.py",
+  "dexbotic/model/dm05/infer/__init__.py",
+  "dexbotic/model/dm05/infer/backend.py",
+  "dexbotic/model/dm05/infer/fast/__init__.py",
+  "dexbotic/model/dm05/infer/fast/arch.py",
+  "dexbotic/model/dm05/infer/fast/build_prefix_mlp_trt.py",
+  "dexbotic/model/dm05/infer/fast/build_vision_trt.py",
+  "dexbotic/model/dm05/infer/fast/collect_prefix_mlp_calibration.py",
+  "dexbotic/model/dm05/infer/fast/kernels.py",
+  "dexbotic/model/dm05/infer/fast/prefix_mlp_manifest.py",
+  "dexbotic/model/dm05/infer/fast/prefix_mlp_trt.py",
+  "dexbotic/model/dm05/infer/fast/runtime.py",
+  "dexbotic/model/dm05/infer/fast/vision_trt.py",
+  "dexbotic/model/gr00tn1/action_model/__init__.py",
+  "dexbotic/model/gr00tn1/action_model/action_models.py",
+  "dexbotic/model/gr00tn1/action_model/builder.py",
+  "dexbotic/model/gr00tn1/gr00tn1_arch.py",
+  "dexbotic/model/gr00tsonic/__init__.py",
+  "dexbotic/model/gr00tsonic/action_head.py",
+  "dexbotic/model/gr00tsonic/gr00tsonic_arch.py",
+  "dexbotic/model/gr00tsonic/modules/__init__.py",
+  "dexbotic/model/gr00tsonic/modules/dit.py",
+  "dexbotic/model/gr00tsonic/modules/embodiment_conditioned_mlp.py",
+  "dexbotic/model/gr00tsonic/modules/qwen3_backbone.py",
+  "dexbotic/model/memvla/action_model/__init__.py",
+  "dexbotic/model/memvla/action_model/action_models.py",
+  "dexbotic/model/memvla/action_model/builder.py",
+  "dexbotic/model/memvla/action_model/diffusion.py",
+  "dexbotic/model/memvla/action_model/dit.py",
+  "dexbotic/model/memvla/memvla_arch.py",
+  "dexbotic/model/modules/mm_projector/builder.py",
+  "dexbotic/model/modules/mm_vision/__init__.py",
+  "dexbotic/model/modules/mm_vision/builder.py",
+  "dexbotic/model/modules/mm_vision/clip/clip_encoder.py",
+  "dexbotic/model/modules/mm_vision/pe/pe_configuration.py",
+  "dexbotic/model/modules/mm_vision/pe/pe_encoder.py",
+  "dexbotic/model/modules/mm_vision/pe/pe_model.py",
+  "dexbotic/model/modules/mm_vision/siglip/siglip_encoder.py",
+  "dexbotic/model/muvla/muvla_arch.py",
+  "dexbotic/model/navila/builder.py",
+  "dexbotic/model/navila/loss.py",
+  "dexbotic/model/navila/navila_arch.py",
+  "dexbotic/model/oft/action_model/__init__.py",
+  "dexbotic/model/oft/action_model/builder.py",
+  "dexbotic/model/oft/action_model/model.py",
+  "dexbotic/model/oft/oft_arch.py",
+  "dexbotic/model/oft/oft_discrete_arch.py",
+  "dexbotic/model/pi0/pi0_arch.py",
+  "dexbotic/model/pi05/__init__.py",
+  "dexbotic/model/pi05/hybrid_pi05_arch.py",
+  "dexbotic/model/pi05/pi05_arch.py",
+  "dexbotic/model/pi05/transformers_pi05/gemma/configuration_gemma.py",
+  "dexbotic/model/pi05/transformers_pi05/gemma/modeling_gemma.py",
+  "dexbotic/model/uninavid/constants.py",
+  "dexbotic/model/uninavid/eva_vit.py",
+  "dexbotic/model/uninavid/uninavid_arch.py",
+  "dexbotic/policy/__init__.py",
+  "dexbotic/policy/base_policy.py",
+  "dexbotic/policy/cogact_policy.py",
+  "dexbotic/policy/discrete_vla_policy.py",
+  "dexbotic/policy/dm05_policy.py",
+  "dexbotic/policy/dm0_policy.py",
+  "dexbotic/policy/dm0_realtime_policy.py",
+  "dexbotic/policy/gr00tn1_policy.py",
+  "dexbotic/policy/gr00tsonic_policy.py",
+  "dexbotic/policy/memvla_policy.py",
+  "dexbotic/policy/oft_policy.py",
+  "dexbotic/policy/pi0_policy.py",
+  "dexbotic/policy/types.py",
+  "dexbotic/rl/__init__.py",
+  "dexbotic/rl/_embodied_cli.py",
+  "dexbotic/rl/model_rl_libero_dm0.py",
+  "dexbotic/rl/model_rl_libero_pi0.py",
+  "dexbotic/rl/rlinf_bridge/__init__.py",
+  "dexbotic/rl/rlinf_bridge/dexbotic_dm0_policy.py",
+  "dexbotic/rl/rlinf_bridge/dexbotic_pi0_policy.py",
+  "dexbotic/rl/rlinf_bridge/norm_stats_utils.py",
+  "dexbotic/rl/rlinf_bridge/rlinf_dexbotic_mixin.py",
+  "dexbotic/rl/rlinf_registry.py",
+  "dexbotic/sim_envs/__init__.py",
+  "dexbotic/sim_envs/base.py",
+  "dexbotic/sim_envs/factory.py",
+  "dexbotic/sim_envs/libero/libero_env.py",
+  "dexbotic/sim_envs/libero/libero_utils.py",
+  "dexbotic/tokenization/__init__.py",
+  "dexbotic/tokenization/conversation.py",
+  "dexbotic/tokenization/process.py",
+  "dexbotic/tokenization/tokenization.py",
+  "dockerfiles/Dockerfile.RL",
+  "dockerfiles/Dockerfile.RLinf",
+  "dockerfiles/Dockerfile.c118t22",
+  "dockerfiles/Dockerfile.c130t28",
+  "docs/DM0.md",
+  "docs/DM05.md",
+  "docs/DM0RealtimeInference.md",
+  "docs/Data.md",
+  "docs/Dexbotic_Tech_Report.pdf",
+  "docs/FSDP2.md",
+  "docs/InferenceAPI.md",
+  "docs/LiberoLora.md",
+  "docs/ModelZoo.md",
+  "docs/RL.md",
+  "docs/RLinf.md",
+  "docs/RLinfAsRLBackend.md",
+  "docs/Tutorial.md",
+  "docs/Uni-NaVid.md",
+  "docs/rl_results.png",
+  "docs/web_docs/1. Overview.md",
+  "docs/web_docs/2. Get Start.md",
+  "docs/web_docs/3. Architecture.md",
+  "docs/web_docs/4. Configure Experiment.md",
+  "docs/web_docs/5. Use Custom Data.md",
+  "docs/web_docs/6. ModelZoo.md",
+  "docs/web_docs/7. Simulation Results.md",
+  "docs/web_docs/8. Develop Your Own Model.md",
+  "docs/web_docs/images/1_1.png",
+  "docs/web_docs/images/1_2.png",
+  "docs/web_docs/images/1_3.png",
+  "hardware/docs/dosw1_inference_example.md",
+  "hardware/docs/so101_inference_example.md",
+  "hardware/docs/xlerobot_inference_example.md",
+  "hardware/dosw1/convert_table30v2_dosw1_to_dexdata.py",
+  "hardware/dosw1/demo_stack_bowls.mp4",
+  "hardware/dosw1/dm0_stack_bowls.py",
+  "hardware/so101/bridge_server.py",
+  "hardware/so101/client.py",
+  "hardware/so101/convert_so101_to_dexdata.py",
+  "hardware/so101/demo_press_button.mp4",
+  "hardware/unitree_sonic/README.md",
+  "hardware/unitree_sonic/bridge.py",
+  "hardware/unitree_sonic/convert_sonic_to_dexdata.py",
+  "hardware/unitree_sonic/extract_frames.py",
+  "hardware/xlerobot/bridge.py",
+  "hardware/xlerobot/convert_xlerobot_to_dexdata.py",
+  "hardware/xlerobot/demo_collect_longans_into_the_box.mp4",
+  "playground/benchmarks/calvin/calvin_cogact.py",
+  "playground/benchmarks/calvin/calvin_oft.py",
+  "playground/benchmarks/libero/libero_cogact.py",
+  "playground/benchmarks/libero/libero_cogact_lora.py",
+  "playground/benchmarks/libero/libero_dm0.py",
+  "playground/benchmarks/libero/libero_dm05.py",
+  "playground/benchmarks/libero/libero_dm05_lora.py",
+  "playground/benchmarks/libero/libero_dm0_lora.py",
+  "playground/benchmarks/libero/libero_dm0_realtime.py",
+  "playground/benchmarks/libero/libero_gr00tn1.py",
+  "playground/benchmarks/libero/libero_memvla.py",
+  "playground/benchmarks/libero/libero_oft.py",
+  "playground/benchmarks/libero/libero_oft_discrete.py",
+  "playground/benchmarks/libero/libero_pi0.py",
+  "playground/benchmarks/libero/libero_pi05.py",
+  "playground/benchmarks/libero/libero_pi05_lora.py",
+  "playground/benchmarks/libero/libero_pi0_lora.py",
+  "playground/benchmarks/libero/libero_simplevla_rl.py",
+  "playground/benchmarks/maniskill2/maniskill2_cogact.py",
+  "playground/benchmarks/maniskill2/maniskill2_oft.py",
+  "playground/benchmarks/maniskill2/maniskill2_pi0.py",
+  "playground/benchmarks/robotwin2/robotwin2_cogact.py",
+  "playground/benchmarks/robotwin2/robotwin2_dm05.py",
+  "playground/benchmarks/simpler/simpler_cogact.py",
+  "playground/benchmarks/simpler/simpler_memvla.py",
+  "playground/benchmarks/simpler/simpler_oft.py",
+  "playground/benchmarks/table30/dm0_stack_bowls.py",
+  "playground/example_exp.py",
+  "playground/example_gr00tsonic_exp.py",
+  "playground/example_memvla_exp.py",
+  "playground/example_muvla_exp.py",
+  "playground/example_navila_exp.py",
+  "playground/example_uninavid_exp.py",
+  "playground/so101_inference_example.py",
+  "plugins/dm05-fast/README.md",
+  "plugins/dm05-fast/install.sh",
+  "plugins/dm05-fast/pyproject.toml",
+  "plugins/dm05-fast/src/dexbotic_dm05_fast/__init__.py",
+  "pyproject.toml",
+  "resources/dm05_model_overview.png",
+  "resources/dm0_arch.png",
+  "resources/intro.png",
+  "resources/logo.png",
+  "script/convert_data/convert_lerobot_to_dexdata.py",
+  "script/convert_data/convert_rlds_to_dexdata.py",
+  "script/deepspeed/zero2.json",
+  "script/deepspeed/zero3.json",
+  "script/deepspeed/zero3_offload.json",
+  "test_data/libero_test.png",
+  "test_data/navila_test.png",
+  "test_data/uninavid_test.png"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "a1e42d0b3669f7a4f3d5d58a1eb659d1b64d34037df90263b3ff8626941b9d73"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "0ac0302469e3c7fa21ee5a4811f6455aadc0db1f36c7059758807c02f11adc3a"
+  },
+  {
+   "path": "dexbotic/client.py",
+   "sha256": "08295b3fa9527568b58128ecb3de6e7476b069caac2679a032fa8c32dc9f5b56"
+  },
+  {
+   "path": "dexbotic/constants.py",
+   "sha256": "82bb3c14963ac598673de89891e71e67bcdd31d634ac29012ecc8a4e55cc914c"
+  },
+  {
+   "path": "dexbotic/data/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/data/collator.py",
+   "sha256": "7a757d8cc79a702702aad4adf4a7df94dc0252bd59c3a66f29d25f6642ef13dc"
+  },
+  {
+   "path": "dexbotic/data/data_source/__init__.py",
+   "sha256": "12c78820703052467dc1de2832a98c0a3e562ccf9e551bd462216d2fbd14abb5"
+  },
+  {
+   "path": "dexbotic/data/data_source/calvin_official.py",
+   "sha256": "d71949fd22250faa37e66b39882454fb9ad7b957a32ce01f0d1bff15b3a50f00"
+  },
+  {
+   "path": "dexbotic/data/data_source/libero_official.py",
+   "sha256": "4404fc4edcccab964576716eb81aab57f9b2686d6cb0ff42e05569b84b00b431"
+  },
+  {
+   "path": "dexbotic/data/data_source/maniskill2_official.py",
+   "sha256": "4b513d9e184918c6d2a46a45c163418f7ac7f2091d246e091fbf627a53ba47a3"
+  },
+  {
+   "path": "dexbotic/data/data_source/navila_official.py",
+   "sha256": "2bdd7d4d6f0987dabbfbd7141225048b52530796d19829026c49f0cd7febcf33"
+  },
+  {
+   "path": "dexbotic/data/data_source/register.py",
+   "sha256": "c10ad12326b6c00e9413bf18966a9615aab4ca08e5cb5be033b3498a2d38d77d"
+  },
+  {
+   "path": "dexbotic/data/data_source/robotwin2_official.py",
+   "sha256": "5e6079e039818918d67c9727c4e28a44ab7233812a4745bc57bed857aa24bcb9"
+  },
+  {
+   "path": "dexbotic/data/data_source/simpler_official.py",
+   "sha256": "de08334009ff7353f76b5b04bd59ee322758f1804345acfc38f3a1f3b0f559a2"
+  },
+  {
+   "path": "dexbotic/data/data_source/sonic_official.py",
+   "sha256": "e169e360c570b2753243c2704aad986ce78ef7ad7f9daf5a570c3cf575c40545"
+  },
+  {
+   "path": "dexbotic/data/data_source/uninavid_official.py",
+   "sha256": "bef89572f6936dda0722a910a5da3a8dda01efa728cb3df985e5dd091494ac7e"
+  },
+  {
+   "path": "dexbotic/data/dataset/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/data/dataset/augmentations.py",
+   "sha256": "2e021b60bf2efc3f4b34d7950ebc545bf55fafa2e9fc69a4916e7fb46d40faae"
+  },
+  {
+   "path": "dexbotic/data/dataset/depth_preprocess.py",
+   "sha256": "1be568656116f43a6d912aef13761dd81025341def0705b00b0ef44754a20087"
+  },
+  {
+   "path": "dexbotic/data/dataset/dex_dataset.py",
+   "sha256": "f1c38936eeebbcd022d8dbb435fc45e99a233ca2f842f93bf9b0032fff7f8a7b"
+  },
+  {
+   "path": "dexbotic/data/dataset/dex_mem_dataset.py",
+   "sha256": "ecd6f7ac98cd5103f2a7beea3141f392d7090ddc81b653173fc20cf0b9e7ca8a"
+  },
+  {
+   "path": "dexbotic/data/dataset/dex_navila_dataset.py",
+   "sha256": "aff62069e0769e706341d10ca443e322203cdbc5e04b860b542cb37e09b89842"
+  },
+  {
+   "path": "dexbotic/data/dataset/dex_rl_dataset.py",
+   "sha256": "95ec7ca69d614b6402b2b557637af4053dc9237b23fceffb128fc5560aecc81a"
+  },
+  {
+   "path": "dexbotic/data/dataset/dex_uninavid_dataset.py",
+   "sha256": "bb9ede6a310c09f53f6179d547d5cfbc01e6515193a210d855d08f0f8c3ebd7d"
+  },
+  {
+   "path": "dexbotic/data/dataset/dm05_data.py",
+   "sha256": "69705d03a09fd6d4eb1d2884d411d7506f114c64ebba32274cbad44d332507ff"
+  },
+  {
+   "path": "dexbotic/data/dataset/gr00tsonic_data.py",
+   "sha256": "99b760a8cc3fc03621dae89235a72db0e888e0058889d883694380cacfdb4b2d"
+  },
+  {
+   "path": "dexbotic/data/dataset/rgb_preprocess.py",
+   "sha256": "c4fc8b20c74e5db33a359f22c80365f2761a1043755dedde2fac0d8e9e51c1a5"
+  },
+  {
+   "path": "dexbotic/data/dataset/tokenization.py",
+   "sha256": "82d40e6c3d063ec660e9620782473ad10e2297ae26d86683b4d074482fff0acb"
+  },
+  {
+   "path": "dexbotic/data/dataset/transform/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/data/dataset/transform/action.py",
+   "sha256": "03afb2cb0bf5c3f6f2830cf5377c2fe246c63dcf3e06c1e929b19887db168c3b"
+  },
+  {
+   "path": "dexbotic/data/dataset/transform/common.py",
+   "sha256": "9ebd1ac357bb701415fba2c4cd5fe751e0a006056319f286b8d7f3f2b7ae673f"
+  },
+  {
+   "path": "dexbotic/data/dataset/transform/default_transform.py",
+   "sha256": "06e8d7549755f139bbafdddfd195596033df14facaba06f9cd3adff24a8061c6"
+  },
+  {
+   "path": "dexbotic/data/dataset/transform/language.py",
+   "sha256": "ed9c71e9ab1e2d37ce94cddb7e3baf55c3acf90c30fbc0ad091e32d1d91efd65"
+  },
+  {
+   "path": "dexbotic/data/dataset/transform/multimodal.py",
+   "sha256": "0f8230cfa7ad08dee87db170050683ca995509a7a852fe40ff2b4189ce27df99"
+  },
+  {
+   "path": "dexbotic/data/dataset/transform/output.py",
+   "sha256": "6dbf8aa821a89d7fb035aa4787eabc864840dae5d7fa3b2458eaf952f02638a7"
+  },
+  {
+   "path": "dexbotic/data/utils/normalize.py",
+   "sha256": "8ff08839ffd2a88edccd91fa1709056a6e850243b216c7214070b5b2f1a22640"
+  },
+  {
+   "path": "dexbotic/exp/backend_resolver.py",
+   "sha256": "6d2cfb122d5e351bd66b3f4a2fe89efecb7eaa6fc51859b317d6e0951476c280"
+  },
+  {
+   "path": "dexbotic/exp/base_exp.py",
+   "sha256": "5efddc820d82048e865c9f8b6e95e314fc4f665b6d7dc79d9c052571cd80010d"
+  },
+  {
+   "path": "dexbotic/exp/cogact_exp.py",
+   "sha256": "04517ec5abbd783689f9e553c339fbf05eeb17bf4cb0311d9c896a442debeb2d"
+  },
+  {
+   "path": "dexbotic/exp/cogact_lora.py",
+   "sha256": "a3cf1b79241ead544a50c60731d6c906585887767eccf576562fd29a7d23d944"
+  },
+  {
+   "path": "dexbotic/exp/discrete_vla_exp.py",
+   "sha256": "294eb0092eec27d19d5e478d3253f334dc229a72c3c1d4abf727c4ee012b10ff"
+  },
+  {
+   "path": "dexbotic/exp/dm05_exp.py",
+   "sha256": "f048c9ab73da5d002c3e2853209985aa3aac89e293f5609d50a6281402a0a616"
+  },
+  {
+   "path": "dexbotic/exp/dm0_exp.py",
+   "sha256": "367547829dfbfacb0b3b5640eef51f987b484c81216aa2afec858ad1b48e076e"
+  },
+  {
+   "path": "dexbotic/exp/dm0_lora.py",
+   "sha256": "acdf874a112467f99c86dde9454d8ac179519fa7683c9cfc2e1b07be01c4cf36"
+  },
+  {
+   "path": "dexbotic/exp/gr00tn1_exp.py",
+   "sha256": "43548108468747bcda1e70b35e2a02d55b8c932feea062bc53ecd439db7a8a6e"
+  },
+  {
+   "path": "dexbotic/exp/gr00tsonic_exp.py",
+   "sha256": "6acc260677c76ab6c4581a6a05a6504498fbfbfe83efa08d0d1bc83d338ac601"
+  },
+  {
+   "path": "dexbotic/exp/hybrid_cogact_exp.py",
+   "sha256": "ce6d81c3503e5d816bdeddcb9df27b10cb2859b2728904abd577247863d5ce42"
+  },
+  {
+   "path": "dexbotic/exp/hybrid_dm0_exp.py",
+   "sha256": "07d1a48632c9c013922f239c1d559365e4d82eb4fce1043fdc560e84ee2ce019"
+  },
+  {
+   "path": "dexbotic/exp/hybrid_pi05_exp.py",
+   "sha256": "8819ac29ae45a2aa46bf6935941f7e0ad6cbeebb393dc8f8ad77771b8adbbaa6"
+  },
+  {
+   "path": "dexbotic/exp/lora_utils.py",
+   "sha256": "ad2a889861ac9f2e760441a8c9d0617d13d5e599ee6d4b1d9992bf09c01469f4"
+  },
+  {
+   "path": "dexbotic/exp/mem_trainer.py",
+   "sha256": "6e979dbabe249d038fbf18acae1a758429784892a2fff0e54752102fe638d0b6"
+  },
+  {
+   "path": "dexbotic/exp/memvla_exp.py",
+   "sha256": "0eae3f87a665f709da4bef4afb8abcd4812a4287bf4cfe8ff3cbd2b86ca904d9"
+  },
+  {
+   "path": "dexbotic/exp/muvla_exp.py",
+   "sha256": "ea2983e4401e49b8baacf45eebe0cd7888953e424ef3715cf0c756a37685c4f4"
+  },
+  {
+   "path": "dexbotic/exp/navila_exp.py",
+   "sha256": "b26e880c543b05f455e6f0e8b1603630e8e7dd91077f4bebbdc46a419f58d1b9"
+  },
+  {
+   "path": "dexbotic/exp/navila_trainer.py",
+   "sha256": "82e92232f30270e3eaeb9cbec3439de62b1c9acf2012cec80725d34b32a16c86"
+  },
+  {
+   "path": "dexbotic/exp/oft_discrete_exp.py",
+   "sha256": "67ea9af68781f0280bc3985cfd09589d90af360d93ed93dadb16ce7755330025"
+  },
+  {
+   "path": "dexbotic/exp/oft_exp.py",
+   "sha256": "01278dcd0aaba30869d3c1f41d8f2506ebeb34e885157583079b5b12f21f9a7b"
+  },
+  {
+   "path": "dexbotic/exp/pi05_exp.py",
+   "sha256": "f16513bfc74786995b3371f0b2e6bfa7753fdfc7b481a6823aa803238c00a6a2"
+  },
+  {
+   "path": "dexbotic/exp/pi05_lora.py",
+   "sha256": "54aeb0370fb6bcf512b5e6c99ebcb54ff0d4b50209fcbe74d2b355f3d22d4f9c"
+  },
+  {
+   "path": "dexbotic/exp/pi0_exp.py",
+   "sha256": "6dd7e949283bfe852f836f1e31bc5b32640aa3fd9492a88132a5c08799cff7b5"
+  },
+  {
+   "path": "dexbotic/exp/pi0_lora.py",
+   "sha256": "39df008fc3e6f4ce194291b5e7fb725d954b7cc19dc503e75c188a2fe9903f70"
+  },
+  {
+   "path": "dexbotic/exp/rl/rl_base.py",
+   "sha256": "7bfa3e34e4a1c89ae704269ff01cbac18cfd6bd6ad048aad0bf3e4d0fa532417"
+  },
+  {
+   "path": "dexbotic/exp/rl/rl_rollout_redis.py",
+   "sha256": "83cb85a261e2dcacde682f33a0e313305824fab4eefd5749d3cce54f5d200bc3"
+  },
+  {
+   "path": "dexbotic/exp/rl/rl_trainer.py",
+   "sha256": "d10c2dbc46e6b6aed50d9e06a98deca0de0528cf4b0c4630725489f72535ef11"
+  },
+  {
+   "path": "dexbotic/exp/rl/rl_utils.py",
+   "sha256": "1b93cc071bf1c116a7116b26281f516d448929b05b0f231993e30e8342361435"
+  },
+  {
+   "path": "dexbotic/exp/simplevla_rl_exp.py",
+   "sha256": "cc350f7f6b2c7811c833e88047485f1dd486de916b1f377495b06182d51dc328"
+  },
+  {
+   "path": "dexbotic/exp/trainer.py",
+   "sha256": "94bdc41a3e707df63de81a3b72a2ed6fb30be5c0f1b50649826afbf2d83d1971"
+  },
+  {
+   "path": "dexbotic/exp/uninavid_exp.py",
+   "sha256": "53a4808a07faa8eff112bbb6185e734dc320845cb843931d28d8931c0c06d821"
+  },
+  {
+   "path": "dexbotic/exp/uninavid_trainer.py",
+   "sha256": "d432226842fb3a6ae7648a7dbb4043bb257d765e44bd2771c813e709d8e924e0"
+  },
+  {
+   "path": "dexbotic/exp/utils.py",
+   "sha256": "c236d248419798899bd4d9b95eceaca745a3821df8f6064072760638c812e9e0"
+  },
+  {
+   "path": "dexbotic/history/__init__.py",
+   "sha256": "e1bec0f1614294c9565e7e4ffe7626a20efbe4c01b95cd4f4bc78d20cb5c414c"
+  },
+  {
+   "path": "dexbotic/history/batch.py",
+   "sha256": "de29784bdb2dbeceae2578b74b8e9080e8c560ac4eb9ad9c81adf6c20c6c0003"
+  },
+  {
+   "path": "dexbotic/history/images.py",
+   "sha256": "7a10a276802a5bf34ac2e87ec606553d09251d766feb29bbb7b514dc05b8b7f6"
+  },
+  {
+   "path": "dexbotic/infer/__init__.py",
+   "sha256": "e417948f001af2bdcd8e1a03ccefbf583bdc26a77fa04319e78880cc54f5d10b"
+  },
+  {
+   "path": "dexbotic/infer/artifacts.py",
+   "sha256": "c5c017bb8483614cd90a4c3e8ddb6fe812148d1addffc1f02b33212aa25743c0"
+  },
+  {
+   "path": "dexbotic/infer/calibration.py",
+   "sha256": "d56796f4ead8343cf06cab32f6bff1b8f02c034df8d7d48ddbd7e91aa3652cfd"
+  },
+  {
+   "path": "dexbotic/infer/cuda_graph.py",
+   "sha256": "2300465a98b5dcf9d8ccdf467f2d173526ff01cd28271c5199b3976eea64f4d5"
+  },
+  {
+   "path": "dexbotic/infer/history.py",
+   "sha256": "46a6708185a70e15327ba983ae1936e681c3588d95ad73ceb865d02a0ff1e439"
+  },
+  {
+   "path": "dexbotic/infer/profiles.py",
+   "sha256": "bba7728c59b91755b205c81b1aba61b9238b1a04665427989b0bed821c334f9c"
+  },
+  {
+   "path": "dexbotic/infer/runtime.py",
+   "sha256": "e7938268c483e262781429d8665b41f801b1126cf415cf903285e924dd5b070c"
+  },
+  {
+   "path": "dexbotic/infer/trt.py",
+   "sha256": "d73a3346573e708df4951ac0ff109ee5e8766ae3a8e48d82ab87cfa69cd51260"
+  },
+  {
+   "path": "dexbotic/model/cogact/action_model/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/model/cogact/action_model/action_models.py",
+   "sha256": "1c7d695c7e7c7301a1755fd2f6ed37598beaaa10d61badeae8c0ae67614a0c23"
+  },
+  {
+   "path": "dexbotic/model/cogact/action_model/builder.py",
+   "sha256": "5bd7eee2ecc18104b9b9a4a401e866a3165f3b0ffea876be11bab8ac103a4289"
+  },
+  {
+   "path": "dexbotic/model/cogact/action_model/diffusion.py",
+   "sha256": "6f493bef94422f4e0418fa53f8e747f7fbf5e35e4e5e911b93b656184c40049e"
+  },
+  {
+   "path": "dexbotic/model/cogact/action_model/dit.py",
+   "sha256": "10386a93ebb192ac6b27aefb485b106b641f9b03790ab7325014a62cce59aae7"
+  },
+  {
+   "path": "dexbotic/model/cogact/cogact_arch.py",
+   "sha256": "ae14afc89c3d300e2b27d3cabf818b73843f2e37a7f9d2f55f08c7fb3878f523"
+  },
+  {
+   "path": "dexbotic/model/cogact/hybrid_cogact_arch.py",
+   "sha256": "1a96564d3bfc4cd77d1a24403675fd7b62eec3be753ef7b20c37250495ddd4fe"
+  },
+  {
+   "path": "dexbotic/model/dexbotic_arch.py",
+   "sha256": "b6c532dd4dcc481e46da5e83213af44032713b86da8d91c13f7a3c402f9f6238"
+  },
+  {
+   "path": "dexbotic/model/discrete_vla/discrete_vla_arch.py",
+   "sha256": "b4c9f14371b73b6af2a1676091d44b8770064b08b6b1f0a658c9f0364df959ab"
+  },
+  {
+   "path": "dexbotic/model/dm0/__init__.py",
+   "sha256": "0dba302ccf7e55bb86df34f907769bd32ddbc27f62b9b8195bf3970d07bb59ad"
+  },
+  {
+   "path": "dexbotic/model/dm0/dm0_arch.py",
+   "sha256": "1d3d172ec5b56f70386e7661a191348e65862f98e2c99fc2c7640d82555a7d3b"
+  },
+  {
+   "path": "dexbotic/model/dm0/dm0_prog_arch.py",
+   "sha256": "38a99cd44bbffadecc1d83bf6f95860cf8ef85c7f92386280ede2d24c07918aa"
+  },
+  {
+   "path": "dexbotic/model/dm0/dm0_utils.py",
+   "sha256": "617750bce9a11b1d10dd9255d28341326024bde6b5fa925b14d0ff924ec0d391"
+  },
+  {
+   "path": "dexbotic/model/dm0/hybrid_dm0_arch.py",
+   "sha256": "0273d97c3d82191777ddf65d86011cd7c89c7416a104c575f3b6a0092cabffd4"
+  },
+  {
+   "path": "dexbotic/model/dm0/realtime/__init__.py",
+   "sha256": "7cc7a36349062c20497e8bde84ccad765dc87b2fb3ec69011f6201897d365a31"
+  },
+  {
+   "path": "dexbotic/model/dm0/realtime/convert_dm0_triton_weight.py",
+   "sha256": "030fd82679dd9f7faae2d314231ab8bc94e91ecf5fd9e927abdd751d020851e5"
+  },
+  {
+   "path": "dexbotic/model/dm0/realtime/dm0_triton_infer.py",
+   "sha256": "4109491fed6c117876183ba136b90b8c17a78a334e76b064178c2696c951eb2a"
+  },
+  {
+   "path": "dexbotic/model/dm05/__init__.py",
+   "sha256": "6216f6b806d090a4abbe83eca6c68276c711c570590917aab9efe2966a4ae3e4"
+  },
+  {
+   "path": "dexbotic/model/dm05/dm05_arch.py",
+   "sha256": "daa3fdd3ce1e0deb208a54deefbb6488c100f0fbea16ede107f232664f7b9901"
+  },
+  {
+   "path": "dexbotic/model/dm05/dm05_lora.py",
+   "sha256": "bb632c64452561cf11e0f3aacc4851b0e3a1812497be16d05241f78663cc1022"
+  },
+  {
+   "path": "dexbotic/model/dm05/dm05_utils.py",
+   "sha256": "1b7bbaa034cb73bdb5cda14b2ae07ad3d5b9b7f69001b686e8f9f9fa7034bc13"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/__init__.py",
+   "sha256": "d46cee5c8b5f5b5d001336a703694f0ae7eb40a4209affb8997d87ba53b38777"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/backend.py",
+   "sha256": "3a454554451087e430ed4b2ebf9ffb8d53b3407d83ff8c3abdf4ddbfd285480e"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/__init__.py",
+   "sha256": "48231bad4d307384b7671032f813c6c9518c5bc3d42a3716ada37bc617b0e631"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/arch.py",
+   "sha256": "8e8492eb9f4d450de11e6e40fa7282591b2eae7561bf4d9dfe1607c3d8ea358b"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/build_prefix_mlp_trt.py",
+   "sha256": "898bd449a2d2095efad1841d1bf067c8b7fbefaf0284a69c5e1a856f4f2c9ea6"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/build_vision_trt.py",
+   "sha256": "56c2383736a8a38920d41a99b2d70560ed24acb2a954b4bbee8d8620a5d9b34e"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/collect_prefix_mlp_calibration.py",
+   "sha256": "73d4a2a83842f79ecd2ac72c9b87bf913373c357bfccf75b25e08e7afd2a66a4"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/kernels.py",
+   "sha256": "2344516aa2d5551bc33165f87456661af3ce50616c33ee0273e0590f962c31ff"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/prefix_mlp_manifest.py",
+   "sha256": "8dd431991f0965f73abd5ea15a89067d696bc391aba64a8d717d704d96783a4c"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/prefix_mlp_trt.py",
+   "sha256": "3a959c3c14bcbe5f0789aa7a1418d5e6d0e0ca5aad91d1cf24750f95b584220f"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/runtime.py",
+   "sha256": "5b2483dcd63fae29db569d23a95b969d11f28faf8fa78eb8c9b53cb7a05b4419"
+  },
+  {
+   "path": "dexbotic/model/dm05/infer/fast/vision_trt.py",
+   "sha256": "92e795941fa29bc746e27474819932442118a92c42fee092c25036dc6420a3c0"
+  },
+  {
+   "path": "dexbotic/model/gr00tn1/action_model/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/model/gr00tn1/action_model/action_models.py",
+   "sha256": "f35fcbd72175a6ee871a08419320a2fbeb7f015381689dfd70e0a0203f7a8a38"
+  },
+  {
+   "path": "dexbotic/model/gr00tn1/action_model/builder.py",
+   "sha256": "195a5cc4f7d0d973542218493fb9bc20fef552ac882f7b7481f014307e14dbe9"
+  },
+  {
+   "path": "dexbotic/model/gr00tn1/gr00tn1_arch.py",
+   "sha256": "9f5125c79a03f618237bf1bedc5714cb16c74f35f1e96356762b417ceae04eed"
+  },
+  {
+   "path": "dexbotic/model/gr00tsonic/__init__.py",
+   "sha256": "416141f6854a8f663d95b6947562f7285d14f8afd4221003dc50cf85df5a7185"
+  },
+  {
+   "path": "dexbotic/model/gr00tsonic/action_head.py",
+   "sha256": "0ff93c739b4b3dc762b512b1b7ac8ba577d91f1a7cc36ad37767232d5c62ba1c"
+  },
+  {
+   "path": "dexbotic/model/gr00tsonic/gr00tsonic_arch.py",
+   "sha256": "218b72bfcf2e2a7866cf3bb57a9f93c658623d4f9cb4e46426deab0bbdc23a4e"
+  },
+  {
+   "path": "dexbotic/model/gr00tsonic/modules/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/model/gr00tsonic/modules/dit.py",
+   "sha256": "a1318dbe02b4d23e57d2c1afb04ffc81902474b20034187fc65c89a35a5eb0c9"
+  },
+  {
+   "path": "dexbotic/model/gr00tsonic/modules/embodiment_conditioned_mlp.py",
+   "sha256": "a2526f2cd6e91843e7af5adf9d9da19c46ee13fc26872f8dfdb0190ad4a75f96"
+  },
+  {
+   "path": "dexbotic/model/gr00tsonic/modules/qwen3_backbone.py",
+   "sha256": "28b2c4780f724e18157db465d859018cbd531a68db785cf24b8c4302b2939d8e"
+  },
+  {
+   "path": "dexbotic/model/memvla/action_model/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/model/memvla/action_model/action_models.py",
+   "sha256": "28d0f9be57aed6350e2f8d9c7ed0682d8208a688864ccf244a643290a8acf959"
+  },
+  {
+   "path": "dexbotic/model/memvla/action_model/builder.py",
+   "sha256": "907de4669edefa1ca9ddf7f22f6fb7a2bea794afed01eee37095fbe8085cba89"
+  },
+  {
+   "path": "dexbotic/model/memvla/action_model/diffusion.py",
+   "sha256": "6f493bef94422f4e0418fa53f8e747f7fbf5e35e4e5e911b93b656184c40049e"
+  },
+  {
+   "path": "dexbotic/model/memvla/action_model/dit.py",
+   "sha256": "f5d5f42c7c863965f6668cda48164ef9d82c83a496e4024fbb5d9ad8532dbdeb"
+  },
+  {
+   "path": "dexbotic/model/memvla/memvla_arch.py",
+   "sha256": "cbbf05b660fad07fe4fdced075cfdfa5bbe69348a8a36b9c22ca6055561b1013"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_projector/builder.py",
+   "sha256": "6d7c0412d7f9c95a6f4201ffb49530a9ee3cb54355f46ebd6675dcc6be0c7613"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_vision/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_vision/builder.py",
+   "sha256": "31824c0abb7d0f2225126053f3538785253cb2415a79033bf0ad1079a993903b"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_vision/clip/clip_encoder.py",
+   "sha256": "2e3f581c270cd96b05ab8d7cfd45e850b689b4cf6a1b310e547fba5e5338ca38"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_vision/pe/pe_configuration.py",
+   "sha256": "e08ba804a07c5b157dc76f9740951c7f6c2f5b2798d94ea6334ae0c458047c7e"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_vision/pe/pe_encoder.py",
+   "sha256": "f66a46fc160b983c35f26fe191c4b64f69e4617333f0247f10d1a4c0fd331176"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_vision/pe/pe_model.py",
+   "sha256": "2348cc19a0dde4fd24e93465471854451d821b3a1e53ea710a80845c04b17312"
+  },
+  {
+   "path": "dexbotic/model/modules/mm_vision/siglip/siglip_encoder.py",
+   "sha256": "8de88303d27e0f3df2acede182016e659c3035c3d6219edef8780265c0a5e09e"
+  },
+  {
+   "path": "dexbotic/model/muvla/muvla_arch.py",
+   "sha256": "c5e7dc198a5a6d971f29b0e19964de907e5552b9be1a90751c1a3284c2f4b024"
+  },
+  {
+   "path": "dexbotic/model/navila/builder.py",
+   "sha256": "766833fc6e5cb8c51f033c0344c6fff71ba0857ef738ad21545b4303e8fc9739"
+  },
+  {
+   "path": "dexbotic/model/navila/loss.py",
+   "sha256": "ea08a32aefeda7b08a49797fe224beff1b9a58ec5c0ceacd34306697a593244f"
+  },
+  {
+   "path": "dexbotic/model/navila/navila_arch.py",
+   "sha256": "b5fa72eced24094e75437cc579b618dd0993de87e5584565183ef3f6ea91ddf0"
+  },
+  {
+   "path": "dexbotic/model/oft/action_model/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/model/oft/action_model/builder.py",
+   "sha256": "9ba9bbe0fa927021b5d2d488cccc98a4484c8705ef53f26d87baa66abcbcbf6e"
+  },
+  {
+   "path": "dexbotic/model/oft/action_model/model.py",
+   "sha256": "18255a76cdc1395080b9a77cd8238914855cd08cf6780d5b1e0681f7f0a6fc1b"
+  },
+  {
+   "path": "dexbotic/model/oft/oft_arch.py",
+   "sha256": "056a5fd0037589e53ee17d328de1597a8fd12ea310b291095514152521b68534"
+  },
+  {
+   "path": "dexbotic/model/oft/oft_discrete_arch.py",
+   "sha256": "c35dfbee9f3239ed402e0b8a3d7037036fd01c0fca6ffe9608fa8ba474ee82db"
+  },
+  {
+   "path": "dexbotic/model/pi0/pi0_arch.py",
+   "sha256": "a156302275f1e8380096195f74ab3ab24d1fb8cdec66579806b1edc13b49a417"
+  },
+  {
+   "path": "dexbotic/model/pi05/__init__.py",
+   "sha256": "2afa67cfffdff1cb8b7668076794e6b03134221bb2604f1c1cc53eb8ebd21b99"
+  },
+  {
+   "path": "dexbotic/model/pi05/hybrid_pi05_arch.py",
+   "sha256": "6e4bc86c21bb1df5b6ba5e213faa3d5a64ba6d1e5bb0ce1ae2636e6abcba5016"
+  },
+  {
+   "path": "dexbotic/model/pi05/pi05_arch.py",
+   "sha256": "a27da7f3874fdfdb54dd551a97426290248bc4cf2db4ac1ebe067446774aac9a"
+  },
+  {
+   "path": "dexbotic/model/pi05/transformers_pi05/gemma/configuration_gemma.py",
+   "sha256": "f4f3ad66e5b6f595ebe45afc8f75725e07707c8620996c554df34cf564db771d"
+  },
+  {
+   "path": "dexbotic/model/pi05/transformers_pi05/gemma/modeling_gemma.py",
+   "sha256": "6d2a1d8bfae53ea59e32d00d671c82870766ee640774cb5cce21bf549054c140"
+  },
+  {
+   "path": "dexbotic/model/uninavid/constants.py",
+   "sha256": "b84ccbd783122f6e8de6f016824e332c5b2e544058365db22b52f23a5e35e38f"
+  },
+  {
+   "path": "dexbotic/model/uninavid/eva_vit.py",
+   "sha256": "c29cee90dba39e1d0f5880dbbfba8c589012af852d761c692001c315bf269b2d"
+  },
+  {
+   "path": "dexbotic/model/uninavid/uninavid_arch.py",
+   "sha256": "ccaa83ee84002484de85fbb0ab3e853c5258b2d66d5b5076ebf300d13f056a32"
+  },
+  {
+   "path": "dexbotic/policy/__init__.py",
+   "sha256": "c3322ae596bd1e411332461e3648aae8d756b638f38b078f7cf31e455a1d05f1"
+  },
+  {
+   "path": "dexbotic/policy/base_policy.py",
+   "sha256": "c4a3d2ded35650ccefd7ebded1930bb88a68749ed3a91a544de420f390c1ddf5"
+  },
+  {
+   "path": "dexbotic/policy/cogact_policy.py",
+   "sha256": "6c5962977151e4fd9f6c23c6562d96da72c65d5ebc043153e49833a36e047ab7"
+  },
+  {
+   "path": "dexbotic/policy/discrete_vla_policy.py",
+   "sha256": "0017f0e2dbf1b28b97dccdb81732bbbbc5e3d65b569e030340a839d247ca0a5e"
+  },
+  {
+   "path": "dexbotic/policy/dm05_policy.py",
+   "sha256": "ea454977a735ea8066c4691bd1b1978e5fdac1c182f1dbf29b24e88300ac3f8b"
+  },
+  {
+   "path": "dexbotic/policy/dm0_policy.py",
+   "sha256": "c41a8707fc875cb515c1045e26458778090c317bb6c552473b85be589a54fb1e"
+  },
+  {
+   "path": "dexbotic/policy/dm0_realtime_policy.py",
+   "sha256": "16c15e3409ef563af270bce0802ea8aa0d4bf93cce670f1774d260dc73fe52fe"
+  },
+  {
+   "path": "dexbotic/policy/gr00tn1_policy.py",
+   "sha256": "7039fea0a40ae37bf48e94b70037fcf7b8cf0a57527617fd3da6a660c11f2300"
+  },
+  {
+   "path": "dexbotic/policy/gr00tsonic_policy.py",
+   "sha256": "e12291c0ae847e475fed2c82cd9b1af2a510f1eac1a728a915ae4a665ff9692c"
+  },
+  {
+   "path": "dexbotic/policy/memvla_policy.py",
+   "sha256": "8d509c059f91707564a048388cf5bd3374dab6a155fcab4b4583f1258bbb652d"
+  },
+  {
+   "path": "dexbotic/policy/oft_policy.py",
+   "sha256": "d060921fe21d09d42da2544ec93ac32c0577b58cdbd8ccf4305010848e824520"
+  },
+  {
+   "path": "dexbotic/policy/pi0_policy.py",
+   "sha256": "ba28eea53b8179fbb3f0efa3993b33be5637364f78755af4c7fbb338e79b3c9c"
+  },
+  {
+   "path": "dexbotic/policy/types.py",
+   "sha256": "13947315c0257864417ea5a6782e6f5983c7ff2f990dbb35f6c95219de148e76"
+  },
+  {
+   "path": "dexbotic/rl/__init__.py",
+   "sha256": "8ff7b4bfd9885df9013c5680ebbb3540590d038c6a7bb8882974ce0e14c057b4"
+  },
+  {
+   "path": "dexbotic/rl/_embodied_cli.py",
+   "sha256": "760bc3b7bba4f0b9ed0142595fce55cd9a8aab6bfd114a4f67d53020e4d1e0a3"
+  },
+  {
+   "path": "dexbotic/rl/model_rl_libero_dm0.py",
+   "sha256": "28ee45977ea8bd660ed22801b7ad36d2e48ce65f98890cd3ca61ef16b071671d"
+  },
+  {
+   "path": "dexbotic/rl/model_rl_libero_pi0.py",
+   "sha256": "7f56bfa805899eb8faf81ceee9d919df491410bbcc0e901f7eba96bd9ac705a4"
+  },
+  {
+   "path": "dexbotic/rl/rlinf_bridge/__init__.py",
+   "sha256": "54bc59aac336d3a5d6458dcbb1fbff1086682d01f18d8027c025ebb7691e1a0e"
+  },
+  {
+   "path": "dexbotic/rl/rlinf_bridge/dexbotic_dm0_policy.py",
+   "sha256": "44b3253ce01bce0e94f3f6005d47247b50bb0c05edf6f4ef1601d8ff7b198bb6"
+  },
+  {
+   "path": "dexbotic/rl/rlinf_bridge/dexbotic_pi0_policy.py",
+   "sha256": "af680fcd0b78b4daecd36c3254f02f792844e91a1046efc85a8aca8cbfd14941"
+  },
+  {
+   "path": "dexbotic/rl/rlinf_bridge/norm_stats_utils.py",
+   "sha256": "a8b09a40f6b21590327ece86e1a4dd25b4ce121c793a3077f8bfe6fbb5ce22df"
+  },
+  {
+   "path": "dexbotic/rl/rlinf_bridge/rlinf_dexbotic_mixin.py",
+   "sha256": "1259da14ec0d09f51d779ec073bfbc8a7ff139b5868023977726639bd5622b83"
+  },
+  {
+   "path": "dexbotic/rl/rlinf_registry.py",
+   "sha256": "39f04569f80cb6acb3d0b687e89ac46413e7a9481d6631667e631c120329ac6c"
+  },
+  {
+   "path": "dexbotic/sim_envs/__init__.py",
+   "sha256": "fc1cea14d724265e2b40abd461008e6564fbb78ab36a5139bc04455d58869b83"
+  },
+  {
+   "path": "dexbotic/sim_envs/base.py",
+   "sha256": "2764de9f4a41b27a0915bf275d3715033094dc606f9203d6358858dac44e19a8"
+  },
+  {
+   "path": "dexbotic/sim_envs/factory.py",
+   "sha256": "8b150cc8d7c04d7b61f29a94dc9d7fd5e800d0b6a99217e7ab28149f4f6a9e70"
+  },
+  {
+   "path": "dexbotic/sim_envs/libero/libero_env.py",
+   "sha256": "5f327c6265e31c13498cd3eb7f0538b48154b997947f023dfa762bba28d2b2ee"
+  },
+  {
+   "path": "dexbotic/sim_envs/libero/libero_utils.py",
+   "sha256": "ecb898cbb016343ac65aa53b74199daa52fb1b82a2b895a8ab7bff6630abcfbb"
+  },
+  {
+   "path": "dexbotic/tokenization/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "dexbotic/tokenization/conversation.py",
+   "sha256": "2076699eee9e4643b17a9df72b8bdd8545bdbd72d989a03f517f4dd966eadc43"
+  },
+  {
+   "path": "dexbotic/tokenization/process.py",
+   "sha256": "7f7a45a6c507bd6f4a49ff54b13c6b129118f4f86012a1063dee44df65adb3ef"
+  },
+  {
+   "path": "dexbotic/tokenization/tokenization.py",
+   "sha256": "d65f43784bd84dc522406de841dfd999b07cc2ac22c08c2d3e9284a79bfe384a"
+  },
+  {
+   "path": "hardware/dosw1/convert_table30v2_dosw1_to_dexdata.py",
+   "sha256": "5830646f31ea6f450a4465ec1db7fb49b36c2184c494f4e05ab2ae28de05b836"
+  },
+  {
+   "path": "hardware/dosw1/dm0_stack_bowls.py",
+   "sha256": "f4ac4115060f5e35611d9fed89559b311fb93a172744ee5b6f8448acea1c1821"
+  },
+  {
+   "path": "hardware/so101/bridge_server.py",
+   "sha256": "26637a79e1052abe98d694ba044a8d35476743e7438eeaecfde6f0dddeb5c0d7"
+  },
+  {
+   "path": "hardware/so101/client.py",
+   "sha256": "b79277a3cfd76b25c3f9ac1dc5e34829a21bef59e0fcd16079b3aafef666fcc3"
+  },
+  {
+   "path": "hardware/so101/convert_so101_to_dexdata.py",
+   "sha256": "b0376fe6789f7ea0d29dcdc1feea0da5a9db9531c3e754d37ddf02be20177cb5"
+  },
+  {
+   "path": "hardware/unitree_sonic/bridge.py",
+   "sha256": "c909675eaca190b080ef1380f87bbcb75a2800c32f34ec99ef760dd790c6da7d"
+  },
+  {
+   "path": "hardware/unitree_sonic/convert_sonic_to_dexdata.py",
+   "sha256": "5cad4b77da0e2787fb5f46f22bc719f6c771c4c2f14af829022b717be0a98114"
+  },
+  {
+   "path": "hardware/unitree_sonic/extract_frames.py",
+   "sha256": "35fc234358d4ceabf3882acea8ca5e486e3aca0854a7c51f44a7d7d9f2001543"
+  },
+  {
+   "path": "hardware/xlerobot/bridge.py",
+   "sha256": "a77c253cbc62c59011b5bc5585b95a596a11a2d0e15736c69ea9c333faf82070"
+  },
+  {
+   "path": "hardware/xlerobot/convert_xlerobot_to_dexdata.py",
+   "sha256": "852ca29b4d8934d44ddf231a1c8e8f87a5f424294eb9ef509722c67030c88b62"
+  },
+  {
+   "path": "playground/benchmarks/calvin/calvin_cogact.py",
+   "sha256": "ffe2e72e7d4b638b3fb5ce9277cb9eeeff942a7a445e3daff8ebb934a6f35750"
+  },
+  {
+   "path": "playground/benchmarks/calvin/calvin_oft.py",
+   "sha256": "aa2858947da878ee8502eaf4654a5a5e1e5adac35259fd121a564e4e4a989cfd"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_cogact.py",
+   "sha256": "612b0e4194673be3de763e5d718aa9b1e8d552e600922474ba1d7f81a88ac38b"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_cogact_lora.py",
+   "sha256": "1bbe0228cda29e3679c9505a9c603e1f9e8a96dc7c2b7d83d99a81a84f1986e8"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_dm0.py",
+   "sha256": "6be45bd7c6bb846b7d2328bf611ac01e671d4d9026ce34eabf17e4c938bf434e"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_dm05.py",
+   "sha256": "af027acf6cad90fbd0340893a3874139c4d3b0f62fd7b7c83b013b2b2c545843"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_dm05_lora.py",
+   "sha256": "d3e879133036cfae26049b8d2525a7b57f613e91a0e448db2268065a0cce662b"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_dm0_lora.py",
+   "sha256": "f0b5b93f479165267abf4bf1994572e9d37cbc106b522e8160b455a933eb39ce"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_dm0_realtime.py",
+   "sha256": "2048072c4711747815efc1b7319d74195b6a6581fe886736a1201dc595c2a045"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_gr00tn1.py",
+   "sha256": "ada5d000691ebabbd05610acd39dcaa30e1c3d4f4044dd5584daa119d347b090"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_memvla.py",
+   "sha256": "27c0c57a72b72b144003a18ad8d9a48e88db0b8ac2ab2be0e46b56c619c18f8a"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_oft.py",
+   "sha256": "793baddff51ed143eee466710bcdf24d330245c8ea989981d189bbcaf787d1ee"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_oft_discrete.py",
+   "sha256": "17ffc1aa6b8f35d47fe42487bb9c51ded17a63499988cb8087e1452e6c66aa33"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_pi0.py",
+   "sha256": "32b47d6c33ea29564e0b71c34a76dd7d505cee9d42c533315529aa63a9168b1b"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_pi05.py",
+   "sha256": "0ef3e130e36565af18b2e0b3973e2d24b7358a8b03327901a079874c0c42510c"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_pi05_lora.py",
+   "sha256": "537592cb9c6763724c96c79db09feccf4979dd6f19c5851e5d5d43d9b3238d4d"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_pi0_lora.py",
+   "sha256": "692b05f508e93ae935f88513759c99865ca7cfbefd75cdd9d03e641894466fe1"
+  },
+  {
+   "path": "playground/benchmarks/libero/libero_simplevla_rl.py",
+   "sha256": "8b87c52f358d41d0e4956d9c66fee30d6cf5c30189afa95248fc115a0570394b"
+  },
+  {
+   "path": "playground/benchmarks/maniskill2/maniskill2_cogact.py",
+   "sha256": "1d0572240071a9e3f11a454f450b82249e778363a38c400545f546b1d6142fc0"
+  },
+  {
+   "path": "playground/benchmarks/maniskill2/maniskill2_oft.py",
+   "sha256": "4c453bf53fd61d1d003ac80b2ee8b5e98342f5529feac28a6fdfcd0e7f32e5b0"
+  },
+  {
+   "path": "playground/benchmarks/maniskill2/maniskill2_pi0.py",
+   "sha256": "50add9dea4c868f83b8857ef89879afcbfa1a0a0abfdd0fbf90bb5c55dd68d79"
+  },
+  {
+   "path": "playground/benchmarks/robotwin2/robotwin2_cogact.py",
+   "sha256": "ca602a8f3ce3df25ae16ccad1fbd1fbdd0b63286cb0a7f20a66d941bfc62ff8d"
+  },
+  {
+   "path": "playground/benchmarks/robotwin2/robotwin2_dm05.py",
+   "sha256": "c2612f8375499ace860ae7d19fe2e8f8d900f4fdb6b7dc3ab873d175868411df"
+  },
+  {
+   "path": "playground/benchmarks/simpler/simpler_cogact.py",
+   "sha256": "1ddf71b88afa5adfd499379d4674449b232721db9b945677680a16658642ca70"
+  },
+  {
+   "path": "playground/benchmarks/simpler/simpler_memvla.py",
+   "sha256": "0a1d3088fad2d47dbfc99127e6f0ae3633110c1d0994fa5522c52a24f058e1af"
+  },
+  {
+   "path": "playground/benchmarks/simpler/simpler_oft.py",
+   "sha256": "d698202038618111ec3c63ab10fcbfac7ed11cd6f7ba22b029f71b67847529e6"
+  },
+  {
+   "path": "playground/benchmarks/table30/dm0_stack_bowls.py",
+   "sha256": "ef09846f2741edc0655077c553e5bddf9260395bea2fa82d5fe29705f99729a9"
+  },
+  {
+   "path": "playground/example_exp.py",
+   "sha256": "2bf0c970f1693c918d98ee9fc4eb42e6ace8520928e11c53fce727bd259bad95"
+  },
+  {
+   "path": "playground/example_gr00tsonic_exp.py",
+   "sha256": "5c51f7bfea4ba7487a866c758e7f32109364d31cac729b7b9033e442d54360a5"
+  },
+  {
+   "path": "playground/example_memvla_exp.py",
+   "sha256": "3f3fb543303442803618144ff13b7f8a7b30fef49b8ae392d6b27cedc2649f98"
+  },
+  {
+   "path": "playground/example_muvla_exp.py",
+   "sha256": "81b970ca15e8136e3359d8786cc43a0a86240c025f368721bdfa27375e55ec57"
+  },
+  {
+   "path": "playground/example_navila_exp.py",
+   "sha256": "661a9a01bd7a00940fe17db11e0df1b2297fcd7a6566d3feb6bbf7e502c2a017"
+  },
+  {
+   "path": "playground/example_uninavid_exp.py",
+   "sha256": "389731694190546fee1e36c5bb760cc6ec45e6334d78c71ffb281c318b0b9393"
+  },
+  {
+   "path": "playground/so101_inference_example.py",
+   "sha256": "b012f2671232825a592442665062dcc181035e614583c275849b6e7b782143cc"
+  },
+  {
+   "path": "plugins/dm05-fast/pyproject.toml",
+   "sha256": "cb6fbd23e4336a64d9c1ae4d4e4a72e729f0e524829b23eb4655c80eddcdb0d6"
+  },
+  {
+   "path": "plugins/dm05-fast/src/dexbotic_dm05_fast/__init__.py",
+   "sha256": "bb20d23ddf9dde78aa1c86dc45addbe0ae07f11aacfda3bb1b5ae89ae5fbe957"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "86d7caf931f34e02c09da66d36405437c2218926e5ad523286293bc74720f531"
+  },
+  {
+   "path": "script/convert_data/convert_lerobot_to_dexdata.py",
+   "sha256": "435e37dc4b3af328aafaa771498e13b3a9987745bfa21c6a82d2d2b4b3a10047"
+  },
+  {
+   "path": "script/convert_data/convert_rlds_to_dexdata.py",
+   "sha256": "7107da2abfc933a9a7dfc39b0f85eea9677d10913a24f9031dfb328f992dd40d"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 633991,
+ "tier": "A+B"
+}

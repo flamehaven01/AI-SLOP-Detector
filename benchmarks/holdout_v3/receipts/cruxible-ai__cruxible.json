@@ -1,0 +1,2947 @@
+{
+ "repo": "cruxible-ai/cruxible",
+ "dir": "cruxible-ai__cruxible",
+ "commit": "e848cbb6787262db349912c48d9c008d8068ede8",
+ "estimate_commit": "e848cbb6787262db349912c48d9c008d8068ede8",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".github/scripts/ghcr-tag-digest.sh",
+  ".github/workflows/ci.yml",
+  ".github/workflows/docs.yml",
+  ".github/workflows/publish-kev-reference-world.yml",
+  ".github/workflows/publish-runtime-image.yml",
+  ".github/workflows/publish.yml",
+  ".gitignore",
+  "AGENTS.md",
+  "CHANGELOG.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "DEPRECATIONS.md",
+  "LICENSE",
+  "NOTICE",
+  "README.md",
+  "SECURITY.md",
+  "THIRD_PARTY_DATA.md",
+  "assets/brand/cruxible-mark-black.svg",
+  "assets/brand/cruxible-mark-white.svg",
+  "assets/brand/cruxible-org-avatar.png",
+  "assets/brand/cruxible-wordmark-black.svg",
+  "assets/brand/cruxible-wordmark-white.svg",
+  "assets/crux-overview.png",
+  "assets/cruxible_architecture.svg",
+  "assets/ui_group_review.png",
+  "assets/ui_state_graph.png",
+  "assets/ui_type_map.png",
+  "benchmarks/read_anchor/BASELINE.md",
+  "benchmarks/read_anchor/FINAL.md",
+  "benchmarks/read_anchor/POST_TRACK.md",
+  "benchmarks/read_anchor/baseline_results.json",
+  "benchmarks/read_anchor/capture.py",
+  "benchmarks/read_anchor/final_results.json",
+  "benchmarks/read_anchor/post_track_results.json",
+  "benchmarks/read_anchor/tasks.json",
+  "context7.json",
+  "deploy/local/private-runtime-network.compose.yml",
+  "deploy/runtime/Dockerfile",
+  "deploy/runtime/entrypoint.sh",
+  "docs/agent-operation-guide.md",
+  "docs/assets/brand.css",
+  "docs/assets/cruxible-mark-white.svg",
+  "docs/assets/favicon.png",
+  "docs/case-law-guide.md",
+  "docs/cli-reference.md",
+  "docs/common-providers.md",
+  "docs/compact-config.md",
+  "docs/concepts.md",
+  "docs/config-reference.md",
+  "docs/config-template.yaml",
+  "docs/deep-dive.md",
+  "docs/design-read-ergonomics.md",
+  "docs/for-ai-agents.md",
+  "docs/hosted-runtime-image.md",
+  "docs/index.md",
+  "docs/isolated-deployment.md",
+  "docs/kev-guide.md",
+  "docs/kit-authoring.md",
+  "docs/kit-walkthroughs.md",
+  "docs/local-state-and-backups.md",
+  "docs/mcp-tools.md",
+  "docs/modeling-state.md",
+  "docs/publishing-states.md",
+  "docs/quickstart.md",
+  "docs/runtime-auth-and-agent-roles.md",
+  "docs/state-resolution-and-maintenance.md",
+  "docs/supply-chain-guide.md",
+  "glama.json",
+  "kits/README.md",
+  "kits/agent-operation/README.md",
+  "kits/agent-operation/config.yaml",
+  "kits/agent-operation/cruxible-kit.yaml",
+  "kits/agent-operation/cruxible.lock.yaml",
+  "kits/agent-operation/skills/review-thread/SKILL.md",
+  "kits/agent-release/README.md",
+  "kits/agent-release/config.yaml",
+  "kits/agent-release/cruxible-kit.yaml",
+  "kits/agent-release/cruxible.lock.yaml",
+  "kits/case-law-monitoring/README.md",
+  "kits/case-law-monitoring/config.yaml",
+  "kits/case-law-monitoring/cruxible-kit.yaml",
+  "kits/case-law-monitoring/cruxible.lock.yaml",
+  "kits/case-law-monitoring/data/seed/README.md",
+  "kits/case-law-monitoring/data/seed/act1_seed.json",
+  "kits/case-law-monitoring/data/seed/act2_update.json",
+  "kits/case-law-monitoring/data/seed/case_outcomes.json",
+  "kits/case-law-monitoring/data/seed/docket_feed.json",
+  "kits/case-law-monitoring/data/seed/holdings.json",
+  "kits/case-law-monitoring/data/seed/opinions/manifest.json",
+  "kits/case-law-monitoring/data/seed/opinions/op_barnhart.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_brandx.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_chevron.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_city_arlington.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_entergy.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_loper_bright.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_mayo.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_mead.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_rust.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_smiley.txt",
+  "kits/case-law-monitoring/data/seed/opinions/op_sweet_home.txt",
+  "kits/case-law-monitoring/data/seed/statute_match_hints.json",
+  "kits/case-law-monitoring/providers/case_law_monitoring.py",
+  "kits/case-law-monitoring/scripts/fetch_courtlistener.py",
+  "kits/kev-reference/README.md",
+  "kits/kev-reference/config.yaml",
+  "kits/kev-reference/cruxible-kit.yaml",
+  "kits/kev-reference/cruxible.lock.yaml",
+  "kits/kev-reference/data/epss_kev_nvd.csv",
+  "kits/kev-reference/data/known_exploited_vulnerabilities.csv",
+  "kits/kev-reference/data/nvd_kev_cves.json",
+  "kits/kev-reference/providers/__init__.py",
+  "kits/kev-reference/providers/reference.py",
+  "kits/kev-reference/providers/versioning.py",
+  "kits/kev-triage/.mcp.json",
+  "kits/kev-triage/README.md",
+  "kits/kev-triage/config.yaml",
+  "kits/kev-triage/cruxible-kit.yaml",
+  "kits/kev-triage/cruxible.lock.yaml",
+  "kits/kev-triage/data/composer.py",
+  "kits/kev-triage/data/nvd_kev_cves.json",
+  "kits/kev-triage/data/seed/asset_has_control.csv",
+  "kits/kev-triage/data/seed/asset_has_exception.csv",
+  "kits/kev-triage/data/seed/asset_owned_by.csv",
+  "kits/kev-triage/data/seed/asset_patch_window.csv",
+  "kits/kev-triage/data/seed/assets.csv",
+  "kits/kev-triage/data/seed/business_services.csv",
+  "kits/kev-triage/data/seed/compensating_controls.csv",
+  "kits/kev-triage/data/seed/control_mitigates_class.csv",
+  "kits/kev-triage/data/seed/exceptions.csv",
+  "kits/kev-triage/data/seed/owners.csv",
+  "kits/kev-triage/data/seed/patch_windows.csv",
+  "kits/kev-triage/data/seed/review_material/README.md",
+  "kits/kev-triage/data/seed/review_material/controls/CTRL-1-edge-waf-review.md",
+  "kits/kev-triage/data/seed/review_material/controls/CTRL-3-partner-allowlist-review.md",
+  "kits/kev-triage/data/seed/review_material/controls/CTRL-4-legacy-waf-expired.md",
+  "kits/kev-triage/data/seed/review_material/endpoint_security/ENDPOINT-2026-006-ASSET-17-browser-alert.md",
+  "kits/kev-triage/data/seed/review_material/endpoint_security/ENDPOINT-2026-007-ASSET-25-admin-tooling-alert.md",
+  "kits/kev-triage/data/seed/review_material/endpoint_security/ENDPOINT-2026-008-ASSET-28-document-handler-alert.md",
+  "kits/kev-triage/data/seed/review_material/exceptions/EXC-2026-001-billing-freeze.md",
+  "kits/kev-triage/data/seed/review_material/exceptions/EXC-CHROME-OLD-004-expired.md",
+  "kits/kev-triage/data/seed/review_material/incidents/INC-2021-001-apache-path-traversal.md",
+  "kits/kev-triage/data/seed/review_material/incidents/INC-2024-002-apache-rewrite-rce.md",
+  "kits/kev-triage/data/seed/review_material/incidents/INC-2025-003-weblogic-admin-console-rce.md",
+  "kits/kev-triage/data/seed/review_material/remediations/ASSET-8-CVE-2020-14882-closure.md",
+  "kits/kev-triage/data/seed/review_material/scanner_exports/SCAN-2026-010-ASSET-9-apache-fixed.md",
+  "kits/kev-triage/data/seed/review_material/scanner_exports/SCAN-2026-011-ASSET-18-java-ambiguous.md",
+  "kits/kev-triage/data/seed/review_material/scanner_exports/SCAN-2026-012-ASSET-26-stale-contractor-browser.md",
+  "kits/kev-triage/data/seed/service_depends_on_asset.csv",
+  "kits/kev-triage/data/seed/software_inventory.csv",
+  "kits/kev-triage/data/seed/vulnerability_classes.csv",
+  "kits/kev-triage/providers/__init__.py",
+  "kits/kev-triage/providers/assessment.py",
+  "kits/kev-triage/providers/matching.py",
+  "kits/kev-triage/providers/reference.py",
+  "kits/kev-triage/providers/versioning.py",
+  "kits/kev-triage/scripts/fetch_nvd_kev.py",
+  "kits/kev-triage/skills/kev-start/SKILL.md",
+  "kits/kev-triage/skills/kev-triage/SKILL.md",
+  "kits/kev-triage/source_data/README.md",
+  "kits/kev-triage/source_data/cmdb_assets.csv",
+  "kits/kev-triage/source_data/control_coverage.csv",
+  "kits/kev-triage/source_data/control_inventory.csv",
+  "kits/kev-triage/source_data/grc_exceptions.csv",
+  "kits/kev-triage/source_data/owners.csv",
+  "kits/kev-triage/source_data/patch_windows.csv",
+  "kits/kev-triage/source_data/service_catalog.csv",
+  "kits/kev-triage/source_data/service_dependencies.csv",
+  "kits/kev-triage/source_data/software_inventory.csv",
+  "kits/project-domain/README.md",
+  "kits/project-domain/config.yaml",
+  "kits/project-domain/cruxible-kit.yaml",
+  "kits/project-domain/cruxible.lock.yaml",
+  "kits/supply-chain-blast-radius/README.md",
+  "kits/supply-chain-blast-radius/config.yaml",
+  "kits/supply-chain-blast-radius/cruxible-kit.yaml",
+  "kits/supply-chain-blast-radius/cruxible.lock.yaml",
+  "kits/supply-chain-blast-radius/data/seed/README.md",
+  "kits/supply-chain-blast-radius/data/seed/bom/manifest.json",
+  "kits/supply-chain-blast-radius/data/seed/bom/voron_2_readme.md",
+  "kits/supply-chain-blast-radius/data/seed/bom/voron_docs_sourcing.md",
+  "kits/supply-chain-blast-radius/data/seed/bom/voron_docs_sourcing_faq.md",
+  "kits/supply-chain-blast-radius/data/seed/bundle.json",
+  "kits/supply-chain-blast-radius/data/seed/demand_context.json",
+  "kits/supply-chain-blast-radius/data/seed/incidents.json",
+  "kits/supply-chain-blast-radius/data/seed/inventory_positions.json",
+  "kits/supply-chain-blast-radius/data/seed/operations_routing.json",
+  "kits/supply-chain-blast-radius/providers/supply_chain_blast_radius.py",
+  "kits/supply-chain-blast-radius/scripts/fetch_inventory.py",
+  "mkdocs.yml",
+  "packages/cruxible-client/LICENSE",
+  "packages/cruxible-client/README.md",
+  "packages/cruxible-client/pyproject.toml",
+  "packages/cruxible-client/src/cruxible_client/__init__.py",
+  "packages/cruxible-client/src/cruxible_client/_error_base.py",
+  "packages/cruxible-client/src/cruxible_client/contracts.py",
+  "packages/cruxible-client/src/cruxible_client/errors.py",
+  "packages/cruxible-client/src/cruxible_client/http_client.py",
+  "packages/cruxible-client/src/cruxible_client/py.typed",
+  "packaging/cruxible-core-stub/README.md",
+  "packaging/cruxible-core-stub/pyproject.toml",
+  "pyproject.toml",
+  "scripts/build_kit_bundles.py",
+  "scripts/check_kit_lockfiles.py",
+  "scripts/check_kit_release_assets.py",
+  "scripts/check_version_lockstep.py",
+  "scripts/ci_parity.sh",
+  "scripts/generate_kit_docs.py",
+  "scripts/generate_llms_txt.py",
+  "scripts/generate_skill_docs.py",
+  "scripts/import_markdown.py",
+  "scripts/publish_kev_release.py",
+  "scripts/update_client_contract_snapshot.py",
+  "scripts/update_http_surface_snapshot.py",
+  "server.json",
+  "skills/_shared/references/governance-flow.md",
+  "skills/classification-at-scale/SKILL.md",
+  "skills/create-state/SKILL.md",
+  "skills/overlay-and-fit/SKILL.md",
+  "skills/prepare-data/SKILL.md",
+  "skills/review-state/SKILL.md",
+  "src/cruxible_core/__init__.py",
+  "src/cruxible_core/attestation/__init__.py",
+  "src/cruxible_core/attestation/store.py",
+  "src/cruxible_core/attestation/types.py",
+  "src/cruxible_core/canonical_views/__init__.py",
+  "src/cruxible_core/canonical_views/builders.py",
+  "src/cruxible_core/canonical_views/config.py",
+  "src/cruxible_core/canonical_views/labels.py",
+  "src/cruxible_core/canonical_views/markdown.py",
+  "src/cruxible_core/canonical_views/mermaid.py",
+  "src/cruxible_core/canonical_views/mermaid_utils.py",
+  "src/cruxible_core/canonical_views/models.py",
+  "src/cruxible_core/canonical_views/policy_labels.py",
+  "src/cruxible_core/canonical_views/workflow_labels.py",
+  "src/cruxible_core/cli/__init__.py",
+  "src/cruxible_core/cli/commands/__init__.py",
+  "src/cruxible_core/cli/commands/_common.py",
+  "src/cruxible_core/cli/commands/_gate_adapters.py",
+  "src/cruxible_core/cli/commands/attestations.py",
+  "src/cruxible_core/cli/commands/config_views.py",
+  "src/cruxible_core/cli/commands/context.py",
+  "src/cruxible_core/cli/commands/credentials.py",
+  "src/cruxible_core/cli/commands/decision_records.py",
+  "src/cruxible_core/cli/commands/feedback.py",
+  "src/cruxible_core/cli/commands/gates.py",
+  "src/cruxible_core/cli/commands/groups.py",
+  "src/cruxible_core/cli/commands/instances.py",
+  "src/cruxible_core/cli/commands/kits.py",
+  "src/cruxible_core/cli/commands/lifecycle_verbs.py",
+  "src/cruxible_core/cli/commands/lists.py",
+  "src/cruxible_core/cli/commands/mutations.py",
+  "src/cruxible_core/cli/commands/outcome_contracts.py",
+  "src/cruxible_core/cli/commands/procedures.py",
+  "src/cruxible_core/cli/commands/read_stats.py",
+  "src/cruxible_core/cli/commands/reads.py",
+  "src/cruxible_core/cli/commands/server.py",
+  "src/cruxible_core/cli/commands/source_artifacts.py",
+  "src/cruxible_core/cli/commands/state.py",
+  "src/cruxible_core/cli/commands/telemetry.py",
+  "src/cruxible_core/cli/commands/workflows.py",
+  "src/cruxible_core/cli/commands/working_set.py",
+  "src/cruxible_core/cli/context.py",
+  "src/cruxible_core/cli/formatting.py",
+  "src/cruxible_core/cli/instance.py",
+  "src/cruxible_core/cli/main.py",
+  "src/cruxible_core/cli/working_set.py",
+  "src/cruxible_core/client/__init__.py",
+  "src/cruxible_core/client/http_client.py",
+  "src/cruxible_core/config/__init__.py",
+  "src/cruxible_core/config/auth_managed.py",
+  "src/cruxible_core/config/compact.py",
+  "src/cruxible_core/config/composer.py",
+  "src/cruxible_core/config/composition_ownership.py",
+  "src/cruxible_core/config/constraint_rules.py",
+  "src/cruxible_core/config/json_schema_validation.py",
+  "src/cruxible_core/config/loader.py",
+  "src/cruxible_core/config/ownership.py",
+  "src/cruxible_core/config/predicates.py",
+  "src/cruxible_core/config/property_validation.py",
+  "src/cruxible_core/config/provenance.py",
+  "src/cruxible_core/config/schema.py",
+  "src/cruxible_core/config/validator.py",
+  "src/cruxible_core/decision/__init__.py",
+  "src/cruxible_core/decision/store.py",
+  "src/cruxible_core/decision/types.py",
+  "src/cruxible_core/deprecation.py",
+  "src/cruxible_core/errors.py",
+  "src/cruxible_core/feedback/__init__.py",
+  "src/cruxible_core/feedback/applier.py",
+  "src/cruxible_core/feedback/store.py",
+  "src/cruxible_core/feedback/types.py",
+  "src/cruxible_core/governance/__init__.py",
+  "src/cruxible_core/governance/actors.py",
+  "src/cruxible_core/graph/__init__.py",
+  "src/cruxible_core/graph/assertion_state.py",
+  "src/cruxible_core/graph/claim_target.py",
+  "src/cruxible_core/graph/diff.py",
+  "src/cruxible_core/graph/entity_graph.py",
+  "src/cruxible_core/graph/entity_identity.py",
+  "src/cruxible_core/graph/evidence.py",
+  "src/cruxible_core/graph/group_drift.py",
+  "src/cruxible_core/graph/legacy_identity.py",
+  "src/cruxible_core/graph/operations.py",
+  "src/cruxible_core/graph/provenance.py",
+  "src/cruxible_core/graph/types.py",
+  "src/cruxible_core/group/__init__.py",
+  "src/cruxible_core/group/governance.py",
+  "src/cruxible_core/group/signature.py",
+  "src/cruxible_core/group/store.py",
+  "src/cruxible_core/group/types.py",
+  "src/cruxible_core/instance_protocol.py",
+  "src/cruxible_core/kit_defaults.py",
+  "src/cruxible_core/kit_distribution/__init__.py",
+  "src/cruxible_core/kit_distribution/manifest.json",
+  "src/cruxible_core/kits/__init__.py",
+  "src/cruxible_core/kits/state_refs.py",
+  "src/cruxible_core/mcp/__init__.py",
+  "src/cruxible_core/mcp/__main__.py",
+  "src/cruxible_core/mcp/contracts.py",
+  "src/cruxible_core/mcp/curation.py",
+  "src/cruxible_core/mcp/handlers.py",
+  "src/cruxible_core/mcp/kit_surface.py",
+  "src/cruxible_core/mcp/permissions.py",
+  "src/cruxible_core/mcp/server.py",
+  "src/cruxible_core/mcp/tool_prompts.py",
+  "src/cruxible_core/mcp/tools.py",
+  "src/cruxible_core/mcp/working_set.py",
+  "src/cruxible_core/predicate.py",
+  "src/cruxible_core/primitives.py",
+  "src/cruxible_core/procedure/__init__.py",
+  "src/cruxible_core/procedure/store.py",
+  "src/cruxible_core/procedure/types.py",
+  "src/cruxible_core/provider/__init__.py",
+  "src/cruxible_core/provider/payloads.py",
+  "src/cruxible_core/provider/registry.py",
+  "src/cruxible_core/provider/trace_payloads.py",
+  "src/cruxible_core/provider/types.py",
+  "src/cruxible_core/providers/__init__.py",
+  "src/cruxible_core/providers/common/__init__.py",
+  "src/cruxible_core/providers/common/documents.py",
+  "src/cruxible_core/providers/common/identifiers.py",
+  "src/cruxible_core/providers/common/identity.py",
+  "src/cruxible_core/providers/common/tabular.py",
+  "src/cruxible_core/py.typed",
+  "src/cruxible_core/query/__init__.py",
+  "src/cruxible_core/query/continuation.py",
+  "src/cruxible_core/query/engine.py",
+  "src/cruxible_core/query/entity_state.py",
+  "src/cruxible_core/query/enums.py",
+  "src/cruxible_core/query/evaluate.py",
+  "src/cruxible_core/query/filters.py",
+  "src/cruxible_core/query/graph_layout.py",
+  "src/cruxible_core/query/lifecycle_status.py",
+  "src/cruxible_core/query/predicates.py",
+  "src/cruxible_core/query/profiles.py",
+  "src/cruxible_core/query/projection.py",
+  "src/cruxible_core/query/read_surface.py",
+  "src/cruxible_core/query/relationship_state.py",
+  "src/cruxible_core/query/types.py",
+  "src/cruxible_core/receipt/__init__.py",
+  "src/cruxible_core/receipt/builder.py",
+  "src/cruxible_core/receipt/mutation_payloads.py",
+  "src/cruxible_core/receipt/serializer.py",
+  "src/cruxible_core/receipt/store.py",
+  "src/cruxible_core/receipt/types.py",
+  "src/cruxible_core/resolution_contracts/__init__.py",
+  "src/cruxible_core/resolution_contracts/store.py",
+  "src/cruxible_core/resolution_contracts/types.py",
+  "src/cruxible_core/runtime/__init__.py",
+  "src/cruxible_core/runtime/api.py",
+  "src/cruxible_core/runtime/execution_policy.py",
+  "src/cruxible_core/runtime/instance.py",
+  "src/cruxible_core/runtime/instance_manager.py",
+  "src/cruxible_core/runtime/permissions.py",
+  "src/cruxible_core/server/__init__.py",
+  "src/cruxible_core/server/app.py",
+  "src/cruxible_core/server/auth.py",
+  "src/cruxible_core/server/auth_managed_entities.py",
+  "src/cruxible_core/server/config.py",
+  "src/cruxible_core/server/credentials.py",
+  "src/cruxible_core/server/errors.py",
+  "src/cruxible_core/server/registry.py",
+  "src/cruxible_core/server/request_logging.py",
+  "src/cruxible_core/server/request_models.py",
+  "src/cruxible_core/server/restart.py",
+  "src/cruxible_core/server/route_paths.py",
+  "src/cruxible_core/server/routes/__init__.py",
+  "src/cruxible_core/server/routes/attestations.py",
+  "src/cruxible_core/server/routes/decision_records.py",
+  "src/cruxible_core/server/routes/feedback.py",
+  "src/cruxible_core/server/routes/gates.py",
+  "src/cruxible_core/server/routes/groups.py",
+  "src/cruxible_core/server/routes/hosted_instances.py",
+  "src/cruxible_core/server/routes/instances.py",
+  "src/cruxible_core/server/routes/mutations.py",
+  "src/cruxible_core/server/routes/outcome_contracts.py",
+  "src/cruxible_core/server/routes/procedures.py",
+  "src/cruxible_core/server/routes/queries.py",
+  "src/cruxible_core/server/routes/runtime_credentials.py",
+  "src/cruxible_core/server/routes/snapshots.py",
+  "src/cruxible_core/server/routes/source_artifacts.py",
+  "src/cruxible_core/server/routes/state.py",
+  "src/cruxible_core/server/routes/telemetry.py",
+  "src/cruxible_core/server/routes/workflows.py",
+  "src/cruxible_core/server/telemetry.py",
+  "src/cruxible_core/service/__init__.py",
+  "src/cruxible_core/service/analysis.py",
+  "src/cruxible_core/service/artifact_lifecycle.py",
+  "src/cruxible_core/service/attestations.py",
+  "src/cruxible_core/service/config_mutations.py",
+  "src/cruxible_core/service/decisions.py",
+  "src/cruxible_core/service/direct_write_policy.py",
+  "src/cruxible_core/service/evidence.py",
+  "src/cruxible_core/service/execution.py",
+  "src/cruxible_core/service/feedback.py",
+  "src/cruxible_core/service/gates.py",
+  "src/cruxible_core/service/group_read_models.py",
+  "src/cruxible_core/service/group_transitions.py",
+  "src/cruxible_core/service/groups.py",
+  "src/cruxible_core/service/lifecycle.py",
+  "src/cruxible_core/service/lifecycle_inputs.py",
+  "src/cruxible_core/service/mutation_guards.py",
+  "src/cruxible_core/service/mutation_proposals.py",
+  "src/cruxible_core/service/mutation_receipts.py",
+  "src/cruxible_core/service/mutations.py",
+  "src/cruxible_core/service/procedures.py",
+  "src/cruxible_core/service/property_diffs.py",
+  "src/cruxible_core/service/queries.py",
+  "src/cruxible_core/service/resolution_contracts.py",
+  "src/cruxible_core/service/server.py",
+  "src/cruxible_core/service/snapshots.py",
+  "src/cruxible_core/service/source_artifacts.py",
+  "src/cruxible_core/service/state.py",
+  "src/cruxible_core/service/state_diff.py",
+  "src/cruxible_core/service/telemetry.py",
+  "src/cruxible_core/service/types.py",
+  "src/cruxible_core/service/views.py",
+  "src/cruxible_core/snapshot/__init__.py",
+  "src/cruxible_core/snapshot/types.py",
+  "src/cruxible_core/snapshot/upstream_verification.py",
+  "src/cruxible_core/source_artifacts/__init__.py",
+  "src/cruxible_core/source_artifacts/markdown.py",
+  "src/cruxible_core/source_artifacts/store.py",
+  "src/cruxible_core/source_artifacts/types.py",
+  "src/cruxible_core/sqlite_ddl.py",
+  "src/cruxible_core/storage/__init__.py",
+  "src/cruxible_core/storage/protocols.py",
+  "src/cruxible_core/storage/sqlite.py",
+  "src/cruxible_core/telemetry/__init__.py",
+  "src/cruxible_core/telemetry/buffer.py",
+  "src/cruxible_core/telemetry/instrumentation.py",
+  "src/cruxible_core/telemetry/store.py",
+  "src/cruxible_core/telemetry/types.py",
+  "src/cruxible_core/temporal.py",
+  "src/cruxible_core/transport/__init__.py",
+  "src/cruxible_core/transport/backends.py",
+  "src/cruxible_core/transport/types.py",
+  "src/cruxible_core/ui_static/adapter.js",
+  "src/cruxible_core/ui_static/app.js",
+  "src/cruxible_core/ui_static/index.html",
+  "src/cruxible_core/ui_static/styles.css",
+  "src/cruxible_core/workflow/__init__.py",
+  "src/cruxible_core/workflow/apply.py",
+  "src/cruxible_core/workflow/artifacts.py",
+  "src/cruxible_core/workflow/compiler.py",
+  "src/cruxible_core/workflow/contracts.py",
+  "src/cruxible_core/workflow/execution_context.py",
+  "src/cruxible_core/workflow/executor.py",
+  "src/cruxible_core/workflow/io.py",
+  "src/cruxible_core/workflow/proposals.py",
+  "src/cruxible_core/workflow/refs.py",
+  "src/cruxible_core/workflow/step_handlers.py",
+  "src/cruxible_core/workflow/step_helpers.py",
+  "src/cruxible_core/workflow/tracing.py",
+  "src/cruxible_core/workflow/transforms.py",
+  "src/cruxible_core/workflow/types.py",
+  "src/cruxible_core/workflow_execution_types.py",
+  "src/cruxible_core/working_set.py",
+  "tests/__init__.py",
+  "tests/conftest.py",
+  "tests/fixtures/car_parts.yaml",
+  "tests/goldens/cruxible_client/contracts_snapshot.json",
+  "tests/goldens/http_surface/http_surface_snapshot.json",
+  "tests/goldens/kev/asset_exposure_proposal.json",
+  "tests/goldens/kev/asset_products_proposal.json",
+  "tests/goldens/kev/auto_resolve_branches.json",
+  "tests/goldens/kev/exposure_reconciliation_proposal.json",
+  "tests/goldens/kev/intermediate_payloads/asset_exposure_workflow.json",
+  "tests/goldens/kev/intermediate_payloads/asset_products_workflow.json",
+  "tests/goldens/kev/intermediate_payloads/exposure_reconciliation_workflow.json",
+  "tests/goldens/kev/named_query_surfaces.json",
+  "tests/goldens/kev/overlay_review_state.json",
+  "tests/goldens/kev/reference_build_state.json",
+  "tests/goldens/kev/relationship_state_visibility.json",
+  "tests/goldens/state_cross_section/car_parts_state_diff.json",
+  "tests/goldens/state_diff/car_parts_state_diff_artifact.json",
+  "tests/support/__init__.py",
+  "tests/support/client_contracts.py",
+  "tests/support/http_surface.py",
+  "tests/support/kev_golden.py",
+  "tests/support/state_cross_section.py",
+  "tests/support/terminal_lifecycle.py",
+  "tests/support/workflow_helpers.py",
+  "tests/support/workflow_test_providers.py",
+  "tests/test_architecture/test_runtime_boundaries.py",
+  "tests/test_attestations/__init__.py",
+  "tests/test_attestations/conftest.py",
+  "tests/test_attestations/test_procedure_evidence.py",
+  "tests/test_attestations/test_service.py",
+  "tests/test_attestations/test_types_and_store.py",
+  "tests/test_cli/__init__.py",
+  "tests/test_cli/conftest.py",
+  "tests/test_cli/test_attestation_commands.py",
+  "tests/test_cli/test_commands.py",
+  "tests/test_cli/test_continuation.py",
+  "tests/test_cli/test_credentials_bootstrap.py",
+  "tests/test_cli/test_credentials_recover_admin.py",
+  "tests/test_cli/test_gate_commands.py",
+  "tests/test_cli/test_help_surface.py",
+  "tests/test_cli/test_instance.py",
+  "tests/test_cli/test_kit_repin.py",
+  "tests/test_cli/test_lifecycle_verbs.py",
+  "tests/test_cli/test_multi_kit_init.py",
+  "tests/test_cli/test_outcome_contract_commands.py",
+  "tests/test_cli/test_procedure_commands.py",
+  "tests/test_cli/test_server_mode.py",
+  "tests/test_cli/test_server_restart.py",
+  "tests/test_cli/test_server_start.py",
+  "tests/test_cli/test_server_status.py",
+  "tests/test_cli/test_source_commands.py",
+  "tests/test_cli/test_startup_imports.py",
+  "tests/test_cli/test_state_cli.py",
+  "tests/test_cli/test_state_command_flow_smoke.py",
+  "tests/test_cli/test_target_visibility.py",
+  "tests/test_cli/test_transport_errors.py",
+  "tests/test_cli/test_workflow_commands.py",
+  "tests/test_cli/test_working_set.py",
+  "tests/test_client/__init__.py",
+  "tests/test_client/test_contract_snapshot.py",
+  "tests/test_client/test_http_client.py",
+  "tests/test_client/test_http_client_timeouts.py",
+  "tests/test_config/__init__.py",
+  "tests/test_config/test_check_kit_lockfiles.py",
+  "tests/test_config/test_compact.py",
+  "tests/test_config/test_composer.py",
+  "tests/test_config/test_composer_integration.py",
+  "tests/test_config/test_composition_ownership.py",
+  "tests/test_config/test_constraint_rules.py",
+  "tests/test_config/test_entity_identity.py",
+  "tests/test_config/test_gates_config.py",
+  "tests/test_config/test_kit_distribution.py",
+  "tests/test_config/test_kit_lockfiles.py",
+  "tests/test_config/test_kits.py",
+  "tests/test_config/test_loader.py",
+  "tests/test_config/test_schema.py",
+  "tests/test_config/test_validator.py",
+  "tests/test_decision/test_decision_types.py",
+  "tests/test_decision/test_store.py",
+  "tests/test_demos/test_agent_recipes_smoke.py",
+  "tests/test_demos/test_domain_kits_03_mechanics.py",
+  "tests/test_demos/test_kev_03_mechanics.py",
+  "tests/test_demos/test_kev_quickstart_smoke.py",
+  "tests/test_demos/test_kev_triage.py",
+  "tests/test_demos/test_standalone_kit_authoring_smoke.py",
+  "tests/test_deprecation_mechanics.py",
+  "tests/test_errors.py",
+  "tests/test_evaluate.py",
+  "tests/test_feedback/__init__.py",
+  "tests/test_feedback/test_feedback.py",
+  "tests/test_golden/test_kev_golden_states.py",
+  "tests/test_governance/__init__.py",
+  "tests/test_governance/test_actor_context.py",
+  "tests/test_graph/__init__.py",
+  "tests/test_graph/test_assertion_state.py",
+  "tests/test_graph/test_edge_identity.py",
+  "tests/test_graph/test_entity_graph.py",
+  "tests/test_graph/test_entity_identity.py",
+  "tests/test_graph/test_graph_diff.py",
+  "tests/test_graph/test_operations.py",
+  "tests/test_graph/test_provenance.py",
+  "tests/test_graph/test_relationship_edge_key.py",
+  "tests/test_graph/test_types.py",
+  "tests/test_group/__init__.py",
+  "tests/test_group/test_evidence_guard.py",
+  "tests/test_group/test_signature.py",
+  "tests/test_group/test_store.py",
+  "tests/test_group/test_types.py",
+  "tests/test_guardrails/test_contract_freeze.py",
+  "tests/test_guardrails/test_deprecations.py",
+  "tests/test_guardrails/test_docker_marker.py",
+  "tests/test_guardrails/test_mcp_output_schema_conformance.py",
+  "tests/test_guardrails/test_mutation_guard_reference.py",
+  "tests/test_guardrails/test_permission_posture_claims.py",
+  "tests/test_guardrails/test_primitives_consolidation.py",
+  "tests/test_guardrails/test_reference_docs.py",
+  "tests/test_guardrails/test_store_registration.py",
+  "tests/test_guardrails/test_vocabulary.py",
+  "tests/test_guardrails/test_wheel_marker.py",
+  "tests/test_guardrails/test_write_policy_asymmetry.py",
+  "tests/test_image/__init__.py",
+  "tests/test_image/test_runtime_image.py",
+  "tests/test_ingest/__init__.py",
+  "tests/test_mcp/__init__.py",
+  "tests/test_mcp/conftest.py",
+  "tests/test_mcp/test_attestation_tools.py",
+  "tests/test_mcp/test_entity_identity.py",
+  "tests/test_mcp/test_feedback_write_tier_permissions.py",
+  "tests/test_mcp/test_governed_write_handlers.py",
+  "tests/test_mcp/test_group_handlers.py",
+  "tests/test_mcp/test_handlers.py",
+  "tests/test_mcp/test_kit_surface.py",
+  "tests/test_mcp/test_outcome_contract_tools.py",
+  "tests/test_mcp/test_permissions.py",
+  "tests/test_mcp/test_procedure_tools.py",
+  "tests/test_mcp/test_protocol_curation.py",
+  "tests/test_mcp/test_read_profiles.py",
+  "tests/test_mcp/test_server_mode.py",
+  "tests/test_mcp/test_tool_schema.py",
+  "tests/test_mcp/test_working_set.py",
+  "tests/test_mcp/test_write_tier_permissions.py",
+  "tests/test_outcome_contracts/__init__.py",
+  "tests/test_outcome_contracts/conftest.py",
+  "tests/test_outcome_contracts/test_guard.py",
+  "tests/test_outcome_contracts/test_service.py",
+  "tests/test_outcome_contracts/test_workflow_apply.py",
+  "tests/test_packaging/__init__.py",
+  "tests/test_packaging/test_wheel_console_scripts.py",
+  "tests/test_predicate.py",
+  "tests/test_primitives.py",
+  "tests/test_procedures/__init__.py",
+  "tests/test_procedures/conftest.py",
+  "tests/test_procedures/test_budget.py",
+  "tests/test_procedures/test_compiler.py",
+  "tests/test_procedures/test_execution.py",
+  "tests/test_procedures/test_lifecycle.py",
+  "tests/test_procedures/test_snapshot_portability.py",
+  "tests/test_procedures/test_store.py",
+  "tests/test_procedures/test_track_record.py",
+  "tests/test_procedures/test_validation.py",
+  "tests/test_procedures/test_withdrawal.py",
+  "tests/test_providers/test_case_law_kit.py",
+  "tests/test_providers/test_common_documents.py",
+  "tests/test_providers/test_common_identity.py",
+  "tests/test_providers/test_common_tabular.py",
+  "tests/test_providers/test_payloads.py",
+  "tests/test_providers/test_supply_chain_kit.py",
+  "tests/test_query/__init__.py",
+  "tests/test_query/test_engine.py",
+  "tests/test_query/test_graph_layout.py",
+  "tests/test_query/test_neighborhood.py",
+  "tests/test_query/test_profiles.py",
+  "tests/test_receipt/__init__.py",
+  "tests/test_receipt/test_mutation_payloads.py",
+  "tests/test_receipt/test_receipt.py",
+  "tests/test_receipt/test_store.py",
+  "tests/test_scripts/__init__.py",
+  "tests/test_scripts/test_check_kit_release_assets.py",
+  "tests/test_scripts/test_check_version_lockstep.py",
+  "tests/test_scripts/test_publish_kev_release.py",
+  "tests/test_scripts/test_render_config_views.py",
+  "tests/test_server/__init__.py",
+  "tests/test_server/test_attestation_routes.py",
+  "tests/test_server/test_capability_ceiling.py",
+  "tests/test_server/test_config.py",
+  "tests/test_server/test_continuation.py",
+  "tests/test_server/test_entity_identity.py",
+  "tests/test_server/test_errors.py",
+  "tests/test_server/test_gate_routes.py",
+  "tests/test_server/test_hosted_runtime_routes.py",
+  "tests/test_server/test_lifecycle_routes.py",
+  "tests/test_server/test_mutating_route_json_only.py",
+  "tests/test_server/test_neighborhood_routes.py",
+  "tests/test_server/test_network_security_hardening.py",
+  "tests/test_server/test_outcome_contract_routes.py",
+  "tests/test_server/test_procedure_routes.py",
+  "tests/test_server/test_query_graph_layout.py",
+  "tests/test_server/test_read_profiles.py",
+  "tests/test_server/test_request_logging.py",
+  "tests/test_server/test_restart.py",
+  "tests/test_server/test_route_permission_gating.py",
+  "tests/test_server/test_routes.py",
+  "tests/test_server/test_state_diff_surface.py",
+  "tests/test_service/__init__.py",
+  "tests/test_service/conftest.py",
+  "tests/test_service/test_actor_context_normalization.py",
+  "tests/test_service/test_agent_operation_review_gate.py",
+  "tests/test_service/test_agent_operation_scratchpad.py",
+  "tests/test_service/test_analysis.py",
+  "tests/test_service/test_auth_managed_refusal.py",
+  "tests/test_service/test_claim_identity_consumers.py",
+  "tests/test_service/test_decisions.py",
+  "tests/test_service/test_digest_verification.py",
+  "tests/test_service/test_direct_write_policy.py",
+  "tests/test_service/test_entity_lifecycle_gating.py",
+  "tests/test_service/test_execution.py",
+  "tests/test_service/test_feedback_approval_rail.py",
+  "tests/test_service/test_gates.py",
+  "tests/test_service/test_governed_write.py",
+  "tests/test_service/test_group_override.py",
+  "tests/test_service/test_group_propose.py",
+  "tests/test_service/test_group_reads.py",
+  "tests/test_service/test_group_resolve.py",
+  "tests/test_service/test_group_state_transitions.py",
+  "tests/test_service/test_group_trust.py",
+  "tests/test_service/test_instance_backup.py",
+  "tests/test_service/test_kit_lock_regeneration_warnings.py",
+  "tests/test_service/test_lifecycle_verbs.py",
+  "tests/test_service/test_mutation_guards_actor_separation.py",
+  "tests/test_service/test_mutation_guards_property_freeze.py",
+  "tests/test_service/test_mutation_receipts.py",
+  "tests/test_service/test_mutations.py",
+  "tests/test_service/test_negative_experience_fidelity.py",
+  "tests/test_service/test_pending_edge_clobber.py",
+  "tests/test_service/test_queries.py",
+  "tests/test_service/test_query_feedback.py",
+  "tests/test_service/test_reads.py",
+  "tests/test_service/test_receipt_helper.py",
+  "tests/test_service/test_refuse_direct_writes.py",
+  "tests/test_service/test_relationship_lifecycle_write.py",
+  "tests/test_service/test_source_artifacts.py",
+  "tests/test_service/test_state.py",
+  "tests/test_service/test_state_claim_identity.py",
+  "tests/test_service/test_state_diff.py",
+  "tests/test_service/test_state_diff_golden.py",
+  "tests/test_service/test_state_refs.py",
+  "tests/test_service/test_views.py",
+  "tests/test_snapshot/test_snapshot_types.py",
+  "tests/test_storage/test_claim_identity.py",
+  "tests/test_storage/test_read_revision.py",
+  "tests/test_storage/test_source_artifact_revisions.py",
+  "tests/test_storage/test_sqlite_state.py",
+  "tests/test_support/test_state_cross_section.py",
+  "tests/test_telemetry/__init__.py",
+  "tests/test_telemetry/test_boundary_telemetry.py",
+  "tests/test_temporal.py",
+  "tests/test_transport/test_backends.py",
+  "tests/test_ui_static/adapter.test.mjs",
+  "tests/test_workflow/conftest.py",
+  "tests/test_workflow/test_compiler.py",
+  "tests/test_workflow/test_dataflow_steps.py",
+  "tests/test_workflow/test_executor.py",
+  "tests/test_workflow/test_helpers.py",
+  "tests/test_workflow/test_make_auto_properties.py",
+  "tests/test_workflow/test_proposals.py",
+  "tests/test_workflow/test_register_source_artifacts.py",
+  "tests/test_workflow/test_step_handlers.py",
+  "tests/test_workflow/test_workflow_apply_entity_identity.py",
+  "tests/test_workflow/test_workflow_apply_group_drift.py",
+  "tests/test_workflow/test_workflow_apply_mint_only.py",
+  "tests/test_workflow/test_workflow_apply_mutation_guards.py",
+  "tests/test_working_set_capture.py",
+  "uv.lock"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "9cabdf12a79f29df47bc5d6cada558084cf2aff84ab0cf05ca4276d5d13ce38e"
+  },
+  {
+   "path": "benchmarks/read_anchor/capture.py",
+   "sha256": "25195084212cd340bda5b6fb0ba62ee7dec44b2c90b57bd105226faaa27cdb47"
+  },
+  {
+   "path": "kits/case-law-monitoring/providers/case_law_monitoring.py",
+   "sha256": "8ee74eb3e15f2a9e69a419ccd01dcb077269750c1eecae1e3030a7b2bc3e28dc"
+  },
+  {
+   "path": "kits/case-law-monitoring/scripts/fetch_courtlistener.py",
+   "sha256": "1acead8c8a47464de9ad4715c226662eeb9d980eb392dbdbfee4e8f3243c97da"
+  },
+  {
+   "path": "kits/kev-reference/providers/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "kits/kev-reference/providers/reference.py",
+   "sha256": "cb9b69aecbd2505348bc160bce6acb7a1a5319e8174f925de5ca583a4c47b585"
+  },
+  {
+   "path": "kits/kev-reference/providers/versioning.py",
+   "sha256": "587e5a07402de7732fe23e156c375ef0735429e4e681be1b8cd6dd83772fda8f"
+  },
+  {
+   "path": "kits/kev-triage/data/composer.py",
+   "sha256": "cbae055618979d0d61de604ffc5ae348463dd7b21d5c69ef801cc4fa1ffe775c"
+  },
+  {
+   "path": "kits/kev-triage/providers/__init__.py",
+   "sha256": "17f11f6dcceaba4816d6392ed9f56cb2f382f775b5e27cf52356aad4a50d384b"
+  },
+  {
+   "path": "kits/kev-triage/providers/assessment.py",
+   "sha256": "18bd33aef336bf9720433ebd5d05da372a6ce9e742eaf1638a72c9170a56ddb5"
+  },
+  {
+   "path": "kits/kev-triage/providers/matching.py",
+   "sha256": "ab4c5143ef6ed7fac2f2e883d014616b0d562f6453d032a5d8f94b271beab8e1"
+  },
+  {
+   "path": "kits/kev-triage/providers/reference.py",
+   "sha256": "cb9b69aecbd2505348bc160bce6acb7a1a5319e8174f925de5ca583a4c47b585"
+  },
+  {
+   "path": "kits/kev-triage/providers/versioning.py",
+   "sha256": "587e5a07402de7732fe23e156c375ef0735429e4e681be1b8cd6dd83772fda8f"
+  },
+  {
+   "path": "kits/kev-triage/scripts/fetch_nvd_kev.py",
+   "sha256": "720b1b9b59c30d1dc9a69d4c85c5e92365dba48613cfaac206751340e1f8b3c4"
+  },
+  {
+   "path": "kits/supply-chain-blast-radius/providers/supply_chain_blast_radius.py",
+   "sha256": "5968ae0aa1dc5d058a76cac31f44a114b96649b00c2477015f67b8420dee4c82"
+  },
+  {
+   "path": "kits/supply-chain-blast-radius/scripts/fetch_inventory.py",
+   "sha256": "d222094d312674b1ad8f7744063ce2018c10f94c4e0253280561b4846e7b24e8"
+  },
+  {
+   "path": "packages/cruxible-client/pyproject.toml",
+   "sha256": "e9d51293ce5738a3e8d39496dd35578442e12911fcedbb47675135ce90822343"
+  },
+  {
+   "path": "packages/cruxible-client/src/cruxible_client/__init__.py",
+   "sha256": "d89118a0720fdf8e80fe1aa06c24282a698106fc6354b694f2fa722a1bf710e4"
+  },
+  {
+   "path": "packages/cruxible-client/src/cruxible_client/_error_base.py",
+   "sha256": "4a7e950131e5542bcb30388d327309751d0673bb3413c69d0d69059d90102597"
+  },
+  {
+   "path": "packages/cruxible-client/src/cruxible_client/contracts.py",
+   "sha256": "6d4cea45d9c6ecbac2382c5a5e014250514cf761f25ac215cc5397502e751075"
+  },
+  {
+   "path": "packages/cruxible-client/src/cruxible_client/errors.py",
+   "sha256": "32b00293559c98e10a0959a344c164c6c7dc7d8f0e9fcf8eff0b8e119ae75130"
+  },
+  {
+   "path": "packages/cruxible-client/src/cruxible_client/http_client.py",
+   "sha256": "349c8a026e4f01c03cc42e7c7a4d4685dec5363a349b942b561479955ee16ea8"
+  },
+  {
+   "path": "packaging/cruxible-core-stub/pyproject.toml",
+   "sha256": "bf30faa3bee53d76a856fe991c72af6a3ef27f2f1fe82b55d5d26c28be0de6f7"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "35781375f1453b07e1e0b1bc02ab937f37db294e22695b3d3a2b7fbcf31c22ec"
+  },
+  {
+   "path": "scripts/build_kit_bundles.py",
+   "sha256": "7eddac1f8167597e4122f3f41c7821388d2e35050f246642c39786219a18e9fa"
+  },
+  {
+   "path": "scripts/check_kit_lockfiles.py",
+   "sha256": "c813e9d7183a4a4da67b6342f495bb53a612418ffa4f82451d8d067614084f40"
+  },
+  {
+   "path": "scripts/check_kit_release_assets.py",
+   "sha256": "bd218ad7205e3062f5dfa13d87271b5868e349bb914947b7f44e0d145c2730e1"
+  },
+  {
+   "path": "scripts/check_version_lockstep.py",
+   "sha256": "31d55c56deb2ca75c6db550cb2e15142781fee4b4ee3c833abc7d1aefe44c2f2"
+  },
+  {
+   "path": "scripts/generate_kit_docs.py",
+   "sha256": "f7468c0d912fd9dfe84409007a3512558b50a2eab939ddae8ae8a740667d0274"
+  },
+  {
+   "path": "scripts/generate_llms_txt.py",
+   "sha256": "d70d84d57144e70bd587b7e2aa041bcae242352f74be7223a8f177e92485045b"
+  },
+  {
+   "path": "scripts/generate_skill_docs.py",
+   "sha256": "ecf86506aca0990a054e368030cf7ed5aca121d43e7d3f9565981ea3ce6eb215"
+  },
+  {
+   "path": "scripts/import_markdown.py",
+   "sha256": "08f355b81b6ef7f195e461293a7f5ea4e145b68573a417228386fbbf52b248f5"
+  },
+  {
+   "path": "scripts/publish_kev_release.py",
+   "sha256": "af8eb4bc3757936bbcc2c892c4c9eb03ab68f42da96c6440acbd201c526b13a1"
+  },
+  {
+   "path": "scripts/update_client_contract_snapshot.py",
+   "sha256": "b38b7aef89d1d8cfe111f1c42fa16be3728e2656f9aef7d35dc0b6095398385c"
+  },
+  {
+   "path": "scripts/update_http_surface_snapshot.py",
+   "sha256": "8a9f290eb27b9bc6535b8a405771e588f1208d14ea626a90cbda2ba33f0ab11e"
+  },
+  {
+   "path": "src/cruxible_core/__init__.py",
+   "sha256": "83f3c7830b91a2232220cc064fc16adc82a0f68314011e03b925273503a28e33"
+  },
+  {
+   "path": "src/cruxible_core/attestation/__init__.py",
+   "sha256": "4b75064558d54b2113ac573f4ab44c753fe858ff7a7a80d11797a96f1e0e0234"
+  },
+  {
+   "path": "src/cruxible_core/attestation/store.py",
+   "sha256": "3e55dd9420ed89bff3e7ee3bf02dea290c6b5e25f7924b3d3b4c8a3cb4e232cd"
+  },
+  {
+   "path": "src/cruxible_core/attestation/types.py",
+   "sha256": "83ba2f195e79309569ee85cbd85472324324e02541b766474bea4326d65dc2a5"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/__init__.py",
+   "sha256": "48bc7eb3f88e80ee652feae821b94e843227701b2e7dc8b63334e50aa40b7f2d"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/builders.py",
+   "sha256": "c96a771313c881499dcc745f94a45bdd6d92862a43d907be11b2f3fb82da364b"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/config.py",
+   "sha256": "312e4812850e4163f51f4461850b35e576bd1f088ad6036b5a07dc08edccc172"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/labels.py",
+   "sha256": "1013eb2c3a978ce587f3d3e0dfe38e53c85324a5b0e632308cef849b04782b5d"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/markdown.py",
+   "sha256": "ff02142418b185ea7b946705ec555e05ba099959641fed1ee23fb114198305f3"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/mermaid.py",
+   "sha256": "730dc2ed2eb243fd9bfc99ec36ba52bb05ce8bbf4661c10689dfb1f476cdd2c7"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/mermaid_utils.py",
+   "sha256": "46d2658091aa4a37b0a54d5e543ba73e9f9d63622593dc65b70b6b097d74cbef"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/models.py",
+   "sha256": "2f5a5645d0bd051482c92dc7cf8afa30132aabd76ac52fb24765232a3cb12f38"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/policy_labels.py",
+   "sha256": "3117bc6ca2e15470127d4cf0c54d31d68645f181f81cc9316b396c6a709a2d55"
+  },
+  {
+   "path": "src/cruxible_core/canonical_views/workflow_labels.py",
+   "sha256": "ab2bdc2b05e15a28e1abfc1c5b33761cb0833a9a599261a5bfe51e24d02b6113"
+  },
+  {
+   "path": "src/cruxible_core/cli/__init__.py",
+   "sha256": "586f4cc3f48652f923ca83de8a0935171e3713653efa868c893fe6d9beb4c858"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/__init__.py",
+   "sha256": "abfaa775ee7c4dd0249abf566810610210b8b3dae0803b2b8bd2a87c00c196c0"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/_common.py",
+   "sha256": "6e598a5166a8f99aec62cef5c34949c081d35ccc92724288ab53d5d149df7086"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/_gate_adapters.py",
+   "sha256": "8af8dcfbf203a9ff4ac428cb7a7054d43c73a68d203b0fac9c9c5e5be78f013a"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/attestations.py",
+   "sha256": "b1e08e538a2b0b1a47e74ffa2737bd1e053b2b302bbf9d79fb8f9be87896e96c"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/config_views.py",
+   "sha256": "506bfc7b0fa369fc72fd900ededc4cdbdc5191a9ee26509e64fb6152cc9da98b"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/context.py",
+   "sha256": "226e942644f6980e8a818640e527a7efab5c709ebdae6e39176383a76ff455a7"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/credentials.py",
+   "sha256": "7c194aae2e976b00da9cfe1ce092b8caa080d0fafea40939a1f8145d51cb6a92"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/decision_records.py",
+   "sha256": "3619dc56f7d4620e4e22d106031ee209612e8d764f7ef78a71b8ee00b0550df0"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/feedback.py",
+   "sha256": "c26ef0feea26100bff787dda05e5fa9d5a5a6c7be9db792e1d37a202077af5a0"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/gates.py",
+   "sha256": "bf98dae8ae4ad50a8caa89074ed2017154aad59e602f4bc7440dcb0fea4e646f"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/groups.py",
+   "sha256": "3793af68ac61c25c3f6970e525904c5dac698b396cf8fd50b755d13bf5b8fdda"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/instances.py",
+   "sha256": "b4adf310b3eba43c10fb39f2d14731d343682304db6ca1f49a1a6360ce223f02"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/kits.py",
+   "sha256": "83d55d372c91101a5571887dd537d5b4f59785652ed8ab2eb2621e9b4c279a7d"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/lifecycle_verbs.py",
+   "sha256": "35105f8e3e310c5aa5941bbae62123a75fb671a327a5247a5f1b0e2e82daf546"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/lists.py",
+   "sha256": "a6ed2aa0ae788e6f843ca683f85c4334a7350f98d15180f539aa3ed7a1440663"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/mutations.py",
+   "sha256": "84cb02cb4598c842139c9fba05fb8cb39d6ce50493261d31235cfc8401aa6f83"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/outcome_contracts.py",
+   "sha256": "7968aed7f14b3370b44a31ae2e5c6537dff7da7c5511fa9c675718126bd2baa8"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/procedures.py",
+   "sha256": "3c2827668c016f5026ab733807ba1c4f50d2ec1c22d578b489309eda36e4963b"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/read_stats.py",
+   "sha256": "0d1ce5ce79f5568353ca682d940824c4f8fee0d1dce2e86621e43b2166332a02"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/reads.py",
+   "sha256": "07b60fd0c5eb5a2fd8cdcf62487347dfd84538a4fcadf61a703b61b9e2b5d552"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/server.py",
+   "sha256": "19c4982d8d69c61bf7e35457c8096813e92b3fa79d5def33920c16b491fcb497"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/source_artifacts.py",
+   "sha256": "e542748e8892ac815e0baca9c337b8949a1511d89d41b6cac7f9c89bef15276d"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/state.py",
+   "sha256": "b1368cf50b47466ec02929808a2706189c2e7b4d8b75a27b176e6c85d1a23672"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/telemetry.py",
+   "sha256": "c3d5962e44bc4c25f80e5c41f641a792cbd777d539bc0eee6d064a28b7eba369"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/workflows.py",
+   "sha256": "310c6d692edb18f076c49a603e4f795a6222bbe910051aeb233e4b6b85fbc7fd"
+  },
+  {
+   "path": "src/cruxible_core/cli/commands/working_set.py",
+   "sha256": "1f2af0ad3195b49e8706fcbb8e44ad0a9d5e2eba0df089dd1cb6c04314baa5cb"
+  },
+  {
+   "path": "src/cruxible_core/cli/context.py",
+   "sha256": "f87830b8622aaadd79b3809b0927b40ae0d4c9881802b39c0b6676ea60801df2"
+  },
+  {
+   "path": "src/cruxible_core/cli/formatting.py",
+   "sha256": "8ff49027bac7f6e8f2e2cae07f4cb86c5c83d5cd06a6e6050b9878f4444fc46e"
+  },
+  {
+   "path": "src/cruxible_core/cli/instance.py",
+   "sha256": "3d27604168f08339f6fb26569ce970d87054863f618ea1495fadec713cbdc5ea"
+  },
+  {
+   "path": "src/cruxible_core/cli/main.py",
+   "sha256": "02a5b89b23c5eedf7deae0a221f842998d5d80521c2b5265886b248fbdb2d2e5"
+  },
+  {
+   "path": "src/cruxible_core/cli/working_set.py",
+   "sha256": "1147b1a11148b77e953dfdf9b1bb69e61efe62961144512d1bba86b809f8414f"
+  },
+  {
+   "path": "src/cruxible_core/client/__init__.py",
+   "sha256": "433105f0bdc9fcba1c4464b3438b3dda1672a52015c86846b06bc5b21f25e906"
+  },
+  {
+   "path": "src/cruxible_core/client/http_client.py",
+   "sha256": "35e54695066b40652a7940ff3774666c47f67078045f617b36787b4668e1fd1a"
+  },
+  {
+   "path": "src/cruxible_core/config/__init__.py",
+   "sha256": "68db8ba644e9401486697714fec81d3666affb7f6e1c74690d56111a63404220"
+  },
+  {
+   "path": "src/cruxible_core/config/auth_managed.py",
+   "sha256": "5557a232ff3b86d7e2982e7da10ae24a90b5b97a78662d43b73b98739bc87fea"
+  },
+  {
+   "path": "src/cruxible_core/config/compact.py",
+   "sha256": "cb9f4b13f9172645a7ef58e67aaaf433434af74ae7255c1d8bff7e6fff745a07"
+  },
+  {
+   "path": "src/cruxible_core/config/composer.py",
+   "sha256": "00bf07257bc5a6d062d1b06660dbb6132739c28bb663c5010a5c815b5c0012b8"
+  },
+  {
+   "path": "src/cruxible_core/config/composition_ownership.py",
+   "sha256": "46c4467204ca23f9f516bf06ba363c5ad8793693c698a9afb591d9b436f4e61f"
+  },
+  {
+   "path": "src/cruxible_core/config/constraint_rules.py",
+   "sha256": "4e36a5cd4e1a154a67c9c0b305196f62668c16b62b123c87c355ed2e57cae263"
+  },
+  {
+   "path": "src/cruxible_core/config/json_schema_validation.py",
+   "sha256": "d24524623bc08373fb9233e90a9d15bc8b110ccecd5c49618be911e1e5822806"
+  },
+  {
+   "path": "src/cruxible_core/config/loader.py",
+   "sha256": "6cf2d2a0f846c7741492139ccff425ea304e2d2dcbd5d15cf2d9505006e394cb"
+  },
+  {
+   "path": "src/cruxible_core/config/ownership.py",
+   "sha256": "6a4a51aa796cad67e1a4e72c0c3f8b3fe26bc2fc001ff023f465867745a04d54"
+  },
+  {
+   "path": "src/cruxible_core/config/predicates.py",
+   "sha256": "0f9df4129371eacd59689d06848810b61c4b3f83bc05b775b595f5772fc433eb"
+  },
+  {
+   "path": "src/cruxible_core/config/property_validation.py",
+   "sha256": "3b25cdf50e96c7e1512b3be1e4b04ba7885484687a341054dd2cdf8f877bc32a"
+  },
+  {
+   "path": "src/cruxible_core/config/provenance.py",
+   "sha256": "075930750cf864ecc9d3d070df43db9441a5735cb5f2bd62e97dc48c4f2b8fe5"
+  },
+  {
+   "path": "src/cruxible_core/config/schema.py",
+   "sha256": "218ef158abdc38dc7d5c6a894ef8382018039b2a6f14b88a30b49e2e79e9a021"
+  },
+  {
+   "path": "src/cruxible_core/config/validator.py",
+   "sha256": "72842165484263e75538d85f9ea3d85e1fca4d0181ed903ce95556fd7b225d18"
+  },
+  {
+   "path": "src/cruxible_core/decision/__init__.py",
+   "sha256": "b9d18b18ea21a615e12ed118fa6ad4109d89931f550270413e1a2702f1eb03de"
+  },
+  {
+   "path": "src/cruxible_core/decision/store.py",
+   "sha256": "2f42ac951fa1e098634630175d81bbad2ad7d9cf958ad5aff79b47f15a5d0db8"
+  },
+  {
+   "path": "src/cruxible_core/decision/types.py",
+   "sha256": "5633f2d9c3d3ddea6fd8b3753cb87628b6f16d51980e58d40afe75b928f4a75e"
+  },
+  {
+   "path": "src/cruxible_core/deprecation.py",
+   "sha256": "5e090ade6b621f5d73d751ac886c1fb7a87d96d7a2ae6287cde00990ee2e1932"
+  },
+  {
+   "path": "src/cruxible_core/errors.py",
+   "sha256": "07c81b6fd462f3cc2e219780ebabe6c6078d4e3a8f95d621983f25552d56add8"
+  },
+  {
+   "path": "src/cruxible_core/feedback/__init__.py",
+   "sha256": "5f923a4e49485a9b159a4c604223fa00f1a0b3ea81f7476a6aa8a0b83cf8d78a"
+  },
+  {
+   "path": "src/cruxible_core/feedback/applier.py",
+   "sha256": "226e83550fb7e7aed18a0defa4e66288579188fc33e1c83359b2f5053aabc828"
+  },
+  {
+   "path": "src/cruxible_core/feedback/store.py",
+   "sha256": "b3f0f812015d5590f0b359be5757e01884ab0586f4199a9d69fb07917751fd16"
+  },
+  {
+   "path": "src/cruxible_core/feedback/types.py",
+   "sha256": "ed448b21e23902e94f826cde076d20130989978d5a343a09b2b8f296f45788d9"
+  },
+  {
+   "path": "src/cruxible_core/governance/__init__.py",
+   "sha256": "25393321ca890763cd3b57fa9bc18195b9fd0814fe2dc6567b2a3e67e3c0e285"
+  },
+  {
+   "path": "src/cruxible_core/governance/actors.py",
+   "sha256": "6f24a43e05c98f30a9a182e4b47db2238b335e72094664b87a3edcc1a3c7586f"
+  },
+  {
+   "path": "src/cruxible_core/graph/__init__.py",
+   "sha256": "754b4f321297d533a8ae8d0e15f15c81a93897e6c43c787306903a914b08b804"
+  },
+  {
+   "path": "src/cruxible_core/graph/assertion_state.py",
+   "sha256": "77cc8943de4aa08df229e0d4ebe4310bf490ac09ff17db55742421ce5998adc8"
+  },
+  {
+   "path": "src/cruxible_core/graph/claim_target.py",
+   "sha256": "a2db0453dbed531d36a2c7cabef4d52b516fd40ecc49683822aaef338d31dc6c"
+  },
+  {
+   "path": "src/cruxible_core/graph/diff.py",
+   "sha256": "5b6afe48b9c48e4f800127d79f2e4acf4ab3e837db28825cced6e9fb21b26fae"
+  },
+  {
+   "path": "src/cruxible_core/graph/entity_graph.py",
+   "sha256": "b15693d3e853a205575f8a637e918930c817981f75865c722eccb0518f81a233"
+  },
+  {
+   "path": "src/cruxible_core/graph/entity_identity.py",
+   "sha256": "02b638654b448e23e80b4f79218f1e7aaf03c1d61a0b70cb001440c6228b48c6"
+  },
+  {
+   "path": "src/cruxible_core/graph/evidence.py",
+   "sha256": "c2eec36a6d96db6999f40afb470dbf52a4e3a261f7d963cd4809c62f91765f7f"
+  },
+  {
+   "path": "src/cruxible_core/graph/group_drift.py",
+   "sha256": "03cc955ca13156585e4ce770dec4f589ec1c9e8dd45cc596d73ade312db47d00"
+  },
+  {
+   "path": "src/cruxible_core/graph/legacy_identity.py",
+   "sha256": "cb60211e9f5c0e4595752df736bb1450b994423aa006754e08c6f017c96f5b9c"
+  },
+  {
+   "path": "src/cruxible_core/graph/operations.py",
+   "sha256": "2ff52c010e4f6d2fef536fe2da06d74e0a0f355ad37291de9f277edb769b0be5"
+  },
+  {
+   "path": "src/cruxible_core/graph/provenance.py",
+   "sha256": "7c6ae3b083e5aded98f5b58a2925473435cb9527bfb5912a97f818fc531c74c3"
+  },
+  {
+   "path": "src/cruxible_core/graph/types.py",
+   "sha256": "ddcc6a0a2f71a396955266fe7beed2a3cd5211d2e188a92bac51c8afd7ff0c40"
+  },
+  {
+   "path": "src/cruxible_core/group/__init__.py",
+   "sha256": "9533768ec9c63fa39fe61d828ef0473cb8a763fde8485157ead050f3304aee08"
+  },
+  {
+   "path": "src/cruxible_core/group/governance.py",
+   "sha256": "4383f65b5aa38e3535f8b8631e36f6a74cd31a929fb8e53829b8191c0469f156"
+  },
+  {
+   "path": "src/cruxible_core/group/signature.py",
+   "sha256": "fb2baac4ebd0d1af6902223f477b2de06d312d20027d66c9d54af5e9049fbe1c"
+  },
+  {
+   "path": "src/cruxible_core/group/store.py",
+   "sha256": "3e7e0a82ebddd7d497bcd44229431297c1cd255c8848306d776be73c26a8b90f"
+  },
+  {
+   "path": "src/cruxible_core/group/types.py",
+   "sha256": "4eabb6f5bfbcccacf8fb8ced26fb2523e4024e12b11d51af4e44c932b7517407"
+  },
+  {
+   "path": "src/cruxible_core/instance_protocol.py",
+   "sha256": "aec8cf1e568ec5a43c557aecc8525a853ab05f711be57c56277d0fbdd01793d5"
+  },
+  {
+   "path": "src/cruxible_core/kit_defaults.py",
+   "sha256": "a61c956341eaa13034817f77e18c389db856a29c0678f0810d749679490c666b"
+  },
+  {
+   "path": "src/cruxible_core/kit_distribution/__init__.py",
+   "sha256": "e21822f96517a5bcae84cd32e3c808c930f1559dcef779e3f935ee503fc2bc3e"
+  },
+  {
+   "path": "src/cruxible_core/kits/__init__.py",
+   "sha256": "883724702752793f9b6e77b29ae393f343c5426c2a90785363229652d50df261"
+  },
+  {
+   "path": "src/cruxible_core/kits/state_refs.py",
+   "sha256": "0a1dbd72fc5ab9017d4fde53c2be78bc2617ffe812c2562c9c13d50e43d07a12"
+  },
+  {
+   "path": "src/cruxible_core/mcp/__init__.py",
+   "sha256": "98e957e90b99fd61ab33c7770850a15a5b2a1dca24971bf740bc6a1c6dc30163"
+  },
+  {
+   "path": "src/cruxible_core/mcp/__main__.py",
+   "sha256": "40712b270079e6f22b1c47a68215be5577da149ba1512f89167cea65e9327652"
+  },
+  {
+   "path": "src/cruxible_core/mcp/contracts.py",
+   "sha256": "40cb111c47528867e85912fa58e290864faf32ad78fe8f40e1224039830a21b2"
+  },
+  {
+   "path": "src/cruxible_core/mcp/curation.py",
+   "sha256": "2f8ff3c33abd39978e1480574f9466243682bf218ad154a7d54e258764738c02"
+  },
+  {
+   "path": "src/cruxible_core/mcp/handlers.py",
+   "sha256": "e3d3faf491cd799d0f87ba2ba5d1a997048100e25a7ae3f0f2eb1c611b96bc65"
+  },
+  {
+   "path": "src/cruxible_core/mcp/kit_surface.py",
+   "sha256": "57eecfa5339f9d0dcb6702a5d54179b5018c5c5407f6c7c64248684bd5e5c37d"
+  },
+  {
+   "path": "src/cruxible_core/mcp/permissions.py",
+   "sha256": "c2051910442e897e03449e1169b577fff2244297a4e83f83f25de72de0899968"
+  },
+  {
+   "path": "src/cruxible_core/mcp/server.py",
+   "sha256": "dd1c81cd6445f408830a3ec5bf9f67894324f18fcf67fffc399769db6552686f"
+  },
+  {
+   "path": "src/cruxible_core/mcp/tool_prompts.py",
+   "sha256": "eb1d45a6111521c73a04327486d747c8469ac437a6118a490aa2d67f4f932fa0"
+  },
+  {
+   "path": "src/cruxible_core/mcp/tools.py",
+   "sha256": "6b734d5883aaac1de870b0081365291377621bf42268656be4dc5eb783917b22"
+  },
+  {
+   "path": "src/cruxible_core/mcp/working_set.py",
+   "sha256": "065278536f5f3e8cc85e92866cf7b48b590aff47055d20571ae969378864c749"
+  },
+  {
+   "path": "src/cruxible_core/predicate.py",
+   "sha256": "e008e8f6ec48eeeda5726f610c1359d7dd061d5121cded592cfa497955b4d95b"
+  },
+  {
+   "path": "src/cruxible_core/primitives.py",
+   "sha256": "6e097bc9a1545f2251fa1412d84770a38241ab8e19c92a37a07034df3d3a8f45"
+  },
+  {
+   "path": "src/cruxible_core/procedure/__init__.py",
+   "sha256": "7bc13220051ed6e0578ea4f7a19d739186e8e1a4e5b82adaefe66e71b986bc54"
+  },
+  {
+   "path": "src/cruxible_core/procedure/store.py",
+   "sha256": "f7e6febcfd0c7907ad1ef329ebec0bc19c3f30691a4571ba56b6bb91ad32ffc6"
+  },
+  {
+   "path": "src/cruxible_core/procedure/types.py",
+   "sha256": "2cddead93d5b1e6d40f1b009b11da4748bd824a08058eb11d8b8ab04cb8c1cd2"
+  },
+  {
+   "path": "src/cruxible_core/provider/__init__.py",
+   "sha256": "dccc3abe793fc09bf6867d583b06218ed1f7078eec0e33b4d756ad9cd210826a"
+  },
+  {
+   "path": "src/cruxible_core/provider/payloads.py",
+   "sha256": "61ce5a0fb93b6cf99c7852b0ee3fda6f278d317bdd11a355ff5aa11bc8ffeadd"
+  },
+  {
+   "path": "src/cruxible_core/provider/registry.py",
+   "sha256": "50ce5b491fd6846fb5f21f4cb66bfe6f17439f9895522ba8998067289dd3ff34"
+  },
+  {
+   "path": "src/cruxible_core/provider/trace_payloads.py",
+   "sha256": "096a808e8ad7bb338cca081d725cc7997b3396ab5d37d58529ed57b78cc55465"
+  },
+  {
+   "path": "src/cruxible_core/provider/types.py",
+   "sha256": "037b80942e4394c4aa9ac9d7d2713337b4be196a223efb55d3bd907f61779deb"
+  },
+  {
+   "path": "src/cruxible_core/providers/__init__.py",
+   "sha256": "90b7b40719c36b07a0df0606a960eb4534b3be8fc4f3727ce7234e82b3e624e6"
+  },
+  {
+   "path": "src/cruxible_core/providers/common/__init__.py",
+   "sha256": "d66bb4a0eb79ed1f81e94b0c6c519d75925eef6e9e4ecd8a53b80a07e38595d2"
+  },
+  {
+   "path": "src/cruxible_core/providers/common/documents.py",
+   "sha256": "11d18b5ed018c8acb53da49db09f6d4f26d64b447f8ad7f196bb0a501a51ec03"
+  },
+  {
+   "path": "src/cruxible_core/providers/common/identifiers.py",
+   "sha256": "3a422810f40922f201000e658dd6c230481a62242c0e7602eb5dacc5faefb546"
+  },
+  {
+   "path": "src/cruxible_core/providers/common/identity.py",
+   "sha256": "16f6ff5c82354854c01081564baff054ed719d0fe2c1bbe26ba8b7fb0061678a"
+  },
+  {
+   "path": "src/cruxible_core/providers/common/tabular.py",
+   "sha256": "e4939b3dcba620e8e12827c733910d1e7e70977936036ceb99a325cba0660c43"
+  },
+  {
+   "path": "src/cruxible_core/query/__init__.py",
+   "sha256": "bf77d4da6fe52122913e988b959a73b750ce764dd4f924b1cfc19e11986d1505"
+  },
+  {
+   "path": "src/cruxible_core/query/continuation.py",
+   "sha256": "2b2d86af146cea414426e7c14352d684c798733ed737b156575bf7c9096154c3"
+  },
+  {
+   "path": "src/cruxible_core/query/engine.py",
+   "sha256": "89d7a873cf9d9c4a99168ac94186ae35135369fe69d51e6553efd8f430d1e5bb"
+  },
+  {
+   "path": "src/cruxible_core/query/entity_state.py",
+   "sha256": "587f428710516b27eae6c42e1f0d5be836056db029c8d010cf6bbea9b380e676"
+  },
+  {
+   "path": "src/cruxible_core/query/enums.py",
+   "sha256": "403281f954451f22213d67263ebbf136d013930e715b97a5f5dbf932ebc158b2"
+  },
+  {
+   "path": "src/cruxible_core/query/evaluate.py",
+   "sha256": "f860c4827dc1645b77a149b1ecc8c1fc116f11617542504ef92106bea6885226"
+  },
+  {
+   "path": "src/cruxible_core/query/filters.py",
+   "sha256": "76f9149f27b0e356a686d3121a9acdace58b1bf1b099255437813a4fca6bda7d"
+  },
+  {
+   "path": "src/cruxible_core/query/graph_layout.py",
+   "sha256": "42de09c8514b091d8cf5eae46282f32ba93222b9b86cad3fda4b8e3493fe18ff"
+  },
+  {
+   "path": "src/cruxible_core/query/lifecycle_status.py",
+   "sha256": "eea5ad0fba652876b6e79b17194a7c1e466578abeccd201c2acb01b4a0b11894"
+  },
+  {
+   "path": "src/cruxible_core/query/predicates.py",
+   "sha256": "b8d1c48589432ebd37910c66583e0941148311a83c2ecd259e0b9d3987dbda91"
+  },
+  {
+   "path": "src/cruxible_core/query/profiles.py",
+   "sha256": "51243155b8fd1db927c0bc00073acf9b101127f9b13b49321eb6ae863024fb3a"
+  },
+  {
+   "path": "src/cruxible_core/query/projection.py",
+   "sha256": "f21d22032bea68888c099bbad57bde570e018ca766c56979234310b01226a9fa"
+  },
+  {
+   "path": "src/cruxible_core/query/read_surface.py",
+   "sha256": "d0306bb427997d33a8674ff4387f33f8e5baba11ff9e1500833882eb385404da"
+  },
+  {
+   "path": "src/cruxible_core/query/relationship_state.py",
+   "sha256": "1514c20cd1c20b3e9c42edce591ecb1c1ea9a367924fc4c656bff8b6841fca83"
+  },
+  {
+   "path": "src/cruxible_core/query/types.py",
+   "sha256": "53427c87aa766ef502e1e0e4d0adc923cbc70a8fe10cbc6f850cc059e2718d32"
+  },
+  {
+   "path": "src/cruxible_core/receipt/__init__.py",
+   "sha256": "a99cece7c9432a75bb5aeddb6da18c18aec45a9ae9d21647af33eff829ac37d9"
+  },
+  {
+   "path": "src/cruxible_core/receipt/builder.py",
+   "sha256": "7b9b40ffd91937e0b345b7168c6acb29e20378abd2aaf7221614460ff1c3e6a4"
+  },
+  {
+   "path": "src/cruxible_core/receipt/mutation_payloads.py",
+   "sha256": "1a3f20d8de0b64bd73e87aea5cc352d530bcd8527e50cd810357788ff5d03639"
+  },
+  {
+   "path": "src/cruxible_core/receipt/serializer.py",
+   "sha256": "97db6be89e18128054d7de53ce103aa8c9e7eb1565bbb37d2107c898ba7d4c04"
+  },
+  {
+   "path": "src/cruxible_core/receipt/store.py",
+   "sha256": "edf107010143a3047ac3799e0ac1f97646b6028ae4e92758acaca6a6ca858ce1"
+  },
+  {
+   "path": "src/cruxible_core/receipt/types.py",
+   "sha256": "ac903289ebae06c2ae5e20c5b5303bd7dd356b61c325cd5edff420051a8eaa00"
+  },
+  {
+   "path": "src/cruxible_core/resolution_contracts/__init__.py",
+   "sha256": "c624e72689df96b95a32a1e39fe2302e9fa1c29bc11ba3099f09036cc65a9dcb"
+  },
+  {
+   "path": "src/cruxible_core/resolution_contracts/store.py",
+   "sha256": "d17f2b2fba6473684dd64f3d81477ae69a27d1607734bf1d141c011b0fc28f34"
+  },
+  {
+   "path": "src/cruxible_core/resolution_contracts/types.py",
+   "sha256": "aca156eba512dab01c2a23099d06c1354a359c963c2f2be580921199bc1db622"
+  },
+  {
+   "path": "src/cruxible_core/runtime/__init__.py",
+   "sha256": "ac65afb44d6acf074508f55cfc5efae4761807b968ae6ff78465e6dc9b6d4d40"
+  },
+  {
+   "path": "src/cruxible_core/runtime/api.py",
+   "sha256": "5019a54b58cb62f9c421953c82a2f5a80b9610ca804ba9c8af199f738d1cfd68"
+  },
+  {
+   "path": "src/cruxible_core/runtime/execution_policy.py",
+   "sha256": "ed44471256442400c63eedf4e037054e13c0bca11baa00ba3c1a2eb92509dc24"
+  },
+  {
+   "path": "src/cruxible_core/runtime/instance.py",
+   "sha256": "8123c096649fa3b6075d3fc838ab1c1798ac0d57e1720cf86d08db5b0f3eb543"
+  },
+  {
+   "path": "src/cruxible_core/runtime/instance_manager.py",
+   "sha256": "6954d63843a56c6bfbbf24b63b24ba2d71b58a7c439b58f364ce7b8b05c705de"
+  },
+  {
+   "path": "src/cruxible_core/runtime/permissions.py",
+   "sha256": "d22c6ab843501d5b2baf5830b0d511d5de868506ab1ca7842f46fb3ec1a0d628"
+  },
+  {
+   "path": "src/cruxible_core/server/__init__.py",
+   "sha256": "7d30fe97ba4742f33dbb997d39fb3f1b185c4dc4c60ca10a3b73b2201503600e"
+  },
+  {
+   "path": "src/cruxible_core/server/app.py",
+   "sha256": "118063471f5281c0fcf317fb534124d8dac045a72ea83267624d473241303495"
+  },
+  {
+   "path": "src/cruxible_core/server/auth.py",
+   "sha256": "df2702c20627316b18d1dd1ad6229a4c7744a6c3638fc7bb356eacd3f4df7032"
+  },
+  {
+   "path": "src/cruxible_core/server/auth_managed_entities.py",
+   "sha256": "d2218dee49c4dc7dde0c6ee21cf1d9163571f980b076aefdecb24a74be26d61b"
+  },
+  {
+   "path": "src/cruxible_core/server/config.py",
+   "sha256": "1a3f19d918eb55eb8c7a37f889cda02f742b9ebf2b61e7dc730098a9161fc2cf"
+  },
+  {
+   "path": "src/cruxible_core/server/credentials.py",
+   "sha256": "925f4c20fd8ebe943c7600e93350d6b767a1393f855282866137e7adf1df25b7"
+  },
+  {
+   "path": "src/cruxible_core/server/errors.py",
+   "sha256": "ec7059ca4c8e03e26d4b34f0d9965a4318831a35c4c1fef04177c833befb3287"
+  },
+  {
+   "path": "src/cruxible_core/server/registry.py",
+   "sha256": "fe05145aa8db48fdf776a03ffe4074931a1392d8ca47c8d9f43a333f5d1d109f"
+  },
+  {
+   "path": "src/cruxible_core/server/request_logging.py",
+   "sha256": "84e272fe713b61d4c7bed173c187bd882725747e217ca7d3efaa8c11920065a8"
+  },
+  {
+   "path": "src/cruxible_core/server/request_models.py",
+   "sha256": "4adb8588dc66c64195ae8c85e51b8d7a7068eafee41fb944bcc388689ca95fb7"
+  },
+  {
+   "path": "src/cruxible_core/server/restart.py",
+   "sha256": "83626eb1b83e151df705117303adad95c7a184aa5286721518273224f09e403a"
+  },
+  {
+   "path": "src/cruxible_core/server/route_paths.py",
+   "sha256": "86fe7d6adcbcccbbc88e82cf63165b5c1627d0ae083733c3dae9a38464442b30"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/__init__.py",
+   "sha256": "98a40c36d4409dd8684e64bbaa8a108e236ead1d7641b3017527532418cc4ee1"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/attestations.py",
+   "sha256": "1a9ebe480cab9ccec6e090b25216a07ebd1a0297d63e4c0f200c046ea0852052"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/decision_records.py",
+   "sha256": "4aebcb9629f4fb4f2656d7a60fb5e7ac8e022108ef20cafede8944f58a77ddc5"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/feedback.py",
+   "sha256": "97b01341aa155946a1829a43aa13f104c5002dbf25f03a324e18456832ec9442"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/gates.py",
+   "sha256": "7db17103e74bc834c0e35e95431c99e6d7055a2db543842dc5c225522b40fa5b"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/groups.py",
+   "sha256": "f8a787b3281016eac997776edd6681fb34c82f303bd623084c9c7a4a271074a6"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/hosted_instances.py",
+   "sha256": "1382f9662d4707736a20ae54a8429c895cc62f755967502f76236cf002164b16"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/instances.py",
+   "sha256": "727149febfd0cffe93b0f0f6044d65b1294989c96a2f5c95ddf61096624a57b8"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/mutations.py",
+   "sha256": "a39923396a6b4f1cdc06f028bc95430cc8dd5c5088a3d3459c3c4470c0836e04"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/outcome_contracts.py",
+   "sha256": "8b36870b91483a97d0671414cc860c2c9f4969c7486224bf86b5aa58868985cb"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/procedures.py",
+   "sha256": "6f1c1cf7ce811b1fffb059362f8453e34f959d1100f59d6a00200fdb77ccd166"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/queries.py",
+   "sha256": "b9ff64bdc1dd592e06a039900d125d354703563fa01e691cdf9f157fdcc3276b"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/runtime_credentials.py",
+   "sha256": "aa3f8c0ba18835fef5de4903051cc04979c2ac88579ce7af0a639a3cf8fa5b87"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/snapshots.py",
+   "sha256": "59c592127fdd28e3b46812875266d04c7fb0e7c94cba9713f00b6e99d3e9b9d9"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/source_artifacts.py",
+   "sha256": "d06f831872897573a883c2df0bdd4d5782528f9e589d3d93114a4a3f777b1365"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/state.py",
+   "sha256": "286a98c2889aff3d150215c197bc065de0cdeefb61ec1c22f059f33730b442c9"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/telemetry.py",
+   "sha256": "4fb0c9fa0765924708840103851a501a771c6d37e659819c9911ccd5b5b49de2"
+  },
+  {
+   "path": "src/cruxible_core/server/routes/workflows.py",
+   "sha256": "bd4438c5b872b8e7165168f09995607578fd19a616aa1b19bfdbccbff4de4674"
+  },
+  {
+   "path": "src/cruxible_core/server/telemetry.py",
+   "sha256": "239a4a3a092a027751e279fd51880d9cc927d012ab9b535fb48e07ea4ae316fb"
+  },
+  {
+   "path": "src/cruxible_core/service/__init__.py",
+   "sha256": "94241a12d37865b31a04767431757403f3832a6e1e73f1bb2d0c94672ffa37b0"
+  },
+  {
+   "path": "src/cruxible_core/service/analysis.py",
+   "sha256": "070edb434359b0e8e13ef75ba5788a0f92ddfd7d274aced2283f7fec85f5514d"
+  },
+  {
+   "path": "src/cruxible_core/service/artifact_lifecycle.py",
+   "sha256": "07932525a01b855adb0ff281742ce4f70ad4cf0a189b8847e788dd47ef14ccbc"
+  },
+  {
+   "path": "src/cruxible_core/service/attestations.py",
+   "sha256": "797fa43f6da97b816e88f463d527549476b817525396f379e831d77aadb3c9e9"
+  },
+  {
+   "path": "src/cruxible_core/service/config_mutations.py",
+   "sha256": "c2e46081814d8cb90183f83cc4e98ae25e9018fe46e3b56f20f78f20858b26aa"
+  },
+  {
+   "path": "src/cruxible_core/service/decisions.py",
+   "sha256": "5804a916a34620d5ee80563bb5b4e5090892f7ca67bd6374bfc27b95a7a165de"
+  },
+  {
+   "path": "src/cruxible_core/service/direct_write_policy.py",
+   "sha256": "f9f31fcb81dd5af208d7e20279ba1f4cf9ba47ce73efa71814baa9aa450dbd34"
+  },
+  {
+   "path": "src/cruxible_core/service/evidence.py",
+   "sha256": "a75ea2dd9936692b6ace92daf60787ea5e6ba8abbbcfb4b2605b989706c5618b"
+  },
+  {
+   "path": "src/cruxible_core/service/execution.py",
+   "sha256": "b994c5d0afe6258aebae7a8331dd85c5161ca87dbd4c8f7da774adc2a43cb265"
+  },
+  {
+   "path": "src/cruxible_core/service/feedback.py",
+   "sha256": "5710b4a14342b467a18ea0016b6536011e158e00fd3018d937cf0a42d74b5733"
+  },
+  {
+   "path": "src/cruxible_core/service/gates.py",
+   "sha256": "be7edc2c9da3aff75a43838e5c539c896f155d11a68301545cbbed43f0bbcba5"
+  },
+  {
+   "path": "src/cruxible_core/service/group_read_models.py",
+   "sha256": "c37636c400786a35a092d275ff70f770aec601c8be90074543bf60e04d400525"
+  },
+  {
+   "path": "src/cruxible_core/service/group_transitions.py",
+   "sha256": "f4cf8ac9f4ea637c0ff0ac7119a3556bca9102c15c94ced1508c383cf673d95d"
+  },
+  {
+   "path": "src/cruxible_core/service/groups.py",
+   "sha256": "7546593b3c9bbba1bb29753e7e89927c481f1afff3554c38c67822942fcea504"
+  },
+  {
+   "path": "src/cruxible_core/service/lifecycle.py",
+   "sha256": "6768d9517d811d74e7f5b43286f2817694033d917be20081a0d488cdcfaaf28f"
+  },
+  {
+   "path": "src/cruxible_core/service/lifecycle_inputs.py",
+   "sha256": "4fbb66f5362dacec5f527f2d13fa3f637cbb32559b483781cf357617f0efd867"
+  },
+  {
+   "path": "src/cruxible_core/service/mutation_guards.py",
+   "sha256": "6bc398f513404db192cc5378a7dfb01cce8c450975327e4e536c3c757f80c564"
+  },
+  {
+   "path": "src/cruxible_core/service/mutation_proposals.py",
+   "sha256": "f7d4cc715ecabbb1899b5e38e28f0e2e7d4fdc326ead2a4c44d9c0f138c5297d"
+  },
+  {
+   "path": "src/cruxible_core/service/mutation_receipts.py",
+   "sha256": "027ad65c2b733f7bb834a8dc71f5d2d02556cb483c2b3381edc4cfc0622a0fef"
+  },
+  {
+   "path": "src/cruxible_core/service/mutations.py",
+   "sha256": "7ce7b08c3677ac5eb503d9b30671ae61f9d56723dd3f6b8f766f782a5625772d"
+  },
+  {
+   "path": "src/cruxible_core/service/procedures.py",
+   "sha256": "1847eddf83374e5523386d6d65a055ed1cf76bea3f645a6a8dff9d4f6ed619b9"
+  },
+  {
+   "path": "src/cruxible_core/service/property_diffs.py",
+   "sha256": "54b8bde1b6e8026617f3a9daee87473bb80577169dfa5bfb6ea050c8687722bd"
+  },
+  {
+   "path": "src/cruxible_core/service/queries.py",
+   "sha256": "56c73caa8abbab5e626150cb2d162098cab808b0a351f7833f03858d848de083"
+  },
+  {
+   "path": "src/cruxible_core/service/resolution_contracts.py",
+   "sha256": "8ab11d610c52331112303bb309d39610421c4ec520c31d76cd400fb92f1b5b77"
+  },
+  {
+   "path": "src/cruxible_core/service/server.py",
+   "sha256": "b8ce1f4863873de30bb91727c4400a526277d3dce286e47eec39a858a70e182c"
+  },
+  {
+   "path": "src/cruxible_core/service/snapshots.py",
+   "sha256": "944a99ac8ff7eda7814c19c51e84d819ab29190a703e4405820eb774f2885ca9"
+  },
+  {
+   "path": "src/cruxible_core/service/source_artifacts.py",
+   "sha256": "a24d954aec35bd1b29be343367335131dfdacd24241c5e3e731a37064f6e5de6"
+  },
+  {
+   "path": "src/cruxible_core/service/state.py",
+   "sha256": "eb9087cc5517817b32747196dd9f21e3a16cb9cd58f1aa338fe47720b91ef87e"
+  },
+  {
+   "path": "src/cruxible_core/service/state_diff.py",
+   "sha256": "f9463194cb6f2224a6bd97aa4ff5c7feb829f4a196bafd2c8389a9c69f8f9b1a"
+  },
+  {
+   "path": "src/cruxible_core/service/telemetry.py",
+   "sha256": "df89c2e792d441be6f113b84aac2c010e14beb4ac32c892d671d69ae137e69d8"
+  },
+  {
+   "path": "src/cruxible_core/service/types.py",
+   "sha256": "df10e4ca5b641e199e54a1f3612c90b0f26e7ecd34f2c06e5a86e37056032e7d"
+  },
+  {
+   "path": "src/cruxible_core/service/views.py",
+   "sha256": "8d99fc34ab26c2fb7a327cc00a2e7b345531b696e179262e54df44bdf3567170"
+  },
+  {
+   "path": "src/cruxible_core/snapshot/__init__.py",
+   "sha256": "3d10cecfb8793126a78db4ab97b2c6945a1ebedbd68ce626f18cc4b6c68d0731"
+  },
+  {
+   "path": "src/cruxible_core/snapshot/types.py",
+   "sha256": "0a91cef666640ef6bcf794e737134705be3c12c9c2a18278508fd940dcfddaf3"
+  },
+  {
+   "path": "src/cruxible_core/snapshot/upstream_verification.py",
+   "sha256": "e85f66467918ccea5cd461ed0e45265d94b69591c74eead629f5b375ccd44c4d"
+  },
+  {
+   "path": "src/cruxible_core/source_artifacts/__init__.py",
+   "sha256": "900d1992f488ab91ef5fa8d245827adbaed2466a9daaea10bd5f513fdddd9426"
+  },
+  {
+   "path": "src/cruxible_core/source_artifacts/markdown.py",
+   "sha256": "8fe5714ea4c64449abebcc9435e38bff5228f8e3bbe13cd25665be60fbf05dfe"
+  },
+  {
+   "path": "src/cruxible_core/source_artifacts/store.py",
+   "sha256": "3596d2348856f5c9b4fe9cfcd306b3abdc5e28950f5ef3e01c0ba998f70d0953"
+  },
+  {
+   "path": "src/cruxible_core/source_artifacts/types.py",
+   "sha256": "4f743431f33abee600795ce829905e486ae76c253f87fccac7b742926794815f"
+  },
+  {
+   "path": "src/cruxible_core/sqlite_ddl.py",
+   "sha256": "c950a3d3f01d2e2fb8d03ab7c8d803be062c9052b0398c3d33b710f9e68b632b"
+  },
+  {
+   "path": "src/cruxible_core/storage/__init__.py",
+   "sha256": "909a712803ef175f62b5f713a7711b47fb55bcd71ef22cdb3b8995dfeda90a61"
+  },
+  {
+   "path": "src/cruxible_core/storage/protocols.py",
+   "sha256": "4f906557ca18f7cb9945273bda321d8be6ec75d356ce0a7dc65f42f53662320d"
+  },
+  {
+   "path": "src/cruxible_core/storage/sqlite.py",
+   "sha256": "af3e37d5fdf49b10d76040b5d7dd944006f8df4699b96e8b9983af5596b110fe"
+  },
+  {
+   "path": "src/cruxible_core/telemetry/__init__.py",
+   "sha256": "501bdd2950b8a48c38f81e229e58b631f003e80405f8af86090edba439dfc788"
+  },
+  {
+   "path": "src/cruxible_core/telemetry/buffer.py",
+   "sha256": "5f080d18131e0a03ce4792a5afaf62ab5e1af0720c5c6a4c4d9de9d7f01f0646"
+  },
+  {
+   "path": "src/cruxible_core/telemetry/instrumentation.py",
+   "sha256": "74af0611bac11e55134e12b11f8734f15aa1a366c8a355d4b5dfa75763ff6c35"
+  },
+  {
+   "path": "src/cruxible_core/telemetry/store.py",
+   "sha256": "34d70da50084b9d9de5395bf16c38920aff5a08dcf4909aa6a4cbaa432c6723b"
+  },
+  {
+   "path": "src/cruxible_core/telemetry/types.py",
+   "sha256": "db280ce2c6f914746cfd6ef5b44105b4c033cac59ef6b75cbab8c97e9b7af36a"
+  },
+  {
+   "path": "src/cruxible_core/temporal.py",
+   "sha256": "5cca04f700319d8d504760f386c5acb9e4e4db484a5c91020eab083b0f2bbd23"
+  },
+  {
+   "path": "src/cruxible_core/transport/__init__.py",
+   "sha256": "93a827dbc1537f88833c080197556265c4c8a98122c59366a0e1b949f05ebefb"
+  },
+  {
+   "path": "src/cruxible_core/transport/backends.py",
+   "sha256": "a49efed1310db557ab165ef55c6d8246c78e8247eda90396ca7b888528b040cd"
+  },
+  {
+   "path": "src/cruxible_core/transport/types.py",
+   "sha256": "57235fb09c9869045e4e8d072eaca9603aaebf1d789daf31ce8c695ba2908b96"
+  },
+  {
+   "path": "src/cruxible_core/workflow/__init__.py",
+   "sha256": "25ef3ad530105b4a5c445767d95fec1327bce71bf7819fcc4ce948a9a232c91b"
+  },
+  {
+   "path": "src/cruxible_core/workflow/apply.py",
+   "sha256": "68f54332aeec7d4f57cb4929e4e081f01080372afb6b419e8c17d23039b61200"
+  },
+  {
+   "path": "src/cruxible_core/workflow/artifacts.py",
+   "sha256": "72e1aa4013452117071296a286e4c70ef98746da86085cfc4a01321c9a3fc57b"
+  },
+  {
+   "path": "src/cruxible_core/workflow/compiler.py",
+   "sha256": "229f7674298a86eccc3c8e1ed2d5405c2a7e865bb1a8c713de630c3543162591"
+  },
+  {
+   "path": "src/cruxible_core/workflow/contracts.py",
+   "sha256": "4e817cc4e26794460cf726a45ab6dd779ee6d98f980633c767ccb7ee17f87f37"
+  },
+  {
+   "path": "src/cruxible_core/workflow/execution_context.py",
+   "sha256": "30621b88186cdec061a8dec5996c380965654bc0436b8b0b871e9f190cdad261"
+  },
+  {
+   "path": "src/cruxible_core/workflow/executor.py",
+   "sha256": "78d048169f7a49050a2f0af4170c94c72b16ccc4d0ab3fbb510ea9b2d44390cb"
+  },
+  {
+   "path": "src/cruxible_core/workflow/io.py",
+   "sha256": "00e87aeef84ead3312916fe1ca35128f30cee3d0e42c5a555698619558d86add"
+  },
+  {
+   "path": "src/cruxible_core/workflow/proposals.py",
+   "sha256": "f5bfda961bb5e6f454d90ecd667886081ecc3d2daa65942a0090dd66dca687e4"
+  },
+  {
+   "path": "src/cruxible_core/workflow/refs.py",
+   "sha256": "cee3c5e3b83d7402508842c56e5648335e94893ca73aac4cc2c1edc6eaa2d3fe"
+  },
+  {
+   "path": "src/cruxible_core/workflow/step_handlers.py",
+   "sha256": "b083a7bfb967b716bcc1b72221ac2553fe6a55af0b0042b8720fdaf767a56acc"
+  },
+  {
+   "path": "src/cruxible_core/workflow/step_helpers.py",
+   "sha256": "0a39f803a3ac1d32c46cd8edfe3b48e76f992eaf94c30178cd7c14a0ddd6aa04"
+  },
+  {
+   "path": "src/cruxible_core/workflow/tracing.py",
+   "sha256": "979af275cdf4ec021a6c0c69e385d09119888888bdd8978117ec219683b5d686"
+  },
+  {
+   "path": "src/cruxible_core/workflow/transforms.py",
+   "sha256": "54e87d5a4d379ee98e50cc03016e26b24f64608011a3d4ccccfd5f3b7d3f2d54"
+  },
+  {
+   "path": "src/cruxible_core/workflow/types.py",
+   "sha256": "5f89ae44a720e7842efbba2fbc7e5476575f3dcdf81f7a6cd2976dbd9234ecfa"
+  },
+  {
+   "path": "src/cruxible_core/workflow_execution_types.py",
+   "sha256": "045e17d048c3dffcdf1848166314600447398a404e20c7539d875e3668dc9afa"
+  },
+  {
+   "path": "src/cruxible_core/working_set.py",
+   "sha256": "f932c698aa3c42f9d503937326008589f782013606a7b5f2cd12e3c6b6c86b41"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "efc887102ba35bb314ab78453ce1ce3c92b0176f7d59d5a86aa616912346f922"
+  },
+  {
+   "path": "tests/support/__init__.py",
+   "sha256": "f6deea2435f0e3949bb9d904c24df5077e7b2d33c3c5b3c997c736c9d6d3b002"
+  },
+  {
+   "path": "tests/support/client_contracts.py",
+   "sha256": "a81c0c5835c344d45c3a641356bf170129547cef90342c4cc3abd0c3c8dd6b5b"
+  },
+  {
+   "path": "tests/support/http_surface.py",
+   "sha256": "cdd73faacae2569dcd64f721a4f033627ea175b061d408ef412d35e3d6238a41"
+  },
+  {
+   "path": "tests/support/kev_golden.py",
+   "sha256": "59aadaacdb64e5d0940184ae3466f47fa9fc751e5812aa4be6887b72f252d8fb"
+  },
+  {
+   "path": "tests/support/state_cross_section.py",
+   "sha256": "ab654212e9f2cde18b4d52a233a7f61895316eff0342496878f72193b0e035e0"
+  },
+  {
+   "path": "tests/support/terminal_lifecycle.py",
+   "sha256": "59c3529873c74bebd8af1390ea2daec85810b608d04d1ba389b2a0426f750b75"
+  },
+  {
+   "path": "tests/support/workflow_helpers.py",
+   "sha256": "08e1a0ffd83406fc6a8b6bc334cbcc8b0469aadb252c1c2d2d6d38dc6441e704"
+  },
+  {
+   "path": "tests/support/workflow_test_providers.py",
+   "sha256": "4e9516e9cff450ce282627d50518bf1f5e00e242d214b11b7298512fc6bd637b"
+  },
+  {
+   "path": "tests/test_architecture/test_runtime_boundaries.py",
+   "sha256": "5907f9b4049f947fb3a2598e504b16fd457f5537c482f37a6a9c935c0115d66f"
+  },
+  {
+   "path": "tests/test_attestations/__init__.py",
+   "sha256": "a3eb37a9f297aba31861db04c0069c3515d6e44d1ffda7b3c78664ccb176f798"
+  },
+  {
+   "path": "tests/test_attestations/conftest.py",
+   "sha256": "3e114079bcf9a2d5bb63120d6b3be06f94da13836a68f7649d5f66191efbef7d"
+  },
+  {
+   "path": "tests/test_attestations/test_procedure_evidence.py",
+   "sha256": "06537a8332dc7fe49f088c96342a1941ac4a0998f4838234855264bd993bbd42"
+  },
+  {
+   "path": "tests/test_attestations/test_service.py",
+   "sha256": "55a68effd752edf52942066b0d2495167b8f0fa970ae5d4ca58651ccbcf78c47"
+  },
+  {
+   "path": "tests/test_attestations/test_types_and_store.py",
+   "sha256": "35f15f390aeed902ab057e7848e06f75362de3041c17b3fc8c321d71ff37fb25"
+  },
+  {
+   "path": "tests/test_cli/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_cli/conftest.py",
+   "sha256": "e47ff5f9e227eb602ae9129903bb5b44d6f2bac64bafb5f3d6e409c2dfd2a2d5"
+  },
+  {
+   "path": "tests/test_cli/test_attestation_commands.py",
+   "sha256": "87c9d9d777740bd48463c105b2cba8175124cbb02523296e742d3e055fbcd513"
+  },
+  {
+   "path": "tests/test_cli/test_commands.py",
+   "sha256": "d96ace49bf5542c2501006ff6abfc7274c1a2f6d35f2ab7b9c96132245658dc0"
+  },
+  {
+   "path": "tests/test_cli/test_continuation.py",
+   "sha256": "9f15236b348eefb77087c2b16573f93740a1ddd287af0f0beab6c345b4523d8c"
+  },
+  {
+   "path": "tests/test_cli/test_credentials_bootstrap.py",
+   "sha256": "fa75edfcc88f0f82c1f19d9e49398cb232c59f5799453824e6094b86ddd0ef8c"
+  },
+  {
+   "path": "tests/test_cli/test_credentials_recover_admin.py",
+   "sha256": "c7e5b93a521237d05d58094ad560c70be9a02108bbc7672cea3c3918d1ad2955"
+  },
+  {
+   "path": "tests/test_cli/test_gate_commands.py",
+   "sha256": "b550252c0173c068dcb83f1a021d1071998449d05273443f773de85e3b81e779"
+  },
+  {
+   "path": "tests/test_cli/test_help_surface.py",
+   "sha256": "ecb79ca87872831c26a2f6e5535d33c04d0994bcc14cf667d1966bcfc2a32eae"
+  },
+  {
+   "path": "tests/test_cli/test_instance.py",
+   "sha256": "222f4b51b73ef67d4f9f6b7883da1f743955cd11982095a9b5fed9131799101a"
+  },
+  {
+   "path": "tests/test_cli/test_kit_repin.py",
+   "sha256": "f969243a53be26be18f286b85212dc652abb663c85e995c8fbab286a69ba8024"
+  },
+  {
+   "path": "tests/test_cli/test_lifecycle_verbs.py",
+   "sha256": "0e0395627c2139b3255de254f4d9c55139409dd7c428323d2a4fcc87253805cb"
+  },
+  {
+   "path": "tests/test_cli/test_multi_kit_init.py",
+   "sha256": "822af95ebca2cf549a607349c820bde97e786b8da88734db2078b426757e73a0"
+  },
+  {
+   "path": "tests/test_cli/test_outcome_contract_commands.py",
+   "sha256": "9db656bc2f80f92cb1dde9f016e97cbfb7da40e4f571bb65cb22e8aa7047b281"
+  },
+  {
+   "path": "tests/test_cli/test_procedure_commands.py",
+   "sha256": "ebae20c27b97c5287fc955c994340d6b996f24d2b0cfaa2774ce80491d9d808f"
+  },
+  {
+   "path": "tests/test_cli/test_server_mode.py",
+   "sha256": "96cc17552281a61dda4f08fc653fd4fd49ad34ee9bb780436876f7ddb30af82d"
+  },
+  {
+   "path": "tests/test_cli/test_server_restart.py",
+   "sha256": "66b4b59626d62e40da74a80b293378de0588d23f90b98ef0bbcda93c1cdb94f7"
+  },
+  {
+   "path": "tests/test_cli/test_server_start.py",
+   "sha256": "899cf7d172e7a45eeb7cec4e76478a6d026a5a75ff18ff341226449c7a1d607b"
+  },
+  {
+   "path": "tests/test_cli/test_server_status.py",
+   "sha256": "f948c052ef8b362505886adb93807233c1d815b7bc598385d0e78a70fccd166a"
+  },
+  {
+   "path": "tests/test_cli/test_source_commands.py",
+   "sha256": "711eb88e8a62a97f66e83d0db6d639854b5dab38e285ea9e7ca9fcc074432168"
+  },
+  {
+   "path": "tests/test_cli/test_startup_imports.py",
+   "sha256": "05167105966815fc40a3da208c238c152ed38318681545ff4a6bd0e1653410ad"
+  },
+  {
+   "path": "tests/test_cli/test_state_cli.py",
+   "sha256": "211e81de3f83e8e2fdc469d042c50a8d326da458cb484cfce23a8bf21a83a124"
+  },
+  {
+   "path": "tests/test_cli/test_state_command_flow_smoke.py",
+   "sha256": "01e78427db9f9d9e52ee48c5d4d9d6bc968e6e104ee59a19c9ef8b2616cae6c7"
+  },
+  {
+   "path": "tests/test_cli/test_target_visibility.py",
+   "sha256": "46192c8c52712a77f08b208cc3571ca73545121c3abaead4a7b2bfed7e2faf9e"
+  },
+  {
+   "path": "tests/test_cli/test_transport_errors.py",
+   "sha256": "eb3ee3188a9bf5b2540998fa58209bec86ba8e8765a844943ceed7b9ea82dc03"
+  },
+  {
+   "path": "tests/test_cli/test_workflow_commands.py",
+   "sha256": "27cdee3687cb94de01afebc42b2f4b4ef52e2cdbf46565fd1c76dafa2e6dd354"
+  },
+  {
+   "path": "tests/test_cli/test_working_set.py",
+   "sha256": "b4f555da6f9d2597c541efaffd81b3f12fc0694e8c94db03a99e2f59c7b3af5f"
+  },
+  {
+   "path": "tests/test_client/__init__.py",
+   "sha256": "8064ccf286223aaeff1efa5662e16c04f08e10679d8f9f3d97b53dc94648ec00"
+  },
+  {
+   "path": "tests/test_client/test_contract_snapshot.py",
+   "sha256": "d6ccdd2d566a9025f42cb8e42781d426b3eb5ff21a2c05b30c47fbf019bceac7"
+  },
+  {
+   "path": "tests/test_client/test_http_client.py",
+   "sha256": "c66490d9ac1568f8388de4141313f8f0c0c18697e465802c31adbafbb6cef003"
+  },
+  {
+   "path": "tests/test_client/test_http_client_timeouts.py",
+   "sha256": "4db3a2a81d2a73daf1bd961cd03566b85f98413c5fa8803e26646ad25e9fbb2a"
+  },
+  {
+   "path": "tests/test_config/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_config/test_check_kit_lockfiles.py",
+   "sha256": "703a64d199d237a51e0aa1de67bf49b2359123f302e2e1fd8c409b9ed3ef825d"
+  },
+  {
+   "path": "tests/test_config/test_compact.py",
+   "sha256": "1612e3eb3ccf9b50d5fece3574a85f3c7b443905f80b3d29c6b3b85f213f2983"
+  },
+  {
+   "path": "tests/test_config/test_composer.py",
+   "sha256": "bdce81027e378ec043f1d7a91591fa3e56400f0af2e06c038e2f161cb55639fa"
+  },
+  {
+   "path": "tests/test_config/test_composer_integration.py",
+   "sha256": "e2bd940732e8346664a2c6922f2f4622c7fe7b4a4b38bb533e778e2360323656"
+  },
+  {
+   "path": "tests/test_config/test_composition_ownership.py",
+   "sha256": "38cc232927e1997664ada2a7d3936aa506dbf51022347e037a8b0adcb0d3c03f"
+  },
+  {
+   "path": "tests/test_config/test_constraint_rules.py",
+   "sha256": "9ea1ae7cfe6298d7471aca4d0cbb03b9b3af21ba3b7add00de53415d074b52ab"
+  },
+  {
+   "path": "tests/test_config/test_entity_identity.py",
+   "sha256": "7bbccdd83554979875f5ee36cd9331e699f97a0effb429ea133264ed5e3fe0e9"
+  },
+  {
+   "path": "tests/test_config/test_gates_config.py",
+   "sha256": "b72b61b2f1da47df6d8efe7063324ca780df6bd85d4cb9dad62765204e8799f0"
+  },
+  {
+   "path": "tests/test_config/test_kit_distribution.py",
+   "sha256": "90dba80a3159d3bcffe59a5ff059482b530d99af781c499693b105202c2c33ae"
+  },
+  {
+   "path": "tests/test_config/test_kit_lockfiles.py",
+   "sha256": "28b7a1af4acafd2c4c2320402d8cce598f56c6bd8484dce3b27abddfe023f371"
+  },
+  {
+   "path": "tests/test_config/test_kits.py",
+   "sha256": "4921e1395d723488749e10e75c4242ca7a35070d7eae750dce37816e35c87bfa"
+  },
+  {
+   "path": "tests/test_config/test_loader.py",
+   "sha256": "cddb837a9431b536b15633b6372b4e417b56851522ce651a9503d30266bfda65"
+  },
+  {
+   "path": "tests/test_config/test_schema.py",
+   "sha256": "7efc1729e66f9413592e9bd12678c3f9f331f3a6c34826d1f8615525f5c623a1"
+  },
+  {
+   "path": "tests/test_config/test_validator.py",
+   "sha256": "18d5c2c07040a106b3c489f7a3b6a09bee96bf8ba8989e0c89b2e891f5428aa6"
+  },
+  {
+   "path": "tests/test_decision/test_decision_types.py",
+   "sha256": "fa6c24aa54ab773127a0551d5be8817c71842427d5fdfb1bd99722fe9a808f7a"
+  },
+  {
+   "path": "tests/test_decision/test_store.py",
+   "sha256": "1ae8bb046743ba16b0242aea6f959a23185f605e8244a85ae0c397e1780588fd"
+  },
+  {
+   "path": "tests/test_demos/test_agent_recipes_smoke.py",
+   "sha256": "e74cb3066a043858911dbe737324eb1fcf40760608fb6e97d6265ee810a0a97c"
+  },
+  {
+   "path": "tests/test_demos/test_domain_kits_03_mechanics.py",
+   "sha256": "eba27c50d49f6776792cf078d02a613dcf65ba469ef345eb0043570a983b9450"
+  },
+  {
+   "path": "tests/test_demos/test_kev_03_mechanics.py",
+   "sha256": "36f88eaf728094ce1bf7911cfdad726def6d1ff216be84f06681b0356b7158d3"
+  },
+  {
+   "path": "tests/test_demos/test_kev_quickstart_smoke.py",
+   "sha256": "990f3699b610dbdc217364002d1ff783b5b549de31953941877c8ee191ea5098"
+  },
+  {
+   "path": "tests/test_demos/test_kev_triage.py",
+   "sha256": "a614121bc3f8ca17d5d949154f7820ab789ba7b4283f22d53b568d68ba62b5c0"
+  },
+  {
+   "path": "tests/test_demos/test_standalone_kit_authoring_smoke.py",
+   "sha256": "e057d4d913f8298e279123ad022cac36f5b8a3b4919ef011b3ea259ccb1e454d"
+  },
+  {
+   "path": "tests/test_deprecation_mechanics.py",
+   "sha256": "b6579e4bbbdf961657ca35cf00627d383be1cc2d435d8819da853f3194ba405f"
+  },
+  {
+   "path": "tests/test_errors.py",
+   "sha256": "33c16bc70fb6ea43f2022d979cd4dd7e173d10aeed00f57f486bc4c51a8ebb87"
+  },
+  {
+   "path": "tests/test_evaluate.py",
+   "sha256": "d9c950ea671d941dada7e0daea761c25ddbc9140ebecaf812e8669a3d28dd8d0"
+  },
+  {
+   "path": "tests/test_feedback/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_feedback/test_feedback.py",
+   "sha256": "af43dbec30dda16476cc00ef564b9131f7a5e5784fb9b4aae6e48064c71c3f0a"
+  },
+  {
+   "path": "tests/test_golden/test_kev_golden_states.py",
+   "sha256": "e1f129ab2d853f119bbe66af39a6bd857c29a7b31a6574b38e4391b14c031bd7"
+  },
+  {
+   "path": "tests/test_governance/__init__.py",
+   "sha256": "33b50df8ed9089e7369ce2d7f9e649e583ea08a5ca53aedf4e2e2a4e16d38d4d"
+  },
+  {
+   "path": "tests/test_governance/test_actor_context.py",
+   "sha256": "2f2a0f124e00d8c792aec09ece2a53a80f3466c220ef64cda10c70a186172b4a"
+  },
+  {
+   "path": "tests/test_graph/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_graph/test_assertion_state.py",
+   "sha256": "454254730fe29acb5bf7d5f453c667e0f204f3e9afd596234c4b4291478f4af4"
+  },
+  {
+   "path": "tests/test_graph/test_edge_identity.py",
+   "sha256": "3c3ea0d7652c01583526cd47bdab2d7b5f4cc1ff48a020e0982d3061ff7c1994"
+  },
+  {
+   "path": "tests/test_graph/test_entity_graph.py",
+   "sha256": "e5654fe08841ae572639bbad792f17251c77603eec62e5cdf5a0b4c9066596c3"
+  },
+  {
+   "path": "tests/test_graph/test_entity_identity.py",
+   "sha256": "cd8057e9e42cb5935cc6914594cea167801934783ce96a924661279c2d10251a"
+  },
+  {
+   "path": "tests/test_graph/test_graph_diff.py",
+   "sha256": "cd9003015da14487c4825f3f5381bdcae07bf28f3fff3833f702288419dc4075"
+  },
+  {
+   "path": "tests/test_graph/test_operations.py",
+   "sha256": "8f2087b445c7a093781940241d8fff59a1123252d847a8bfc64228507c23c8e1"
+  },
+  {
+   "path": "tests/test_graph/test_provenance.py",
+   "sha256": "be8f757f23fa584578b93f7059e611891cd97c2edaac1f98c00958dd2d9ffa4e"
+  },
+  {
+   "path": "tests/test_graph/test_relationship_edge_key.py",
+   "sha256": "5073c43083a1ca47e3dfa3db497c1ebabdcfcd57bb50cb8196909f8f13f56777"
+  },
+  {
+   "path": "tests/test_graph/test_types.py",
+   "sha256": "2b2ef7178ac8d254529d22ae6f5b248095f81b8949bc83ad7534ce63d86b2a4d"
+  },
+  {
+   "path": "tests/test_group/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_group/test_evidence_guard.py",
+   "sha256": "5f01ee4cad561287c477148f2ecaeb9409c77b96a167b60daf51702f6f53d8f4"
+  },
+  {
+   "path": "tests/test_group/test_signature.py",
+   "sha256": "34acfd63b73f058e321a88e861a10323c8df04ff8d5957d5887bc60447a06940"
+  },
+  {
+   "path": "tests/test_group/test_store.py",
+   "sha256": "c428df78529033e64e45ca57daa7114f76bd73dcb1570b8a65758fd407b66cc7"
+  },
+  {
+   "path": "tests/test_group/test_types.py",
+   "sha256": "8e2306eb3a13baaf9e0c3d3910c27edc82652526bd9d281ac9b537f3c776ee18"
+  },
+  {
+   "path": "tests/test_guardrails/test_contract_freeze.py",
+   "sha256": "3d7ad3106ea26c40b01fa9e66cfdcc8bb8c2c89e8dc9f1a627505f7b7a5e493c"
+  },
+  {
+   "path": "tests/test_guardrails/test_deprecations.py",
+   "sha256": "a3104499a5ab206207cf6c747be26fd1af9dc6f594087058aa612f2c36d59eb4"
+  },
+  {
+   "path": "tests/test_guardrails/test_docker_marker.py",
+   "sha256": "19484b059acb7b6413edf69327511090cbc9febe491c95d79ea4f0f5e4496bbb"
+  },
+  {
+   "path": "tests/test_guardrails/test_mcp_output_schema_conformance.py",
+   "sha256": "3ceceda8ea1b0748e19235fdeae0d63b330139e3f019941c1f05ee64fa48ffa9"
+  },
+  {
+   "path": "tests/test_guardrails/test_mutation_guard_reference.py",
+   "sha256": "2bb25ec1c8aba8f296e4c10446a1d105799183dbf9d8ad9a008bf1465c9a0043"
+  },
+  {
+   "path": "tests/test_guardrails/test_permission_posture_claims.py",
+   "sha256": "c86b3a36ad75bd4056d2616c0ec54d6c9e53b9e75ecb147d1946f47557f81d9c"
+  },
+  {
+   "path": "tests/test_guardrails/test_primitives_consolidation.py",
+   "sha256": "e7ebf2fae63daa9adb7baf9bc44b8914cad0a17b14e6986ef0b8d4b00c207691"
+  },
+  {
+   "path": "tests/test_guardrails/test_reference_docs.py",
+   "sha256": "4d482ae0ff8e35eada923e55e6710e36e37358555a828e8f78add6274b34a4a8"
+  },
+  {
+   "path": "tests/test_guardrails/test_store_registration.py",
+   "sha256": "046c1af4496c35b9a89571f7b8f4768704a4cc16b2e8f6d791e9327792a975bc"
+  },
+  {
+   "path": "tests/test_guardrails/test_vocabulary.py",
+   "sha256": "ba7c7b728fe482543d938a35898d726ee9f29662551db905991c8c994ce791b4"
+  },
+  {
+   "path": "tests/test_guardrails/test_wheel_marker.py",
+   "sha256": "1958433e0ed9a6f3ebaaa59c109fa4e80dfdb789ea9128be3f13936643351925"
+  },
+  {
+   "path": "tests/test_guardrails/test_write_policy_asymmetry.py",
+   "sha256": "9c4e96eab194e95a307fa29a97034ffc6cbb378cea57eda0897e1e6878019d88"
+  },
+  {
+   "path": "tests/test_image/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_image/test_runtime_image.py",
+   "sha256": "68164d72cfbc28abe49f933a90bb479f04fe7957c53758ed7b9b1d3eecab7e6d"
+  },
+  {
+   "path": "tests/test_ingest/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_mcp/__init__.py",
+   "sha256": "b380bf7c76229a23eb3663df710b811509091c6eb984870e60b33d4441feb6cb"
+  },
+  {
+   "path": "tests/test_mcp/conftest.py",
+   "sha256": "3a6fb27e553f4ec86f791db67995d37281bd8af264640b5f96759962bc99f5ea"
+  },
+  {
+   "path": "tests/test_mcp/test_attestation_tools.py",
+   "sha256": "43c8898a11ba1bac309e4ca68d6fcce38cf2757a2e7cad37842b0fe23a18e0ec"
+  },
+  {
+   "path": "tests/test_mcp/test_entity_identity.py",
+   "sha256": "6700c1c3d801cebc926466655644f46adbf70311383215dc0a9254486831ce69"
+  },
+  {
+   "path": "tests/test_mcp/test_feedback_write_tier_permissions.py",
+   "sha256": "a307e171a5fae62ea9d8a51664800105ad8f6ab0067735e3eae69c9146185a14"
+  },
+  {
+   "path": "tests/test_mcp/test_governed_write_handlers.py",
+   "sha256": "1bf00f2672c4339ebce1cf2fcfd742c91aa902784861c2ea799b9798dd87dd86"
+  },
+  {
+   "path": "tests/test_mcp/test_group_handlers.py",
+   "sha256": "100a505628ec2a0710ef9e020a37192f931334004ec9fc01d8e5c7107eaad4e8"
+  },
+  {
+   "path": "tests/test_mcp/test_handlers.py",
+   "sha256": "f972de87876146abeacafc4733eee9caae0bf72278d744f93df38dda4cf0ca95"
+  },
+  {
+   "path": "tests/test_mcp/test_kit_surface.py",
+   "sha256": "20ced708968bebea92c387dd06ae533573e099af34eb0d5f78c1b92a3da88af6"
+  },
+  {
+   "path": "tests/test_mcp/test_outcome_contract_tools.py",
+   "sha256": "c7291439a8e12d168c47ca20621c64b5983be106ce651d551b07cf5218e24533"
+  },
+  {
+   "path": "tests/test_mcp/test_permissions.py",
+   "sha256": "473890c7be81c1e8f37e45b3e30f90bd19dc6299d8c6d06a25de22e94092cc31"
+  },
+  {
+   "path": "tests/test_mcp/test_procedure_tools.py",
+   "sha256": "f2b4ca240afc5aefb335045a80a2261280e34f5fb00f56bc1aeb70d2927fe316"
+  },
+  {
+   "path": "tests/test_mcp/test_protocol_curation.py",
+   "sha256": "d26258fff068db61f527bd9638c6ddd9535bc8be42b3ce2c1f7fba3bc783f059"
+  },
+  {
+   "path": "tests/test_mcp/test_read_profiles.py",
+   "sha256": "9fb40a27d0c8f91bd95d54d898c26a857086c16ba5fe07d067ac98799c4ab964"
+  },
+  {
+   "path": "tests/test_mcp/test_server_mode.py",
+   "sha256": "48df2350da0a8ce985ff83792d96f14d4b47be721bc275a2a315381799c44ede"
+  },
+  {
+   "path": "tests/test_mcp/test_tool_schema.py",
+   "sha256": "078af84a5209c8b9a175e27a37a9a5554277ca7a44ebe10ceaf13de2167f66d5"
+  },
+  {
+   "path": "tests/test_mcp/test_working_set.py",
+   "sha256": "98991a4d5d9d7193fd8b85e0693f73048702ab528bfe8dbdf02a6b38269ae00b"
+  },
+  {
+   "path": "tests/test_mcp/test_write_tier_permissions.py",
+   "sha256": "bdce442810f25d0e9473b959ebb45e577f5672a9e4d34cbc9f8c7a8f50902958"
+  },
+  {
+   "path": "tests/test_outcome_contracts/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_outcome_contracts/conftest.py",
+   "sha256": "46b6c7f6eddfb6995328db5de0273a9d52ec9a099cff3bc73d17f7b37930d118"
+  },
+  {
+   "path": "tests/test_outcome_contracts/test_guard.py",
+   "sha256": "9164bb315b2d23b9f4ff805fe895dcfab844aaa848f3d6526658c6186b5c2c0d"
+  },
+  {
+   "path": "tests/test_outcome_contracts/test_service.py",
+   "sha256": "992763cc19d8502ceeb9578184fd415dd3e374e612c7fa737dac2b90a9d42c1c"
+  },
+  {
+   "path": "tests/test_outcome_contracts/test_workflow_apply.py",
+   "sha256": "75414266718bef527bfdb4cc56898cc4158f7e95c2af174485987d4342d8de27"
+  },
+  {
+   "path": "tests/test_packaging/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_packaging/test_wheel_console_scripts.py",
+   "sha256": "846805a5ed977a41e863f6a3451db9d5f553dee6b561d19bca5baaee6ae33911"
+  },
+  {
+   "path": "tests/test_predicate.py",
+   "sha256": "9ac1c0085e8cf8e64682f3fb1891380b5109244c085fb2fb7389eac0a0cb27c3"
+  },
+  {
+   "path": "tests/test_primitives.py",
+   "sha256": "53ea187df286ca1f28c01a0742d03ed23e0f55b851ab692ac6bb6bdbc5337938"
+  },
+  {
+   "path": "tests/test_procedures/__init__.py",
+   "sha256": "8616d3c8b5c5f86868777edc1d902bcc66bc918f7713f348b1e453576e3d9bf7"
+  },
+  {
+   "path": "tests/test_procedures/conftest.py",
+   "sha256": "28d31ede14f2d879be96c43062d05e8b09003e80bcb0dd4e8bfe718f8023afbb"
+  },
+  {
+   "path": "tests/test_procedures/test_budget.py",
+   "sha256": "0f4e1f547f14ca26d614d2ce1f09330ea193dbcea067c54df83df44fbe776afe"
+  },
+  {
+   "path": "tests/test_procedures/test_compiler.py",
+   "sha256": "f7276374abd76b72fbbe29700be26a79abead21e6cc3626b156a1fc524a98f02"
+  },
+  {
+   "path": "tests/test_procedures/test_execution.py",
+   "sha256": "a801b649e768db03f32faa5c25998585fa0585f93a29753e735e301a52f63538"
+  },
+  {
+   "path": "tests/test_procedures/test_lifecycle.py",
+   "sha256": "78ea24e0f27da819b89c409103b8ca41fa158cee5e9868c5abb674e1f931d6d5"
+  },
+  {
+   "path": "tests/test_procedures/test_snapshot_portability.py",
+   "sha256": "4d2f48e40721f56bd672c007202c6d1ee09915f04df4664bd34a98459c84fcea"
+  },
+  {
+   "path": "tests/test_procedures/test_store.py",
+   "sha256": "acce58f2af635876e95924ea1795178a14483e17a2021fb740ef5f46d569a5e0"
+  },
+  {
+   "path": "tests/test_procedures/test_track_record.py",
+   "sha256": "6bd046b092ffecb6b4607e4dd1998d41979082648986147b48a8d985f31ec0f3"
+  },
+  {
+   "path": "tests/test_procedures/test_validation.py",
+   "sha256": "3b6d6af9017d618a27244bc7217e9671ad1d47c69e805ce49d462f63a6940219"
+  },
+  {
+   "path": "tests/test_procedures/test_withdrawal.py",
+   "sha256": "5c9159f7c88f76498a320acbe10d3cc3499e48fda7fa998b23db96512ca0651f"
+  },
+  {
+   "path": "tests/test_providers/test_case_law_kit.py",
+   "sha256": "e8dbf9981249a53fea5a8e28dee51afeebc38ccbb46bf80aba4c737ae70c11bd"
+  },
+  {
+   "path": "tests/test_providers/test_common_documents.py",
+   "sha256": "3f9eb413d92d63eb0922b6df0b3536d88c43f52a4dcff17501aa8810935889b9"
+  },
+  {
+   "path": "tests/test_providers/test_common_identity.py",
+   "sha256": "bc9f4e1f76ad450af25a7510d7ee30f7653ffed902f111b46907078363c24536"
+  },
+  {
+   "path": "tests/test_providers/test_common_tabular.py",
+   "sha256": "aad39212e1cdd8f2ee3e3bfe04af2960a0049d37bcabfc5f7b925bb4e09c13bc"
+  },
+  {
+   "path": "tests/test_providers/test_payloads.py",
+   "sha256": "908c1613ed8bfbebb90284099a83badcaed70f4bd51c0b2cce40ad8dc190d6c3"
+  },
+  {
+   "path": "tests/test_providers/test_supply_chain_kit.py",
+   "sha256": "df0b6c0468681a8046bc15b35de8429b8d8180df8f5a30f06046e29dc28b42e7"
+  },
+  {
+   "path": "tests/test_query/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_query/test_engine.py",
+   "sha256": "24b18908dafb022266c317e6a49659a1c920762074255221046f44e0c5b7ca5c"
+  },
+  {
+   "path": "tests/test_query/test_graph_layout.py",
+   "sha256": "82c28e98da810bfbb8bf84fbabad19a901bb5b6d5804255c0cddf071d1feb30c"
+  },
+  {
+   "path": "tests/test_query/test_neighborhood.py",
+   "sha256": "ba95b3cc10327cafbc014a9eb285adadcac622a76aaf0b89b75ce4cd2375fe6a"
+  },
+  {
+   "path": "tests/test_query/test_profiles.py",
+   "sha256": "ab659e28b0675fccdc5068527cfd40af202a23a8c1798b613819ba3882d4438f"
+  },
+  {
+   "path": "tests/test_receipt/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_receipt/test_mutation_payloads.py",
+   "sha256": "5a82971670b626030df3663a1e245b18b9382e853d1f44ef3950afa809abe29b"
+  },
+  {
+   "path": "tests/test_receipt/test_receipt.py",
+   "sha256": "ab393e262da78fa95a784eed56d411100e109f98029480e19e9e8b10032ae33a"
+  },
+  {
+   "path": "tests/test_receipt/test_store.py",
+   "sha256": "b2f994e6ca0867cd97dbb1faa4b57bfb96b763bbc1cf9c69353eb6d9821037f5"
+  },
+  {
+   "path": "tests/test_scripts/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_scripts/test_check_kit_release_assets.py",
+   "sha256": "ffa647674eb073d7c9cf71455b802fb8c4e88060019d0a1fdf979ac906fed9a5"
+  },
+  {
+   "path": "tests/test_scripts/test_check_version_lockstep.py",
+   "sha256": "fb96a8b15ace0d6baf87cf39809a33003082dca5860ba4ca89089bfdd1dc3bbf"
+  },
+  {
+   "path": "tests/test_scripts/test_publish_kev_release.py",
+   "sha256": "dc7e53a86495a94f5b9a5c2eb2ce6367454eb46f5c8584a5ffc8357deaa40cde"
+  },
+  {
+   "path": "tests/test_scripts/test_render_config_views.py",
+   "sha256": "06f8372ded066ecef68b69b9a5e8c9214fff2c2c7a51ce56d6c5bd6b3a53a131"
+  },
+  {
+   "path": "tests/test_server/__init__.py",
+   "sha256": "20ef1863e002347c0558fb7842bae118dd960e76c661c5a53a6116968a70a034"
+  },
+  {
+   "path": "tests/test_server/test_attestation_routes.py",
+   "sha256": "93b99179c907415f0550b315e9cc299c5a2261417f8e72668f5b58323be3bce5"
+  },
+  {
+   "path": "tests/test_server/test_capability_ceiling.py",
+   "sha256": "a26cc37c158d79f69335f437ae5edc0a4913450432cbb91efa2a1c2e1f0398df"
+  },
+  {
+   "path": "tests/test_server/test_config.py",
+   "sha256": "58361d8e5fe99488efa31a70ccc42926221130d405bf818124cc5d12e901250b"
+  },
+  {
+   "path": "tests/test_server/test_continuation.py",
+   "sha256": "ebfdda878fad2294bc6cd1c98322f726dc19fd1bd3af582f61dd314759a30f97"
+  },
+  {
+   "path": "tests/test_server/test_entity_identity.py",
+   "sha256": "673e874930e625f517521c8b2e00e3ca88536290f12b904e60c7b5a7d9e27179"
+  },
+  {
+   "path": "tests/test_server/test_errors.py",
+   "sha256": "b617a7eee30043c27fb736e2fc9418d69aea54f447651811a1946ddc8dc9fb37"
+  },
+  {
+   "path": "tests/test_server/test_gate_routes.py",
+   "sha256": "964d73685f19287b42d9a33ee1c5cd4a5aee024af61761b4ba802aa1c18b417d"
+  },
+  {
+   "path": "tests/test_server/test_hosted_runtime_routes.py",
+   "sha256": "5977d3d926edf75d0a3480a07821e1caa728ffb7251fa5953fac8fc882691837"
+  },
+  {
+   "path": "tests/test_server/test_lifecycle_routes.py",
+   "sha256": "62e93a93b136622d87b245793033c5969a2445681cebc50e919e28869c96fc7c"
+  },
+  {
+   "path": "tests/test_server/test_mutating_route_json_only.py",
+   "sha256": "854c36a0e92d6e0b221eefcecefb8173c135128b36a56111646302121a4e2056"
+  },
+  {
+   "path": "tests/test_server/test_neighborhood_routes.py",
+   "sha256": "8abe8a3c3a232bb3472b4520821c6ebc57ff288d95f727443036fbd674049fe1"
+  },
+  {
+   "path": "tests/test_server/test_network_security_hardening.py",
+   "sha256": "00f51b2e53a62810d22cfe3c97ad66061513480a57b179a92f5943195db2422d"
+  },
+  {
+   "path": "tests/test_server/test_outcome_contract_routes.py",
+   "sha256": "817322e1cc4866d7cbd348603a2cc5cdac420df8595dc7fb40288ea06d558525"
+  },
+  {
+   "path": "tests/test_server/test_procedure_routes.py",
+   "sha256": "6b07dcb558c61f66d9cf405710ebbecb37696854b8a26bdcffddc4724db467b4"
+  },
+  {
+   "path": "tests/test_server/test_query_graph_layout.py",
+   "sha256": "e1c1b395a405f89256a7f578d57c5b0184db74750c16ea376b084032fe9b215d"
+  },
+  {
+   "path": "tests/test_server/test_read_profiles.py",
+   "sha256": "f555533e020f8a8711bab0a4212ebe4536f1c77183645702f8d0796338a9c2c4"
+  },
+  {
+   "path": "tests/test_server/test_request_logging.py",
+   "sha256": "ec25d3b0e5cbea9ce39854f8194f03ad1f55b1403a997bc25f608f7a95cd88e3"
+  },
+  {
+   "path": "tests/test_server/test_restart.py",
+   "sha256": "5219aa4b3290bda4904cb980fae45518d87464db7aa3502fc73ecac3af345889"
+  },
+  {
+   "path": "tests/test_server/test_route_permission_gating.py",
+   "sha256": "270598490bbc0ffd07f16b2ab642269d133ac86e537f5f275bce3fd153af7873"
+  },
+  {
+   "path": "tests/test_server/test_routes.py",
+   "sha256": "3e3332614d4060a6873d9ddb4f725811a70fb4ed2141e2bd8889ece64fccd966"
+  },
+  {
+   "path": "tests/test_server/test_state_diff_surface.py",
+   "sha256": "f345b1a313ed5432d1c5fba04694941c52930ad08c02e70f7075a8c2e5c907d5"
+  },
+  {
+   "path": "tests/test_service/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/test_service/conftest.py",
+   "sha256": "f41ed724091a193b01c856cc78276bfdb5f43f2429f62ef249fa94646d9be90a"
+  },
+  {
+   "path": "tests/test_service/test_actor_context_normalization.py",
+   "sha256": "c44ef5e5198278e9041de392279a3a31a3e34e3734fc1cc1d54021ae90bfbebc"
+  },
+  {
+   "path": "tests/test_service/test_agent_operation_review_gate.py",
+   "sha256": "5f934be26853168e3f00ebab071ad151153912387a4f20717b43227ec62f8fbd"
+  },
+  {
+   "path": "tests/test_service/test_agent_operation_scratchpad.py",
+   "sha256": "59ea6dcc3ecfbc94592a24aa96f9e84f9242e243b381f0ae2c530fb106c96923"
+  },
+  {
+   "path": "tests/test_service/test_analysis.py",
+   "sha256": "72348c7f7a106bb639e9f7ad479b21479978d3e249f8b0a7e1b75112ea12aed4"
+  },
+  {
+   "path": "tests/test_service/test_auth_managed_refusal.py",
+   "sha256": "64d4b634843213b0b44df9c69470242342f65a4c91699bd267478534868992a8"
+  },
+  {
+   "path": "tests/test_service/test_claim_identity_consumers.py",
+   "sha256": "cf8863f503597c3b3b59f6b416a46b9f34d09b9ec83e8eac890170e8346a9f64"
+  },
+  {
+   "path": "tests/test_service/test_decisions.py",
+   "sha256": "4491afab7a1acd69d4c7b34975f19175093fb9a069eaec2e43eb13e2eee2c058"
+  },
+  {
+   "path": "tests/test_service/test_digest_verification.py",
+   "sha256": "3a1707362b88bea51cd654e8dce744ab6cfe1b6532c0c9b440e06d6feb4f69d8"
+  },
+  {
+   "path": "tests/test_service/test_direct_write_policy.py",
+   "sha256": "d24b330ac5ff547c171381675c905b763f0813da210bd3b68e37870fcc813656"
+  },
+  {
+   "path": "tests/test_service/test_entity_lifecycle_gating.py",
+   "sha256": "0253b97716ae90833be778209ba8d60e4df49068cafe6e2275f19e0ca1d8c6f0"
+  },
+  {
+   "path": "tests/test_service/test_execution.py",
+   "sha256": "4275d6e455c84780c94eef12a538ba598accaa448ffd0d3ee8c082180537410a"
+  },
+  {
+   "path": "tests/test_service/test_feedback_approval_rail.py",
+   "sha256": "4bfdc3f463b1487c8ad4c6d7b5fc43b0c4683f76dc23c1f288a92f8ef2521b65"
+  },
+  {
+   "path": "tests/test_service/test_gates.py",
+   "sha256": "5fe398fdf90155b82ff26e7ebddd3c125cb44dea389bef6aac09cb72e3525c64"
+  },
+  {
+   "path": "tests/test_service/test_governed_write.py",
+   "sha256": "0e79cdb134f3d91e8b1fd0a572fbb48b9252b18525503d30d6431eb99724bef9"
+  },
+  {
+   "path": "tests/test_service/test_group_override.py",
+   "sha256": "ec45a73859c6049082b1592070e76e215647f5772089804cb5a99b59d74fea1a"
+  },
+  {
+   "path": "tests/test_service/test_group_propose.py",
+   "sha256": "826d9b30e545280d12060a6cd11e1f9e7bc6e3dd7b2f8c9feb22d9af938ed8ce"
+  },
+  {
+   "path": "tests/test_service/test_group_reads.py",
+   "sha256": "546c503e32818e7198c404667f8aa4dc06018b6fcf4f8744ee2f84a64f310e22"
+  },
+  {
+   "path": "tests/test_service/test_group_resolve.py",
+   "sha256": "147ab97c45d9342d6b4cfe122c99b092a192fbe5b6488f731c41af86e796a874"
+  },
+  {
+   "path": "tests/test_service/test_group_state_transitions.py",
+   "sha256": "85c3610dcf8424f1fa33f1c72c126809f5f57c1b4dc6484473d6f0bd532fa1b4"
+  },
+  {
+   "path": "tests/test_service/test_group_trust.py",
+   "sha256": "a61a67cd1ba2f16994d41f88f99b233f2934726d4a6202d379efeafde5cd02c1"
+  },
+  {
+   "path": "tests/test_service/test_instance_backup.py",
+   "sha256": "8d2215b208b598a760b7f73a011c448a491f119f75a9a7d6decd7ae92814bd03"
+  },
+  {
+   "path": "tests/test_service/test_kit_lock_regeneration_warnings.py",
+   "sha256": "d3f860cd32870d0014b33bd29128f4ad5133d2c3c3dd87f634177e73a2f70f60"
+  },
+  {
+   "path": "tests/test_service/test_lifecycle_verbs.py",
+   "sha256": "b4316dc0541a1c205798e73a3efb14063b7266c701ce984e9d16fd5882d148d8"
+  },
+  {
+   "path": "tests/test_service/test_mutation_guards_actor_separation.py",
+   "sha256": "b9e1300151ca2d8b6612cbfe49e1cbdc8a34ae5d060792034ea8b086ef93b4de"
+  },
+  {
+   "path": "tests/test_service/test_mutation_guards_property_freeze.py",
+   "sha256": "7d2a3efed923cf10e3517d9b5c53c72ff760d456ccfbea996a2f6e8de36476b9"
+  },
+  {
+   "path": "tests/test_service/test_mutation_receipts.py",
+   "sha256": "045f30aa8d03726e02c6800637e319bfb5bb7145d9f54632088c7bccf8a755af"
+  },
+  {
+   "path": "tests/test_service/test_mutations.py",
+   "sha256": "9ca7c791b91250aa0127fb8eeb3ca2c7c5fca0aeb341ca8f3fcbf03629e2ec79"
+  },
+  {
+   "path": "tests/test_service/test_negative_experience_fidelity.py",
+   "sha256": "ea472ce650c653e62f1d7213cb2c74e66aa7be5ad4dabaf5222c4b780381dd2b"
+  },
+  {
+   "path": "tests/test_service/test_pending_edge_clobber.py",
+   "sha256": "a06e00dc9cd1a0ac45f555081d9ea7eaf2e8569c118446f616c49c3550997c5c"
+  },
+  {
+   "path": "tests/test_service/test_queries.py",
+   "sha256": "bc9c36a6dd86a6f297aa955eeaced42e082ad4a01929a09a50d67ded58afc542"
+  },
+  {
+   "path": "tests/test_service/test_query_feedback.py",
+   "sha256": "7cb93a1074d6007b73deb1a81b66a2920ae7f3e0255fb89e32449f456e179fe4"
+  },
+  {
+   "path": "tests/test_service/test_reads.py",
+   "sha256": "922f92bb5bea3055972de547490580adeaadeb2155c73ce02e5edad65228edfa"
+  },
+  {
+   "path": "tests/test_service/test_receipt_helper.py",
+   "sha256": "7235b8051e405af2ca4cec48108eab6b19dd7c61387c3cc001e90aef1f7e8d74"
+  },
+  {
+   "path": "tests/test_service/test_refuse_direct_writes.py",
+   "sha256": "e4dd2b2f90670925ff17f83a099ab8f186be155d465598610a3bafa2bb51015a"
+  },
+  {
+   "path": "tests/test_service/test_relationship_lifecycle_write.py",
+   "sha256": "a53938fd37bfe8872c85e1b9d3e038c75fba9f429c5b5c7ca5feca565f96aa87"
+  },
+  {
+   "path": "tests/test_service/test_source_artifacts.py",
+   "sha256": "bd0ad83605b866c1a7a8e35859bb905e25d90a7000430a1c3e11ca2a0af35918"
+  },
+  {
+   "path": "tests/test_service/test_state.py",
+   "sha256": "736a43bb82122e6fe8b5eeab0aaa9133d282d45b489bc65bdea1574661c060fb"
+  },
+  {
+   "path": "tests/test_service/test_state_claim_identity.py",
+   "sha256": "20138de8682e919e611b40a74db73066ee8a15932105d8e71dc25e2889afe149"
+  },
+  {
+   "path": "tests/test_service/test_state_diff.py",
+   "sha256": "153ea1fd6a88f0e06fc5a1752855119fff309dd825ecad5261c4e9b80e353e27"
+  },
+  {
+   "path": "tests/test_service/test_state_diff_golden.py",
+   "sha256": "42c6aec712857fe9fac99e3889b7a2fa0e076615ee7bf25a1b86db9fdf85f491"
+  },
+  {
+   "path": "tests/test_service/test_state_refs.py",
+   "sha256": "52d4b67942428ba538e282a5fa76b9d830f6a4211dffe2ba97da9703105462cd"
+  },
+  {
+   "path": "tests/test_service/test_views.py",
+   "sha256": "b6b1b78b8b442d9ca892c43e1b40de83d96380955f2f858159e0074813625050"
+  },
+  {
+   "path": "tests/test_snapshot/test_snapshot_types.py",
+   "sha256": "b3583e7e8cde648a543f305ae4ef4ebee0c976138aa6e0633c45d0dd9b80896a"
+  },
+  {
+   "path": "tests/test_storage/test_claim_identity.py",
+   "sha256": "11b58af6f0e4604d2bb7dc92fca797e97b29a3fc8c2ab64424aaff4a19bdfce8"
+  },
+  {
+   "path": "tests/test_storage/test_read_revision.py",
+   "sha256": "ebc9b68779169c621e23bd91f172e5b207c5832f8f5820c8508bdda40af06d1f"
+  },
+  {
+   "path": "tests/test_storage/test_source_artifact_revisions.py",
+   "sha256": "3aeb77d5dd15dd5b8e3fc888716a0d79e2c377daeb7327901f530e2427627583"
+  },
+  {
+   "path": "tests/test_storage/test_sqlite_state.py",
+   "sha256": "7c0fd498778678afd11e8bfdb80897ed77b93a2fc4024b6e131c777b9bbff0da"
+  },
+  {
+   "path": "tests/test_support/test_state_cross_section.py",
+   "sha256": "4a3ea846bbbbc4a6337057b249b61ff1a21af1837b158e5deaff0be134f8bbae"
+  },
+  {
+   "path": "tests/test_telemetry/__init__.py",
+   "sha256": "eb2c6b238220be2cc4cb972fd462f5d1d7fd17ea132e47626a6c64788545b2dc"
+  },
+  {
+   "path": "tests/test_telemetry/test_boundary_telemetry.py",
+   "sha256": "8860756c06c40f1edb247d817ae394258adb892f1c8076b9deca983085576d0a"
+  },
+  {
+   "path": "tests/test_temporal.py",
+   "sha256": "239394b84f4a7b95e25b2ab2e68db298b5dde15445fcc5fa3ea11d55c147ca6a"
+  },
+  {
+   "path": "tests/test_transport/test_backends.py",
+   "sha256": "4b80221d3e2cba3b8c29e05a8bec1b44b90f80b2579cdd06862c209ee6ca6087"
+  },
+  {
+   "path": "tests/test_workflow/conftest.py",
+   "sha256": "fe64e3336173204103a8fcb4450a28cd358e1558bb48c9810246d0a0f4bc68b0"
+  },
+  {
+   "path": "tests/test_workflow/test_compiler.py",
+   "sha256": "152baa28a378d9f92bb737e1b54be79dedb78a5325b9a848991a4d29a7fa1376"
+  },
+  {
+   "path": "tests/test_workflow/test_dataflow_steps.py",
+   "sha256": "00d4ce7ab094e5e74f4c9e2c84a86e31d6ff8b8595c2623f77a8d73ae94acbe1"
+  },
+  {
+   "path": "tests/test_workflow/test_executor.py",
+   "sha256": "b636a797faeb7cd3e8de91417af7ef687ec7add58d0c7f0bff5487cbb9aff17e"
+  },
+  {
+   "path": "tests/test_workflow/test_helpers.py",
+   "sha256": "a1be1a6272ae6b69a6c7a302959f58d5225ffe4f6f1be263b64466b4e9b69a55"
+  },
+  {
+   "path": "tests/test_workflow/test_make_auto_properties.py",
+   "sha256": "f230196ce04c55ffc67081ec82c5ed220f1f5c3310c8333eb9df4ce4349c680a"
+  },
+  {
+   "path": "tests/test_workflow/test_proposals.py",
+   "sha256": "998678ab5c941825405a9b9ba12e8b78fedfdc406bd79cdfe99fa4f3a4726cb0"
+  },
+  {
+   "path": "tests/test_workflow/test_register_source_artifacts.py",
+   "sha256": "9953fca5b25ec2bdaf57ee3f031273bf21189041bc668e8940dd7ec82189c720"
+  },
+  {
+   "path": "tests/test_workflow/test_step_handlers.py",
+   "sha256": "986901d86c1674040b482bbe6527b78caa7c15855c2fc8a5fbe53a2aab2ce176"
+  },
+  {
+   "path": "tests/test_workflow/test_workflow_apply_entity_identity.py",
+   "sha256": "c8587f09b05bc5d44d4e989525f2d77c42ead57ac3e628a479b889cc98ae7e01"
+  },
+  {
+   "path": "tests/test_workflow/test_workflow_apply_group_drift.py",
+   "sha256": "e21abfbfa8d1f8039e92d83689a86d3cf53ac362fe080943e23d880453e72169"
+  },
+  {
+   "path": "tests/test_workflow/test_workflow_apply_mint_only.py",
+   "sha256": "a8c9829bbac9a07054939c0c9c1bb86e449b321674cd459932e9104689f19ad7"
+  },
+  {
+   "path": "tests/test_workflow/test_workflow_apply_mutation_guards.py",
+   "sha256": "d61598fbf14d867fd303e23cd4976eaaa9ccb894d49d35908c61a292bb5119e2"
+  },
+  {
+   "path": "tests/test_working_set_capture.py",
+   "sha256": "aee3eb0caa14c6477f4de9341e7c6cfc2529f48a28ae19e7baaf83a42e85e854"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 2302744,
+ "tier": "AI_ASSOCIATED"
+}

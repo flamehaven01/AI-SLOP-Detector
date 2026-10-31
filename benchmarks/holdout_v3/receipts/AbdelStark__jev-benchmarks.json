@@ -1,0 +1,170 @@
+{
+ "repo": "AbdelStark/jev-benchmarks",
+ "dir": "AbdelStark__jev-benchmarks",
+ "commit": "0d610cc53e79bcbec691312b0c4adb4a0e371642",
+ "estimate_commit": "0d610cc53e79bcbec691312b0c4adb4a0e371642",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".github/CODEOWNERS",
+  ".github/ISSUE_TEMPLATE/bug_report.yml",
+  ".github/ISSUE_TEMPLATE/config.yml",
+  ".github/ISSUE_TEMPLATE/research_proposal.yml",
+  ".github/pull_request_template.md",
+  ".github/workflows/ci.yml",
+  ".gitignore",
+  ".python-version",
+  "AGENTS.md",
+  "CHANGELOG.md",
+  "CITATION.cff",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "README.md",
+  "SECURITY.md",
+  "configs/pilot-v1.yaml",
+  "docs/ARCHITECTURE.md",
+  "docs/PROTOCOL.md",
+  "pyproject.toml",
+  "results/reports/btzsc-pilot-v1.json",
+  "results/reports/btzsc-pilot-v1.md",
+  "src/jev_benchmarks/__init__.py",
+  "src/jev_benchmarks/adapters/__init__.py",
+  "src/jev_benchmarks/adapters/base.py",
+  "src/jev_benchmarks/adapters/gliner.py",
+  "src/jev_benchmarks/adapters/jev.py",
+  "src/jev_benchmarks/cli.py",
+  "src/jev_benchmarks/config.py",
+  "src/jev_benchmarks/data.py",
+  "src/jev_benchmarks/io.py",
+  "src/jev_benchmarks/metrics.py",
+  "src/jev_benchmarks/models.py",
+  "src/jev_benchmarks/py.typed",
+  "src/jev_benchmarks/report.py",
+  "src/jev_benchmarks/runner.py",
+  "tests/conftest.py",
+  "tests/test_adapters.py",
+  "tests/test_cli.py",
+  "tests/test_config.py",
+  "tests/test_data.py",
+  "tests/test_io_models.py",
+  "tests/test_metrics.py",
+  "tests/test_report.py",
+  "tests/test_repository.py",
+  "tests/test_runner.py",
+  "uv.lock"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "0e9ecef58eb8082b2dbe007c8f3f9abe09049e4f03360a8eb49403b2617aff7b"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "6cd15f0ec37d95c92f3694533b3bc37e03cd7dfe5aabd5b8bd4dfc852d4090dc"
+  },
+  {
+   "path": "src/jev_benchmarks/__init__.py",
+   "sha256": "a101493506e11a4088ca1e98bbd2c2c42a1a28c140d4eeb2cc31938adbcb3b31"
+  },
+  {
+   "path": "src/jev_benchmarks/adapters/__init__.py",
+   "sha256": "0ffbb26c65ed9ca6a964937838d962faa626af3abfba73fda5a7a00f708d3e9c"
+  },
+  {
+   "path": "src/jev_benchmarks/adapters/base.py",
+   "sha256": "a8ef9361eb02692b5f936c2783c621db9ce0730a753cdc0f0c3cdc8af2d242b6"
+  },
+  {
+   "path": "src/jev_benchmarks/adapters/gliner.py",
+   "sha256": "2153a2ca97d673f2eeddd87d066b4e9d4bd54ded7b155fa79c2afab69cb0fad4"
+  },
+  {
+   "path": "src/jev_benchmarks/adapters/jev.py",
+   "sha256": "5055ff17fe88120a18cbeda9ecfa5f7bf3111c8d53cb20fecc8b8657099e083b"
+  },
+  {
+   "path": "src/jev_benchmarks/cli.py",
+   "sha256": "272fef433607bbd19081897c276298b23d2b690423f6d9d1edc31111188a0b4f"
+  },
+  {
+   "path": "src/jev_benchmarks/config.py",
+   "sha256": "d4ee867d8f1f67f0f3e3480dc2150ef6fb2826e14ba9709b2cbe0c3fb362d2bc"
+  },
+  {
+   "path": "src/jev_benchmarks/data.py",
+   "sha256": "4644894396f79985cc147a25607655542f2fe38ffb43b635b35b24fd40d7298e"
+  },
+  {
+   "path": "src/jev_benchmarks/io.py",
+   "sha256": "1c615a6ba57330ff281cdd9915cf003525c343409abbcff2e06eea6318a0f92f"
+  },
+  {
+   "path": "src/jev_benchmarks/metrics.py",
+   "sha256": "bd36d82ad3525ad2cc16284cf720d3d29aa0669f1d7a48a8dc5846217d04173b"
+  },
+  {
+   "path": "src/jev_benchmarks/models.py",
+   "sha256": "283fa41d015eaaa1544efa19fedf4498d6c2fd633446c02034819c31f3f915f9"
+  },
+  {
+   "path": "src/jev_benchmarks/report.py",
+   "sha256": "5c9f821f4f7b85be7a566593f50dc529450de7ec3c3eafa82c0f4cfb6780bd01"
+  },
+  {
+   "path": "src/jev_benchmarks/runner.py",
+   "sha256": "e6a3075cfc23818de59f121e21799d5e3ee25b00be95f0c7d1d28a95f85627e6"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "973e1dc36cdbfef08f7545a0c61321e45392b6cfda0aee442ea934e7e67a7d37"
+  },
+  {
+   "path": "tests/test_adapters.py",
+   "sha256": "70e24bd9597292e2c7509d1f62103319f50055028b66c99225d89c53e06e9e8f"
+  },
+  {
+   "path": "tests/test_cli.py",
+   "sha256": "6c6248081f4e43b10746ae70e58966767e31085c96cfde6352d741ba9559c051"
+  },
+  {
+   "path": "tests/test_config.py",
+   "sha256": "f97494a8bc7a8abf4580e8c6aa194c954d00c543dff0bc02320312e6a2201e74"
+  },
+  {
+   "path": "tests/test_data.py",
+   "sha256": "395f50c0ce147c655366470aa15fb4fadc1300686c72f06fa55b7848ff97dbc0"
+  },
+  {
+   "path": "tests/test_io_models.py",
+   "sha256": "fa709a580af3f0cf901092b21b84022b936893d35090700769129bc5355ce9aa"
+  },
+  {
+   "path": "tests/test_metrics.py",
+   "sha256": "1d025d6e48739ae63436d3c5a6eee06425dbc70607c440ba5ce24f00108a23ff"
+  },
+  {
+   "path": "tests/test_report.py",
+   "sha256": "8f144b01b3c3d3ef73249ae327e2c0da1859fe4f4f21eef2e83a4df97228d11e"
+  },
+  {
+   "path": "tests/test_repository.py",
+   "sha256": "dc41086fd0d8fc0f347e24bbbd18b58739d21ebd476a89391b3e341e167dceac"
+  },
+  {
+   "path": "tests/test_runner.py",
+   "sha256": "23b62c76dfbef7b6ddfc7b78bb3679e8ce18125d958d1c78e1123d5cbc45993c"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 70595,
+ "tier": "A+B"
+}

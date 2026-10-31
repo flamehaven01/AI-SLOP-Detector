@@ -1,0 +1,199 @@
+{
+ "repo": "lambertae/drifting",
+ "dir": "lambertae__drifting",
+ "commit": "8861066430db11d2fb0858d042c7845b99df49f1",
+ "estimate_commit": "8861066430db11d2fb0858d042c7845b99df49f1",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  "LICENSE",
+  "README.md",
+  "assets/class_022_bald_eagle.jpg",
+  "assets/class_088_macaw.jpg",
+  "assets/class_095_jacamar.jpg",
+  "assets/class_108_sea_anemone.jpg",
+  "assets/class_296_ice_bear.jpg",
+  "assets/class_386_African_elephant.jpg",
+  "assets/class_483_castle.jpg",
+  "assets/class_698_palace.jpg",
+  "assets/class_812_space_shuttle.jpg",
+  "assets/class_970_alp.jpg",
+  "assets/class_973_coral_reef.jpg",
+  "assets/class_975_lakeside.jpg",
+  "assets/drift_field.png",
+  "assets/drifting_evolution.gif",
+  "assets/dynamics_comparison.png",
+  "assets/teaser_main.png",
+  "assets/toy_case1.gif",
+  "assets/toy_case2.gif",
+  "assets/toy_case3.gif",
+  "configs/gen/latent_ablation.yaml",
+  "configs/gen/latent_sota_B.yaml",
+  "configs/gen/latent_sota_L.yaml",
+  "configs/gen/pixel_sota_B.yaml",
+  "configs/gen/pixel_sota_L.yaml",
+  "configs/mae/latent_640.yaml",
+  "configs/mae/latent_ablation_256.yaml",
+  "configs/mae/pixel_640.yaml",
+  "dataset/dataset.py",
+  "dataset/latent.py",
+  "dataset/vae.py",
+  "drift_loss.py",
+  "inference.py",
+  "main.py",
+  "memory_bank.py",
+  "models/convnext.py",
+  "models/generator.py",
+  "models/hf.py",
+  "models/mae_model.py",
+  "notebooks/inference_demo.ipynb",
+  "requirements.txt",
+  "train.py",
+  "train_mae.py",
+  "utils/__init__.py",
+  "utils/ckpt_util.py",
+  "utils/env.py",
+  "utils/fid_util.py",
+  "utils/hsdp_util.py",
+  "utils/init_util.py",
+  "utils/jax_fid/cvt.py",
+  "utils/jax_fid/fid.py",
+  "utils/jax_fid/inception.py",
+  "utils/jax_fid/precision_recall.py",
+  "utils/jax_fid/resize.py",
+  "utils/jax_fid/utils.py",
+  "utils/logging.py",
+  "utils/misc.py",
+  "utils/model_builder.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "23ebac3aba5af62e59825d02d0eec7704ce1e6eabea907755b1eeb5bfda68e98"
+  },
+  {
+   "path": "dataset/dataset.py",
+   "sha256": "c2db7e628c95da5b387ce225e5993e68195550b8d0026925e09757a40e3cf5c5"
+  },
+  {
+   "path": "dataset/latent.py",
+   "sha256": "f88bef60f3b278bf03a1075622d606e34d6fcfe119ebecb9b8619165ba2a935e"
+  },
+  {
+   "path": "dataset/vae.py",
+   "sha256": "f92c41b6e22309fdaa9c15dedda31faf3106ef2a4a5060a415b18b2829db4ae3"
+  },
+  {
+   "path": "drift_loss.py",
+   "sha256": "445ba0485e1d81be81aee4e1d5458d85548db171ecd310c1fc855ea6242bc782"
+  },
+  {
+   "path": "inference.py",
+   "sha256": "f685330e98a0d2b2c763c0dbacef6fa5f79fb4c1fb3beb161e2ee764aa63e92d"
+  },
+  {
+   "path": "main.py",
+   "sha256": "a925dc714012deacd74e48c8b76e987828324bd8dbd7b08ed39be06bec76bd28"
+  },
+  {
+   "path": "memory_bank.py",
+   "sha256": "a1bc4f778df761d83e2358a0ad741ea032368b20b1cbf5759e07a184f4c6404d"
+  },
+  {
+   "path": "models/convnext.py",
+   "sha256": "ae4c6c7b30fce19e79980d3ba8b03fa583770c06d711a598a050c6538222b879"
+  },
+  {
+   "path": "models/generator.py",
+   "sha256": "6b53f9120597835eb075f631302b2786c96bb31bc22f0289881fe639a73d047f"
+  },
+  {
+   "path": "models/hf.py",
+   "sha256": "f85b6c6352f13492477570a1c0493bd6161b8a951c6e6a9e1ad9386705afee75"
+  },
+  {
+   "path": "models/mae_model.py",
+   "sha256": "c6da9be23aef715481e4b3e2dc8cbe4c07624f81d2ad062e0dcc741b69c19e41"
+  },
+  {
+   "path": "train.py",
+   "sha256": "001c87f61bacc96d86d1ebdf934126e42b6e040ee29a4cd284694eab29d3cc32"
+  },
+  {
+   "path": "train_mae.py",
+   "sha256": "da7f57296b2e7a850b3d3b08c6d7bb4ceba2129c14128248d4ff438147b9dfa7"
+  },
+  {
+   "path": "utils/__init__.py",
+   "sha256": "623e569c6520e89b0d74daeb59a597b8e871a4873ed7a4b6a46488a75b8e7e01"
+  },
+  {
+   "path": "utils/ckpt_util.py",
+   "sha256": "22669a111cfbfc6d26945ae93d874f9c2c091de8fd8b22cd9d587af118ad6ba3"
+  },
+  {
+   "path": "utils/env.py",
+   "sha256": "05f64ba15b5385f73a24274ef8581ced21dfb4828b5536c6f898d46fa02c8a6f"
+  },
+  {
+   "path": "utils/fid_util.py",
+   "sha256": "00983be62923059db98222ad81eebc6c06ab0c764d8f4831808aa72a5022d10c"
+  },
+  {
+   "path": "utils/hsdp_util.py",
+   "sha256": "0cc731d9d9189a73136e9f119e1fc2d374369680cdc79278fe8f4995c9c93dcd"
+  },
+  {
+   "path": "utils/init_util.py",
+   "sha256": "3d3a2151d874e78c9d882c1304e3d70bab8e1957fe7046b2b9b4459eb4d6bef8"
+  },
+  {
+   "path": "utils/jax_fid/cvt.py",
+   "sha256": "493bcdeb53988575c88edb67c59b0f46d34e7c9998ebe7d2e50abff0f2296ff7"
+  },
+  {
+   "path": "utils/jax_fid/fid.py",
+   "sha256": "7abe6b2679abf885304db9763468b498f38e9ed03a1ce1346ea1aea2386bb1ad"
+  },
+  {
+   "path": "utils/jax_fid/inception.py",
+   "sha256": "cb6b8dd1cd807e464981dd72ba26d92d06bbc04b63afd2482354f75768d2f906"
+  },
+  {
+   "path": "utils/jax_fid/precision_recall.py",
+   "sha256": "514a7b1550e3627fea0b2fde3d167f26068612eda33fa77dcd13c70519157a34"
+  },
+  {
+   "path": "utils/jax_fid/resize.py",
+   "sha256": "5b738d26f53f291f2eeb14d207ea6fba2c8ea7dff71ba151b2083926caf17bba"
+  },
+  {
+   "path": "utils/jax_fid/utils.py",
+   "sha256": "9cc244c96fbfb42f9c5c4a808f68dbfa231e0ed54b9152641275ade6c0faf644"
+  },
+  {
+   "path": "utils/logging.py",
+   "sha256": "2c349a3d9b9d944264070282bcb6c691c1ddb211c7226d2aa3713383de855778"
+  },
+  {
+   "path": "utils/misc.py",
+   "sha256": "903cbff97d73a92047de657f5db01d168cd415c7f9f524d9f186c30232411d1a"
+  },
+  {
+   "path": "utils/model_builder.py",
+   "sha256": "d306c8998785db5543da12a1d0ecc7783d8d952dfb42203f1e5e705eee1122b9"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 104278,
+ "tier": "A+B"
+}

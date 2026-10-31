@@ -1,0 +1,747 @@
+{
+ "repo": "William-Lu-stack/Flawless",
+ "dir": "William-Lu-stack__Flawless",
+ "commit": "147c5e848c23da5f6de390d894580f3082d5507e",
+ "estimate_commit": "147c5e848c23da5f6de390d894580f3082d5507e",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".env.example",
+  ".github/ISSUE_TEMPLATE/bug_report.yml",
+  ".github/ISSUE_TEMPLATE/feature_request.yml",
+  ".github/workflows/publish-public-images.yaml",
+  ".github/workflows/security-gate.yaml",
+  ".gitignore",
+  "AGENTS.md",
+  "CONTRIBUTING.md",
+  "Dockerfile",
+  "Dockerfile.node-exec",
+  "LICENSE",
+  "NOTICE",
+  "README.md",
+  "SECURITY.md",
+  "a2a/__init__.py",
+  "a2a/gateway.py",
+  "a2a/protocol.py",
+  "agents/__init__.py",
+  "agents/aiops_algorithms.py",
+  "agents/aiops_observability.py",
+  "agents/effectiveness.py",
+  "agents/healing_agent.py",
+  "agents/incident_agent.py",
+  "agents/llm_client.py",
+  "agents/model_registry.py",
+  "agents/observability_agent.py",
+  "agents/postmortem_agent.py",
+  "agents/remediation_engine.py",
+  "agents/runtime_resilience.py",
+  "agents/sre_graph.py",
+  "backend/__init__.py",
+  "backend/app/__init__.py",
+  "backend/app/adapters/README.md",
+  "backend/app/adapters/__init__.py",
+  "backend/app/adapters/cloud_service/README.md",
+  "backend/app/adapters/cloud_service/__init__.py",
+  "backend/app/adapters/contracts.py",
+  "backend/app/adapters/database/README.md",
+  "backend/app/adapters/database/__init__.py",
+  "backend/app/adapters/database/spec.py",
+  "backend/app/adapters/domains.py",
+  "backend/app/adapters/middleware/README.md",
+  "backend/app/adapters/middleware/__init__.py",
+  "backend/app/adapters/network/README.md",
+  "backend/app/adapters/network/__init__.py",
+  "backend/app/adapters/network/spec.py",
+  "backend/app/adapters/registry.py",
+  "backend/app/adapters/storage/README.md",
+  "backend/app/adapters/storage/__init__.py",
+  "backend/app/adapters/storage/spec.py",
+  "backend/app/adapters/virtual_machine/README.md",
+  "backend/app/adapters/virtual_machine/__init__.py",
+  "backend/app/adapters/virtual_machine/spec.py",
+  "backend/app/api/__init__.py",
+  "backend/app/api/features/__init__.py",
+  "backend/app/api/features/_registry.py",
+  "backend/app/api/features/algorithms.py",
+  "backend/app/api/features/chat.py",
+  "backend/app/api/features/harness.py",
+  "backend/app/api/features/inventory.py",
+  "backend/app/api/features/knowledge.py",
+  "backend/app/api/features/models.py",
+  "backend/app/api/features/observability.py",
+  "backend/app/api/features/operations.py",
+  "backend/app/api/features/records.py",
+  "backend/app/api/features/system.py",
+  "backend/app/api/features/topology.py",
+  "backend/app/api/reliability.py",
+  "backend/app/application.py",
+  "backend/app/domain/__init__.py",
+  "backend/app/domain/slo.py",
+  "backend/app/kernel/__init__.py",
+  "backend/app/kernel/ports.py",
+  "backend/app/kernel/scale_profile.py",
+  "backend/app/main.py",
+  "backend/app/schemas/__init__.py",
+  "backend/app/schemas/chat.py",
+  "backend/app/schemas/integrations.py",
+  "backend/app/schemas/knowledge.py",
+  "backend/app/schemas/models.py",
+  "backend/app/schemas/operations.py",
+  "backend/app/schemas/reliability.py",
+  "backend/app/services/__init__.py",
+  "backend/app/services/agent_skill_packages.py",
+  "backend/app/services/cluster_registry.py",
+  "backend/app/services/ebpf_flows.py",
+  "backend/app/services/external_traffic.py",
+  "backend/app/services/harness_events.py",
+  "backend/app/services/harness_packages.py",
+  "backend/app/services/harness_plugins.py",
+  "backend/app/services/harness_scaffold.py",
+  "backend/app/services/infrastructure_providers.py",
+  "backend/app/services/knowledge_files.py",
+  "backend/app/services/log_evidence.py",
+  "backend/app/services/ops_execution.py",
+  "backend/app/services/ops_harness.py",
+  "backend/app/services/ops_skill_registry.py",
+  "backend/app/services/ops_skill_runtime.py",
+  "backend/app/services/progressive_delivery.py",
+  "backend/app/services/release_execution.py",
+  "backend/app/services/reliability_store.py",
+  "backend/app/services/resource_catalog.py",
+  "charts/flawless/Chart.yaml",
+  "charts/flawless/templates/NOTES.txt",
+  "charts/flawless/templates/_helpers.tpl",
+  "charts/flawless/templates/configmap.yaml",
+  "charts/flawless/templates/deployment-agents.yaml",
+  "charts/flawless/templates/deployment-api.yaml",
+  "charts/flawless/templates/ingress.yaml",
+  "charts/flawless/templates/pvc.yaml",
+  "charts/flawless/templates/rbac.yaml",
+  "charts/flawless/templates/service.yaml",
+  "charts/flawless/templates/serviceaccount.yaml",
+  "charts/flawless/values-production.example.yaml",
+  "charts/flawless/values-public-cn.yaml",
+  "charts/flawless/values.yaml",
+  "cloud/__init__.py",
+  "cloud/adapters.py",
+  "cmdb/__init__.py",
+  "cmdb/local_cmdb.py",
+  "compose.yaml",
+  "deploy/argo-rollouts/README.md",
+  "deploy/argo-rollouts/install-domestic.sh",
+  "deploy/nginx.conf",
+  "docs/ARGO_ROLLOUTS_SRE_ZH.md",
+  "docs/CISRE_ARCHITECTURE_ZH.md",
+  "docs/CISRE_ENTERPRISE_OPS_PLATFORM.pptx",
+  "docs/CISRE_ENTERPRISE_REVIEW_SPEAKER_NOTES_ZH.md",
+  "docs/DEEPSEEK_HARNESS_INTEGRATION_ZH.md",
+  "docs/DEEPSEEK_HARNESS_PARITY_MATRIX_ZH.md",
+  "docs/HARNESS_PLUGIN_DEVELOPMENT_ZH.md",
+  "docs/LINUX_RANCHER_MIGRATION_ZH.md",
+  "docs/OFFLINE_K8S_DEPLOY_ZH.md",
+  "docs/PLUGIN_FIRST_REFACTOR_ROADMAP_ZH.md",
+  "docs/PLUGIN_TEAM_ONBOARDING_ZH.md",
+  "docs/PROJECT_TECHNICAL_MATERIALS_ZH.md",
+  "docs/README.md",
+  "docs/TEAM_ARCHITECTURE_AND_EXTENSION_GUIDE_ZH.md",
+  "docs/UNIFIED_OPS_PLATFORM_PROPOSAL_ZH.md",
+  "docs/WINDOWS_K8S_DEPLOY_ZH.md",
+  "docs/sre-harness-and-ebpf.md",
+  "examples/crashloop_alert.json",
+  "examples/harness/bundles/fullstack-readonly.yaml",
+  "examples/harness/packages/database-risk-provider.yaml",
+  "examples/harness/profiles/team-production.yaml",
+  "examples/high_cpu_alert.json",
+  "examples/pod_pending_alert.json",
+  "frontend/__init__.py",
+  "frontend/modern/index.html",
+  "frontend/modern/package-lock.json",
+  "frontend/modern/package.json",
+  "frontend/modern/public/favicon.svg",
+  "frontend/modern/src/Topology2D.tsx",
+  "frontend/modern/src/UnifiedPages.tsx",
+  "frontend/modern/src/components/OperationsDomainSelector.tsx",
+  "frontend/modern/src/components/OpsPlanPanel.tsx",
+  "frontend/modern/src/hooks/useAsync.ts",
+  "frontend/modern/src/lib/api.ts",
+  "frontend/modern/src/main.tsx",
+  "frontend/modern/src/styles.css",
+  "frontend/modern/tsconfig.json",
+  "frontend/modern/vite.config.ts",
+  "frontend/server.py",
+  "manifests/advanced-ops-clusterrolebindings.yaml",
+  "manifests/deployment.yaml",
+  "manifests/ebpf-beyla.yaml",
+  "manifests/frontend.yaml",
+  "manifests/full-access-ops-clusterrolebinding.yaml",
+  "manifests/grafana-observability.yaml",
+  "manifests/ingress-secure.example.yaml",
+  "manifests/networkpolicy.yaml",
+  "manifests/node-executor.yaml",
+  "manifests/observability-stack.yaml",
+  "manifests/platform-resilience.yaml",
+  "manifests/production-controls.yaml",
+  "manifests/rbac.yaml",
+  "manifests/release-manager-rolebinding.example.yaml",
+  "manifests/remediation-rolebinding.example.yaml",
+  "mcp_servers/__init__.py",
+  "mcp_servers/k8s_mcp_server.py",
+  "mcp_servers/mcp_http_server.py",
+  "openwebui/__init__.py",
+  "openwebui/openwebui_adapter.py",
+  "plugins/README.md",
+  "plugins/templates/domain-provider/action-catalog.yaml",
+  "plugins/templates/domain-provider/contract-tests/README.md",
+  "plugins/templates/domain-provider/manifest.yaml",
+  "plugins/templates/domain-provider/skills/network-route-recovery/SKILL.md",
+  "requirements.lock",
+  "requirements.txt",
+  "scripts/build-push.sh",
+  "scripts/check-public-sanitization.sh",
+  "scripts/install-linux.sh",
+  "scripts/install-macos.sh",
+  "scripts/install-windows.ps1",
+  "scripts/install.sh",
+  "scripts/linux/Deploy-K8sAgent.sh",
+  "scripts/linux/Prepare-PrivateManifests.sh",
+  "scripts/linux/Push-LocalImages.sh",
+  "scripts/linux/Sync-K8sAgentImages.sh",
+  "scripts/make_proposal_ppt.py",
+  "scripts/pull-observability-images-amd64.sh",
+  "scripts/quickstart.sh",
+  "scripts/run_local_stack.py",
+  "scripts/windows/Deploy-K8sAgent.ps1",
+  "scripts/windows/Prepare-PrivateManifests.ps1",
+  "scripts/windows/Sync-K8sAgentImages.ps1",
+  "tests/e2e/argo_progressive_delivery.yaml",
+  "tests/e2e/dynamic_token_registry.py",
+  "tests/e2e/full_aiops_incluster_rbac_workflow.py",
+  "tests/e2e/full_aiops_permission_workflow.py",
+  "tests/e2e/permission_recovery.py",
+  "tests/e2e/pvc_pv_recovery.py",
+  "tests/e2e/run_argo_progressive_delivery.py",
+  "tests/test_aiops_observability.py",
+  "tests/test_cluster_registry.py",
+  "tests/test_cmdb_topology.py",
+  "tests/test_compatibility_entrypoint.py",
+  "tests/test_effectiveness.py",
+  "tests/test_external_traffic.py",
+  "tests/test_harness_packages_and_events.py",
+  "tests/test_harness_plugins.py",
+  "tests/test_harness_scaffold.py",
+  "tests/test_infrastructure_adapter_contracts.py",
+  "tests/test_installer.py",
+  "tests/test_integrations.py",
+  "tests/test_kernel_scale_profile.py",
+  "tests/test_knowledge_files.py",
+  "tests/test_ops_harness_and_coverage.py",
+  "tests/test_ops_skills.py",
+  "tests/test_progressive_delivery.py",
+  "tests/test_rancher_runtime_connection.py",
+  "tests/test_remediation_engine.py",
+  "tests/test_resource_catalog.py",
+  "tests/test_slo_and_execution.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "55b20f423bd204dff3010797e176069f1e763393f71086490ef8e12c13a9d26b"
+  },
+  {
+   "path": "a2a/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "a2a/gateway.py",
+   "sha256": "664addb2d3e0b3f3f1fdd0445c694769774de38ceb7ac720a1a3ac525afd6772"
+  },
+  {
+   "path": "a2a/protocol.py",
+   "sha256": "8578a83bd1be896193de1ccaff7b9534e3da9a5217890ea5dedd0c8d1c7bd727"
+  },
+  {
+   "path": "agents/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "agents/aiops_algorithms.py",
+   "sha256": "181d8163267588761f9e75b316efe1e87b43dc5b418855d69efca4327d7e63e3"
+  },
+  {
+   "path": "agents/aiops_observability.py",
+   "sha256": "5a2bc6dbe3edbb78ecc706e39f517f4992a77d05b2c81625b97b26cf35cacd0a"
+  },
+  {
+   "path": "agents/effectiveness.py",
+   "sha256": "089538d6923e908d114a25b4724e172b354e5a86ea44dc1af5f0fd7e1d9b896b"
+  },
+  {
+   "path": "agents/healing_agent.py",
+   "sha256": "f6b466315883c16a5852c2c41a3d5ef9218a5aa5add2b50203c0575d19ca60fd"
+  },
+  {
+   "path": "agents/incident_agent.py",
+   "sha256": "2013155d389a9bfce0c40a7e99c3673fed5c014033e5fefb648342a7b87ae728"
+  },
+  {
+   "path": "agents/llm_client.py",
+   "sha256": "196940ee32af48d9f41be0ce1d7c250efaf9fee89690761179bc68cd76a52b90"
+  },
+  {
+   "path": "agents/model_registry.py",
+   "sha256": "2cca58896651eee655c663c8f052f24db0bc33dbfaaa7043f7743d235cc1201e"
+  },
+  {
+   "path": "agents/observability_agent.py",
+   "sha256": "bf1617b5ef38d17e77f5c60ecdd15bc57b6573d92a4bd71a4f08688258fef8f2"
+  },
+  {
+   "path": "agents/postmortem_agent.py",
+   "sha256": "d1f633dbe823a0c00d5a0b756f860a53f0f58488a7dccf22bf61a8314a56783f"
+  },
+  {
+   "path": "agents/remediation_engine.py",
+   "sha256": "d66badc14e217841567bee50c2b982a06248a785709613e38bb3be50c179d493"
+  },
+  {
+   "path": "agents/runtime_resilience.py",
+   "sha256": "a933acfe650f6f02355a0037e8f67f84c4660d0ddb56dca588adcf370dc2ba4c"
+  },
+  {
+   "path": "agents/sre_graph.py",
+   "sha256": "56b6b91dcc1dcc242404a2c1482b08e7c0555a683acec4de6b75c7cd249c5067"
+  },
+  {
+   "path": "backend/__init__.py",
+   "sha256": "b470c913311428d5b25edc2386897012b0ca008a2c400c0fbdb6f40ce73bec7f"
+  },
+  {
+   "path": "backend/app/__init__.py",
+   "sha256": "5295203838c013e660295f84d30e9f5e4c29f1a03977384a966f9209c71ef439"
+  },
+  {
+   "path": "backend/app/adapters/__init__.py",
+   "sha256": "36b5a25cb70609341c27f84b5ecadb025fd334fa8b1967971c2a1a611233ef32"
+  },
+  {
+   "path": "backend/app/adapters/cloud_service/__init__.py",
+   "sha256": "24aa94c65991b83bc8351155e2dce6575a6512b2e513e9b93d941ad2d36f6220"
+  },
+  {
+   "path": "backend/app/adapters/contracts.py",
+   "sha256": "baf906bddb3faa647a385921c0bf7b7ab573d7cf9a6ac291f08102602be65e45"
+  },
+  {
+   "path": "backend/app/adapters/database/__init__.py",
+   "sha256": "772e18113965dfae187ff1b64f25bda0b958f6df86ba26729dd119758e229e6b"
+  },
+  {
+   "path": "backend/app/adapters/database/spec.py",
+   "sha256": "e3669b228b1cc7f199890ad28d2fdf062e6405e796b948a25c7461987ff5c254"
+  },
+  {
+   "path": "backend/app/adapters/domains.py",
+   "sha256": "95bf2e0f42314afabef63a1bb1747f773e731ffe634cc2521d03d3db1a73e020"
+  },
+  {
+   "path": "backend/app/adapters/middleware/__init__.py",
+   "sha256": "6f26b9602272e56260ac518373a1a581fff2bcccf38f1a3b0336d13f9b48e330"
+  },
+  {
+   "path": "backend/app/adapters/network/__init__.py",
+   "sha256": "320445f18961609275ae72cfd2f53dc726372a822310806d3d9e6f6443103838"
+  },
+  {
+   "path": "backend/app/adapters/network/spec.py",
+   "sha256": "10575d2cd40f4d87529b27f1a449321c9964a3835752b2774383b1b3d39d99af"
+  },
+  {
+   "path": "backend/app/adapters/registry.py",
+   "sha256": "4d7936c0b2d818a76c1485f28c43debf7c8c000ffb31caa9e92bdbf6d5f5cbe1"
+  },
+  {
+   "path": "backend/app/adapters/storage/__init__.py",
+   "sha256": "177f476a92c07c9346863efad6ac8fd62ed764f1848889f5e4982f77c10b3111"
+  },
+  {
+   "path": "backend/app/adapters/storage/spec.py",
+   "sha256": "17366f57ce46e7be0c17c8803f769a32c0cc5db41857bcf6f5ab40a4b3a6a994"
+  },
+  {
+   "path": "backend/app/adapters/virtual_machine/__init__.py",
+   "sha256": "ba9816756bbecbab451f69d186bf352f5c894000e2d3f1a0a0ec0fc53b784fd3"
+  },
+  {
+   "path": "backend/app/adapters/virtual_machine/spec.py",
+   "sha256": "f712aee78c19743d3651ca67fdf42ca74668c18d8f05466ab42ec4920b3fff3d"
+  },
+  {
+   "path": "backend/app/api/__init__.py",
+   "sha256": "9fb2caee0fd03349c948b27d31529392c9b0257b936c814c092062c0b3e90d66"
+  },
+  {
+   "path": "backend/app/api/features/__init__.py",
+   "sha256": "8a6a800cdc4c176baf9709cc82d417aa9d83f7dc88335d8346a3ae0441eadf72"
+  },
+  {
+   "path": "backend/app/api/features/_registry.py",
+   "sha256": "730e59c233b0ef3768df0a279fe0a42eff6aa85422a3e7f76b95080d6c017790"
+  },
+  {
+   "path": "backend/app/api/features/algorithms.py",
+   "sha256": "437432a5e3ad7ff2ab465a32c445c1a563e52fa7002b7e9823b4b79c0018b59b"
+  },
+  {
+   "path": "backend/app/api/features/chat.py",
+   "sha256": "58248a0b9c74970f521326de0fba2c5e7d331142d1a7670b32e27c9d48f7a7b1"
+  },
+  {
+   "path": "backend/app/api/features/harness.py",
+   "sha256": "e48244c8e6e941875c0f00858156043d5a10c4cad8eeabeb8c6beb9019df46bb"
+  },
+  {
+   "path": "backend/app/api/features/inventory.py",
+   "sha256": "3d16a15811f33adb186ceec64c939bbc0e760c9b8c5278084f34ae02f33a1df4"
+  },
+  {
+   "path": "backend/app/api/features/knowledge.py",
+   "sha256": "3fc11d959be6d16a9e43604c9bfe593f95dd8230abe9ac6b90863d570deb3bc4"
+  },
+  {
+   "path": "backend/app/api/features/models.py",
+   "sha256": "c8390b702dd34fb94e365db51e2e2fc9d4571ddb6b40c031d8fb1049aecf4926"
+  },
+  {
+   "path": "backend/app/api/features/observability.py",
+   "sha256": "79e2360d671417c6495ceff190dea5b2964540ad8105f25ae2ae7eb2dd2e4d34"
+  },
+  {
+   "path": "backend/app/api/features/operations.py",
+   "sha256": "d4d143e633d970458eb44d498ea0d248236aaa55ee1904898b800e772b3377a0"
+  },
+  {
+   "path": "backend/app/api/features/records.py",
+   "sha256": "28996264b1fbdf2d7a88144a70f0533e3ab6983a4d034f2608536429ec041d1a"
+  },
+  {
+   "path": "backend/app/api/features/system.py",
+   "sha256": "b39acd21f1416aeed58aed1e0a4e247125c43b9a915b761391fb20a77fd20e65"
+  },
+  {
+   "path": "backend/app/api/features/topology.py",
+   "sha256": "e95fa9b044c045d2441ee47aeee4f8f52215be637890b104624a3e14ac75caf9"
+  },
+  {
+   "path": "backend/app/api/reliability.py",
+   "sha256": "3eab80e9e6b682d4dfe412547429fa8b38e642685c8987b9ccf2dad85ad43aeb"
+  },
+  {
+   "path": "backend/app/application.py",
+   "sha256": "d9d877026730f331ef6b09f1879c3e9cb04ebb0961ea57c620e1756c8be04956"
+  },
+  {
+   "path": "backend/app/domain/__init__.py",
+   "sha256": "5952cdaccfeef09045934b6b906f3087b681cc763f0cbad64f57f79fa8919c29"
+  },
+  {
+   "path": "backend/app/domain/slo.py",
+   "sha256": "4ef40b25d760b9b64c569181ec7b134740ac035074b8d96f39d270d35ea3120e"
+  },
+  {
+   "path": "backend/app/kernel/__init__.py",
+   "sha256": "23159994225fa3911f30de7a25d9d5d0b9a3a13c2465985f8c42741072addd67"
+  },
+  {
+   "path": "backend/app/kernel/ports.py",
+   "sha256": "9c96e93d8e413a1db0ac6f41addacfa49337cc90d9ec497648678e37b44375cd"
+  },
+  {
+   "path": "backend/app/kernel/scale_profile.py",
+   "sha256": "825dccc279248fa66f5784d2f375e8c1a11e6f63066638872f1078e4e15165bd"
+  },
+  {
+   "path": "backend/app/main.py",
+   "sha256": "b3686e519a8d60443fe104cc7080f025e7330a9a3fed87d389482961fd00ff07"
+  },
+  {
+   "path": "backend/app/schemas/__init__.py",
+   "sha256": "37634ea8e4e15337b87e6d18ec9dc5bd3a11adb1fb687420e9fce0aae0d46991"
+  },
+  {
+   "path": "backend/app/schemas/chat.py",
+   "sha256": "9ac5c8ea79d78ec346b6c38faa6c954e39900f8a596d780b29f8a7977094b1e0"
+  },
+  {
+   "path": "backend/app/schemas/integrations.py",
+   "sha256": "8dd3dbcdd85b4a475c80f2c3fcf797151043969fb407c10a4d1f68ef1857611f"
+  },
+  {
+   "path": "backend/app/schemas/knowledge.py",
+   "sha256": "f843a662b640c30bc2a26af3df5f64f912ad471dee4f53fb211b8809f05feb27"
+  },
+  {
+   "path": "backend/app/schemas/models.py",
+   "sha256": "84ddb09e83199a2b0639ef7dcbb35dd6ac2cd6d0ac027893d7549c5fa1996670"
+  },
+  {
+   "path": "backend/app/schemas/operations.py",
+   "sha256": "b64c9f4b35ad85b499be2d87ff84365ca0c0c9e1c60262f54cce3d25e6348466"
+  },
+  {
+   "path": "backend/app/schemas/reliability.py",
+   "sha256": "fe1bb4b8b5f7cd5a6df7ce9b31308316cccc9e6972f86636c6bdd64f95bcbad8"
+  },
+  {
+   "path": "backend/app/services/__init__.py",
+   "sha256": "2e44391aa5f3c8654d2dbddd4e254b90b6f2a672bb0a635b9080dace8bd501c2"
+  },
+  {
+   "path": "backend/app/services/agent_skill_packages.py",
+   "sha256": "5c5219b113ca400b820f7ebe2ad2c88942000493e6734b6a2f0244a6be291995"
+  },
+  {
+   "path": "backend/app/services/cluster_registry.py",
+   "sha256": "7b2ffa34f010f317bced0db058074428df069f7d427b7224b6a4186f21c2b2a8"
+  },
+  {
+   "path": "backend/app/services/ebpf_flows.py",
+   "sha256": "3b3ecdc840f4a02d042da9b4be6e3006e209846759e489fcef6ed197b5302cb6"
+  },
+  {
+   "path": "backend/app/services/external_traffic.py",
+   "sha256": "947771e7f6eb6f113909ec3f507cb397e776489025f5d295dde7de8f0c1d0657"
+  },
+  {
+   "path": "backend/app/services/harness_events.py",
+   "sha256": "9cd49f7fbfec2793766a383f5eb2bdaaddd2c3b6f3d0784c9e774cc93f24c2a2"
+  },
+  {
+   "path": "backend/app/services/harness_packages.py",
+   "sha256": "c4e944e242451ff30ec2f496724bcb944e530a4327960ce61db46316635e8e34"
+  },
+  {
+   "path": "backend/app/services/harness_plugins.py",
+   "sha256": "a5b848633d5dc6a09d4d5b431a09f701f6e52a45a73c9e57d6fd59bc25813a41"
+  },
+  {
+   "path": "backend/app/services/harness_scaffold.py",
+   "sha256": "2d7e24a9a6fa561efbd7d16425b191bcc32a2983302f76f40520c660ce036ccc"
+  },
+  {
+   "path": "backend/app/services/infrastructure_providers.py",
+   "sha256": "a6d24963e0692b073c9ff960eef562c664cf28d8412775c81b21b899426866fa"
+  },
+  {
+   "path": "backend/app/services/knowledge_files.py",
+   "sha256": "95ba43a1e078acd588d759aa3fa54bb95fb45f9fc2a4f8cd3cd2866778c3eef1"
+  },
+  {
+   "path": "backend/app/services/log_evidence.py",
+   "sha256": "222c6792e036177a53ef60b34de12cbfd0aa8261fcb09c09f625de9694ce8a9b"
+  },
+  {
+   "path": "backend/app/services/ops_execution.py",
+   "sha256": "de49b7f7d1d9df98a7384c2ac8032878de700e770b45daf2d5d6b2629ac7332e"
+  },
+  {
+   "path": "backend/app/services/ops_harness.py",
+   "sha256": "6108778ac8366e9ca4c36d3119d52b48ee196f552fcc78d06ac8b5742878153b"
+  },
+  {
+   "path": "backend/app/services/ops_skill_registry.py",
+   "sha256": "04ab1229f527aa1373a79ae7e7b2d2a5a7c6d0fc1a9a136cfa5b98ba66f51034"
+  },
+  {
+   "path": "backend/app/services/ops_skill_runtime.py",
+   "sha256": "19873e86c88c56ac51eb4daa46b6977e159aa8122aaea474a0923ade6f52e40a"
+  },
+  {
+   "path": "backend/app/services/progressive_delivery.py",
+   "sha256": "6e9d325b5ece889ebb9a6de66beb3342c197d3635e239a8944fa1a0b1d6fb357"
+  },
+  {
+   "path": "backend/app/services/release_execution.py",
+   "sha256": "a49cafff5dae0054ee0586bf849a749d20ad5e21b05d029589ea5de02b810b2c"
+  },
+  {
+   "path": "backend/app/services/reliability_store.py",
+   "sha256": "9e718aa5b8da8c71c2f2e9c086b4dcd99d23ec29eff0aa79dd93e506ed56afbf"
+  },
+  {
+   "path": "backend/app/services/resource_catalog.py",
+   "sha256": "b53cc2739505b48fe57bbe9b1693010c6556527455f8234f1e7dd84fa845495b"
+  },
+  {
+   "path": "cloud/__init__.py",
+   "sha256": "ab74e71d45b2a07cbb305b4d320d43c95ceb1446299143036a8fcb4cd09bd09d"
+  },
+  {
+   "path": "cloud/adapters.py",
+   "sha256": "6eb208d01e512d293f0f195d2f415be4187d4508ac0d63bdc5f9d3c4913746b5"
+  },
+  {
+   "path": "cmdb/__init__.py",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+   "path": "cmdb/local_cmdb.py",
+   "sha256": "aa5b8a54869d5d2e2eb0c16c8faaf878dcc3d9dfe68ccb3ef5b318e35f47cc34"
+  },
+  {
+   "path": "frontend/__init__.py",
+   "sha256": "ad4feefef0eec83553e06697488cf15b13be03d36c4472e1e1a05128bd6f6b0b"
+  },
+  {
+   "path": "frontend/server.py",
+   "sha256": "38ba087c6a827fc9b7f03f573d7bfed1e0dd6d0bba33a2138ea8d5972cd86c5c"
+  },
+  {
+   "path": "mcp_servers/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "mcp_servers/k8s_mcp_server.py",
+   "sha256": "1db86dd813256b951dfe1ecfdeca88185bd77778fb0e967434873c8e929b25d2"
+  },
+  {
+   "path": "mcp_servers/mcp_http_server.py",
+   "sha256": "03d7106a1b5f75d1b71cf39c7c2e2595dc4da4e30bf20679e258af1dd2158964"
+  },
+  {
+   "path": "openwebui/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "openwebui/openwebui_adapter.py",
+   "sha256": "d2276aaa332fc6eec38d3d1f1045790e6b971d7f906a9d75f80f388a2c7064fe"
+  },
+  {
+   "path": "scripts/make_proposal_ppt.py",
+   "sha256": "4d141d81617547dfb68198274d20ec98d5e7fc271132f6f459327c1690c6d42c"
+  },
+  {
+   "path": "scripts/run_local_stack.py",
+   "sha256": "ad921a939d451a97a1a384b53b20556a0f8b402c9cd1211045d63022035e4a54"
+  },
+  {
+   "path": "tests/e2e/dynamic_token_registry.py",
+   "sha256": "b16d45155369f5cd65777d2bf9fbaeb2d64202c6eeb0b7a52bb066c9d720967e"
+  },
+  {
+   "path": "tests/e2e/full_aiops_incluster_rbac_workflow.py",
+   "sha256": "528615b34b9ef440b2a4be4ee3f72f083df97166e08c94b11ede63c38b799c9f"
+  },
+  {
+   "path": "tests/e2e/full_aiops_permission_workflow.py",
+   "sha256": "5ef4da971c44550158d30480af3e0604e771202f6a74950c9c9969dce1a3fecc"
+  },
+  {
+   "path": "tests/e2e/permission_recovery.py",
+   "sha256": "f03a570b2ea3cf6c4d105be71d7518d14b15b50ae26add95b742e5fc18a5d957"
+  },
+  {
+   "path": "tests/e2e/pvc_pv_recovery.py",
+   "sha256": "f43a4ca57caac17b798149545e42d1c4b813a04c4f1b4bbc44c4bac373adfc3b"
+  },
+  {
+   "path": "tests/e2e/run_argo_progressive_delivery.py",
+   "sha256": "a3cc13d6a70219f4b8516901014baad87c0c167cf14072df33e6148ba25d99ed"
+  },
+  {
+   "path": "tests/test_aiops_observability.py",
+   "sha256": "b5022e15c282bc613b559327472924a290ccc3cf6fb6fdc7f20d52c32b3acf41"
+  },
+  {
+   "path": "tests/test_cluster_registry.py",
+   "sha256": "755badc09668163ca3f3a5e866a2bad1d8d41f61a42e68fc973d3745d5835dbb"
+  },
+  {
+   "path": "tests/test_cmdb_topology.py",
+   "sha256": "fd3f1e4839a987adc7873febd05fefb9a723a48932a3a33666835450d649c74f"
+  },
+  {
+   "path": "tests/test_compatibility_entrypoint.py",
+   "sha256": "b09f94b9685839d1427d605b67c9e9f1892149c71dc6796a590e5166a833d3b7"
+  },
+  {
+   "path": "tests/test_effectiveness.py",
+   "sha256": "1a11d9f92b68c940b110af43543d1bc5c8c79bc96f73c846daf54774215f1740"
+  },
+  {
+   "path": "tests/test_external_traffic.py",
+   "sha256": "14b9c5ed7f09a562cde83a87c3082783e4d9c6ec71ca0f6e1cdb65d001a1f05c"
+  },
+  {
+   "path": "tests/test_harness_packages_and_events.py",
+   "sha256": "9a95600a79a3976000a468d8d76630cd457aee7d63e6aa8bb8fcc96265ed3062"
+  },
+  {
+   "path": "tests/test_harness_plugins.py",
+   "sha256": "612d1c0ff80c238d67077f7cc495d3d930be5f75cd186da5762dafc05d90c0f0"
+  },
+  {
+   "path": "tests/test_harness_scaffold.py",
+   "sha256": "1c5c01ccb126ea0bfd1cc171f103418ffa173298a506fd546da655f5b2a1a6fd"
+  },
+  {
+   "path": "tests/test_infrastructure_adapter_contracts.py",
+   "sha256": "17224bef9342878dcf9958ab7ab3aab97e701dd0b1e5ebcd60ca989c3ea83cfd"
+  },
+  {
+   "path": "tests/test_installer.py",
+   "sha256": "dbfd18fc5738d176fa5ea39ad5245010baeb051ba81edc7a876f9d8be6739586"
+  },
+  {
+   "path": "tests/test_integrations.py",
+   "sha256": "851c9a392c7f757b67a0418d379622d409ea8ac9fab7552c0c1f1b942f50b0fa"
+  },
+  {
+   "path": "tests/test_kernel_scale_profile.py",
+   "sha256": "77b1ced040c3cbb19574316cc636b9a08e3f7c2951a1bcc74e642e8e267c2074"
+  },
+  {
+   "path": "tests/test_knowledge_files.py",
+   "sha256": "328460d9cf9079de0a1131f0d944860b9f865c4ef55c58ed40765e1426363b71"
+  },
+  {
+   "path": "tests/test_ops_harness_and_coverage.py",
+   "sha256": "1d365d6a96d18fc1c2e69cdc717fd077868d01b561653a38156827654bcb81d5"
+  },
+  {
+   "path": "tests/test_ops_skills.py",
+   "sha256": "bb1ed7be9c48b50c45d2a1497c8ae7691b522f30088c96ee8d60484fcd16d119"
+  },
+  {
+   "path": "tests/test_progressive_delivery.py",
+   "sha256": "c48d751cccbb2ee9f9ab63435d12f7bd8e2733a01cbfb9a6f51575969c2b4a37"
+  },
+  {
+   "path": "tests/test_rancher_runtime_connection.py",
+   "sha256": "1c73b25abd901da979dfc4ed55e696fd0254a6c7cdc738393aace64c1f9ac2d6"
+  },
+  {
+   "path": "tests/test_remediation_engine.py",
+   "sha256": "6f5b124515299775bea0fb09a3320ba362f5637ab0c022971683a122fb5c5597"
+  },
+  {
+   "path": "tests/test_resource_catalog.py",
+   "sha256": "03e4365fa10d7ae8a8d693b914d1457658582d4ce35d3cd6d965ed44075687db"
+  },
+  {
+   "path": "tests/test_slo_and_execution.py",
+   "sha256": "09337e035dc4b76bf3e2b936210c3b99f6e6cfdda58ad6ba3aa98c47d8313136"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 709557,
+ "tier": "AI_ASSOCIATED"
+}

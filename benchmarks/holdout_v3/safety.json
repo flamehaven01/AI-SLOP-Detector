@@ -1,0 +1,13 @@
+{
+ "rule": "benchmarks/holdout_v2/PROTOCOL.md safety rule; decided from description, licence and README read through the API, before any clone",
+ "decisions": {
+  "mstan/MegaManX6Recomp": {
+   "code": "NOT_EXCLUDED",
+   "evidence": "README: static recompilation framework glue; 'does not contain the Mega Man X6 disc image, a retail PS1 BIOS, generated game code, or any decompiled game C'; game data comes from the user's own legally obtained assets (emulator-like)"
+  },
+  "ferretgeek/cliproxyapi-dashboard": {
+   "code": "NOT_EXCLUDED",
+   "evidence": "README: monitoring, log and upgrade panel for an already deployed proxy service; it bypasses no service limit, licence or authentication itself"
+  }
+ }
+}

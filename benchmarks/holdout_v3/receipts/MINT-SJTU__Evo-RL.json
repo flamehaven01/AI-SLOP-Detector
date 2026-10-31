@@ -1,0 +1,2832 @@
+{
+ "repo": "MINT-SJTU/Evo-RL",
+ "dir": "MINT-SJTU__Evo-RL",
+ "commit": "ec9842d8a8dd0371b4b50021547552e4608ec5ee",
+ "estimate_commit": "ec9842d8a8dd0371b4b50021547552e4608ec5ee",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".gitattributes",
+  ".github/ISSUE_TEMPLATE/bug-report.yml",
+  ".github/PULL_REQUEST_TEMPLATE.md",
+  ".github/labeler.yml",
+  ".github/workflows/deploy-website-pages.yml",
+  ".github/workflows/documentation-upload-pr.yml",
+  ".github/workflows/documentation.yml",
+  ".github/workflows/fast_tests.yml",
+  ".github/workflows/full_tests.yml",
+  ".github/workflows/issue_labeler.yml",
+  ".github/workflows/nightly.yml",
+  ".github/workflows/pr_labeler.yml",
+  ".github/workflows/quality.yml",
+  ".github/workflows/release.yml",
+  ".github/workflows/security.yml",
+  ".github/workflows/stale.yml",
+  ".github/workflows/unbound_deps_tests.yml",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "MANIFEST.in",
+  "Makefile",
+  "README.md",
+  "SECURITY.md",
+  "benchmarks/video/README.md",
+  "benchmarks/video/run_video_benchmark.py",
+  "docker/Dockerfile.internal",
+  "docker/Dockerfile.user",
+  "docs-requirements.txt",
+  "docs/README.md",
+  "docs/source/_toctree.yml",
+  "docs/source/act.mdx",
+  "docs/source/async.mdx",
+  "docs/source/backwardcomp.mdx",
+  "docs/source/bring_your_own_policies.mdx",
+  "docs/source/cameras.mdx",
+  "docs/source/contributing.md",
+  "docs/source/damiao.mdx",
+  "docs/source/dataset_subtask.mdx",
+  "docs/source/debug_processor_pipeline.mdx",
+  "docs/source/earthrover_mini_plus.mdx",
+  "docs/source/env_processor.mdx",
+  "docs/source/envhub.mdx",
+  "docs/source/envhub_isaaclab_arena.mdx",
+  "docs/source/envhub_leisaac.mdx",
+  "docs/source/feetech.mdx",
+  "docs/source/groot.mdx",
+  "docs/source/hilserl.mdx",
+  "docs/source/hilserl_sim.mdx",
+  "docs/source/hope_jr.mdx",
+  "docs/source/il_robots.mdx",
+  "docs/source/implement_your_own_processor.mdx",
+  "docs/source/index.mdx",
+  "docs/source/installation.mdx",
+  "docs/source/integrate_hardware.mdx",
+  "docs/source/introduction_processors.mdx",
+  "docs/source/koch.mdx",
+  "docs/source/lekiwi.mdx",
+  "docs/source/lerobot-dataset-v3.mdx",
+  "docs/source/libero.mdx",
+  "docs/source/metaworld.mdx",
+  "docs/source/multi_gpu_training.mdx",
+  "docs/source/notebooks.mdx",
+  "docs/source/omx.mdx",
+  "docs/source/openarm.mdx",
+  "docs/source/peft_training.mdx",
+  "docs/source/phone_teleop.mdx",
+  "docs/source/pi0.mdx",
+  "docs/source/pi05.mdx",
+  "docs/source/pi0fast.mdx",
+  "docs/source/policy_act_README.md",
+  "docs/source/policy_diffusion_README.md",
+  "docs/source/policy_groot_README.md",
+  "docs/source/policy_smolvla_README.md",
+  "docs/source/policy_tdmpc_README.md",
+  "docs/source/policy_vqbet_README.md",
+  "docs/source/policy_walloss_README.md",
+  "docs/source/porting_datasets_v3.mdx",
+  "docs/source/processors_robots_teleop.mdx",
+  "docs/source/reachy2.mdx",
+  "docs/source/rtc.mdx",
+  "docs/source/sarm.mdx",
+  "docs/source/smolvla.mdx",
+  "docs/source/so100.mdx",
+  "docs/source/so101.mdx",
+  "docs/source/torch_accelerators.mdx",
+  "docs/source/unitree_g1.mdx",
+  "docs/source/using_dataset_tools.mdx",
+  "docs/source/walloss.mdx",
+  "docs/source/xvla.mdx",
+  "examples/backward_compatibility/replay.py",
+  "examples/dataset/load_lerobot_dataset.py",
+  "examples/dataset/use_dataset_image_transforms.py",
+  "examples/dataset/use_dataset_tools.py",
+  "examples/lekiwi/evaluate.py",
+  "examples/lekiwi/record.py",
+  "examples/lekiwi/replay.py",
+  "examples/lekiwi/teleoperate.py",
+  "examples/phone_to_so100/evaluate.py",
+  "examples/phone_to_so100/record.py",
+  "examples/phone_to_so100/replay.py",
+  "examples/phone_to_so100/teleoperate.py",
+  "examples/port_datasets/display_error_files.py",
+  "examples/port_datasets/port_droid.py",
+  "examples/port_datasets/slurm_aggregate_shards.py",
+  "examples/port_datasets/slurm_port_shards.py",
+  "examples/port_datasets/slurm_upload.py",
+  "examples/rtc/eval_dataset.py",
+  "examples/rtc/eval_with_real_robot.py",
+  "examples/so100_to_so100_EE/evaluate.py",
+  "examples/so100_to_so100_EE/record.py",
+  "examples/so100_to_so100_EE/replay.py",
+  "examples/so100_to_so100_EE/teleoperate.py",
+  "examples/training/train_policy.py",
+  "examples/training/train_with_streaming.py",
+  "examples/tutorial/act/act_training_example.py",
+  "examples/tutorial/act/act_using_example.py",
+  "examples/tutorial/async-inf/policy_server.py",
+  "examples/tutorial/async-inf/robot_client.py",
+  "examples/tutorial/diffusion/diffusion_training_example.py",
+  "examples/tutorial/diffusion/diffusion_using_example.py",
+  "examples/tutorial/pi0/using_pi0_example.py",
+  "examples/tutorial/rl/hilserl_example.py",
+  "examples/tutorial/rl/reward_classifier_example.py",
+  "examples/tutorial/smolvla/using_smolvla_example.py",
+  "examples/unitree_g1/gr00t_locomotion.py",
+  "examples/unitree_g1/holosoma_locomotion.py",
+  "pyproject.toml",
+  "requirements-macos.txt",
+  "requirements-ubuntu.txt",
+  "requirements.in",
+  "setup.py",
+  "src/lerobot/__init__.py",
+  "src/lerobot/__version__.py",
+  "src/lerobot/async_inference/configs.py",
+  "src/lerobot/async_inference/constants.py",
+  "src/lerobot/async_inference/helpers.py",
+  "src/lerobot/async_inference/policy_server.py",
+  "src/lerobot/async_inference/robot_client.py",
+  "src/lerobot/cameras/__init__.py",
+  "src/lerobot/cameras/camera.py",
+  "src/lerobot/cameras/configs.py",
+  "src/lerobot/cameras/opencv/__init__.py",
+  "src/lerobot/cameras/opencv/camera_opencv.py",
+  "src/lerobot/cameras/opencv/configuration_opencv.py",
+  "src/lerobot/cameras/reachy2_camera/__init__.py",
+  "src/lerobot/cameras/reachy2_camera/configuration_reachy2_camera.py",
+  "src/lerobot/cameras/reachy2_camera/reachy2_camera.py",
+  "src/lerobot/cameras/realsense/__init__.py",
+  "src/lerobot/cameras/realsense/camera_realsense.py",
+  "src/lerobot/cameras/realsense/configuration_realsense.py",
+  "src/lerobot/cameras/utils.py",
+  "src/lerobot/cameras/zmq/__init__.py",
+  "src/lerobot/cameras/zmq/camera_zmq.py",
+  "src/lerobot/cameras/zmq/configuration_zmq.py",
+  "src/lerobot/cameras/zmq/image_server.py",
+  "src/lerobot/configs/default.py",
+  "src/lerobot/configs/eval.py",
+  "src/lerobot/configs/parser.py",
+  "src/lerobot/configs/policies.py",
+  "src/lerobot/configs/train.py",
+  "src/lerobot/configs/types.py",
+  "src/lerobot/configs/value.py",
+  "src/lerobot/configs/value_reward.py",
+  "src/lerobot/configs/value_train.py",
+  "src/lerobot/data_processing/__init__.py",
+  "src/lerobot/data_processing/sarm_annotations/__init__.py",
+  "src/lerobot/data_processing/sarm_annotations/subtask_annotation.py",
+  "src/lerobot/datasets/aggregate.py",
+  "src/lerobot/datasets/backward_compatibility.py",
+  "src/lerobot/datasets/card_template.md",
+  "src/lerobot/datasets/compute_stats.py",
+  "src/lerobot/datasets/dataset_tools.py",
+  "src/lerobot/datasets/factory.py",
+  "src/lerobot/datasets/image_writer.py",
+  "src/lerobot/datasets/lerobot_dataset.py",
+  "src/lerobot/datasets/online_buffer.py",
+  "src/lerobot/datasets/pipeline_features.py",
+  "src/lerobot/datasets/push_dataset_to_hub/utils.py",
+  "src/lerobot/datasets/sampler.py",
+  "src/lerobot/datasets/streaming_dataset.py",
+  "src/lerobot/datasets/transforms.py",
+  "src/lerobot/datasets/utils.py",
+  "src/lerobot/datasets/v30/augment_dataset_quantile_stats.py",
+  "src/lerobot/datasets/v30/convert_dataset_v21_to_v30.py",
+  "src/lerobot/datasets/video_utils.py",
+  "src/lerobot/envs/__init__.py",
+  "src/lerobot/envs/configs.py",
+  "src/lerobot/envs/factory.py",
+  "src/lerobot/envs/libero.py",
+  "src/lerobot/envs/metaworld.py",
+  "src/lerobot/envs/metaworld_config.json",
+  "src/lerobot/envs/utils.py",
+  "src/lerobot/model/kinematics.py",
+  "src/lerobot/motors/__init__.py",
+  "src/lerobot/motors/calibration_gui.py",
+  "src/lerobot/motors/damiao/__init__.py",
+  "src/lerobot/motors/damiao/damiao.py",
+  "src/lerobot/motors/damiao/tables.py",
+  "src/lerobot/motors/dynamixel/__init__.py",
+  "src/lerobot/motors/dynamixel/dynamixel.py",
+  "src/lerobot/motors/dynamixel/tables.py",
+  "src/lerobot/motors/encoding_utils.py",
+  "src/lerobot/motors/feetech/__init__.py",
+  "src/lerobot/motors/feetech/feetech.py",
+  "src/lerobot/motors/feetech/tables.py",
+  "src/lerobot/motors/motors_bus.py",
+  "src/lerobot/optim/__init__.py",
+  "src/lerobot/optim/factory.py",
+  "src/lerobot/optim/optimizers.py",
+  "src/lerobot/optim/schedulers.py",
+  "src/lerobot/policies/__init__.py",
+  "src/lerobot/policies/act/README.md",
+  "src/lerobot/policies/act/configuration_act.py",
+  "src/lerobot/policies/act/modeling_act.py",
+  "src/lerobot/policies/act/processor_act.py",
+  "src/lerobot/policies/diffusion/README.md",
+  "src/lerobot/policies/diffusion/configuration_diffusion.py",
+  "src/lerobot/policies/diffusion/modeling_diffusion.py",
+  "src/lerobot/policies/diffusion/processor_diffusion.py",
+  "src/lerobot/policies/evo1/KNOWN_ISSUES.md",
+  "src/lerobot/policies/evo1/README.md",
+  "src/lerobot/policies/evo1/__init__.py",
+  "src/lerobot/policies/evo1/accelerate_four_gpu_bf16.yaml",
+  "src/lerobot/policies/evo1/configuration_evo1.py",
+  "src/lerobot/policies/evo1/evo1_inherited_issues.md",
+  "src/lerobot/policies/evo1/evo1_model.py",
+  "src/lerobot/policies/evo1/flow_matching.py",
+  "src/lerobot/policies/evo1/internvl3_embedder.py",
+  "src/lerobot/policies/evo1/modeling_evo1.py",
+  "src/lerobot/policies/evo1/processor_evo1.py",
+  "src/lerobot/policies/evo1/\u79fb\u690d\u8bf4\u660e.md",
+  "src/lerobot/policies/factory.py",
+  "src/lerobot/policies/groot/README.md",
+  "src/lerobot/policies/groot/__init__.py",
+  "src/lerobot/policies/groot/action_head/__init__.py",
+  "src/lerobot/policies/groot/action_head/action_encoder.py",
+  "src/lerobot/policies/groot/action_head/cross_attention_dit.py",
+  "src/lerobot/policies/groot/action_head/flow_matching_action_head.py",
+  "src/lerobot/policies/groot/configuration_groot.py",
+  "src/lerobot/policies/groot/eagle2_hg_model/configuration_eagle2_5_vl.py",
+  "src/lerobot/policies/groot/eagle2_hg_model/image_processing_eagle2_5_vl_fast.py",
+  "src/lerobot/policies/groot/eagle2_hg_model/modeling_eagle2_5_vl.py",
+  "src/lerobot/policies/groot/eagle2_hg_model/processing_eagle2_5_vl.py",
+  "src/lerobot/policies/groot/groot_n1.py",
+  "src/lerobot/policies/groot/modeling_groot.py",
+  "src/lerobot/policies/groot/processor_groot.py",
+  "src/lerobot/policies/groot/utils.py",
+  "src/lerobot/policies/pi0/README.md",
+  "src/lerobot/policies/pi0/__init__.py",
+  "src/lerobot/policies/pi0/configuration_pi0.py",
+  "src/lerobot/policies/pi0/modeling_pi0.py",
+  "src/lerobot/policies/pi0/processor_pi0.py",
+  "src/lerobot/policies/pi05/README.md",
+  "src/lerobot/policies/pi05/__init__.py",
+  "src/lerobot/policies/pi05/configuration_pi05.py",
+  "src/lerobot/policies/pi05/modeling_pi05.py",
+  "src/lerobot/policies/pi05/processor_pi05.py",
+  "src/lerobot/policies/pi0_fast/__init__.py",
+  "src/lerobot/policies/pi0_fast/configuration_pi0_fast.py",
+  "src/lerobot/policies/pi0_fast/modeling_pi0_fast.py",
+  "src/lerobot/policies/pi0_fast/processor_pi0_fast.py",
+  "src/lerobot/policies/pretrained.py",
+  "src/lerobot/policies/rtc/README.md",
+  "src/lerobot/policies/rtc/action_queue.py",
+  "src/lerobot/policies/rtc/configuration_rtc.py",
+  "src/lerobot/policies/rtc/debug_tracker.py",
+  "src/lerobot/policies/rtc/debug_visualizer.py",
+  "src/lerobot/policies/rtc/latency_tracker.py",
+  "src/lerobot/policies/rtc/modeling_rtc.py",
+  "src/lerobot/policies/sac/configuration_sac.py",
+  "src/lerobot/policies/sac/modeling_sac.py",
+  "src/lerobot/policies/sac/processor_sac.py",
+  "src/lerobot/policies/sac/reward_model/configuration_classifier.py",
+  "src/lerobot/policies/sac/reward_model/modeling_classifier.py",
+  "src/lerobot/policies/sac/reward_model/processor_classifier.py",
+  "src/lerobot/policies/sarm/README.md",
+  "src/lerobot/policies/sarm/compute_rabc_weights.py",
+  "src/lerobot/policies/sarm/configuration_sarm.py",
+  "src/lerobot/policies/sarm/modeling_sarm.py",
+  "src/lerobot/policies/sarm/processor_sarm.py",
+  "src/lerobot/policies/sarm/sarm_utils.py",
+  "src/lerobot/policies/smolvla/README.md",
+  "src/lerobot/policies/smolvla/configuration_smolvla.py",
+  "src/lerobot/policies/smolvla/modeling_smolvla.py",
+  "src/lerobot/policies/smolvla/processor_smolvla.py",
+  "src/lerobot/policies/smolvla/smolvlm_with_expert.py",
+  "src/lerobot/policies/tdmpc/README.md",
+  "src/lerobot/policies/tdmpc/configuration_tdmpc.py",
+  "src/lerobot/policies/tdmpc/modeling_tdmpc.py",
+  "src/lerobot/policies/tdmpc/processor_tdmpc.py",
+  "src/lerobot/policies/utils.py",
+  "src/lerobot/policies/vqbet/README.md",
+  "src/lerobot/policies/vqbet/configuration_vqbet.py",
+  "src/lerobot/policies/vqbet/modeling_vqbet.py",
+  "src/lerobot/policies/vqbet/processor_vqbet.py",
+  "src/lerobot/policies/vqbet/vqbet_utils.py",
+  "src/lerobot/policies/wall_x/README.md",
+  "src/lerobot/policies/wall_x/__init__.py",
+  "src/lerobot/policies/wall_x/configuration_wall_x.py",
+  "src/lerobot/policies/wall_x/constant.py",
+  "src/lerobot/policies/wall_x/modeling_wall_x.py",
+  "src/lerobot/policies/wall_x/processor_wall_x.py",
+  "src/lerobot/policies/wall_x/qwen_model/configuration_qwen2_5_vl.py",
+  "src/lerobot/policies/wall_x/qwen_model/qwen2_5_vl_moe.py",
+  "src/lerobot/policies/wall_x/utils.py",
+  "src/lerobot/policies/xvla/__init__.py",
+  "src/lerobot/policies/xvla/action_hub.py",
+  "src/lerobot/policies/xvla/configuration_florence2.py",
+  "src/lerobot/policies/xvla/configuration_xvla.py",
+  "src/lerobot/policies/xvla/modeling_florence2.py",
+  "src/lerobot/policies/xvla/modeling_xvla.py",
+  "src/lerobot/policies/xvla/processor_xvla.py",
+  "src/lerobot/policies/xvla/soft_transformer.py",
+  "src/lerobot/policies/xvla/utils.py",
+  "src/lerobot/processor/__init__.py",
+  "src/lerobot/processor/batch_processor.py",
+  "src/lerobot/processor/converters.py",
+  "src/lerobot/processor/core.py",
+  "src/lerobot/processor/delta_action_processor.py",
+  "src/lerobot/processor/device_processor.py",
+  "src/lerobot/processor/env_processor.py",
+  "src/lerobot/processor/factory.py",
+  "src/lerobot/processor/gym_action_processor.py",
+  "src/lerobot/processor/hil_processor.py",
+  "src/lerobot/processor/migrate_policy_normalization.py",
+  "src/lerobot/processor/normalize_processor.py",
+  "src/lerobot/processor/observation_processor.py",
+  "src/lerobot/processor/pipeline.py",
+  "src/lerobot/processor/policy_robot_bridge.py",
+  "src/lerobot/processor/rename_processor.py",
+  "src/lerobot/processor/tokenizer_processor.py",
+  "src/lerobot/rl/acp_dataset_stats.py",
+  "src/lerobot/rl/acp_hook.py",
+  "src/lerobot/rl/acp_tags.py",
+  "src/lerobot/rl/actor.py",
+  "src/lerobot/rl/buffer.py",
+  "src/lerobot/rl/crop_dataset_roi.py",
+  "src/lerobot/rl/eval_policy.py",
+  "src/lerobot/rl/gym_manipulator.py",
+  "src/lerobot/rl/joint_observations_processor.py",
+  "src/lerobot/rl/learner.py",
+  "src/lerobot/rl/learner_service.py",
+  "src/lerobot/rl/process.py",
+  "src/lerobot/rl/queue.py",
+  "src/lerobot/rl/wandb_utils.py",
+  "src/lerobot/robots/__init__.py",
+  "src/lerobot/robots/bi_openarm_follower/__init__.py",
+  "src/lerobot/robots/bi_openarm_follower/bi_openarm_follower.py",
+  "src/lerobot/robots/bi_openarm_follower/config_bi_openarm_follower.py",
+  "src/lerobot/robots/bi_piper_follower/__init__.py",
+  "src/lerobot/robots/bi_piper_follower/bi_piper_follower.py",
+  "src/lerobot/robots/bi_piper_follower/config_bi_piper_follower.py",
+  "src/lerobot/robots/bi_so_follower/__init__.py",
+  "src/lerobot/robots/bi_so_follower/bi_so_follower.py",
+  "src/lerobot/robots/bi_so_follower/config_bi_so_follower.py",
+  "src/lerobot/robots/config.py",
+  "src/lerobot/robots/earthrover_mini_plus/__init__.py",
+  "src/lerobot/robots/earthrover_mini_plus/config_earthrover_mini_plus.py",
+  "src/lerobot/robots/earthrover_mini_plus/earthrover_mini_plus.mdx",
+  "src/lerobot/robots/earthrover_mini_plus/robot_earthrover_mini_plus.py",
+  "src/lerobot/robots/hope_jr/__init__.py",
+  "src/lerobot/robots/hope_jr/config_hope_jr.py",
+  "src/lerobot/robots/hope_jr/hope_jr.mdx",
+  "src/lerobot/robots/hope_jr/hope_jr_arm.py",
+  "src/lerobot/robots/hope_jr/hope_jr_hand.py",
+  "src/lerobot/robots/koch_follower/__init__.py",
+  "src/lerobot/robots/koch_follower/config_koch_follower.py",
+  "src/lerobot/robots/koch_follower/koch.mdx",
+  "src/lerobot/robots/koch_follower/koch_follower.py",
+  "src/lerobot/robots/lekiwi/__init__.py",
+  "src/lerobot/robots/lekiwi/config_lekiwi.py",
+  "src/lerobot/robots/lekiwi/lekiwi.mdx",
+  "src/lerobot/robots/lekiwi/lekiwi.py",
+  "src/lerobot/robots/lekiwi/lekiwi_client.py",
+  "src/lerobot/robots/lekiwi/lekiwi_host.py",
+  "src/lerobot/robots/omx_follower/__init__.py",
+  "src/lerobot/robots/omx_follower/config_omx_follower.py",
+  "src/lerobot/robots/omx_follower/omx_follower.py",
+  "src/lerobot/robots/openarm_follower/__init__.py",
+  "src/lerobot/robots/openarm_follower/config_openarm_follower.py",
+  "src/lerobot/robots/openarm_follower/openarm_follower.py",
+  "src/lerobot/robots/piper_follower/__init__.py",
+  "src/lerobot/robots/piper_follower/config_piper_follower.py",
+  "src/lerobot/robots/piper_follower/piper_follower.py",
+  "src/lerobot/robots/reachy2/__init__.py",
+  "src/lerobot/robots/reachy2/configuration_reachy2.py",
+  "src/lerobot/robots/reachy2/robot_reachy2.py",
+  "src/lerobot/robots/robot.py",
+  "src/lerobot/robots/so_follower/__init__.py",
+  "src/lerobot/robots/so_follower/config_so_follower.py",
+  "src/lerobot/robots/so_follower/robot_kinematic_processor.py",
+  "src/lerobot/robots/so_follower/so100.md",
+  "src/lerobot/robots/so_follower/so101.md",
+  "src/lerobot/robots/so_follower/so_follower.py",
+  "src/lerobot/robots/unitree_g1/__init__.py",
+  "src/lerobot/robots/unitree_g1/config_unitree_g1.py",
+  "src/lerobot/robots/unitree_g1/g1_utils.py",
+  "src/lerobot/robots/unitree_g1/robot_kinematic_processor.py",
+  "src/lerobot/robots/unitree_g1/run_g1_server.py",
+  "src/lerobot/robots/unitree_g1/unitree_g1.py",
+  "src/lerobot/robots/unitree_g1/unitree_sdk2_socket.py",
+  "src/lerobot/robots/utils.py",
+  "src/lerobot/scripts/lerobot_calibrate.py",
+  "src/lerobot/scripts/lerobot_dataset_report.py",
+  "src/lerobot/scripts/lerobot_dataset_viz.py",
+  "src/lerobot/scripts/lerobot_edit_dataset.py",
+  "src/lerobot/scripts/lerobot_eval.py",
+  "src/lerobot/scripts/lerobot_export_boundary_frames.py",
+  "src/lerobot/scripts/lerobot_find_cameras.py",
+  "src/lerobot/scripts/lerobot_find_joint_limits.py",
+  "src/lerobot/scripts/lerobot_find_port.py",
+  "src/lerobot/scripts/lerobot_human_inloop_record.py",
+  "src/lerobot/scripts/lerobot_imgtransform_viz.py",
+  "src/lerobot/scripts/lerobot_info.py",
+  "src/lerobot/scripts/lerobot_patch_hil_dataset_schema.py",
+  "src/lerobot/scripts/lerobot_record.py",
+  "src/lerobot/scripts/lerobot_replay.py",
+  "src/lerobot/scripts/lerobot_setup_can.py",
+  "src/lerobot/scripts/lerobot_setup_motors.py",
+  "src/lerobot/scripts/lerobot_teleoperate.py",
+  "src/lerobot/scripts/lerobot_train.py",
+  "src/lerobot/scripts/lerobot_train_tokenizer.py",
+  "src/lerobot/scripts/lerobot_value_infer.py",
+  "src/lerobot/scripts/lerobot_value_train.py",
+  "src/lerobot/scripts/recording_hil.py",
+  "src/lerobot/scripts/recording_loop.py",
+  "src/lerobot/scripts/value_infer_viz.py",
+  "src/lerobot/teleoperators/__init__.py",
+  "src/lerobot/teleoperators/bi_openarm_leader/__init__.py",
+  "src/lerobot/teleoperators/bi_openarm_leader/bi_openarm_leader.py",
+  "src/lerobot/teleoperators/bi_openarm_leader/config_bi_openarm_leader.py",
+  "src/lerobot/teleoperators/bi_piper_leader/__init__.py",
+  "src/lerobot/teleoperators/bi_piper_leader/bi_piper_leader.py",
+  "src/lerobot/teleoperators/bi_piper_leader/config_bi_piper_leader.py",
+  "src/lerobot/teleoperators/bi_so_leader/__init__.py",
+  "src/lerobot/teleoperators/bi_so_leader/bi_so_leader.py",
+  "src/lerobot/teleoperators/bi_so_leader/config_bi_so_leader.py",
+  "src/lerobot/teleoperators/config.py",
+  "src/lerobot/teleoperators/gamepad/__init__.py",
+  "src/lerobot/teleoperators/gamepad/configuration_gamepad.py",
+  "src/lerobot/teleoperators/gamepad/gamepad_utils.py",
+  "src/lerobot/teleoperators/gamepad/teleop_gamepad.py",
+  "src/lerobot/teleoperators/homunculus/__init__.py",
+  "src/lerobot/teleoperators/homunculus/config_homunculus.py",
+  "src/lerobot/teleoperators/homunculus/homunculus_arm.py",
+  "src/lerobot/teleoperators/homunculus/homunculus_glove.py",
+  "src/lerobot/teleoperators/homunculus/joints_translation.py",
+  "src/lerobot/teleoperators/keyboard/__init__.py",
+  "src/lerobot/teleoperators/keyboard/configuration_keyboard.py",
+  "src/lerobot/teleoperators/keyboard/teleop_keyboard.py",
+  "src/lerobot/teleoperators/koch_leader/__init__.py",
+  "src/lerobot/teleoperators/koch_leader/config_koch_leader.py",
+  "src/lerobot/teleoperators/koch_leader/koch_leader.py",
+  "src/lerobot/teleoperators/omx_leader/__init__.py",
+  "src/lerobot/teleoperators/omx_leader/config_omx_leader.py",
+  "src/lerobot/teleoperators/omx_leader/omx_leader.py",
+  "src/lerobot/teleoperators/openarm_leader/__init__.py",
+  "src/lerobot/teleoperators/openarm_leader/config_openarm_leader.py",
+  "src/lerobot/teleoperators/openarm_leader/openarm_leader.py",
+  "src/lerobot/teleoperators/phone/__init__.py",
+  "src/lerobot/teleoperators/phone/config_phone.py",
+  "src/lerobot/teleoperators/phone/phone_processor.py",
+  "src/lerobot/teleoperators/phone/teleop_phone.py",
+  "src/lerobot/teleoperators/piper_leader/__init__.py",
+  "src/lerobot/teleoperators/piper_leader/config_piper_leader.py",
+  "src/lerobot/teleoperators/piper_leader/piper_leader.py",
+  "src/lerobot/teleoperators/reachy2_teleoperator/__init__.py",
+  "src/lerobot/teleoperators/reachy2_teleoperator/config_reachy2_teleoperator.py",
+  "src/lerobot/teleoperators/reachy2_teleoperator/reachy2_teleoperator.py",
+  "src/lerobot/teleoperators/so_leader/__init__.py",
+  "src/lerobot/teleoperators/so_leader/config_so_leader.py",
+  "src/lerobot/teleoperators/so_leader/so100.md",
+  "src/lerobot/teleoperators/so_leader/so101.md",
+  "src/lerobot/teleoperators/so_leader/so_leader.py",
+  "src/lerobot/teleoperators/teleoperator.py",
+  "src/lerobot/teleoperators/unitree_g1/__init__.py",
+  "src/lerobot/teleoperators/unitree_g1/config_unitree_g1.py",
+  "src/lerobot/teleoperators/unitree_g1/exo_calib.py",
+  "src/lerobot/teleoperators/unitree_g1/exo_ik.py",
+  "src/lerobot/teleoperators/unitree_g1/exo_serial.py",
+  "src/lerobot/teleoperators/unitree_g1/unitree_g1.py",
+  "src/lerobot/teleoperators/utils.py",
+  "src/lerobot/templates/lerobot_modelcard_template.md",
+  "src/lerobot/transport/services.proto",
+  "src/lerobot/transport/services_pb2.py",
+  "src/lerobot/transport/services_pb2_grpc.py",
+  "src/lerobot/transport/utils.py",
+  "src/lerobot/utils/constants.py",
+  "src/lerobot/utils/control_utils.py",
+  "src/lerobot/utils/decorators.py",
+  "src/lerobot/utils/errors.py",
+  "src/lerobot/utils/hub.py",
+  "src/lerobot/utils/import_utils.py",
+  "src/lerobot/utils/io_utils.py",
+  "src/lerobot/utils/logging_utils.py",
+  "src/lerobot/utils/piper_sdk.py",
+  "src/lerobot/utils/rabc.py",
+  "src/lerobot/utils/random_utils.py",
+  "src/lerobot/utils/recording_annotations.py",
+  "src/lerobot/utils/robot_utils.py",
+  "src/lerobot/utils/rotation.py",
+  "src/lerobot/utils/train_utils.py",
+  "src/lerobot/utils/transition.py",
+  "src/lerobot/utils/utils.py",
+  "src/lerobot/utils/visualization_utils.py",
+  "src/lerobot/values/__init__.py",
+  "src/lerobot/values/pistar06/__init__.py",
+  "src/lerobot/values/pistar06/configuration_pistar06.py",
+  "src/lerobot/values/pistar06/modeling_pistar06.py",
+  "src/lerobot/values/pistar06/processor_pistar06.py",
+  "src/lerobot/values/rewards.py",
+  "tests/__init__.py",
+  "tests/artifacts/cameras/image_128x128.png",
+  "tests/artifacts/cameras/image_160x120.png",
+  "tests/artifacts/cameras/image_320x180.png",
+  "tests/artifacts/cameras/image_480x270.png",
+  "tests/artifacts/cameras/test_rs.bag",
+  "tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_0.safetensors",
+  "tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_1.safetensors",
+  "tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_250.safetensors",
+  "tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_251.safetensors",
+  "tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_498.safetensors",
+  "tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_499.safetensors",
+  "tests/artifacts/datasets/lerobot/pusht/frame_0.safetensors",
+  "tests/artifacts/datasets/lerobot/pusht/frame_1.safetensors",
+  "tests/artifacts/datasets/lerobot/pusht/frame_159.safetensors",
+  "tests/artifacts/datasets/lerobot/pusht/frame_160.safetensors",
+  "tests/artifacts/datasets/lerobot/pusht/frame_80.safetensors",
+  "tests/artifacts/datasets/lerobot/pusht/frame_81.safetensors",
+  "tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_0.safetensors",
+  "tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_1.safetensors",
+  "tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_12.safetensors",
+  "tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_13.safetensors",
+  "tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_23.safetensors",
+  "tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_24.safetensors",
+  "tests/artifacts/datasets/save_dataset_to_safetensors.py",
+  "tests/artifacts/image_transforms/default_transforms.safetensors",
+  "tests/artifacts/image_transforms/save_image_transforms_to_safetensors.py",
+  "tests/artifacts/image_transforms/single_transforms.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_/actions.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_/grad_stats.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_/output_dict.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_/param_stats.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/actions.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/grad_stats.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/output_dict.safetensors",
+  "tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/param_stats.safetensors",
+  "tests/artifacts/policies/pusht_diffusion_/actions.safetensors",
+  "tests/artifacts/policies/pusht_diffusion_/grad_stats.safetensors",
+  "tests/artifacts/policies/pusht_diffusion_/output_dict.safetensors",
+  "tests/artifacts/policies/pusht_diffusion_/param_stats.safetensors",
+  "tests/artifacts/policies/save_policy_to_safetensors.py",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/actions.safetensors",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/grad_stats.safetensors",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/output_dict.safetensors",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/param_stats.safetensors",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/actions.safetensors",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/grad_stats.safetensors",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/output_dict.safetensors",
+  "tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/param_stats.safetensors",
+  "tests/async_inference/test_e2e.py",
+  "tests/async_inference/test_helpers.py",
+  "tests/async_inference/test_policy_server.py",
+  "tests/async_inference/test_robot_client.py",
+  "tests/cameras/test_opencv.py",
+  "tests/cameras/test_reachy2_camera.py",
+  "tests/cameras/test_realsense.py",
+  "tests/configs/test_plugin_loading.py",
+  "tests/conftest.py",
+  "tests/datasets/test_aggregate.py",
+  "tests/datasets/test_compute_stats.py",
+  "tests/datasets/test_dataset_tools.py",
+  "tests/datasets/test_dataset_utils.py",
+  "tests/datasets/test_datasets.py",
+  "tests/datasets/test_delta_timestamps.py",
+  "tests/datasets/test_image_transforms.py",
+  "tests/datasets/test_image_writer.py",
+  "tests/datasets/test_online_buffer.py",
+  "tests/datasets/test_quantiles_dataset_integration.py",
+  "tests/datasets/test_sampler.py",
+  "tests/datasets/test_streaming.py",
+  "tests/datasets/test_subtask_dataset.py",
+  "tests/datasets/test_visualize_dataset.py",
+  "tests/envs/test_envs.py",
+  "tests/fixtures/constants.py",
+  "tests/fixtures/dataset_factories.py",
+  "tests/fixtures/files.py",
+  "tests/fixtures/hub.py",
+  "tests/fixtures/optimizers.py",
+  "tests/mocks/mock_dynamixel.py",
+  "tests/mocks/mock_feetech.py",
+  "tests/mocks/mock_motors_bus.py",
+  "tests/mocks/mock_robot.py",
+  "tests/mocks/mock_serial_patch.py",
+  "tests/mocks/mock_teleop.py",
+  "tests/motors/test_damiao.py",
+  "tests/motors/test_dynamixel.py",
+  "tests/motors/test_feetech.py",
+  "tests/motors/test_motors_bus.py",
+  "tests/optim/test_optimizers.py",
+  "tests/optim/test_schedulers.py",
+  "tests/policies/groot/test_groot_lerobot.py",
+  "tests/policies/groot/test_groot_vs_original.py",
+  "tests/policies/hilserl/test_modeling_classifier.py",
+  "tests/policies/pi0_fast/test_pi0_fast_original_vs_lerobot.py",
+  "tests/policies/pi0_pi05/test_pi0.py",
+  "tests/policies/pi0_pi05/test_pi05.py",
+  "tests/policies/pi0_pi05/test_pi05_original_vs_lerobot.py",
+  "tests/policies/pi0_pi05/test_pi05_rtc.py",
+  "tests/policies/pi0_pi05/test_pi0_original_vs_lerobot.py",
+  "tests/policies/pi0_pi05/test_pi0_rtc.py",
+  "tests/policies/rtc/test_action_queue.py",
+  "tests/policies/rtc/test_configuration_rtc.py",
+  "tests/policies/rtc/test_debug_tracker.py",
+  "tests/policies/rtc/test_latency_tracker.py",
+  "tests/policies/rtc/test_modeling_rtc.py",
+  "tests/policies/smolvla/test_smolvla_rtc.py",
+  "tests/policies/test_policies.py",
+  "tests/policies/test_sac_config.py",
+  "tests/policies/test_sac_policy.py",
+  "tests/policies/test_sarm_processor.py",
+  "tests/policies/test_sarm_subtask_annotations.py",
+  "tests/policies/test_sarm_utils.py",
+  "tests/policies/wall_x/test_wallx.py",
+  "tests/policies/xvla/test_xvla_original_vs_lerobot.py",
+  "tests/processor/test_act_processor.py",
+  "tests/processor/test_batch_conversion.py",
+  "tests/processor/test_batch_processor.py",
+  "tests/processor/test_classifier_processor.py",
+  "tests/processor/test_converters.py",
+  "tests/processor/test_device_processor.py",
+  "tests/processor/test_diffusion_processor.py",
+  "tests/processor/test_libero_processor.py",
+  "tests/processor/test_migration_detection.py",
+  "tests/processor/test_normalize_processor.py",
+  "tests/processor/test_observation_processor.py",
+  "tests/processor/test_pipeline.py",
+  "tests/processor/test_pipeline_from_pretrained_helpers.py",
+  "tests/processor/test_policy_robot_bridge.py",
+  "tests/processor/test_rename_processor.py",
+  "tests/processor/test_sac_processor.py",
+  "tests/processor/test_smolvla_processor.py",
+  "tests/processor/test_tdmpc_processor.py",
+  "tests/processor/test_tokenizer_processor.py",
+  "tests/processor/test_vqbet_processor.py",
+  "tests/rl/test_actor.py",
+  "tests/rl/test_actor_learner.py",
+  "tests/rl/test_learner_service.py",
+  "tests/rl/test_queue.py",
+  "tests/robots/test_reachy2.py",
+  "tests/robots/test_so100_follower.py",
+  "tests/scripts/test_bi_piper_config_parsing.py",
+  "tests/scripts/test_dataset_report.py",
+  "tests/scripts/test_edit_dataset_parsing.py",
+  "tests/scripts/test_export_boundary_frames.py",
+  "tests/teleoperators/test_bi_so_leader.py",
+  "tests/teleoperators/test_reachy2_teleoperator.py",
+  "tests/teleoperators/test_so_leader.py",
+  "tests/test_available.py",
+  "tests/test_cli_peft.py",
+  "tests/test_control_robot.py",
+  "tests/test_piper_teleop.py",
+  "tests/training/test_acp_dataset_stats.py",
+  "tests/training/test_acp_pi05_prompt_pipeline.py",
+  "tests/training/test_acp_prompt_hook.py",
+  "tests/training/test_multi_gpu.py",
+  "tests/training/test_visual_validation.py",
+  "tests/transport/test_transport_utils.py",
+  "tests/utils.py",
+  "tests/utils/test_control_utils.py",
+  "tests/utils/test_encoding_utils.py",
+  "tests/utils/test_io_utils.py",
+  "tests/utils/test_logging_utils.py",
+  "tests/utils/test_piper_usb_can.py",
+  "tests/utils/test_process.py",
+  "tests/utils/test_random_utils.py",
+  "tests/utils/test_recording_annotations.py",
+  "tests/utils/test_replay_buffer.py",
+  "tests/utils/test_train_utils.py",
+  "tests/utils/test_visualization_utils.py",
+  "tests/value/test_lerobot_value_infer_sampler.py",
+  "tests/value/test_lerobot_value_infer_utils.py",
+  "tests/value/test_lerobot_value_infer_viz.py",
+  "tests/value/test_pistar06_algorithms.py",
+  "tests/value/test_pistar06_configuration.py",
+  "tests/value/test_pistar06_value_stack.py",
+  "website/README.md",
+  "website/app.js",
+  "website/assets/gifs/hitl_1.gif",
+  "website/assets/gifs/hitl_2.gif",
+  "website/assets/gifs/policy_rollout_1.gif",
+  "website/assets/gifs/policy_rollout_2.gif",
+  "website/assets/gifs/value_failure.gif",
+  "website/assets/gifs/value_success.gif",
+  "website/assets/images/VLA_architecture.jpg",
+  "website/assets/images/WZJHOfficial.png",
+  "website/assets/images/evomind1.png",
+  "website/assets/images/evomind_wechat.jpg",
+  "website/assets/images/lerobot-logo-thumbnail.png",
+  "website/assets/images/overview.png",
+  "website/assets/images/rlgroup.jpg",
+  "website/assets/images/robots_control_video.webp",
+  "website/assets/images/sjtu.png",
+  "website/assets/images/so100_video.webp",
+  "website/assets/images/so101provider.jpg",
+  "website/assets/videos/.gitkeep",
+  "website/assets/videos/README.md",
+  "website/index.html",
+  "website/styles.css"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "f70e2e8c0de450cca45206ff7c607531aee88892e53239b4a11e88054e134701"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "ca9e19876dacf917c697deeb442881e29bb85b3de5039f713d79d3b05581f1fb"
+  },
+  {
+   "path": "benchmarks/video/run_video_benchmark.py",
+   "sha256": "424c0d3d436f7793ee20f78989951b3d26bbeb6eba30d74e409d996ccd4be225"
+  },
+  {
+   "path": "examples/backward_compatibility/replay.py",
+   "sha256": "4ee8b39382f5cd25b5f1fbb96071b0cfa6a676d775c0f407442015924905f177"
+  },
+  {
+   "path": "examples/dataset/load_lerobot_dataset.py",
+   "sha256": "e6ff231a0a3622b70c0bc1018b2069e125af7384dc858a932eaa299a02857166"
+  },
+  {
+   "path": "examples/dataset/use_dataset_image_transforms.py",
+   "sha256": "29a00b6427e173580fafe16da422f9d964a9429574085c054c086c87a0782ddb"
+  },
+  {
+   "path": "examples/dataset/use_dataset_tools.py",
+   "sha256": "d20796b778a155e6fb774361db1a5608c7ec05c04df8e737304891f86aa71f5c"
+  },
+  {
+   "path": "examples/lekiwi/evaluate.py",
+   "sha256": "69ab56c30ba4b06ece3c6a2eb8bfa59b2f416adc68ac59cc0c7f6951fbd144f8"
+  },
+  {
+   "path": "examples/lekiwi/record.py",
+   "sha256": "f6ec3547c86d256b6cf74269a9e29044be8ce0d1259b87ae9f509376e36ca856"
+  },
+  {
+   "path": "examples/lekiwi/replay.py",
+   "sha256": "b82a72b3f06e227ee67a1e77b25508360869999c9fac6217b83bed9a4cc17ed7"
+  },
+  {
+   "path": "examples/lekiwi/teleoperate.py",
+   "sha256": "301a48c55e9ed0f6160e9d370a5429dc1c9f5b18127f0b8ba36971d80dbf9c79"
+  },
+  {
+   "path": "examples/phone_to_so100/evaluate.py",
+   "sha256": "5fc48712d9b463b0247b5c8a72a4eef292e4ec09862cc18ae7a0504efd320ad3"
+  },
+  {
+   "path": "examples/phone_to_so100/record.py",
+   "sha256": "aeed27da5b5ee48523e2709f1922fa59c826cb0e5f11a14940ab7ef0d1c7608e"
+  },
+  {
+   "path": "examples/phone_to_so100/replay.py",
+   "sha256": "f262a77f12c161529843d9cb1e1dea974b356a5441faa66aa57304f198a34a17"
+  },
+  {
+   "path": "examples/phone_to_so100/teleoperate.py",
+   "sha256": "b06c44d6c1ed47dcf38372f5ffc8321007a0e2e9a3f19bb56d79e115a1d20e7c"
+  },
+  {
+   "path": "examples/port_datasets/display_error_files.py",
+   "sha256": "77edd63c61f60b96d934966749b6336c59485640adb405d5d595da85842e5cfd"
+  },
+  {
+   "path": "examples/port_datasets/port_droid.py",
+   "sha256": "fd00c69964bc187ba13ee74f8998c29e2cf5c673948112f718363a577c4b86d1"
+  },
+  {
+   "path": "examples/port_datasets/slurm_aggregate_shards.py",
+   "sha256": "edb0741cdf86b83fad995409a060191fe45c6f59b9eb612e1778dd7a899389ef"
+  },
+  {
+   "path": "examples/port_datasets/slurm_port_shards.py",
+   "sha256": "8f5fe8854c831fd906f2e7b72379fa514954fc10b67bb77e31e302dca4adb7fc"
+  },
+  {
+   "path": "examples/port_datasets/slurm_upload.py",
+   "sha256": "b73a5a078b2efef3a7c068a7817da6fffebdb05974ffe06cc7a50aeb6fa8112a"
+  },
+  {
+   "path": "examples/rtc/eval_dataset.py",
+   "sha256": "4aa0b13b97efa4d4fa53f471b640303b158d32740c627f517adde9aee601f0cb"
+  },
+  {
+   "path": "examples/rtc/eval_with_real_robot.py",
+   "sha256": "81d8f40eaaec84c87e5e8dfd2f34e3e86ee055a995ecc4e8b6056e606912bd7c"
+  },
+  {
+   "path": "examples/so100_to_so100_EE/evaluate.py",
+   "sha256": "1e8c2519802eac72124136881ffefea143f30ad7224284fdb73bf721ce87d803"
+  },
+  {
+   "path": "examples/so100_to_so100_EE/record.py",
+   "sha256": "a2f1dd68df0973c9039255fa0dbdc8b6a516263110cbe8ca6f92b8346233dde7"
+  },
+  {
+   "path": "examples/so100_to_so100_EE/replay.py",
+   "sha256": "fabb5207d2299060aa04722f1cdac7235b4be47298c0ef144467a80d8e932070"
+  },
+  {
+   "path": "examples/so100_to_so100_EE/teleoperate.py",
+   "sha256": "731841c921093bf4fafd8f621d2cc8301f6d913c7c4fb4a4ba6d7c2b782d00be"
+  },
+  {
+   "path": "examples/training/train_policy.py",
+   "sha256": "f0014eb5e3f6382922a91ab9cfca693ff647bdea2127eace01921b5b7783c619"
+  },
+  {
+   "path": "examples/training/train_with_streaming.py",
+   "sha256": "42d6bd81eba10dfa870751a10908ca755441479e772c79e1af9dbf247314b84d"
+  },
+  {
+   "path": "examples/tutorial/act/act_training_example.py",
+   "sha256": "6f7b1c9a5dfb9a6ace100b31c770da1a5bdd7e17424115e59e859c0dc8a6dcef"
+  },
+  {
+   "path": "examples/tutorial/act/act_using_example.py",
+   "sha256": "fd42cf26c1bbeb7a60dab17d100f131407641f22dc0bcf7cbb4bc297fd76e632"
+  },
+  {
+   "path": "examples/tutorial/async-inf/policy_server.py",
+   "sha256": "8fa277d7794448b094346521c6adce10d79057ddc7797ac8bac1f8b6d7c4341f"
+  },
+  {
+   "path": "examples/tutorial/async-inf/robot_client.py",
+   "sha256": "53946dbacf7a0b8c86527023422f331cedf507906bf9981e9246758aa9ba092b"
+  },
+  {
+   "path": "examples/tutorial/diffusion/diffusion_training_example.py",
+   "sha256": "66e2575f015b352a34c010037a466b377b6933f20d1acbd733493dc68d9f23f5"
+  },
+  {
+   "path": "examples/tutorial/diffusion/diffusion_using_example.py",
+   "sha256": "d9f697eb8a03acaa04adb7f353908d449be3318d5ac8fc155f535ec5edc2ba7d"
+  },
+  {
+   "path": "examples/tutorial/pi0/using_pi0_example.py",
+   "sha256": "547d75b473492f70980888df23f5f18ef85ee6dadd2bb9ceceef78434a218e58"
+  },
+  {
+   "path": "examples/tutorial/rl/hilserl_example.py",
+   "sha256": "06ca1f5da7986e9be46618dd296e1288511588ff3365a0a320a40050054a5f26"
+  },
+  {
+   "path": "examples/tutorial/rl/reward_classifier_example.py",
+   "sha256": "2e898add772d3133224c10fe0d2d4b72a626f3814b7c25cc5bb2b26e9caddfc9"
+  },
+  {
+   "path": "examples/tutorial/smolvla/using_smolvla_example.py",
+   "sha256": "853f4d55e1977b5f4b36b36d22dc97e40066f9a473c008b447f08e72913ce4f5"
+  },
+  {
+   "path": "examples/unitree_g1/gr00t_locomotion.py",
+   "sha256": "3503b03ae58c7863c55f6e228dfc966ade13603c11e495158eb839964ef75ec9"
+  },
+  {
+   "path": "examples/unitree_g1/holosoma_locomotion.py",
+   "sha256": "b4aa7a212e0b1c96c9e4f5608dbb0ec9b79868797e29b99950145aa8a9f65e92"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "9801a2d4d83584c075a62a7cc60fec713fa58684f35e8dc0a9c379b77445e132"
+  },
+  {
+   "path": "setup.py",
+   "sha256": "89d7328697cd8431abf39fdfb5bc774e442e193a20079f2dfaf01dafffb32d9b"
+  },
+  {
+   "path": "src/lerobot/__init__.py",
+   "sha256": "e9cf424c0656b89d285065a9344efd8149208950047f096f751db50e7d898bd7"
+  },
+  {
+   "path": "src/lerobot/__version__.py",
+   "sha256": "beb2aa5d785c7e7ccbcb910ec4688e2868423458e2a1aac7fd76c1e1a182a470"
+  },
+  {
+   "path": "src/lerobot/async_inference/configs.py",
+   "sha256": "9b3514b3c09727dc1336d9586e68bd2c276c401ed34bffb69f9e7f67f0f7f342"
+  },
+  {
+   "path": "src/lerobot/async_inference/constants.py",
+   "sha256": "b1d6d696288f4f3fdc9452979ac18d44cd21349ec034670b92e33c1a51b011ec"
+  },
+  {
+   "path": "src/lerobot/async_inference/helpers.py",
+   "sha256": "e9d80e4956ad20db1df848151b1f625e25fc5dbd2a1c186378c96901d0eaadb9"
+  },
+  {
+   "path": "src/lerobot/async_inference/policy_server.py",
+   "sha256": "146cb898e29f55ce95f94195dff05995507f08fda58559dd8c6d6aec82c4d93b"
+  },
+  {
+   "path": "src/lerobot/async_inference/robot_client.py",
+   "sha256": "5d3f84b6d724ce83e6a10f5ebd8062339a13a2aaa025121564a2d1784ce8cf61"
+  },
+  {
+   "path": "src/lerobot/cameras/__init__.py",
+   "sha256": "8a5747f51f94725107cb973050188dc05780ac6bbb53919779be960553c1be93"
+  },
+  {
+   "path": "src/lerobot/cameras/camera.py",
+   "sha256": "4d310dea54551b1b301295aa06c1dd978c0ab4fad9563ddb7621bdaa594d03cf"
+  },
+  {
+   "path": "src/lerobot/cameras/configs.py",
+   "sha256": "0d6b155f6edf76cef332898e6c815c225c855dfb24db8c7afc48201329ba8acb"
+  },
+  {
+   "path": "src/lerobot/cameras/opencv/__init__.py",
+   "sha256": "bcd30663067446f6c72beea9a9c7fdfda0c26889ba9476f10c0e77855bdfc64a"
+  },
+  {
+   "path": "src/lerobot/cameras/opencv/camera_opencv.py",
+   "sha256": "53d631c9d71bf5952b683b6db851c7d851f0ad143ec647a9b8300d5e55cebb8b"
+  },
+  {
+   "path": "src/lerobot/cameras/opencv/configuration_opencv.py",
+   "sha256": "2cedce42433f44333b12e21af71efb9efb52e88df7589a5363fb9a632d264dfe"
+  },
+  {
+   "path": "src/lerobot/cameras/reachy2_camera/__init__.py",
+   "sha256": "988265045944851cc9c043eaef551281cfc515234459f0c09a698369293a4df2"
+  },
+  {
+   "path": "src/lerobot/cameras/reachy2_camera/configuration_reachy2_camera.py",
+   "sha256": "f92ef6f67bc20e8de7a39d8ee34206af684060ba484925f861d24417d519eb22"
+  },
+  {
+   "path": "src/lerobot/cameras/reachy2_camera/reachy2_camera.py",
+   "sha256": "fe5b9ea1745f498430f10f59e742253fb0ed532556be64eefac088e83dfa79b0"
+  },
+  {
+   "path": "src/lerobot/cameras/realsense/__init__.py",
+   "sha256": "24932dc9ddb774eb3d1ced5a700275a7d3e2e554d68364ce82267a1d30efb432"
+  },
+  {
+   "path": "src/lerobot/cameras/realsense/camera_realsense.py",
+   "sha256": "66d8541c270e3ea1c021e0f5e055069bb3053545e785088079e9af9aa8f135b3"
+  },
+  {
+   "path": "src/lerobot/cameras/realsense/configuration_realsense.py",
+   "sha256": "115489fc4ee4a9f7def4e6cf07da6b8387659e1ad1af187c4cd5552c924c9429"
+  },
+  {
+   "path": "src/lerobot/cameras/utils.py",
+   "sha256": "f3918b33757f3708709beb651a77e855291d7f20b6a9be425addb076cf2491f8"
+  },
+  {
+   "path": "src/lerobot/cameras/zmq/__init__.py",
+   "sha256": "1b42f41bac5fb6bb1b7a3a2894b1aac785aac33bc4810ca3766cadafb68a81a6"
+  },
+  {
+   "path": "src/lerobot/cameras/zmq/camera_zmq.py",
+   "sha256": "5a8a4c39ac590b4b78ff3bb29aba898ab685bb4f5ed3c65f7646d5b61ec21c5d"
+  },
+  {
+   "path": "src/lerobot/cameras/zmq/configuration_zmq.py",
+   "sha256": "616e85ae8f9ebd001afe2f640c47721cbbb44713755bb8fbf97e1e93b9c87cd6"
+  },
+  {
+   "path": "src/lerobot/cameras/zmq/image_server.py",
+   "sha256": "ca8eed0a9c09753c9dffaa4a3dfbbadaa359acf45c379140dc96fd5d39d21c8a"
+  },
+  {
+   "path": "src/lerobot/configs/default.py",
+   "sha256": "2764a81f52dd0cca0a96151e50efeb7f4650a388977ed6c2951028c2394a9f3f"
+  },
+  {
+   "path": "src/lerobot/configs/eval.py",
+   "sha256": "bcc3efdfd34f3f7bb7e33f43cd3aa97477ef71c5e640e4882efff2fdd5c5a97f"
+  },
+  {
+   "path": "src/lerobot/configs/parser.py",
+   "sha256": "883716eeac54af1bd6d49d932f0df23a51e7dcfc545001b224596a3a7f4c3b6b"
+  },
+  {
+   "path": "src/lerobot/configs/policies.py",
+   "sha256": "38c2de5bfb1d9a729d1f3e3ea97838c99626289350de50a6324c669a85c98e0e"
+  },
+  {
+   "path": "src/lerobot/configs/train.py",
+   "sha256": "b3f7ffc56d5721bce9157c7e5a6be8eb2eb595dab5e0f2eebaa096a97346c0eb"
+  },
+  {
+   "path": "src/lerobot/configs/types.py",
+   "sha256": "1354e7d24b19d5d4970064104f76d8c85570c204bf2d09e2b4402f93a994ad99"
+  },
+  {
+   "path": "src/lerobot/configs/value.py",
+   "sha256": "20ec6332485ea72679136be415ba771f0f2a8364ac6b1192d55d6477a794b15c"
+  },
+  {
+   "path": "src/lerobot/configs/value_reward.py",
+   "sha256": "4bbc991d4ce03383df48d65101097299ae0fa2750f48ab4a7500febc92706e1e"
+  },
+  {
+   "path": "src/lerobot/configs/value_train.py",
+   "sha256": "4a688e19c4fe44a633748653bb85f9a5f658f97c62c38aa48488f59210769355"
+  },
+  {
+   "path": "src/lerobot/data_processing/__init__.py",
+   "sha256": "aeca598c36a771e076642c45fdf0eeddc08b016d552ad0bfdd5d49ddc6b996ce"
+  },
+  {
+   "path": "src/lerobot/data_processing/sarm_annotations/__init__.py",
+   "sha256": "aeca598c36a771e076642c45fdf0eeddc08b016d552ad0bfdd5d49ddc6b996ce"
+  },
+  {
+   "path": "src/lerobot/data_processing/sarm_annotations/subtask_annotation.py",
+   "sha256": "542e7ef92ced2ebd9055945b9e6fadf83eae9ba94bb4583f663cf5861a659ea1"
+  },
+  {
+   "path": "src/lerobot/datasets/aggregate.py",
+   "sha256": "a029eb16be3bca7d3d3715f96867612e0eaa6f8f509a26c63253b073813d4a64"
+  },
+  {
+   "path": "src/lerobot/datasets/backward_compatibility.py",
+   "sha256": "e6fc804f37f7968b1a7bf8d01a21360c59b89ee8de8ac38415deb8bf339d8caa"
+  },
+  {
+   "path": "src/lerobot/datasets/compute_stats.py",
+   "sha256": "941dd3c6d0f14704e95123c9a9c49270b2b5ea589f712b734adb4ee03b8736b2"
+  },
+  {
+   "path": "src/lerobot/datasets/dataset_tools.py",
+   "sha256": "04076db0018b4b898f626525860426f6bb7da504580e12b89f7b4bd406bbf8d5"
+  },
+  {
+   "path": "src/lerobot/datasets/factory.py",
+   "sha256": "adc786de92b9d79f84f1b950e141fce7ad28d48c885be3b66176a3f6d36c63ef"
+  },
+  {
+   "path": "src/lerobot/datasets/image_writer.py",
+   "sha256": "2e39a940baa54fef5e09957b1151ebe31bfc74184fe631c74a25bcd2589f43f8"
+  },
+  {
+   "path": "src/lerobot/datasets/lerobot_dataset.py",
+   "sha256": "99f1a79d00daa7ab4c37bc807e8a550246a0f8d966a9367b34c2b6bd782a0573"
+  },
+  {
+   "path": "src/lerobot/datasets/online_buffer.py",
+   "sha256": "f60e138d014767e373b16d2c5fe837aee21bd6248bd2f69898064e0313403991"
+  },
+  {
+   "path": "src/lerobot/datasets/pipeline_features.py",
+   "sha256": "f3857ec658c1de8debc20aa711389dfbc8129a17b3f018f9644acf96b62f099d"
+  },
+  {
+   "path": "src/lerobot/datasets/push_dataset_to_hub/utils.py",
+   "sha256": "c46e3ba71f434966a79d723f5a696497c057b655fab5bdc47bf4b6100554fb5a"
+  },
+  {
+   "path": "src/lerobot/datasets/sampler.py",
+   "sha256": "0202ce63101050dc8b28f00cf68b9c28bf66d9c5c2f9e05d1e7c9e24d4905d19"
+  },
+  {
+   "path": "src/lerobot/datasets/streaming_dataset.py",
+   "sha256": "7005cb579faabd91473033c5ed5728761f084e49f1d08d42fbb75a1b8d93ec19"
+  },
+  {
+   "path": "src/lerobot/datasets/transforms.py",
+   "sha256": "d5a5dc50ea5a8736d20e5311fd760a69cce2d91b0f45a52309dfc9c69ec7ce78"
+  },
+  {
+   "path": "src/lerobot/datasets/utils.py",
+   "sha256": "23de1ed626f626643dc459ddc7909ceb658137ccc6b476e49ffa85a343cb81ef"
+  },
+  {
+   "path": "src/lerobot/datasets/v30/augment_dataset_quantile_stats.py",
+   "sha256": "60dc1a50d7cb525e18a05716bc538e1464fed72e72207d4f4bf4213586ee312f"
+  },
+  {
+   "path": "src/lerobot/datasets/v30/convert_dataset_v21_to_v30.py",
+   "sha256": "e95736e3039f962ea96629c8c8c664f3ccc6caee5bb3f2a7c872adf01b1bd636"
+  },
+  {
+   "path": "src/lerobot/datasets/video_utils.py",
+   "sha256": "14d2a05dae010e7f434927619b21e1afea103b3e016e7c301c25bcc9f2b41b6e"
+  },
+  {
+   "path": "src/lerobot/envs/__init__.py",
+   "sha256": "445d8bbc96fe2a50870e35e966301580d12d2d8fbd69c3eb2c4d9b21140e697e"
+  },
+  {
+   "path": "src/lerobot/envs/configs.py",
+   "sha256": "dcfe69fab352f1b558c737946926601feee17f309ec968055303d1f584d5c8b9"
+  },
+  {
+   "path": "src/lerobot/envs/factory.py",
+   "sha256": "f67a673ec4ddfb428213f65aca83ab05b7962e21bf37071976697fe571d5e0ce"
+  },
+  {
+   "path": "src/lerobot/envs/libero.py",
+   "sha256": "02bc214e6b011c7f64b25604c97f1f083a96e151fa239fdc137433b356e542f3"
+  },
+  {
+   "path": "src/lerobot/envs/metaworld.py",
+   "sha256": "94d4c98fc4358d6ead2c7ac386890982a415f214d122248fe81448eff0f2e9dd"
+  },
+  {
+   "path": "src/lerobot/envs/utils.py",
+   "sha256": "89a5d704564689fd1024472e68400c1de35cfaa6610413cc542b0ba0f3152e07"
+  },
+  {
+   "path": "src/lerobot/model/kinematics.py",
+   "sha256": "356645b7f6c68172055c13642791d5eddcb5df49e4fdea12780e4b1bc01371fe"
+  },
+  {
+   "path": "src/lerobot/motors/__init__.py",
+   "sha256": "7c08c186384a43761faadc63d20b9fd0e634ce577697b8cabde77d040c627aaf"
+  },
+  {
+   "path": "src/lerobot/motors/calibration_gui.py",
+   "sha256": "ab3ec60f69fce544ca7adc8c71b77039d30f48153f1c72a4abe0918f6201cb0b"
+  },
+  {
+   "path": "src/lerobot/motors/damiao/__init__.py",
+   "sha256": "f135c5d1bd661d8bea9356ea637f3c333742e6473635cf3a0edfe4f95f80453b"
+  },
+  {
+   "path": "src/lerobot/motors/damiao/damiao.py",
+   "sha256": "92b919f1bb47e9615df90e7872c58f415a59d66b54fe9a0c54e20da6cd1b6f2b"
+  },
+  {
+   "path": "src/lerobot/motors/damiao/tables.py",
+   "sha256": "3c2be95b29fe25e2bb4c28384271ecd595e6aa1f15197ea4a1aa97568461089b"
+  },
+  {
+   "path": "src/lerobot/motors/dynamixel/__init__.py",
+   "sha256": "080d8b76d52d7674bf7528b0232777b330d0d88d444be95fb1d318b7c19fedd0"
+  },
+  {
+   "path": "src/lerobot/motors/dynamixel/dynamixel.py",
+   "sha256": "a8db3aae77fabd5d5acc472aae5988467ed5c0244a4c2b1cba000f1d4ddb7635"
+  },
+  {
+   "path": "src/lerobot/motors/dynamixel/tables.py",
+   "sha256": "65dfec2f2974411ed71b62dd28baa7ab4d4c1e5d94c60f2d56df4946e81734c1"
+  },
+  {
+   "path": "src/lerobot/motors/encoding_utils.py",
+   "sha256": "5285eb2b3f62399e95a2fa4b2fcab631bcad547124e8cc9b6a61525148bc924a"
+  },
+  {
+   "path": "src/lerobot/motors/feetech/__init__.py",
+   "sha256": "17b9e22b45fd71e4e04db7a072f8d32fa0a01de91e906b8b9746a1c83e7bbe8c"
+  },
+  {
+   "path": "src/lerobot/motors/feetech/feetech.py",
+   "sha256": "1dd81201ebd03ad39a6d46a034d99f21583dcefa81e9f099d3dc0a184dce56a8"
+  },
+  {
+   "path": "src/lerobot/motors/feetech/tables.py",
+   "sha256": "71f7f7beb17169781bd26a33b165ed4c5c3df7b9c477d36860f9d6011eb00428"
+  },
+  {
+   "path": "src/lerobot/motors/motors_bus.py",
+   "sha256": "a6c1f5a560840fce7e23bed02fad016ab0e41fccdd96dd116332258a20a94e7a"
+  },
+  {
+   "path": "src/lerobot/optim/__init__.py",
+   "sha256": "4f485904e4eca422d708f5507810d51ae99a614dd41aac98127ed6019b9b3cc5"
+  },
+  {
+   "path": "src/lerobot/optim/factory.py",
+   "sha256": "3c655595e9cdb0665bdd711a645281b1d94b3807a892599e10ac5c61295af631"
+  },
+  {
+   "path": "src/lerobot/optim/optimizers.py",
+   "sha256": "9bce2b9e5651b9a4f72aecbb8f54ef3a1143021217d261972bd505126e94f97b"
+  },
+  {
+   "path": "src/lerobot/optim/schedulers.py",
+   "sha256": "47af5671a9d9c79ecdb5101e92e6b9f127331127549497047f691258f10b1020"
+  },
+  {
+   "path": "src/lerobot/policies/__init__.py",
+   "sha256": "c0ff263d96548963c51888984a4868a42ff6b45b2ce55788b46a1108c789cb2e"
+  },
+  {
+   "path": "src/lerobot/policies/act/configuration_act.py",
+   "sha256": "11aa9037f981a957d63632561c795fac243e7898ee9302f7afac2f5d45920f7b"
+  },
+  {
+   "path": "src/lerobot/policies/act/modeling_act.py",
+   "sha256": "69301fff11cbb8f4ba7bfe473a55ba488c3d2f89c25ecdfe512347a93b4ad04f"
+  },
+  {
+   "path": "src/lerobot/policies/act/processor_act.py",
+   "sha256": "25ea62c315f8b85a58ee0b8ddea7e488bc87b806eb46307bf2b06ef6b50a86f4"
+  },
+  {
+   "path": "src/lerobot/policies/diffusion/configuration_diffusion.py",
+   "sha256": "1e5186b444d227cffeafb51b6e5a79d8839bfc214cc8741d8fa73ca5eab9f239"
+  },
+  {
+   "path": "src/lerobot/policies/diffusion/modeling_diffusion.py",
+   "sha256": "a84bd43b22351dbb8a9e01aaf4c89b345bece2cff4820c9ee8daf8db5448f2cd"
+  },
+  {
+   "path": "src/lerobot/policies/diffusion/processor_diffusion.py",
+   "sha256": "3a2b156a1997faf7d129b636f062c97d8f64ad1d5c16727491d4f3d2fc9e12a8"
+  },
+  {
+   "path": "src/lerobot/policies/evo1/__init__.py",
+   "sha256": "38da2203bb0399b971eb3588978001e17e6674f11f5b58b2f37faca5e6cc3821"
+  },
+  {
+   "path": "src/lerobot/policies/evo1/configuration_evo1.py",
+   "sha256": "553316a85c09e7ae6459966fb87c232a946a6f39afa98a812ab03c329e31a9fe"
+  },
+  {
+   "path": "src/lerobot/policies/evo1/evo1_model.py",
+   "sha256": "90cc9ea6d37d1bc8b117a395c214e21384a46833bf565a0b449b7184191a8221"
+  },
+  {
+   "path": "src/lerobot/policies/evo1/flow_matching.py",
+   "sha256": "1dbb36a58497e7bc7abe7ee2716a43dfe3cd7af4a6bba4328448aaf77d8eb415"
+  },
+  {
+   "path": "src/lerobot/policies/evo1/internvl3_embedder.py",
+   "sha256": "49ffe484e3f2c7aaa18a5d76bb74dc6c9a21a2447e5772aa4c133c0b6908074d"
+  },
+  {
+   "path": "src/lerobot/policies/evo1/modeling_evo1.py",
+   "sha256": "258776c1c25ecd8060ff5ea22ec85be7fd185c6331fef17ecc7db463e1e6621c"
+  },
+  {
+   "path": "src/lerobot/policies/evo1/processor_evo1.py",
+   "sha256": "db9ada42e3b6f062db7262c7106d569ff6723b17efea3b7550ed3d0ce34f4667"
+  },
+  {
+   "path": "src/lerobot/policies/factory.py",
+   "sha256": "207000f4130f4119331d41988b0ebabbfae36c9eeb1bd95df943cf37013b3ad0"
+  },
+  {
+   "path": "src/lerobot/policies/groot/__init__.py",
+   "sha256": "40411dc2b519d34f96cd68bed78817d98f10905778eea58a18a0d539ce2cd79d"
+  },
+  {
+   "path": "src/lerobot/policies/groot/action_head/__init__.py",
+   "sha256": "dd7d5f5e544e1d2923bf4f1aa548504255938f58a6e74a119356573e6ce9e36e"
+  },
+  {
+   "path": "src/lerobot/policies/groot/action_head/action_encoder.py",
+   "sha256": "5b47ecc30f3e08a66ae29ec33cd63bc0519abb52cb78d86e67004ea9049c13d2"
+  },
+  {
+   "path": "src/lerobot/policies/groot/action_head/cross_attention_dit.py",
+   "sha256": "64628c16af5bfe598c96c320f255af3e77b7d00560726d5a338af43b8d47cd6f"
+  },
+  {
+   "path": "src/lerobot/policies/groot/action_head/flow_matching_action_head.py",
+   "sha256": "1e8aca948f32add81aa0207de178b97a660262658434746174ddcdb3f586422e"
+  },
+  {
+   "path": "src/lerobot/policies/groot/configuration_groot.py",
+   "sha256": "38c0d335fb0c1e9e52a5f15c6b0056015a493143236a200bf6538e23c1305627"
+  },
+  {
+   "path": "src/lerobot/policies/groot/eagle2_hg_model/configuration_eagle2_5_vl.py",
+   "sha256": "cad789f4f795d1e804f1ab4f955bfe9ae71c7bd5f06f188fe739534a2157c7b9"
+  },
+  {
+   "path": "src/lerobot/policies/groot/eagle2_hg_model/image_processing_eagle2_5_vl_fast.py",
+   "sha256": "e54164a6269261f622d7d3059cf5510973bd0cdcdbf4551b3c83e2fda5a4d5e7"
+  },
+  {
+   "path": "src/lerobot/policies/groot/eagle2_hg_model/modeling_eagle2_5_vl.py",
+   "sha256": "e4d2888795d7f515d18e8e7eb7be0c30736ed0b27a0f725479412a93a3c07005"
+  },
+  {
+   "path": "src/lerobot/policies/groot/eagle2_hg_model/processing_eagle2_5_vl.py",
+   "sha256": "e8bcd31b81b6458b6e25b05bbc805e9ee3f05c7dd2e674b1d75d12d23d5c3ac8"
+  },
+  {
+   "path": "src/lerobot/policies/groot/groot_n1.py",
+   "sha256": "04aa7c9beb3f084046c82a9c0feda708ed0a4a4969c449621387fa1f5f27c3ad"
+  },
+  {
+   "path": "src/lerobot/policies/groot/modeling_groot.py",
+   "sha256": "766f805bbfbe102705a33652cb53e8d3844725eb144678ec951a61c9a95bcaa3"
+  },
+  {
+   "path": "src/lerobot/policies/groot/processor_groot.py",
+   "sha256": "50b8ce64f1acfe61333e899fc8965eaea4d729efddc5dcd3a74c56c862876c22"
+  },
+  {
+   "path": "src/lerobot/policies/groot/utils.py",
+   "sha256": "42c83608be9a6d174199265af8710d299d28c210dbf681e0b2b63236fa50cc33"
+  },
+  {
+   "path": "src/lerobot/policies/pi0/__init__.py",
+   "sha256": "22eadfdca8b5dee11b8fff07cb8a9093bc9374b85c18c7794e46b00043f4a47b"
+  },
+  {
+   "path": "src/lerobot/policies/pi0/configuration_pi0.py",
+   "sha256": "ec9ac485df10f85fb500ad14e8514ad0716e89eda843b8c9e03ab01d01713f8b"
+  },
+  {
+   "path": "src/lerobot/policies/pi0/modeling_pi0.py",
+   "sha256": "c32e988bea423a0372fece9eaccbdbd45cd06c3c749cd02452f7d6d69ed348e3"
+  },
+  {
+   "path": "src/lerobot/policies/pi0/processor_pi0.py",
+   "sha256": "fc8fe6f705820f910738b0e966c10ede259dd1639b50b18a226bf1ef596a1e48"
+  },
+  {
+   "path": "src/lerobot/policies/pi05/__init__.py",
+   "sha256": "e70e27782532c2f871bf3fd812e43f796c11eb8193ff481dbeb4b2ef4a31b197"
+  },
+  {
+   "path": "src/lerobot/policies/pi05/configuration_pi05.py",
+   "sha256": "cb9315eec20fce7e2bfe258480798c628f85a6ede6968979fe6f6edc3b914ff8"
+  },
+  {
+   "path": "src/lerobot/policies/pi05/modeling_pi05.py",
+   "sha256": "73d769d7f8fd8f621c916bb0b0be3fb7785825e13abf0470bc2821025f0c65ff"
+  },
+  {
+   "path": "src/lerobot/policies/pi05/processor_pi05.py",
+   "sha256": "10bfff02bf4a7c1a219b01ccc4f2b9d50e0babdedbedbccaab19cc657045b815"
+  },
+  {
+   "path": "src/lerobot/policies/pi0_fast/__init__.py",
+   "sha256": "92a84e39e2b016b5cba452765d3408047c82beeeed6612b7c474c51a97b80d7e"
+  },
+  {
+   "path": "src/lerobot/policies/pi0_fast/configuration_pi0_fast.py",
+   "sha256": "3c7e54c5504e2fcccfe4c5e5be7c5e1bad35b0e6b6b4242aa02b47eaa7b5644a"
+  },
+  {
+   "path": "src/lerobot/policies/pi0_fast/modeling_pi0_fast.py",
+   "sha256": "4cc1a94ec913c3b5d85657b5f636ebd72ed0e72819e0ef1cb0bd24714b7c2c82"
+  },
+  {
+   "path": "src/lerobot/policies/pi0_fast/processor_pi0_fast.py",
+   "sha256": "a5bfaf30d0bddfa466ba8ee3b92aaf809b57ea57ec1134f505a7b463db0e735e"
+  },
+  {
+   "path": "src/lerobot/policies/pretrained.py",
+   "sha256": "db9188fba4368234c231e84d4733de36e044391ef72592dd1e3a70b6e370a045"
+  },
+  {
+   "path": "src/lerobot/policies/rtc/action_queue.py",
+   "sha256": "a3c26e56626dbc7aeae848c5d085ea8aaf11b2da08fcf3eee225e59a16394cae"
+  },
+  {
+   "path": "src/lerobot/policies/rtc/configuration_rtc.py",
+   "sha256": "a292ce9b9afef4e06bb978554d250357af65d25742cfa848370f0ef3b5c1fe48"
+  },
+  {
+   "path": "src/lerobot/policies/rtc/debug_tracker.py",
+   "sha256": "8463c4adceb9629c5ce580d5969a593091c936de779c02773a9a0b2563621921"
+  },
+  {
+   "path": "src/lerobot/policies/rtc/debug_visualizer.py",
+   "sha256": "06d9ca5c9ce6ed61dc7ac772e91a56513445ab4e6be27e239ef8a252480f1b5c"
+  },
+  {
+   "path": "src/lerobot/policies/rtc/latency_tracker.py",
+   "sha256": "34ec377bc004a7e585a2cfb2eaf898169bf7eb9bb2ec25f34615266ae1f40f42"
+  },
+  {
+   "path": "src/lerobot/policies/rtc/modeling_rtc.py",
+   "sha256": "9de19b2548daf2233dfba8f8a74e06b98659598d50d2c54c002df359bb8e61a5"
+  },
+  {
+   "path": "src/lerobot/policies/sac/configuration_sac.py",
+   "sha256": "50228a1e7bda86672dec1fa225122a8cb980f2b0853b35f072b42caa5ca2f4a4"
+  },
+  {
+   "path": "src/lerobot/policies/sac/modeling_sac.py",
+   "sha256": "17645d83180cd510366db583d4f1cb50958a9fd78481dfbfcf88d6e6ef853ef7"
+  },
+  {
+   "path": "src/lerobot/policies/sac/processor_sac.py",
+   "sha256": "6380100cc2d549a145cc6daedad29b271e80d51d08cfd142f63591131d36d0c6"
+  },
+  {
+   "path": "src/lerobot/policies/sac/reward_model/configuration_classifier.py",
+   "sha256": "db3a02e5b675fcc21e2e16df1e0d88eafc4abad19f9b17f222ed971e86f54e38"
+  },
+  {
+   "path": "src/lerobot/policies/sac/reward_model/modeling_classifier.py",
+   "sha256": "3c6d676f510adab7f1193829b8d6d2494102434242ce7d2d14edd379a455000a"
+  },
+  {
+   "path": "src/lerobot/policies/sac/reward_model/processor_classifier.py",
+   "sha256": "c988c66b56834ee69bd14eacb6a584fe920af07b4b086c6a47eed77191f86e86"
+  },
+  {
+   "path": "src/lerobot/policies/sarm/compute_rabc_weights.py",
+   "sha256": "87090ea84245732b1a854cb0d0d3c2617a826529a1471dfd640299c9cd782ca4"
+  },
+  {
+   "path": "src/lerobot/policies/sarm/configuration_sarm.py",
+   "sha256": "312bf67cc2afaf5615a04899244682527629f8b82a3e5c7279b40426a33ff16d"
+  },
+  {
+   "path": "src/lerobot/policies/sarm/modeling_sarm.py",
+   "sha256": "9f26fad4a40cf61fe017bd1c96fe085ab03a1d37647031cde4571406674fc620"
+  },
+  {
+   "path": "src/lerobot/policies/sarm/processor_sarm.py",
+   "sha256": "c5ebf53966d7771b2a2e1189b574132618b61205433d91da2eb8092bd3c3d4bc"
+  },
+  {
+   "path": "src/lerobot/policies/sarm/sarm_utils.py",
+   "sha256": "529c74f5f97506b5dbcf29cd70ec43c43c2c3f2d7797f6ec324ac2dd914e704d"
+  },
+  {
+   "path": "src/lerobot/policies/smolvla/configuration_smolvla.py",
+   "sha256": "84a01987bc83e677ac06beefdc5e48644bf6155a83c49c2caaa3513d6c9b35a3"
+  },
+  {
+   "path": "src/lerobot/policies/smolvla/modeling_smolvla.py",
+   "sha256": "e3c370ac7898f4d573c2135cad1a5ff498351c910d79295f66ba8ee55f42bc8d"
+  },
+  {
+   "path": "src/lerobot/policies/smolvla/processor_smolvla.py",
+   "sha256": "eeb3714ca4b926d7f4d72c63ce5877497705108736eaf53cdc7362d8dfef2644"
+  },
+  {
+   "path": "src/lerobot/policies/smolvla/smolvlm_with_expert.py",
+   "sha256": "ce728a4becd56951db2cb75bfca5e8822a280e7616b1d1f95d4b86ae62ea84a8"
+  },
+  {
+   "path": "src/lerobot/policies/tdmpc/configuration_tdmpc.py",
+   "sha256": "a6519d59351cfea64453b74ead9846c22bb80fea4ecec3dcec81f5d63c173ac0"
+  },
+  {
+   "path": "src/lerobot/policies/tdmpc/modeling_tdmpc.py",
+   "sha256": "e9bbbe85110994e4311e6e2af8c668ff15008766f688447ad1cd633a4072c8d9"
+  },
+  {
+   "path": "src/lerobot/policies/tdmpc/processor_tdmpc.py",
+   "sha256": "0cfecbade4d78fd075e3c54911836a6d52ec88bb27c43c2c635984e2cea41b22"
+  },
+  {
+   "path": "src/lerobot/policies/utils.py",
+   "sha256": "cd512e8d484d6c35da8654cc26f63f142a77a27115fd2649773efa2c1f04388d"
+  },
+  {
+   "path": "src/lerobot/policies/vqbet/configuration_vqbet.py",
+   "sha256": "c32f9c394c65344153f233d45fe359f3088e69af0fbd7a7f16fef2daecad6393"
+  },
+  {
+   "path": "src/lerobot/policies/vqbet/modeling_vqbet.py",
+   "sha256": "b586b8a35fb38ae2164560f12ba90c7cebd78ecf9c6e52f019e7038a18c8fb5b"
+  },
+  {
+   "path": "src/lerobot/policies/vqbet/processor_vqbet.py",
+   "sha256": "3e0b1686f63b968c21c506c3b0d8e2e8047dc0f5c9c40384116c5be62fe1a38d"
+  },
+  {
+   "path": "src/lerobot/policies/vqbet/vqbet_utils.py",
+   "sha256": "2e9a5c39dca48a3e8e3bf2e48fe4e42a1bb3bd175fef201897c03637ae39c708"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/__init__.py",
+   "sha256": "9f780e34d2e553bd967882b1e2f2765df3a4ae65b50b857ec09006e85c82589f"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/configuration_wall_x.py",
+   "sha256": "229d731fed4762ba04abe10862a8a0ecf8e64a8bf401ef7c1d430062cf99eb92"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/constant.py",
+   "sha256": "3e9968c6c544f9408b299d57a547cd3a5696a7fe27fce9061b1287c831c96529"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/modeling_wall_x.py",
+   "sha256": "e3a27c63e570d0e5be12c73a127ccdd5e8a57a44ed40e5fed42d8eead2f47811"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/processor_wall_x.py",
+   "sha256": "9f7717d334a5831b5c5c5a214af5e3a94e21531c9480923c5e3aa75ac6569e39"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/qwen_model/configuration_qwen2_5_vl.py",
+   "sha256": "c8358931ea213fe9afd065de3b7a83463d1d1ff40aecf5e700e48b908d7479f7"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/qwen_model/qwen2_5_vl_moe.py",
+   "sha256": "11754ba61f0095d15a2e8fa609da15946762aa5089c0472f11bd68c66b985342"
+  },
+  {
+   "path": "src/lerobot/policies/wall_x/utils.py",
+   "sha256": "7f0583f85f3423e9d81953ddfffaf3081e17088c121be319f1aacdf05e155550"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/__init__.py",
+   "sha256": "d55239023813d56be288c49063241cd0f390bb0c7ad46f14975ecfe4606d37dd"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/action_hub.py",
+   "sha256": "86357301855bf28a27e2e7a8a0f6b79264a915786a94a2232b152cff586cf9bf"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/configuration_florence2.py",
+   "sha256": "4801e6759a91ffa9b113491945a115cfeb481f9813a1369b06ece47c1173f9da"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/configuration_xvla.py",
+   "sha256": "8cbce94ddb34bf43609e2f8a0f8a7b0d2efb40348f36ae0001684d44f7a2d8a5"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/modeling_florence2.py",
+   "sha256": "f9ea930f0d0c1136cf5c3b90d340ad071f1568333ebefbb31851ed489b24d701"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/modeling_xvla.py",
+   "sha256": "d8fc952243f764a33157be2518fddd38ebc071d53fa66a5f9dea8d775f787dbf"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/processor_xvla.py",
+   "sha256": "a701e1707afe5384ccc1be5cf8dd903a0f2232fb6ec4b5f860af663117ec6f7c"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/soft_transformer.py",
+   "sha256": "92da48b75f7ba14583fe2be89f9eb15157361252084ae18643e279648db817cc"
+  },
+  {
+   "path": "src/lerobot/policies/xvla/utils.py",
+   "sha256": "4693b9b0e1db410d05d730d17c2268d91534a887218b5c863a28f26ee3c6bf0e"
+  },
+  {
+   "path": "src/lerobot/processor/__init__.py",
+   "sha256": "54ceefeb7b8258a23bf8af8fe2d071845f701a14ec8fb928a940638de20cc2ef"
+  },
+  {
+   "path": "src/lerobot/processor/batch_processor.py",
+   "sha256": "305843a6bf98ddda243422b577ea10cbe105be71d08c5611a8aed3b2bb27d832"
+  },
+  {
+   "path": "src/lerobot/processor/converters.py",
+   "sha256": "2b97131f34c4881e93e7b864091637fac8ce1642a6620ed9330e84372e113640"
+  },
+  {
+   "path": "src/lerobot/processor/core.py",
+   "sha256": "753621e70b54641c34baccd9ad7dc65a29c45850b358e4fa0b55f54f5e9304ad"
+  },
+  {
+   "path": "src/lerobot/processor/delta_action_processor.py",
+   "sha256": "20618218cc5e409f37bade516ea83d702ae00abe50a4e7bcaaa8b13ce2fc7ac6"
+  },
+  {
+   "path": "src/lerobot/processor/device_processor.py",
+   "sha256": "be81c88d9e7ea304ec49a42ea80557feb08b252bec82eb3c9eb8faf148397d33"
+  },
+  {
+   "path": "src/lerobot/processor/env_processor.py",
+   "sha256": "6d6622d69835f0c3c73dd8700d9b9e9af9e50fc4bebaaf3e87322a09d480ba36"
+  },
+  {
+   "path": "src/lerobot/processor/factory.py",
+   "sha256": "23bd0d47e9baeeeea61b4c622388e844a1039fbf7cb8b2367f6e0975d3bf87fb"
+  },
+  {
+   "path": "src/lerobot/processor/gym_action_processor.py",
+   "sha256": "87ea21d2afda738ddfc53b5c27ed7055872a03cb8752d2c9c33a081a6a7fb212"
+  },
+  {
+   "path": "src/lerobot/processor/hil_processor.py",
+   "sha256": "22cea991bc41bd0a18583a49519e5ce9ca2a1116d7a7386d0b9be0a93581e72f"
+  },
+  {
+   "path": "src/lerobot/processor/migrate_policy_normalization.py",
+   "sha256": "11c39295c54467617f90624048be8074ece9fbd023e0ba9e39cad9773f0547c7"
+  },
+  {
+   "path": "src/lerobot/processor/normalize_processor.py",
+   "sha256": "5b610f5be7d3bcf371d52e3ccca433846c9ef49adca84ba5ef3c54ad8809338e"
+  },
+  {
+   "path": "src/lerobot/processor/observation_processor.py",
+   "sha256": "7b3735a82f5c8bc52c119a1480107c3cba5afd612b0ff5c5e55731c27fee9eb3"
+  },
+  {
+   "path": "src/lerobot/processor/pipeline.py",
+   "sha256": "2fc286b0b541ccefd95c373ad67324a6859a951af306171402d08cb3f9061936"
+  },
+  {
+   "path": "src/lerobot/processor/policy_robot_bridge.py",
+   "sha256": "8d00ad845d184570d3071f45ccf3bebfde61412713f7b6d4d94b193f25d094d9"
+  },
+  {
+   "path": "src/lerobot/processor/rename_processor.py",
+   "sha256": "11c4a25620260fc281cdeef50968280c7d4fcfe549cd272edf638763dcc4eca4"
+  },
+  {
+   "path": "src/lerobot/processor/tokenizer_processor.py",
+   "sha256": "b3a235e3a5f9839dfff76d670bd9494e4c51ab6da2127cca172bd7ae404a95d5"
+  },
+  {
+   "path": "src/lerobot/rl/acp_dataset_stats.py",
+   "sha256": "54da2b3c46ba78a7cbce0b9053c71edae92ee6dddaaa4473f0a3ab973dc83b8a"
+  },
+  {
+   "path": "src/lerobot/rl/acp_hook.py",
+   "sha256": "6ae95eb88445f23a647bcc2d2347a7c1e4b177dedffee6aa2f83c19067784d85"
+  },
+  {
+   "path": "src/lerobot/rl/acp_tags.py",
+   "sha256": "fdd4f119a7c3831b543766ab84e09f6b802d1a2951702727f04b52a69e58cc76"
+  },
+  {
+   "path": "src/lerobot/rl/actor.py",
+   "sha256": "099b99de479b04666d545f0a6dabf9f7cc9f10cce24e32e11a69829aaad58145"
+  },
+  {
+   "path": "src/lerobot/rl/buffer.py",
+   "sha256": "7d33968f96f8240b9cfb1e359bd97cac472afde58fe87fd9c3452f98012f01c7"
+  },
+  {
+   "path": "src/lerobot/rl/crop_dataset_roi.py",
+   "sha256": "10b16c2abf9ad3e32f1e9157ac22bb81f4002db29ab579f3dc523ee3d7ea5b82"
+  },
+  {
+   "path": "src/lerobot/rl/eval_policy.py",
+   "sha256": "c559fffa395d8af484fdfa06ffc865e63814aec23fc80e7ceb5d9d3481327380"
+  },
+  {
+   "path": "src/lerobot/rl/gym_manipulator.py",
+   "sha256": "ff7c3c0dfbed692be111e43102edf71fdbde05e266c22df6b2b58075a7deba59"
+  },
+  {
+   "path": "src/lerobot/rl/joint_observations_processor.py",
+   "sha256": "a345b28ad97ff14ee540640cf5b41627ed06769cc76f6f4496d6a050fecc202a"
+  },
+  {
+   "path": "src/lerobot/rl/learner.py",
+   "sha256": "b4c0da22749fcbffcefb90537e2346b083e5e7a275eb990234e68148e4a4aa50"
+  },
+  {
+   "path": "src/lerobot/rl/learner_service.py",
+   "sha256": "491b0bd9e2da92b5c93d7341d2daee3ff6c2f047085e5372f6477f5ccd3f8e23"
+  },
+  {
+   "path": "src/lerobot/rl/process.py",
+   "sha256": "6108e142cfbed7602b3d4d5edf16e83df464fd42ef71237b367e55569cf70a5c"
+  },
+  {
+   "path": "src/lerobot/rl/queue.py",
+   "sha256": "fbfc76286938c6b3e707f78a69875f5fbd29ad09378af393303ded3bb40fb20a"
+  },
+  {
+   "path": "src/lerobot/rl/wandb_utils.py",
+   "sha256": "2da79daf13fe6bf9c235bd768b7187e60b43db1fff2f1d7247177a4089ab8cb2"
+  },
+  {
+   "path": "src/lerobot/robots/__init__.py",
+   "sha256": "809dfb9fa15249bf33fa3d400d1e776450e59300829c9b1841a841ccf31fbc17"
+  },
+  {
+   "path": "src/lerobot/robots/bi_openarm_follower/__init__.py",
+   "sha256": "2645f2e7bb06d30fc9f472a2cbb85fe5bb4e595086ad66110d27f5512c1b8c5d"
+  },
+  {
+   "path": "src/lerobot/robots/bi_openarm_follower/bi_openarm_follower.py",
+   "sha256": "3f06fc6f6f69c087bc95f28da59bb7a0f5a650307bd38871a754c1d8ddb51f7d"
+  },
+  {
+   "path": "src/lerobot/robots/bi_openarm_follower/config_bi_openarm_follower.py",
+   "sha256": "2f397757ce6f6f0ad4f4166b8bcddfcbf9942a3864208b5d359bad3949ada09f"
+  },
+  {
+   "path": "src/lerobot/robots/bi_piper_follower/__init__.py",
+   "sha256": "9bfee07a76760626c235236279eab7a809db2d001b281dc37c50c17d66702f95"
+  },
+  {
+   "path": "src/lerobot/robots/bi_piper_follower/bi_piper_follower.py",
+   "sha256": "ab51f957190e1459477e584fa2aa89faa6ad374cf722e6b22165219fc9872506"
+  },
+  {
+   "path": "src/lerobot/robots/bi_piper_follower/config_bi_piper_follower.py",
+   "sha256": "3b2e49a4c84bb6fc3ca03fbfc1e2a178200487be0d08447ee2ac8091a19edff4"
+  },
+  {
+   "path": "src/lerobot/robots/bi_so_follower/__init__.py",
+   "sha256": "39fb2620f85c45aacbf6c472adfa2f2ca57173e1df1159d71d9a62334ba7a6a7"
+  },
+  {
+   "path": "src/lerobot/robots/bi_so_follower/bi_so_follower.py",
+   "sha256": "e005bbd27759572b6a4834c8902803bebb7bcdadb6a1ab87069263c5c2e0fd3b"
+  },
+  {
+   "path": "src/lerobot/robots/bi_so_follower/config_bi_so_follower.py",
+   "sha256": "c8d6bd49f916233c5f51090f90e0acff153d3f6581e85177745b2367d3245b68"
+  },
+  {
+   "path": "src/lerobot/robots/config.py",
+   "sha256": "65f420e72414df8717d4d2d0788d7e3584d7420f616e39b0d07af2098a877094"
+  },
+  {
+   "path": "src/lerobot/robots/earthrover_mini_plus/__init__.py",
+   "sha256": "5d8d6aaa64e48a99bad94c6d739f0917929bc60633b70d57f54b2ab4e24f52ac"
+  },
+  {
+   "path": "src/lerobot/robots/earthrover_mini_plus/config_earthrover_mini_plus.py",
+   "sha256": "31fc0be35ec4e94c3f96135ac8757ccb1bb22062eb8bdc4fa3d16f6f5c11e68e"
+  },
+  {
+   "path": "src/lerobot/robots/earthrover_mini_plus/robot_earthrover_mini_plus.py",
+   "sha256": "01c756be49b2fbf02cf2d624dba7f75b8c0964f5fe06a1ed2f57bc25eb37eaaf"
+  },
+  {
+   "path": "src/lerobot/robots/hope_jr/__init__.py",
+   "sha256": "e89db6b32acbf2edb7a936cf906a0e29be4150e2ad7a3be324be8e05bb0ec6e4"
+  },
+  {
+   "path": "src/lerobot/robots/hope_jr/config_hope_jr.py",
+   "sha256": "2667fb096d4614bde2a090925f640423db178e4edd6b7f339a3187a7530f2310"
+  },
+  {
+   "path": "src/lerobot/robots/hope_jr/hope_jr_arm.py",
+   "sha256": "6bfb85869326cc36a79934b88620920e5a16c2e0ad62f7d8d264fe8285514648"
+  },
+  {
+   "path": "src/lerobot/robots/hope_jr/hope_jr_hand.py",
+   "sha256": "592fc4a4035b636bace1cb79e00ae5f7a0656cb39bf3d9370683df7d675ddcec"
+  },
+  {
+   "path": "src/lerobot/robots/koch_follower/__init__.py",
+   "sha256": "388106434f9b1554b9943422ae413127d0b4e81b934d99cd0ede32384046fe67"
+  },
+  {
+   "path": "src/lerobot/robots/koch_follower/config_koch_follower.py",
+   "sha256": "cf0fee4174c7a52527bd54ac696c48989d3856cb27a48049d18eca6393b880b0"
+  },
+  {
+   "path": "src/lerobot/robots/koch_follower/koch_follower.py",
+   "sha256": "18f4646946f344572462ea8e00d861c7a06dbf5765faeca68397bfb770d9ea74"
+  },
+  {
+   "path": "src/lerobot/robots/lekiwi/__init__.py",
+   "sha256": "8f54519fae5e757bf367c327d02f23974fe12723b24e1e9eeb85b40a985c8812"
+  },
+  {
+   "path": "src/lerobot/robots/lekiwi/config_lekiwi.py",
+   "sha256": "1539fafbd4894169d26f0303c1e1b78dd7fcb967935092aae267b0b0cd32b040"
+  },
+  {
+   "path": "src/lerobot/robots/lekiwi/lekiwi.py",
+   "sha256": "a7d087946006ef5ee586b3481504d1e73ecd5ff1d7ceac6947bfa257877e264d"
+  },
+  {
+   "path": "src/lerobot/robots/lekiwi/lekiwi_client.py",
+   "sha256": "51d22d91529019cc5e3a1be8dbb03b272a665526299d507ca47a2502cae37496"
+  },
+  {
+   "path": "src/lerobot/robots/lekiwi/lekiwi_host.py",
+   "sha256": "c4d6a3d00ea35b9e2154f9a213ec49b329dffc7b4c0c3491b8371177cd2209af"
+  },
+  {
+   "path": "src/lerobot/robots/omx_follower/__init__.py",
+   "sha256": "fdfaa6ea6c598cc7a83ca910211ecdbcec6325d4c1de43ca53ce4cda10d493e3"
+  },
+  {
+   "path": "src/lerobot/robots/omx_follower/config_omx_follower.py",
+   "sha256": "784763a0ce77aa357983918c7b69490c8053ae4a6a0d559c81f186e71f15f9aa"
+  },
+  {
+   "path": "src/lerobot/robots/omx_follower/omx_follower.py",
+   "sha256": "c123cec66e86681950c6c90a2c58dfabf9cc84c9effe49b620c5b86fd8b8e9ca"
+  },
+  {
+   "path": "src/lerobot/robots/openarm_follower/__init__.py",
+   "sha256": "b06311aa94e353413db7fdee1e2cae290ecc53ea42e95aad50ba86fdb82f50d6"
+  },
+  {
+   "path": "src/lerobot/robots/openarm_follower/config_openarm_follower.py",
+   "sha256": "5c10479aa82177594f3f9c00eee4d92e9b05748c11249e2515f83ebe460572ad"
+  },
+  {
+   "path": "src/lerobot/robots/openarm_follower/openarm_follower.py",
+   "sha256": "2b52a6612c5de3b29c7f73ff2b3280c1716e7902ab6301ef898823d167a43626"
+  },
+  {
+   "path": "src/lerobot/robots/piper_follower/__init__.py",
+   "sha256": "7161d1fc5cf91829c156c3ce9b6c61e8e113388c0b80227965ee6991ff9b4030"
+  },
+  {
+   "path": "src/lerobot/robots/piper_follower/config_piper_follower.py",
+   "sha256": "db412e6f79e7cefa375dc7bede1431ca42e157c4e2cdc9697a6ddf2995370a5a"
+  },
+  {
+   "path": "src/lerobot/robots/piper_follower/piper_follower.py",
+   "sha256": "6906ec15c353727707cf9c3522ffa006b845325812a22e27dea1ea2b3bc35044"
+  },
+  {
+   "path": "src/lerobot/robots/reachy2/__init__.py",
+   "sha256": "b6e4622e9216ec243cdf568bd65afb792996610877ad92387c4e2cd2dcb32a7f"
+  },
+  {
+   "path": "src/lerobot/robots/reachy2/configuration_reachy2.py",
+   "sha256": "4cbe415e46c8f758bcc92b869b1affd17d68f0151e6feca7ceddfe625e38505f"
+  },
+  {
+   "path": "src/lerobot/robots/reachy2/robot_reachy2.py",
+   "sha256": "0761fc514509df7c7ba5f5ae6d03fefde7c8c16b514037f4749c6ca62e376a0d"
+  },
+  {
+   "path": "src/lerobot/robots/robot.py",
+   "sha256": "19989b76423924b4724909cc78698b72e6a65e868a5ed502aa5004e9bf12b75e"
+  },
+  {
+   "path": "src/lerobot/robots/so_follower/__init__.py",
+   "sha256": "71e85ab1303c4c02817b2318cdbf9f9a7a06bd7dab5c39ffdd50ed2557827129"
+  },
+  {
+   "path": "src/lerobot/robots/so_follower/config_so_follower.py",
+   "sha256": "c051d08a67600d825d1daaa63440d7691520ae7eac582b28bb139e29ad0ed9c8"
+  },
+  {
+   "path": "src/lerobot/robots/so_follower/robot_kinematic_processor.py",
+   "sha256": "41e525d75839a2b247505c9a0002228e1afad6017edc813cbcbaebe48f230400"
+  },
+  {
+   "path": "src/lerobot/robots/so_follower/so_follower.py",
+   "sha256": "5b64847e5c711adfa113874d1485f913eb7f67a9f1d3ff46994f8f440d412eab"
+  },
+  {
+   "path": "src/lerobot/robots/unitree_g1/__init__.py",
+   "sha256": "81f82ab2bd178d063dc989b54ecd12a4f3b03720ac3b74d66ec7e98a2d9ebe8f"
+  },
+  {
+   "path": "src/lerobot/robots/unitree_g1/config_unitree_g1.py",
+   "sha256": "1037c8a19fc5abf914b7cc0209978c43a123281e824d085b6aa6ca22a66c1774"
+  },
+  {
+   "path": "src/lerobot/robots/unitree_g1/g1_utils.py",
+   "sha256": "e235392180b05ef7e2a4c5f26de9dfab011c0687a1f96723f78043573f0b6ede"
+  },
+  {
+   "path": "src/lerobot/robots/unitree_g1/robot_kinematic_processor.py",
+   "sha256": "58eb581a4f57ea4ad2731beda532cf4dd5722ae0c3a09b7e4d413198f68fd77c"
+  },
+  {
+   "path": "src/lerobot/robots/unitree_g1/run_g1_server.py",
+   "sha256": "3b628fd71d0afa5e5a22bcb32efa1d4bb7aa8623dfba1eeefc993ee4405e21aa"
+  },
+  {
+   "path": "src/lerobot/robots/unitree_g1/unitree_g1.py",
+   "sha256": "ccf74c14fb843c196f8147d95ff1a60530bd7b7d94bf8fbfa5570467cb224297"
+  },
+  {
+   "path": "src/lerobot/robots/unitree_g1/unitree_sdk2_socket.py",
+   "sha256": "4249651755db97ca3ba5969953a985debcae2036a6b637e2bf5e89fb4b9c0670"
+  },
+  {
+   "path": "src/lerobot/robots/utils.py",
+   "sha256": "b0702ce7b3f10811c2e5bb8002a0222074a4d00d32bf21831ca42df91dfc5423"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_calibrate.py",
+   "sha256": "ebbc7793b035a2aaa97865a333fac158c47a51804b6fa637bdc5151c2bbcae0c"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_dataset_report.py",
+   "sha256": "e8e1f00c35e24e1038c7ac71c95deb90efd3ae3f99590c473e139d571c8d8055"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_dataset_viz.py",
+   "sha256": "84c82bbab3543db62c498992717db5c29d3ccc1d7bddd6f3803cd4c9ab9afc25"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_edit_dataset.py",
+   "sha256": "280c4a382b44e49119fdddca2bb46ee292e255f4f667f767aa92397e6a2987e0"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_eval.py",
+   "sha256": "cb0e1c2d891b93b41cb7b97921188fe2fd20ea6fa05675b87835b06c648ecce7"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_export_boundary_frames.py",
+   "sha256": "9aacd02fb56bc4c85b8a634ab7afe2fb1b8b3b521a7a8b1369ef384b78e825bc"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_find_cameras.py",
+   "sha256": "98a82292465c4be91927ddec1c30bd7d72eab9c7f8b2a7def1dc5fce4ca256d4"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_find_joint_limits.py",
+   "sha256": "b112347cabfa6d802c92edca82539bff60858e55350d77308a9e15feb6b0265e"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_find_port.py",
+   "sha256": "a64de40270cdb6e48847af7898016a84f970914b3d1eb220854ff13b4349c907"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_human_inloop_record.py",
+   "sha256": "11de2b0298ab5dd1eea4ada75fee170688056cff07667521853d4ab9d93ccb4e"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_imgtransform_viz.py",
+   "sha256": "1ef746c7853dba94ff8a871397c376506c3ed49f0eb9fb884ae73354677785b7"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_info.py",
+   "sha256": "0c2750f6d98bfadd23a9200f138461285f91e4f27a305754159d1e9517552b6d"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_patch_hil_dataset_schema.py",
+   "sha256": "e82d746960ee58d745706ea424cfad1f610fa37f8f0542752b2c9ce0d22e4114"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_record.py",
+   "sha256": "5af9d57554e037cc8d8bb2a7108a3feddf18788e2e2d2591bb5668adfda2ee43"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_replay.py",
+   "sha256": "782d0f3695479a3bed7a99f7945d745288ce79540970d6f4c7d2fb33840ddc38"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_setup_can.py",
+   "sha256": "9da2803812c19f5067c233c92c385bcc8d5791e3e4818c5f3ae9903b43eb56ab"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_setup_motors.py",
+   "sha256": "7961fa711d35a38193f6d52218b2d54a30c3b5a28ae07c5641243f8f801a4178"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_teleoperate.py",
+   "sha256": "ac862ed7c4a0e2d68002036e78af205b3943d5b1037aefb7a99c8b59dd6e8770"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_train.py",
+   "sha256": "ca8267fc5ad931f6cd93da0726942eb218c1e9ea8018a22672a219aa1912af8e"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_train_tokenizer.py",
+   "sha256": "83a5b3766c6101705259409f8181a1dff387af7ced107d9179ebd5e11f7f528e"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_value_infer.py",
+   "sha256": "a0045a20930c574ebf8a9cfee422f5cfdd7a729ad60a28e6759b216b2198eae0"
+  },
+  {
+   "path": "src/lerobot/scripts/lerobot_value_train.py",
+   "sha256": "5c48fc846f14bc8c5dbeca56cfa0280cd6ea48449c3060b32fa00af0c160a292"
+  },
+  {
+   "path": "src/lerobot/scripts/recording_hil.py",
+   "sha256": "85c96ba27f042641bf6fdcedfe20e21ecb4662cfcb8a5e5283efe82a01448851"
+  },
+  {
+   "path": "src/lerobot/scripts/recording_loop.py",
+   "sha256": "d7dd511e1c56207402a04d97dd2dda541bf077fb096ec7bbe68bef13865969d8"
+  },
+  {
+   "path": "src/lerobot/scripts/value_infer_viz.py",
+   "sha256": "b37d32c7a2732a0880cbcae06aaa5cecd4c2d05f4e7e0f7fdaed7f22ae03598a"
+  },
+  {
+   "path": "src/lerobot/teleoperators/__init__.py",
+   "sha256": "cc563d12d06c98307f071f7de8c0e0e1d190c4c0666749ca99f6c9283ae8d97d"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_openarm_leader/__init__.py",
+   "sha256": "970919ed4dce135bfa3ca5a2151254f1b2a5e085e598a53b66228f43097dbecf"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_openarm_leader/bi_openarm_leader.py",
+   "sha256": "20c11e9586a088afd64688785a635df3953d118a73be3bcf5336fa7652db6bc3"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_openarm_leader/config_bi_openarm_leader.py",
+   "sha256": "1c344634e60857680a6a0e556c1a9c29824f131a60da6f232378a3e60c83d306"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_piper_leader/__init__.py",
+   "sha256": "cffcbabb6b4069246e44e2d962c6b470d9dda481cd10af87d65cf6abc6254059"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_piper_leader/bi_piper_leader.py",
+   "sha256": "33a0ab8da0774db7b552839c61e6f09947dcff7455acf896d22ce943daceb860"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_piper_leader/config_bi_piper_leader.py",
+   "sha256": "ba86ae958ff97568d1dc5ca81d89a404a369dd3c6e16e70fc70752ef9fcd20b8"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_so_leader/__init__.py",
+   "sha256": "2a9be923dd486045f8f5cdadb94228a679120cb7869a254c83e1e626de8c38f8"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_so_leader/bi_so_leader.py",
+   "sha256": "7cddea45a9d995f06faf962e0d204b9497f6412817cce57d05f6dce4d4cf5a24"
+  },
+  {
+   "path": "src/lerobot/teleoperators/bi_so_leader/config_bi_so_leader.py",
+   "sha256": "bf0b821b33050b164c2588355ff9490a8a1931646777b331ea65329979ed80fa"
+  },
+  {
+   "path": "src/lerobot/teleoperators/config.py",
+   "sha256": "cc9bacc17230e4c0d1532ee4c998a9d2aa4d6ec374f4606e7f447f1e3c94ba28"
+  },
+  {
+   "path": "src/lerobot/teleoperators/gamepad/__init__.py",
+   "sha256": "500e9c84a0cc28a9920d01270cb3378f12c4667b99056e8bb1261dbf1d0f4c7f"
+  },
+  {
+   "path": "src/lerobot/teleoperators/gamepad/configuration_gamepad.py",
+   "sha256": "a7d9b9faa048e816ddbffb83cd79507eb19008de95949a7b1134b42fe7dd6655"
+  },
+  {
+   "path": "src/lerobot/teleoperators/gamepad/gamepad_utils.py",
+   "sha256": "38a121a67ff423ea5f0b9ec3d13a1ac3fb38fa1c7207daced807fd83d5e4220c"
+  },
+  {
+   "path": "src/lerobot/teleoperators/gamepad/teleop_gamepad.py",
+   "sha256": "ba3281e6d3bbedba13ae23e2130a233b633ca998c30d1bc21586762534e46c42"
+  },
+  {
+   "path": "src/lerobot/teleoperators/homunculus/__init__.py",
+   "sha256": "228da9986c2221e6a0ff5ae74fb01102331ac9fa3770edec8e7e3b7e2df1962c"
+  },
+  {
+   "path": "src/lerobot/teleoperators/homunculus/config_homunculus.py",
+   "sha256": "4d73d21d5d1fc6ec80ece3e0a05b2319ee07a7de48bb5b2e42e45b963db72f8e"
+  },
+  {
+   "path": "src/lerobot/teleoperators/homunculus/homunculus_arm.py",
+   "sha256": "2671f64d377342cab10fbff87f46514f7cec4208fe1685ffdf1c33cd8bcd1f91"
+  },
+  {
+   "path": "src/lerobot/teleoperators/homunculus/homunculus_glove.py",
+   "sha256": "9c33c52a4412f471f7e2dfbc7206e0b0dcf606b1d72022cb54d252eacac935bc"
+  },
+  {
+   "path": "src/lerobot/teleoperators/homunculus/joints_translation.py",
+   "sha256": "727e1a242f1c913b337090fe1ccca146a93abdbbe3aa0130ed76a073affab13b"
+  },
+  {
+   "path": "src/lerobot/teleoperators/keyboard/__init__.py",
+   "sha256": "1a83c9d7194110f8252dc6475efb3872b4d2f6db847e223b08f0b0c3dd5a8fb4"
+  },
+  {
+   "path": "src/lerobot/teleoperators/keyboard/configuration_keyboard.py",
+   "sha256": "0a178bf8d9226ed7421123df8e18f2055f60abe262a78a54a9f766b703794ad0"
+  },
+  {
+   "path": "src/lerobot/teleoperators/keyboard/teleop_keyboard.py",
+   "sha256": "1342e5fa5307842846c53c8abe2f15a8ab28a51684f9b4062f83eb8557e2796e"
+  },
+  {
+   "path": "src/lerobot/teleoperators/koch_leader/__init__.py",
+   "sha256": "015b250b5661ffc3a5a25abfbeb5b3e9f1aa8a0d399004c92dc8c714c50216ec"
+  },
+  {
+   "path": "src/lerobot/teleoperators/koch_leader/config_koch_leader.py",
+   "sha256": "56c35642f5b7910d1e8865be003f4285111f4c061329e82518451e13d6648fad"
+  },
+  {
+   "path": "src/lerobot/teleoperators/koch_leader/koch_leader.py",
+   "sha256": "c897c5cdbc3c91b41e96d68d022da4d7a509a18ec47933461b31ac929b4e28a0"
+  },
+  {
+   "path": "src/lerobot/teleoperators/omx_leader/__init__.py",
+   "sha256": "57302a5e34096658a8493f8aaa393b1dd8b52a1e6355e09099910c2ec2a7b2db"
+  },
+  {
+   "path": "src/lerobot/teleoperators/omx_leader/config_omx_leader.py",
+   "sha256": "cb1d8d4b776955edbb0370d5b9297014922b059f683a6d3d3988b27cff0e5f8d"
+  },
+  {
+   "path": "src/lerobot/teleoperators/omx_leader/omx_leader.py",
+   "sha256": "ae844d3ee5f26bcdd033f09e2ee42daf2ce4d50923cd573aadc6515bf29ccf16"
+  },
+  {
+   "path": "src/lerobot/teleoperators/openarm_leader/__init__.py",
+   "sha256": "1dda47ccb128b52e1e8efe4bdbdbafa55036fce87d4a7bd313049783566f8088"
+  },
+  {
+   "path": "src/lerobot/teleoperators/openarm_leader/config_openarm_leader.py",
+   "sha256": "06add51a6ccee7459a98c8fd0c23cc033f448f4e59d3cda32af452e6abfd3d28"
+  },
+  {
+   "path": "src/lerobot/teleoperators/openarm_leader/openarm_leader.py",
+   "sha256": "cf57c16cb5080a2a60030fd38e279d0eccc1280dc2ac75a44647130658f3b5e6"
+  },
+  {
+   "path": "src/lerobot/teleoperators/phone/__init__.py",
+   "sha256": "23a407adc5e11b5a207f6fdb39bb6cec5328874899dab1e940cf2f8cbcc57433"
+  },
+  {
+   "path": "src/lerobot/teleoperators/phone/config_phone.py",
+   "sha256": "bcd93f16fb3ec07cc202970ecb467fee924251111e50630764da9a30690755ca"
+  },
+  {
+   "path": "src/lerobot/teleoperators/phone/phone_processor.py",
+   "sha256": "902889219a41701d415fcfedb60010d150b9f0e770a23c386d363091bc7ad6c5"
+  },
+  {
+   "path": "src/lerobot/teleoperators/phone/teleop_phone.py",
+   "sha256": "da6f3f77e89aec2487074dcd4ded839f661abb1aaca2c38033db8ce2f78d0f3f"
+  },
+  {
+   "path": "src/lerobot/teleoperators/piper_leader/__init__.py",
+   "sha256": "f28841b38d5d4b5c10a68b20719e6eb6d1491286a367a7f2928c5597d99e56e6"
+  },
+  {
+   "path": "src/lerobot/teleoperators/piper_leader/config_piper_leader.py",
+   "sha256": "7408c7273854fdd6730a386a48b1c197f418b2239ce80859580d8f89b2344508"
+  },
+  {
+   "path": "src/lerobot/teleoperators/piper_leader/piper_leader.py",
+   "sha256": "17210e44d190e198998694c361fc1a7e6db61e51b51160936212be15b6c8f52c"
+  },
+  {
+   "path": "src/lerobot/teleoperators/reachy2_teleoperator/__init__.py",
+   "sha256": "d39a261698ae19ecf1e575d7a7e09bae4b472eff3a898e7da00a4af11682d075"
+  },
+  {
+   "path": "src/lerobot/teleoperators/reachy2_teleoperator/config_reachy2_teleoperator.py",
+   "sha256": "71d44f6f816f90f6bc29f0a26f313f2cb5e0962c71c2dd94cfe81b432b3b4ea3"
+  },
+  {
+   "path": "src/lerobot/teleoperators/reachy2_teleoperator/reachy2_teleoperator.py",
+   "sha256": "0193d3ec56cc3f51fe614b63e199aaf20e4261e11bcaa5d5d1ba63ecf3276633"
+  },
+  {
+   "path": "src/lerobot/teleoperators/so_leader/__init__.py",
+   "sha256": "18397673df13313383f282c0e00f4dcfb70a83137bb854b637162b092dfb442c"
+  },
+  {
+   "path": "src/lerobot/teleoperators/so_leader/config_so_leader.py",
+   "sha256": "baea0d64c9b1314cfac96ff16b03d74f3fc08b964d58e6409516b612a60b6852"
+  },
+  {
+   "path": "src/lerobot/teleoperators/so_leader/so_leader.py",
+   "sha256": "7dfac3cb910419336cc971e6d28801f7dac274201ed040dabfcf490b05f0b4b5"
+  },
+  {
+   "path": "src/lerobot/teleoperators/teleoperator.py",
+   "sha256": "cd4e8c25f8f3efafec3611ea367fe4247dfdb2dc0cf2f14cc7fa9db892aa0c0b"
+  },
+  {
+   "path": "src/lerobot/teleoperators/unitree_g1/__init__.py",
+   "sha256": "58b24f4120a651a57c7f57c4e391348989aaeaea586a662c5ea5076396ec4443"
+  },
+  {
+   "path": "src/lerobot/teleoperators/unitree_g1/config_unitree_g1.py",
+   "sha256": "2ea32b66123e59b9a689165844a209b582b782b6e41f37ffcc022174b73c9f86"
+  },
+  {
+   "path": "src/lerobot/teleoperators/unitree_g1/exo_calib.py",
+   "sha256": "aff5e090f65f78e8d2008caea35a5a0441be8304a9cd54dfb70f3df07761b949"
+  },
+  {
+   "path": "src/lerobot/teleoperators/unitree_g1/exo_ik.py",
+   "sha256": "59efc82f076ca6be56cde4363f12472b3b822d2ac1f69a9d1be008e626089167"
+  },
+  {
+   "path": "src/lerobot/teleoperators/unitree_g1/exo_serial.py",
+   "sha256": "7e368c78f4827b00a123ddcd273bfb3293e282d1524d78ce906d7d9194570307"
+  },
+  {
+   "path": "src/lerobot/teleoperators/unitree_g1/unitree_g1.py",
+   "sha256": "610d973b79e1145ce84962f5fc0b703fc01f8ec1d5951c8506f4f8f770fa831f"
+  },
+  {
+   "path": "src/lerobot/teleoperators/utils.py",
+   "sha256": "2840233253ef7a09b3a310a151c297ff38230ba6cd522d5a7b29ee3403f06de9"
+  },
+  {
+   "path": "src/lerobot/transport/services_pb2.py",
+   "sha256": "06efc0dd44bb4a1e532612d6f7994176214028802ecbfd96e9d79376da74657c"
+  },
+  {
+   "path": "src/lerobot/transport/services_pb2_grpc.py",
+   "sha256": "3b1cde1f24d00b536e113074385a1bd2f0948d0e8ce2c5cb543ca4debbb377ba"
+  },
+  {
+   "path": "src/lerobot/transport/utils.py",
+   "sha256": "2e438e199d85c7b4176e11397cf581c7de9f434dff84d2d0d2d2bd7b5988c202"
+  },
+  {
+   "path": "src/lerobot/utils/constants.py",
+   "sha256": "a9dba3dc6f7db6e77b10c8bbf250ed670111425b9468f43bb51a5d0270d99458"
+  },
+  {
+   "path": "src/lerobot/utils/control_utils.py",
+   "sha256": "cd9e65e908b2924871bb25314a8cd47110263207f71e6ffb5cf281cdef28bd17"
+  },
+  {
+   "path": "src/lerobot/utils/decorators.py",
+   "sha256": "4f92457a9a9e87d84b935b0b072869e92cde6be1c372f82ce485a07e7a853de2"
+  },
+  {
+   "path": "src/lerobot/utils/errors.py",
+   "sha256": "5bab3b68cbbc88a764daaa103c488a08dcf2d61ef5274931fa3d6013d2a2ec4a"
+  },
+  {
+   "path": "src/lerobot/utils/hub.py",
+   "sha256": "1981583e520bc73e221491459694d58ad1c1370537bf280968493b31c8e2c51f"
+  },
+  {
+   "path": "src/lerobot/utils/import_utils.py",
+   "sha256": "169313c58e0fb16d50fcc3377fb753b007e7c669b51198c500d9b6e81c68bc48"
+  },
+  {
+   "path": "src/lerobot/utils/io_utils.py",
+   "sha256": "3c04da95df2f211faefec3527603596bcf4231072919d6a8d4bcaa3436a14d5c"
+  },
+  {
+   "path": "src/lerobot/utils/logging_utils.py",
+   "sha256": "2048f1c44336aafb8bab907f077aafe963d354ea0055568d4988b9dfbc1fdf29"
+  },
+  {
+   "path": "src/lerobot/utils/piper_sdk.py",
+   "sha256": "ddf44be3438b5ee30535f40c15dade53c508b5e3cae7f82cc42cd90e9fd5234d"
+  },
+  {
+   "path": "src/lerobot/utils/rabc.py",
+   "sha256": "29a3ad1364e6cf16995934ed9136571f79f564b85e7aa1e4eac477e50087301a"
+  },
+  {
+   "path": "src/lerobot/utils/random_utils.py",
+   "sha256": "3f3b373ad8ae7dd240c13eddc10c226836e31bd68bf0cd1765132599e482a17d"
+  },
+  {
+   "path": "src/lerobot/utils/recording_annotations.py",
+   "sha256": "00c6f570d2613c801e5b840d4f5bc96292f696c5bf54863ed92aeedfb96a35e8"
+  },
+  {
+   "path": "src/lerobot/utils/robot_utils.py",
+   "sha256": "cffed2c05291e9abb384a2cd56729d907e6ba092b72fbaa113a50f34800e095e"
+  },
+  {
+   "path": "src/lerobot/utils/rotation.py",
+   "sha256": "1b4c52538ec4ec06060145e5ff750ab3cf0d102291a982eeae2f927656bc14cd"
+  },
+  {
+   "path": "src/lerobot/utils/train_utils.py",
+   "sha256": "ed0f839e6caf51ff6f79a1c8f750eb1a144f83c40a92366a5d32da0921e5b82b"
+  },
+  {
+   "path": "src/lerobot/utils/transition.py",
+   "sha256": "6b17122c4244ba2a91ab49c6fa0f73c36270c5c84940dd9bd7517ae95ba345cb"
+  },
+  {
+   "path": "src/lerobot/utils/utils.py",
+   "sha256": "6d15ea2af3a80ae419af3d42d4264ff07bb769147b021a99f1a46cd51b728ac4"
+  },
+  {
+   "path": "src/lerobot/utils/visualization_utils.py",
+   "sha256": "604597817f66b9a405de9f8ba407c83e3af0e4f1da6f2c986626c70257c04906"
+  },
+  {
+   "path": "src/lerobot/values/__init__.py",
+   "sha256": "f8922dde0d5e05fe1b55034d41de0905e40d03ba342cad16f6d60a297febe6cf"
+  },
+  {
+   "path": "src/lerobot/values/pistar06/__init__.py",
+   "sha256": "0911dd786ec2f8885906dc5cf8e0bd86d269946571dd6c428098128a407131e4"
+  },
+  {
+   "path": "src/lerobot/values/pistar06/configuration_pistar06.py",
+   "sha256": "4fad48b6d786ef44c1552e26b3fdab085a6f56ac8a8b741a4324e42686912d43"
+  },
+  {
+   "path": "src/lerobot/values/pistar06/modeling_pistar06.py",
+   "sha256": "0ec6f23575bfd82605cbb0299088a7bec173d770b6cae4fea7fa4bb2cfeb45ec"
+  },
+  {
+   "path": "src/lerobot/values/pistar06/processor_pistar06.py",
+   "sha256": "2122b4a2553712e6f6ea094c173caf31a03fd1dc67da9058e24fcb44c4216699"
+  },
+  {
+   "path": "src/lerobot/values/rewards.py",
+   "sha256": "a0bf5595406f41e201df8ff0f71881b2eacb7ca0bfc2f36df86d229973b227d1"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "7c685e1896165e21778b442e0568c114ac33322d177aedc52c6134b329a09174"
+  },
+  {
+   "path": "tests/artifacts/datasets/save_dataset_to_safetensors.py",
+   "sha256": "ebdbafc4d3876ddd9540c992770c1869695a0a5e9cdc21f8af3ef74b27cdf953"
+  },
+  {
+   "path": "tests/artifacts/image_transforms/save_image_transforms_to_safetensors.py",
+   "sha256": "d450d9a310f4bea04611d802704da3f63143952d5a4ba328d1acaeb5af8b9bf9"
+  },
+  {
+   "path": "tests/artifacts/policies/save_policy_to_safetensors.py",
+   "sha256": "35ed702e65e112379b072562073e390ebe0b4ae41e7f434b441eca4c4c481de1"
+  },
+  {
+   "path": "tests/async_inference/test_e2e.py",
+   "sha256": "f63d2b33f89da02d9ec7318f4476948262c3e2b45a91d7086155bcbc005af2b2"
+  },
+  {
+   "path": "tests/async_inference/test_helpers.py",
+   "sha256": "4dd8e17cd4756309551b911db1663b0025db739aa39b0336f5c27b6179407457"
+  },
+  {
+   "path": "tests/async_inference/test_policy_server.py",
+   "sha256": "5f2f7ff47be5e8c4c50dec9a6eec54e86575ac2d112006e6ec5a41b4f8c1c008"
+  },
+  {
+   "path": "tests/async_inference/test_robot_client.py",
+   "sha256": "25a63fe01a759347e4c990a6f5913a1755e408316fb26c35621128c8523069fd"
+  },
+  {
+   "path": "tests/cameras/test_opencv.py",
+   "sha256": "b60f4a1b281dcbac027b24afaf7f33bfcf805000b9b272e55d92a9f2bcfc1d94"
+  },
+  {
+   "path": "tests/cameras/test_reachy2_camera.py",
+   "sha256": "78406314777cceefdfe9d39f96cba0c1bb3aa4e22b9151228e7b50e504366c79"
+  },
+  {
+   "path": "tests/cameras/test_realsense.py",
+   "sha256": "96cafa50f48c83b00e043194c6dfc1626b23d059198ea7ef4bda52a84dc451ca"
+  },
+  {
+   "path": "tests/configs/test_plugin_loading.py",
+   "sha256": "21db549066016f4ec45afe7272f03d05434ccd2b222cf0c1c60971863737a8c5"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "b38bd8395de985c854870c93c0d3b18d26ee0332cfcc1c9ac525872d1c23e673"
+  },
+  {
+   "path": "tests/datasets/test_aggregate.py",
+   "sha256": "01a749dea52dc7d8e50e467fb7e2d700efafb9a6771d90a5d4dfb9c4d97429fb"
+  },
+  {
+   "path": "tests/datasets/test_compute_stats.py",
+   "sha256": "4622c127d68d997beba82b74583960c7cefe086675344d4ee113a0c39b094acb"
+  },
+  {
+   "path": "tests/datasets/test_dataset_tools.py",
+   "sha256": "ac87d7a6e02618af001e9a7c5bea37342fbe19c7ac8bf9ec6f2005a0ecd167b0"
+  },
+  {
+   "path": "tests/datasets/test_dataset_utils.py",
+   "sha256": "509b6999481461de36f23832f63f5a2750699437dc095bc2fadd63172591cbeb"
+  },
+  {
+   "path": "tests/datasets/test_datasets.py",
+   "sha256": "555088e593923b448a3f40193ca25a42fe9ad7a79343d98f0a8abfe2e0afcac4"
+  },
+  {
+   "path": "tests/datasets/test_delta_timestamps.py",
+   "sha256": "a634f06e2d562127268e972930e618c7112d882ad38cdc723903bdad9bd3994e"
+  },
+  {
+   "path": "tests/datasets/test_image_transforms.py",
+   "sha256": "c9f67757a8e48d7d85457e0f8ea95c6f9600596dd520364c4fbc9fd79d6950cc"
+  },
+  {
+   "path": "tests/datasets/test_image_writer.py",
+   "sha256": "f9adeaa281069e4f6b14050f2d2b81aa7cdfc8f6e8a703c5e6b7f6dbbd3b9654"
+  },
+  {
+   "path": "tests/datasets/test_online_buffer.py",
+   "sha256": "02020120bd0109f95b3e36b6c2d164d57b572dc025a1761cba3a4fd0c69ca062"
+  },
+  {
+   "path": "tests/datasets/test_quantiles_dataset_integration.py",
+   "sha256": "dffe014a3225cfa20cf108092e02bcdfb7efdb57ee4ff5f6e67fd027505112c2"
+  },
+  {
+   "path": "tests/datasets/test_sampler.py",
+   "sha256": "3129e83532428c05341083e4af03c2a78a813d7e2b6ef29ebd4c64f121ff5d1b"
+  },
+  {
+   "path": "tests/datasets/test_streaming.py",
+   "sha256": "146097f7109e90d39547c72b0c64f69270b1acd3f666cf9eb4f7ae097edb1538"
+  },
+  {
+   "path": "tests/datasets/test_subtask_dataset.py",
+   "sha256": "3b62767d7145d9dfd954d3414dda5da4a2a515d416a6a627cee029061a74d5ad"
+  },
+  {
+   "path": "tests/datasets/test_visualize_dataset.py",
+   "sha256": "40d4eda33467aab3439fd5b8783315102cd4c3ac762fcf80dd8c4d525253eaa6"
+  },
+  {
+   "path": "tests/envs/test_envs.py",
+   "sha256": "53693e3713012d596bd3607b699dc196328b24df7a611f2c692dd20dfcdafa65"
+  },
+  {
+   "path": "tests/fixtures/constants.py",
+   "sha256": "725ed4572e35689a5b8fa43db37bfd527d29672e075b97abfeb76f86cad86ba2"
+  },
+  {
+   "path": "tests/fixtures/dataset_factories.py",
+   "sha256": "62c0967b43821abe66b2b6c0d6a22ff21a4951c4026d267aee04d18b2c315dbc"
+  },
+  {
+   "path": "tests/fixtures/files.py",
+   "sha256": "e101681ac4df05eb7c3de5e7fd615b38ba9f364c13096f9cbe2b431cb2dc8e5f"
+  },
+  {
+   "path": "tests/fixtures/hub.py",
+   "sha256": "b0340e480400414e8b7233bfc63f046e25ba100e3cc576c045e07d67b3ddc8ea"
+  },
+  {
+   "path": "tests/fixtures/optimizers.py",
+   "sha256": "330dfa95ce52e1c179460dd76c022c24d5aabc199559595a0724c71242b8b686"
+  },
+  {
+   "path": "tests/mocks/mock_dynamixel.py",
+   "sha256": "8364128a4b0e9221b50313f27891e7b45ebe281a9fb4294b47934d106703ca60"
+  },
+  {
+   "path": "tests/mocks/mock_feetech.py",
+   "sha256": "f235e6e1b658265ccb6e47c6d54aa947c3c68ff98084327bd1452afc2ba20c49"
+  },
+  {
+   "path": "tests/mocks/mock_motors_bus.py",
+   "sha256": "ddaa41bf36835294a22ba0f893144718fbdd96a35ead71ceacc38faca377cca8"
+  },
+  {
+   "path": "tests/mocks/mock_robot.py",
+   "sha256": "8dc41e5ec540f1ad58cc044cf9d9e683d72fb17994fb4b9d8db573f116b1497c"
+  },
+  {
+   "path": "tests/mocks/mock_serial_patch.py",
+   "sha256": "fb9d7a967a4bcbb715972a90f6b4c519c5d116d1c1a52bd7da1673f9f4254b52"
+  },
+  {
+   "path": "tests/mocks/mock_teleop.py",
+   "sha256": "ee15b02eca654959016a066da3a0709546876283ea9dae39d98eb64d4e8a0ff7"
+  },
+  {
+   "path": "tests/motors/test_damiao.py",
+   "sha256": "f76de1900d6b2ebdb4d988f8c8595efefd905068f969a2885d8a1cbb1f56ebf6"
+  },
+  {
+   "path": "tests/motors/test_dynamixel.py",
+   "sha256": "a01a9cccdefc323bb8a955bef12f0aba06db1d59c6c1dddd8b39c551f2c59b15"
+  },
+  {
+   "path": "tests/motors/test_feetech.py",
+   "sha256": "be7044469918fdd57cd148cd081d88a2ce66521759a6e92f06fef1bc84070621"
+  },
+  {
+   "path": "tests/motors/test_motors_bus.py",
+   "sha256": "82316e389c0dcf20c45ab678ec60527d03c905b7947309875d46ebbc8d960a12"
+  },
+  {
+   "path": "tests/optim/test_optimizers.py",
+   "sha256": "ed5395b772439ec6509b86b84d259a0f7eb6e54a775a7788d28330e4daf7f2a3"
+  },
+  {
+   "path": "tests/optim/test_schedulers.py",
+   "sha256": "f91f8a254ff3bd7509def122938aab3a244edd7d7d43d4819006e8185fa7c71d"
+  },
+  {
+   "path": "tests/policies/groot/test_groot_lerobot.py",
+   "sha256": "5d62e731dedb291663633a334745dbd30ba061ce6f5886ddaa19dd1198b0fb5c"
+  },
+  {
+   "path": "tests/policies/groot/test_groot_vs_original.py",
+   "sha256": "8c04789aa63edb9c3b8e99f36af8ca924c8be77f14370bc30d35e44630dbcf5c"
+  },
+  {
+   "path": "tests/policies/hilserl/test_modeling_classifier.py",
+   "sha256": "ecb85ff78302003a5562cceac735c113f949d9601053e9f0ca99b70b77630ddd"
+  },
+  {
+   "path": "tests/policies/pi0_fast/test_pi0_fast_original_vs_lerobot.py",
+   "sha256": "f97b61f40e2f9c23bd4efd58ffd722cdd9a3abaf1097b3793917467093f8f7a5"
+  },
+  {
+   "path": "tests/policies/pi0_pi05/test_pi0.py",
+   "sha256": "65f8de93f8e94771d657f552837be3d7be794570d69c894fc22c536c50bcd467"
+  },
+  {
+   "path": "tests/policies/pi0_pi05/test_pi05.py",
+   "sha256": "809a88502195f0f9d4d63862d618db7ab8a4849e3700b2fc5ecb06df913d76d2"
+  },
+  {
+   "path": "tests/policies/pi0_pi05/test_pi05_original_vs_lerobot.py",
+   "sha256": "1a2146601a90067a1bbb9ddff3fde907f3afc8b2d36a66106375220d18c0f280"
+  },
+  {
+   "path": "tests/policies/pi0_pi05/test_pi05_rtc.py",
+   "sha256": "7cb2ef20ab52d948738b08b153ae5dc8e5cb0c20645f9f59e13e330a4ae7ed7b"
+  },
+  {
+   "path": "tests/policies/pi0_pi05/test_pi0_original_vs_lerobot.py",
+   "sha256": "bc3ef07ea260f611ef380fd3fbb3217886442f0dcdeb8f1e6a76ee0886b9eb87"
+  },
+  {
+   "path": "tests/policies/pi0_pi05/test_pi0_rtc.py",
+   "sha256": "c4b09f147e254c0fe1ba2a629f12f20216699af51bd5cb8fc3be329bb6355ce4"
+  },
+  {
+   "path": "tests/policies/rtc/test_action_queue.py",
+   "sha256": "afa6505fe14ac9319a2569fc6bc3dd6528dbd313ea0015952bffd8a02649c26a"
+  },
+  {
+   "path": "tests/policies/rtc/test_configuration_rtc.py",
+   "sha256": "c416a60977599a1ce8d814a94d06913e3735ec8f8249a176af6be6728b01134c"
+  },
+  {
+   "path": "tests/policies/rtc/test_debug_tracker.py",
+   "sha256": "34ce65e0e78fc543e4c21836718a705d7afeb982bafb34b3343b40c298be8216"
+  },
+  {
+   "path": "tests/policies/rtc/test_latency_tracker.py",
+   "sha256": "158e0d188ab153cb831f5b7bb6bd0c2aeeba1661e082ceaecd08816aac18778e"
+  },
+  {
+   "path": "tests/policies/rtc/test_modeling_rtc.py",
+   "sha256": "2f9723d47ce6aa33ad48828667b34b48495a68a9f9a2ecdb2428080f0a1e60a1"
+  },
+  {
+   "path": "tests/policies/smolvla/test_smolvla_rtc.py",
+   "sha256": "32a9459d94b18d3a7e9ed3aa6701523f24b973252cc6e58da2d75aebc139a452"
+  },
+  {
+   "path": "tests/policies/test_policies.py",
+   "sha256": "9a8e9bfb4fdbdbb92f06561aa19f6ef83a8cccc1c76ab0533b8c6f9c03d2eb2d"
+  },
+  {
+   "path": "tests/policies/test_sac_config.py",
+   "sha256": "a4a3e2c6146c05db0147a7696278aa7884c8c13a8884875de9581ce7d54635a4"
+  },
+  {
+   "path": "tests/policies/test_sac_policy.py",
+   "sha256": "eb090832f7ec7e2286fa847ba482291c763b0ee7ee5a54a6170bdfbdd6977d87"
+  },
+  {
+   "path": "tests/policies/test_sarm_processor.py",
+   "sha256": "692fd9ed9186a3308b3ada2a20ebcb8b8ef0a55560bb56f671bf27d7ed26e194"
+  },
+  {
+   "path": "tests/policies/test_sarm_subtask_annotations.py",
+   "sha256": "7960e50056b8c1a87db4d5e6e715517ce818f3da3a799aebb73e5229418f85eb"
+  },
+  {
+   "path": "tests/policies/test_sarm_utils.py",
+   "sha256": "89dd49250f1a6e7482f364273af0548f6f288deda75c44b72261f4c6eb9a0b52"
+  },
+  {
+   "path": "tests/policies/wall_x/test_wallx.py",
+   "sha256": "d0d9f2c620d398ffaa9ad9a9ad5d1ed422abd5f10ba6d276cb6bc58c523ef2c3"
+  },
+  {
+   "path": "tests/policies/xvla/test_xvla_original_vs_lerobot.py",
+   "sha256": "6ba7c2f94ed12dd3e5ba4abb20dce8d70dd914cd64bc040058af1513fb190b95"
+  },
+  {
+   "path": "tests/processor/test_act_processor.py",
+   "sha256": "26c12a6e98620d0963566621d389a667125b6941128ee1ec704d9a4d9508db6c"
+  },
+  {
+   "path": "tests/processor/test_batch_conversion.py",
+   "sha256": "c0c52b5611ee9003eb4a702c220cf977a7d5d3e27eec65a6d69033280ead2476"
+  },
+  {
+   "path": "tests/processor/test_batch_processor.py",
+   "sha256": "2fc4a2349c09a98eb50a2dfafab4c015d53e940a011602d18210af878b44bbec"
+  },
+  {
+   "path": "tests/processor/test_classifier_processor.py",
+   "sha256": "7a3eeab28e4e838b9ba504f8cba3dbbbe7a92a6b0bd58b49e4c3841b7de70b2e"
+  },
+  {
+   "path": "tests/processor/test_converters.py",
+   "sha256": "7baa492ad8e3089d8df23dc843d669a104d524deb353ae9ee5a4f2253bd56fac"
+  },
+  {
+   "path": "tests/processor/test_device_processor.py",
+   "sha256": "110b8d283b4bb51f92030b0a7b65b13051eb4cfe16865bb68295d6c32f04988b"
+  },
+  {
+   "path": "tests/processor/test_diffusion_processor.py",
+   "sha256": "12904506be02320e265d96db63526941dcc0434affd081c32856bb373dbc838e"
+  },
+  {
+   "path": "tests/processor/test_libero_processor.py",
+   "sha256": "d47bc75c23caf5253e1bf48cc384671d8a8418f13ef508bd40fe60bcdb96e80a"
+  },
+  {
+   "path": "tests/processor/test_migration_detection.py",
+   "sha256": "af8f74979458a51f46395e47dc238156fe956d1b0f2876130661df293bf4f019"
+  },
+  {
+   "path": "tests/processor/test_normalize_processor.py",
+   "sha256": "5e0d19868b55fe5d6f4e674dad04bc0c6ed450c95b3c06196d6a309ce1005e43"
+  },
+  {
+   "path": "tests/processor/test_observation_processor.py",
+   "sha256": "681f1536a4135286be6413b812764a0878fdec349bf873d55b8308bd1e7c456c"
+  },
+  {
+   "path": "tests/processor/test_pipeline.py",
+   "sha256": "e337eef55399c4e7fd9ce1574131149939a4ef1b37940a6578e655bcc6b86857"
+  },
+  {
+   "path": "tests/processor/test_pipeline_from_pretrained_helpers.py",
+   "sha256": "63503212a27ed2fbd72d982c12a1f26fa901e648ccac17950a68d9d87faf99c5"
+  },
+  {
+   "path": "tests/processor/test_policy_robot_bridge.py",
+   "sha256": "9d191632828a564fe98aedaa0df1529b5411bd66139c9840cc0232166b6be8d3"
+  },
+  {
+   "path": "tests/processor/test_rename_processor.py",
+   "sha256": "27d244aebea6dbefe4f6c6ee49dae2f2f8afc53b8007aaa2439fa4cbfa97e346"
+  },
+  {
+   "path": "tests/processor/test_sac_processor.py",
+   "sha256": "8e60809e19ee5a2a598af4764b039aea6b533d47c661272a49d2b26753f81015"
+  },
+  {
+   "path": "tests/processor/test_smolvla_processor.py",
+   "sha256": "10f5aacfa585561e2fcd9592cb13b4ef9b94fb3b16c0cb00c55f3784bd50b831"
+  },
+  {
+   "path": "tests/processor/test_tdmpc_processor.py",
+   "sha256": "c5cb806d14e4ca421b522590179aca42f9a50e985d18952acf0b59bedb3fd9e8"
+  },
+  {
+   "path": "tests/processor/test_tokenizer_processor.py",
+   "sha256": "60e85982db658353a3f464e6820f56fb04b70a65def360ba8b350f624ca673b3"
+  },
+  {
+   "path": "tests/processor/test_vqbet_processor.py",
+   "sha256": "64e5aa7055723418470cae2014c734ed8017fec589def87b2b090d41a46c4136"
+  },
+  {
+   "path": "tests/rl/test_actor.py",
+   "sha256": "89943953828419e8afd47c38e21f710a3e4e6b3870a2cdb46fe1fe3ac5fba489"
+  },
+  {
+   "path": "tests/rl/test_actor_learner.py",
+   "sha256": "bd624308b0dcd4904c7d49b7c2b56e02a9c81943d8b45879706ae8b0396044e9"
+  },
+  {
+   "path": "tests/rl/test_learner_service.py",
+   "sha256": "946238faac8dc43116df29297522dc891c047f4364298bce45598da159069685"
+  },
+  {
+   "path": "tests/rl/test_queue.py",
+   "sha256": "35cec66697da72a21091deaee4c103f10948000078da358a795986b59405b188"
+  },
+  {
+   "path": "tests/robots/test_reachy2.py",
+   "sha256": "9897c8392a229a7142556d71a7ce248207486f8f8d59605972bc6e6ff4f8c1a4"
+  },
+  {
+   "path": "tests/robots/test_so100_follower.py",
+   "sha256": "c79e0d82ae4087b36287ef48ab1ee43db3f6f28623beda2f3130ef0e29c94b20"
+  },
+  {
+   "path": "tests/scripts/test_bi_piper_config_parsing.py",
+   "sha256": "b8f0c706d382b3af6f1e255264c3636b15140140e477e8e65c5468c9d2564107"
+  },
+  {
+   "path": "tests/scripts/test_dataset_report.py",
+   "sha256": "452097dc11d4b853079ac4936a948d5622e7fd3aa24a942c77deb6922fa5538c"
+  },
+  {
+   "path": "tests/scripts/test_edit_dataset_parsing.py",
+   "sha256": "cf4166605697720565fb61bc72a0ee1ec2f9efeab53caae9b67d873229d2c9ea"
+  },
+  {
+   "path": "tests/scripts/test_export_boundary_frames.py",
+   "sha256": "7aa482afe12ba4e6dc65b7a59339211af1191d5a3622568f5388758afe0294db"
+  },
+  {
+   "path": "tests/teleoperators/test_bi_so_leader.py",
+   "sha256": "2f2eb7c70af8c6bd9454ae78519e4603d9a517fec9fa5b5345ce1b436804ae8a"
+  },
+  {
+   "path": "tests/teleoperators/test_reachy2_teleoperator.py",
+   "sha256": "a10d80ab51e9cbf194a7a293fc5a4e65b29e91c9f7a1fb3289cb200602a665e4"
+  },
+  {
+   "path": "tests/teleoperators/test_so_leader.py",
+   "sha256": "547ce3ef8b47646cfcc0f57209724900fd049f4bfd4e8e856cb18849a2b1664a"
+  },
+  {
+   "path": "tests/test_available.py",
+   "sha256": "9c8be03c38cd90e88407f9b1745017314a91d06479368c1efcdfca63e48b64cd"
+  },
+  {
+   "path": "tests/test_cli_peft.py",
+   "sha256": "e0badc5396ff0a6494929ac43239b8d401c6e8c15f859d1c9ee69c3988e20600"
+  },
+  {
+   "path": "tests/test_control_robot.py",
+   "sha256": "37cb81315625711043f7086b6679c4ab79709dda45b140dbf8ba32fd6cda6e87"
+  },
+  {
+   "path": "tests/test_piper_teleop.py",
+   "sha256": "d388c960da9ee96e194ecc6c8c7c19fcbbf4fcaeec2d83ef35863861e3451364"
+  },
+  {
+   "path": "tests/training/test_acp_dataset_stats.py",
+   "sha256": "c0f8f4cc1004ac79b04ba2549796631075bbba2139d9f40b1ad0ed49c6e8a4e3"
+  },
+  {
+   "path": "tests/training/test_acp_pi05_prompt_pipeline.py",
+   "sha256": "4da7296f81ca347c37f6fbe01bf7922a0341818b746e63ee302722ed5341aba0"
+  },
+  {
+   "path": "tests/training/test_acp_prompt_hook.py",
+   "sha256": "ed980217989bc136d52ba583e082e23129f564e41a5250561ff7199bf268319d"
+  },
+  {
+   "path": "tests/training/test_multi_gpu.py",
+   "sha256": "a5ee26e98e618640bf92e6d5a26ceb94d0346e88f33a074732252eecf004de57"
+  },
+  {
+   "path": "tests/training/test_visual_validation.py",
+   "sha256": "0abe67635b826f30b65e3079d53a6413d73c4c62b186005e75bb38b37dc0b4df"
+  },
+  {
+   "path": "tests/transport/test_transport_utils.py",
+   "sha256": "3d070a40acee3b0019e34f416f64871632203468c39f3a9d29042b926e02b1de"
+  },
+  {
+   "path": "tests/utils.py",
+   "sha256": "fb980e30ad1b0a98a9f6617533bdf6f935aaa895e40f0828b342786f74c24d1e"
+  },
+  {
+   "path": "tests/utils/test_control_utils.py",
+   "sha256": "f59aa9e49b4e151d319ca3497c8eda2c550461fdcacc7573ce0e298e6e06c00b"
+  },
+  {
+   "path": "tests/utils/test_encoding_utils.py",
+   "sha256": "e409efa1b74f4995ec8146dd3d50c336a260ba3148fd1361fcad1fec236cb4cf"
+  },
+  {
+   "path": "tests/utils/test_io_utils.py",
+   "sha256": "b8dd09269eefb97c3e76bc8cfb5ff66fe2317b0fbb78ce247b528254d17ee82a"
+  },
+  {
+   "path": "tests/utils/test_logging_utils.py",
+   "sha256": "e607e6f423cebe9c71c5786abb28eb00540935a799047a7031a242e5ec156ea4"
+  },
+  {
+   "path": "tests/utils/test_piper_usb_can.py",
+   "sha256": "9ecff2e1f4c2fa314efc40d0237286098fce6709458a8163b907ed1d06bab900"
+  },
+  {
+   "path": "tests/utils/test_process.py",
+   "sha256": "283a3adcefed8fa0ac03aaa918bf1c8a35b8b7ac3991bf44659ce428ecf14c03"
+  },
+  {
+   "path": "tests/utils/test_random_utils.py",
+   "sha256": "1a82763f5e8f53bd25f5a251ac63dcbc75af49cf8dbc8c8046c959f1309a8b4d"
+  },
+  {
+   "path": "tests/utils/test_recording_annotations.py",
+   "sha256": "884dc9bb93bbd88444d5dcb4d5a8762739104eb9240a069ffebd96b4906ec041"
+  },
+  {
+   "path": "tests/utils/test_replay_buffer.py",
+   "sha256": "188da69e3d0d988c9b8c0af99ab6dc090f7e14e35048f2012c6fcde67b6b93d2"
+  },
+  {
+   "path": "tests/utils/test_train_utils.py",
+   "sha256": "139b7281fbe7e9cf9cdb1dd6184cf2dcde48b9e514fd62c49d5115ee4e1bb0df"
+  },
+  {
+   "path": "tests/utils/test_visualization_utils.py",
+   "sha256": "716e423776a2553cd9a5857f784882a2ad6da7edafd9ec29bd1056bbecd70f6a"
+  },
+  {
+   "path": "tests/value/test_lerobot_value_infer_sampler.py",
+   "sha256": "8f4bbd4b367d6e834452dec47cdf7a445e86d82bcbfb4bbc3e7abafa81d24c53"
+  },
+  {
+   "path": "tests/value/test_lerobot_value_infer_utils.py",
+   "sha256": "a5a30f091f88b55a6385c36d67b42fc6e255fd8602cecd3f283b2e6816a7f859"
+  },
+  {
+   "path": "tests/value/test_lerobot_value_infer_viz.py",
+   "sha256": "e3d03b9b22bfb1f5f9ab7dd7b464a5a3b1b8d94377f1ae28945bc13f39200fa4"
+  },
+  {
+   "path": "tests/value/test_pistar06_algorithms.py",
+   "sha256": "1bfb12194dd901f0aef7132a4e21a09f64ee5ef165aef01b96192c74028ea01d"
+  },
+  {
+   "path": "tests/value/test_pistar06_configuration.py",
+   "sha256": "7c04b08c34cbcd6dca34c79d161209edf84922426f9ee500b9f9445de1f6adc8"
+  },
+  {
+   "path": "tests/value/test_pistar06_value_stack.py",
+   "sha256": "f6497be18d07f3ba3cd60cb5e257e7c1940b83126872c0dc9f451ea15eac30d6"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 1613858,
+ "tier": "AI_ASSOCIATED"
+}

@@ -1,0 +1,1510 @@
+{
+ "repo": "Simpleyyt/ai-manus",
+ "dir": "Simpleyyt__ai-manus",
+ "commit": "496547ce6a5f599333138342ec126a7ea8ec9646",
+ "estimate_commit": "496547ce6a5f599333138342ec126a7ea8ec9646",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".cursor/agents/harness-reviewer.md",
+  ".cursor/agents/test-pyramid.md",
+  ".cursor/agents/ui-parity-auditor.md",
+  ".cursor/hooks.json",
+  ".cursor/hooks/verify_on_stop.py",
+  ".cursor/skills/demo-videos/SKILL.md",
+  ".cursor/skills/harness/SKILL.md",
+  ".cursor/skills/manus-official-cdp/SKILL.md",
+  ".cursor/skills/manus-official-cdp/scripts/fetch-session.cjs",
+  ".cursor/skills/manus-official-cdp/scripts/resolve-session.cjs",
+  ".cursor/skills/release/SKILL.md",
+  ".cursor/skills/replicate-manus-ui/SKILL.md",
+  ".cursor/skills/replicate-manus-ui/reference.md",
+  ".cursor/skills/starter.md",
+  ".cursor/skills/update-docs/SKILL.md",
+  ".cursor/skills/update-docs/update_doc.sh",
+  ".env.example",
+  ".github/ISSUE_TEMPLATE/agent-task.yml",
+  ".github/dependabot.yml",
+  ".github/workflows/docker-build-and-push.yml",
+  ".github/workflows/nightly.yml",
+  ".github/workflows/tests.yml",
+  ".gitignore",
+  "AGENTS.md",
+  "CLAUDE.md",
+  "LICENSE",
+  "README.md",
+  "README_zh.md",
+  "ai-manus.code-workspace",
+  "backend/.python-version",
+  "backend/Dockerfile",
+  "backend/README.md",
+  "backend/README_zh.md",
+  "backend/app/__init__.py",
+  "backend/app/application/__init__.py",
+  "backend/app/application/data/official_skill_packages.py",
+  "backend/app/application/data/official_skills.py",
+  "backend/app/application/data/official_skills/market-research/SKILL.md",
+  "backend/app/application/data/official_skills/skill-creator/SKILL.md",
+  "backend/app/application/data/official_skills/slides/SKILL.md",
+  "backend/app/application/data/official_skills/summarize/SKILL.md",
+  "backend/app/application/data/official_skills/web-research/SKILL.md",
+  "backend/app/application/errors/exceptions.py",
+  "backend/app/application/services/__init__.py",
+  "backend/app/application/services/agent_service.py",
+  "backend/app/application/services/auth_service.py",
+  "backend/app/application/services/email_service.py",
+  "backend/app/application/services/file_service.py",
+  "backend/app/application/services/project_service.py",
+  "backend/app/application/services/skill_github.py",
+  "backend/app/application/services/skill_runtime_service.py",
+  "backend/app/application/services/skill_service.py",
+  "backend/app/application/services/token_service.py",
+  "backend/app/core/config.py",
+  "backend/app/domain/__init__.py",
+  "backend/app/domain/external/__init__.py",
+  "backend/app/domain/external/browser.py",
+  "backend/app/domain/external/cache.py",
+  "backend/app/domain/external/file.py",
+  "backend/app/domain/external/llm.py",
+  "backend/app/domain/external/message_queue.py",
+  "backend/app/domain/external/sandbox.py",
+  "backend/app/domain/external/search.py",
+  "backend/app/domain/external/session_store.py",
+  "backend/app/domain/external/task.py",
+  "backend/app/domain/models/__init__.py",
+  "backend/app/domain/models/agent.py",
+  "backend/app/domain/models/agent_output.py",
+  "backend/app/domain/models/auth.py",
+  "backend/app/domain/models/auth_session.py",
+  "backend/app/domain/models/event.py",
+  "backend/app/domain/models/file.py",
+  "backend/app/domain/models/mcp_config.py",
+  "backend/app/domain/models/memory.py",
+  "backend/app/domain/models/message.py",
+  "backend/app/domain/models/plan.py",
+  "backend/app/domain/models/project.py",
+  "backend/app/domain/models/sandbox/file.py",
+  "backend/app/domain/models/sandbox/shell.py",
+  "backend/app/domain/models/sandbox/supervisor.py",
+  "backend/app/domain/models/search.py",
+  "backend/app/domain/models/session.py",
+  "backend/app/domain/models/skill.py",
+  "backend/app/domain/models/todo.py",
+  "backend/app/domain/models/tool_result.py",
+  "backend/app/domain/models/user.py",
+  "backend/app/domain/repositories/agent_repository.py",
+  "backend/app/domain/repositories/file_favorite_repository.py",
+  "backend/app/domain/repositories/mcp_repository.py",
+  "backend/app/domain/repositories/project_repository.py",
+  "backend/app/domain/repositories/session_repository.py",
+  "backend/app/domain/repositories/skill_repository.py",
+  "backend/app/domain/repositories/user_repository.py",
+  "backend/app/domain/services/__init__.py",
+  "backend/app/domain/services/agent_domain_service.py",
+  "backend/app/domain/services/agent_task_runner.py",
+  "backend/app/domain/services/agents/__init__.py",
+  "backend/app/domain/services/agents/base.py",
+  "backend/app/domain/services/agents/execution.py",
+  "backend/app/domain/services/agents/manus.py",
+  "backend/app/domain/services/agents/planner.py",
+  "backend/app/domain/services/flows/__init__.py",
+  "backend/app/domain/services/flows/agent_loop.py",
+  "backend/app/domain/services/flows/base.py",
+  "backend/app/domain/services/flows/plan_act.py",
+  "backend/app/domain/services/plan_progress.py",
+  "backend/app/domain/services/prompts/__init__.py",
+  "backend/app/domain/services/prompts/execution.py",
+  "backend/app/domain/services/prompts/manus.py",
+  "backend/app/domain/services/prompts/planner.py",
+  "backend/app/domain/services/prompts/system.py",
+  "backend/app/domain/services/skills/__init__.py",
+  "backend/app/domain/services/skills/invocation.py",
+  "backend/app/domain/services/skills/plan_steps.py",
+  "backend/app/domain/services/todo_projection.py",
+  "backend/app/domain/services/tools/__init__.py",
+  "backend/app/domain/services/tools/base.py",
+  "backend/app/domain/services/tools/browser.py",
+  "backend/app/domain/services/tools/file.py",
+  "backend/app/domain/services/tools/mcp.py",
+  "backend/app/domain/services/tools/message.py",
+  "backend/app/domain/services/tools/plan.py",
+  "backend/app/domain/services/tools/search.py",
+  "backend/app/domain/services/tools/shell.py",
+  "backend/app/domain/services/tools/skill.py",
+  "backend/app/domain/skills/archive.py",
+  "backend/app/domain/skills/body.py",
+  "backend/app/domain/skills/package.py",
+  "backend/app/domain/skills/skill_md.py",
+  "backend/app/infrastructure/__init__.py",
+  "backend/app/infrastructure/external/__init__.py",
+  "backend/app/infrastructure/external/browser/browser_use_browser.py",
+  "backend/app/infrastructure/external/browser/playwright_browser.py",
+  "backend/app/infrastructure/external/cache/__init__.py",
+  "backend/app/infrastructure/external/cache/redis_cache.py",
+  "backend/app/infrastructure/external/file/__init__.py",
+  "backend/app/infrastructure/external/file/gridfsfile.py",
+  "backend/app/infrastructure/external/llm/__init__.py",
+  "backend/app/infrastructure/external/llm/langchain_llm.py",
+  "backend/app/infrastructure/external/llm/openai_llm.py",
+  "backend/app/infrastructure/external/llm/robust_json_parser.py",
+  "backend/app/infrastructure/external/message_queue/redis_stream_queue.py",
+  "backend/app/infrastructure/external/sandbox/docker_sandbox.py",
+  "backend/app/infrastructure/external/search/__init__.py",
+  "backend/app/infrastructure/external/search/baidu_search.py",
+  "backend/app/infrastructure/external/search/baidu_web_search.py",
+  "backend/app/infrastructure/external/search/bing_search.py",
+  "backend/app/infrastructure/external/search/bing_web_search.py",
+  "backend/app/infrastructure/external/search/custom_search.py",
+  "backend/app/infrastructure/external/search/google_search.py",
+  "backend/app/infrastructure/external/search/serper_search.py",
+  "backend/app/infrastructure/external/search/tavily_search.py",
+  "backend/app/infrastructure/external/search/youcom_search.py",
+  "backend/app/infrastructure/external/session_auth/__init__.py",
+  "backend/app/infrastructure/external/session_auth/redis_session_store.py",
+  "backend/app/infrastructure/external/session_list/__init__.py",
+  "backend/app/infrastructure/external/session_list/redis_session_list_notifier.py",
+  "backend/app/infrastructure/external/task/celery_app.py",
+  "backend/app/infrastructure/external/task/celery_task.py",
+  "backend/app/infrastructure/external/task/celery_worker.py",
+  "backend/app/infrastructure/external/task/redis_task.py",
+  "backend/app/infrastructure/logging.py",
+  "backend/app/infrastructure/models/documents.py",
+  "backend/app/infrastructure/models/memory_serialization.py",
+  "backend/app/infrastructure/repositories/file_mcp_repository.py",
+  "backend/app/infrastructure/repositories/mongo_agent_repository.py",
+  "backend/app/infrastructure/repositories/mongo_file_favorite_repository.py",
+  "backend/app/infrastructure/repositories/mongo_project_repository.py",
+  "backend/app/infrastructure/repositories/mongo_session_repository.py",
+  "backend/app/infrastructure/repositories/mongo_skill_repository.py",
+  "backend/app/infrastructure/repositories/mongo_user_skill_repository.py",
+  "backend/app/infrastructure/repositories/user_repository.py",
+  "backend/app/infrastructure/storage/mongodb.py",
+  "backend/app/infrastructure/storage/redis.py",
+  "backend/app/interfaces/api/auth_routes.py",
+  "backend/app/interfaces/api/config_routes.py",
+  "backend/app/interfaces/api/file_routes.py",
+  "backend/app/interfaces/api/library_routes.py",
+  "backend/app/interfaces/api/project_routes.py",
+  "backend/app/interfaces/api/routes.py",
+  "backend/app/interfaces/api/session_routes.py",
+  "backend/app/interfaces/api/skill_routes.py",
+  "backend/app/interfaces/api/ws_routes.py",
+  "backend/app/interfaces/dependencies.py",
+  "backend/app/interfaces/errors/exception_handlers.py",
+  "backend/app/interfaces/schemas/auth.py",
+  "backend/app/interfaces/schemas/base.py",
+  "backend/app/interfaces/schemas/config.py",
+  "backend/app/interfaces/schemas/event.py",
+  "backend/app/interfaces/schemas/file.py",
+  "backend/app/interfaces/schemas/project.py",
+  "backend/app/interfaces/schemas/resource.py",
+  "backend/app/interfaces/schemas/session.py",
+  "backend/app/interfaces/schemas/skill.py",
+  "backend/app/main.py",
+  "backend/app/worker.py",
+  "backend/evals/__init__.py",
+  "backend/evals/metrics.py",
+  "backend/evals/run.py",
+  "backend/evals/scenarios.py",
+  "backend/pyproject.toml",
+  "backend/pytest.ini",
+  "backend/start_worker.sh",
+  "backend/tests/conftest.py",
+  "backend/tests/harness.py",
+  "backend/tests/test_api_file.py",
+  "backend/tests/test_auth_routes.py",
+  "backend/tests/test_context_engineering.py",
+  "backend/tests/test_domain_tools.py",
+  "backend/tests/test_e2e_plan_act.py",
+  "backend/tests/test_execution_context.py",
+  "backend/tests/test_llm_gateway.py",
+  "backend/tests/test_llm_message.py",
+  "backend/tests/test_memory_serialization.py",
+  "backend/tests/test_openai_gateway.py",
+  "backend/tests/test_plan_act_flow.py",
+  "backend/tests/test_plan_act_prompts.py",
+  "backend/tests/test_plan_progress.py",
+  "backend/tests/test_sandbox_file.py",
+  "backend/tests/test_single_loop_manus.py",
+  "backend/tests/test_skill_archive.py",
+  "backend/tests/test_skill_github.py",
+  "backend/tests/test_skill_import_github_e2e.py",
+  "backend/tests/test_skill_invocation.py",
+  "backend/tests/test_skill_loader.py",
+  "backend/tests/test_skill_model_package_fields.py",
+  "backend/tests/test_skill_official_packages.py",
+  "backend/tests/test_skill_package_ingest.py",
+  "backend/tests/test_skill_plan_steps.py",
+  "backend/tests/test_skill_runtime_service.py",
+  "backend/tests/test_skill_sandbox_sync.py",
+  "backend/tests/test_skill_service.py",
+  "backend/tests/test_skill_toolkit.py",
+  "backend/tests/test_todo_projection.py",
+  "backend/tests/test_ws_final_agent_status.py",
+  "backend/uv.lock",
+  "build.sh",
+  "dev.sh",
+  "docker-compose-development.yml",
+  "docker-compose-example.yml",
+  "docker-compose.yml",
+  "docs/.nojekyll",
+  "docs/CNAME",
+  "docs/README.md",
+  "docs/_navbar.md",
+  "docs/_sidebar.md",
+  "docs/architecture.md",
+  "docs/configuration.md",
+  "docs/demo.md",
+  "docs/demos.yml",
+  "docs/en/README.md",
+  "docs/en/_navbar.md",
+  "docs/en/_sidebar.md",
+  "docs/en/architecture.md",
+  "docs/en/configuration.md",
+  "docs/en/demo.md",
+  "docs/en/mcp.md",
+  "docs/en/quick_start.md",
+  "docs/en/roadmap.md",
+  "docs/en/skills.md",
+  "docs/favicon.ico",
+  "docs/index.html",
+  "docs/mcp.md",
+  "docs/quick_start.md",
+  "docs/roadmap.md",
+  "docs/run.sh",
+  "docs/skills.md",
+  "docs/sponsor.md",
+  "docs/superpowers/plans/2026-07-30-chatbox-tiptap.md",
+  "docs/superpowers/plans/2026-07-30-settings-dialog-parity.md",
+  "docs/superpowers/plans/2026-08-03-session-phase-view-model.md",
+  "docs/superpowers/plans/2026-08-05-single-loop-manus.md",
+  "docs/superpowers/plans/2026-08-09-planner-authoritative-plan-progress.md",
+  "docs/superpowers/plans/2026-08-16-manus-skills-ui-shell.md",
+  "docs/superpowers/plans/2026-09-01-skill-package-storage.md",
+  "docs/superpowers/specs/2026-07-30-chatbox-tiptap-design.md",
+  "docs/superpowers/specs/2026-07-30-settings-dialog-parity-design.md",
+  "docs/superpowers/specs/2026-08-03-backend-status-channel-design.md",
+  "docs/superpowers/specs/2026-08-03-session-phase-view-model-design.md",
+  "frontend/.dockerignore",
+  "frontend/Dockerfile",
+  "frontend/README.md",
+  "frontend/README_zh.md",
+  "frontend/components.json",
+  "frontend/docker-entrypoint.sh",
+  "frontend/e2e/plan-act.spec.ts",
+  "frontend/env.d.ts",
+  "frontend/eslint.config.js",
+  "frontend/index.html",
+  "frontend/nginx.conf",
+  "frontend/package-lock.json",
+  "frontend/package.json",
+  "frontend/playwright.config.ts",
+  "frontend/postcss.config.js",
+  "frontend/public/chatting.svg",
+  "frontend/public/favicon.ico",
+  "frontend/src/App.vue",
+  "frontend/src/api/agent.ts",
+  "frontend/src/api/auth.ts",
+  "frontend/src/api/chatWs.ts",
+  "frontend/src/api/client.ts",
+  "frontend/src/api/config.ts",
+  "frontend/src/api/file.ts",
+  "frontend/src/api/index.ts",
+  "frontend/src/api/project.ts",
+  "frontend/src/api/skills.ts",
+  "frontend/src/assets/global.css",
+  "frontend/src/assets/live-status-loading.json",
+  "frontend/src/assets/theme.css",
+  "frontend/src/components/AttachmentsMessage.vue",
+  "frontend/src/components/ChatAttachmentList.vue",
+  "frontend/src/components/ChatBox.vue",
+  "frontend/src/components/ChatBoxFiles.vue",
+  "frontend/src/components/ChatMessage.vue",
+  "frontend/src/components/ChatMessageCopyButton.vue",
+  "frontend/src/components/ChatTaskCompleted.vue",
+  "frontend/src/components/ChatWaitingContinue.vue",
+  "frontend/src/components/ComputerInactiveEmpty.vue",
+  "frontend/src/components/ComputerPanel.vue",
+  "frontend/src/components/ComputerPanelContent.vue",
+  "frontend/src/components/FilePanelContent.vue",
+  "frontend/src/components/FilePreviewer.vue",
+  "frontend/src/components/FilePreviewerChrome.vue",
+  "frontend/src/components/LibraryFileCard.vue",
+  "frontend/src/components/LiveStatusCanvas.vue",
+  "frontend/src/components/PlanPanel.vue",
+  "frontend/src/components/PlanStepIcon.vue",
+  "frontend/src/components/SearchDialog.vue",
+  "frontend/src/components/SessionFileList.vue",
+  "frontend/src/components/SessionItem.vue",
+  "frontend/src/components/SessionSidebar.vue",
+  "frontend/src/components/SimpleBar.vue",
+  "frontend/src/components/TakeControlBanner.vue",
+  "frontend/src/components/TakeOverView.vue",
+  "frontend/src/components/ToolUse.vue",
+  "frontend/src/components/ToolViewModeMenu.vue",
+  "frontend/src/components/UserMenu.vue",
+  "frontend/src/components/VNCViewer.vue",
+  "frontend/src/components/__tests__/ChatAttachmentList.spec.ts",
+  "frontend/src/components/__tests__/ChatBox.spec.ts",
+  "frontend/src/components/__tests__/ChatBoxFiles.spec.ts",
+  "frontend/src/components/__tests__/ToolUse.spec.ts",
+  "frontend/src/components/chatbox/ChatBoxPlusMenu.vue",
+  "frontend/src/components/chatbox/ChatBoxPlusSkillsPanel.vue",
+  "frontend/src/components/chatbox/ChatBoxSlashMenu.vue",
+  "frontend/src/components/chatbox/__tests__/requiredSkills.spec.ts",
+  "frontend/src/components/chatbox/__tests__/skillChipHover.spec.ts",
+  "frontend/src/components/chatbox/__tests__/skillChipHtml.spec.ts",
+  "frontend/src/components/chatbox/__tests__/skillTag.spec.ts",
+  "frontend/src/components/chatbox/requiredSkills.ts",
+  "frontend/src/components/chatbox/skillChipHover.ts",
+  "frontend/src/components/chatbox/skillChipHtml.ts",
+  "frontend/src/components/chatbox/skillTag.ts",
+  "frontend/src/components/chatbox/slashSuggestion.ts",
+  "frontend/src/components/filePreviews/CodeFilePreview.vue",
+  "frontend/src/components/filePreviews/HtmlFilePreview.vue",
+  "frontend/src/components/filePreviews/ImageFilePreview.vue",
+  "frontend/src/components/filePreviews/MarkdownFilePreview.vue",
+  "frontend/src/components/filePreviews/PdfFilePreview.vue",
+  "frontend/src/components/filePreviews/UnknownFilePreview.vue",
+  "frontend/src/components/icons/BrowserIcon.vue",
+  "frontend/src/components/icons/CenterViewIcon.vue",
+  "frontend/src/components/icons/ClearIcon.vue",
+  "frontend/src/components/icons/CodeFileIcon.vue",
+  "frontend/src/components/icons/EditIcon.vue",
+  "frontend/src/components/icons/ErrorIcon.vue",
+  "frontend/src/components/icons/FileIcon.vue",
+  "frontend/src/components/icons/FullViewIcon.vue",
+  "frontend/src/components/icons/ImageFileIcon.vue",
+  "frontend/src/components/icons/InfoIcon.vue",
+  "frontend/src/components/icons/LoadingSpinnerIcon.vue",
+  "frontend/src/components/icons/ManusLogoMark.vue",
+  "frontend/src/components/icons/ManusLogoTextIcon.vue",
+  "frontend/src/components/icons/ManusTextIcon.vue",
+  "frontend/src/components/icons/SearchIcon.vue",
+  "frontend/src/components/icons/SendIcon.vue",
+  "frontend/src/components/icons/ShareIcon.vue",
+  "frontend/src/components/icons/ShellIcon.vue",
+  "frontend/src/components/icons/SideViewIcon.vue",
+  "frontend/src/components/icons/StepCheckIcon.vue",
+  "frontend/src/components/icons/StepSuccessIcon.vue",
+  "frontend/src/components/icons/SuccessIcon.vue",
+  "frontend/src/components/icons/TakeOverIcon.vue",
+  "frontend/src/components/icons/UseComputerIcon.vue",
+  "frontend/src/components/login/AuthFormLayout.vue",
+  "frontend/src/components/login/FormField.vue",
+  "frontend/src/components/login/FormFooterLink.vue",
+  "frontend/src/components/login/LoginForm.vue",
+  "frontend/src/components/login/PasswordField.vue",
+  "frontend/src/components/login/RegisterForm.vue",
+  "frontend/src/components/login/ResetPasswordForm.vue",
+  "frontend/src/components/login/ResetPasswordVerificationForm.vue",
+  "frontend/src/components/login/SubmitButton.vue",
+  "frontend/src/components/login/__tests__/FormField.spec.ts",
+  "frontend/src/components/settings/AccountSettings.vue",
+  "frontend/src/components/settings/GeneralSettings.vue",
+  "frontend/src/components/settings/HelpSettings.vue",
+  "frontend/src/components/settings/PersonalizationSettings.vue",
+  "frontend/src/components/settings/SettingsDialog.vue",
+  "frontend/src/components/settings/SettingsSwitch.vue",
+  "frontend/src/components/settings/SettingsTabs.vue",
+  "frontend/src/components/settings/ShortcutsSettings.vue",
+  "frontend/src/components/settings/SkillsSettings.vue",
+  "frontend/src/components/settings/__tests__/SkillsSettings.spec.ts",
+  "frontend/src/components/skills/SkillCard.vue",
+  "frontend/src/components/skills/SkillsBrowseDialog.vue",
+  "frontend/src/components/skills/SkillsCreateMenu.vue",
+  "frontend/src/components/skills/SkillsPlaceholderDialog.vue",
+  "frontend/src/components/skills/__tests__/SkillsBrowseDialog.spec.ts",
+  "frontend/src/components/skills/__tests__/SkillsPlaceholderDialog.spec.ts",
+  "frontend/src/components/toolViews/BrowserToolView.vue",
+  "frontend/src/components/toolViews/FileToolView.vue",
+  "frontend/src/components/toolViews/McpToolView.vue",
+  "frontend/src/components/toolViews/SearchToolView.vue",
+  "frontend/src/components/toolViews/ShellToolView.vue",
+  "frontend/src/components/toolViews/__tests__/ComputerToolViews.e2e.spec.ts",
+  "frontend/src/components/ui/ContextMenu.vue",
+  "frontend/src/components/ui/CustomDialog.vue",
+  "frontend/src/components/ui/LoadingIndicator.vue",
+  "frontend/src/components/ui/MonacoDiffEditor.vue",
+  "frontend/src/components/ui/MonacoEditor.vue",
+  "frontend/src/components/ui/Toast.vue",
+  "frontend/src/components/ui/dialog/Dialog.vue",
+  "frontend/src/components/ui/dialog/DialogClose.vue",
+  "frontend/src/components/ui/dialog/DialogContent.vue",
+  "frontend/src/components/ui/dialog/DialogDescription.vue",
+  "frontend/src/components/ui/dialog/DialogFooter.vue",
+  "frontend/src/components/ui/dialog/DialogHeader.vue",
+  "frontend/src/components/ui/dialog/DialogOverlay.vue",
+  "frontend/src/components/ui/dialog/DialogScrollContent.vue",
+  "frontend/src/components/ui/dialog/DialogTitle.vue",
+  "frontend/src/components/ui/dialog/DialogTrigger.vue",
+  "frontend/src/components/ui/dialog/index.ts",
+  "frontend/src/components/ui/popover/Popover.vue",
+  "frontend/src/components/ui/popover/PopoverAnchor.vue",
+  "frontend/src/components/ui/popover/PopoverContent.vue",
+  "frontend/src/components/ui/popover/PopoverTrigger.vue",
+  "frontend/src/components/ui/popover/index.ts",
+  "frontend/src/components/ui/select/Select.vue",
+  "frontend/src/components/ui/select/SelectContent.vue",
+  "frontend/src/components/ui/select/SelectGroup.vue",
+  "frontend/src/components/ui/select/SelectItem.vue",
+  "frontend/src/components/ui/select/SelectItemText.vue",
+  "frontend/src/components/ui/select/SelectLabel.vue",
+  "frontend/src/components/ui/select/SelectScrollDownButton.vue",
+  "frontend/src/components/ui/select/SelectScrollUpButton.vue",
+  "frontend/src/components/ui/select/SelectSeparator.vue",
+  "frontend/src/components/ui/select/SelectTrigger.vue",
+  "frontend/src/components/ui/select/SelectValue.vue",
+  "frontend/src/components/ui/select/index.ts",
+  "frontend/src/composables/__tests__/skillsStore.spec.ts",
+  "frontend/src/composables/__tests__/useAgentEvents.spec.ts",
+  "frontend/src/composables/__tests__/useFormValidation.spec.ts",
+  "frontend/src/composables/__tests__/useLiveToolContent.spec.ts",
+  "frontend/src/composables/__tests__/usePendingHomeMessage.spec.ts",
+  "frontend/src/composables/__tests__/useSessionPhase.spec.ts",
+  "frontend/src/composables/__tests__/useSkills.spec.ts",
+  "frontend/src/composables/__tests__/useTheme.spec.ts",
+  "frontend/src/composables/__tests__/useToolShimmer.spec.ts",
+  "frontend/src/composables/skillsStore.ts",
+  "frontend/src/composables/useAgentEvents.ts",
+  "frontend/src/composables/useAuth.ts",
+  "frontend/src/composables/useChromePrefs.ts",
+  "frontend/src/composables/useContextMenu.ts",
+  "frontend/src/composables/useDialog.ts",
+  "frontend/src/composables/useDocumentDark.ts",
+  "frontend/src/composables/useFilePreviewer.ts",
+  "frontend/src/composables/useFormValidation.ts",
+  "frontend/src/composables/useI18n.ts",
+  "frontend/src/composables/useLiveToolContent.ts",
+  "frontend/src/composables/usePendingHomeMessage.ts",
+  "frontend/src/composables/useResizeObserver.ts",
+  "frontend/src/composables/useSessionFileList.ts",
+  "frontend/src/composables/useSessionPhase.ts",
+  "frontend/src/composables/useSessionSidebar.ts",
+  "frontend/src/composables/useSettingsDialog.ts",
+  "frontend/src/composables/useSkills.ts",
+  "frontend/src/composables/useTheme.ts",
+  "frontend/src/composables/useTime.ts",
+  "frontend/src/composables/useTool.ts",
+  "frontend/src/composables/useToolShimmer.ts",
+  "frontend/src/constants/event.ts",
+  "frontend/src/constants/tool.ts",
+  "frontend/src/lib/utils.ts",
+  "frontend/src/locales/en.ts",
+  "frontend/src/locales/index.ts",
+  "frontend/src/locales/zh.ts",
+  "frontend/src/main.ts",
+  "frontend/src/mocks/skills.ts",
+  "frontend/src/pages/ChatPage.vue",
+  "frontend/src/pages/HomePage.vue",
+  "frontend/src/pages/LibraryPage.vue",
+  "frontend/src/pages/LoginPage.vue",
+  "frontend/src/pages/MainLayout.vue",
+  "frontend/src/pages/ProjectPage.vue",
+  "frontend/src/pages/ShareLayout.vue",
+  "frontend/src/pages/SharePage.vue",
+  "frontend/src/router/index.ts",
+  "frontend/src/types/__tests__/message.spec.ts",
+  "frontend/src/types/event.ts",
+  "frontend/src/types/message.ts",
+  "frontend/src/types/panel.ts",
+  "frontend/src/types/response.ts",
+  "frontend/src/types/router.d.ts",
+  "frontend/src/types/select.ts",
+  "frontend/src/types/skill.ts",
+  "frontend/src/utils/__tests__/auth.spec.ts",
+  "frontend/src/utils/__tests__/libraryHighlight.spec.ts",
+  "frontend/src/utils/auth.ts",
+  "frontend/src/utils/dom.ts",
+  "frontend/src/utils/eventBus.ts",
+  "frontend/src/utils/fileType.ts",
+  "frontend/src/utils/libraryHighlight.ts",
+  "frontend/src/utils/time.ts",
+  "frontend/src/utils/toast.ts",
+  "frontend/tailwind.config.js",
+  "frontend/tsconfig.app.json",
+  "frontend/tsconfig.json",
+  "frontend/tsconfig.node.json",
+  "frontend/vite.config.ts",
+  "frontend/vitest.config.ts",
+  "mcp.json.example",
+  "mockserver/Dockerfile",
+  "mockserver/dev.sh",
+  "mockserver/main.py",
+  "mockserver/mock_datas/browser_tools.yaml",
+  "mockserver/mock_datas/chat_page_parity_e2e.yaml",
+  "mockserver/mock_datas/computer_ui_e2e.yaml",
+  "mockserver/mock_datas/default.yaml",
+  "mockserver/mock_datas/file_tools.yaml",
+  "mockserver/mock_datas/message_tools.yaml",
+  "mockserver/mock_datas/plan_act_e2e.yaml",
+  "mockserver/mock_datas/plan_act_wait_e2e.yaml",
+  "mockserver/mock_datas/search_tools.yaml",
+  "mockserver/mock_datas/shell_stateful.yaml",
+  "mockserver/mock_datas/shell_tools.yaml",
+  "mockserver/mock_datas/single-loop-ui-demo.yaml",
+  "mockserver/requirements.txt",
+  "run.sh",
+  "sandbox/Dockerfile",
+  "sandbox/README.md",
+  "sandbox/README_zh.md",
+  "sandbox/app/__init__.py",
+  "sandbox/app/api/__init__.py",
+  "sandbox/app/api/router.py",
+  "sandbox/app/api/v1/__init__.py",
+  "sandbox/app/api/v1/file.py",
+  "sandbox/app/api/v1/shell.py",
+  "sandbox/app/api/v1/supervisor.py",
+  "sandbox/app/core/__init__.py",
+  "sandbox/app/core/config.py",
+  "sandbox/app/core/exceptions.py",
+  "sandbox/app/core/middleware.py",
+  "sandbox/app/main.py",
+  "sandbox/app/models/__init__.py",
+  "sandbox/app/models/file.py",
+  "sandbox/app/models/shell.py",
+  "sandbox/app/models/supervisor.py",
+  "sandbox/app/schemas/__init__.py",
+  "sandbox/app/schemas/file.py",
+  "sandbox/app/schemas/response.py",
+  "sandbox/app/schemas/shell.py",
+  "sandbox/app/services/__init__.py",
+  "sandbox/app/services/file.py",
+  "sandbox/app/services/shell.py",
+  "sandbox/app/services/supervisor.py",
+  "sandbox/pyproject.toml",
+  "sandbox/pytest.ini",
+  "sandbox/supervisord.conf",
+  "sandbox/tests/conftest.py",
+  "sandbox/tests/test_api_file.py",
+  "sandbox/tests/test_api_shell.py",
+  "sandbox/tests/test_file_truncation.py",
+  "sandbox/uv.lock",
+  "scripts/sync_demos.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".cursor/hooks/verify_on_stop.py",
+   "sha256": "c3c78254adf6a02825af3355e561d082401d07a97b6adc371ad27f161f7fabe9"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "1f2a2fe0bdde7d6c6288cfa0fef9cf809b7583feebaa4a6184dced66f70e5b86"
+  },
+  {
+   "path": "backend/app/__init__.py",
+   "sha256": "dc5493462ec7bdfcce1fbe601fcb89616df78b17114a9634d64f90dbe6ce406f"
+  },
+  {
+   "path": "backend/app/application/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "backend/app/application/data/official_skill_packages.py",
+   "sha256": "fdd9eb78a0e863083c0ceec97712f7bc61114086d4e484fd9013dec4570399f3"
+  },
+  {
+   "path": "backend/app/application/data/official_skills.py",
+   "sha256": "5b74a94a565a9f5b1c642ef1a3e557f85ed18910379b0f09d8ba6e1235494027"
+  },
+  {
+   "path": "backend/app/application/errors/exceptions.py",
+   "sha256": "73857e7b35ed86859a3d61a313154166a6fb24c930c0028928bc963639a10a69"
+  },
+  {
+   "path": "backend/app/application/services/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "backend/app/application/services/agent_service.py",
+   "sha256": "5f76729caf0e84da39eeb20c4e101e557ab68303737e00da783ea34b5e79fc9a"
+  },
+  {
+   "path": "backend/app/application/services/auth_service.py",
+   "sha256": "3f58e6ce22e4ab23c3faf1b219b2f1c3900f0dfb1a4bcf3c7b2eb890c5589f39"
+  },
+  {
+   "path": "backend/app/application/services/email_service.py",
+   "sha256": "7d2b2378ee6319a7e8e4fcbe8673047115859591aa37532f3c124c71254a1449"
+  },
+  {
+   "path": "backend/app/application/services/file_service.py",
+   "sha256": "c546c5a4801054e29cdf492f525c6789b3173b83e3a48a549e7b4504fe102364"
+  },
+  {
+   "path": "backend/app/application/services/project_service.py",
+   "sha256": "b84749e2424bd82e342001c35aac15c80c5b5aaa2837b78d3256f86e595913c7"
+  },
+  {
+   "path": "backend/app/application/services/skill_github.py",
+   "sha256": "2604fbcbfe42b830bd2e0e49539b220807edc751002cc8e6986228c23323f2ed"
+  },
+  {
+   "path": "backend/app/application/services/skill_runtime_service.py",
+   "sha256": "ade4c8c352704a8e3e6ef78bf444a975b5a6ba41c892501293501b19c4ea8bfe"
+  },
+  {
+   "path": "backend/app/application/services/skill_service.py",
+   "sha256": "4bf96ced86746c840a94c72550d94b7ecb90e6a1a6f2f5a0bbefc73dfcdb8ab4"
+  },
+  {
+   "path": "backend/app/application/services/token_service.py",
+   "sha256": "319b964122a1b28383849b3c6e50688c0715bd5ea6a61a1677fcbf0d459d7b3f"
+  },
+  {
+   "path": "backend/app/core/config.py",
+   "sha256": "5ad961f3a44802cd849f7db9ff46d02718651992c932fc768ef9ab9acdcc7ece"
+  },
+  {
+   "path": "backend/app/domain/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "backend/app/domain/external/__init__.py",
+   "sha256": "5f6340bc69cc39adaa8546321b35a4d740f908aebb226e8164c6a4b9e1b51119"
+  },
+  {
+   "path": "backend/app/domain/external/browser.py",
+   "sha256": "284ea33934264c7781cb19e42ca4ecac67834b42f8d3f020a739b67855c3ba8f"
+  },
+  {
+   "path": "backend/app/domain/external/cache.py",
+   "sha256": "304e258baeb0193003268031aa12dc9b2d7ae7f1a29ed467cd85677206795492"
+  },
+  {
+   "path": "backend/app/domain/external/file.py",
+   "sha256": "e17499497fcc50f195f083c5be938f55fc1760c1bca8b1598caec41a3893034c"
+  },
+  {
+   "path": "backend/app/domain/external/llm.py",
+   "sha256": "e449b98565295d3af30c22ff190868bbbda4c7923d93276009e032edda969563"
+  },
+  {
+   "path": "backend/app/domain/external/message_queue.py",
+   "sha256": "fc7aac9750fc4dfc0c0c5c2052de24b14b10ac9b814df9574e58efbb7965d29c"
+  },
+  {
+   "path": "backend/app/domain/external/sandbox.py",
+   "sha256": "17d979babe043f0709dbe34d28d93a4ba08c3c6e7c6b0e7403f0c8dc2f6d266c"
+  },
+  {
+   "path": "backend/app/domain/external/search.py",
+   "sha256": "d7897135265279ab3ae234368f77aae272b9c7e4464b6c89b0afaada45fc2e11"
+  },
+  {
+   "path": "backend/app/domain/external/session_store.py",
+   "sha256": "cb720063a9968430b40f24b6ce83289e1d39345294fa63a1289cf9ccabca3646"
+  },
+  {
+   "path": "backend/app/domain/external/task.py",
+   "sha256": "2f858b65aa51a1cb5e441153fdaccbf072692983db9bfda3cd7dadbd444a2d57"
+  },
+  {
+   "path": "backend/app/domain/models/__init__.py",
+   "sha256": "c06513a35227594faa14320477cc849554ffbcc0473c5dde69c9cd2fcc85b8d8"
+  },
+  {
+   "path": "backend/app/domain/models/agent.py",
+   "sha256": "31152d97d33c047024c1f2780977d3d364a9984bfb94a03c39f1775e5628181b"
+  },
+  {
+   "path": "backend/app/domain/models/agent_output.py",
+   "sha256": "1282f54f152e3b208c3b7a71dfa829298f023075ec4c96a874ddf80e7074904c"
+  },
+  {
+   "path": "backend/app/domain/models/auth.py",
+   "sha256": "54f0175907c6b034723a8dfee781e736adafdb7c73d0f4958eef83a5ceb44299"
+  },
+  {
+   "path": "backend/app/domain/models/auth_session.py",
+   "sha256": "90b244ff18dcacf862a9654a0cbfda037f75c1c1a076ba6465d897bd8d96ebfd"
+  },
+  {
+   "path": "backend/app/domain/models/event.py",
+   "sha256": "6838b8336d34a62dee7356b2245b18454de9c69dd2eaad3a69396a3c4160fed8"
+  },
+  {
+   "path": "backend/app/domain/models/file.py",
+   "sha256": "70a9c8027d4b1d18e1f92754e6cd149fcdfd5e8560b7144a9675bfaf18ead304"
+  },
+  {
+   "path": "backend/app/domain/models/mcp_config.py",
+   "sha256": "3a5d5e122b4d5f6059aa66eb38921a1671fa06ea6e196d7b493928ccdea61303"
+  },
+  {
+   "path": "backend/app/domain/models/memory.py",
+   "sha256": "b6f8c248ed95be713a1075da0a0e9685fa3cf17130f15de5cfb3d84cbb4fd43f"
+  },
+  {
+   "path": "backend/app/domain/models/message.py",
+   "sha256": "089faec7e52a3b12dc0e9186a3d20a4573340bd37e248a5a511459dcf4e7da2b"
+  },
+  {
+   "path": "backend/app/domain/models/plan.py",
+   "sha256": "6cf365e2af1f75a690ddf06a7bcdec7716a8ffebc1169189300d5b860e90117c"
+  },
+  {
+   "path": "backend/app/domain/models/project.py",
+   "sha256": "950dd6326bb42b166e940768a75a9452c80bf9e6e54a33ac6681ece596c91ab1"
+  },
+  {
+   "path": "backend/app/domain/models/sandbox/file.py",
+   "sha256": "3b091f231ed6d942d4775b7360666af2d40ff7438b22df54a65132f073d89138"
+  },
+  {
+   "path": "backend/app/domain/models/sandbox/shell.py",
+   "sha256": "1c65c40ceb60edf030e24e5d1699e1d056475aacb7d0c6badb60e8d866242cf0"
+  },
+  {
+   "path": "backend/app/domain/models/sandbox/supervisor.py",
+   "sha256": "cac84652e2fbbb6fb1901881f062bd0d55982dc958e6a3d6e8042828517fc94d"
+  },
+  {
+   "path": "backend/app/domain/models/search.py",
+   "sha256": "a80f59ee63ee01325962095667d84bf7437451cbc959ae8f37ea3976e97c60ac"
+  },
+  {
+   "path": "backend/app/domain/models/session.py",
+   "sha256": "990b0ff46dc51ac28491fba069304ef2c6029b7cbca2dd420250555f9629bdfe"
+  },
+  {
+   "path": "backend/app/domain/models/skill.py",
+   "sha256": "362d4857897737ca93ef54171ac5cd42311d01834f3a564494b6073ecb4f4de0"
+  },
+  {
+   "path": "backend/app/domain/models/todo.py",
+   "sha256": "fc588a411c1f7e932d138aeb4805884cf73bc345a9d027370c8794472a9690fe"
+  },
+  {
+   "path": "backend/app/domain/models/tool_result.py",
+   "sha256": "9fcba5ffc2e41baee39f217a76ff792bba46b6f7d2a08dd55bf5a6ee2bdc1590"
+  },
+  {
+   "path": "backend/app/domain/models/user.py",
+   "sha256": "ac52cf9216536d281525af018e448c32aa8b3b02b03d91f9d5c98da57cf84d06"
+  },
+  {
+   "path": "backend/app/domain/repositories/agent_repository.py",
+   "sha256": "5fa5d827cc5ea09e29fa3b5998b30ddef4b69fc47ff70ae2dad6cdbc72185279"
+  },
+  {
+   "path": "backend/app/domain/repositories/file_favorite_repository.py",
+   "sha256": "985c1b952a6226849c48b54110d82a083c7e5f2fbe52ba483e0d67c1e866cbc1"
+  },
+  {
+   "path": "backend/app/domain/repositories/mcp_repository.py",
+   "sha256": "8a58b911842de0cca376d90b95185561f68564bcaf77b45a0733ae5bb68de1fe"
+  },
+  {
+   "path": "backend/app/domain/repositories/project_repository.py",
+   "sha256": "9c368c5097f57a40e74d54b7dd47b4310f3a8de1a530b0f9bed0da7bd94cd796"
+  },
+  {
+   "path": "backend/app/domain/repositories/session_repository.py",
+   "sha256": "2bb5ed527c87fcd2e950cfc1f6d30e5e644cb9bab5b863937631398f00865cff"
+  },
+  {
+   "path": "backend/app/domain/repositories/skill_repository.py",
+   "sha256": "1c502683d0699b2c7e233b0ebe52795e44bb9650eaadaa7fd4bdd9718f7404f6"
+  },
+  {
+   "path": "backend/app/domain/repositories/user_repository.py",
+   "sha256": "bc5c9efb1b91dae9e67e66b73133cbc1c15dd4196d33977a6c6b80a7c3987423"
+  },
+  {
+   "path": "backend/app/domain/services/__init__.py",
+   "sha256": "133d61c20ed7d992f5d10af9a59908423a8acf4831f78862e0808c71012cf5b6"
+  },
+  {
+   "path": "backend/app/domain/services/agent_domain_service.py",
+   "sha256": "2fa157d3ac82f15c71e6f5b12c476a294ba5a93fc47df87988dbd3a29d2f3ba9"
+  },
+  {
+   "path": "backend/app/domain/services/agent_task_runner.py",
+   "sha256": "800a25e6f95edc298e6ca77d733ec615b7ff168c4f8471a6e63a79e49570f49a"
+  },
+  {
+   "path": "backend/app/domain/services/agents/__init__.py",
+   "sha256": "70c3894950216e2e28f9b0a9e2397e72c515f2efdc7de615c7df77a2e63da33a"
+  },
+  {
+   "path": "backend/app/domain/services/agents/base.py",
+   "sha256": "b20cdd1b1e45508ef16aeddb8d4bc14d93cc124acff4cd392e7d0b231a6dd65d"
+  },
+  {
+   "path": "backend/app/domain/services/agents/execution.py",
+   "sha256": "25001b0a08056c9fa7f97043d658dfc05cbc1faef5ce3e854a3ca3d1e2d9601d"
+  },
+  {
+   "path": "backend/app/domain/services/agents/manus.py",
+   "sha256": "a362c3924b60321328847bc848969c4805015231dd9c125f3678f423e5c1350c"
+  },
+  {
+   "path": "backend/app/domain/services/agents/planner.py",
+   "sha256": "410705ea7d2ae9ffde0184b1e325a6097d02bd5a00e9f332e46765245f4579bf"
+  },
+  {
+   "path": "backend/app/domain/services/flows/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "backend/app/domain/services/flows/agent_loop.py",
+   "sha256": "743c12841c65bcd4f30e21922daa078b73aaa7438609cbf81ea20b541c5732e0"
+  },
+  {
+   "path": "backend/app/domain/services/flows/base.py",
+   "sha256": "30faea4b054178f845a627aa053d2c706a6228be3c457e94b1d30afd0234029b"
+  },
+  {
+   "path": "backend/app/domain/services/flows/plan_act.py",
+   "sha256": "a0714b9ff642097bb8793b97cc94b3b35ef9d54115513b4dd51d169980b6b044"
+  },
+  {
+   "path": "backend/app/domain/services/plan_progress.py",
+   "sha256": "ea178dda7be8ba212bb339c8da8bf18ec902f145f0ccc9c27c0bc6e685e3c521"
+  },
+  {
+   "path": "backend/app/domain/services/prompts/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "backend/app/domain/services/prompts/execution.py",
+   "sha256": "b8b9b410b685ad0e4038319dba82aec319ddc0f4ba1fb975fcd8e04f2647660d"
+  },
+  {
+   "path": "backend/app/domain/services/prompts/manus.py",
+   "sha256": "2a6c76101db60974b664733c8e69062f72969c14adc03a9915c60df1c81a3afc"
+  },
+  {
+   "path": "backend/app/domain/services/prompts/planner.py",
+   "sha256": "e57fd509bdad5cc31a82b20c19e0f045b823cec54fec0dae87d75f4c6492c32a"
+  },
+  {
+   "path": "backend/app/domain/services/prompts/system.py",
+   "sha256": "c6ad0a2aefa28d7da7010613461dcc74aee7899bf94c04b0f00050df87091f36"
+  },
+  {
+   "path": "backend/app/domain/services/skills/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "backend/app/domain/services/skills/invocation.py",
+   "sha256": "0d17967b57f59f525540285336d3a864f196059bd3b84744aeb00a3d39f632b2"
+  },
+  {
+   "path": "backend/app/domain/services/skills/plan_steps.py",
+   "sha256": "62e2ab30b1ba178263c48db303efaf98213b609ee5b31ca8cfa5588c482f33b4"
+  },
+  {
+   "path": "backend/app/domain/services/todo_projection.py",
+   "sha256": "0cf9aec1cff1a993a79adc35f80a6fc8715246da3e2522fc34482d07c47fdbf1"
+  },
+  {
+   "path": "backend/app/domain/services/tools/__init__.py",
+   "sha256": "5da95202932faffd2a74e90e8c61095ca88c94fe87811c11e427b3232a5768e1"
+  },
+  {
+   "path": "backend/app/domain/services/tools/base.py",
+   "sha256": "ee7bf392aa75fba58796d7324857790a4e430750c50ecc7a7d8cfda0a7f1c962"
+  },
+  {
+   "path": "backend/app/domain/services/tools/browser.py",
+   "sha256": "5d17b9e1aa5d2e4ba8861684909a280d49df96b29a496bb9d6678ec325257629"
+  },
+  {
+   "path": "backend/app/domain/services/tools/file.py",
+   "sha256": "f0c16b180735f31e90fa7d8a8cc21bea3e6a57b2decf932173b495c5ff5ed3b6"
+  },
+  {
+   "path": "backend/app/domain/services/tools/mcp.py",
+   "sha256": "908123799825f52f16ee9a026b4e5a39eee1add5ba2db402ade9d58fb2bba40a"
+  },
+  {
+   "path": "backend/app/domain/services/tools/message.py",
+   "sha256": "c883f292ee99b7b518fda9b4580d4767875388a41acc13c314e4d96f6806203a"
+  },
+  {
+   "path": "backend/app/domain/services/tools/plan.py",
+   "sha256": "525e5f36f7c19203da6611e0adfaa5b100ddfd175ce771fbf18eb195686080ac"
+  },
+  {
+   "path": "backend/app/domain/services/tools/search.py",
+   "sha256": "796792517c9c0f1d33704500396aad637885c6fc9115c7343da952018e77f4c6"
+  },
+  {
+   "path": "backend/app/domain/services/tools/shell.py",
+   "sha256": "fd5164a8d1ee0f02860e2b3072cade6a59812b78303223a6e93182edfa137049"
+  },
+  {
+   "path": "backend/app/domain/services/tools/skill.py",
+   "sha256": "7181602299de2d00dc94db1648a0de80e39914c57594bd726192a213b7fb8721"
+  },
+  {
+   "path": "backend/app/domain/skills/archive.py",
+   "sha256": "bd5b5d54d759aeb729bde61487a787469ffc1454acd9acd633c0002a524548f8"
+  },
+  {
+   "path": "backend/app/domain/skills/body.py",
+   "sha256": "371f7872ad0259b3582d172e12b565591c25e48ae52e74c9ba840eb7139fd186"
+  },
+  {
+   "path": "backend/app/domain/skills/package.py",
+   "sha256": "894de079accad5efeab6484abb69a5e9ce93716768f4db39ce0c425a571e7115"
+  },
+  {
+   "path": "backend/app/domain/skills/skill_md.py",
+   "sha256": "1eccb5fe015d8c33a2da70eec0329153ff528d6897a92c088d52f19012f90646"
+  },
+  {
+   "path": "backend/app/infrastructure/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "backend/app/infrastructure/external/__init__.py",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+   "path": "backend/app/infrastructure/external/browser/browser_use_browser.py",
+   "sha256": "67fcc837ff285d71c094948ed402f1f0ac8f46aa3d32ff6596f4556a93091ea3"
+  },
+  {
+   "path": "backend/app/infrastructure/external/browser/playwright_browser.py",
+   "sha256": "4308ba9f7d0670d6aa247b01920dc490a3e2cda0a4407f6ceee38bc149117d56"
+  },
+  {
+   "path": "backend/app/infrastructure/external/cache/__init__.py",
+   "sha256": "fcd3635d10b56603dd5748d884a151f11fb78d540d60ec69fb72a3737b668e5a"
+  },
+  {
+   "path": "backend/app/infrastructure/external/cache/redis_cache.py",
+   "sha256": "4dd241731ee70537bddbe0120bbac50bc734e08e3930a4dfe40e0a9a1c5e50be"
+  },
+  {
+   "path": "backend/app/infrastructure/external/file/__init__.py",
+   "sha256": "2e64f7af8b7f29bf4bfbe7381fbeccccfd76bfe214b496e67ef98a16dbade19e"
+  },
+  {
+   "path": "backend/app/infrastructure/external/file/gridfsfile.py",
+   "sha256": "133a03135523b90cd55fe17e545ba89afbd10d8976c27dfa1f8b87ad47c4caa4"
+  },
+  {
+   "path": "backend/app/infrastructure/external/llm/__init__.py",
+   "sha256": "869a41f35226e0642c6f90fd100af472336ede1d02f1d61f70d6a9090b22353a"
+  },
+  {
+   "path": "backend/app/infrastructure/external/llm/langchain_llm.py",
+   "sha256": "d5db61b9936196417aeed90145eaecd3c333ed1ada69c6b4678de386b4e2d190"
+  },
+  {
+   "path": "backend/app/infrastructure/external/llm/openai_llm.py",
+   "sha256": "a695e08f34460c33d4935789027129edb8ffc7abe886a898beb5489b48d28b33"
+  },
+  {
+   "path": "backend/app/infrastructure/external/llm/robust_json_parser.py",
+   "sha256": "68bfdb34099542ea6e3d37f8c5a09448e5e1b2af23ff2b73363b5790bce464ec"
+  },
+  {
+   "path": "backend/app/infrastructure/external/message_queue/redis_stream_queue.py",
+   "sha256": "fb1e2ce2082b88a3f521752c5aedd314a34e06733e2a0e00a88bc954751c80e0"
+  },
+  {
+   "path": "backend/app/infrastructure/external/sandbox/docker_sandbox.py",
+   "sha256": "b8c2c4292eef6005dbc50986939e6df97ed5fdcd883846334857fce1d3f1d207"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/__init__.py",
+   "sha256": "649fcf1580062554e8ceb4b8148511370d526a0fd023c21faa8de19749dd99a4"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/baidu_search.py",
+   "sha256": "ffcc6926c7f82c97b4c6bc0231d1d96e629c4cfaea9b4ee1600502f9b7a83019"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/baidu_web_search.py",
+   "sha256": "253b7a83bfa0abfac0faa644db87fa0c834df7131659b3d34ea29603ba07d3bd"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/bing_search.py",
+   "sha256": "cfd1c67b527f45a12a6962b76ea11439d2af46e760fcfc9457fc09f44298f944"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/bing_web_search.py",
+   "sha256": "04adb464d877bf59bee7d1526a952c4e2036ab52b75bc340a13662383e5aecb7"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/custom_search.py",
+   "sha256": "622042192a120370257fdcc020e0e7555916618282c305357659909df678d5cb"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/google_search.py",
+   "sha256": "5375748d9d2407066dce313c92eab8a09c75721ae18267fb0f82d0a7b91a8699"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/serper_search.py",
+   "sha256": "8792f09edf6aea06344a5a33ea39e878ab82a2b2fa24799b9ddd362eb77557b0"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/tavily_search.py",
+   "sha256": "8e5a5833cd901470fbb7570c57ac8c2dafbea65d8215f8f02cc408b404931501"
+  },
+  {
+   "path": "backend/app/infrastructure/external/search/youcom_search.py",
+   "sha256": "422e4e509d814d9b0078a2c8b589c2e7a95e037ccd7b21b47e3ccfc7eb18457d"
+  },
+  {
+   "path": "backend/app/infrastructure/external/session_auth/__init__.py",
+   "sha256": "268f45f3f41375f2f82aa58d62ac874edcac0485aabe71de46cbaa71088470c3"
+  },
+  {
+   "path": "backend/app/infrastructure/external/session_auth/redis_session_store.py",
+   "sha256": "f327897c6f2086f917270b09f154d62c18b87d1ce62f8a64328ce006db850981"
+  },
+  {
+   "path": "backend/app/infrastructure/external/session_list/__init__.py",
+   "sha256": "aa2358db21c4f3ee4d0cfb2d6775bc5d6b57ac4e49c1721c5d2b45e4a9d3001e"
+  },
+  {
+   "path": "backend/app/infrastructure/external/session_list/redis_session_list_notifier.py",
+   "sha256": "49e601549834aef84fd85486f77b7a721bc9ff7eb08315fb03f2b8280924287d"
+  },
+  {
+   "path": "backend/app/infrastructure/external/task/celery_app.py",
+   "sha256": "f017da015a6efa8e98a6c2aaeb579689143f6c65c22e655e94e850d7ad7f8207"
+  },
+  {
+   "path": "backend/app/infrastructure/external/task/celery_task.py",
+   "sha256": "80e74458f78ef41c03fd8d920df204a08776afc36341b6bb3a8ee59cad79dc40"
+  },
+  {
+   "path": "backend/app/infrastructure/external/task/celery_worker.py",
+   "sha256": "9cec3bf796a99ae839c088c33651e76a4f19f29f46dccebd2e5d7ee2c335aaca"
+  },
+  {
+   "path": "backend/app/infrastructure/external/task/redis_task.py",
+   "sha256": "3cc396c7b52601f740679cca78b829766146502d06e6f0415f820626609ec3ad"
+  },
+  {
+   "path": "backend/app/infrastructure/logging.py",
+   "sha256": "1b4cd8f612c288e505b3008c30990b5735361970b65d69903ebe53db014be8a1"
+  },
+  {
+   "path": "backend/app/infrastructure/models/documents.py",
+   "sha256": "d523bc4cf6d640d8fe18cd3527d2628fbd0b41a364817cf66f80a81657014131"
+  },
+  {
+   "path": "backend/app/infrastructure/models/memory_serialization.py",
+   "sha256": "752b4a37b91fb14c755f5495f2775a9aee6b0eb6c5ecea4bfed179e334db39bd"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/file_mcp_repository.py",
+   "sha256": "5aebe0342552e92677989209c3e3c82400629e9e2076c2b19bb5830339a37a81"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/mongo_agent_repository.py",
+   "sha256": "bfd826e5b4bd892ef61e25d49883fe10c2d1b2f33c516b204b2bea61b93c067b"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/mongo_file_favorite_repository.py",
+   "sha256": "a2e42ac1d18dc214301bc39e9d41919749ec84b377f1722423e8536c65b65064"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/mongo_project_repository.py",
+   "sha256": "9a31ef33da79819760f74af7948b01292552ff251fd5e45e91a530f9bd393cf3"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/mongo_session_repository.py",
+   "sha256": "9a2539145c23e8dd128975c877b3f00d61da47d9c2ebeab6bbe2a666eabe0ebc"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/mongo_skill_repository.py",
+   "sha256": "d4314d9f29e483c08bb971611f2454a8b1aaccb4b04311da0bb8cfa5f22fee70"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/mongo_user_skill_repository.py",
+   "sha256": "76f7fddb3ac93943972555ccdccfd9884b1cf3fc40999dedbc5f71a758aeb637"
+  },
+  {
+   "path": "backend/app/infrastructure/repositories/user_repository.py",
+   "sha256": "e8c93a44d99dec692cf45660191a982eee6198d5da4dae53501e584855285a98"
+  },
+  {
+   "path": "backend/app/infrastructure/storage/mongodb.py",
+   "sha256": "1e477bc76942065fe4244c97152451e1c886ca8a04c17451c7256b8e2b08f442"
+  },
+  {
+   "path": "backend/app/infrastructure/storage/redis.py",
+   "sha256": "feceb13049fef4527fc30562a5672e876d3cd28ba79263c0fbab0fdf02e3964f"
+  },
+  {
+   "path": "backend/app/interfaces/api/auth_routes.py",
+   "sha256": "0d8287f1d5fe0e7f061550706ab6da58127e5256b7d28d294ea9d37146cabc5b"
+  },
+  {
+   "path": "backend/app/interfaces/api/config_routes.py",
+   "sha256": "e282a01094fb1bec2bc018f7b0ce50e7750930e31a439d2e5fb07c16e983fc48"
+  },
+  {
+   "path": "backend/app/interfaces/api/file_routes.py",
+   "sha256": "f935f3a54867621b1cacad5910756fe41bd598aab1b0ddce60ac7494f1426c36"
+  },
+  {
+   "path": "backend/app/interfaces/api/library_routes.py",
+   "sha256": "3a1da046ba1498b1628e2b85f636f8f0692282168ac3f56fc30ef3f0b6da4b5c"
+  },
+  {
+   "path": "backend/app/interfaces/api/project_routes.py",
+   "sha256": "b7dc11afc0249e16a8a11334aab0b106b2ee86c340b72685cff4f3f9d26ef2fb"
+  },
+  {
+   "path": "backend/app/interfaces/api/routes.py",
+   "sha256": "599af2eecac6030a1da0bb294ef903064ea3fb896f90a230de5bf7f0d5fcf564"
+  },
+  {
+   "path": "backend/app/interfaces/api/session_routes.py",
+   "sha256": "13304c5164cee32eae29f5bdceefe482daeebc98747a714a26c66cb77e3c2129"
+  },
+  {
+   "path": "backend/app/interfaces/api/skill_routes.py",
+   "sha256": "72fe94983639237a4871179ca0d00511dc5b5b57bafd6847b787ad8e8e8b0875"
+  },
+  {
+   "path": "backend/app/interfaces/api/ws_routes.py",
+   "sha256": "4af1f2810a246ea304e3dc097ff153dacf534a2fe43a99cf6a456495e7333c8f"
+  },
+  {
+   "path": "backend/app/interfaces/dependencies.py",
+   "sha256": "76f90fd058f067757f68b35e6e3614714bc17dc8a0caa5f92cdf0d727df7df4d"
+  },
+  {
+   "path": "backend/app/interfaces/errors/exception_handlers.py",
+   "sha256": "c02e7d2bb48e62fdabd695d2e87eb9cf6f76c0ca45ebf6dfdf942bc1cc76ce50"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/auth.py",
+   "sha256": "2da9f1c12aac2b67ea375756912c441292086ed4e6ef0f32b5646f2c05d374ad"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/base.py",
+   "sha256": "453bed13de9c3c9b52fecba01409a34087775e3a84380aa775a7442ca4ec9ae3"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/config.py",
+   "sha256": "f355916a0d5fbc72d37568b1209117698be8518eebfd0d92f3f84fb9fb3e0b03"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/event.py",
+   "sha256": "4102b3ea8a473ecf9d05b198faef5fa5e8b45eaa2372f2ca422a47361a8c404c"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/file.py",
+   "sha256": "81e7d1c4ccaefcb9c1e9be8500732ae045204f3eca1b329ec3a3ad8b7e8792f1"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/project.py",
+   "sha256": "bdbc674c4a203b9c41709ccd6aa89f6c034b80d869d84df9628a2a40753eb618"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/resource.py",
+   "sha256": "5ff9fd2c8a5bc529089a6f38c74e188dbb7824d4699397aaf04c458af0040562"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/session.py",
+   "sha256": "221d04c510af9f0cd4d0768afe505a207a4b31dc1861b9f78621940ba600b6bc"
+  },
+  {
+   "path": "backend/app/interfaces/schemas/skill.py",
+   "sha256": "a24cba0e614ecf8953f12733bf9d91c0acb01222100f86fb723b49f85322db30"
+  },
+  {
+   "path": "backend/app/main.py",
+   "sha256": "c06ab7f55b60e0de6ad5732241a0ec346bb706f5a3cd880ed817ab9ab74eb35d"
+  },
+  {
+   "path": "backend/app/worker.py",
+   "sha256": "7fd7a48e361a6e64decb3e52a6777d0ba4bad57713753ece55b8f778e96fc232"
+  },
+  {
+   "path": "backend/evals/__init__.py",
+   "sha256": "f1f83adcb8dd0246d2c529013859aa4794129e3307f768e89a8c4e1c5ad676bc"
+  },
+  {
+   "path": "backend/evals/metrics.py",
+   "sha256": "0bc78f18a068dcf4c9df76e155a2d8c1713f5daad6008bcf1a7dbfd6b3ffac7d"
+  },
+  {
+   "path": "backend/evals/run.py",
+   "sha256": "707cdb42dfe131a98140aa173e9dd971714498adacf4c4101cf5c5fc4b58187f"
+  },
+  {
+   "path": "backend/evals/scenarios.py",
+   "sha256": "73edb4873ce02040b577452b1486f4cc68ebe3b32965b7f3eaef38a781f7d1bd"
+  },
+  {
+   "path": "backend/pyproject.toml",
+   "sha256": "a8e64c903ecf50c87c7fe1d73025a4f752d11530fcfb4380f936c912377ca7fd"
+  },
+  {
+   "path": "backend/tests/conftest.py",
+   "sha256": "7af35025281de67378619872132b9a868cc084c864f5a4ad2c288ed89028dd09"
+  },
+  {
+   "path": "backend/tests/harness.py",
+   "sha256": "99ee6c1f77820783accaa801dd20a0133706b016a401516c396d9763133ae2d1"
+  },
+  {
+   "path": "backend/tests/test_api_file.py",
+   "sha256": "570476d375551889ae2f278536d97e7da30f6fc7a2e23ed929e6f44c264b1812"
+  },
+  {
+   "path": "backend/tests/test_auth_routes.py",
+   "sha256": "ac998f673844daae666eb5ff9c05a6202c88521437574b1953ce7eb1669c2b34"
+  },
+  {
+   "path": "backend/tests/test_context_engineering.py",
+   "sha256": "53a879a4322ae6449b1279b8ba44f070cdd483a5da323f8df65ffcea9cbb81d3"
+  },
+  {
+   "path": "backend/tests/test_domain_tools.py",
+   "sha256": "9490dd9662ece0faa3924dfcbb4c9e5d0d7e4d86da81073513f58878edb076ed"
+  },
+  {
+   "path": "backend/tests/test_e2e_plan_act.py",
+   "sha256": "93c601a4908ebeef164f3f885d8171e2f813b126db3ff6ee7d9d7f729fae6faa"
+  },
+  {
+   "path": "backend/tests/test_execution_context.py",
+   "sha256": "864b6428f68c02e43ddcf04a0cd4e3423355b26a4e6c6aa6ef4a337af7b8ee9e"
+  },
+  {
+   "path": "backend/tests/test_llm_gateway.py",
+   "sha256": "e71d8b0163b45c0f4e43c730fe395e00cd12fc71de2a30c295dbe20ae12a440a"
+  },
+  {
+   "path": "backend/tests/test_llm_message.py",
+   "sha256": "9a38a17aaebe70264693caa0314ed38e4c636fa8e416a11e879329c6b9aa50f0"
+  },
+  {
+   "path": "backend/tests/test_memory_serialization.py",
+   "sha256": "000f9548fc6353ec95c7d63f78812ecebafaa5aad2a0d627b22398a48b7ae437"
+  },
+  {
+   "path": "backend/tests/test_openai_gateway.py",
+   "sha256": "8736f6211d0ecfbc4a375c4fca4e20e000c93f0dc506f3b48e5bf5b69d0a9746"
+  },
+  {
+   "path": "backend/tests/test_plan_act_flow.py",
+   "sha256": "80d41f1481b04662884a1ff74a4e09f1f2e9962378292b88736b9ae00c11fd5d"
+  },
+  {
+   "path": "backend/tests/test_plan_act_prompts.py",
+   "sha256": "195663dc6128413689d82ab118e226096aedd0b9d1e2dfa6a932b5705848deea"
+  },
+  {
+   "path": "backend/tests/test_plan_progress.py",
+   "sha256": "54605535a76d2e24a5109a55fa32f22b8947bdc5562a1f5857485f8e8f800cb7"
+  },
+  {
+   "path": "backend/tests/test_sandbox_file.py",
+   "sha256": "77d7f9d07ba1bd4a7d4c9ec0f06001b4a6d9e32f0ed7f6cd29991b543b0d64ff"
+  },
+  {
+   "path": "backend/tests/test_single_loop_manus.py",
+   "sha256": "286e501881f1294c72da5da05942670a290cef154f1ff6e33fe4561a47c8ca50"
+  },
+  {
+   "path": "backend/tests/test_skill_archive.py",
+   "sha256": "cd828e3cd281b22824adc87d009dd4c6ec232180f16a09f5c62ad11734fe0574"
+  },
+  {
+   "path": "backend/tests/test_skill_github.py",
+   "sha256": "67a899a53551a976318fb4a8f39daced00229405feb5a60d49881bc5bbec51cb"
+  },
+  {
+   "path": "backend/tests/test_skill_import_github_e2e.py",
+   "sha256": "62671109c6197b41914bff2b31a1e1bec5f34baeb27bb2d08050b58d53c4f42b"
+  },
+  {
+   "path": "backend/tests/test_skill_invocation.py",
+   "sha256": "19bd3d6dbc9eb6a023333a3556d0faecb6a9d165c3af369221c532eed1ed3a2a"
+  },
+  {
+   "path": "backend/tests/test_skill_loader.py",
+   "sha256": "b800717f060fdadde417e1a04dac1b0c8d0ec36f56460fbcd3fda4f290fa5f94"
+  },
+  {
+   "path": "backend/tests/test_skill_model_package_fields.py",
+   "sha256": "890587a610b89077112dec4f55197bf068301a3d9111e34d771a79ef491621c3"
+  },
+  {
+   "path": "backend/tests/test_skill_official_packages.py",
+   "sha256": "0804db60496eb0271a1e2c2c72ad5602ed7b660b1e9fb672e41fc9f3991854fe"
+  },
+  {
+   "path": "backend/tests/test_skill_package_ingest.py",
+   "sha256": "6ab0eff5128d337c8d1ae2fe1104e38f1cca5054c9d106c26ce47dffe3cf0537"
+  },
+  {
+   "path": "backend/tests/test_skill_plan_steps.py",
+   "sha256": "9fa9f6bbc2abf2ecfa06c0e1a311586a3c27f736d891b8b6e6560f8d2cc4a6e2"
+  },
+  {
+   "path": "backend/tests/test_skill_runtime_service.py",
+   "sha256": "fc7d4a3679213c0be14bb0637be8e4dae9c68244cb039c8659eb34521efaef04"
+  },
+  {
+   "path": "backend/tests/test_skill_sandbox_sync.py",
+   "sha256": "fbdf8c00b140d8547439bf4175856992e4a442778a481c21ff1590883da08f56"
+  },
+  {
+   "path": "backend/tests/test_skill_service.py",
+   "sha256": "09204b228e0e0dd7f89604d6c165b3ff5af8beb24c36c4c29f28af7e0aa769c7"
+  },
+  {
+   "path": "backend/tests/test_skill_toolkit.py",
+   "sha256": "ccd0b04a45178da5af6765e6d45302bd213e93170bd8746195617d935c56e028"
+  },
+  {
+   "path": "backend/tests/test_todo_projection.py",
+   "sha256": "abc1b79f5d5eab80a87723230ca40ca165f35f14df6d70e0304c5e49a76aab6a"
+  },
+  {
+   "path": "backend/tests/test_ws_final_agent_status.py",
+   "sha256": "81f2fe2bbc2388e91d9f0bf7b23b1cc609c3bfc094ae0b8e7723753bfc51dedb"
+  },
+  {
+   "path": "mockserver/main.py",
+   "sha256": "92b3e1a756f19eb9b58feedddd2664f5fcbeaf5394141dffb539ce0da77446e7"
+  },
+  {
+   "path": "sandbox/app/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/app/api/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/app/api/router.py",
+   "sha256": "c20f515c9169be58d336e656c5c8b4f85ddd63d22881fd3713567f1c4ce711ac"
+  },
+  {
+   "path": "sandbox/app/api/v1/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/app/api/v1/file.py",
+   "sha256": "76ee850c904690b112d569b7833c1f8ccfb4d33d9dee3978ffdfa077373fb45a"
+  },
+  {
+   "path": "sandbox/app/api/v1/shell.py",
+   "sha256": "260e58aa0decd7dc9012da1ab01fa15915a16e606df38036b633c1d1b7f1913f"
+  },
+  {
+   "path": "sandbox/app/api/v1/supervisor.py",
+   "sha256": "fe1ace2cf192a3bcfe06046301ddf873a05ca76474041ff36337c35db9c4e73c"
+  },
+  {
+   "path": "sandbox/app/core/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/app/core/config.py",
+   "sha256": "bc17a81b310568e0e4baec543a599dcdc087807f560a801425d3dee116fba227"
+  },
+  {
+   "path": "sandbox/app/core/exceptions.py",
+   "sha256": "92402ccf15743d5b8e38542775f99644abfdd00a00b1a631c1e60673f8d7b810"
+  },
+  {
+   "path": "sandbox/app/core/middleware.py",
+   "sha256": "36d21edd3e22f17a7be7a818442d402ab458d19ecc7deb9bb0796608c5f6f19b"
+  },
+  {
+   "path": "sandbox/app/main.py",
+   "sha256": "b4eadb1bb89c8252a2e13addb3ec3dfbae5d459401a01dd1a7dbd5981c1cd2c4"
+  },
+  {
+   "path": "sandbox/app/models/__init__.py",
+   "sha256": "2e6658995d6faba0e55c0789f6db51cd830d6451a62428082c3fc748d5f25fd2"
+  },
+  {
+   "path": "sandbox/app/models/file.py",
+   "sha256": "3b091f231ed6d942d4775b7360666af2d40ff7438b22df54a65132f073d89138"
+  },
+  {
+   "path": "sandbox/app/models/shell.py",
+   "sha256": "1c65c40ceb60edf030e24e5d1699e1d056475aacb7d0c6badb60e8d866242cf0"
+  },
+  {
+   "path": "sandbox/app/models/supervisor.py",
+   "sha256": "cac84652e2fbbb6fb1901881f062bd0d55982dc958e6a3d6e8042828517fc94d"
+  },
+  {
+   "path": "sandbox/app/schemas/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/app/schemas/file.py",
+   "sha256": "bc93cdc9a5a19da0478776967b78aebc11b9bbee089f90701fc07686e59bf410"
+  },
+  {
+   "path": "sandbox/app/schemas/response.py",
+   "sha256": "2aca9f691fe08c98fb23434c4796fd374f357021481c508c0ca8ede1499425bf"
+  },
+  {
+   "path": "sandbox/app/schemas/shell.py",
+   "sha256": "81a1d693d37f0cac33c7b300dbd8ac833eb5e8cfdad7fd58fdbec2d7cab62aaa"
+  },
+  {
+   "path": "sandbox/app/services/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "sandbox/app/services/file.py",
+   "sha256": "d981949a0579d0d57721c6a07bf041e7a5757934deba617615db4d63a8b0821a"
+  },
+  {
+   "path": "sandbox/app/services/shell.py",
+   "sha256": "58e0371d2e58fb7461cc4e2c57a83c7967bbbca30ac865d1cffe814a250a7ce1"
+  },
+  {
+   "path": "sandbox/app/services/supervisor.py",
+   "sha256": "0e41714703c8d3fe97bb98759b471ba81f5c107f939b23cd65b0362028276abc"
+  },
+  {
+   "path": "sandbox/pyproject.toml",
+   "sha256": "be8a7c75f1677fdc16ab130a8f4d4c16b5e7d09a77498fbd88afdeb5cb12c030"
+  },
+  {
+   "path": "sandbox/tests/conftest.py",
+   "sha256": "325790b1b7a034d14833eecebf384e141266e4a46332246aec5cbe97a032c577"
+  },
+  {
+   "path": "sandbox/tests/test_api_file.py",
+   "sha256": "bf3b9ff454ff12cd48b72c61ccd7874f80f5140ce8eabd6c52ada765bf53d19c"
+  },
+  {
+   "path": "sandbox/tests/test_api_shell.py",
+   "sha256": "1758828b192cb7694d4c03053edffd38154951c071b5c2964c20061e6d99f4fa"
+  },
+  {
+   "path": "sandbox/tests/test_file_truncation.py",
+   "sha256": "03c6ce58d20c7a83b4d3db484b7ce8d71096cb4589549a099e13f944155b8e77"
+  },
+  {
+   "path": "scripts/sync_demos.py",
+   "sha256": "3d8f88d01f9b96397ceb7b5c2610893a9e56686b302b3eed567fe2ad24caa4ab"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 413991,
+ "tier": "A+B"
+}

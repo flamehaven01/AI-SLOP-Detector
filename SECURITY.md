@@ -14,8 +14,10 @@ Fixes are released as a new patch version on PyPI (`ai-slop-detector`) and npm
 
 Please do not open a public issue for a security problem.
 
-Email **info@flamehaven.space** with the subject `[security] ai-slop-detector`
-and include:
+Report it privately through GitHub:
+[Security > Report a vulnerability](https://github.com/flamehaven01/AI-SLOP-Detector/security/advisories/new),
+or email **info@flamehaven.space** with the subject `[security] ai-slop-detector`.
+Include:
 
 - the version (`slop-detector --version`) and how it was installed (pip, npx, Docker);
 - the operating system and Python version;

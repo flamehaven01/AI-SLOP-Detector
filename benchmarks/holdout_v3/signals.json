@@ -1,0 +1,140 @@
+{
+ "3DTopia/4DNeX": [],
+ "88lin/workbuddy-auto-signin": [],
+ "BotaiYuan/Medical_LVLM_Sycophancy": [],
+ "Clinical-Copilot/Medical_Deep_Research": [],
+ "Dataojitori/nocturne_memory": [],
+ "DeepRoboticsLab/rl_training": [
+  "Co-Authored-By: Claude"
+ ],
+ "GanymedeNil/poxiaoxing-skills": [],
+ "GragasLab/nufftax": [],
+ "HumpbackLab/tidesense": [],
+ "KRSHH/Sonosano": [],
+ "LING71671/open-reverselab": [
+  "Co-Authored-By: Claude"
+ ],
+ "LQTS/VTDexManip": [],
+ "Luo-Yihao/FaithC": [
+  "Co-authored-by: Cursor <cursoragent@cursor"
+ ],
+ "MINT-SJTU/Evo-RL": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude"
+ ],
+ "MomentDerek/warp-translation": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude"
+ ],
+ "NovaSky-AI/SkyRL": [
+  "Co-authored-by: Claude",
+  "Co-authored-by: Codex <codex",
+  "Co-authored-by: Cursor Agent <cursoragent@cursor"
+ ],
+ "OpenDCAI/DataMind": [
+  "Co-Authored-By: Claude"
+ ],
+ "OpenMOSS/rope_pp": [],
+ "Pinperepette/context-kernel": [],
+ "PrunaAI/pruna": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude",
+  "Co-authored-by: Cursor Agent <cursoragent@cursor"
+ ],
+ "RUC-NLPIR/WebThinker": [],
+ "Sallyn0225/eidolon-sc": [
+  "Co-Authored-By: Claude"
+ ],
+ "Shasnow/ok-starrailassistant": [],
+ "Stability-AI/stable-audio-3": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude",
+  "Co-authored-by: Copilot Autofix powered by AI <175728472+Copilot"
+ ],
+ "TeleHuman/umi-vista": [],
+ "Tencent-Hunyuan/HunyuanVideo-1.5": [],
+ "Varnan-Tech/opendirectory": [],
+ "Victor-Kipruto-Rop/Agent_Network_Analytics-Safaricom-": [],
+ "William-Lu-stack/Flawless": [],
+ "air-embodied-brain/Zetta-Embodiment": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Copilot <223556219+Copilot"
+ ],
+ "axcslmd/video-auto-maker": [],
+ "bingreeky/JIT": [],
+ "chidvi123/AI_Resume_Analyzer": [],
+ "cruxible-ai/cruxible": [],
+ "dbt-labs/dbt-mcp": [
+  "Co-authored-by: Claude",
+  "Co-authored-by: Copilot Autofix powered by AI <175728472+Copilot"
+ ],
+ "djskncxm/DuckAgent": [
+  "Co-Authored-By: Claude"
+ ],
+ "dsphper/lanhu-mcp": [
+  "Co-authored-by: Cursor Agent <cursoragent@cursor"
+ ],
+ "embodied-computation-group/gastropy": [],
+ "fasouto/termaid": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Copilot <223556219+Copilot"
+ ],
+ "ferretgeek/cliproxyapi-dashboard": [],
+ "howyoungchen/deepRolePlay": [],
+ "huangjia2019/a2a-in-action": [],
+ "huggingface/screenenv": [],
+ "jolie-z/Auto-JobHunter": [],
+ "khscience/OSkhQuant": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Cursor <cursoragent@cursor"
+ ],
+ "krea-ai/realtime-video": [],
+ "kumaran-is/claude-code-onboarding": [],
+ "lack-jpg/gov_AP": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Cursor <cursoragent@cursor"
+ ],
+ "liufanfanlff/C3-Context-Cascade-Compression": [],
+ "livekit/eot-bench": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude"
+ ],
+ "manthanguptaa/real-world-llm-apps": [],
+ "mozilla-ai/speech-to-text-finetune": [],
+ "mstan/MegaManX6Recomp": [
+  "Co-Authored-By: Claude"
+ ],
+ "nulib/treetop-discovery": [],
+ "open-webui/oikb": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude"
+ ],
+ "porterminal/porterminal": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude"
+ ],
+ "profitopsai/ProRCA": [],
+ "seal-rg/recurrent-pretraining": [],
+ "sensepost/depscanner": [],
+ "simovilab/infobus-screens": [],
+ "tommasobbianchi/mesh2step": [
+  "Co-Authored-By: Claude"
+ ],
+ "toon-format/toon-python": [
+  "Co-Authored-By: Claude",
+  "Co-authored-by: Claude"
+ ],
+ "ustc-time-series/Cast-R1": [],
+ "victorcalixto/Hippo3D": [],
+ "vllm-project/vllm-metal": [
+  "Co-authored-by: Claude",
+  "Co-authored-by: Codex"
+ ],
+ "wenconggan/whole-body-mimic-lab": [],
+ "worldbench/DanceOPD": [],
+ "xuc865/roleagent": [
+  "Co-authored-by: Cursor <cursoragent@cursor"
+ ],
+ "xudonmao/PairEdit": [],
+ "yangqi0/petitgpt": []
+}

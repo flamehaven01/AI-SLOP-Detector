@@ -1,0 +1,1555 @@
+{
+ "repo": "AI-X-Labs/TS-Haystack",
+ "dir": "AI-X-Labs__TS-Haystack",
+ "commit": "5e8d3162d47176e19fbd9c5f3d3cf9c6e0e9a7d4",
+ "estimate_commit": "5e8d3162d47176e19fbd9c5f3d3cf9c6e0e9a7d4",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  ".python-version",
+  "LICENSE",
+  "README.md",
+  "configs/defaults/dataset_defaults.yaml",
+  "configs/defaults/model_defaults.yaml",
+  "configs/defaults/sleep_psg_arousals_difficulty.yaml",
+  "configs/defaults/sleep_psg_stages_difficulty.yaml",
+  "configs/defaults/training_defaults.yaml",
+  "configs/experiments/.gitkeep",
+  "configs/experiments/capture24_haystack_itformer_llama.yaml",
+  "configs/experiments/capture24_haystack_llama.yaml",
+  "configs/ltaf_haystack/flamingo_chronos2_llama_ltaf_haystack.yaml",
+  "configs/paper/chattime_capture24_haystack_cot.yaml",
+  "configs/paper/chattime_ltaf_haystack.yaml",
+  "configs/paper/chattime_sleep_psg_arousals.yaml",
+  "configs/paper/chattime_sleep_psg_stages.yaml",
+  "configs/paper/chattime_uk_dale_haystack.yaml",
+  "configs/paper/chatts_capture24_haystack_cot.yaml",
+  "configs/paper/chatts_ltaf_haystack.yaml",
+  "configs/paper/chatts_sleep_psg_arousals.yaml",
+  "configs/paper/chatts_sleep_psg_stages.yaml",
+  "configs/paper/chatts_uk_dale_haystack.yaml",
+  "configs/paper/flamingo_capture24_haystack_absolute_needle.yaml",
+  "configs/paper/flamingo_capture24_haystack_cot.yaml",
+  "configs/paper/flamingo_uk_dale_haystack.yaml",
+  "configs/paper/itformer_capture24_haystack_absolute_needle.yaml",
+  "configs/paper/itformer_capture24_haystack_cot.yaml",
+  "configs/paper/itformer_ltaf_haystack.yaml",
+  "configs/paper/itformer_sleep_psg_arousals.yaml",
+  "configs/paper/itformer_sleep_psg_stages.yaml",
+  "configs/paper/itformer_uk_dale_haystack.yaml",
+  "configs/sleep_psg/flamingo_chronos2_llama_sleep_psg_arousals.yaml",
+  "configs/sleep_psg/flamingo_chronos2_llama_sleep_psg_stages.yaml",
+  "data/.gitkeep",
+  "docs/adding-datasets.md",
+  "docs/adding-models.md",
+  "docs/architecture.md",
+  "docs/ltaf-integration.md",
+  "figures/ALL_TASKS.png",
+  "main.py",
+  "notebooks/.gitkeep",
+  "pyproject.toml",
+  "scripts/download_classifiers.py",
+  "scripts/download_itformer_encoder.py",
+  "scripts/eval/eval_haystack_log.py",
+  "scripts/eval/plot_gpt_benchmark.py",
+  "scripts/eval/print_gpt_benchmark_grid.py",
+  "scripts/evaluate.py",
+  "scripts/run_paper_runs.py",
+  "scripts/train.py",
+  "src/__init__.py",
+  "src/backbones/__init__.py",
+  "src/backbones/base.py",
+  "src/backbones/llama/__init__.py",
+  "src/backbones/llama/backbone.py",
+  "src/components/__init__.py",
+  "src/components/alignment.py",
+  "src/components/cross_attention.py",
+  "src/components/decoder_layers.py",
+  "src/components/drop_path.py",
+  "src/components/fusion_layer.py",
+  "src/components/gated_ff.py",
+  "src/components/itformer_attention.py",
+  "src/components/multi_scale_pooling.py",
+  "src/components/positional_encoding.py",
+  "src/components/ssm.py",
+  "src/datasets/__init__.py",
+  "src/datasets/base.py",
+  "src/datasets/capture24/README.md",
+  "src/datasets/capture24/__init__.py",
+  "src/datasets/capture24/annotation-label-dictionary.csv",
+  "src/datasets/capture24/classification.py",
+  "src/datasets/capture24/cot/__init__.py",
+  "src/datasets/capture24/cot/cot_generator.py",
+  "src/datasets/capture24/eval_dataset.py",
+  "src/datasets/capture24/evaluation.py",
+  "src/datasets/capture24/loader.py",
+  "src/datasets/capture24/metadata.csv",
+  "src/datasets/capture24/qa_dataset.py",
+  "src/datasets/capture24/qa_loader.py",
+  "src/datasets/capture24/test/__init__.py",
+  "src/datasets/capture24/test/test_capture24_classification.py",
+  "src/datasets/capture24/test/test_capture24_extraction.py",
+  "src/datasets/capture24/test/test_capture24_qa.py",
+  "src/datasets/capture24/test/test_capture24_windows.py",
+  "src/datasets/capture24/windows.py",
+  "src/datasets/capture24_haystack/README.md",
+  "src/datasets/capture24_haystack/__init__.py",
+  "src/datasets/capture24_haystack/core/__init__.py",
+  "src/datasets/capture24_haystack/core/activity_regimes.py",
+  "src/datasets/capture24_haystack/core/background_sampler.py",
+  "src/datasets/capture24_haystack/core/bout_indexer.py",
+  "src/datasets/capture24_haystack/core/data_structures.py",
+  "src/datasets/capture24_haystack/core/needle_sampler.py",
+  "src/datasets/capture24_haystack/core/prompt_templates.py",
+  "src/datasets/capture24_haystack/core/seed_manager.py",
+  "src/datasets/capture24_haystack/core/style_transfer.py",
+  "src/datasets/capture24_haystack/core/timeline_builder.py",
+  "src/datasets/capture24_haystack/core/transition_matrix.py",
+  "src/datasets/capture24_haystack/cot/__init__.py",
+  "src/datasets/capture24_haystack/cot/cot_generator.py",
+  "src/datasets/capture24_haystack/cot/llm_client.py",
+  "src/datasets/capture24_haystack/cot/plot_generator.py",
+  "src/datasets/capture24_haystack/cot/prompt_builder.py",
+  "src/datasets/capture24_haystack/cot_qa_dataset.py",
+  "src/datasets/capture24_haystack/generation/__init__.py",
+  "src/datasets/capture24_haystack/generation/absolute_needle.yaml",
+  "src/datasets/capture24_haystack/generation/config.py",
+  "src/datasets/capture24_haystack/generation/defaults.yaml",
+  "src/datasets/capture24_haystack/generation/generator.py",
+  "src/datasets/capture24_haystack/oracle_qa_dataset.py",
+  "src/datasets/capture24_haystack/qa_dataset.py",
+  "src/datasets/capture24_haystack/qa_loader.py",
+  "src/datasets/capture24_haystack/tasks/__init__.py",
+  "src/datasets/capture24_haystack/tasks/base_task.py",
+  "src/datasets/capture24_haystack/tasks/task_anomaly_detection.py",
+  "src/datasets/capture24_haystack/tasks/task_anomaly_localization.py",
+  "src/datasets/capture24_haystack/tasks/task_antecedent.py",
+  "src/datasets/capture24_haystack/tasks/task_comparison.py",
+  "src/datasets/capture24_haystack/tasks/task_counting.py",
+  "src/datasets/capture24_haystack/tasks/task_existence.py",
+  "src/datasets/capture24_haystack/tasks/task_localization.py",
+  "src/datasets/capture24_haystack/tasks/task_multi_hop.py",
+  "src/datasets/capture24_haystack/tasks/task_ordering.py",
+  "src/datasets/capture24_haystack/tasks/task_state_query.py",
+  "src/datasets/capture24_haystack/test/__init__.py",
+  "src/datasets/capture24_haystack/test/conftest.py",
+  "src/datasets/capture24_haystack/test/tasks/__init__.py",
+  "src/datasets/capture24_haystack/test/tasks/conftest.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_anomaly_detection.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_anomaly_localization.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_antecedent.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_comparison.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_counting.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_existence.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_localization.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_multi_hop.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_ordering.py",
+  "src/datasets/capture24_haystack/test/tasks/test_task_state_query.py",
+  "src/datasets/capture24_haystack/test/test_background_sampler.py",
+  "src/datasets/capture24_haystack/test/test_needle_sampler.py",
+  "src/datasets/capture24_haystack/test/test_phase2_integration.py",
+  "src/datasets/capture24_haystack/test/test_prompt_templates.py",
+  "src/datasets/capture24_haystack/test/test_style_transfer.py",
+  "src/datasets/capture24_haystack/utils/__init__.py",
+  "src/datasets/capture24_haystack/utils/answer_evaluation.py",
+  "src/datasets/capture24_haystack/utils/context_utils.py",
+  "src/datasets/capture24_haystack/utils/oracle_utils.py",
+  "src/datasets/capture24_haystack/utils/position_utils.py",
+  "src/datasets/capture24_haystack/utils/timestamp_utils.py",
+  "src/datasets/constants.py",
+  "src/datasets/ltaf_haystack/DATASET_CARD.md",
+  "src/datasets/ltaf_haystack/__init__.py",
+  "src/datasets/ltaf_haystack/core/__init__.py",
+  "src/datasets/ltaf_haystack/core/activity_regimes.py",
+  "src/datasets/ltaf_haystack/core/data_structures.py",
+  "src/datasets/ltaf_haystack/core/ltaf_bout_indexer.py",
+  "src/datasets/ltaf_haystack/core/ltaf_prompt_templates.py",
+  "src/datasets/ltaf_haystack/core/ltaf_timeline_builder.py",
+  "src/datasets/ltaf_haystack/core/participant_splitter.py",
+  "src/datasets/ltaf_haystack/core/recording_sampler.py",
+  "src/datasets/ltaf_haystack/core/seed_manager.py",
+  "src/datasets/ltaf_haystack/core/window_index.py",
+  "src/datasets/ltaf_haystack/cot_qa_dataset.py",
+  "src/datasets/ltaf_haystack/generation/__init__.py",
+  "src/datasets/ltaf_haystack/generation/config.py",
+  "src/datasets/ltaf_haystack/generation/default_generation_config.yaml",
+  "src/datasets/ltaf_haystack/generation/generator.py",
+  "src/datasets/ltaf_haystack/loader.py",
+  "src/datasets/ltaf_haystack/plot_generator.py",
+  "src/datasets/ltaf_haystack/qa_dataset.py",
+  "src/datasets/ltaf_haystack/qa_loader.py",
+  "src/datasets/ltaf_haystack/rhythm_classifier_dataset.py",
+  "src/datasets/ltaf_haystack/scripts/__init__.py",
+  "src/datasets/ltaf_haystack/scripts/verify_ltaf_haystack.py",
+  "src/datasets/ltaf_haystack/tasks/__init__.py",
+  "src/datasets/ltaf_haystack/tasks/base_task.py",
+  "src/datasets/ltaf_haystack/tasks/task_anomaly_detection.py",
+  "src/datasets/ltaf_haystack/tasks/task_anomaly_localization.py",
+  "src/datasets/ltaf_haystack/tasks/task_antecedent.py",
+  "src/datasets/ltaf_haystack/tasks/task_comparison.py",
+  "src/datasets/ltaf_haystack/tasks/task_counting.py",
+  "src/datasets/ltaf_haystack/tasks/task_existence.py",
+  "src/datasets/ltaf_haystack/tasks/task_localization.py",
+  "src/datasets/ltaf_haystack/tasks/task_multi_hop.py",
+  "src/datasets/ltaf_haystack/tasks/task_ordering.py",
+  "src/datasets/ltaf_haystack/tasks/task_state_query.py",
+  "src/datasets/qa_base.py",
+  "src/datasets/registry.py",
+  "src/datasets/sleep_psg_haystack/README.md",
+  "src/datasets/sleep_psg_haystack/__init__.py",
+  "src/datasets/sleep_psg_haystack/generation/__init__.py",
+  "src/datasets/sleep_psg_haystack/generation/generator.py",
+  "src/datasets/sleep_psg_haystack/loader.py",
+  "src/datasets/sleep_psg_haystack/plot_generator.py",
+  "src/datasets/sleep_psg_haystack/qa_dataset.py",
+  "src/datasets/sleep_psg_haystack/qa_loader.py",
+  "src/datasets/sleep_psg_haystack/scripts/analyze_sleep_psg_haystack.py",
+  "src/datasets/sleep_psg_haystack/scripts/convert_sleep_psg_to_npy.py",
+  "src/datasets/sleep_psg_haystack/scripts/download_sleep_psg.py",
+  "src/datasets/sleep_psg_haystack/scripts/predecimate_sleep_psg.py",
+  "src/datasets/sleep_psg_haystack/scripts/verify_sleep_psg_haystack.py",
+  "src/datasets/sleep_psg_haystack/tasks/__init__.py",
+  "src/datasets/sleep_psg_haystack/tasks/base_task.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_antecedent.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_comparison.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_counting.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_existence.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_localization.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_multi_hop.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_ordering.py",
+  "src/datasets/sleep_psg_haystack/tasks/task_state_query.py",
+  "src/datasets/uk_dale_haystack/DATASET_CARD.md",
+  "src/datasets/uk_dale_haystack/__init__.py",
+  "src/datasets/uk_dale_haystack/core/__init__.py",
+  "src/datasets/uk_dale_haystack/core/activity_regimes.py",
+  "src/datasets/uk_dale_haystack/core/background_sampler.py",
+  "src/datasets/uk_dale_haystack/core/bout_extractor.py",
+  "src/datasets/uk_dale_haystack/core/data_structures.py",
+  "src/datasets/uk_dale_haystack/core/insertion.py",
+  "src/datasets/uk_dale_haystack/core/needle_sampler.py",
+  "src/datasets/uk_dale_haystack/core/prompt_templates.py",
+  "src/datasets/uk_dale_haystack/generation/__init__.py",
+  "src/datasets/uk_dale_haystack/generation/config.py",
+  "src/datasets/uk_dale_haystack/generation/defaults.yaml",
+  "src/datasets/uk_dale_haystack/generation/generator.py",
+  "src/datasets/uk_dale_haystack/loader.py",
+  "src/datasets/uk_dale_haystack/plot_generator.py",
+  "src/datasets/uk_dale_haystack/qa_dataset.py",
+  "src/datasets/uk_dale_haystack/qa_loader.py",
+  "src/datasets/uk_dale_haystack/scripts/__init__.py",
+  "src/datasets/uk_dale_haystack/scripts/ablate_insertion_fixes.py",
+  "src/datasets/uk_dale_haystack/scripts/classifier_transfer_test.py",
+  "src/datasets/uk_dale_haystack/scripts/plot_insertion_validation.py",
+  "src/datasets/uk_dale_haystack/scripts/probe_insertion_shortcut.py",
+  "src/datasets/uk_dale_haystack/scripts/validate_insertion.py",
+  "src/datasets/uk_dale_haystack/scripts/validate_isolated_insertion.py",
+  "src/datasets/uk_dale_haystack/scripts/verify_uk_dale_haystack.py",
+  "src/datasets/uk_dale_haystack/tasks/__init__.py",
+  "src/datasets/uk_dale_haystack/tasks/base_task.py",
+  "src/datasets/uk_dale_haystack/tasks/task_anomaly_detection.py",
+  "src/datasets/uk_dale_haystack/tasks/task_anomaly_localization.py",
+  "src/datasets/uk_dale_haystack/tasks/task_antecedent.py",
+  "src/datasets/uk_dale_haystack/tasks/task_comparison.py",
+  "src/datasets/uk_dale_haystack/tasks/task_counting.py",
+  "src/datasets/uk_dale_haystack/tasks/task_existence.py",
+  "src/datasets/uk_dale_haystack/tasks/task_localization.py",
+  "src/datasets/uk_dale_haystack/tasks/task_multi_hop.py",
+  "src/datasets/uk_dale_haystack/tasks/task_ordering.py",
+  "src/datasets/uk_dale_haystack/tasks/task_state_query.py",
+  "src/datasets/util.py",
+  "src/evaluation/__init__.py",
+  "src/evaluation/metrics/__init__.py",
+  "src/evaluation/metrics/text_generation.py",
+  "src/models/__init__.py",
+  "src/models/base.py",
+  "src/models/classifiers/__init__.py",
+  "src/models/classifiers/capture24/__init__.py",
+  "src/models/classifiers/capture24/model.py",
+  "src/models/classifiers/capture24/train.py",
+  "src/models/classifiers/ecg/__init__.py",
+  "src/models/classifiers/ecg/beat_htf.py",
+  "src/models/classifiers/ecg/rhythm.py",
+  "src/models/classifiers/ecg/rhythm_from_beats.py",
+  "src/models/classifiers/ecg/train_beat_htf.py",
+  "src/models/classifiers/ecg/train_rhythm.py",
+  "src/models/classifiers/ecg/train_rhythm_from_beats.py",
+  "src/models/classifiers/encoders.py",
+  "src/models/classifiers/sleep/__init__.py",
+  "src/models/classifiers/sleep/model.py",
+  "src/models/classifiers/sleep/train.py",
+  "src/models/classifiers/uk_dale/__init__.py",
+  "src/models/classifiers/uk_dale/model.py",
+  "src/models/classifiers/uk_dale/train.py",
+  "src/models/projector/__init__.py",
+  "src/models/projector/linear.py",
+  "src/models/projector/mlp.py",
+  "src/models/registry.py",
+  "src/models/ts_encoder/__init__.py",
+  "src/models/ts_encoder/base.py",
+  "src/models/ts_encoder/chronos2_encoder.py",
+  "src/models/ts_encoder/cnn_tokenizer.py",
+  "src/models/ts_encoder/itformer_encoder.py",
+  "src/models/ts_encoder/mlp_encoder.py",
+  "src/models/ts_encoder/timesfm_encoder.py",
+  "src/models/ts_encoder/transformer_cnn.py",
+  "src/models/ts_encoder/transformer_mlp.py",
+  "src/models/ts_llm/__init__.py",
+  "src/models/ts_llm/arts/__init__.py",
+  "src/models/ts_llm/arts/bout_utils.py",
+  "src/models/ts_llm/arts/capture24.py",
+  "src/models/ts_llm/arts/capture24_prepass.py",
+  "src/models/ts_llm/arts/ltaf.py",
+  "src/models/ts_llm/arts/providers.py",
+  "src/models/ts_llm/arts/query.py",
+  "src/models/ts_llm/arts/sleep.py",
+  "src/models/ts_llm/arts/sleep_prepass.py",
+  "src/models/ts_llm/arts/uk_dale_prepass.py",
+  "src/models/ts_llm/chatTS/__init__.py",
+  "src/models/ts_llm/chatTS/chatts_model.py",
+  "src/models/ts_llm/chattime/__init__.py",
+  "src/models/ts_llm/chattime/discretizer.py",
+  "src/models/ts_llm/chattime/model.py",
+  "src/models/ts_llm/chattime/serializer.py",
+  "src/models/ts_llm/itformer/__init__.py",
+  "src/models/ts_llm/itformer/attention.py",
+  "src/models/ts_llm/itformer/fusion.py",
+  "src/models/ts_llm/itformer/model.py",
+  "src/models/ts_llm/itformer/position_encoding.py",
+  "src/models/ts_llm/itformer/pretrain_ts_encoder.py",
+  "src/models/ts_llm/opentslm_flamingo/__init__.py",
+  "src/models/ts_llm/opentslm_flamingo/flamingo.py",
+  "src/models/ts_llm/opentslm_flamingo/flamingo_encoder.py",
+  "src/prompt/__init__.py",
+  "src/prompt/full_prompt.py",
+  "src/prompt/prompt.py",
+  "src/prompt/prompt_with_answer.py",
+  "src/prompt/text_prompt.py",
+  "src/prompt/text_time_series_prompt.py",
+  "src/training/__init__.py",
+  "src/training/logging.py",
+  "src/utils/__init__.py",
+  "src/utils/config.py",
+  "src/utils/distributed.py",
+  "src/utils/io.py",
+  "tests/__init__.py",
+  "tests/conftest.py",
+  "tests/integration/__init__.py",
+  "tests/integration/test_ltaf_generation_reproducibility.py",
+  "tests/integration/test_ltaf_training_smoke.py",
+  "tests/integration/test_uk_dale_reproducibility.py",
+  "tests/unit/__init__.py",
+  "tests/unit/test_components/__init__.py",
+  "tests/unit/test_components/test_decoder_layers.py",
+  "tests/unit/test_components/test_primitives.py",
+  "tests/unit/test_config.py",
+  "tests/unit/test_datasets/__init__.py",
+  "tests/unit/test_datasets/test_ltaf_core_artifacts.py",
+  "tests/unit/test_datasets/test_ltaf_generation_config.py",
+  "tests/unit/test_datasets/test_ltaf_qa_loader.py",
+  "tests/unit/test_datasets/test_ltaf_tasks_m4.py",
+  "tests/unit/test_datasets/test_uk_dale_bout_extractor.py",
+  "tests/unit/test_datasets/test_uk_dale_tasks.py",
+  "tests/unit/test_models/__init__.py",
+  "tests/unit/test_training/__init__.py",
+  "tests/unit/test_training/test_logging.py",
+  "uv.lock"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "8a353f1e9bd4fbd483fe7a6d6a340461afd988953922f3bb0d155ac3402b14eb"
+  },
+  {
+   "path": "main.py",
+   "sha256": "0477071b5c8699bb22305b264a23fdbeedf7b27dae9d4d191113456aa0769dc8"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "d23084f884df1a1fe73fb858e3497bd5c181cd23676bd6cdde58b710826d5f54"
+  },
+  {
+   "path": "scripts/download_classifiers.py",
+   "sha256": "08abb0a48479af86625876c97bde759b43282ca2fc26b27a0733de8a5dfb2742"
+  },
+  {
+   "path": "scripts/download_itformer_encoder.py",
+   "sha256": "e93861794d98512c0cb05a35d93d19ae37a02183a08f36b8d4caef49c453f439"
+  },
+  {
+   "path": "scripts/eval/eval_haystack_log.py",
+   "sha256": "12cce6ff0c2418d7b0066d366c3bd55eb1882559eb50afe2840f62cf874ff5d9"
+  },
+  {
+   "path": "scripts/eval/plot_gpt_benchmark.py",
+   "sha256": "cd472074761589fba9115463e0a79274fe23ea982ac8190bc055b59a9887cbb0"
+  },
+  {
+   "path": "scripts/eval/print_gpt_benchmark_grid.py",
+   "sha256": "c77ab11aa2aa6cb001413e03d1945bca2a0a86bf41ba67856af52c91e5166482"
+  },
+  {
+   "path": "scripts/evaluate.py",
+   "sha256": "9e7467b6822e590ddd4a8d682231836be4caf89f4fc0d57bcd22aa91226529dd"
+  },
+  {
+   "path": "scripts/run_paper_runs.py",
+   "sha256": "b22dccbc85c3f82401592905645ee3495a6277ae1fe98ac24ce4ab5b5c32c0e0"
+  },
+  {
+   "path": "scripts/train.py",
+   "sha256": "b81a0a3470b464d9516bd53fc42fc001aed266b13192ed0afc70ebc9b37469b4"
+  },
+  {
+   "path": "src/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/backbones/__init__.py",
+   "sha256": "b141ba843f1c7721238568ea2d8852511e7796bddb44cdb821c7c798ba1fb160"
+  },
+  {
+   "path": "src/backbones/base.py",
+   "sha256": "adfab40d94662f0a661ad0526183fa855e7dd54245d8542861dae5a7c8f975df"
+  },
+  {
+   "path": "src/backbones/llama/__init__.py",
+   "sha256": "96227dd402c0c5b443ceb64401b3114a1e68d28f676b918e5595a9631ad1923d"
+  },
+  {
+   "path": "src/backbones/llama/backbone.py",
+   "sha256": "d0941cfe90893005a32da5ad6629aa2716cab81ac0ba7adfe329649c929648f3"
+  },
+  {
+   "path": "src/components/__init__.py",
+   "sha256": "2871b285df93925cc57df7495f4fc2f78854dfd3cd5db7d6cb3b2022c0c1f7ce"
+  },
+  {
+   "path": "src/components/alignment.py",
+   "sha256": "baa4a8cd86a333072e006f94d10266736acdb4beb03679d91ddb1489687c6442"
+  },
+  {
+   "path": "src/components/cross_attention.py",
+   "sha256": "e16a408889079a561e30f2ff0a017576059a5eac6a00ef290372eb45b5f2f6f0"
+  },
+  {
+   "path": "src/components/decoder_layers.py",
+   "sha256": "7f012f69596f8dac37a50e7a36d45cfbf54157c675295525f72213a029a1cee8"
+  },
+  {
+   "path": "src/components/drop_path.py",
+   "sha256": "087d4f77b26959a8256aa5f96e895c32f0f70c8ef0a01b8bc51b22305509626f"
+  },
+  {
+   "path": "src/components/fusion_layer.py",
+   "sha256": "e54ed5c6c1896dc0a23c89c1a1588a2e0ef60912538a1c59e14e06e80c57a4fa"
+  },
+  {
+   "path": "src/components/gated_ff.py",
+   "sha256": "dcf8cbd29cff4e6f963bc7cdd4c8b39530bb2991be4f31df5d77de35f7c07a68"
+  },
+  {
+   "path": "src/components/itformer_attention.py",
+   "sha256": "51dd9a488bca096f2c7485cb3676d46be154c64ea120de645d021fc0cc7d7c2d"
+  },
+  {
+   "path": "src/components/multi_scale_pooling.py",
+   "sha256": "86cfa40a6f089ca19c636689b23726e3f562fcfce4554dab42a11e9a2b260753"
+  },
+  {
+   "path": "src/components/positional_encoding.py",
+   "sha256": "a04a67754eccc69ffe3c84327d8e6cee2ed4a9c9def3abb9634ee38d6921f46b"
+  },
+  {
+   "path": "src/components/ssm.py",
+   "sha256": "423594364d0be9f9eaf58e495ce536bca784b9468584716e69d04e1890ddfd00"
+  },
+  {
+   "path": "src/datasets/__init__.py",
+   "sha256": "980f5f86626e1ae7d1e93949cf46a8a3c1da27b29d1d9a7647610cd6567ff6a5"
+  },
+  {
+   "path": "src/datasets/base.py",
+   "sha256": "46477d0e940ed0b0d2a6cbe10d08422bacd359d99b8f00f2bee69376cc7f6fca"
+  },
+  {
+   "path": "src/datasets/capture24/__init__.py",
+   "sha256": "15b38989c98e3aa35801a7668c8f9ff5ce792cdaea435075d9e22dbb5222897f"
+  },
+  {
+   "path": "src/datasets/capture24/classification.py",
+   "sha256": "e677611def97eb2a9a48988dc88bd7f5e1753295bb9662b540f1a03e40456d03"
+  },
+  {
+   "path": "src/datasets/capture24/cot/__init__.py",
+   "sha256": "634aac04ada848e9ede1f32de1f401b23b529a373f99fae1abe0de216ff18f42"
+  },
+  {
+   "path": "src/datasets/capture24/cot/cot_generator.py",
+   "sha256": "cfbb0c95b70cbe1182284ad918c9d82f5e9978666d36fe3b67c644b50264de3c"
+  },
+  {
+   "path": "src/datasets/capture24/eval_dataset.py",
+   "sha256": "2b9d790799914085cf58b0f1df1bd09aa76f7adfd07e6857a58198c7ce0dde9c"
+  },
+  {
+   "path": "src/datasets/capture24/evaluation.py",
+   "sha256": "017e7c55ba11309e9989542c9f0197f432fe16cc28b0763a030276cf8ad9a998"
+  },
+  {
+   "path": "src/datasets/capture24/loader.py",
+   "sha256": "2551ddd124fb8977bcb34200f3f62fee9790e75fc1626e4ccad285fa3e255e5f"
+  },
+  {
+   "path": "src/datasets/capture24/qa_dataset.py",
+   "sha256": "d2b126e4d220cc735b45a2617c9d7a096d7547cee710017ee6222a55d3d6adff"
+  },
+  {
+   "path": "src/datasets/capture24/qa_loader.py",
+   "sha256": "343dfc3170a4622e0045143b6a0872cfdf475274b61c1fe71b7011119fc95234"
+  },
+  {
+   "path": "src/datasets/capture24/test/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/datasets/capture24/test/test_capture24_classification.py",
+   "sha256": "8d47dcb4f058a631a3ef7b650bf2d7a9e53cc6cc386dc695024bafb4e55b3ad0"
+  },
+  {
+   "path": "src/datasets/capture24/test/test_capture24_extraction.py",
+   "sha256": "24d5787d34debfb418278d8b2f9317a2e1d1b46dbcaa4033b5507fdbb7de43af"
+  },
+  {
+   "path": "src/datasets/capture24/test/test_capture24_qa.py",
+   "sha256": "dfd38f268dbb968c1482234ac8b2d2392f798caa0bbadeec8242503ed0883a72"
+  },
+  {
+   "path": "src/datasets/capture24/test/test_capture24_windows.py",
+   "sha256": "21be0acd369700036faa84107a24496aa2b708e2962db59948956eba7d721463"
+  },
+  {
+   "path": "src/datasets/capture24/windows.py",
+   "sha256": "e3096c86ebea3bc746b4b1c05522e8f9dc1c9fa870c76dd73c617ed557a8adfa"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/__init__.py",
+   "sha256": "c89365ab5a5e3d67a2832ea6ba52223392bf2929f95c2a23b926a9ed96bbbdfa"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/__init__.py",
+   "sha256": "8b8565fa35e36c8dd21230ec3c3909b0b64feb12f74622aa685eac4cc017ee5f"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/activity_regimes.py",
+   "sha256": "10c4d4647dce5bee914d5da2992eb7ed4e24033932e19b654ec5c2e8b1cab04c"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/background_sampler.py",
+   "sha256": "6d674618128d4d9210cfc08f13c2a2160c00b3a052aae0da1ee17ab152a90647"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/bout_indexer.py",
+   "sha256": "46021349061c3965d2625a091cdb94d7dfb62a72a198602446b5bb4c09efb311"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/data_structures.py",
+   "sha256": "5ff748ea9646a5af23bde9b5237d6f27bb3e32f083e4fce4e8d2e63c78680c28"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/needle_sampler.py",
+   "sha256": "ef113445afd20146d88df9459d2f547f86aa6bcf7a03e3c6985029bb039b7f81"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/prompt_templates.py",
+   "sha256": "380b4bf587773fcabe99db53b6dc15bbe5d956a397f716e77cda6176de45760b"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/seed_manager.py",
+   "sha256": "cbb3f2f3d3ca3c75341d3eb97b478aef42f6c56dea48b6ba9d0df407650ea89a"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/style_transfer.py",
+   "sha256": "fa05448a9570e08399223c0d695a6ba87f418a4e80f810add900697f0a828540"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/timeline_builder.py",
+   "sha256": "dc136215a0c51296af5ed21a88be58f13cca6eecbee69e39c628e7b5f62550e8"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/core/transition_matrix.py",
+   "sha256": "7a31fa2dd9ec8f14e9218afec1b1508f75fff87532a27fa9d6c98fc16e137324"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/cot/__init__.py",
+   "sha256": "9271bf2a79bbb0ea32e9cd6e826873497abfbb60cca8b8dca96f6698cfcdbc52"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/cot/cot_generator.py",
+   "sha256": "31cd9b15b77e3c1eba63adddbdaf9ac03b83bcfb0848e5bac75c160151f101ef"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/cot/llm_client.py",
+   "sha256": "f6a28c2dc46d958187376f32eb00f0e8bfa8b7c9e452350e307cf27c10490057"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/cot/plot_generator.py",
+   "sha256": "9afdc5215fc1175bd6431a25e1dc15e2fb3546602f43fb5f904c63c4cb7ca1c9"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/cot/prompt_builder.py",
+   "sha256": "e44344e1f084ef50ff74a0af001150c2283990d473417557874dd29b4a980b57"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/cot_qa_dataset.py",
+   "sha256": "80765dd0b19a00f487fd90b7c3b759630b6dcf871ba518e4bf49289c911ec693"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/generation/__init__.py",
+   "sha256": "492af7b0a372b1a018267a3adf8475ae8dec0c2d8bf943dd3ee4f97b8b868aa4"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/generation/config.py",
+   "sha256": "d6893158466cbe579b3cc11c9ec5a437a6beb9a05e3be8690f8cf1f0ea7c3430"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/generation/generator.py",
+   "sha256": "e47931f4bd22e1505f1e4972423cf05e418e1e48f2602de5ec57c22adeac6b73"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/oracle_qa_dataset.py",
+   "sha256": "b3dc5a52f06c3a1ce5e3aee49b08f6a442ac8aa77172ccb6074dd6b194a374db"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/qa_dataset.py",
+   "sha256": "cf13dc8ebbdce999e9bbdcdbbe3e55376c17460921b095e7e40f4c56cfde9a6c"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/qa_loader.py",
+   "sha256": "65aced5709922d74ef9688bb4444177e61a4fb30d1629a58855ec3c402d390b5"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/__init__.py",
+   "sha256": "ee59464847470472c72154c76b0c8d62a3573581813baca89474638257ce0a0c"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/base_task.py",
+   "sha256": "b48f18eb3f5f99c95c5b345ee37e5a3d4f22194887911acc1e89a3385a78b880"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_anomaly_detection.py",
+   "sha256": "27869778fb2010192b66ef4b379a829216770bb50d7af9df83d6d43350e52549"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_anomaly_localization.py",
+   "sha256": "505926dc216fa5af75b236f8ff3d6bd1e98b84f72953635cb2112ab94d9bc5ea"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_antecedent.py",
+   "sha256": "4ed4d152e2e5eee9d941cfba9dbca15dbbb119e63b9b793458cf261d4cbc00da"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_comparison.py",
+   "sha256": "47ea88920d7a1b56521d13f2c6871c80c62a12e4eac32f5215c54c7fafe903d0"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_counting.py",
+   "sha256": "cb3e9471b30439addecb373e02f78601118f1b8f74ca2bb6045fe4cc9115704a"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_existence.py",
+   "sha256": "195c47adb3bb6e9b900effff545c8bd4a53df7dc054e618144e4724c8828ce5a"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_localization.py",
+   "sha256": "02c65478ccd5e9e54bd9aa548f4255c2c48210bfa35cd85336149e299e868187"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_multi_hop.py",
+   "sha256": "cfe55295ea92ccc49d4ed5b1fda08d70851972f92927c17f3778e171b5249e53"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_ordering.py",
+   "sha256": "a623434b6c00aa529f2b84f16e05a879d7ad77f70548c20d5d913227f122e115"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/tasks/task_state_query.py",
+   "sha256": "466d38116b82a69fb3f6f5dca46a39f50c4eec7748ed124bccf264ca41c3bb4c"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/__init__.py",
+   "sha256": "4aa79f4bf3efd3a322f49905becc3e5e966bc103ffadea6b51bb92690c3e2a95"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/conftest.py",
+   "sha256": "088114740ad49325876bb3dfd7deccdc4459a0f3e1182062ddc846458f05b21a"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/__init__.py",
+   "sha256": "7c6de1ac13f3a286f91453aa2084f1acfe1d30e4876e7346575324bd4bdecd3e"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/conftest.py",
+   "sha256": "9f7d6609821c115fa76d15a1523ba50af81f483069848b21065a0d8bf5c70b43"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_anomaly_detection.py",
+   "sha256": "409214678b95a8515b849e8aee790b8bdea68de859e037e440f7451fa6933dab"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_anomaly_localization.py",
+   "sha256": "be1d4f4418725711e6257d902fbebf95ec3b28c428cb1eccefb32d7b2d6bdfb3"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_antecedent.py",
+   "sha256": "0603406c71fb5e765908d255b9a3d450524afbc15c9b6b3a8da3d09e63b13c43"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_comparison.py",
+   "sha256": "cbafa238c382fa549cc55dea47e1133e681b155dce26d9aa500c60f94f1a1e76"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_counting.py",
+   "sha256": "73782a26d0b6f27659c1a995ebbb4c5145d990b709cfe91f076a3012be65bb55"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_existence.py",
+   "sha256": "388dbbe7e3f0d40fd105bc0da462a647aa49521dd6292b604c92c83ca984ec41"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_localization.py",
+   "sha256": "710b72b6a2ebc5fb63eb85e7061b3fda8918ef4a1e6500745ed3ecc0d235b01b"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_multi_hop.py",
+   "sha256": "576b0ca19ad9a1f17407008f629ec07c29fe9bc698836481c07ddcc2c7c236c4"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_ordering.py",
+   "sha256": "d933511e45fd25dcb689678c6a4a74c94d93a9f35b5275e08f82a61c96e57376"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/tasks/test_task_state_query.py",
+   "sha256": "d974a0f0b8f3b197f139ebd4396852ab4534663b8a809ebddbde485aae0adde0"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/test_background_sampler.py",
+   "sha256": "108ec04683d87b8e182cde4f140624dac2a733009a00e12dadd7949a7d19f54a"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/test_needle_sampler.py",
+   "sha256": "c085d2d506e906c9bfaaa83b7a3cc91bec7b9a323720c20d56c93484d1f90a4e"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/test_phase2_integration.py",
+   "sha256": "fc79a1e6794b6a957d5032c3cedf2b7f251bfa089471c3f167cf908060d4f3f9"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/test_prompt_templates.py",
+   "sha256": "aef2256815f895541a3e2c8217a416a22b9a055786245d5b7998fbb251be94d6"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/test/test_style_transfer.py",
+   "sha256": "e978a22d1618d364a1553e0d86618750c77bf55af2ac54773b7f5e1757041f4f"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/utils/__init__.py",
+   "sha256": "ae55638849267cf8e29b3e40a69c8e64f627bc18341b44bf3cbe671c6997b996"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/utils/answer_evaluation.py",
+   "sha256": "899860583285fb4d1a1af1dc6c0595ac24e63ced24982b3497861e9e694714fd"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/utils/context_utils.py",
+   "sha256": "0b96f0ec865f347ca51efb10b70c8e516bdd6bfaa06f5c02898cc4e912d4a0c9"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/utils/oracle_utils.py",
+   "sha256": "b20f6a396d0caa1b2122cfcfe51568967251fc23df3b5436d4d2d0e63039e298"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/utils/position_utils.py",
+   "sha256": "f94cb3a03f2379cec57cb4151d21b02d188e1e305651e7fc9350ad13c3352a4d"
+  },
+  {
+   "path": "src/datasets/capture24_haystack/utils/timestamp_utils.py",
+   "sha256": "4dd48222fc1922aa6b7aab62500ff1f3a5ab79e924731981e01afa6a1dd6a27b"
+  },
+  {
+   "path": "src/datasets/constants.py",
+   "sha256": "e7341d89c4c6008665cf5bd9aee248787fbd9eb00430cc2b8fde3a53ce7d05dc"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/__init__.py",
+   "sha256": "a411e8189bb79046d12245243d1e4e835c6fe75aa93defa15f369cdc0d73bfe1"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/__init__.py",
+   "sha256": "2b45f240dbe849c050051bdb42c6c9743a0004182f015bed4f89d92e6499f656"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/activity_regimes.py",
+   "sha256": "694dce7a1623db3c50f600a99cbd4686f626253ab3fe3cb0fe67137402fa56d0"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/data_structures.py",
+   "sha256": "9979f84de0e05437ac72795aa2355951c877a7feae76e70bdd1a465051e77b8e"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/ltaf_bout_indexer.py",
+   "sha256": "b1f21408d070da752829bd7c0291ade2d0753aaffc116482807670f5003368ad"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/ltaf_prompt_templates.py",
+   "sha256": "ab01852f3d5f53fd67f5e89ec79b5773d46e2ae3fcc062725e5fbf9e318ac4c2"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/ltaf_timeline_builder.py",
+   "sha256": "adbeef2bcf46c1dade73e74694026d02ac3e89ebc6b68c5fbba8d1869e21d31e"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/participant_splitter.py",
+   "sha256": "a5c7d1137bc5fe6c683bcf3d75781ac4a6cdad6e233ee50eb544232fecbd62a1"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/recording_sampler.py",
+   "sha256": "2b61fd54b6b679b97100391610955560eaf18dc2397d8cfc350b1951b301156a"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/seed_manager.py",
+   "sha256": "de192e3888aa8d2942380ddf4b879614c54111d04f1cf0f09b119d74c0ca5f2e"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/core/window_index.py",
+   "sha256": "a0dd81162a81eac5e6abe861a5a653a43a2bbb40fa742a204af9cc7a19169de9"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/cot_qa_dataset.py",
+   "sha256": "cdd361f1a9fec1afbc0ac11f333ccbe122d4f72d5c83b8830169968b6f4a19ee"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/generation/__init__.py",
+   "sha256": "f9a20d0b4411ade51a798f4079d9983724d3b0c5bdaabed0dc2dd5c81df788c2"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/generation/config.py",
+   "sha256": "d670fb2285f45163198f4017dac248f609fc7b957e6482ea35801b74f81f8772"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/generation/generator.py",
+   "sha256": "856e7cb0322f1129cea4f8311e32ec138d401121b101c52697dd84120e44d206"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/loader.py",
+   "sha256": "7107806ad4e33d7866295ddb6666599c5ef1fc0b295546d7bd4466ad5bf49a0e"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/plot_generator.py",
+   "sha256": "832b41b6de2304c31e132195be3ff8afdf397643f2aee06c76b99d5c5ecf70c2"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/qa_dataset.py",
+   "sha256": "561e4a5c5965fcfe9fd7991150f421f9ed78484eb65b3add0b16288dedba77d9"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/qa_loader.py",
+   "sha256": "3c848791fb33c26b95f594d6542741932a1afe7abc33ad4c3f76a9f0331a9f51"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/rhythm_classifier_dataset.py",
+   "sha256": "cb28c0b381e6e809f26f352ea2d697eb24bfa7801cf9a2719e21383ef0b433b8"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/scripts/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/scripts/verify_ltaf_haystack.py",
+   "sha256": "44c70c54a98cb9c43769a8138850f3b60c49c3fc84b9517256d0ab80e93633ab"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/__init__.py",
+   "sha256": "fe46b12646cccb29b31575c70fcf0dd337cfb76c43ac5d3142fe707065a3dba1"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/base_task.py",
+   "sha256": "278b5c79ae258ef4fa0674300bf3ca5578664663801f48ca072e611c1510404a"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_anomaly_detection.py",
+   "sha256": "cf65a3b160ea7519595eec0aeed6445a0e942e0caed6cea0629b5ddcaa8e9202"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_anomaly_localization.py",
+   "sha256": "b1300d1debf553a2b7ea10c9c401b63e6688656746cb84bf8d75d49c58dfed6d"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_antecedent.py",
+   "sha256": "76b725bd0b1367aa563987db4e71852704cec97e21b6b7f103cdeefa2835c299"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_comparison.py",
+   "sha256": "da2bb9851d4bd2261c8cdd246525bd56351c26d63a6897978314fadc199df048"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_counting.py",
+   "sha256": "e0d95aa809218f04ced11c137af0abd2b4f75326423179286fcce19b6b4daadc"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_existence.py",
+   "sha256": "8d0a33cc976d63fc97ccd9d84d38919e6d4649061ec44d8d989d3bf1f94c18e8"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_localization.py",
+   "sha256": "5152b6279917db0bda7be33ae29d3d99121c88745c1503589e02d78deba7469e"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_multi_hop.py",
+   "sha256": "d3dd7b9e85bb9c8cac13ecaed1f993e5615c98c49697d96b9131b61441873922"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_ordering.py",
+   "sha256": "eff7d4b881a95f4fad62009fae1b1bf067d548ef5b662d73aadc3ddb8f018674"
+  },
+  {
+   "path": "src/datasets/ltaf_haystack/tasks/task_state_query.py",
+   "sha256": "5d7a4743fa34bc7f3799e6d5399d9bdd57b8ffce7392e1775239dc4470e34d82"
+  },
+  {
+   "path": "src/datasets/qa_base.py",
+   "sha256": "d6225e25397f18c3ead0506e2522f98901206e87a94cbe9f3c1bdb078c266353"
+  },
+  {
+   "path": "src/datasets/registry.py",
+   "sha256": "6361500ff77c7136b4632dd1fbba63e3b47b3ea24bb31a25ccb869ce942232b0"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/__init__.py",
+   "sha256": "7a1363ae60068b778635eec02a7b12d7c0e41a3f48bc734f2c581d2820641bd2"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/generation/__init__.py",
+   "sha256": "dc9eedc445145e2f25c8d8b84ec93c10e32a5d3b50244a074f91e1b8945a624b"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/generation/generator.py",
+   "sha256": "7948a702275fb8261e94a74a63715c2a70380fc91ad41a0256515e20c6bf18c4"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/loader.py",
+   "sha256": "8166cd86810093155c50dd4b900214117db57562639dbe094f8cf510ca6ce228"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/plot_generator.py",
+   "sha256": "62b20c09148453f5397c89e2c55fa8912ef87ac97a04088de83a33053023e7d4"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/qa_dataset.py",
+   "sha256": "8684419ef93f326c4d0b785a439d9943354b07213f8117615ac5ed12c0755377"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/qa_loader.py",
+   "sha256": "4ce2d50754a1c3966216f76ca34dae29cbb1de24815e82ea49c0660c24431aea"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/scripts/analyze_sleep_psg_haystack.py",
+   "sha256": "2067a16fa7f5781159f4f6d0b9bd1ca3bf7f03f680814888e54a38beb79ada19"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/scripts/convert_sleep_psg_to_npy.py",
+   "sha256": "284e813187a7d675eb7b0d12e1f990587ebbf69ce6a1fbcbde09b1d229679821"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/scripts/download_sleep_psg.py",
+   "sha256": "2050df81a73e3dc733993606b8a371732cc2cb2af72d5536a10954b7c3f7a19b"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/scripts/predecimate_sleep_psg.py",
+   "sha256": "f7d3bdcb96c8261d09ad5914638ae88d45c7cac61610c45ab688577368714ecb"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/scripts/verify_sleep_psg_haystack.py",
+   "sha256": "c34afc8dad1dea31974b03ce113ee0edfd32394e978c792b5606520eb512c157"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/__init__.py",
+   "sha256": "ac68da50a7d483bc3d4249f28c45228e8c0e961d2fa858053dcbeb6e1cf9840d"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/base_task.py",
+   "sha256": "11b49e475c20adca6527c8cb0e7ee71c765b9aa78032bf8ff540788a85b7d91c"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_antecedent.py",
+   "sha256": "c8e7b7076fa11556d4c9a1f45f1465257a71b40680cccfe830028e816c1a4091"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_comparison.py",
+   "sha256": "56d38d396a8f6a63586d049ade6f532de8a699b977009e1cb3c4d57c25635ac9"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_counting.py",
+   "sha256": "08e9428b2352d567ba5013231f8162475766bf6a3fb12acd6af0f6ee2564bae8"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_existence.py",
+   "sha256": "ba28ede2f6a0e7e2aab3c6f2dea5b6ff00685830bd8b6c651da896aea38dae07"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_localization.py",
+   "sha256": "7fb0530b90a291ad37fc9c1bcce5f3d7ccf306a065d32a199b4f1bd80e8f28b1"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_multi_hop.py",
+   "sha256": "b226e2e6f822dfcac9f6a2badd7b6a82bff71fd67dfdf2f3619f2c76d1771e2f"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_ordering.py",
+   "sha256": "47414e58a326b21a936078f709e4beeb2a49bee83ff4da8fc65fd7094fe48bb5"
+  },
+  {
+   "path": "src/datasets/sleep_psg_haystack/tasks/task_state_query.py",
+   "sha256": "9d5099b18287d27aa53180c565fc5dc1cbc12fcc4e3f19589c0329401bfa069e"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/__init__.py",
+   "sha256": "57a4dd9d69fc23eb6daaf1301c923010d6a84b8b8439d1f82b1c2b6bd335cf95"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/activity_regimes.py",
+   "sha256": "396600b9e072a19f1d24f452007e7b469433b3daccf319f4f8d2741dc6fbde5a"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/background_sampler.py",
+   "sha256": "52008c296f0899cf7fa2eb91407ceb41940adc3797f2c552a99bf29a4f011588"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/bout_extractor.py",
+   "sha256": "8b8a27a7846a8f1b5cee3d4786e5c467675269293ad987ad352152cd3d5a5cf5"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/data_structures.py",
+   "sha256": "e8a30d3e1ceda1ccd280198f48b23f12c2ae3f5b7ba0c33b3161123074fe7a31"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/insertion.py",
+   "sha256": "b822d057a9837dfa717e03b3d034cf281e9bbe3911422825c690997085793a47"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/needle_sampler.py",
+   "sha256": "3a5c74714a584532fed62765231af16d7eb2bbf6b67feb5b86ff3562ddec19c5"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/core/prompt_templates.py",
+   "sha256": "360f493f01e037589671dbd165cc1791e26b35215245347507589d89eb0c2ba5"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/generation/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/generation/config.py",
+   "sha256": "6b22586410c95b425b0cf9cd5460729fd2a062a0cfb50c33c027117c7cd76dd8"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/generation/generator.py",
+   "sha256": "c9f02f5371197e966525cf6af5133de4fb037ee42f411bac8a36161deb0e91f3"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/loader.py",
+   "sha256": "39ad949e141367b8bff6d97ec0df4aa82c09118fd6f81d5d4c0749301606408f"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/plot_generator.py",
+   "sha256": "870d3219c217a8b5c27ab23de480381e4afd82ae9f05474096546b389e207fcc"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/qa_dataset.py",
+   "sha256": "dfefc262c29d7e823b5553ed3feefea4995edf65aaba393c0194a3beaaddd5c9"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/qa_loader.py",
+   "sha256": "962b75ecc32a2148055dda29cd53a4ac413333f360eecd8ba149482a7c7957b8"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/ablate_insertion_fixes.py",
+   "sha256": "7289a9c67fc2e4724f6a3d0803cc92be765b6981b1e9a5c62c499721b70e6e39"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/classifier_transfer_test.py",
+   "sha256": "bbeac2013a01e3dd5bd3b7800c7ab544670960af8ed0e286e89ab080cbb9a865"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/plot_insertion_validation.py",
+   "sha256": "aa41cbe0febf2156237ccb5e35f6a911771aa36873353c8356136831a56fd2d0"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/probe_insertion_shortcut.py",
+   "sha256": "692d84ac93e524f20272d76030163f31a1772cdcccbbcf93f345a32acd68193a"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/validate_insertion.py",
+   "sha256": "9e043bdf34114940f4157943e952686f875c372ddfce9aeb7a33ab900854c628"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/validate_isolated_insertion.py",
+   "sha256": "78cc65f6a591c3580dc07b53882e3f7e9974571f989b289d0ecfc3417027fb2d"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/scripts/verify_uk_dale_haystack.py",
+   "sha256": "b5dbb5d56271eee9140ac88d54b62ef8bb6ddbdd428050248b315f8df6473e4d"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/__init__.py",
+   "sha256": "bcd4ef706403ad9573d220ee1b33321630ae973dd73a5155a177be332669995a"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/base_task.py",
+   "sha256": "4c4a3cb6304c3222db47e71c6e0c622fa71c645f8a71db591f77febdba0d43c8"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_anomaly_detection.py",
+   "sha256": "2cf948cc6a4bc7655e4a7bfa0483e32b969934e7d472d435aed21e5832a4aa63"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_anomaly_localization.py",
+   "sha256": "f174b3f27847b2252426e80379da09447cd20a36bc72c7da93df0f9ee605d3e0"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_antecedent.py",
+   "sha256": "7ea66777e4273bcca6b713400c8586729a68c9875dc550e66b1252eea28d7d95"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_comparison.py",
+   "sha256": "810bf619bc981065c479e6706e8befaebca8f03fad87dd9696b4de38a5e397c5"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_counting.py",
+   "sha256": "76b4a7367225c61bacb5ae08f28e4a43c65b12444d85d3dc5af378ca806115a1"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_existence.py",
+   "sha256": "811ab52b47a189c0d50489bf5d85a99a0aff3c387c0d838f76bd3d5bb4f5af65"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_localization.py",
+   "sha256": "0258fd533fed23e8357f038766f6496d30320c5d746dc77fb51ffc3c9ea110e5"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_multi_hop.py",
+   "sha256": "cf88d357b5111309c843431710ad9e3f963ecb9e507d48c17cc1dd19657a1dda"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_ordering.py",
+   "sha256": "61a82d3c666708252d42843bedfc7a14c4783132ce96d2f15597ca54ce836375"
+  },
+  {
+   "path": "src/datasets/uk_dale_haystack/tasks/task_state_query.py",
+   "sha256": "bf9f8e9a0f8115488c9efa329319e72f059f36ece48863b42e1733ab3a3a0658"
+  },
+  {
+   "path": "src/datasets/util.py",
+   "sha256": "17e0fddcb8ac5c1be2dbf4d9b93998ca6e456910e62cfbe57d064bde0e85c6d7"
+  },
+  {
+   "path": "src/evaluation/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "src/evaluation/metrics/__init__.py",
+   "sha256": "ade7b8f6b7641dfe4dba665454057ec2825a69315bf4d0aa0b5b47724021e0a8"
+  },
+  {
+   "path": "src/evaluation/metrics/text_generation.py",
+   "sha256": "68f8c69bd93e21fbe153775bf3491b83a82a46dcf4662ef269bc850eb21a1d35"
+  },
+  {
+   "path": "src/models/__init__.py",
+   "sha256": "4d81d3aa61c3154c5201f96c05741e1cbf12145020794af667b1b417536bb8a6"
+  },
+  {
+   "path": "src/models/base.py",
+   "sha256": "67d6efbe5f065e286abce86eb5f400d8e8110d3ac37f975e3ac7314371979c8c"
+  },
+  {
+   "path": "src/models/classifiers/__init__.py",
+   "sha256": "c2f91d1f1d57b315be6317769736833826a95dfeea296932b8b414ba1240f08a"
+  },
+  {
+   "path": "src/models/classifiers/capture24/__init__.py",
+   "sha256": "33d6461c12b5d1f43f293a97098192f50ba633cf9828a14beb9e0218c52704e2"
+  },
+  {
+   "path": "src/models/classifiers/capture24/model.py",
+   "sha256": "b538f273d53984057742ba2a15ddb295c2acbbe0118e73bd6f897dee09dd5319"
+  },
+  {
+   "path": "src/models/classifiers/capture24/train.py",
+   "sha256": "a5c0f48dfa018a139e4de824a7062935fddca3224524df0e57db1ee6f66a5bdf"
+  },
+  {
+   "path": "src/models/classifiers/ecg/__init__.py",
+   "sha256": "5781f5693d430d564e88d68c5c19a5edb1091273a46fdc9719b4652cd8fb4d10"
+  },
+  {
+   "path": "src/models/classifiers/ecg/beat_htf.py",
+   "sha256": "54a39fe01dd0e1fec75c12b865fc7da899296e1421f58e839e5d79b1b32b005c"
+  },
+  {
+   "path": "src/models/classifiers/ecg/rhythm.py",
+   "sha256": "c361e554836da9941d398f24287571b54ad17cccfe3ddd1689429e58441c97e3"
+  },
+  {
+   "path": "src/models/classifiers/ecg/rhythm_from_beats.py",
+   "sha256": "27d3c57245cd3953d2ac99af01a9f0dcb8b9833654f1c6b2e763e20f504a3ccd"
+  },
+  {
+   "path": "src/models/classifiers/ecg/train_beat_htf.py",
+   "sha256": "ab257c453fdc3a1c0f0d98ec678cb1a4359678fa30f610bda158a060ff7bbfde"
+  },
+  {
+   "path": "src/models/classifiers/ecg/train_rhythm.py",
+   "sha256": "22228079c64adef08e2a3bac9a4163b630c28e1591a38717f4968f342d02817b"
+  },
+  {
+   "path": "src/models/classifiers/ecg/train_rhythm_from_beats.py",
+   "sha256": "16f1945581e99fc11370f97d990883e6c6184057a0f08fbd7ca2c17c3fcbf52f"
+  },
+  {
+   "path": "src/models/classifiers/encoders.py",
+   "sha256": "c3c621c5123041276ed30bfbb2d75389719c6da432620821fdc803c9e371060f"
+  },
+  {
+   "path": "src/models/classifiers/sleep/__init__.py",
+   "sha256": "c1383e001d585e7bfc02e99143e8cc24d968fc9af1bfd16c607b758f34cfcef4"
+  },
+  {
+   "path": "src/models/classifiers/sleep/model.py",
+   "sha256": "e23326460e127f39d8ab81c38687d9f2cc46ea75cad1f728cf9882948dd9a8e1"
+  },
+  {
+   "path": "src/models/classifiers/sleep/train.py",
+   "sha256": "de15a0862aa6c26f0b4750e2563a1e7f1504e042f8ab574878b6438278706f0d"
+  },
+  {
+   "path": "src/models/classifiers/uk_dale/__init__.py",
+   "sha256": "79b3fb66c153aa71fb966392357bf8e12042a2a7125757d13007c49bcacff083"
+  },
+  {
+   "path": "src/models/classifiers/uk_dale/model.py",
+   "sha256": "2d99afeeb0bb4b3c1775d4bede52a012b418935c93e6f5c782b884db88b05212"
+  },
+  {
+   "path": "src/models/classifiers/uk_dale/train.py",
+   "sha256": "158034eed2c56d07b683b5b672e0c0704a57a589e541b5e5e6582b1bc3c0e8c0"
+  },
+  {
+   "path": "src/models/projector/__init__.py",
+   "sha256": "88e669a1a524369ce56f86be93391abb6c0ad2cb21a2d74037009eddc01c4678"
+  },
+  {
+   "path": "src/models/projector/linear.py",
+   "sha256": "a4a2dc908f782176c0dcec5ba6c12b2a355eda40f1a3c95ba5c906398f8bd27c"
+  },
+  {
+   "path": "src/models/projector/mlp.py",
+   "sha256": "6c9247823c7f29275d51353447e742a27f0c4aed4614aeff82167331d12c687b"
+  },
+  {
+   "path": "src/models/registry.py",
+   "sha256": "5465335e6bab3f6ad914ac7ddb9b5afa852746f2c72e6cf84b2a5ce1f0ac50cc"
+  },
+  {
+   "path": "src/models/ts_encoder/__init__.py",
+   "sha256": "b621676237e8921bb978271ebee08b8dc63c4679d6ac2d3ca84f3f722511a2c7"
+  },
+  {
+   "path": "src/models/ts_encoder/base.py",
+   "sha256": "f3c68084ea7c69af491e5fb1760056b5c0aa2e1ee4750aab6aacf18cfc607e48"
+  },
+  {
+   "path": "src/models/ts_encoder/chronos2_encoder.py",
+   "sha256": "0bab72564518e86e3f4a02099e44e60ba6825f2722a382d4311d35277021dc8a"
+  },
+  {
+   "path": "src/models/ts_encoder/cnn_tokenizer.py",
+   "sha256": "d549a16872edab1e80a28152a67d7c0f238a104f1a724da3e8e8de975483d008"
+  },
+  {
+   "path": "src/models/ts_encoder/itformer_encoder.py",
+   "sha256": "796cf6ca15ee06bc09d460b6329b160cbcdaceaf09274c1160340c5c7771eb4c"
+  },
+  {
+   "path": "src/models/ts_encoder/mlp_encoder.py",
+   "sha256": "7396cb88f696c1d6e0b04a182119fd77b3f0f61338868c2725400fe998dc5394"
+  },
+  {
+   "path": "src/models/ts_encoder/timesfm_encoder.py",
+   "sha256": "842db4412803efac2a1ba265baaafec706f2b356699f1bc4d3233aeed0ddce7b"
+  },
+  {
+   "path": "src/models/ts_encoder/transformer_cnn.py",
+   "sha256": "89baf85f4ffe7650b7e684d2b6705c9f20c6f18c5e93a447d1d8a86e20f1272b"
+  },
+  {
+   "path": "src/models/ts_encoder/transformer_mlp.py",
+   "sha256": "0fd84841326c81d287e6894cdd261b32ee1d2c2d00e741409c6f5a34588556c1"
+  },
+  {
+   "path": "src/models/ts_llm/__init__.py",
+   "sha256": "0e6bfefd68bc5839b0669acbb0a6dc840dca06978e833ff3e988797620e2486b"
+  },
+  {
+   "path": "src/models/ts_llm/arts/__init__.py",
+   "sha256": "c7f13e57c5e3b9fda5a032bf750e46dd8d62028d307393c4d5fd82d8822be7c5"
+  },
+  {
+   "path": "src/models/ts_llm/arts/bout_utils.py",
+   "sha256": "530c84c591344846133cc1eb5f1a6e5b3870682f1ae238a57b1d0a6cdc7393e9"
+  },
+  {
+   "path": "src/models/ts_llm/arts/capture24.py",
+   "sha256": "dc830adb8edbfec1b06e029ed1ccba96d69cbed81276a777c84bf380b10589aa"
+  },
+  {
+   "path": "src/models/ts_llm/arts/capture24_prepass.py",
+   "sha256": "e12518741cbd10794c9411f835b2693c73f6baf90130bb7f3a709eeec390f6a0"
+  },
+  {
+   "path": "src/models/ts_llm/arts/ltaf.py",
+   "sha256": "07c14bbf3c0e1b9bd8340a9ace5addca7e5037e9f57ec5a753295c8c34b0adc1"
+  },
+  {
+   "path": "src/models/ts_llm/arts/providers.py",
+   "sha256": "77d740204fb4d225cc56f1a652c8e788e677df99b7ad1d7e488fd00696538529"
+  },
+  {
+   "path": "src/models/ts_llm/arts/query.py",
+   "sha256": "b0dac6211cb125560aa972c72b8add1218aee96807afb9417c5b046edbd1eccb"
+  },
+  {
+   "path": "src/models/ts_llm/arts/sleep.py",
+   "sha256": "18a3c78b5ce32b61b1d8c544ff9f5bcff089d37eb97e4b93436436734f0f2ad2"
+  },
+  {
+   "path": "src/models/ts_llm/arts/sleep_prepass.py",
+   "sha256": "5609b666100edff4745fa1669d13b4e2d809501dd5d8d0b559faf66440f66cc9"
+  },
+  {
+   "path": "src/models/ts_llm/arts/uk_dale_prepass.py",
+   "sha256": "48a25bc33fbe57140d8514cbb7f3fca1bc4fab97c13645266ea9095349b10780"
+  },
+  {
+   "path": "src/models/ts_llm/chatTS/__init__.py",
+   "sha256": "b6d73d02766bf1f4c0c48c858a4f5e6e43d84bd6ce7e41158d9b03797ab65112"
+  },
+  {
+   "path": "src/models/ts_llm/chatTS/chatts_model.py",
+   "sha256": "5623340a7b944c1ab911c500dceb376d9cc3d49094d0142465fba4232b6605c3"
+  },
+  {
+   "path": "src/models/ts_llm/chattime/__init__.py",
+   "sha256": "825103a8f51777bf841f9fd972c98413e93145e94b83bef9033118df86079dee"
+  },
+  {
+   "path": "src/models/ts_llm/chattime/discretizer.py",
+   "sha256": "0a29db1f7f5b79529829ffc3a383e458812f0ea1403a44a9191961c4e02a472a"
+  },
+  {
+   "path": "src/models/ts_llm/chattime/model.py",
+   "sha256": "da2851f371772ec1e1d620bde84c0260a294d222a03449437220ce8f61081de5"
+  },
+  {
+   "path": "src/models/ts_llm/chattime/serializer.py",
+   "sha256": "7858c56dc48f3618888a9d486aa50b37cba329220b8ba2404bbe990a63f21e32"
+  },
+  {
+   "path": "src/models/ts_llm/itformer/__init__.py",
+   "sha256": "b2f9f91fa1c2dbb78af84994fbdb468d6797f298ed1bba3f9e7a38af1bbaab6a"
+  },
+  {
+   "path": "src/models/ts_llm/itformer/attention.py",
+   "sha256": "d8a4001637c708c6e2c5cedcbc3c41c3389e43c38a5ea8375ea039880d6d35c1"
+  },
+  {
+   "path": "src/models/ts_llm/itformer/fusion.py",
+   "sha256": "954f45269eb2ca778727ccf3173d674095fd9ec839c1b8ed759a386d70de64cd"
+  },
+  {
+   "path": "src/models/ts_llm/itformer/model.py",
+   "sha256": "a5a66dc0d8fe1ef35d9edbb9f4fb00f9a7dd3a45546b2baef2bcd00796026dac"
+  },
+  {
+   "path": "src/models/ts_llm/itformer/position_encoding.py",
+   "sha256": "5bee7225f2a98c4726a099a9f78dba485df8f3117eb9b4fb5b01f5a95dda9963"
+  },
+  {
+   "path": "src/models/ts_llm/itformer/pretrain_ts_encoder.py",
+   "sha256": "171354e9a70faef6fca65b1ca950212559ea16b043ac60d8adb1e35b4a8fc842"
+  },
+  {
+   "path": "src/models/ts_llm/opentslm_flamingo/__init__.py",
+   "sha256": "61a31283b15c9b07cf61859b15087da9a4a98398fed985825a9361a18017e19c"
+  },
+  {
+   "path": "src/models/ts_llm/opentslm_flamingo/flamingo.py",
+   "sha256": "83a3136ea01c9f60d8cd47244df9b40991cdbea5413bcdf02c72a7ddc88e7e09"
+  },
+  {
+   "path": "src/models/ts_llm/opentslm_flamingo/flamingo_encoder.py",
+   "sha256": "b96af11c0fa1b196c56592dd53bfe22f5610c6661b11a24f3890d68464a97fe6"
+  },
+  {
+   "path": "src/prompt/__init__.py",
+   "sha256": "60e064e79b6572a20b6b22410cd80a8345c72adb4da5bbcf6ed805c344003ab1"
+  },
+  {
+   "path": "src/prompt/full_prompt.py",
+   "sha256": "7a49c2c9c44a3ee59577cddaacef140e4d4c4a4830bea5c5976d0243d3fe4ba6"
+  },
+  {
+   "path": "src/prompt/prompt.py",
+   "sha256": "bbb3a2a24174167fb7541a0fb3edfb9d8760c5ceead1a91f5fa69d250b6f14ff"
+  },
+  {
+   "path": "src/prompt/prompt_with_answer.py",
+   "sha256": "7314d56bbb11f987cd677b46487bc0521cf3ed56a186b4a4450ed67c3ca719f3"
+  },
+  {
+   "path": "src/prompt/text_prompt.py",
+   "sha256": "add13851e61dd609b6cd2777d44f0001517c4222281c43082690e733ccf8218f"
+  },
+  {
+   "path": "src/prompt/text_time_series_prompt.py",
+   "sha256": "a6c5c5ce49a5bb867f551f52bb674eadc477500885b9fe8844d085ea168e4f78"
+  },
+  {
+   "path": "src/training/__init__.py",
+   "sha256": "e3f70cc73911c4364def5bf321350990b5642ff59ae291faa434fbe23805284c"
+  },
+  {
+   "path": "src/training/logging.py",
+   "sha256": "140be344c8d4cd0efa13e1520f3b2d39e2fdd73a14314b9bd6c9b5315623a889"
+  },
+  {
+   "path": "src/utils/__init__.py",
+   "sha256": "d9532239fd9d1e69f42e044b99ff668bf962c4ec5d481ff0514bbf42279e7cab"
+  },
+  {
+   "path": "src/utils/config.py",
+   "sha256": "814760be676eef0666596fc8c120a51dcc0201fa7ace5022ede539644a234f34"
+  },
+  {
+   "path": "src/utils/distributed.py",
+   "sha256": "c8b343a49b7e207da131b0733d98d0cf2fdb88714bc98297f834a09ec979ae17"
+  },
+  {
+   "path": "src/utils/io.py",
+   "sha256": "39b6a3eb0c5a4dda10d086c44c741e349002d51e518ce9fa3d1469419f98662d"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "0d162c7be419685209c454fc23ad7ea13aa46f9681572ed3efc6ede38dbacdfb"
+  },
+  {
+   "path": "tests/integration/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/integration/test_ltaf_generation_reproducibility.py",
+   "sha256": "a8ad852c0e1ac60c3643fda480e9662798b4e63aeaa73542d796b8df6be30746"
+  },
+  {
+   "path": "tests/integration/test_ltaf_training_smoke.py",
+   "sha256": "3b3386646539fe736e1d707c611ee0b928c85f952e042f6b7cfd97cbe5d57493"
+  },
+  {
+   "path": "tests/integration/test_uk_dale_reproducibility.py",
+   "sha256": "cfdb529bd93af4ffc079777ef00384ed39eec75da48a97e63ecd68fc53b5e39f"
+  },
+  {
+   "path": "tests/unit/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/unit/test_components/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/unit/test_components/test_decoder_layers.py",
+   "sha256": "b820751e4c60fc9765efafce224b7a205f5324fca7ee95b4ec70e7b3b1c7aedc"
+  },
+  {
+   "path": "tests/unit/test_components/test_primitives.py",
+   "sha256": "f4a026f8bfd4f7d8a9d07dd570247c0eefa72c9955fd839e7fb958add3be41ec"
+  },
+  {
+   "path": "tests/unit/test_config.py",
+   "sha256": "8ab17a0a0aa48eabd8136923595e2d9b951abdae80495f28d69853032bd7badc"
+  },
+  {
+   "path": "tests/unit/test_datasets/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/unit/test_datasets/test_ltaf_core_artifacts.py",
+   "sha256": "bfced2da8f33937bae057c407f2577624219d1373d6d75eae6666972b2620422"
+  },
+  {
+   "path": "tests/unit/test_datasets/test_ltaf_generation_config.py",
+   "sha256": "68753632bb516d4e8bbc70e1917aa95aa639b3157dafb4bc59cf23eba6ffca07"
+  },
+  {
+   "path": "tests/unit/test_datasets/test_ltaf_qa_loader.py",
+   "sha256": "e1ea0043ad9af9f963273521f7122aaf70d91bc937565d682207c1c5d5ed9357"
+  },
+  {
+   "path": "tests/unit/test_datasets/test_ltaf_tasks_m4.py",
+   "sha256": "6fedd8b4a388b9b8024fe2ee6d1ea6099d979b799445711adc4f114dcb58a620"
+  },
+  {
+   "path": "tests/unit/test_datasets/test_uk_dale_bout_extractor.py",
+   "sha256": "f18e9bc27d3aba99df52d83d5886ab32d73244d06bfdddc9279bea1794cb99fd"
+  },
+  {
+   "path": "tests/unit/test_datasets/test_uk_dale_tasks.py",
+   "sha256": "df6e478e9c1009b4f9a07655d47d152455d81acd64514eb69efaeafa1b15e68b"
+  },
+  {
+   "path": "tests/unit/test_models/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/unit/test_training/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/unit/test_training/test_logging.py",
+   "sha256": "c3829d416c29c1cf623295eb72ba20884a80c313129e2b0e2c59a95d8e44a921"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 793063,
+ "tier": "A+B"
+}

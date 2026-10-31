@@ -1,0 +1,109 @@
+{
+ "repo": "hzcar/ReCAP",
+ "dir": "hzcar__ReCAP",
+ "commit": "36ea4b21f112020dad294b36be312d23addc94d0",
+ "estimate_commit": "36ea4b21f112020dad294b36be312d23addc94d0",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  "LICENSE",
+  "README.md",
+  "dataset/generate_shifted_sample_indices.py",
+  "dataset/selectedRotateImageFolder.py",
+  "dataset/total_100000_ir_500000_class_order_shuffle_yes.npy",
+  "deyo.py",
+  "eata.py",
+  "figures/overview.png",
+  "main.py",
+  "models/Res.py",
+  "models/__init__.py",
+  "recap.py",
+  "recap_plpd.py",
+  "sam.py",
+  "sar.py",
+  "tent.py",
+  "utils/__init__.py",
+  "utils/cli_utils.py",
+  "utils/cov_resnet50_gn_timm.npy",
+  "utils/cov_vitbase_timm.npy",
+  "utils/third_party.py",
+  "utils/utils.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": "dataset/generate_shifted_sample_indices.py",
+   "sha256": "3f3e4c448dbd1aa00d9c63c33d4676dd091dcc98176efebb86bb70995a44862b"
+  },
+  {
+   "path": "dataset/selectedRotateImageFolder.py",
+   "sha256": "2e505887393a2b44e1b377b9674195814f5024c856a55ada116477dd1c338d4e"
+  },
+  {
+   "path": "deyo.py",
+   "sha256": "7da44ed2187d0523d18e6b0b6e7a7828c5f4bda2a55cac400c92bc68babcba0a"
+  },
+  {
+   "path": "eata.py",
+   "sha256": "ab549bd7e0a764aaa264a6320fdd464f77987482d2a9928de984383769fc6dc0"
+  },
+  {
+   "path": "main.py",
+   "sha256": "1ae60a304455b3000a7c8bfc615a63f0164bc3a48656d1067feb48b49008e984"
+  },
+  {
+   "path": "models/Res.py",
+   "sha256": "266528c80d4232ccf284d325a5c173e6ee97a6b682cd83fafbfad37be9e0171e"
+  },
+  {
+   "path": "models/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "recap.py",
+   "sha256": "4e4f0a94e6587d010b22101444748327f04fd879d4c50cb6b71f166ed025ab46"
+  },
+  {
+   "path": "recap_plpd.py",
+   "sha256": "3745660b8ded7651f0cb820e3055ccbdcc6be87cebb0ea3717c1129448eae555"
+  },
+  {
+   "path": "sam.py",
+   "sha256": "b0569de29015016996feae257d30be6cc36f80d42d0f51d4a201eb39d2491712"
+  },
+  {
+   "path": "sar.py",
+   "sha256": "aecfc09f35693fd7a9865155c0f08afe8c368c468ec235f4d1e589a9cb8845de"
+  },
+  {
+   "path": "tent.py",
+   "sha256": "dd8c87abb8a32c67e96d8a6c6486b4195fef6e4b64f8d0c83b8b5d8153765ac7"
+  },
+  {
+   "path": "utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "utils/cli_utils.py",
+   "sha256": "8435ed01e59ca9a4f75dcd4c3c5139133ac10168264367992c4e40f03e965f6b"
+  },
+  {
+   "path": "utils/third_party.py",
+   "sha256": "6b2fddb902351102e33d7902035cb012cdfccb204136156dac974018f3a6ccf7"
+  },
+  {
+   "path": "utils/utils.py",
+   "sha256": "1d1e55e35b7bb40fd0e3e7e4e270abd6e94ead34e2d4b9146be6ff818f485000"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 64017,
+ "tier": "A+B"
+}

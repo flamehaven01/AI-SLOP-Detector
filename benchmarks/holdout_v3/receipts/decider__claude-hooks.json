@@ -1,0 +1,150 @@
+{
+ "repo": "decider/claude-hooks",
+ "dir": "decider__claude-hooks",
+ "commit": "5278ebda86544cf3d06cfdde6d1c0f8f36727a46",
+ "estimate_commit": "5278ebda86544cf3d06cfdde6d1c0f8f36727a46",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".claude/README.md",
+  ".claude/doc-rules/README.md",
+  ".claude/doc-rules/config.json",
+  ".claude/hooks.json",
+  ".claude/settings.json",
+  ".gitignore",
+  "CLAUDE.md",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "MIGRATION.md",
+  "README.md",
+  "VERSION",
+  "docs/CLEAN-CODE-GUIDE.md",
+  "docs/PUSHOVER-SETUP.md",
+  "docs/README-tests.md",
+  "docs/README.md",
+  "docs/anchor-patterns.md",
+  "docs/hierarchical-hooks.md",
+  "docs/ideas-for-hooks/continuous-ui-improvement.md",
+  "docs/ideas-for-hooks/hook-package-manager.md",
+  "docs/ideas-for-hooks/hook-validation-system.md",
+  "docs/ideas-for-hooks/method-similarity-indexer.md",
+  "docs/ideas-for-hooks/package-similarity-detection.md",
+  "docs/ideas-for-hooks/shiny-windows-delight.md",
+  "docs/ideas-for-hooks/task-completion-system.md",
+  "docs/python-standards.md",
+  "examples/.claude-hooks.json",
+  "examples/backend/.claude-hooks.json",
+  "examples/backend/app.py",
+  "examples/frontend/.claude-hooks.json",
+  "examples/frontend/App.jsx",
+  "hooks/check-package-age.py",
+  "hooks/claude-context-rules.json",
+  "hooks/config_loader.py",
+  "hooks/language_validators.py",
+  "hooks/list_hooks.py",
+  "hooks/notification_utils.py",
+  "hooks/package_utils.py",
+  "hooks/portable-quality-validator.py",
+  "hooks/post-tool-hook.py",
+  "hooks/stop-hook.py",
+  "hooks/stop_handler.py",
+  "hooks/task-completion-notify.py",
+  "hooks/universal-post-tool.py",
+  "hooks/universal-pre-tool.py",
+  "hooks/universal-stop.py",
+  "hooks/validators.py",
+  "hooks/violation_formatters.py",
+  "install-hooks.py",
+  "portable-hooks/README.md",
+  "proof-hooks-not-running.md"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "3f4c4047e1037e687fb4d88a4fa2386140236a6711e7426d29936ff22f11bd6b"
+  },
+  {
+   "path": "examples/backend/app.py",
+   "sha256": "a55a3b3377aa1ca71121e42ea367f92365cd82418bf10329c21dec03cee8def0"
+  },
+  {
+   "path": "hooks/check-package-age.py",
+   "sha256": "3e45d83eda384659082b0cdb41074a16aa4c89a4561ef1567d07a74484666877"
+  },
+  {
+   "path": "hooks/config_loader.py",
+   "sha256": "21fa8df814f95ebd9ed493a042053100094451c2ffe1656f12b6b1aa1a606db7"
+  },
+  {
+   "path": "hooks/language_validators.py",
+   "sha256": "c246f3d5e847b6fe317855488f17395f85d6c6dac8b46ff23e13e51b46d4691f"
+  },
+  {
+   "path": "hooks/list_hooks.py",
+   "sha256": "5f47b0c4644bb588bb12231e4f84bc88c8c2c2aaf2b092d2b91723c07c7529c8"
+  },
+  {
+   "path": "hooks/notification_utils.py",
+   "sha256": "1beb6a32df27f67899d9ca41a4bcbf4a87e9d7f7c71ae1e5847e686af1f5fb96"
+  },
+  {
+   "path": "hooks/package_utils.py",
+   "sha256": "d3cd0fdbee813494d756440e95c336cac9c10f2e7fc119c4b605ba84c6bdd64d"
+  },
+  {
+   "path": "hooks/portable-quality-validator.py",
+   "sha256": "415e40187b1d1b4cb531d26b2ba1766b9f2a768e1f0d1bad2917ff57aa7d4e99"
+  },
+  {
+   "path": "hooks/post-tool-hook.py",
+   "sha256": "b5a377287778c10f635c917e3d2045e72e985e8202b7bdff1547181a95d646a1"
+  },
+  {
+   "path": "hooks/stop-hook.py",
+   "sha256": "893efebe402317cecc254098257c0cde471aeaa339604c268a1e585010fc7a58"
+  },
+  {
+   "path": "hooks/stop_handler.py",
+   "sha256": "8ec9c92e80f5e49a933c6a39a3eb78cffeb4ae1e89ee898c083215e3b401b880"
+  },
+  {
+   "path": "hooks/task-completion-notify.py",
+   "sha256": "fa916a5c15ba55fe82ec6101ee449a3d7bdd2e61cd9e7440c3f1e847a95421dc"
+  },
+  {
+   "path": "hooks/universal-post-tool.py",
+   "sha256": "0f9d7de5aba0b0f732707b9615ef91cdc7059238786fa62c0b8a62d04a84e2fb"
+  },
+  {
+   "path": "hooks/universal-pre-tool.py",
+   "sha256": "cd5055a6df7aced50f20e3cce562d094ac9af4e9e776f1493cc0172937e7ed1d"
+  },
+  {
+   "path": "hooks/universal-stop.py",
+   "sha256": "bff14a9fc5b10bf0c7fa63fbf03dd187621a66427392c2512770fd8513a96563"
+  },
+  {
+   "path": "hooks/validators.py",
+   "sha256": "74984b77bf109d6eef09f9663d3a6d9b14df4ee0129e8f09ba5e48cd0ed3add2"
+  },
+  {
+   "path": "hooks/violation_formatters.py",
+   "sha256": "a485549b586f966c7644faaa748c6f3f467181f5ce834449cbad395edc1d8574"
+  },
+  {
+   "path": "install-hooks.py",
+   "sha256": "de5d2a9ac3a701432f265ff94d632b5a86b046bfdfa372643b7eda3dbe6fa850"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 58584,
+ "tier": "A+B"
+}

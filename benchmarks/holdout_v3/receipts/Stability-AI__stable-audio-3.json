@@ -1,0 +1,1224 @@
+{
+ "repo": "Stability-AI/stable-audio-3",
+ "dir": "Stability-AI__stable-audio-3",
+ "commit": "4bf31f77c651378155dbbc9100897f220a212b9b",
+ "estimate_commit": "4bf31f77c651378155dbbc9100897f220a212b9b",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".github/workflows/lint.yml",
+  ".github/workflows/mlx.yml",
+  ".github/workflows/tflite-cross-platform.yml",
+  ".gitignore",
+  ".python-version",
+  "LICENSE",
+  "README.md",
+  "docs/guides/gradio.png",
+  "docs/guides/model-overview.md",
+  "docs/guides/prompting.md",
+  "docs/guides/stable-audio-3.png",
+  "docs/guides/training-stages.png",
+  "docs/workflows/autoencoder.md",
+  "docs/workflows/inference.md",
+  "docs/workflows/lora.md",
+  "optimized/README.md",
+  "optimized/mlx/.gitignore",
+  "optimized/mlx/README.md",
+  "optimized/mlx/TRAINING_CONVENTIONS.md",
+  "optimized/mlx/ableton/AudioInserter/AudioInserter.py",
+  "optimized/mlx/ableton/AudioInserter/__init__.py",
+  "optimized/mlx/ableton/README.md",
+  "optimized/mlx/ableton/insert_audio.py",
+  "optimized/mlx/benchmark.sh",
+  "optimized/mlx/bootstrap.sh",
+  "optimized/mlx/install.sh",
+  "optimized/mlx/models/__init__.py",
+  "optimized/mlx/models/defs/__init__.py",
+  "optimized/mlx/models/defs/audio_encoding.py",
+  "optimized/mlx/models/defs/demo_mlx.py",
+  "optimized/mlx/models/defs/dit_mlx.py",
+  "optimized/mlx/models/defs/dit_mlx_medium.py",
+  "optimized/mlx/models/defs/latent_dataset.py",
+  "optimized/mlx/models/defs/lora.py",
+  "optimized/mlx/models/defs/lora_merge.py",
+  "optimized/mlx/models/defs/sa3_pipeline.py",
+  "optimized/mlx/models/defs/same_l_decoder.py",
+  "optimized/mlx/models/defs/same_l_encoder.py",
+  "optimized/mlx/models/defs/same_s_decoder.py",
+  "optimized/mlx/models/defs/same_s_encoder.py",
+  "optimized/mlx/models/defs/t5gemma_mlx.py",
+  "optimized/mlx/models/defs/training.py",
+  "optimized/mlx/requirements-gradio.txt",
+  "optimized/mlx/requirements.txt",
+  "optimized/mlx/sa3",
+  "optimized/mlx/sa3-gradio",
+  "optimized/mlx/scripts/benchmark.py",
+  "optimized/mlx/scripts/examples.py",
+  "optimized/mlx/scripts/export_base_npz.py",
+  "optimized/mlx/scripts/install.py",
+  "optimized/mlx/scripts/lora_train_mlx.py",
+  "optimized/mlx/scripts/parity_forward_mlx.py",
+  "optimized/mlx/scripts/parity_forward_torch.py",
+  "optimized/mlx/scripts/pre_encode_mlx.py",
+  "optimized/mlx/scripts/sa3_gradio.py",
+  "optimized/mlx/scripts/sa3_mlx.py",
+  "optimized/mlx/scripts/spec.py",
+  "optimized/mlx/scripts/test_all_configs.py",
+  "optimized/mlx/scripts/test_lora_merge.py",
+  "optimized/mlx/scripts/weights.py",
+  "optimized/tensorRT/.gitignore",
+  "optimized/tensorRT/README.md",
+  "optimized/tensorRT/benchmarks/README.md",
+  "optimized/tensorRT/benchmarks/img/dec-accuracy.png",
+  "optimized/tensorRT/benchmarks/img/dec-latency.png",
+  "optimized/tensorRT/benchmarks/img/dec-vram.png",
+  "optimized/tensorRT/benchmarks/img/enc-accuracy.png",
+  "optimized/tensorRT/benchmarks/img/enc-latency.png",
+  "optimized/tensorRT/benchmarks/img/enc-vram.png",
+  "optimized/tensorRT/benchmarks/same-ae-sweep.html",
+  "optimized/tensorRT/benchmarks/same-ae-sweep.json",
+  "optimized/tensorRT/bootstrap.sh",
+  "optimized/tensorRT/build/README.md",
+  "optimized/tensorRT/build/_arch.py",
+  "optimized/tensorRT/build/build.py",
+  "optimized/tensorRT/build/build_autoencoders.py",
+  "optimized/tensorRT/build/build_dit_bf16.py",
+  "optimized/tensorRT/build/build_dit_fp16.py",
+  "optimized/tensorRT/build/build_dit_profile.py",
+  "optimized/tensorRT/build/build_from_onnx.py",
+  "optimized/tensorRT/build/build_same_s_dec_fp16.py",
+  "optimized/tensorRT/build/limiter/graft_limiter.py",
+  "optimized/tensorRT/build/limiter/limiter.onnx",
+  "optimized/tensorRT/build/limiter/make_ceiling_input.py",
+  "optimized/tensorRT/build/limiter/make_deterministic_sames.py",
+  "optimized/tensorRT/build/make_calib.py",
+  "optimized/tensorRT/build/make_dit_fp8_smalldit.py",
+  "optimized/tensorRT/build/transplant_scales.py",
+  "optimized/tensorRT/install.sh",
+  "optimized/tensorRT/output/ab_gradio/1780480567813_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780480567813_trt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780480576475_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780480576475_trt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780480587601_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780480587601_trt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780480778299_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780480778299_trt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780481520748_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780481520748_trt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780481695716_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780481695716_trt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780481699952_pt_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780481699952_trt_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482623536_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482623536_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482623536_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482784560_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482784560_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482784560_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482789056_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482789056_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482789056_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482829728_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482829728_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482829728_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482836657_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482836657_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482836657_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482855978_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482855978_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482855978_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482858838_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482858838_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482858838_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482862115_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482862115_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482862115_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482865013_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482865013_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482865013_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482944632_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482944632_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482944632_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482947783_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482947783_trtcanon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482947783_trtfp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482958211_pt_Death_Meta_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482958211_trtcanon_Death_Meta_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780482958211_trtfp32_Death_Meta_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483154115_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483154115_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483154115_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483154115_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483154115_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483219388_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483219388_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483219388_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483219388_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483219388_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483387713_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483387713_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483387713_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483387713_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483387713_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483391579_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483391579_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483391579_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483391579_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483391579_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483395100_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483395100_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483395100_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483395100_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483395100_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483432118_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483432118_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483432118_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483432118_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483432118_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483437783_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483437783_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483437783_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483437783_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483437783_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483441862_pt_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483441862_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483441862_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483441862_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780483441862_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484010428_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484010428_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484010428_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484010428_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484010428_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484010428_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484169479_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484169479_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484169479_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484169479_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484169479_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484169479_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484174384_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484174384_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484174384_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484174384_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484174384_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484174384_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484750885_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484750885_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484750885_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484750885_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484750885_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484750885_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484770421_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484770421_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484770421_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484770421_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484770421_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780484770421_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485629288_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485629288_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485629288_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485629288_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485629288_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485629288_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485714220_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485714220_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485714220_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485714220_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485714220_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485714220_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485720493_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485720493_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485720493_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485720493_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485720493_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485720493_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485772267_pt_samel_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485772267_pt_sames_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485772267_samel_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485772267_samel_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485772267_sames_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485772267_sames_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485778528_pt_samel_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485778528_pt_sames_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485778528_samel_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485778528_samel_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485778528_sames_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780485778528_sames_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486038662_pt_samel_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486038662_pt_sames_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486038662_samel_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486038662_samel_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486038662_sames_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486038662_sames_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486225881_pt_samel_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486225881_pt_sames_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486225881_samel_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486225881_samel_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486225881_sames_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486225881_sames_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486238402_pt_samel_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486238402_pt_sames_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486238402_samel_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486238402_samel_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486238402_sames_canon_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486238402_sames_fp32_Death_Metal_s2_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486700361_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486700361_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486700361_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486700361_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486700361_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486700361_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486716579_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486716579_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486716579_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486716579_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486716579_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486716579_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486723920_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486723920_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486723920_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486723920_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486723920_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486723920_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486731811_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486731811_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486731811_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486731811_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486731811_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486731811_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486740562_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486740562_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486740562_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486740562_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486740562_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486740562_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486749056_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486749056_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486749056_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486749056_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486749056_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486749056_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486757188_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486757188_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486757188_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486757188_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486757188_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486757188_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486770233_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486770233_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486770233_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486770233_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486770233_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486770233_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486778839_pt_samel_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486778839_pt_sames_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486778839_samel_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486778839_samel_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486778839_sames_canon_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/output/ab_gradio/1780486778839_sames_fp32_Death_Metal_s1_spec.png",
+  "optimized/tensorRT/quantize/README.md",
+  "optimized/tensorRT/quantize/build_tiers.py",
+  "optimized/tensorRT/quantize/enc_quant_samel.py",
+  "optimized/tensorRT/quantize/enc_quant_sames.py",
+  "optimized/tensorRT/quantize/fp8_gptq.py",
+  "optimized/tensorRT/quantize/fp8_gptq_samel.py",
+  "optimized/tensorRT/quantize/gptq_samel.py",
+  "optimized/tensorRT/quantize/gptq_w8.py",
+  "optimized/tensorRT/quantize/pad_encoder.py",
+  "optimized/tensorRT/quantize/recalib_dec_sames_margin.py",
+  "optimized/tensorRT/quantize/recalib_enc_fp8.py",
+  "optimized/tensorRT/quantize/recalib_enc_sames_fp8.py",
+  "optimized/tensorRT/requirements.txt",
+  "optimized/tensorRT/sa3",
+  "optimized/tensorRT/sa3-gradio",
+  "optimized/tensorRT/scripts/_arch.py",
+  "optimized/tensorRT/scripts/bench_autoencoders.py",
+  "optimized/tensorRT/scripts/bench_dit_profile.py",
+  "optimized/tensorRT/scripts/diff_attn_nocast_plugin.py",
+  "optimized/tensorRT/scripts/diff_swa_ptx_kernel.py",
+  "optimized/tensorRT/scripts/gradio_ui.py",
+  "optimized/tensorRT/scripts/lora/BUILDING_TRT_LORA.md",
+  "optimized/tensorRT/scripts/lora/README.md",
+  "optimized/tensorRT/scripts/lora/bake_dora.py",
+  "optimized/tensorRT/scripts/lora/branch_map_medium_lora.json",
+  "optimized/tensorRT/scripts/lora/branch_map_sm_music_lora.json",
+  "optimized/tensorRT/scripts/lora/branch_map_sm_sfx_lora.json",
+  "optimized/tensorRT/scripts/lora/branch_runtime.py",
+  "optimized/tensorRT/scripts/lora/build_branch.py",
+  "optimized/tensorRT/scripts/lora/constants.py",
+  "optimized/tensorRT/scripts/lora/dit_loader.py",
+  "optimized/tensorRT/scripts/lora/grep_gate.sh",
+  "optimized/tensorRT/scripts/lora/merge.py",
+  "optimized/tensorRT/scripts/lora/paths.py",
+  "optimized/tensorRT/scripts/lora/refold_runtime.py",
+  "optimized/tensorRT/scripts/lora/targets.py",
+  "optimized/tensorRT/scripts/lora/trt_build.py",
+  "optimized/tensorRT/scripts/lora/verify_medium.py",
+  "optimized/tensorRT/scripts/lora/verify_stack.py",
+  "optimized/tensorRT/scripts/make_ae_charts.py",
+  "optimized/tensorRT/scripts/pt_inference.py",
+  "optimized/tensorRT/scripts/runtime.py",
+  "optimized/tensorRT/scripts/sa3_gradio.py",
+  "optimized/tensorRT/scripts/sa3_trt.py",
+  "optimized/tensorRT/scripts/sa3_trt_core.py",
+  "optimized/tensorRT/scripts/spec.py",
+  "optimized/tensorRT/scripts/swa_mma_aot.py",
+  "optimized/tensorRT/scripts/tokenizer.json",
+  "optimized/tensorRT/scripts/triton_diff_swa_mma.py",
+  "optimized/tensorRT/scripts/triton_swa_v2.py",
+  "optimized/tensorRT/scripts/verify_fp8_rope.py",
+  "optimized/tflite/.gitattributes",
+  "optimized/tflite/.gitignore",
+  "optimized/tflite/README.md",
+  "optimized/tflite/bootstrap.ps1",
+  "optimized/tflite/bootstrap.sh",
+  "optimized/tflite/build/README.md",
+  "optimized/tflite/build/build_all.sh",
+  "optimized/tflite/build/build_dit.sh",
+  "optimized/tflite/build/build_dit_small.sh",
+  "optimized/tflite/build/build_paths.py",
+  "optimized/tflite/build/export/export_dit.py",
+  "optimized/tflite/build/export/export_enc_windowed.py",
+  "optimized/tflite/build/export/export_same_s_fixed.py",
+  "optimized/tflite/build/export/export_windowed_param.py",
+  "optimized/tflite/build/extract/extract_same_l_decoder_weights.py",
+  "optimized/tflite/build/extract/extract_same_l_encoder_weights.py",
+  "optimized/tflite/build/extract/extract_same_s_decoder_weights.py",
+  "optimized/tflite/build/extract/extract_same_s_encoder_weights.py",
+  "optimized/tflite/build/quant_merge/merge_rungs_generic.py",
+  "optimized/tflite/build/quant_merge/quant_one.py",
+  "optimized/tflite/build/tfl_surgery.py",
+  "optimized/tflite/build/torch_defs/limiter.py",
+  "optimized/tflite/build/torch_defs/same_l_decoder_torch.py",
+  "optimized/tflite/build/torch_defs/same_l_encoder_torch.py",
+  "optimized/tflite/build/torch_defs/same_s_decoder_torch.py",
+  "optimized/tflite/build/torch_defs/same_s_encoder_torch.py",
+  "optimized/tflite/build/torch_defs/windowed_decoder.py",
+  "optimized/tflite/build/verify_final.py",
+  "optimized/tflite/docs/RUNGS.md",
+  "optimized/tflite/docs/img/dit-ram-rung-vs-varlen-small.png",
+  "optimized/tflite/docs/img/dit-ram-rung-vs-varlen.png",
+  "optimized/tflite/install.bat",
+  "optimized/tflite/install.sh",
+  "optimized/tflite/models/__init__.py",
+  "optimized/tflite/models/defs/__init__.py",
+  "optimized/tflite/models/defs/tflite_pipeline.py",
+  "optimized/tflite/models/tflite/.gitkeep",
+  "optimized/tflite/models/tokenizer.model",
+  "optimized/tflite/output/.gitkeep",
+  "optimized/tflite/requirements-gradio.txt",
+  "optimized/tflite/requirements.txt",
+  "optimized/tflite/sa3",
+  "optimized/tflite/sa3-gradio",
+  "optimized/tflite/sa3.bat",
+  "optimized/tflite/sa3.ps1",
+  "optimized/tflite/scripts/examples.py",
+  "optimized/tflite/scripts/install.py",
+  "optimized/tflite/scripts/lora_core.py",
+  "optimized/tflite/scripts/lora_patch.py",
+  "optimized/tflite/scripts/rung_decoder.py",
+  "optimized/tflite/scripts/rung_dit.py",
+  "optimized/tflite/scripts/rung_encoder.py",
+  "optimized/tflite/scripts/sa3_gradio.py",
+  "optimized/tflite/scripts/sa3_tflite.py",
+  "optimized/tflite/scripts/spec.py",
+  "optimized/tflite/scripts/test_lora_patch.py",
+  "optimized/tflite/scripts/test_windows_compat.py",
+  "optimized/tflite/scripts/weights.py",
+  "pyproject.toml",
+  "run_gradio.py",
+  "scripts/pre_encode_dataset.py",
+  "scripts/train_lora.py",
+  "stable-audio-3.png",
+  "stable_audio_3/__init__.py",
+  "stable_audio_3/cli.py",
+  "stable_audio_3/data/__init__.py",
+  "stable_audio_3/data/dataset.py",
+  "stable_audio_3/data/utils.py",
+  "stable_audio_3/factory.py",
+  "stable_audio_3/inference/__init__.py",
+  "stable_audio_3/inference/audio_utils.py",
+  "stable_audio_3/inference/distribution_shift.py",
+  "stable_audio_3/inference/sampling.py",
+  "stable_audio_3/interface/__init__.py",
+  "stable_audio_3/interface/aeiou.py",
+  "stable_audio_3/interface/diffusion_cond.py",
+  "stable_audio_3/interface/reprompt.py",
+  "stable_audio_3/loading_utils.py",
+  "stable_audio_3/model.py",
+  "stable_audio_3/model_configs.py",
+  "stable_audio_3/models/__init__.py",
+  "stable_audio_3/models/autoencoders.py",
+  "stable_audio_3/models/blocks.py",
+  "stable_audio_3/models/bottleneck.py",
+  "stable_audio_3/models/conditioners.py",
+  "stable_audio_3/models/diffusion.py",
+  "stable_audio_3/models/dit.py",
+  "stable_audio_3/models/inpainting.py",
+  "stable_audio_3/models/lora/__init__.py",
+  "stable_audio_3/models/lora/bake_dora.py",
+  "stable_audio_3/models/lora/bake_dora.sh",
+  "stable_audio_3/models/lora/loader.py",
+  "stable_audio_3/models/lora/model.py",
+  "stable_audio_3/models/lora/utils.py",
+  "stable_audio_3/models/pretransforms.py",
+  "stable_audio_3/models/transformer.py",
+  "stable_audio_3/models/utils.py",
+  "stable_audio_3/training/diffusion.py",
+  "stable_audio_3/training/utils.py",
+  "stable_audio_3/verbose.py",
+  "tests/conftest.py",
+  "tests/test_autoencoder.py",
+  "tests/test_cli.py",
+  "tests/test_gradio_interface.py",
+  "tests/test_inference.py",
+  "tests/test_lora.py",
+  "tests/test_mlx_audio_encoding.py",
+  "tests/test_mlx_latent_dataset.py",
+  "tests/test_mlx_lora.py",
+  "tests/test_mlx_pre_encode.py",
+  "tests/test_mlx_training.py",
+  "tests/test_trt_lora_rank.py",
+  "tests/utils/__init__.py",
+  "tests/utils/audio.py",
+  "uv.lock"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "6cffb6e54e2d2e0c47ef685eadeb70a82d36e83e4afd991ca9702aab09f8db06"
+  },
+  {
+   "path": "optimized/mlx/.gitignore",
+   "sha256": "0dbc69aa372ac835f6ec00d4d18941443993b9d357722e6775857544eb0b4fa3"
+  },
+  {
+   "path": "optimized/mlx/ableton/AudioInserter/AudioInserter.py",
+   "sha256": "9f318c73c8f4b81f15adb9d853334c9e6f8411e907044fb8c933e5c1fa98ef20"
+  },
+  {
+   "path": "optimized/mlx/ableton/AudioInserter/__init__.py",
+   "sha256": "8530d242ecf41046d7e88b3e3aed707e2faa039db33630769dcfcdc297aa046c"
+  },
+  {
+   "path": "optimized/mlx/ableton/insert_audio.py",
+   "sha256": "439ec109d31c35c4da488e43b8593c315f2a0925d712538e0e813a5e565fd68d"
+  },
+  {
+   "path": "optimized/mlx/models/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "optimized/mlx/models/defs/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "optimized/mlx/models/defs/audio_encoding.py",
+   "sha256": "f31aa0026d5292adfa6eab288d076747fd04200d829de2defdc751a974d0d784"
+  },
+  {
+   "path": "optimized/mlx/models/defs/demo_mlx.py",
+   "sha256": "dfa7ec9ec4820538e95913a51409da060b7202ffee30eb2ac993acc335d305df"
+  },
+  {
+   "path": "optimized/mlx/models/defs/dit_mlx.py",
+   "sha256": "7a57f7140c1c2ecde477c1029770f05adf1b77f8dd876a1231c5255da509e75a"
+  },
+  {
+   "path": "optimized/mlx/models/defs/dit_mlx_medium.py",
+   "sha256": "12f4e0743f0c00f010f7e6b962e1de921378d1f4b3a3b77e6f106ece15e3ee4a"
+  },
+  {
+   "path": "optimized/mlx/models/defs/latent_dataset.py",
+   "sha256": "8be23c873273f42167069321fd69751e33187bd779669d2c2e75a2b1a17f7177"
+  },
+  {
+   "path": "optimized/mlx/models/defs/lora.py",
+   "sha256": "85464d21291d8ba8d9b1d281260ededc926d7fe91271945c7611cdef46fb30a0"
+  },
+  {
+   "path": "optimized/mlx/models/defs/lora_merge.py",
+   "sha256": "5a1738c078b088b367c24d7d7c12ab3a99b09e5c703ac9a5c343b5de4c121758"
+  },
+  {
+   "path": "optimized/mlx/models/defs/sa3_pipeline.py",
+   "sha256": "e8aca5225eeda40e1d3f53c04968bbce9df6290021f4bdc5c1a67d6d68013de8"
+  },
+  {
+   "path": "optimized/mlx/models/defs/same_l_decoder.py",
+   "sha256": "c9c4922169423407ee6acbf6e7c88a46761d75cacecdac4de24d4a484e762622"
+  },
+  {
+   "path": "optimized/mlx/models/defs/same_l_encoder.py",
+   "sha256": "71338711802fb5c7aaf15fea3852110c0a828cdbe94c643c553d4332944c5722"
+  },
+  {
+   "path": "optimized/mlx/models/defs/same_s_decoder.py",
+   "sha256": "2733dc254a67c133489108616652f353aec21566e900169b15d8d871ec57c88c"
+  },
+  {
+   "path": "optimized/mlx/models/defs/same_s_encoder.py",
+   "sha256": "d6785bb4ed549158d7dd2a3a13b85c2ec9cccf7f6ff05e9af58120ebbfd3e1df"
+  },
+  {
+   "path": "optimized/mlx/models/defs/t5gemma_mlx.py",
+   "sha256": "ec8f9c088c72174c75aabf9e54ce410d53ff306244ccd397657ac961683a11e3"
+  },
+  {
+   "path": "optimized/mlx/models/defs/training.py",
+   "sha256": "9bf99e2019fab90d75dd8caac8988e4ae723e3bc47fca137cab56025d705faa8"
+  },
+  {
+   "path": "optimized/mlx/scripts/benchmark.py",
+   "sha256": "91c76adbfba3dadfb80fd32a3bd751be95a2b01f02a7939d3d849cbc70086715"
+  },
+  {
+   "path": "optimized/mlx/scripts/examples.py",
+   "sha256": "011f05d5a690b2f46a7b8a0b898a4d94aa130205a121d12dfbdd18c6c8506213"
+  },
+  {
+   "path": "optimized/mlx/scripts/export_base_npz.py",
+   "sha256": "0ef788a8ef9c679d2e8b8bb18ded0a2f775c7781df84d4dd73542971f46f62b1"
+  },
+  {
+   "path": "optimized/mlx/scripts/install.py",
+   "sha256": "7f629fccec01fd88ae159bae3495299f04be205733916851ea5b0138d851a1a8"
+  },
+  {
+   "path": "optimized/mlx/scripts/lora_train_mlx.py",
+   "sha256": "e5d87e10e122ff4a054ac7f0d261650830e5d77b7a9fa2a07a14452db4cfae60"
+  },
+  {
+   "path": "optimized/mlx/scripts/parity_forward_mlx.py",
+   "sha256": "a736a3a29ea0dcccf36543e8e9f63c38b1c1bef670a51c67915b7473c665e8f1"
+  },
+  {
+   "path": "optimized/mlx/scripts/parity_forward_torch.py",
+   "sha256": "54db7fca02a5ce618417ee52ec54d3d291d866ff67762e4fc2e95371f9af201b"
+  },
+  {
+   "path": "optimized/mlx/scripts/pre_encode_mlx.py",
+   "sha256": "f6e4a2c7bcec19b0e9fc4316ee31b2277663a7dc0e569eb76400b44457686729"
+  },
+  {
+   "path": "optimized/mlx/scripts/sa3_gradio.py",
+   "sha256": "72c6eafa087dd309151cc4524c93a9281c3f3bdde9580a5578458bce047a59fd"
+  },
+  {
+   "path": "optimized/mlx/scripts/sa3_mlx.py",
+   "sha256": "312c2833fac5ca270cbeebe7037b3fbeacd87b10c9b5d057587c5eaf824fb951"
+  },
+  {
+   "path": "optimized/mlx/scripts/spec.py",
+   "sha256": "3e85ee7850a4e3861733823c1c712a123550c48c1cbd47cbb0e0baea2f31b42d"
+  },
+  {
+   "path": "optimized/mlx/scripts/test_all_configs.py",
+   "sha256": "db210dfb7297c640feaede146a9538b1da6ea167436c04f8921c741f472d37de"
+  },
+  {
+   "path": "optimized/mlx/scripts/test_lora_merge.py",
+   "sha256": "efd88ade4205e53bf938135853e2c9cd53a61cccc844bc6f17dfb77409c8d36f"
+  },
+  {
+   "path": "optimized/mlx/scripts/weights.py",
+   "sha256": "9b367084a8cfa6dffa090bf39e84f850981f689e43aab78112787fdcb3d16bf0"
+  },
+  {
+   "path": "optimized/tensorRT/.gitignore",
+   "sha256": "41e9fdf15c7ba6d6e65dd1b90d54409fa5704b3de5e64f3533ced851d9c3bfb8"
+  },
+  {
+   "path": "optimized/tensorRT/build/_arch.py",
+   "sha256": "50fa8516eb7b95962a41d6d5c51b743762f27247df689e4adf9036590ada0524"
+  },
+  {
+   "path": "optimized/tensorRT/build/build.py",
+   "sha256": "bb38b96aedabbf81ceea448c48ae7f7c383216c25385cd21ee72e330ed8abfa8"
+  },
+  {
+   "path": "optimized/tensorRT/build/build_autoencoders.py",
+   "sha256": "73a289f2912cbe216a2f7494d1df4b651d37433253f7d31653527d8405b1fd30"
+  },
+  {
+   "path": "optimized/tensorRT/build/build_dit_bf16.py",
+   "sha256": "2ede8ed11fc834e087ba919f65947196641048d0f2b7b9908520f8950f0f9451"
+  },
+  {
+   "path": "optimized/tensorRT/build/build_dit_fp16.py",
+   "sha256": "ab1acb9dddf3f5ba774844c0165ab9f40cfdd37a97238f2d188bc330fad39293"
+  },
+  {
+   "path": "optimized/tensorRT/build/build_dit_profile.py",
+   "sha256": "ed9443ea85ad15dbfbb2161479c16a7f7d74e225198e8ad206e123bd446923ca"
+  },
+  {
+   "path": "optimized/tensorRT/build/build_from_onnx.py",
+   "sha256": "01faf0b464e28bef2c524683a4ff3405e3715d371047cb19dcf6d431e78eec84"
+  },
+  {
+   "path": "optimized/tensorRT/build/build_same_s_dec_fp16.py",
+   "sha256": "f33104b684bb0f25bf2e0c94038a0e9ff77e87dd7621544120f720e7fd191968"
+  },
+  {
+   "path": "optimized/tensorRT/build/limiter/graft_limiter.py",
+   "sha256": "bd3a333f5b971ffdb0a8870cfdc693456134a0b8d90c5624bbc96b85cbc6f7c1"
+  },
+  {
+   "path": "optimized/tensorRT/build/limiter/make_ceiling_input.py",
+   "sha256": "ac78cb0bfdabb62b3e8142ed0933819db113c35d4458eab55f23325e7b6bbdc5"
+  },
+  {
+   "path": "optimized/tensorRT/build/limiter/make_deterministic_sames.py",
+   "sha256": "8cfa82b505643d89b47a0ccf3808f217246d897e58998614bc42313a94f9100d"
+  },
+  {
+   "path": "optimized/tensorRT/build/make_calib.py",
+   "sha256": "b3f03beaf68d069a40ef1a74ebd9e844d899eb6e73790d5501c4adb18cbafc9b"
+  },
+  {
+   "path": "optimized/tensorRT/build/make_dit_fp8_smalldit.py",
+   "sha256": "3dc10039c3b4e243400da718f5fb14b59c22690dc765f15e835de00505c4a4d4"
+  },
+  {
+   "path": "optimized/tensorRT/build/transplant_scales.py",
+   "sha256": "39cc2248c6d4ddce45760254456074ea4138dd91921f7668b620fad0419b4aea"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/build_tiers.py",
+   "sha256": "a7f25d26efac75a4336966b8a58979460fbc11a3704aeaaf4972fce2d88e4832"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/enc_quant_samel.py",
+   "sha256": "6b599e3ac062e470115c18eb30250216965a67732e8e2c58d6a2cbf992e2c4f6"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/enc_quant_sames.py",
+   "sha256": "65b041b3f8870c5f546cb328738068f2ad51ea628a8b2e87347969cc9ed7d318"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/fp8_gptq.py",
+   "sha256": "35c3dc83b1be2142580d1cb14b049c7d9368a761acead3fb4132c248ed9499aa"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/fp8_gptq_samel.py",
+   "sha256": "6dec85834dec64fdef1386daf5e43de72e42a7cfd839e9c1d4d41dbd2b26c12c"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/gptq_samel.py",
+   "sha256": "9f310bda697a4cc82a6834f3604652a04377deecefcf01f3a8ab8b47c85ccf95"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/gptq_w8.py",
+   "sha256": "8289cb314a45046007398011ab44f625030d203314fb20de7d0d9a6706c9ed38"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/pad_encoder.py",
+   "sha256": "06a82ba27200a54cc20d50a478c030f29956cf6a0a999bc6fa4a0ca7c8692194"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/recalib_dec_sames_margin.py",
+   "sha256": "ed63f504617e9e54768265718e71bf83468823e4dbcfd43f074f9e271d00fe7a"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/recalib_enc_fp8.py",
+   "sha256": "9b49abef103616dc31dc5e689f97371dd0a561840134b296fe1ded7ffa718d5f"
+  },
+  {
+   "path": "optimized/tensorRT/quantize/recalib_enc_sames_fp8.py",
+   "sha256": "dda96834feacd9551130d64254f892dfce7c37e5c763ef6641f6b069df84c109"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/_arch.py",
+   "sha256": "4bbc67fba12ac438020f7794d158dc2fa5d66d522070f28f3f2939fcf28246a6"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/bench_autoencoders.py",
+   "sha256": "1e26d53fba1038ba443c33c19c8fe28ad14394068a958e67d7a28d3c7c9cb994"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/bench_dit_profile.py",
+   "sha256": "bfa8153584943debe5d74cfd31b1fd575991b58a0f17ea50bd4226f47c43db2d"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/diff_attn_nocast_plugin.py",
+   "sha256": "b02b96c17d8301c9659c5112a5d59ace5709bd02e51b78b81a2ca39de1ddeb52"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/diff_swa_ptx_kernel.py",
+   "sha256": "7bdde5e003546cf72496c94ef165305388e718e5a4860a91d8bc65b9d99867a0"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/gradio_ui.py",
+   "sha256": "8ed4159e3ca2887d3a6c9c2089f07dae84295ad68db708661b7cffb80c0c49ed"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/bake_dora.py",
+   "sha256": "faa2e6497cbba9ef7d2e1f1bca506aa0292cedf0fd7294ffd8174aa1e68d6e87"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/branch_runtime.py",
+   "sha256": "f1a05689f66c48ac7910c40bdff5ea053253823ece836e2a8431a2f33c665f9a"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/build_branch.py",
+   "sha256": "af0b5792a8d080431b2379104c102a4ccab634b00b21071c78c19f911343f4ae"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/constants.py",
+   "sha256": "93084b171c4d16ddce2a81b991913333a754119a587ce2462b5579eac5d3ad2e"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/dit_loader.py",
+   "sha256": "300bcfa4ce9769ec29eaf65dd699d68ff4767bf925844c36ac5ee64abe342652"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/merge.py",
+   "sha256": "2f6fc181e893e17985e915c6da320b1e480a7b391a8c920a868c712f43a7e72d"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/paths.py",
+   "sha256": "bf2b89f6484efd0c7772bc4aa2b1fb83e7e2d527156584814f69d243b539aa64"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/refold_runtime.py",
+   "sha256": "7f9f877002364dbe9c25d25fba5c1f741e25c4c80d6a3cb7bc4e020053cf6eff"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/targets.py",
+   "sha256": "8978807dea6c3d6a3e99f3f74c756864ca8a09455bf74c0383ce7c0ea658c225"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/trt_build.py",
+   "sha256": "405cb03c212b0710d9c79fe648d44c5092977fe756760c6e3b34ccaad32bc03e"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/verify_medium.py",
+   "sha256": "e5678ca67a3f7b1b8fc486b9f763963b16c8e27ed08e278bf06ad491ecd303da"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/lora/verify_stack.py",
+   "sha256": "f9be5a7412526a433ade7c68d9a9aaf71a79670a4fec5ec20ffe551f78e64de3"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/make_ae_charts.py",
+   "sha256": "376619e3fa9a638db264cf04d3262d1e20cbe60476b05debbe92f8e0330cc2fe"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/pt_inference.py",
+   "sha256": "0bc0a0b68a047cec46d3cc5568b84c24dd7ac2ea6227c871c0622656f5a4a3ac"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/runtime.py",
+   "sha256": "fd858049d15f83c04c961d6482a4f7d0846b83d9f7b434df611db507e4c590f4"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/sa3_gradio.py",
+   "sha256": "3c5ebea16dae46e85217ba6c7595b18011f13b8e563d273cb96eb3973d2f9b81"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/sa3_trt.py",
+   "sha256": "e5c39311bf9e312bca4b01fe8fdb13299e257a1eb8f911ff66baf484835d0773"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/sa3_trt_core.py",
+   "sha256": "1e66e48d08b24e31f8cf19a28eabdd964c0eddc7000a796ab3ea22b1ae127552"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/spec.py",
+   "sha256": "5fca48b1f3d6678d3a81e92cb4cd166af2d84a5cfd9661939d3b5b4f0bc48e4a"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/swa_mma_aot.py",
+   "sha256": "b6f514f0940205218a90910a2221f14564c3aaa9e16e62c6ba0bfc7d0a75b7e2"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/triton_diff_swa_mma.py",
+   "sha256": "7453c242d92ef60e6e843b5af53a3cde6c56a3bcf1f096c483a4c6269fad5244"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/triton_swa_v2.py",
+   "sha256": "fb09bb7f889a9b8456d47a2628735404ef03e0e83e74947600ee0569fff35374"
+  },
+  {
+   "path": "optimized/tensorRT/scripts/verify_fp8_rope.py",
+   "sha256": "bd97de20a5fdbd4d1cf10ebbe6d02cfab6794aa5a8e38bf02e1fbda9dd896f81"
+  },
+  {
+   "path": "optimized/tflite/.gitattributes",
+   "sha256": "913830f0563a4c672c0a3ffb1d2213dfdca8b0b29979d6fb84dab111f824d5e5"
+  },
+  {
+   "path": "optimized/tflite/.gitignore",
+   "sha256": "b50b199fa864581a0710277c7112f7734754f05cb32b63da6a27fd403a6aeac7"
+  },
+  {
+   "path": "optimized/tflite/build/build_paths.py",
+   "sha256": "5efcac6efb816c4b680fe8be7650b8030329a916ede91af87eb1dc47678402d3"
+  },
+  {
+   "path": "optimized/tflite/build/export/export_dit.py",
+   "sha256": "a1c7e12746a534114602a48eda4d39ac379c9dd609daeaab443a88e7f890e2cf"
+  },
+  {
+   "path": "optimized/tflite/build/export/export_enc_windowed.py",
+   "sha256": "7f2653560c8dd66112a7b92659d18a586f20b25449292d5c43d390bbbed74557"
+  },
+  {
+   "path": "optimized/tflite/build/export/export_same_s_fixed.py",
+   "sha256": "2b67d29a339f8d15fe9721364e049856a25dbb30f1cfc1bb61e328d8aea75d6a"
+  },
+  {
+   "path": "optimized/tflite/build/export/export_windowed_param.py",
+   "sha256": "e0103a2b54fa196c17d2a2c3e902c452903cffc937dbfb5c3fa926e3beeb2579"
+  },
+  {
+   "path": "optimized/tflite/build/extract/extract_same_l_decoder_weights.py",
+   "sha256": "9c886a9d9c153b89cf55fc0c403ab83f6d6c7bf2171c1a60a626346073f85128"
+  },
+  {
+   "path": "optimized/tflite/build/extract/extract_same_l_encoder_weights.py",
+   "sha256": "59a537bd8c24c47b078e697fa9613fa295e0f6afa4beb4a6b8f1aa015c08f3f6"
+  },
+  {
+   "path": "optimized/tflite/build/extract/extract_same_s_decoder_weights.py",
+   "sha256": "ed8de0d3c7219421a160fbd76444dfd687a4658c0cb7b07bcab8350f58801eaf"
+  },
+  {
+   "path": "optimized/tflite/build/extract/extract_same_s_encoder_weights.py",
+   "sha256": "f595f5557a2162e31452ec523d8bb946e64216aa6a14af871884b081b2d07658"
+  },
+  {
+   "path": "optimized/tflite/build/quant_merge/merge_rungs_generic.py",
+   "sha256": "449e20200a436503950e0a6850339f7dbb9409199c3634702962f33c4345ac8c"
+  },
+  {
+   "path": "optimized/tflite/build/quant_merge/quant_one.py",
+   "sha256": "ff96622ada544925e181cf6fa60a5ed537a5b25806082f5c0e62189be923dd47"
+  },
+  {
+   "path": "optimized/tflite/build/tfl_surgery.py",
+   "sha256": "05305cf439b2f8d6154fc8cd4d306642738e2da569214e826ada436896ac44fa"
+  },
+  {
+   "path": "optimized/tflite/build/torch_defs/limiter.py",
+   "sha256": "52659fba64944be7bea52edf025fbd628d94e1630757f10797fc710f2c58996a"
+  },
+  {
+   "path": "optimized/tflite/build/torch_defs/same_l_decoder_torch.py",
+   "sha256": "f929cabc57137ff0f141280413296002355df8810004f2d65b698e8b8e61f9c4"
+  },
+  {
+   "path": "optimized/tflite/build/torch_defs/same_l_encoder_torch.py",
+   "sha256": "a5103af23083d825185f2e49a433d05a6210a4f0f2cd9d85f5d25b148aa5d9ee"
+  },
+  {
+   "path": "optimized/tflite/build/torch_defs/same_s_decoder_torch.py",
+   "sha256": "25f2920d297877aa41fae727ea9bf7e9462bc06e7beeff011e69771deb11b192"
+  },
+  {
+   "path": "optimized/tflite/build/torch_defs/same_s_encoder_torch.py",
+   "sha256": "b21d8ccbfe50ba83d119ca2c640f64a01217e21b6f067de72b01a8ba4caae727"
+  },
+  {
+   "path": "optimized/tflite/build/torch_defs/windowed_decoder.py",
+   "sha256": "3257219ac18e4e38631e4ba66c4dec51d5ca5a76af11224cbb9d51e0bf446f42"
+  },
+  {
+   "path": "optimized/tflite/build/verify_final.py",
+   "sha256": "2e779fb94295b9299328dc52a98e080ea775fb053cf496e58a013f3db1ef5e0f"
+  },
+  {
+   "path": "optimized/tflite/models/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "optimized/tflite/models/defs/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "optimized/tflite/models/defs/tflite_pipeline.py",
+   "sha256": "229f34424d8ace818e416a8a3e50b92b859a074af44f4d5ed29eddc845b30e64"
+  },
+  {
+   "path": "optimized/tflite/scripts/examples.py",
+   "sha256": "9a8d376357b3fcf5c79c38f43bbf5e565999f09c8b08bccd4b7d3a2979b6479d"
+  },
+  {
+   "path": "optimized/tflite/scripts/install.py",
+   "sha256": "86a2421ed034d4aa21e16e291741ae5cabd200fb84512f0706c7b94604c40fad"
+  },
+  {
+   "path": "optimized/tflite/scripts/lora_core.py",
+   "sha256": "7c27fbb6231517cd16c87cb07ba9ae3f1cbc6838e47093a840894380bcb88104"
+  },
+  {
+   "path": "optimized/tflite/scripts/lora_patch.py",
+   "sha256": "e302943921a7fa84681a96df68e4930ecd62477018c029aee03e1f7698ab688c"
+  },
+  {
+   "path": "optimized/tflite/scripts/rung_decoder.py",
+   "sha256": "c2e82c53e3189e0fc3a1f948c19d84b5016e90e9eddac6e27c9e2daa20c612e7"
+  },
+  {
+   "path": "optimized/tflite/scripts/rung_dit.py",
+   "sha256": "229531d9a6298094427def0aa2715814c0324ba0bde819cd77f7f8797168f061"
+  },
+  {
+   "path": "optimized/tflite/scripts/rung_encoder.py",
+   "sha256": "cbfa3ca9693f67fa3216f5d8143db82e7b963d54eeac0e99b2ebfb1d8570419a"
+  },
+  {
+   "path": "optimized/tflite/scripts/sa3_gradio.py",
+   "sha256": "ce7dcde67e1092a1ae1db0a270a4d3258169e6099cd2cf7e4d904bcd909434c8"
+  },
+  {
+   "path": "optimized/tflite/scripts/sa3_tflite.py",
+   "sha256": "6e7a993346d17740d6a43c9d9a061b0bc30ad37eed4a191e5fe16fdcdeb8b0e7"
+  },
+  {
+   "path": "optimized/tflite/scripts/spec.py",
+   "sha256": "3e85ee7850a4e3861733823c1c712a123550c48c1cbd47cbb0e0baea2f31b42d"
+  },
+  {
+   "path": "optimized/tflite/scripts/test_lora_patch.py",
+   "sha256": "f36de7afd8a19f7b48db5f1f5526c4b729d6dff294d7ed9ce7d5bb965204ac40"
+  },
+  {
+   "path": "optimized/tflite/scripts/test_windows_compat.py",
+   "sha256": "fc21b66730650ea476f26e61688e17aeaeff8ea293a9c5a3ffcc83a6820b7495"
+  },
+  {
+   "path": "optimized/tflite/scripts/weights.py",
+   "sha256": "24c783e2fc06aa34285120ad98eebd9ccb2ecce9f39ca776ca55eb028c772e33"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "cac1d4217d7d14f020143ce8afb580e0f3869d9d796114ceb87cf2f9f58e472d"
+  },
+  {
+   "path": "run_gradio.py",
+   "sha256": "cfa68c1f5fc55349d3777ee5cea2deac5b1128fffbe3d9f6744ef32589907cd0"
+  },
+  {
+   "path": "scripts/pre_encode_dataset.py",
+   "sha256": "6393c5a6294036a5e350182723ae26834ca0bb725bdd340db7212e875e69d99f"
+  },
+  {
+   "path": "scripts/train_lora.py",
+   "sha256": "842597554d435f46fab37b869186b2650a6b38b124b6b4f48d9fcb5061d717ee"
+  },
+  {
+   "path": "stable_audio_3/__init__.py",
+   "sha256": "8da4501ca2ae085a02e736baec71c2ac530a3283a9d946547f4815ba3871a1be"
+  },
+  {
+   "path": "stable_audio_3/cli.py",
+   "sha256": "7c2d9e16a6a7410d615288a30fd7006a277594c48e43535ba960dfed75e20ffa"
+  },
+  {
+   "path": "stable_audio_3/data/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "stable_audio_3/data/dataset.py",
+   "sha256": "08c9790ceaea61d38624d9e2a5805fa61a47b626086bef6bdcf6c6ddb5464508"
+  },
+  {
+   "path": "stable_audio_3/data/utils.py",
+   "sha256": "72740fc82eb9a2a54083ab9153769c63ab60ef29173d2d5f019a1dbfede757fe"
+  },
+  {
+   "path": "stable_audio_3/factory.py",
+   "sha256": "6b6cd1e91c5841159d30a7bd1226c9757218c3530309ef0f73f43cd39633f32e"
+  },
+  {
+   "path": "stable_audio_3/inference/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "stable_audio_3/inference/audio_utils.py",
+   "sha256": "f7489437a5888ceb3fcb9515c46de225f5440f87d0b64a63b6eaa2b045932082"
+  },
+  {
+   "path": "stable_audio_3/inference/distribution_shift.py",
+   "sha256": "18264eb8c705348a4b040cbd116c94b04b6235d5e52968ecf76658e375a98f13"
+  },
+  {
+   "path": "stable_audio_3/inference/sampling.py",
+   "sha256": "76e96bc3a0c1fb346d13038f09a227ec2f9c7f2e56fd64623e8bbe6ff722bf55"
+  },
+  {
+   "path": "stable_audio_3/interface/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "stable_audio_3/interface/aeiou.py",
+   "sha256": "52d991325efd4a4274222896f2824155b15648c837a130aae85bfc3db6cfc756"
+  },
+  {
+   "path": "stable_audio_3/interface/diffusion_cond.py",
+   "sha256": "71f63fdc827ce466c61e96a623eba78fb0b07a52c86fef003d4e6928f5fc07a2"
+  },
+  {
+   "path": "stable_audio_3/interface/reprompt.py",
+   "sha256": "3267d7ca69ab96afec22056b0dbe831892dd0b9ab7b348bbb509e0e3e03cf51c"
+  },
+  {
+   "path": "stable_audio_3/loading_utils.py",
+   "sha256": "0f399b23c16e2f8babbd89cb38f76f8a2f342147c1426e741687d659863b7abb"
+  },
+  {
+   "path": "stable_audio_3/model.py",
+   "sha256": "7815ea738ed31928a5c85333e52f7e4c231ed056e451742d45e4597fff79e490"
+  },
+  {
+   "path": "stable_audio_3/model_configs.py",
+   "sha256": "68ab1abc0296aea20af3a05258517c04a34190b8a592ad5d792355c108acb013"
+  },
+  {
+   "path": "stable_audio_3/models/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "stable_audio_3/models/autoencoders.py",
+   "sha256": "44939e6b1c2a72690736757cec3f46cb7f8f6b9ccf9161b738daac320bdfa171"
+  },
+  {
+   "path": "stable_audio_3/models/blocks.py",
+   "sha256": "eae8aaa6eeee47d39b2276caea12627413ecd2816a61be5cce126453a69c3f01"
+  },
+  {
+   "path": "stable_audio_3/models/bottleneck.py",
+   "sha256": "1d19a7713dba78de6b87fc003f74a54c40c9ac1604917c827f730363e2214c88"
+  },
+  {
+   "path": "stable_audio_3/models/conditioners.py",
+   "sha256": "11d3496a04c8390f0de2ea869e7188c621d97859734bef4930027ff626989a47"
+  },
+  {
+   "path": "stable_audio_3/models/diffusion.py",
+   "sha256": "b0eab27f7965b4a21a34bf009c932128217524c09cddbfd601bffe866e4b6732"
+  },
+  {
+   "path": "stable_audio_3/models/dit.py",
+   "sha256": "4b28dcb74937cdcab9ab5f745221178304f998f53aa60d2ee9e74b8fa76fd4fb"
+  },
+  {
+   "path": "stable_audio_3/models/inpainting.py",
+   "sha256": "aaeda520d8d639d26435760dca5bbd2bf149429c10841d2a853f88c19b4524a6"
+  },
+  {
+   "path": "stable_audio_3/models/lora/__init__.py",
+   "sha256": "2b7919ea3ddf57c9e0893936161b29b9be7e8a7e0c30bf651b34d5d9c06f7a07"
+  },
+  {
+   "path": "stable_audio_3/models/lora/bake_dora.py",
+   "sha256": "2a47e0e8f4766913d7896654b3892017a9ec9b5e4ecc718b9c545541fb2ac0e2"
+  },
+  {
+   "path": "stable_audio_3/models/lora/loader.py",
+   "sha256": "756b04393cc33eb5c62317b305881a07a507115f4ca82a8b003d894b446d38de"
+  },
+  {
+   "path": "stable_audio_3/models/lora/model.py",
+   "sha256": "5828ef613a68323cc24c59a834b13ebf20906289cbf83b3e4f261394e0629fda"
+  },
+  {
+   "path": "stable_audio_3/models/lora/utils.py",
+   "sha256": "5f6427add4a17c9d6ecb7abeb41b6e4d951ce6020cfd3c540d266f5c7f40a777"
+  },
+  {
+   "path": "stable_audio_3/models/pretransforms.py",
+   "sha256": "678a4f2de8434863cad6c66a55f4e90c6ac6bc133269e8773adf56c16904692c"
+  },
+  {
+   "path": "stable_audio_3/models/transformer.py",
+   "sha256": "7436d5d1f040ed74af38899ca57c1eb7b6f3ee5e5c27a3e7402f39f22a52a83a"
+  },
+  {
+   "path": "stable_audio_3/models/utils.py",
+   "sha256": "88731195da0ff3f1b98de4476bd6667861a151faf2b748b3f6b95891fab93293"
+  },
+  {
+   "path": "stable_audio_3/training/diffusion.py",
+   "sha256": "d50d580d3c9aa0c0e157d01551469161749f1a12af8114dbafbe5a6df2e67337"
+  },
+  {
+   "path": "stable_audio_3/training/utils.py",
+   "sha256": "09bbdbd8331879c06cb7986ea1fcea9df0056663701c96ea0599b49525075c07"
+  },
+  {
+   "path": "stable_audio_3/verbose.py",
+   "sha256": "b373301c2a39fcd8e5676093851b560bbf2ff58cf27171bd32ba5a300f6fc82b"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "1fcbc8d2ea232946a78fc92c8711d4a58fdd2ae865efb0b255c7d6f4c78e21e3"
+  },
+  {
+   "path": "tests/test_autoencoder.py",
+   "sha256": "9a62fd1f26c416476bc481844598176360dcb48116099e13a8164b3ca6914e74"
+  },
+  {
+   "path": "tests/test_cli.py",
+   "sha256": "3574e6b54f53836cd9b74e44eb39c0260a8672b05df9886843ad815a1d495851"
+  },
+  {
+   "path": "tests/test_gradio_interface.py",
+   "sha256": "fbf26754af5e464c9ea64a4cddddf7f09f36ebe278f9056aa6acd534341a2d75"
+  },
+  {
+   "path": "tests/test_inference.py",
+   "sha256": "53a6380082d5388006c1a46e36cc020d930dbe9469d810f79921031d766e8057"
+  },
+  {
+   "path": "tests/test_lora.py",
+   "sha256": "d56a78d5179fd1e47091d913ab921ae138bf5a386d554dcf9892f3eeddc9a357"
+  },
+  {
+   "path": "tests/test_mlx_audio_encoding.py",
+   "sha256": "4a25f1aede7d240810c3b04215b8cbf4d74d02a1129ecbcac8d3cae4a84bf033"
+  },
+  {
+   "path": "tests/test_mlx_latent_dataset.py",
+   "sha256": "adddbbcbba8db9fcf226e74de382bdd8b573cc89ae28925cf49bd8739c614d3b"
+  },
+  {
+   "path": "tests/test_mlx_lora.py",
+   "sha256": "d56d5460951aa32106ac8a6b77cea7d8d86a1f0eedf2fdd9dd01b5bbc6f4ed82"
+  },
+  {
+   "path": "tests/test_mlx_pre_encode.py",
+   "sha256": "0e1f495f1cda8e9cab6604d38f350429afb80c6e72cae9d5663fb57f5e32a6e4"
+  },
+  {
+   "path": "tests/test_mlx_training.py",
+   "sha256": "061fe4654136b9c5c8e01524c9868fe39d9d1a3e43bbe04e190f20d0a8106d02"
+  },
+  {
+   "path": "tests/test_trt_lora_rank.py",
+   "sha256": "396df0115d73dd41e68f7d712653256cbb0345a89d2210660eaf9649dc712f11"
+  },
+  {
+   "path": "tests/utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "tests/utils/audio.py",
+   "sha256": "b3eb4e7e393b45f28ae9e98db0c9f0b58e85faa72985f29b2d1108b4c0aae52a"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 834711,
+ "tier": "AI_ASSOCIATED"
+}

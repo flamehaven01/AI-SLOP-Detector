@@ -1,0 +1,2552 @@
+{
+ "repo": "air-embodied-brain/Zetta-Embodiment",
+ "dir": "air-embodied-brain__Zetta-Embodiment",
+ "commit": "d7fd15ee63a5a1e7d546c5fc5b52db3b38331bc8",
+ "estimate_commit": "d7fd15ee63a5a1e7d546c5fc5b52db3b38331bc8",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitattributes",
+  ".github/workflows/unit-tests.yml",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "LICENSE",
+  "README.md",
+  "THIRD_PARTY_NOTICES.md",
+  "deployment/docker/robocasa-pi0.Dockerfile",
+  "deployment/experiments/libero.env.example",
+  "deployment/experiments/providers.env.example",
+  "deployment/experiments/robocasa.env.example",
+  "deployment/providers.env.example",
+  "deployment/systemd/zetta-graspgen-http.service",
+  "deployment/systemd/zetta-graspgen.service",
+  "deployment/systemd/zetta-pi05.service",
+  "deployment/zetta-runtime.env.example",
+  "docs/Makefile",
+  "docs/README.md",
+  "docs/autobuild.sh",
+  "docs/behavior.md",
+  "docs/cosmos-lite.md",
+  "docs/flashrt-report/fig1_single_sample_latency.jpg",
+  "docs/flashrt-report/fig2_action_agreement.jpg",
+  "docs/flashrt-report/fig3_batch_model_only.jpg",
+  "docs/flashrt-report/fig4_batch_gateway.jpg",
+  "docs/flashrt-report/fig5_next_architecture.jpg",
+  "docs/flashrt-report/flashrt-vs-zetta-openpi.md",
+  "docs/geniesim-vla.md",
+  "docs/geniesim.md",
+  "docs/img-encode-report/chart1_codec_only.png",
+  "docs/img-encode-report/chart2_env_only.png",
+  "docs/img-encode-report/chart3_e2e_rollout.png",
+  "docs/img-encode-report/chart4_speedup_funnel.png",
+  "docs/img-encode-report/nvjpeg-optimization-report.md",
+  "docs/libero-recovery-tools.md",
+  "docs/maniskill.md",
+  "docs/requirements.txt",
+  "plan/issue_19_fix_plan.md",
+  "pyproject.toml",
+  "robots/.DS_Store",
+  "robots/__init__.py",
+  "robots/behavior/__init__.py",
+  "robots/behavior/contracts.py",
+  "robots/geniesim/__init__.py",
+  "robots/geniesim/contracts.py",
+  "robots/geniesim/run_rollout.py",
+  "robots/libero/__init__.py",
+  "robots/libero/assets.py",
+  "robots/libero/contact_graspnet.py",
+  "robots/libero/critic_runtime.py",
+  "robots/libero/env_client.py",
+  "robots/libero/env_server.py",
+  "robots/libero/evolution_defaults.py",
+  "robots/libero/fastwam_vla_server.py",
+  "robots/libero/graspgen.py",
+  "robots/libero/graspgen_http_server.py",
+  "robots/libero/groot_vla_server.py",
+  "robots/libero/guides/env_calibration.md",
+  "robots/libero/guides/pro_hybrid_guide.md",
+  "robots/libero/guides/strict_hybrid_guide.md",
+  "robots/libero/privileged_sensors.py",
+  "robots/libero/prompt_bundle.py",
+  "robots/libero/prompts/__init__.py",
+  "robots/libero/prompts/system.py",
+  "robots/libero/prompts/system_legacy.py",
+  "robots/libero/prompts/user.py",
+  "robots/libero/prompts/user_legacy.py",
+  "robots/libero/rlinf_worker_compat.py",
+  "robots/libero/role1_recovery.py",
+  "robots/libero/run_evolution_rollout.py",
+  "robots/libero/runtime_devices.py",
+  "robots/libero/sam3_server.py",
+  "robots/libero/tool_catalog.py",
+  "robots/libero/toolkit.py",
+  "robots/libero/tools.py",
+  "robots/libero/vla_server.py",
+  "robots/maniskill/__init__.py",
+  "robots/maniskill/contracts.py",
+  "robots/maniskill/role1.py",
+  "robots/maniskill/run_rollout.py",
+  "robots/robocasa/__init__.py",
+  "robots/robocasa/action_contract.py",
+  "robots/robocasa/dishwasher_critic.py",
+  "robots/robocasa/env_client.py",
+  "robots/robocasa/env_server.py",
+  "robots/robocasa/gpu_gate.py",
+  "robots/robocasa/groot_client.py",
+  "robots/robocasa/groot_core.py",
+  "robots/robocasa/groot_server.py",
+  "robots/robocasa/harness_adapter.py",
+  "robots/robocasa/operation_protocol.py",
+  "robots/robocasa/privileged_state.py",
+  "robots/robocasa/recovery_controller.py",
+  "robots/robocasa/role1_actor.py",
+  "robots/robocasa/role1_agent.py",
+  "robots/robocasa/run_rollout.py",
+  "robots/robocasa/session_core.py",
+  "robots/robocasa/session_process.py",
+  "robots/robocasa/slide_dishwasher_program.py",
+  "robots/robocasa/stable_renderer.py",
+  "robots/robocasa/tool_bindings.py",
+  "robots/robocasa/tool_catalog.py",
+  "robots/robocasa/tool_runtime.py",
+  "robots/robocasa/video_artifacts.py",
+  "robots/robotwin/__init__.py",
+  "robots/robotwin/action_contract.py",
+  "robots/robotwin/critic_runtime.py",
+  "robots/robotwin/recovery_controller.py",
+  "robots/robotwin/role1_actor.py",
+  "robots/robotwin/role1_agent.py",
+  "robots/robotwin/run_rollout.py",
+  "robots/robotwin/tool_bindings.py",
+  "robots/robotwin/tool_catalog.py",
+  "rollout_runtime/.DS_Store",
+  "rollout_runtime/__init__.py",
+  "rollout_runtime/adapters/__init__.py",
+  "rollout_runtime/adapters/eval_adapter.py",
+  "rollout_runtime/adapters/gym_adapter.py",
+  "rollout_runtime/adapters/zetta/__init__.py",
+  "rollout_runtime/adapters/zetta/runtime_env_client.py",
+  "rollout_runtime/adapters/zetta/runtime_policy_client.py",
+  "rollout_runtime/api/__init__.py",
+  "rollout_runtime/api/client.py",
+  "rollout_runtime/api/codec.py",
+  "rollout_runtime/api/enums.py",
+  "rollout_runtime/api/errors.py",
+  "rollout_runtime/api/ids.py",
+  "rollout_runtime/api/internal.py",
+  "rollout_runtime/api/messages.py",
+  "rollout_runtime/api/payload_ref.py",
+  "rollout_runtime/api/result.py",
+  "rollout_runtime/api/wire.py",
+  "rollout_runtime/backends/__init__.py",
+  "rollout_runtime/backends/behavior.py",
+  "rollout_runtime/backends/cosmos_lite.py",
+  "rollout_runtime/backends/fake/__init__.py",
+  "rollout_runtime/backends/fake/env.py",
+  "rollout_runtime/backends/fake/policy.py",
+  "rollout_runtime/backends/flashrt_groot_n15.py",
+  "rollout_runtime/backends/flashrt_groot_policy.py",
+  "rollout_runtime/backends/flashrt_policy.py",
+  "rollout_runtime/backends/geniesim.py",
+  "rollout_runtime/backends/geniesim_policy.py",
+  "rollout_runtime/backends/groot_policy.py",
+  "rollout_runtime/backends/libero_critic.py",
+  "rollout_runtime/backends/libero_privileged.py",
+  "rollout_runtime/backends/rlinf_env.py",
+  "rollout_runtime/backends/rlinf_family.py",
+  "rollout_runtime/backends/rlinf_maniskill.py",
+  "rollout_runtime/backends/rlinf_policy.py",
+  "rollout_runtime/backends/rlinf_robotwin.py",
+  "rollout_runtime/backends/robocasa_current.py",
+  "rollout_runtime/cli.py",
+  "rollout_runtime/config/__init__.py",
+  "rollout_runtime/config/presets/a100_libero.yaml",
+  "rollout_runtime/config/presets/a100_libero_pi05.yaml",
+  "rollout_runtime/config/presets/a100_libero_pi05_pro.yaml",
+  "rollout_runtime/config/presets/a100_libero_pi05_pro_dynamic.yaml",
+  "rollout_runtime/config/presets/a100_libero_pi05_standard.yaml",
+  "rollout_runtime/config/presets/a100_maniskill.yaml",
+  "rollout_runtime/config/presets/behavior_pi05.yaml",
+  "rollout_runtime/config/presets/cosmos_lite_remote.yaml",
+  "rollout_runtime/config/presets/geniesim_smoke.yaml",
+  "rollout_runtime/config/presets/geniesim_vla.yaml",
+  "rollout_runtime/config/presets/libero_pi05_4090.yaml",
+  "rollout_runtime/config/presets/libero_pi05_4090_jpeg.yaml",
+  "rollout_runtime/config/presets/libero_pi05_flashrt_4090.yaml",
+  "rollout_runtime/config/presets/local_fake.yaml",
+  "rollout_runtime/config/presets/local_ray_fake.yaml",
+  "rollout_runtime/config/presets/maniskill_smoke.yaml",
+  "rollout_runtime/config/presets/robocasa_current.yaml",
+  "rollout_runtime/config/presets/robocasa_groot_dynamic.yaml",
+  "rollout_runtime/config/presets/robocasa_groot_flashrt.yaml",
+  "rollout_runtime/config/presets/robocasa_pi0.yaml",
+  "rollout_runtime/config/presets/robocasa_pi0_8gpu.yaml",
+  "rollout_runtime/config/presets/robotwin_pi05.yaml",
+  "rollout_runtime/config/presets/zetta_libero_pi05.yaml",
+  "rollout_runtime/config/schema.py",
+  "rollout_runtime/core/__init__.py",
+  "rollout_runtime/core/env_execution.py",
+  "rollout_runtime/core/env_registry.py",
+  "rollout_runtime/core/obs_schema.py",
+  "rollout_runtime/core/payload.py",
+  "rollout_runtime/core/policy_inference.py",
+  "rollout_runtime/gateway/__init__.py",
+  "rollout_runtime/gateway/admission.py",
+  "rollout_runtime/gateway/dispatcher.py",
+  "rollout_runtime/gateway/gateway.py",
+  "rollout_runtime/gateway/metrics.py",
+  "rollout_runtime/gateway/operation_registry.py",
+  "rollout_runtime/gateway/plugin.py",
+  "rollout_runtime/gateway/session_manager.py",
+  "rollout_runtime/gateway/worker_registry.py",
+  "rollout_runtime/launch/__init__.py",
+  "rollout_runtime/launch/local.py",
+  "rollout_runtime/launch/ray_launch.py",
+  "rollout_runtime/serve/__init__.py",
+  "rollout_runtime/serve/app.py",
+  "rollout_runtime/serve/auth.py",
+  "rollout_runtime/serve/client.py",
+  "rollout_runtime/serve/server.py",
+  "rollout_runtime/transport/__init__.py",
+  "rollout_runtime/transport/base.py",
+  "rollout_runtime/transport/inproc.py",
+  "rollout_runtime/transport/ray_channel.py",
+  "rollout_runtime/workers/__init__.py",
+  "rollout_runtime/workers/batch_scheduler.py",
+  "rollout_runtime/workers/env_worker.py",
+  "rollout_runtime/workers/rollout_worker.py",
+  "scripts/deployment/Dockerfile.vla-env",
+  "scripts/deployment/VLA_ENV_SETUP.md",
+  "scripts/deployment/check_geniesim_assets.py",
+  "scripts/deployment/check_isaac_sim.py",
+  "scripts/deployment/contact_graspnet_pyyaml.patch",
+  "scripts/deployment/contact_graspnet_tf221.patch",
+  "scripts/deployment/download_contact_graspnet_checkpoint.sh",
+  "scripts/deployment/ensure_user_local_path.sh",
+  "scripts/deployment/geniesim_isaac51.in",
+  "scripts/deployment/geniesim_pi05_checkpoint.json",
+  "scripts/deployment/install_graspgen_runtime.sh",
+  "scripts/deployment/install_vla_env.sh",
+  "scripts/deployment/maniskill_runtime.in",
+  "scripts/deployment/prepare_behavior.py",
+  "scripts/deployment/prepare_experiment.sh",
+  "scripts/deployment/prepare_flashrt_ckpt.sh",
+  "scripts/deployment/prepare_geniesim.py",
+  "scripts/deployment/prepare_geniesim_assets.py",
+  "scripts/deployment/prepare_maniskill.py",
+  "scripts/deployment/run_minimal_libero.sh",
+  "scripts/deployment/run_minimal_robocasa.sh",
+  "scripts/deployment/run_smoke.sh",
+  "scripts/deployment/serve_geniesim_pi05.py",
+  "scripts/deployment/smoke_behavior.py",
+  "scripts/deployment/smoke_cosmos_lite.py",
+  "scripts/deployment/smoke_geniesim.py",
+  "scripts/deployment/smoke_geniesim_vla.py",
+  "scripts/deployment/smoke_grasp_services.py",
+  "scripts/deployment/smoke_libero_privileged_pick_place.py",
+  "scripts/deployment/smoke_libero_privileged_tools.py",
+  "scripts/deployment/smoke_maniskill.py",
+  "scripts/deployment/smoke_maniskill_runtime.py",
+  "scripts/deployment/smoke_persistent_pi05.py",
+  "scripts/deployment/start_libero_vla_server.sh",
+  "scripts/deployment/start_runtime_services.sh",
+  "scripts/deployment/test_robocasa_runtime.sh",
+  "scripts/deployment/visualize_cosmos_lite_replay.py",
+  "scripts/deployment/visualize_robotwin_episode.py",
+  "scripts/evolution/audit_gate_artifacts.py",
+  "scripts/evolution/audit_robocasa_success_labels.py",
+  "scripts/evolution/benchmark_multienv.py",
+  "scripts/evolution/bootstrap_groot_n15.sh",
+  "scripts/evolution/bootstrap_stage_runtime.sh",
+  "scripts/evolution/install_flash_attn_wheel.sh",
+  "scripts/evolution/plot_sr_curve.py",
+  "scripts/evolution/preflight_codex_stage.sh",
+  "scripts/evolution/prepare_geniesim_campaign.py",
+  "scripts/evolution/prepare_libero_campaign.py",
+  "scripts/evolution/prepare_libero_heldout_validation.py",
+  "scripts/evolution/prepare_libero_role1_smoke.py",
+  "scripts/evolution/prepare_maniskill_campaign.py",
+  "scripts/evolution/prepare_robocasa_campaign.py",
+  "scripts/evolution/prepare_robotwin_campaign.py",
+  "scripts/evolution/probe_codex_stage_runtime.py",
+  "scripts/evolution/probe_provider_runtime.py",
+  "scripts/evolution/robocasa_capacity_worker.py",
+  "scripts/evolution/run_campaign.py",
+  "scripts/evolution/run_candidate_gate.py",
+  "scripts/evolution/run_fault_injection.py",
+  "scripts/evolution/run_frozen_libero.sh",
+  "scripts/evolution/run_isolated_overlay_pytest.py",
+  "scripts/evolution/run_pure_vla_loop1.py",
+  "scripts/evolution/serve_provider_broker.py",
+  "scripts/evolution/serve_robocasa_farm.py",
+  "scripts/evolution/smoke_chunk_critic_interrupt.py",
+  "scripts/evolution/smoke_groot_robocasa.py",
+  "scripts/evolution/stage_liberopro_assets_overlay.py",
+  "scripts/evolution/start_provider_broker.sh",
+  "scripts/evolution/stop_provider_broker.sh",
+  "scripts/experiments/analyze_paired_results.py",
+  "scripts/experiments/audit_episode_artifacts.py",
+  "scripts/experiments/build_retry_manifest.py",
+  "scripts/experiments/build_targeted_l10_manifest.py",
+  "scripts/experiments/capture_flashrt_calibration_frame.py",
+  "scripts/experiments/critic-recovery-v3.json",
+  "scripts/experiments/libero_critic_recovery_latency_v3.py",
+  "scripts/experiments/libero_dynamic_pool_concurrency_stress.sh",
+  "scripts/experiments/probe_api_channels.py",
+  "scripts/experiments/run_batch_memory_continuation.py",
+  "scripts/experiments/run_memory_loop.py",
+  "scripts/experiments/run_paired_episode.py",
+  "scripts/experiments/run_pure_pi05_screen.py",
+  "scripts/experiments/run_sequential_memory.py",
+  "scripts/experiments/smoke_codex_planner.py",
+  "scripts/experiments/token_budget.py",
+  "sitecustomize.py",
+  "teaser.png",
+  "tests/__init__.py",
+  "tests/conftest.py",
+  "tests/runtime/__init__.py",
+  "tests/runtime/conftest.py",
+  "tests/runtime/fixtures/cosmos_lite/resolved_deployment_config.json",
+  "tests/runtime/geniesim_worker_stub/__init__.py",
+  "tests/runtime/geniesim_worker_stub/worker.py",
+  "tests/runtime/libero_stub.py",
+  "tests/runtime/test_admission.py",
+  "tests/runtime/test_api_codec.py",
+  "tests/runtime/test_batch_scheduler.py",
+  "tests/runtime/test_behavior_family.py",
+  "tests/runtime/test_cosmos_lite_backend.py",
+  "tests/runtime/test_cosmos_lite_replay_visualization.py",
+  "tests/runtime/test_dynamic_slot_pool.py",
+  "tests/runtime/test_e2e_fake.py",
+  "tests/runtime/test_env_family_normalization.py",
+  "tests/runtime/test_envworker_dynamic_slot_placement.py",
+  "tests/runtime/test_eval_adapter.py",
+  "tests/runtime/test_extension_call.py",
+  "tests/runtime/test_fault_isolation.py",
+  "tests/runtime/test_flashrt_batched_infer.py",
+  "tests/runtime/test_geniesim_family.py",
+  "tests/runtime/test_geniesim_vla.py",
+  "tests/runtime/test_groot_policy_backend.py",
+  "tests/runtime/test_gym_adapter.py",
+  "tests/runtime/test_heartbeat_lost.py",
+  "tests/runtime/test_idempotency.py",
+  "tests/runtime/test_layering.py",
+  "tests/runtime/test_libero_critic_recovery.py",
+  "tests/runtime/test_libero_runtime_audit_ledger.py",
+  "tests/runtime/test_libero_zetta_runtime_adapters.py",
+  "tests/runtime/test_metrics.py",
+  "tests/runtime/test_multi_family.py",
+  "tests/runtime/test_multi_family_remote.py",
+  "tests/runtime/test_payload.py",
+  "tests/runtime/test_policy_backend.py",
+  "tests/runtime/test_policy_step_timing.py",
+  "tests/runtime/test_ray_launch.py",
+  "tests/runtime/test_ray_transport.py",
+  "tests/runtime/test_rlinf_bootstrap.py",
+  "tests/runtime/test_robocasa_current_backend.py",
+  "tests/runtime/test_robocasa_dynamic_slot_pool_integration.py",
+  "tests/runtime/test_robocasa_session_process.py",
+  "tests/runtime/test_robotwin_family.py",
+  "tests/runtime/test_robotwin_policy_contract.py",
+  "tests/runtime/test_robotwin_run_rollout.py",
+  "tests/runtime/test_run_rollout_e2e.py",
+  "tests/runtime/test_serve.py",
+  "tests/runtime/test_serve_client.py",
+  "tests/runtime/test_session_state_machine.py",
+  "tests/runtime/test_slot_coalescing.py",
+  "tests/runtime/test_zetta_ray_channel.py",
+  "tests/runtime/test_zetta_ray_group.py",
+  "tests/test_api_loop_optional_providers.py",
+  "tests/test_batch_memory_continuation.py",
+  "tests/test_candidate_gate_runner.py",
+  "tests/test_codex_artifacts.py",
+  "tests/test_codex_provider_broker.py",
+  "tests/test_config.py",
+  "tests/test_env_chunk_termination.py",
+  "tests/test_episode_memory.py",
+  "tests/test_evolution_campaign_bundle.py",
+  "tests/test_evolution_capacity.py",
+  "tests/test_evolution_core.py",
+  "tests/test_evolution_fault_injection.py",
+  "tests/test_evolution_framework_repairs.py",
+  "tests/test_evolution_lifecycle.py",
+  "tests/test_evolution_protocol.py",
+  "tests/test_evolution_queue_provider.py",
+  "tests/test_evolution_queue_recovery.py",
+  "tests/test_evolution_refinement.py",
+  "tests/test_evolution_seed_blind_artifacts.py",
+  "tests/test_evolution_slot_broker.py",
+  "tests/test_evolution_stage_session.py",
+  "tests/test_evolution_trajectory.py",
+  "tests/test_experiment_protocol.py",
+  "tests/test_gate_artifact_audit.py",
+  "tests/test_generalist_integration.py",
+  "tests/test_gpu_memory_guard.py",
+  "tests/test_libero_assets.py",
+  "tests/test_libero_clean_prompt.py",
+  "tests/test_libero_critic_privileged_state.py",
+  "tests/test_libero_eval_horizon.py",
+  "tests/test_libero_evolution_runtime.py",
+  "tests/test_libero_heldout_validation.py",
+  "tests/test_libero_persistent_vla.py",
+  "tests/test_libero_rlinf_worker_compat.py",
+  "tests/test_libero_runtime_devices.py",
+  "tests/test_maniskill_rollout.py",
+  "tests/test_plot_sr_curve.py",
+  "tests/test_prepare_experiment.py",
+  "tests/test_prepare_geniesim_campaign.py",
+  "tests/test_prepare_maniskill_campaign.py",
+  "tests/test_prepare_robotwin_campaign.py",
+  "tests/test_privileged_libero_tools.py",
+  "tests/test_probe_api_channels.py",
+  "tests/test_probe_provider_runtime.py",
+  "tests/test_provider_admission.py",
+  "tests/test_provider_pool.py",
+  "tests/test_provider_proxy.py",
+  "tests/test_provider_request_admission.py",
+  "tests/test_pure_vla_loop1.py",
+  "tests/test_repository_hygiene.py",
+  "tests/test_robocasa_env_runtime.py",
+  "tests/test_robocasa_evolution_tools.py",
+  "tests/test_robocasa_failure_fixtures.py",
+  "tests/test_robocasa_farm.py",
+  "tests/test_robocasa_gpu_gate.py",
+  "tests/test_robocasa_groot_client.py",
+  "tests/test_robocasa_groot_server.py",
+  "tests/test_robocasa_harness_adapter.py",
+  "tests/test_robocasa_operation_protocol.py",
+  "tests/test_robocasa_recovery_controller.py",
+  "tests/test_robocasa_role1.py",
+  "tests/test_robocasa_role1_actor.py",
+  "tests/test_robocasa_runtime_split.py",
+  "tests/test_robocasa_stable_renderer.py",
+  "tests/test_robocasa_video_artifacts.py",
+  "tests/test_robotwin_action_contract.py",
+  "tests/test_robotwin_critic_runtime.py",
+  "tests/test_robotwin_role1_agent.py",
+  "tests/test_robotwin_role1_recovery.py",
+  "tests/test_robotwin_tool_catalog.py",
+  "tests/test_run_campaign_cli.py",
+  "tests/test_sequential_memory.py",
+  "tests/test_serve_geniesim_pi05.py",
+  "tests/test_stage_liberopro_assets_overlay.py",
+  "tests/test_token_budget.py",
+  "tests/test_tool_profiles.py",
+  "tests/test_vla_client_timeout.py",
+  "tests/test_zetta_embodied_compat.py",
+  "tests/test_zetta_libero_utils.py",
+  "tests/test_zetta_maniskill_contract.py",
+  "tests/test_zetta_openpi_factory.py",
+  "tests/test_zetta_robotwin_contract.py",
+  "z_trans_logo.png",
+  "zetta/.DS_Store",
+  "zetta/__init__.py",
+  "zetta/cli/__init__.py",
+  "zetta/cli/main.py",
+  "zetta/cli/tui.py",
+  "zetta/compat/__init__.py",
+  "zetta/compat/actions.py",
+  "zetta/compat/tensors.py",
+  "zetta/context/__init__.py",
+  "zetta/context/prompt_utils.py",
+  "zetta/context/prompts/prompt.py",
+  "zetta/dashboard/__init__.py",
+  "zetta/dashboard/index.html",
+  "zetta/dashboard/index.zh-cn.html",
+  "zetta/dashboard/launcher.py",
+  "zetta/dashboard/server.py",
+  "zetta/dashboard/state.py",
+  "zetta/envs/.DS_Store",
+  "zetta/envs/__init__.py",
+  "zetta/envs/base.py",
+  "zetta/envs/behavior/__init__.py",
+  "zetta/envs/behavior/contracts.py",
+  "zetta/envs/behavior/environment.py",
+  "zetta/envs/env_spec.py",
+  "zetta/envs/geniesim/__init__.py",
+  "zetta/envs/geniesim/config.py",
+  "zetta/envs/geniesim/process.py",
+  "zetta/envs/geniesim/session.py",
+  "zetta/envs/geniesim/wire.py",
+  "zetta/envs/geniesim/worker.py",
+  "zetta/envs/libero/__init__.py",
+  "zetta/envs/libero/base_vector_env.py",
+  "zetta/envs/libero/environment.py",
+  "zetta/envs/libero/utils.py",
+  "zetta/envs/libero/vector_env.py",
+  "zetta/envs/maniskill/__init__.py",
+  "zetta/envs/maniskill/contracts.py",
+  "zetta/envs/maniskill/environment.py",
+  "zetta/envs/maniskill/utils.py",
+  "zetta/envs/prompt_bundle.py",
+  "zetta/envs/robotwin/__init__.py",
+  "zetta/envs/robotwin/environment.py",
+  "zetta/envs/robotwin/utils.py",
+  "zetta/evolution/__init__.py",
+  "zetta/evolution/admission.py",
+  "zetta/evolution/campaign.py",
+  "zetta/evolution/capacity.py",
+  "zetta/evolution/cli.py",
+  "zetta/evolution/clustering.py",
+  "zetta/evolution/critic.py",
+  "zetta/evolution/fault_injection.py",
+  "zetta/evolution/gate_runner.py",
+  "zetta/evolution/gating.py",
+  "zetta/evolution/jsonio.py",
+  "zetta/evolution/lifecycle.py",
+  "zetta/evolution/models.py",
+  "zetta/evolution/protocol.py",
+  "zetta/evolution/provider_admission.py",
+  "zetta/evolution/queue.py",
+  "zetta/evolution/schedule.py",
+  "zetta/evolution/shadow_replay.py",
+  "zetta/evolution/slot_broker.py",
+  "zetta/evolution/stages.py",
+  "zetta/evolution/store.py",
+  "zetta/evolution/supervisor.py",
+  "zetta/evolution/trajectory.py",
+  "zetta/evolution/visual_artifacts.py",
+  "zetta/memory/__init__.py",
+  "zetta/memory/task_memory.py",
+  "zetta/planner/__init__.py",
+  "zetta/planner/api_loop.py",
+  "zetta/planner/base.py",
+  "zetta/planner/claude_code.py",
+  "zetta/planner/codex.py",
+  "zetta/planner/codex_artifacts.py",
+  "zetta/planner/provider_pool.py",
+  "zetta/planner/provider_proxy.py",
+  "zetta/planner/provider_request_admission.py",
+  "zetta/planner/utils/__init__.py",
+  "zetta/planner/utils/http_mcp_server.py",
+  "zetta/policies/__init__.py",
+  "zetta/policies/openpi/__init__.py",
+  "zetta/policies/openpi/_compat/__init__.py",
+  "zetta/policies/openpi/_compat/base_policy.py",
+  "zetta/policies/openpi/_compat/compact_encoders.py",
+  "zetta/policies/openpi/_compat/explore_noise_net.py",
+  "zetta/policies/openpi/_compat/gaussian_policy.py",
+  "zetta/policies/openpi/_compat/logging.py",
+  "zetta/policies/openpi/_compat/nested_dict_process.py",
+  "zetta/policies/openpi/_compat/pytree.py",
+  "zetta/policies/openpi/_compat/rlt_token_transformer.py",
+  "zetta/policies/openpi/_compat/robocasa_utils.py",
+  "zetta/policies/openpi/_compat/rot6d.py",
+  "zetta/policies/openpi/_compat/value_head.py",
+  "zetta/policies/openpi/_factory_impl.py",
+  "zetta/policies/openpi/dataconfig/__init__.py",
+  "zetta/policies/openpi/dataconfig/behavior_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/calvin_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/dual_franka_tcp_rot6d_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/franka_co_training_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/franka_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/gsenv_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/isaaclab_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/libero_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/maniskill_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/maniskill_rlt_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/metaworld_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/polaris_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/realworld_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/robocasa_dataconfig.py",
+  "zetta/policies/openpi/dataconfig/robotwin_aloha_dataconfig.py",
+  "zetta/policies/openpi/factory.py",
+  "zetta/policies/openpi/openpi_action_model.py",
+  "zetta/policies/openpi/policies/__init__.py",
+  "zetta/policies/openpi/policies/aloha_policy.py",
+  "zetta/policies/openpi/policies/behavior_policy.py",
+  "zetta/policies/openpi/policies/calvin_policy.py",
+  "zetta/policies/openpi/policies/dual_franka_tcp_rot6d_policy.py",
+  "zetta/policies/openpi/policies/franka_policy.py",
+  "zetta/policies/openpi/policies/gsenv_policy.py",
+  "zetta/policies/openpi/policies/isaaclab_policy.py",
+  "zetta/policies/openpi/policies/libero_policy.py",
+  "zetta/policies/openpi/policies/maniskill_policy.py",
+  "zetta/policies/openpi/policies/metaworld_policy.py",
+  "zetta/policies/openpi/policies/realworld_policy.py",
+  "zetta/policies/openpi/policies/robocasa_policy.py",
+  "zetta/policies/openpi/rtc_guidance.py",
+  "zetta/policies/openpi/transforms/__init__.py",
+  "zetta/policies/openpi/transforms/rigid_body_delta.py",
+  "zetta/runtime/__init__.py",
+  "zetta/runtime/ray/__init__.py",
+  "zetta/runtime/ray/bootstrap.py",
+  "zetta/runtime/ray/channel.py",
+  "zetta/runtime/ray/group.py",
+  "zetta/runtime/ray/placement.py",
+  "zetta/tools/__init__.py",
+  "zetta/tools/common.py",
+  "zetta/tools/contracts.py",
+  "zetta/tools/toolkit.py",
+  "zetta/utils/__init__.py",
+  "zetta/utils/config.py",
+  "zetta/utils/daemon.py",
+  "zetta/utils/egl.py",
+  "zetta/utils/gpu_memory_guard.py",
+  "zetta/utils/http_rpc.py",
+  "zetta/utils/logging.py",
+  "zetta/utils/resources.py",
+  "zetta/utils/rpc.py",
+  "zetta/utils/sam3_client.py",
+  "zetta/utils/socket_rpc.py",
+  "zetta/utils/templates.py",
+  "zetta/utils/vla_client.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "311546add14156f3ceb26cbbaeec2676c8ccc1d2ed528639ae49ed65d3931230"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "e9c66737e48a6690b766914b85a9dc3a0af998681acd5b07a051212572fc4d36"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "870037dee00671ec00c84df77c0d18e7ff29fa506770518bc968cae501aeb6ed"
+  },
+  {
+   "path": "robots/__init__.py",
+   "sha256": "4c29aadf7a4f1b2e6e6ffbe18eb7811e10a2b2338eadaacc848203ed01f4747e"
+  },
+  {
+   "path": "robots/behavior/__init__.py",
+   "sha256": "67d8f86dfcc3a64b8d26f602ccb3927394bd1f4d098f4696787b985fc47b03d6"
+  },
+  {
+   "path": "robots/behavior/contracts.py",
+   "sha256": "e1307118108c3fe02396b7a1286dcdb24b39dd3fab91570801fab596a43478d2"
+  },
+  {
+   "path": "robots/geniesim/__init__.py",
+   "sha256": "a977d4607e0b516937d77b1504497ce237556d1549da50052e19565a6ee950f2"
+  },
+  {
+   "path": "robots/geniesim/contracts.py",
+   "sha256": "a671354c3fe58221cb4bc176a8310e6c0b422e0c8042a198053115ee1a9c2657"
+  },
+  {
+   "path": "robots/geniesim/run_rollout.py",
+   "sha256": "59cc777be4348662dd9e20ef82d051bf5fe59536bf635b6dfb0fe81953cb727a"
+  },
+  {
+   "path": "robots/libero/__init__.py",
+   "sha256": "646aad0b7dc6fe9c4ca07e32352128c42bed11210dbdb670fde3fdde63f8b94a"
+  },
+  {
+   "path": "robots/libero/assets.py",
+   "sha256": "effbf6f2ec75a8122ff7ff01c5b8c31df9f6378a2daf4b5542429a283f469184"
+  },
+  {
+   "path": "robots/libero/contact_graspnet.py",
+   "sha256": "9cadd9b654346edb12b7ad1a237922e7ca5984bff9f2f307fd34d257a0f89d48"
+  },
+  {
+   "path": "robots/libero/critic_runtime.py",
+   "sha256": "efb979c30c6b97de23d1ffdc1d523d1e9007e5d39a20c81c45e73aa36fa803ed"
+  },
+  {
+   "path": "robots/libero/env_client.py",
+   "sha256": "714b8ff8b14fe4af9f56db94aa8b8572b638e9a019223f995c4641592ac2ec44"
+  },
+  {
+   "path": "robots/libero/env_server.py",
+   "sha256": "357e0c79cf758078aaf9faa4a3a427c762ad6fb603a0787d55ace5136881eeaf"
+  },
+  {
+   "path": "robots/libero/evolution_defaults.py",
+   "sha256": "48bcaea87389a6fa01c9c116ab177d1a95c042ddf8e7746202f2d7e4294d4cbc"
+  },
+  {
+   "path": "robots/libero/fastwam_vla_server.py",
+   "sha256": "82c57c4c0129b95aa3aab77d92a9c00072ea9f21979a6a79329ade6d2683ce02"
+  },
+  {
+   "path": "robots/libero/graspgen.py",
+   "sha256": "274daddeacfbacf373ca5dc88da71cb3dc9fd7692ea0a0d573d83b6caa7e26ed"
+  },
+  {
+   "path": "robots/libero/graspgen_http_server.py",
+   "sha256": "a5787684ed0bf362e21459baac343ed112ca127ad9055bc9d8ecc4f441894184"
+  },
+  {
+   "path": "robots/libero/groot_vla_server.py",
+   "sha256": "7039b5dd752ce4902d733a854571743722ff3455451c8ebae5571ae502e24251"
+  },
+  {
+   "path": "robots/libero/privileged_sensors.py",
+   "sha256": "463375d0d0c42165ef1fadc6eb44c862d456d5de1cf85b5f4c6cafa3a9f72b03"
+  },
+  {
+   "path": "robots/libero/prompt_bundle.py",
+   "sha256": "7ad04f443a61ca46b96489bdb91aac6fca2ca6ff3cf06f1dcf5494d17db91eea"
+  },
+  {
+   "path": "robots/libero/prompts/__init__.py",
+   "sha256": "87cec1bd4a978e2ceaf3e5904d4817a224855378b879ba4a21d7d88ed3fad6eb"
+  },
+  {
+   "path": "robots/libero/prompts/system.py",
+   "sha256": "ebb781b3b6e02ddcee55d87c9673711ae16f3db7d9acd4f7f2991f9b96839741"
+  },
+  {
+   "path": "robots/libero/prompts/system_legacy.py",
+   "sha256": "eb20bae701d8854ead458d893ec3e77985f0b0ccdcfb143b6e17124ee43e4861"
+  },
+  {
+   "path": "robots/libero/prompts/user.py",
+   "sha256": "29ec11bf9307969a070718c55e255e183f58d294520b077d437f712aea919d55"
+  },
+  {
+   "path": "robots/libero/prompts/user_legacy.py",
+   "sha256": "5bfddcde9577a0c1a75f2170b07e94f3944b9c54dded638b056e4a10421b93d6"
+  },
+  {
+   "path": "robots/libero/rlinf_worker_compat.py",
+   "sha256": "fc3b2d1e59212e008700d4c8d8558f5904f4df86446417653145085cc3b71aff"
+  },
+  {
+   "path": "robots/libero/role1_recovery.py",
+   "sha256": "fac03b03932b50bbeb481d4ea452b425f3e7ed7d1ce5f1b0eb28355b4fb6295e"
+  },
+  {
+   "path": "robots/libero/run_evolution_rollout.py",
+   "sha256": "1868caf2256c313c48e4f1555a01a83889129efd4aa6a3253d1e7d1f997ba501"
+  },
+  {
+   "path": "robots/libero/runtime_devices.py",
+   "sha256": "4b412b288ec67fe024b5787a0fd8d5b86533d612e432ca572a8c90feeedb5ae2"
+  },
+  {
+   "path": "robots/libero/sam3_server.py",
+   "sha256": "7a6d56c4efc75481a82263021bf6f552557ce3e06d0de62af5689685c8e7066c"
+  },
+  {
+   "path": "robots/libero/tool_catalog.py",
+   "sha256": "39c925ef8cc91bd34ad7783d0fcb3a446b8d66e4e102d5365a601f4c01d19760"
+  },
+  {
+   "path": "robots/libero/toolkit.py",
+   "sha256": "6f684e02e7de84d34f2b7056e653a929b58b1d6316399109bbcd1b2690742dab"
+  },
+  {
+   "path": "robots/libero/tools.py",
+   "sha256": "5367fe850fde9f45a057445f246d955d0dc0cb63a1f1cf33376749b390f87ad8"
+  },
+  {
+   "path": "robots/libero/vla_server.py",
+   "sha256": "075358d1ca651e1bbf0059c169e7aa68a710db4bd3fc8fc4cbf4234639d4fb7d"
+  },
+  {
+   "path": "robots/maniskill/__init__.py",
+   "sha256": "1778b9c7c6c8f2e3979dd7f69d6c5f36534421d36cabe5cb782eb7f84f26f1b0"
+  },
+  {
+   "path": "robots/maniskill/contracts.py",
+   "sha256": "aa00253c85cab238b0b6692ea9c9bdbb56fda911ed63fd53a333b25caa44ed50"
+  },
+  {
+   "path": "robots/maniskill/role1.py",
+   "sha256": "6d7d7816c3eb9119def5fca81457406914f0e4ff8e2d5c29f37ac1943d46ba1f"
+  },
+  {
+   "path": "robots/maniskill/run_rollout.py",
+   "sha256": "d0673caa4865a400bab05a44e60f47153838b6c560a9161ce6f04d4743a74675"
+  },
+  {
+   "path": "robots/robocasa/__init__.py",
+   "sha256": "e11152ba7fd5021094abbb4960582d2c97e742cfe1a9b7cc4bdbc0bcd0b81197"
+  },
+  {
+   "path": "robots/robocasa/action_contract.py",
+   "sha256": "24818ec9bbb92492e6fc9a4bd6b3f113ca3dc3221756a6ff8716c749c73f7132"
+  },
+  {
+   "path": "robots/robocasa/dishwasher_critic.py",
+   "sha256": "07a14b642b13bec7633c70682482c86ea8fdf94516ee568aaeb8f4b8afffd080"
+  },
+  {
+   "path": "robots/robocasa/env_client.py",
+   "sha256": "b5ca76da063845256232dad0f93870f168f09fd368fadd99ea200149fe960731"
+  },
+  {
+   "path": "robots/robocasa/env_server.py",
+   "sha256": "003de2406ab9fef3700124a66853b5e4a1b9a8675d5651f192e30040a7a6df97"
+  },
+  {
+   "path": "robots/robocasa/gpu_gate.py",
+   "sha256": "bf0d6b83ae5d949942be77ff5c39fbbae7f6144e4cbcbef052416cba9458eac8"
+  },
+  {
+   "path": "robots/robocasa/groot_client.py",
+   "sha256": "1732d08b0b012169be7374c4f2c75e8cbeb9308142c83cd757fd04adb019ba10"
+  },
+  {
+   "path": "robots/robocasa/groot_core.py",
+   "sha256": "1cb98d0fe219d3563f35f1a2941773b814f0fcd79dc20b6036553b11d69861e0"
+  },
+  {
+   "path": "robots/robocasa/groot_server.py",
+   "sha256": "fcceeb43d2f04f6b8babfcabe3328bfb86e5a3f0e15a9d0ef6e9f2b5f9dd63e1"
+  },
+  {
+   "path": "robots/robocasa/harness_adapter.py",
+   "sha256": "254a2ab9a27b915fe30878f38a6b6746abb6548559ee48c8e855e2466f3c18b7"
+  },
+  {
+   "path": "robots/robocasa/operation_protocol.py",
+   "sha256": "76778c6171f7a78dc6d87ae21a4577991c8d2c1fcb10c23c21be4d25b628087b"
+  },
+  {
+   "path": "robots/robocasa/privileged_state.py",
+   "sha256": "0981b6f14defb36ed6b84205b86dbb888437efcef86dfa8b74761e8899456639"
+  },
+  {
+   "path": "robots/robocasa/recovery_controller.py",
+   "sha256": "4b2c994effe90d55a5dd640d46c30a0e225dfea45cb25e3b553d77276afb8807"
+  },
+  {
+   "path": "robots/robocasa/role1_actor.py",
+   "sha256": "e6c1eba09bc6764f218e229b76869ee70009883d790594f8cb5ae365c888dbb9"
+  },
+  {
+   "path": "robots/robocasa/role1_agent.py",
+   "sha256": "b7aeb20aebd9d26f015ab49a4f49be65b1a50eb32cc21ab8dd40db31ba75ba12"
+  },
+  {
+   "path": "robots/robocasa/run_rollout.py",
+   "sha256": "44c34d76b0b6406c8301def59dc656bbe4c1349d375e72e0cedbdf0c30cfd401"
+  },
+  {
+   "path": "robots/robocasa/session_core.py",
+   "sha256": "6bfd3866724392b2e566ede178593e166f06c470d9666f147a73ba9baa3d9e64"
+  },
+  {
+   "path": "robots/robocasa/session_process.py",
+   "sha256": "01867a386c78207441217e0cfad0038473d2df168a4591bdf561d1071f357159"
+  },
+  {
+   "path": "robots/robocasa/slide_dishwasher_program.py",
+   "sha256": "0c92fb114b2df8fc8d986b838024bce3ebde56811e789088f866c067ad60ffd9"
+  },
+  {
+   "path": "robots/robocasa/stable_renderer.py",
+   "sha256": "615b462b509bd67a7ca303b4f5600c470c84b31750bd5fbc1d551a1d65cb8a78"
+  },
+  {
+   "path": "robots/robocasa/tool_bindings.py",
+   "sha256": "c93d5550bf185a68a4ea766bf52af9f4662878deafc6d262ed92064eebd4a65c"
+  },
+  {
+   "path": "robots/robocasa/tool_catalog.py",
+   "sha256": "e7abaf7c95c049f4821bf8f8c8e1b4c3cce6a50bed42afe5969a0e1614ae634d"
+  },
+  {
+   "path": "robots/robocasa/tool_runtime.py",
+   "sha256": "349352b6da8247f9cc827b409c532953f34d01fd5f66e0129536b8ed9ba14221"
+  },
+  {
+   "path": "robots/robocasa/video_artifacts.py",
+   "sha256": "d190c207f1116e55494b5a149f2539a363a008031f3aa177f7b58f651154ac25"
+  },
+  {
+   "path": "robots/robotwin/__init__.py",
+   "sha256": "40d9053466f5ec2c2c4d4678fcea534089ac6ad9ddaed4d62898b1492a386817"
+  },
+  {
+   "path": "robots/robotwin/action_contract.py",
+   "sha256": "a37e022447a887928c6a6671660424606106326e1905fababaaa09c9729cce11"
+  },
+  {
+   "path": "robots/robotwin/critic_runtime.py",
+   "sha256": "87a47a4caab2c24d8303e1a68bd03afc7b857d4501c54ffa4689ebed03ac0995"
+  },
+  {
+   "path": "robots/robotwin/recovery_controller.py",
+   "sha256": "b53265773e6462d8fafad3cf4dc6685fd1414c26fc9deac6dfc09bfe6419d137"
+  },
+  {
+   "path": "robots/robotwin/role1_actor.py",
+   "sha256": "02c3a20e33c1644a948f566206eb567a4560cbff9aebce89060ce922df872d7f"
+  },
+  {
+   "path": "robots/robotwin/role1_agent.py",
+   "sha256": "2ec812a455b070210ac27197162f8ebc2807c55c9e8702392817e685087661ac"
+  },
+  {
+   "path": "robots/robotwin/run_rollout.py",
+   "sha256": "8fa2cc6f3d36c1864a8ffa38d20ae8f0a6222a127261c653c0917d452083c3e2"
+  },
+  {
+   "path": "robots/robotwin/tool_bindings.py",
+   "sha256": "b68c5ff8e8748b5f9567081f71f89fdbbfb4712c93d0440a82debd4ac62bb806"
+  },
+  {
+   "path": "robots/robotwin/tool_catalog.py",
+   "sha256": "77d1158c21b7031eb6bad19cf588eaf133e43c53a6deec11d244bf28ebab21a7"
+  },
+  {
+   "path": "rollout_runtime/__init__.py",
+   "sha256": "dbfc0f346ed71b85adf8e36d640127ce4080b725a256e14e7d733a39f5b26833"
+  },
+  {
+   "path": "rollout_runtime/adapters/__init__.py",
+   "sha256": "2155283cf1bf2a015fd2fb7f21c279563670402eb7a214baedc214c98ba50264"
+  },
+  {
+   "path": "rollout_runtime/adapters/eval_adapter.py",
+   "sha256": "f7bb58d6d313b16383894a5fa00ee6e14d89476473232f7fd827f5110eddec92"
+  },
+  {
+   "path": "rollout_runtime/adapters/gym_adapter.py",
+   "sha256": "a5baa9d60ff28b0c8af3fae0a02f1de8a7f16ea6f49a68dd3b53eb856f2a8eb8"
+  },
+  {
+   "path": "rollout_runtime/adapters/zetta/__init__.py",
+   "sha256": "c25b8f4fe900500c5e1aa102dd41cb608c1c2a66776901c2c088ed6dbcc3e01e"
+  },
+  {
+   "path": "rollout_runtime/adapters/zetta/runtime_env_client.py",
+   "sha256": "8e6ab737687bf0df662b68643ee180143cf9fb1f6c246b6b5c6d127f82bfa4e9"
+  },
+  {
+   "path": "rollout_runtime/adapters/zetta/runtime_policy_client.py",
+   "sha256": "aacb97fa05725eb33269e465b980a9f1b377904e0123ea77b49c91129116589b"
+  },
+  {
+   "path": "rollout_runtime/api/__init__.py",
+   "sha256": "46903b4b7647c3cfe00aa648f3854b63abfabf10222c6ba3997d3f2f1f3eec84"
+  },
+  {
+   "path": "rollout_runtime/api/client.py",
+   "sha256": "78590e6bc712d6483b862a0c5aab3444eaf300d0f14064585b85bd8eef41cd63"
+  },
+  {
+   "path": "rollout_runtime/api/codec.py",
+   "sha256": "caeb97ed471d5f0fd9fd0f14ee536b44b92434efac46a827b988eafc50a20f55"
+  },
+  {
+   "path": "rollout_runtime/api/enums.py",
+   "sha256": "ddd9e1a42afd0ff0622b3583e59fc4f8a8174f3efee432aa2457c4d4bfecb6fe"
+  },
+  {
+   "path": "rollout_runtime/api/errors.py",
+   "sha256": "f3990e0601ea8b44bf7a363a39262c19b091d0259953b48a4febbce31fcf4e65"
+  },
+  {
+   "path": "rollout_runtime/api/ids.py",
+   "sha256": "8a2352738421c03588048fb2d104b96f5612116ebfe5458c66005482fe9f7328"
+  },
+  {
+   "path": "rollout_runtime/api/internal.py",
+   "sha256": "bd6599093bfdf709fb232460feebdc98f23341e3fd2218e64e00f1ea5a5ba879"
+  },
+  {
+   "path": "rollout_runtime/api/messages.py",
+   "sha256": "437ddea605730b792e7c6eb170dd14b2c34f2dd755eb022b91646be60e03af80"
+  },
+  {
+   "path": "rollout_runtime/api/payload_ref.py",
+   "sha256": "24fad1d8db985bcda7c8f2afdbf8c9d25987a6ff581fb10720a8ed489e63c8bb"
+  },
+  {
+   "path": "rollout_runtime/api/result.py",
+   "sha256": "0432cc1bbd432b1cceb52127810ef1b7b7d3ba88132bafaa0587a4a87b167f6e"
+  },
+  {
+   "path": "rollout_runtime/api/wire.py",
+   "sha256": "932ad751a6e6bac34002f80351a0fe582b646719d25d9d17694b101250bafa21"
+  },
+  {
+   "path": "rollout_runtime/backends/__init__.py",
+   "sha256": "ba33ec44aaa36333309bbe87daf1190e209dbba2d1ae9dcac492495f66686893"
+  },
+  {
+   "path": "rollout_runtime/backends/behavior.py",
+   "sha256": "dde2d5f7184c2a6997be5cf636488c8fed3d123a93e5f12377f40cde30510944"
+  },
+  {
+   "path": "rollout_runtime/backends/cosmos_lite.py",
+   "sha256": "63135c232166e16d7421cca7d740f01cab9deb28581d3cc73a7bdaeec4e0a8f3"
+  },
+  {
+   "path": "rollout_runtime/backends/fake/__init__.py",
+   "sha256": "74a1e027a67845b2487241a0143050d348275943c09b8b07ce364e2a1c0452b8"
+  },
+  {
+   "path": "rollout_runtime/backends/fake/env.py",
+   "sha256": "8b6cdb6218845bd9a48227589d54accbcb9e2491ec80cdd5fa4ef1e2fc0d4ef8"
+  },
+  {
+   "path": "rollout_runtime/backends/fake/policy.py",
+   "sha256": "e179fa324a398abaaa2c76706f0d6f677832f01975db478e92e07072d6c43787"
+  },
+  {
+   "path": "rollout_runtime/backends/flashrt_groot_n15.py",
+   "sha256": "22fad093e61bf2a4fd9bd859995dbeee744ed31fdc0a4fb01de25561e8f8a674"
+  },
+  {
+   "path": "rollout_runtime/backends/flashrt_groot_policy.py",
+   "sha256": "ebd454b4441ffe543b15abeea9d580ec32a10f3e4e858eba4d0dff70acbbcfad"
+  },
+  {
+   "path": "rollout_runtime/backends/flashrt_policy.py",
+   "sha256": "f37a1e8ded384361ef6013d45700387ca69e047995a6476e67183ffc903977a3"
+  },
+  {
+   "path": "rollout_runtime/backends/geniesim.py",
+   "sha256": "b7d5df5b574d7ebdb3a7c4ad161f98d4164a0f0addca4217da104f5a65e551fa"
+  },
+  {
+   "path": "rollout_runtime/backends/geniesim_policy.py",
+   "sha256": "587fba3b4796a0ee5e2973e582635a16335d2c800f4782c55ce058dff6441b81"
+  },
+  {
+   "path": "rollout_runtime/backends/groot_policy.py",
+   "sha256": "a348e992cea50536918647c297e8987b236b2ee24207b72e1d88205a85954cdd"
+  },
+  {
+   "path": "rollout_runtime/backends/libero_critic.py",
+   "sha256": "efe1328488a26909f75821968bec6a99b6dc706b43cbe27366429fc35eaa4dc2"
+  },
+  {
+   "path": "rollout_runtime/backends/libero_privileged.py",
+   "sha256": "3bea93481b7cf873a0717c897516625d81ef36baf8f56a7c8f986c8b48a004ef"
+  },
+  {
+   "path": "rollout_runtime/backends/rlinf_env.py",
+   "sha256": "af9e9795fbb208e14ee97d618524c5bbbaa7d6987173d2503aceefa91bbcc3b4"
+  },
+  {
+   "path": "rollout_runtime/backends/rlinf_family.py",
+   "sha256": "892310a9de7de358244bc606a4dc49247204c3987ec38ad1f7efb6553814c10f"
+  },
+  {
+   "path": "rollout_runtime/backends/rlinf_maniskill.py",
+   "sha256": "58a9cdb691911b454d043e580cf14c618c395f68c246846b7a5777cb944c0fe0"
+  },
+  {
+   "path": "rollout_runtime/backends/rlinf_policy.py",
+   "sha256": "0f1c9caef1aa50f660fd9640621858924713a930701a131a4d072b78ce762c14"
+  },
+  {
+   "path": "rollout_runtime/backends/rlinf_robotwin.py",
+   "sha256": "cdf65757675c483cf5b0df121d23d48c994ddbd38092a65880332bfe9284c81d"
+  },
+  {
+   "path": "rollout_runtime/backends/robocasa_current.py",
+   "sha256": "8715182b5a3295cf3c5aa831b1df72724bd1252f9fe1a8645ff45693f8309223"
+  },
+  {
+   "path": "rollout_runtime/cli.py",
+   "sha256": "8e822a59889504b424c43eebb7fc4df998f845f783b69ceae8db64257b4b26d3"
+  },
+  {
+   "path": "rollout_runtime/config/__init__.py",
+   "sha256": "70b43c3e7033f6465715768573a7fe515d88ffba6b8d94441ab102c7f426970e"
+  },
+  {
+   "path": "rollout_runtime/config/schema.py",
+   "sha256": "9c23046657261b9c3f92d8393c7876a17d51a06c727d285b948db004d60932ac"
+  },
+  {
+   "path": "rollout_runtime/core/__init__.py",
+   "sha256": "42bed09f9df24db0cd2ea319ea02672569cf6e9fad46129b7da1e9d10b65343d"
+  },
+  {
+   "path": "rollout_runtime/core/env_execution.py",
+   "sha256": "f94281d353a985fa0d569a0f48a6233f9ba0e5b43b53707247dc7e02a47a0ff7"
+  },
+  {
+   "path": "rollout_runtime/core/env_registry.py",
+   "sha256": "51a7a40de7b1f7b6174e2cff74f5f60a41cd06a8fd2df6f8c7f8d61f7be4b1e8"
+  },
+  {
+   "path": "rollout_runtime/core/obs_schema.py",
+   "sha256": "75ea226e03099f1e2ba23ce5caa6aafd154fdfd1dae35f9257458e2143c8f27b"
+  },
+  {
+   "path": "rollout_runtime/core/payload.py",
+   "sha256": "7874688035e6a9731ca1b6b297aed9d45cb1d2803968b1cb245917053f8b9892"
+  },
+  {
+   "path": "rollout_runtime/core/policy_inference.py",
+   "sha256": "fdbd56a7e3c5fb72920f4cab37c8cb5af68a5cdaa815c5774cf3b92e90b5c1aa"
+  },
+  {
+   "path": "rollout_runtime/gateway/__init__.py",
+   "sha256": "3f94bb4f3c0e8815ba13e1e666061542c2e682e94d26273deb7137164ea3a84b"
+  },
+  {
+   "path": "rollout_runtime/gateway/admission.py",
+   "sha256": "c882e60541ba81f3cf8a5acc5450cee5f9618dd0d21142411bc7cc73f65cb016"
+  },
+  {
+   "path": "rollout_runtime/gateway/dispatcher.py",
+   "sha256": "f651dc075e04d8b607befe9abd13df5fcd39feb99f5845bfed36b430e3b19c51"
+  },
+  {
+   "path": "rollout_runtime/gateway/gateway.py",
+   "sha256": "46955e026f0f75d673f64827f2c94be04a0f60fcbea208b79c1f4b6cee8a1664"
+  },
+  {
+   "path": "rollout_runtime/gateway/metrics.py",
+   "sha256": "06c405ac87c970d10b109f5b5510add0c342e01441f84f7a7eb60ab4fc6e71b7"
+  },
+  {
+   "path": "rollout_runtime/gateway/operation_registry.py",
+   "sha256": "28923603039ccbdc73a7da9af47e75f7bac3835695d39a0a9595f315de4e9e55"
+  },
+  {
+   "path": "rollout_runtime/gateway/plugin.py",
+   "sha256": "38800d45d6e28f86447af52d66d8f8c34bf017704532e0de640630cc7bcf28a0"
+  },
+  {
+   "path": "rollout_runtime/gateway/session_manager.py",
+   "sha256": "3a60e95b9adbacb0cc2072c98c61295a493f39486f66a50d1a12bae3700b3da2"
+  },
+  {
+   "path": "rollout_runtime/gateway/worker_registry.py",
+   "sha256": "c25e448036b5617b47fc8477202c217bb2e5d8d9ae85109c30f0642a00d63aeb"
+  },
+  {
+   "path": "rollout_runtime/launch/__init__.py",
+   "sha256": "ffbca58875482a8cf8c4c9e4c891f4ee3ed01d6c6ada221fccf2cb3a48c5495c"
+  },
+  {
+   "path": "rollout_runtime/launch/local.py",
+   "sha256": "73c15c012bd68aeb563548f0bbda7b4b04d766a46b0fa1c23a10125d8f1d1564"
+  },
+  {
+   "path": "rollout_runtime/launch/ray_launch.py",
+   "sha256": "0e42d363e438f4e5df78c2da04276455f1837804a9b9822a8e5284a3273e1d24"
+  },
+  {
+   "path": "rollout_runtime/serve/__init__.py",
+   "sha256": "73a1c299163c40f350d1c01795c8c5cca8d94b824dbf6a8d3159b621b55554dc"
+  },
+  {
+   "path": "rollout_runtime/serve/app.py",
+   "sha256": "07a831b7cbadb9795110b893a657b120773f1474e2cfd9cbdc9b74d335077e8a"
+  },
+  {
+   "path": "rollout_runtime/serve/auth.py",
+   "sha256": "b8352f5efa6a2d81623ad9ca14c5e475744410b224a6eae6f2a91e52af9e1770"
+  },
+  {
+   "path": "rollout_runtime/serve/client.py",
+   "sha256": "b2d1a8e007b27dd1da81817cafce8c88d98c6779813f382404c6a5c0d66e00a1"
+  },
+  {
+   "path": "rollout_runtime/serve/server.py",
+   "sha256": "cf28adf5ec3223f9bd7c9ad4d01dfe64026c60bbe9ce5589a5d6732811ae96e9"
+  },
+  {
+   "path": "rollout_runtime/transport/__init__.py",
+   "sha256": "27ea86b7b1bb282ac79c63217cf3d2daa2cf427fd2335564ab15f6ec3732726c"
+  },
+  {
+   "path": "rollout_runtime/transport/base.py",
+   "sha256": "0ee60669c167afe631aa23b7bac06a4b08457cc06faf6899586e6f2e6620bb47"
+  },
+  {
+   "path": "rollout_runtime/transport/inproc.py",
+   "sha256": "dbce63a527eefdb5b1d3a59c3ffa0a850f08897e27856d7dfb5c0918c2452da3"
+  },
+  {
+   "path": "rollout_runtime/transport/ray_channel.py",
+   "sha256": "4010d9a6979e24123b94d00fb0d1d485d4d0fde57371c8af24ca0595c9b1b0eb"
+  },
+  {
+   "path": "rollout_runtime/workers/__init__.py",
+   "sha256": "6e8b601dcbaaf8f82d69658d2b1ad884419a62f599e485e7ce07a8f72bd1f91f"
+  },
+  {
+   "path": "rollout_runtime/workers/batch_scheduler.py",
+   "sha256": "22676f7fc3ed0d4d5b22422571325f47c12c09b83706c34d76a39c0f6c2b9c0a"
+  },
+  {
+   "path": "rollout_runtime/workers/env_worker.py",
+   "sha256": "fea5f28cd6927a9ef382231cd23d81bb78725325f4d1767723110e94d7a457b3"
+  },
+  {
+   "path": "rollout_runtime/workers/rollout_worker.py",
+   "sha256": "f50ba89ab5430490c59b79e974ff92b47b871b1151a232662be65cb5c3c15574"
+  },
+  {
+   "path": "scripts/deployment/check_geniesim_assets.py",
+   "sha256": "8af87192cf0579ba7902c6dce328acf40be4c4850cc23a8f0228eda0deee4e1d"
+  },
+  {
+   "path": "scripts/deployment/check_isaac_sim.py",
+   "sha256": "f1fd6df391dbacb1318be36027923b6571d124630adaa579c48d5a60eb3c363e"
+  },
+  {
+   "path": "scripts/deployment/prepare_behavior.py",
+   "sha256": "9f77e5d39554eb2b0d7df40e2488ec6613c282fb25fd4a9449e438550bbf166c"
+  },
+  {
+   "path": "scripts/deployment/prepare_geniesim.py",
+   "sha256": "91e720ca5e4bb3a7e03602f7296383555b88b10096cc9e14ff394d4b8278bc54"
+  },
+  {
+   "path": "scripts/deployment/prepare_geniesim_assets.py",
+   "sha256": "5049c3bfed2aacfdac4f35ed0171fa9f01fcd6489bedeba5531bd2dd41c9c7f0"
+  },
+  {
+   "path": "scripts/deployment/prepare_maniskill.py",
+   "sha256": "0e784f4516c09994b282ea6e295ec16fc1951e52d37fa6569bf07fbac496f764"
+  },
+  {
+   "path": "scripts/deployment/serve_geniesim_pi05.py",
+   "sha256": "bbea671d1edeef56d19a33d90f3922498f44a2df45b46eb7ddbc7b344676fb13"
+  },
+  {
+   "path": "scripts/deployment/smoke_behavior.py",
+   "sha256": "313db45fb30b9ac95c45d196481cc5034d2b780da484736bf32f616dcfd82f4d"
+  },
+  {
+   "path": "scripts/deployment/smoke_cosmos_lite.py",
+   "sha256": "ddfc45fffb61d8f6644674ca888b3d6d688ea3294060f0e527db7fc08ed0c07c"
+  },
+  {
+   "path": "scripts/deployment/smoke_geniesim.py",
+   "sha256": "2e55ad547c5335f9174d5d555186b9ebfe77dd4c6d08049b122fa08ffcb63aa5"
+  },
+  {
+   "path": "scripts/deployment/smoke_geniesim_vla.py",
+   "sha256": "9ba7678358bb5356a23f85d3b93611dd59fde35b8f081e6797f77f2909ff1afe"
+  },
+  {
+   "path": "scripts/deployment/smoke_grasp_services.py",
+   "sha256": "918f7c583c465078439b81a69c1b3e8159f22fe6e382198665a4eb2f3243a8c8"
+  },
+  {
+   "path": "scripts/deployment/smoke_libero_privileged_pick_place.py",
+   "sha256": "747cf9de697b8994dbfbafa61daac9ff30b0fe0cf8597430f32f4317674661a6"
+  },
+  {
+   "path": "scripts/deployment/smoke_libero_privileged_tools.py",
+   "sha256": "ea5c30a19aef91af2634bdcb77c5d8541006644f02678930f73e2f1cc063b29d"
+  },
+  {
+   "path": "scripts/deployment/smoke_maniskill.py",
+   "sha256": "cc6f583bef297cd44c60c6ef59e4753b4333ae9483308fa9a965867c5fa07186"
+  },
+  {
+   "path": "scripts/deployment/smoke_maniskill_runtime.py",
+   "sha256": "cf9e7d57eb5f02a52f958e6a11ab3eeeb7fa8fa222a8ec0b7f90d43349cba06e"
+  },
+  {
+   "path": "scripts/deployment/smoke_persistent_pi05.py",
+   "sha256": "1c4f065f07423b018418acebb473cc3da01fb543eb7236c125940666a2b95268"
+  },
+  {
+   "path": "scripts/deployment/visualize_cosmos_lite_replay.py",
+   "sha256": "c8e651a0ad2ed478af27f02cf005427a8e736a96025c11d53dcc50f1faa8a987"
+  },
+  {
+   "path": "scripts/deployment/visualize_robotwin_episode.py",
+   "sha256": "8986420cb615289bd1ad9e8f6aa08d3eac0066307339b22d731eed8ca1153262"
+  },
+  {
+   "path": "scripts/evolution/audit_gate_artifacts.py",
+   "sha256": "12bd1e57adf0a0709487944d98020f3626b474551d5770147fa6a111c3c47d80"
+  },
+  {
+   "path": "scripts/evolution/audit_robocasa_success_labels.py",
+   "sha256": "57010218b237f132c746470ef17ff10871bed047c877cf5d6264706f6b0664c6"
+  },
+  {
+   "path": "scripts/evolution/benchmark_multienv.py",
+   "sha256": "000e11969b8143d4aa13e8ac6bcec84679d37224c8ac31af3794940f83023359"
+  },
+  {
+   "path": "scripts/evolution/plot_sr_curve.py",
+   "sha256": "118fdece24345320d7b8ea62e30035d82b486e0a25d774fb6138581bbb950732"
+  },
+  {
+   "path": "scripts/evolution/prepare_geniesim_campaign.py",
+   "sha256": "0d2f5fa46083b8814befca65679190299db17667c1d2d127743864f070b236c8"
+  },
+  {
+   "path": "scripts/evolution/prepare_libero_campaign.py",
+   "sha256": "6db4905ab45c9160cff6c60cdcb42b3dc575d3a0005b99c8b3f81a86dcbeb586"
+  },
+  {
+   "path": "scripts/evolution/prepare_libero_heldout_validation.py",
+   "sha256": "13900e6c203cb84c3a2d8af1a18ad64a6283533c14a0009a170a9bcbc9e91519"
+  },
+  {
+   "path": "scripts/evolution/prepare_libero_role1_smoke.py",
+   "sha256": "9facd656b90e53f0b23328013c9dcdd3a5f8c1c70fe63ff05dbbdf65d1b05d68"
+  },
+  {
+   "path": "scripts/evolution/prepare_maniskill_campaign.py",
+   "sha256": "653626aa81dd5d612e0c60cdf53af36d471b0c0f7103270ddd923aea7930314e"
+  },
+  {
+   "path": "scripts/evolution/prepare_robocasa_campaign.py",
+   "sha256": "11aaa12827464d1d3f4ccb683113e5728077fbd5dc0cdbfc2d47ca09cec9a951"
+  },
+  {
+   "path": "scripts/evolution/prepare_robotwin_campaign.py",
+   "sha256": "6f9753dc09c61f7cf8d08f912586c314558bfbfe805511525620508a7dbe4563"
+  },
+  {
+   "path": "scripts/evolution/probe_codex_stage_runtime.py",
+   "sha256": "0cbe07cfb58488dd3e94665ea785a15e1f17687c73055593c6f3f4a32c43e1c1"
+  },
+  {
+   "path": "scripts/evolution/probe_provider_runtime.py",
+   "sha256": "7f218275bc89ff830bc9f22e9df9590efcb6ec96b4bcd34bf35770827391450b"
+  },
+  {
+   "path": "scripts/evolution/robocasa_capacity_worker.py",
+   "sha256": "f35d7c80eb5a990b2decdad5aa8ca27e080c845f0208fabf5fbbb25a32f3d281"
+  },
+  {
+   "path": "scripts/evolution/run_campaign.py",
+   "sha256": "11914b1160ebda60ab585f9963af9c62f514d25e4a9238ab13d8a6dd332ced38"
+  },
+  {
+   "path": "scripts/evolution/run_candidate_gate.py",
+   "sha256": "a69b2d477c2fd33e478e4b398747ad2d49c52be3995f771b08ff273b0788d315"
+  },
+  {
+   "path": "scripts/evolution/run_fault_injection.py",
+   "sha256": "5c6527877d2af50293f1133326a6d94b7aae53c8dbbe0727ba93b4768dcac9a5"
+  },
+  {
+   "path": "scripts/evolution/run_isolated_overlay_pytest.py",
+   "sha256": "77f5177b6468adb2ac7fe43522ae857f979067804f194b1feed818dc0f832ba1"
+  },
+  {
+   "path": "scripts/evolution/run_pure_vla_loop1.py",
+   "sha256": "f91d4d7c4eecb4423182602c0063641347c7631eb0896dd2e7076e3314d59c33"
+  },
+  {
+   "path": "scripts/evolution/serve_provider_broker.py",
+   "sha256": "559d61a74c55fe64b2dafed1a9ddce05315b0959a1ea08403303afaccc3dc6c2"
+  },
+  {
+   "path": "scripts/evolution/serve_robocasa_farm.py",
+   "sha256": "8a3dd5956fd94c2ece41501995ff418e26866da5bd5af15c387b2d7e861248a5"
+  },
+  {
+   "path": "scripts/evolution/smoke_chunk_critic_interrupt.py",
+   "sha256": "9b196ae3839a768bd5ed84149578b866ce67fe49c3af0807b1165f97ada495a1"
+  },
+  {
+   "path": "scripts/evolution/smoke_groot_robocasa.py",
+   "sha256": "c7ed6d4e4ab49da803a889a0b0298d7f79b17f8f5afeeed2165a41f232fee177"
+  },
+  {
+   "path": "scripts/evolution/stage_liberopro_assets_overlay.py",
+   "sha256": "0a610f5ad43946cbf9c07b18c024413d0bd58f8f445a9afa8768c3361d48d7f6"
+  },
+  {
+   "path": "scripts/experiments/analyze_paired_results.py",
+   "sha256": "66e19f8b47a5737f056c613135075f42497f805c04911e172c36938965bdfc97"
+  },
+  {
+   "path": "scripts/experiments/audit_episode_artifacts.py",
+   "sha256": "b7a9105adf25f5f1a7665f97008a440f6c558636559199bf5826744dda2b0300"
+  },
+  {
+   "path": "scripts/experiments/build_retry_manifest.py",
+   "sha256": "a8a3391270cd187d90153d7879969eea7f8e22dab59e58b6a1de58fe47100a05"
+  },
+  {
+   "path": "scripts/experiments/build_targeted_l10_manifest.py",
+   "sha256": "5a8a24ce294a082cc3f54f363586fa15b7dd1093a0868b9be0db8aca3015d048"
+  },
+  {
+   "path": "scripts/experiments/capture_flashrt_calibration_frame.py",
+   "sha256": "cb921aeb3a04ac2bdbaf35dce28818150a0a5fbdc905e03608495f75713156e4"
+  },
+  {
+   "path": "scripts/experiments/libero_critic_recovery_latency_v3.py",
+   "sha256": "67dd8b9008bfa8f75ebc3e3d29661639e2b8a7fb745dfb70c4878e2bdd874654"
+  },
+  {
+   "path": "scripts/experiments/probe_api_channels.py",
+   "sha256": "e45e12ebdcb6cba453ac03644e75abfd2023b1727e185cbfd8bd1235f8535fce"
+  },
+  {
+   "path": "scripts/experiments/run_batch_memory_continuation.py",
+   "sha256": "719bb4f330a63b2006382737ed568ce9ccd95369dd6ee03363ea48ddd1de4e01"
+  },
+  {
+   "path": "scripts/experiments/run_memory_loop.py",
+   "sha256": "bbee87c3fd943886d57b9394fae5527e347cf683edbe3636f5f63c5a741fecb0"
+  },
+  {
+   "path": "scripts/experiments/run_paired_episode.py",
+   "sha256": "883b4a95c859d640ee6c77d4966ab04f91b896155cd1b0bb8529ccd9132eef81"
+  },
+  {
+   "path": "scripts/experiments/run_pure_pi05_screen.py",
+   "sha256": "2b16e37b0d2dd941feea3a35de4e18b153da52b79dc522dc72b48c17ef2754ca"
+  },
+  {
+   "path": "scripts/experiments/run_sequential_memory.py",
+   "sha256": "b23144aaeacc7fb54e48741166a73af021346c1a459a82a6a73357b72ff938b5"
+  },
+  {
+   "path": "scripts/experiments/smoke_codex_planner.py",
+   "sha256": "5ae7692deaaddbba3c9c42a8344d1373456a297089bbe14256a44c5450a44cd4"
+  },
+  {
+   "path": "scripts/experiments/token_budget.py",
+   "sha256": "10cbdc777aee929afb21f6beee34446674d138d1692aefa67e1a74cb313a17ea"
+  },
+  {
+   "path": "sitecustomize.py",
+   "sha256": "a567fff2c5a283807a3dabb1da75532c7b8b651c89b2089954310430c005238a"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "12ce83a10d5fc72128517ca6c12352e065e4699cd9ef869e2fda2f95bc78ef77"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "9dc0d1736576b74d1aa1ad84c6e5055a1203232c60d3258cdb96bd5d667926ed"
+  },
+  {
+   "path": "tests/runtime/__init__.py",
+   "sha256": "59c9328ffa65e043f33fdf86727d70281586e97df3dcda3450beb07251429192"
+  },
+  {
+   "path": "tests/runtime/conftest.py",
+   "sha256": "cfa34c8d592c858a5d34ce8ec15d39f6aa2b1be2ea46d708fe0c914cf6a409d3"
+  },
+  {
+   "path": "tests/runtime/geniesim_worker_stub/__init__.py",
+   "sha256": "960e85c560125667374a2493fb79a64cfac583d489bee4a4f26cf4c6b2886f7b"
+  },
+  {
+   "path": "tests/runtime/geniesim_worker_stub/worker.py",
+   "sha256": "b22818086cb19dd6aca63f47964709ae8cc0a38694684cba3c2655be4ebdee20"
+  },
+  {
+   "path": "tests/runtime/libero_stub.py",
+   "sha256": "8a6aac5b9f8e4fc197acaa6ac8d8b2a232edf33d24634420e40fc7e8263d7cc6"
+  },
+  {
+   "path": "tests/runtime/test_admission.py",
+   "sha256": "14e710a41133663cf1974026749210635aad32cb61f14ac270e61bd8692d0096"
+  },
+  {
+   "path": "tests/runtime/test_api_codec.py",
+   "sha256": "f5dffdc75ba608a52cbe607511bbcdb203e0947480391d61547c0a753276c23d"
+  },
+  {
+   "path": "tests/runtime/test_batch_scheduler.py",
+   "sha256": "0ab7d571491e81d9e4fd758c7b91ef9bcee67ce20f712eed4984051d80acde19"
+  },
+  {
+   "path": "tests/runtime/test_behavior_family.py",
+   "sha256": "4a29c34f1729cd6cb3427a4e8b8cdcee622f0313a37814b8ba722eec099815b2"
+  },
+  {
+   "path": "tests/runtime/test_cosmos_lite_backend.py",
+   "sha256": "1d5175815d9a84c9e7249d64adb72cd52cd1d237516fb7adf0af2604e3143bac"
+  },
+  {
+   "path": "tests/runtime/test_cosmos_lite_replay_visualization.py",
+   "sha256": "80da9fb7f0fd014da082f6097abf8c84c11e5b58ab9e991d3c8f7086cd905efe"
+  },
+  {
+   "path": "tests/runtime/test_dynamic_slot_pool.py",
+   "sha256": "e746f936f282986a6d21efdd292fb67219a042ab968aed80ac390ab278dac5a4"
+  },
+  {
+   "path": "tests/runtime/test_e2e_fake.py",
+   "sha256": "99ec6d34bade05c820e25e783f7f57a6541f2b5b896acea5049fdb72ca900a3a"
+  },
+  {
+   "path": "tests/runtime/test_env_family_normalization.py",
+   "sha256": "2bcfef65d6b4f77fcb180a3ebedc0fb685c1d592f54317759fbefb6558ad4eff"
+  },
+  {
+   "path": "tests/runtime/test_envworker_dynamic_slot_placement.py",
+   "sha256": "4351b7dc5c68954889295fd841ace341ab93da475ac3bc9568026d0a6a585b71"
+  },
+  {
+   "path": "tests/runtime/test_eval_adapter.py",
+   "sha256": "d737803847dbcb1c2eb8132cf1d44212eefbada3093b95ee5f1708c9332aed25"
+  },
+  {
+   "path": "tests/runtime/test_extension_call.py",
+   "sha256": "b7a444aa01445fa6079f9e9d1c706ec1907de18cf49770d3a0c227735799506e"
+  },
+  {
+   "path": "tests/runtime/test_fault_isolation.py",
+   "sha256": "d00008b371208d3015762660753e7c2128e08fddab085e5fc8cf4c1636b463ee"
+  },
+  {
+   "path": "tests/runtime/test_flashrt_batched_infer.py",
+   "sha256": "e65aaff343a0ecb2070aefa3ecf2bfedcb48061d4a13470be6fc357a85674c26"
+  },
+  {
+   "path": "tests/runtime/test_geniesim_family.py",
+   "sha256": "3d4bd3aea2f25d724f6b51b40bfdf9de5deffd6e98d60557156f07ad201a233d"
+  },
+  {
+   "path": "tests/runtime/test_geniesim_vla.py",
+   "sha256": "e0fa727e09e3faf8335017518ef6d9c4fee7334d5fce415a944656f189c19c14"
+  },
+  {
+   "path": "tests/runtime/test_groot_policy_backend.py",
+   "sha256": "57d6053c38e19dbd0fd7abfc34610c0f05f988ded6adea447d8101d40b01c1ca"
+  },
+  {
+   "path": "tests/runtime/test_gym_adapter.py",
+   "sha256": "589ebf68490a6942e14df9fe1bdc1d306e9069d4290012a0204968ac1bbdf901"
+  },
+  {
+   "path": "tests/runtime/test_heartbeat_lost.py",
+   "sha256": "07dd77817edf465d026c7c44c0c2678712caee6ab6ebd5640c4ef2b2c94d11e3"
+  },
+  {
+   "path": "tests/runtime/test_idempotency.py",
+   "sha256": "6fd7c952420a84e649c34e48540895e6d5da1594215a721c4697a4a009008523"
+  },
+  {
+   "path": "tests/runtime/test_layering.py",
+   "sha256": "a36ec55048f6be145875589218f6fc8bb94808faa9122f208f3b59f104ce3ff1"
+  },
+  {
+   "path": "tests/runtime/test_libero_critic_recovery.py",
+   "sha256": "b5e8e2a5f6b6e698ffc50a5d7171806d06d3bce3986a4a20a6f9b7fa095b8169"
+  },
+  {
+   "path": "tests/runtime/test_libero_runtime_audit_ledger.py",
+   "sha256": "231a21af76ddf8429f21ecef278f14f5a4669f770ece3ca6289144109a24d763"
+  },
+  {
+   "path": "tests/runtime/test_libero_zetta_runtime_adapters.py",
+   "sha256": "1def0de45bd6858385f5c76e5f29443d1b03a9b92ffd56e688528eb25de0f0b9"
+  },
+  {
+   "path": "tests/runtime/test_metrics.py",
+   "sha256": "1a11fd63b3393a3e65995b1e26724c59a333d288e09cd8c89065d470601802cd"
+  },
+  {
+   "path": "tests/runtime/test_multi_family.py",
+   "sha256": "2b257e59af22e649e945206142247a7f09216d6b54cb7c71ae730038e51a43e2"
+  },
+  {
+   "path": "tests/runtime/test_multi_family_remote.py",
+   "sha256": "b7668c501f0cfc7a081531a0d526fc670232c12294d2b93eeec6e6ff2871125b"
+  },
+  {
+   "path": "tests/runtime/test_payload.py",
+   "sha256": "ac459ecc3e3e4edec6c2b2997cbf1874d33c2b8daed7dc3ddb99b8968b4dd629"
+  },
+  {
+   "path": "tests/runtime/test_policy_backend.py",
+   "sha256": "c64fffba8f3ae9059a47fb51b2b39f10df20337627203f84b6376c54ec885bff"
+  },
+  {
+   "path": "tests/runtime/test_policy_step_timing.py",
+   "sha256": "0766488c661335d392f32ae5e037277de9b369111685aa9baa12baab314038f0"
+  },
+  {
+   "path": "tests/runtime/test_ray_launch.py",
+   "sha256": "14f909fb774132a997574f61881fd54636a8c2d163c4c24eb5b5d5acf27ebd87"
+  },
+  {
+   "path": "tests/runtime/test_ray_transport.py",
+   "sha256": "95fd6bf7f3760ffc2d68b1af77816cb594788127fac0b1308c178f67c72db81b"
+  },
+  {
+   "path": "tests/runtime/test_rlinf_bootstrap.py",
+   "sha256": "b8ccc17e0330de6db4b2594c5a9e23684215727929b66cb5997178a7d60d42dd"
+  },
+  {
+   "path": "tests/runtime/test_robocasa_current_backend.py",
+   "sha256": "201fee963baf38e4cdcb6513e613cc85e738827e7951ffe06719e2cbe981705e"
+  },
+  {
+   "path": "tests/runtime/test_robocasa_dynamic_slot_pool_integration.py",
+   "sha256": "3bd426da2b6bc7974cf488488cf7059ec8e148ba51ee43625f8da9b0e4fa84b6"
+  },
+  {
+   "path": "tests/runtime/test_robocasa_session_process.py",
+   "sha256": "6fc4bded41f3e7a9a9fd228d426c9f8f023738aac055e2137a1c7a44b8b5d070"
+  },
+  {
+   "path": "tests/runtime/test_robotwin_family.py",
+   "sha256": "8081a8f6d0cf59bb3d911ed9d5bf1f6e44d6aa10c1304fec4619a23ed2071a60"
+  },
+  {
+   "path": "tests/runtime/test_robotwin_policy_contract.py",
+   "sha256": "d67c1abe18c829e5eef34ff7b04ba92ddd0c67256a079d4cd24c0e43081fe89b"
+  },
+  {
+   "path": "tests/runtime/test_robotwin_run_rollout.py",
+   "sha256": "934b5a66a425480a10957024fe3bdeeab972bd1cb013bd368ecd0ee5ea101984"
+  },
+  {
+   "path": "tests/runtime/test_run_rollout_e2e.py",
+   "sha256": "fbd576d911a45ad1fe6413fa93dc87a9224b09e9aa3c71a1a86c27bf776e9982"
+  },
+  {
+   "path": "tests/runtime/test_serve.py",
+   "sha256": "839533ef41bb79a1d23b1f6d712d3ab588c7a25ea086736cd519dec6cb42ca13"
+  },
+  {
+   "path": "tests/runtime/test_serve_client.py",
+   "sha256": "effccd226895fb8a7572182d19a55396f28afdcd9e261f4ec37d8790838740fb"
+  },
+  {
+   "path": "tests/runtime/test_session_state_machine.py",
+   "sha256": "fa3163131c479e5abb0d4c2f9cff2f68c1db4002501bc38187fb23ea8d1c94a7"
+  },
+  {
+   "path": "tests/runtime/test_slot_coalescing.py",
+   "sha256": "16afd4e0c047f79fcc8500375e182334a8ebddfc6223d36617685bf5b7ab3932"
+  },
+  {
+   "path": "tests/runtime/test_zetta_ray_channel.py",
+   "sha256": "e432d46db072466e255ef785c0a81d8805a8b8cf2587a30d99ffcf594393ef41"
+  },
+  {
+   "path": "tests/runtime/test_zetta_ray_group.py",
+   "sha256": "67586456ff66e076650b699964609ca9c044105250ab5029d60e1fd111d420fe"
+  },
+  {
+   "path": "tests/test_api_loop_optional_providers.py",
+   "sha256": "763b09f5576f202e8164c82bcd9f506aae4df25c88b1a697084a056427efc472"
+  },
+  {
+   "path": "tests/test_batch_memory_continuation.py",
+   "sha256": "c79f7e4e25a1fdaec48d8c5a4e003965a09cc8ae5bbdac69126ff1b709e671d9"
+  },
+  {
+   "path": "tests/test_candidate_gate_runner.py",
+   "sha256": "0828048974ab371b0515c38630dbf557a16f834cb85278f66eedef7123588ea1"
+  },
+  {
+   "path": "tests/test_codex_artifacts.py",
+   "sha256": "80d9e459ea97399938fa696ddc8a7921b01baa2a5296c05d8bab46087938c145"
+  },
+  {
+   "path": "tests/test_codex_provider_broker.py",
+   "sha256": "56307bb7d3cd56f917b1a74ac729c7e690759e7f5a7c5cfcb3cd3a11d8796794"
+  },
+  {
+   "path": "tests/test_config.py",
+   "sha256": "7230437a5c774099bcebb18e6c1f39f06d4475c6998e1d20a84dca88e300ae60"
+  },
+  {
+   "path": "tests/test_env_chunk_termination.py",
+   "sha256": "0292c6fa0a22c5e99631b93c523a2bd3bc4d0df990e7c2f7680e1edbf1d186a0"
+  },
+  {
+   "path": "tests/test_episode_memory.py",
+   "sha256": "fcf9a4444764ee116d544e44b79ef44b2b0786ab4fba8718a456eb32584dfe9c"
+  },
+  {
+   "path": "tests/test_evolution_campaign_bundle.py",
+   "sha256": "dcb3d7a2e9e599aced39f6bad112f0e9b19c705dfb6cefbd08751a465f42f07e"
+  },
+  {
+   "path": "tests/test_evolution_capacity.py",
+   "sha256": "035fa624fc9f0089bfd8801c6642e22862b76adaa3ffdcfe2a75ae6aa090747a"
+  },
+  {
+   "path": "tests/test_evolution_core.py",
+   "sha256": "39eb01d7e9523a9d3adff5de591a68f171110da85af1a9626bfdb81abb704909"
+  },
+  {
+   "path": "tests/test_evolution_fault_injection.py",
+   "sha256": "c81d328b8b5373ee1dcd45394e0780582b9597a28c07e63af6dc17afeb171eea"
+  },
+  {
+   "path": "tests/test_evolution_framework_repairs.py",
+   "sha256": "fdd00b16e123b1d17455cb2b5e187c79d9d7c7c2f8f76a877ef3d2ae738c03f2"
+  },
+  {
+   "path": "tests/test_evolution_lifecycle.py",
+   "sha256": "f7210b6c26b9cb97d8c55b712ff16705fb6186b90b918b3f0987eeaa08848dd0"
+  },
+  {
+   "path": "tests/test_evolution_protocol.py",
+   "sha256": "dea32c9f7eb0e7beb734441a822c77c27e60775352cc8a95ce643271b44e86fc"
+  },
+  {
+   "path": "tests/test_evolution_queue_provider.py",
+   "sha256": "bd7dc9ed830eae6c3bfcb617b6e39d90c82e18431065f23fd39b3cba0caeec45"
+  },
+  {
+   "path": "tests/test_evolution_queue_recovery.py",
+   "sha256": "f150e2d30066572d2ef53df4bf841cc0f7bf7c96e55bdb7e08d7765745f7b540"
+  },
+  {
+   "path": "tests/test_evolution_refinement.py",
+   "sha256": "87e3f69ac8868a40e4eb7c6ae801e7472730e5b3134ce20f7facd51bcdc2935e"
+  },
+  {
+   "path": "tests/test_evolution_seed_blind_artifacts.py",
+   "sha256": "e995b9270a6a8181b05370a709d7b0daa6af78899b1cb4317c1ac37405bfb86a"
+  },
+  {
+   "path": "tests/test_evolution_slot_broker.py",
+   "sha256": "a83f543fbef71bfaa1842d3a1aff36e6074bb142c84e25216f6662429c228619"
+  },
+  {
+   "path": "tests/test_evolution_stage_session.py",
+   "sha256": "9cee60b63d11f88e04a3a58ddecb1f88cf532e519c2c648856e40898f406eb2e"
+  },
+  {
+   "path": "tests/test_evolution_trajectory.py",
+   "sha256": "f8aa34ed505f2a0d056ea8f445f216079a430dc1ffc97464625423427b50283d"
+  },
+  {
+   "path": "tests/test_experiment_protocol.py",
+   "sha256": "d5fe696b08a7cdf24f7c971b09bf85f5c347ebc337cbcec79b4255795ff2b314"
+  },
+  {
+   "path": "tests/test_gate_artifact_audit.py",
+   "sha256": "1972426bd87a5be87f086ac7c7a09bbe8482bb7d0d7f8c8c8d140ea75de5c55a"
+  },
+  {
+   "path": "tests/test_generalist_integration.py",
+   "sha256": "6a8d889d6a4e76ef628df902897e47d94c0ae85c0597b017cc7504603daf0c6b"
+  },
+  {
+   "path": "tests/test_gpu_memory_guard.py",
+   "sha256": "ed523b7a139cd4fef25e4b58b292d289352ab8c482ee1b044022bd2c15baf2e1"
+  },
+  {
+   "path": "tests/test_libero_assets.py",
+   "sha256": "4f7e14a0aa6246878c7ee8423d1d614e22448f2d6b0be539707d9f8a85f95079"
+  },
+  {
+   "path": "tests/test_libero_clean_prompt.py",
+   "sha256": "16df0c31c40efc067854f04c413a372f4a21f29fc93c80f0659a75926687e488"
+  },
+  {
+   "path": "tests/test_libero_critic_privileged_state.py",
+   "sha256": "85614f949f9e533dc0ef75701e1331eb8b24e2575394ec97683368f61dac9f7a"
+  },
+  {
+   "path": "tests/test_libero_eval_horizon.py",
+   "sha256": "0593ab648d730bd38b4ce080889a850d837d09cf8ed05302820283668e60ea2f"
+  },
+  {
+   "path": "tests/test_libero_evolution_runtime.py",
+   "sha256": "6afda15719d8251dbb9a9bfe3b157f4497ead4c69e4e1a385bd3aa3152b6f901"
+  },
+  {
+   "path": "tests/test_libero_heldout_validation.py",
+   "sha256": "19736a6be5381634b74758ee0918398e631ebf4dff2e8e13e9ce68e453097a22"
+  },
+  {
+   "path": "tests/test_libero_persistent_vla.py",
+   "sha256": "0da0db3601887247f1b20a161c96ceb88508829dedb912439373ad2c1ed28a97"
+  },
+  {
+   "path": "tests/test_libero_rlinf_worker_compat.py",
+   "sha256": "f1a555bc38868ade0d297f439552db11a15c1f62e3d6eb8d291bff5bf91d5083"
+  },
+  {
+   "path": "tests/test_libero_runtime_devices.py",
+   "sha256": "8e4cebfc1b48e67804ab7d61fce2d2d6ac4b9658ade4d17607a83c36655bd427"
+  },
+  {
+   "path": "tests/test_maniskill_rollout.py",
+   "sha256": "0819e2b5990e2e545ed34413079343269f36697cbd5ea8c9a76b99e969531019"
+  },
+  {
+   "path": "tests/test_plot_sr_curve.py",
+   "sha256": "59f0df559259d16c2228d8427e3c125680e9c14466a4a32bd900efe90acd2ba6"
+  },
+  {
+   "path": "tests/test_prepare_experiment.py",
+   "sha256": "daf1e182f0ff7c908b9b86c749bef31af9dcdf4b1d857c48a445f6762fe9bff7"
+  },
+  {
+   "path": "tests/test_prepare_geniesim_campaign.py",
+   "sha256": "3e696533421f8774861683bcfcf2204dc232d0154c39a6f56766161286080664"
+  },
+  {
+   "path": "tests/test_prepare_maniskill_campaign.py",
+   "sha256": "5f370838dc4397a5511bda478fedf4f8acb4a7aa1efa685815f8994f7523abd4"
+  },
+  {
+   "path": "tests/test_prepare_robotwin_campaign.py",
+   "sha256": "3cd9602fef83849d1842656e4747a35e52e40825c60e0bca9ac89ccd4061884b"
+  },
+  {
+   "path": "tests/test_privileged_libero_tools.py",
+   "sha256": "35052f80499e1fc2b90702249c5807f5d268cdbb6c0ffbc5d6a4109ab38b6667"
+  },
+  {
+   "path": "tests/test_probe_api_channels.py",
+   "sha256": "55082161cc5b28c0c8537482c94a19f3f91fb416e19022ad9d7556f3080c4d13"
+  },
+  {
+   "path": "tests/test_probe_provider_runtime.py",
+   "sha256": "a8817ba217c96b2efa2fe7fac7792af02736469725bf2bbe2cea20aa9fefe89f"
+  },
+  {
+   "path": "tests/test_provider_admission.py",
+   "sha256": "3e8cf7d455f27222f89831ed413fb42db82ff1658eb9e02fbdeef72af97b2551"
+  },
+  {
+   "path": "tests/test_provider_pool.py",
+   "sha256": "08076622c7f5ba00abdb7a11e2be373f6d52748e74d93a704f56bcdf4d00dd08"
+  },
+  {
+   "path": "tests/test_provider_proxy.py",
+   "sha256": "ac62673865819d23a5c88f74fe34a4e3ad00d97e8c38c180c0d30101721eaa74"
+  },
+  {
+   "path": "tests/test_provider_request_admission.py",
+   "sha256": "22cf25bc63dba05e96efa6281a1a02ac209576eea57f398fd3beeb0245cc1f42"
+  },
+  {
+   "path": "tests/test_pure_vla_loop1.py",
+   "sha256": "84c5c6542e0fc0def28b1c95684c21bc5061419036f75ce5210e9035eeb0aec4"
+  },
+  {
+   "path": "tests/test_repository_hygiene.py",
+   "sha256": "892dd0812c5b2508006ce8fe25a9320edfdfbe0e690d32a526a1d2248ac51362"
+  },
+  {
+   "path": "tests/test_robocasa_env_runtime.py",
+   "sha256": "a1beff70139aeabea5011416bd6d08283d1f38b5f45d6337193d58c57980962c"
+  },
+  {
+   "path": "tests/test_robocasa_evolution_tools.py",
+   "sha256": "6d2b612ae1d6463ea38acc5074c2832b23e6321a988d71459ed83e292ea9e3bd"
+  },
+  {
+   "path": "tests/test_robocasa_failure_fixtures.py",
+   "sha256": "85afb65e4b04e0452813f2d00775a15e606fa9f9f9196f8181c8847c38f0c30f"
+  },
+  {
+   "path": "tests/test_robocasa_farm.py",
+   "sha256": "f10d2bba7b903fa02540abcb15d15e7df7a15f34f57227cb9b42dafb66da1b1e"
+  },
+  {
+   "path": "tests/test_robocasa_gpu_gate.py",
+   "sha256": "6c1dd37d74043e8ca39a0d620be16664c190a103ea581cfd9c619b6027d2e9c8"
+  },
+  {
+   "path": "tests/test_robocasa_groot_client.py",
+   "sha256": "ed29c357a16eb3b2888498f71bf7348817344b0afa733e7c7f740cd358c08c6a"
+  },
+  {
+   "path": "tests/test_robocasa_groot_server.py",
+   "sha256": "8409503fda761bbc1480afea573b1e7d0c0c2b24e02378be36f3d66c7f815f63"
+  },
+  {
+   "path": "tests/test_robocasa_harness_adapter.py",
+   "sha256": "9b58b988cf180af350ae8ea5795a50559574ff29ce2da943a20f9abfe07a84a6"
+  },
+  {
+   "path": "tests/test_robocasa_operation_protocol.py",
+   "sha256": "a338243a5e7650658eed99b92f74cc7dea586e96dd10bccf509498c3b049263a"
+  },
+  {
+   "path": "tests/test_robocasa_recovery_controller.py",
+   "sha256": "04eecf08d6eb469104e10c033d4cf65ee9ef1b82b7d8fe10df3c7d507cc05345"
+  },
+  {
+   "path": "tests/test_robocasa_role1.py",
+   "sha256": "9cb3189ccb255e0da48857342a1fd271d77f01edf82218e6e870e7567f3a7808"
+  },
+  {
+   "path": "tests/test_robocasa_role1_actor.py",
+   "sha256": "65814bf53f57fafd6c95d7a62c8d187b43e194ca530ad63581b45e49beb27a69"
+  },
+  {
+   "path": "tests/test_robocasa_runtime_split.py",
+   "sha256": "0034aef70acd62bec1cdcc1677331411f56dbc35b504e5aeb30702fff3dda02c"
+  },
+  {
+   "path": "tests/test_robocasa_stable_renderer.py",
+   "sha256": "0e054af786b15f3ce8e50803cd7d7ef50ec2dfc1b028e219896d12e547fcb69a"
+  },
+  {
+   "path": "tests/test_robocasa_video_artifacts.py",
+   "sha256": "a621b80863b971a3f7f238417bf715c8b51bd6df4f12a1061f1bbb718e534252"
+  },
+  {
+   "path": "tests/test_robotwin_action_contract.py",
+   "sha256": "0a36cc25578c8b15ee1e7eaf6226217b2d08fba08927d5b9274d0ee0285b9836"
+  },
+  {
+   "path": "tests/test_robotwin_critic_runtime.py",
+   "sha256": "e3e3a1d5a89a71821b02c806ef71d2a54a80e712f3ca65de159e4def6da5ac70"
+  },
+  {
+   "path": "tests/test_robotwin_role1_agent.py",
+   "sha256": "17483afa3ab2b190c5a2a7f2fb72b5c06d2cd0632b8124ba4d9003b5cdd5e6d2"
+  },
+  {
+   "path": "tests/test_robotwin_role1_recovery.py",
+   "sha256": "54bb613cb9220ecdb8fe4b9de666348b978527363847d5f1a2f5aa926f66d280"
+  },
+  {
+   "path": "tests/test_robotwin_tool_catalog.py",
+   "sha256": "4a902f125685e9b3f827c66bfcbe0581dbd6266e2a3cb59b03e72aed7a89d486"
+  },
+  {
+   "path": "tests/test_run_campaign_cli.py",
+   "sha256": "793a2cd45c218104535913b2fe1d81cf4015d4aecc0bd2b19a48c1c9fe22024f"
+  },
+  {
+   "path": "tests/test_sequential_memory.py",
+   "sha256": "ebbab1e5251e772b2328d68435d297cb0124e6cfa8999aac33b6a2b1cba336f8"
+  },
+  {
+   "path": "tests/test_serve_geniesim_pi05.py",
+   "sha256": "2b79244ece0c08810bfa90e6dc924f903f15108f21ab23873955785ec2868826"
+  },
+  {
+   "path": "tests/test_stage_liberopro_assets_overlay.py",
+   "sha256": "d2d473c5df4dbedacde3358c4b0dc4c1100a77d7044e64e4b4cb7586f5817047"
+  },
+  {
+   "path": "tests/test_token_budget.py",
+   "sha256": "0d32ef7273d7717e78869d43d0173b1ed52ce9c98dfb44244b24eaf4f9ff8821"
+  },
+  {
+   "path": "tests/test_tool_profiles.py",
+   "sha256": "113567eb6a4852fa835ec6757de12905a55e9ccf789857579456e44e91bc10de"
+  },
+  {
+   "path": "tests/test_vla_client_timeout.py",
+   "sha256": "13b3fbaa1b8471116541403f38918cef0fc6466b6fb49219fb704073283481e0"
+  },
+  {
+   "path": "tests/test_zetta_embodied_compat.py",
+   "sha256": "21d8900baf4eb72afb37df222a6591733d4f7239a04310e8ef09c47ce2b7b6f9"
+  },
+  {
+   "path": "tests/test_zetta_libero_utils.py",
+   "sha256": "61ee48a363bf943bdb0922d099477040d677e9b56788875cb45baea3419f7109"
+  },
+  {
+   "path": "tests/test_zetta_maniskill_contract.py",
+   "sha256": "6cd9903b1bcb1ebe688172c0168014941cb2371c959945b3e16f2427fc992779"
+  },
+  {
+   "path": "tests/test_zetta_openpi_factory.py",
+   "sha256": "1d03e2e65dc056b889b56b1d76f500024955762536c5a1583c560cc23be84782"
+  },
+  {
+   "path": "tests/test_zetta_robotwin_contract.py",
+   "sha256": "254b7dbd4633373b1a0f8224424d3007b1629d21ce7f87340d5302fb3b38270f"
+  },
+  {
+   "path": "zetta/__init__.py",
+   "sha256": "6e99d12d5aea6ceee04d21dd5450dff5ecc6fdd41e9984e57fa2aa296b1afb42"
+  },
+  {
+   "path": "zetta/cli/__init__.py",
+   "sha256": "61590e577080891354afc2f84138b9462466ab872f9e0f130790c987e340f253"
+  },
+  {
+   "path": "zetta/cli/main.py",
+   "sha256": "92a8da4da4c08fbf3fb8ec00ce4ff1038a04dd744ed4734787ffeb20d7362f7c"
+  },
+  {
+   "path": "zetta/cli/tui.py",
+   "sha256": "196ffe6b1f043d9c48889f225bddab2e579a3c7a7e5e0180c5286bf7e82661ad"
+  },
+  {
+   "path": "zetta/compat/__init__.py",
+   "sha256": "dad37232c8bfd78481e5051b1fa664777c2eca5e9c216e4085ef18f006c28dd1"
+  },
+  {
+   "path": "zetta/compat/actions.py",
+   "sha256": "6b15fdd092e4adebaa3a9ce0d71290737dcec41c2b4fcc87f59db79ad081b175"
+  },
+  {
+   "path": "zetta/compat/tensors.py",
+   "sha256": "9302b7c41665c6c4a68d59483b41072609f6e44629572e1b304de91dc5616929"
+  },
+  {
+   "path": "zetta/context/__init__.py",
+   "sha256": "70daed37b66ce4c16d1c818618cd0c37dd3ebea179473d4bae50edc209ccfe2c"
+  },
+  {
+   "path": "zetta/context/prompt_utils.py",
+   "sha256": "e67a62d5cf7165306ecec1dd9637a134a44912b5c260fdb9118dafd1f2f52e08"
+  },
+  {
+   "path": "zetta/context/prompts/prompt.py",
+   "sha256": "1e03fa10cef73c92ca48a0d11ce375e4812e666cd95d93865173e7a186c1d76f"
+  },
+  {
+   "path": "zetta/dashboard/__init__.py",
+   "sha256": "251cbcfc652069755f96884fe5a019b10a7a25996439e7cfe15f7ca9511e2665"
+  },
+  {
+   "path": "zetta/dashboard/launcher.py",
+   "sha256": "62206bba151b26b3b5c660f5fb0a53508d1702425c77f90b557610d785a365e3"
+  },
+  {
+   "path": "zetta/dashboard/server.py",
+   "sha256": "5d33b89bd08e2a2841abfc303d0e853470b24eab5318cc74f359218bd1bb8cc2"
+  },
+  {
+   "path": "zetta/dashboard/state.py",
+   "sha256": "bd42fbc06a7fad7bbf259d15b368997caf88b2f14507fd6f8ff7b8f267db65b2"
+  },
+  {
+   "path": "zetta/envs/__init__.py",
+   "sha256": "32c4f84d2846bd658bdee2dc7f4ee3c1152bca20d6fa2bc6eb135e9c69f6370f"
+  },
+  {
+   "path": "zetta/envs/base.py",
+   "sha256": "286b3ff5b741c7f621a0f0d138add4d3275edc39de0d731a75560b0127a8e5c4"
+  },
+  {
+   "path": "zetta/envs/behavior/__init__.py",
+   "sha256": "2651be2ee9d72b6c6442231da3710dcb50d8510001f4874a5c2acb3e2391b463"
+  },
+  {
+   "path": "zetta/envs/behavior/contracts.py",
+   "sha256": "ed4301603004ec264f5828d3c027a5b57fd6f6d3ffcc03be0fb7feb7676795fd"
+  },
+  {
+   "path": "zetta/envs/behavior/environment.py",
+   "sha256": "af110dca24b347c88c1539fdbcdc772cf68d5f6580f1150cb16c3c4704c67d96"
+  },
+  {
+   "path": "zetta/envs/env_spec.py",
+   "sha256": "852f9c3be885fe72ee84509c5e2b2bb26b9c726a099bbaea8e2d6d8a87367c01"
+  },
+  {
+   "path": "zetta/envs/geniesim/__init__.py",
+   "sha256": "b8c17e09bb42bbd4c4a48cf47fa34ee5af2cc1419ee858638637dbe8fe7d5f5f"
+  },
+  {
+   "path": "zetta/envs/geniesim/config.py",
+   "sha256": "89d53bd4b099657aef80bf79d1a4d7cba733beae00c5f99fc6f8264c261b7ad8"
+  },
+  {
+   "path": "zetta/envs/geniesim/process.py",
+   "sha256": "f107b164b0f186ea5f95240e0d14f39b17686a90201ce74157043a1b68d766fa"
+  },
+  {
+   "path": "zetta/envs/geniesim/session.py",
+   "sha256": "1399c7ac79cb83bdec4cdd11c8f64bec261de509622bc56ff59be025b5507f1a"
+  },
+  {
+   "path": "zetta/envs/geniesim/wire.py",
+   "sha256": "c8d1c88c3e5075a9d4dd3392210469d886088a9245c8e6f209676afcef14301c"
+  },
+  {
+   "path": "zetta/envs/geniesim/worker.py",
+   "sha256": "b9949a92314afcd6b601b33a79dab9f8c2e076ab3678be4a220cbcbe7eae1308"
+  },
+  {
+   "path": "zetta/envs/libero/__init__.py",
+   "sha256": "4a82b9fcfc9226df506762101031e3e09b33df5724501f774dc880a04302ef43"
+  },
+  {
+   "path": "zetta/envs/libero/base_vector_env.py",
+   "sha256": "5cc94f3b188221300903ce722bf9f692ff1bc04f77803e979488ae75be4bfb48"
+  },
+  {
+   "path": "zetta/envs/libero/environment.py",
+   "sha256": "57e72296608e9fbf4be21812af4a449abfbd6038de27a5d6f7e21faf91192767"
+  },
+  {
+   "path": "zetta/envs/libero/utils.py",
+   "sha256": "a9c62a05f21f56707ca5a431d328b0521d4598f1f6fc208eaf148e824f9934d5"
+  },
+  {
+   "path": "zetta/envs/libero/vector_env.py",
+   "sha256": "118fc5d90c52fff68d6fe5376722cfbe75bd43eed5a63ffd1272f1fc16643ca8"
+  },
+  {
+   "path": "zetta/envs/maniskill/__init__.py",
+   "sha256": "85ca967eba623a8bb3e1b1a3b1df0de2f387da93fdf3e77d2711668d9891d0a0"
+  },
+  {
+   "path": "zetta/envs/maniskill/contracts.py",
+   "sha256": "714d84c288f929c86aa563028bbec88447f14538739ea3c9d2e92980b38b8768"
+  },
+  {
+   "path": "zetta/envs/maniskill/environment.py",
+   "sha256": "1652305176fa8c852c7dd2cf629d49ef5233924a374ec45e27023220ca40ed54"
+  },
+  {
+   "path": "zetta/envs/maniskill/utils.py",
+   "sha256": "61d8284b309cde97857e15d6528280a32cca6a900a9494d79a68268d2dc0c968"
+  },
+  {
+   "path": "zetta/envs/prompt_bundle.py",
+   "sha256": "b8e7d0f861a088a03899f5ed2efbee64edb6717c420a8171f5eb9f0b09d346c2"
+  },
+  {
+   "path": "zetta/envs/robotwin/__init__.py",
+   "sha256": "07c556791a45c0471d398d8ab2895a8333312df8c262337baa289b4881d44b7c"
+  },
+  {
+   "path": "zetta/envs/robotwin/environment.py",
+   "sha256": "9bf7e589a0e4e07bbf19b340f86e4fa6e4d7127699db8fe5ed98d88b731535d8"
+  },
+  {
+   "path": "zetta/envs/robotwin/utils.py",
+   "sha256": "18a44096778b5bb2b26672016444bdc84cd1fd52d012b2627d76e6ca2479ec1a"
+  },
+  {
+   "path": "zetta/evolution/__init__.py",
+   "sha256": "7f62d8e005c3343a2881e61375edead73e80448362d913ca2dd43bf3af86de82"
+  },
+  {
+   "path": "zetta/evolution/admission.py",
+   "sha256": "57da82de00322eb009b9ab5b33e5e23ca8370835ce8e7d33e4691f8af99d99cb"
+  },
+  {
+   "path": "zetta/evolution/campaign.py",
+   "sha256": "97bea596b5bf5092a2c5ad05c059b51865149761675f4500f7753d52bee510ce"
+  },
+  {
+   "path": "zetta/evolution/capacity.py",
+   "sha256": "8f90b3cbb32b87f8d067131dd9e065723840ffcb832baca7daa9f47677f67969"
+  },
+  {
+   "path": "zetta/evolution/cli.py",
+   "sha256": "c5f083026d8ab863a82baf21daf10461d35e1ae695a555ef6d6a95234eea3b53"
+  },
+  {
+   "path": "zetta/evolution/clustering.py",
+   "sha256": "1e710cf7e51e345c5ee64ed2c88a4c474982067ed34d0f6c2ef94076907a9080"
+  },
+  {
+   "path": "zetta/evolution/critic.py",
+   "sha256": "79c696afc5e8fb7514c2ef484d558ff155640bcd3fefeadf4bf8f216798260a8"
+  },
+  {
+   "path": "zetta/evolution/fault_injection.py",
+   "sha256": "1a27774f0f54b7b90d635ac978d0e15fc0ad3b0e96807c74fcb990e01196fb22"
+  },
+  {
+   "path": "zetta/evolution/gate_runner.py",
+   "sha256": "0d8897c2224f13180c802cfdcf9cc11bd7efdc36d675550e9bc9d6c26514ec28"
+  },
+  {
+   "path": "zetta/evolution/gating.py",
+   "sha256": "1739505f03fe260512c801793ac1fcdc60b2dea4bab73604f19e8979930f527f"
+  },
+  {
+   "path": "zetta/evolution/jsonio.py",
+   "sha256": "9ead26645d0d02c1af9cfaeda3a540ccd109b88d4f57f61ed4af81b46d621b17"
+  },
+  {
+   "path": "zetta/evolution/lifecycle.py",
+   "sha256": "6b9f2d0e25cf5e03346a934595a7ea27dd0e26af3d3de74f43330f0bb873613e"
+  },
+  {
+   "path": "zetta/evolution/models.py",
+   "sha256": "2a20f6f3f34a2435e0510785e645344ce7e1a1107d452281d1fb0713bf915669"
+  },
+  {
+   "path": "zetta/evolution/protocol.py",
+   "sha256": "2cec127061a5570f7edc39ead51c13cc78c8dfe57e9bb6de3641418dc9003c94"
+  },
+  {
+   "path": "zetta/evolution/provider_admission.py",
+   "sha256": "43595f4c336d46466e209d24d2aa549b606bd94dc952b7e47f155659bdfce83a"
+  },
+  {
+   "path": "zetta/evolution/queue.py",
+   "sha256": "0abd8355f7ea3257b29e70815748e472e31b2884aa8d743525b31eb0f7142ddd"
+  },
+  {
+   "path": "zetta/evolution/schedule.py",
+   "sha256": "60657ba68e0a462831700188917060cb5568f93b08c273db0b53b293bfd1a442"
+  },
+  {
+   "path": "zetta/evolution/shadow_replay.py",
+   "sha256": "13ecbcd4b149cf61f68ee02910f4d599e2fa7be4226405f1b831204b31a71136"
+  },
+  {
+   "path": "zetta/evolution/slot_broker.py",
+   "sha256": "b258aeb008638336140c9cd1d0fdfb429548170cda92e27d7aa58d6be30fb0bd"
+  },
+  {
+   "path": "zetta/evolution/stages.py",
+   "sha256": "06e8298f43a0fcac64cac6f7256439d8d0fc5d195fe2cedc5b592b7d37658229"
+  },
+  {
+   "path": "zetta/evolution/store.py",
+   "sha256": "81068dbeb6f4250f8debb5c21a0b5b2e3b8a9d39c08f4b1517616189ba2f8424"
+  },
+  {
+   "path": "zetta/evolution/supervisor.py",
+   "sha256": "8ddef63d8a5177b4ae7e92bf200a404a16582ff98ae79752a41262f53622b597"
+  },
+  {
+   "path": "zetta/evolution/trajectory.py",
+   "sha256": "521971422ea999a32724f27a565cc8cad09eed318dc1db40b2bee5314e25b365"
+  },
+  {
+   "path": "zetta/evolution/visual_artifacts.py",
+   "sha256": "807548970625c713a83aafb4a76908b9a1ca44800fb90e0aef8baeea9bccb32b"
+  },
+  {
+   "path": "zetta/memory/__init__.py",
+   "sha256": "75aa1ee5c94b6ecbbd3741592a0eee3a6887c2e83c10fcd9718d949f4932de62"
+  },
+  {
+   "path": "zetta/memory/task_memory.py",
+   "sha256": "cbe852f03d52fdf20f8aeebe5447bdafa4223b76cf10d6b0616476a8f94b956b"
+  },
+  {
+   "path": "zetta/planner/__init__.py",
+   "sha256": "74ec689f8f1a8ffe6d63000f91dd3c2614478ab8390ebeb6c3dcbbf582b72813"
+  },
+  {
+   "path": "zetta/planner/api_loop.py",
+   "sha256": "66cddb699e4e92f24b8c96c8aaae24d1b0d702f7539cafe358be9b71178ba7f9"
+  },
+  {
+   "path": "zetta/planner/base.py",
+   "sha256": "b9bf9e871b7aa12b82b865f8ea749d75796f71514ea4b1d227bc1920dc5c5c2a"
+  },
+  {
+   "path": "zetta/planner/claude_code.py",
+   "sha256": "21bd79c9666c08ad454f3f809a00b532b38d75ce535985cbdf209f88306d547f"
+  },
+  {
+   "path": "zetta/planner/codex.py",
+   "sha256": "411dbbff9ea810b4dbf6c81e54501828b97c9073a1a101806aa97e6dd92f490f"
+  },
+  {
+   "path": "zetta/planner/codex_artifacts.py",
+   "sha256": "40eacfaed35522291748f4414290404071fafb226a0ce50c826dc00e7e1da102"
+  },
+  {
+   "path": "zetta/planner/provider_pool.py",
+   "sha256": "e4607cd92fc86a4a2cf13f3ddc50a061ad80f0789918e6c917e55bcbf6f4aac6"
+  },
+  {
+   "path": "zetta/planner/provider_proxy.py",
+   "sha256": "dfa7813e4f78fa52de4056b53037d044d3056ec41209bda07713c0eef86af549"
+  },
+  {
+   "path": "zetta/planner/provider_request_admission.py",
+   "sha256": "352575f5b6e7db12135d4bc47e330a35e01ec1b77cfe0bb8bdc518a275178ff6"
+  },
+  {
+   "path": "zetta/planner/utils/__init__.py",
+   "sha256": "34d67b01cb662a1184d34727fa6c20a33ce2067e52d6b08f8104b601ba611967"
+  },
+  {
+   "path": "zetta/planner/utils/http_mcp_server.py",
+   "sha256": "164a3e39ed8e62e745e6284cb26404453571e0bb9c681c7332306a7f92689201"
+  },
+  {
+   "path": "zetta/policies/__init__.py",
+   "sha256": "3654a4b657e27cd09211fedda7444bbcb66ce24e027cf98e7d110bf0beaf4ab1"
+  },
+  {
+   "path": "zetta/policies/openpi/__init__.py",
+   "sha256": "43c011e4cd282087606af3417ec225359a767307b977227077bdc644dee87978"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/__init__.py",
+   "sha256": "b73d3c9ea8e1ac1d68151b72e68368f952f6a4c303b77c582f5433fd908b4f78"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/base_policy.py",
+   "sha256": "adf8dd959274a5571dab2687cac500e36f62a3a02284dc6aac252129d8624729"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/compact_encoders.py",
+   "sha256": "f3d04206d0633a6e9927008993f26f3c9a1086ea803fc69211b226b5c069a52a"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/explore_noise_net.py",
+   "sha256": "617db7fd711761093a6e90b45030f5c4e57ede7a80bf150b7dc06f5b7cbc9804"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/gaussian_policy.py",
+   "sha256": "d212d22f04fabbf4729edbccffa43674d7f42e84ec594bd24c36351c3c245278"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/logging.py",
+   "sha256": "a8d491103998527a28985e977311141a52e51c37db3011a0e68bae7f5481cafe"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/nested_dict_process.py",
+   "sha256": "1d587af791cba56e65e5fca239950231467376bd1f6143049e3068f6a83adf32"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/pytree.py",
+   "sha256": "db4981343edb20520ba0470fbfc553119a317053cbd488282190a497a5038186"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/rlt_token_transformer.py",
+   "sha256": "d72364f58436af345164d9bb574d7f7edf054e5c9d1e94d367ae075b53779332"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/robocasa_utils.py",
+   "sha256": "1b0add27fedb126dbc4e90979cdcd25cb62997877000b0ec13d1e357a2782127"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/rot6d.py",
+   "sha256": "c8e70812a330b224ee125bbb82a5299a7830c82358b120136cd380fe5f8e6306"
+  },
+  {
+   "path": "zetta/policies/openpi/_compat/value_head.py",
+   "sha256": "82636d45ec176cc4a73886afe400d0c0f195a1f7850382be59c3ee1a4ca4e9db"
+  },
+  {
+   "path": "zetta/policies/openpi/_factory_impl.py",
+   "sha256": "ba785fc8283626b8e169097dae58e7e6d1efcb06fbd7cb52af081ec4f6601647"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/__init__.py",
+   "sha256": "1be2f112faffd3705c444bad55f7fb5cb09011b7e4be434220be77a6adbf1806"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/behavior_dataconfig.py",
+   "sha256": "9008a21ed3e83765cdb32ebde99a3d7f98416d23354945ee7ec12af4c34c8bf5"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/calvin_dataconfig.py",
+   "sha256": "a79ab43ee35eeb789f5993389c9122bcd8749ccb98632c8ba951245c728ed1cd"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/dual_franka_tcp_rot6d_dataconfig.py",
+   "sha256": "42da176b63d8e97bab77018ba00b44363721a741a952449e02084b7a057b4381"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/franka_co_training_dataconfig.py",
+   "sha256": "ab9e2cfca226e47197d588b8c3552a546932cd41b5a53f403aae94c316a249d6"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/franka_dataconfig.py",
+   "sha256": "e7b067bc9a1c249270f453a1a84e635d19ba9ff36b353426b1a4e233ee457edf"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/gsenv_dataconfig.py",
+   "sha256": "e5d1f904af7a7566809f5f3ec5bd4d6ec2fd6b2696946a4f2d081a23aee9615e"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/isaaclab_dataconfig.py",
+   "sha256": "5107a7fa7eaff08c00cf11da02ce991e15cfbe330d75b1952001af957b2c86e7"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/libero_dataconfig.py",
+   "sha256": "8d7dbd2b57149262971c94e3114cb89ed0dbbfbb3242773d03e73d07364dc414"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/maniskill_dataconfig.py",
+   "sha256": "2cf317616ef71d23b5c497a9531e712be62c7a335a1535b8c3856458d93b9e1f"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/maniskill_rlt_dataconfig.py",
+   "sha256": "46466d540504447317a32a7ee8799dd92cc0c10c35f1959d4a7e274815303f37"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/metaworld_dataconfig.py",
+   "sha256": "c6be828c19347de372d05967a3f3312114876309d06f6d22ba9c05251776f340"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/polaris_dataconfig.py",
+   "sha256": "3c6e797da220b3d83aa28c6c4e2694ff0608f72cabb0c9441198a7a8bba0f448"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/realworld_dataconfig.py",
+   "sha256": "44db253879d9beca2fb8d2aa3308aff429eaaa5bcdafc0cf64542e262236af3d"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/robocasa_dataconfig.py",
+   "sha256": "05bc0db61624cf85292fc77991bede68512a2dd981b3436d5c285f2e0be2801b"
+  },
+  {
+   "path": "zetta/policies/openpi/dataconfig/robotwin_aloha_dataconfig.py",
+   "sha256": "722d06629a97a21793c5275e23d4ef392f269526409a3fde97e5df380c9214fc"
+  },
+  {
+   "path": "zetta/policies/openpi/factory.py",
+   "sha256": "364007df6a5d2de343a8f644c3b9a447afc034a347e1436452dc87da482a0162"
+  },
+  {
+   "path": "zetta/policies/openpi/openpi_action_model.py",
+   "sha256": "5fdb2d7080bc13ac7c02e4f446aafe2726caef4b46969859a6eb4e48223d8821"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/__init__.py",
+   "sha256": "c106f850b103b97d89d55b389e53927cad17e8add7bdfe251d3d9b071d038de1"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/aloha_policy.py",
+   "sha256": "4063735b3399aa70fec316f77638ed9c5fd2f266343b72a4c22cd0d97124e8a7"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/behavior_policy.py",
+   "sha256": "209d40bc932a759bae1edb08bfe68afa74ebf3c5a1054efd6d37b3125169d21c"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/calvin_policy.py",
+   "sha256": "fa4dd5e2fe01fdc68e04ae51de9941e2b07f0796e03b41dd06bd17526897a129"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/dual_franka_tcp_rot6d_policy.py",
+   "sha256": "9a96a86299382ff4be557a5a4bb24e834abf84d1f2a4614de57986c6edee3202"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/franka_policy.py",
+   "sha256": "c4ebe1f1424a0adfd95a44db25cfa7638505df3b6fdfd5e5f8eb64d4b54b955b"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/gsenv_policy.py",
+   "sha256": "e69a8c74af92bdf78ba89becdc972d0b1df583304dfc6fc745aef0d890f2edd7"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/isaaclab_policy.py",
+   "sha256": "5261b3fecc9096010a95d820c8baced9ede74fb7b7dbce6f747159eadbcced55"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/libero_policy.py",
+   "sha256": "3bc13994219d460e398180b71d38bd54adcafc361ca233dd884e6cee2b87c84f"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/maniskill_policy.py",
+   "sha256": "99b7085c6050449b0a1357c4f90b9f5303a60b92403f6b4538a8fdb8202d0519"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/metaworld_policy.py",
+   "sha256": "5032339fc7eb48407eafbf2a809b6c0fa9771b8d58da76ff5fc347e433e4d825"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/realworld_policy.py",
+   "sha256": "dfdbc5548e98425b68a1b6c712dd9ded2e9ca28f542df9594e3ac0e4bf92c9cd"
+  },
+  {
+   "path": "zetta/policies/openpi/policies/robocasa_policy.py",
+   "sha256": "15e89d7ddc30959efbc16cb1f50de8e83e654e7006e68dfeac49308fc7cad549"
+  },
+  {
+   "path": "zetta/policies/openpi/rtc_guidance.py",
+   "sha256": "85556dec1263f63297e43b68f01ef1f71d72cd5813cb41110aa8fdae3078ac51"
+  },
+  {
+   "path": "zetta/policies/openpi/transforms/__init__.py",
+   "sha256": "e6a6253697652b50ee730e65baec674bd935dde9d19cc19c0f896e739625be58"
+  },
+  {
+   "path": "zetta/policies/openpi/transforms/rigid_body_delta.py",
+   "sha256": "cb3d8a4c32152e0ba60d546130c11abbfb263a03d83d333603e25d22f4fc82e3"
+  },
+  {
+   "path": "zetta/runtime/__init__.py",
+   "sha256": "48e512658f309c22c077ec4a90bf56bb347fa853a2f8dc15537668f7e6378ecc"
+  },
+  {
+   "path": "zetta/runtime/ray/__init__.py",
+   "sha256": "d95a8a6248cca0cbae27a8c34f85ff221fabf310f60d8c38da29c6099a14ee79"
+  },
+  {
+   "path": "zetta/runtime/ray/bootstrap.py",
+   "sha256": "9055f48c5e226259687b5d0ddeb334c6c26a3b7957968cd2ff3d9c6122f63246"
+  },
+  {
+   "path": "zetta/runtime/ray/channel.py",
+   "sha256": "0047005f762ca752bd5b6bed93d7ec6cc61aa73b3314f11b3fc367c0d412dad3"
+  },
+  {
+   "path": "zetta/runtime/ray/group.py",
+   "sha256": "5dbcbaae1842ad0d9f89cacb7c97415ecbab8ab3b659e8c3a219b7127ef96e44"
+  },
+  {
+   "path": "zetta/runtime/ray/placement.py",
+   "sha256": "4304e5ba7925ba39c1492f8bbe465a30ccf9f5f9bb51d39662b1607215d43e2b"
+  },
+  {
+   "path": "zetta/tools/__init__.py",
+   "sha256": "2d86eac3e1d051226a6e3eab7b94431c59bfe422ff352785f6286f0944b49841"
+  },
+  {
+   "path": "zetta/tools/common.py",
+   "sha256": "34ef69fbb123e2921f28e6d74073d251846a0ddeb15388ab5965978ccc3b7708"
+  },
+  {
+   "path": "zetta/tools/contracts.py",
+   "sha256": "b0c78193a3805a9b6b13562311195c0b5d835baaddc18090c47a7a45697c5503"
+  },
+  {
+   "path": "zetta/tools/toolkit.py",
+   "sha256": "b6767e93fbc3ee27b9081c3d705b23c7e34436e07623c7c3d81d3e9f7339aef4"
+  },
+  {
+   "path": "zetta/utils/__init__.py",
+   "sha256": "83cb621794cefba1c4d4e830e1d614d86cf33c9c2ddd87236d791b476b358b7a"
+  },
+  {
+   "path": "zetta/utils/config.py",
+   "sha256": "3fa020fd8b8613abe66861094f6b8922b0a8dbf9b664dfeafafa0e79dc097550"
+  },
+  {
+   "path": "zetta/utils/daemon.py",
+   "sha256": "06da34d6d05d75f25608ad6f372448af627529ff00d24541cd27a380a61ad4e6"
+  },
+  {
+   "path": "zetta/utils/egl.py",
+   "sha256": "0ff43a636d2e85dad8db913fa2c1352265bd36e7f354b2808edc658e4dd915fc"
+  },
+  {
+   "path": "zetta/utils/gpu_memory_guard.py",
+   "sha256": "3708b7cbdca765de955470198d9ef41c58eadcebe959a17c6ee1d64fb4fca9da"
+  },
+  {
+   "path": "zetta/utils/http_rpc.py",
+   "sha256": "2241d04be1114bdf838532d18a74ce1b2f48d7d0d31da9098ffc17ef37a0cb1f"
+  },
+  {
+   "path": "zetta/utils/logging.py",
+   "sha256": "3c83802d39d66f512037d9e24ca4b79dff4ad1487477078d254c2af70e1be779"
+  },
+  {
+   "path": "zetta/utils/resources.py",
+   "sha256": "06835082b35e5373ee8e3efbd15973f26d7141f347958dd4d213feba4ec38b84"
+  },
+  {
+   "path": "zetta/utils/rpc.py",
+   "sha256": "160bd6d82a722c46a19f29e26429ac9bd8f4b6ae8fc5068fffb7f5914e82c3a3"
+  },
+  {
+   "path": "zetta/utils/sam3_client.py",
+   "sha256": "13cb1278ed9548dab6d7fd224bef14c1d53c2055a7a61e1179224707466fd85c"
+  },
+  {
+   "path": "zetta/utils/socket_rpc.py",
+   "sha256": "23995e55349888697fd8bcb0fc93e23f06c947ea747e2e6295991aa0701f30c4"
+  },
+  {
+   "path": "zetta/utils/templates.py",
+   "sha256": "71e0bda55a681d392c7980e419988fd74a62b456bac74d9d68bdaa73f7bdb83d"
+  },
+  {
+   "path": "zetta/utils/vla_client.py",
+   "sha256": "8c91aa13534748fd4a2460c4e1ebd3b75c929c2e1bfa728eb5ff0826e5fdb2fa"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 1840334,
+ "tier": "AI_ASSOCIATED"
+}

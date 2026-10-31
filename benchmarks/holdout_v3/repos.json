@@ -1,0 +1,1548 @@
+{
+ "seed": "holdout-v3-20261030",
+ "bands": {
+  "A1": {
+   "in_frame": 500,
+   "eligible": 401,
+   "size": 92,
+   "archived": 5,
+   "list": 2
+  },
+  "A2": {
+   "in_frame": 490,
+   "size": 88,
+   "eligible": 393,
+   "archived": 6,
+   "known repository": 2,
+   "list": 1
+  },
+  "A3": {
+   "in_frame": 420,
+   "eligible": 323,
+   "size": 86,
+   "known repository": 3,
+   "archived": 5,
+   "list": 3
+  },
+  "A4": {
+   "in_frame": 346,
+   "eligible": 248,
+   "size": 88,
+   "known repository": 4,
+   "archived": 3,
+   "list": 3
+  },
+  "B1": {
+   "in_frame": 500,
+   "eligible": 322,
+   "size": 166,
+   "archived": 7,
+   "known repository": 4,
+   "list": 1
+  },
+  "B2": {
+   "in_frame": 500,
+   "eligible": 364,
+   "size": 128,
+   "known repository": 4,
+   "list": 1,
+   "archived": 3
+  },
+  "B3": {
+   "in_frame": 500,
+   "eligible": 379,
+   "size": 114,
+   "archived": 5,
+   "known repository": 2
+  },
+  "B4": {
+   "in_frame": 500,
+   "archived": 6,
+   "eligible": 397,
+   "size": 92,
+   "known repository": 4,
+   "list": 1
+  }
+ },
+ "repos": [
+  {
+   "tier": "A+B",
+   "band": "A1",
+   "rank": 1,
+   "role": "primary",
+   "repo": "benchflow-ai/benchflow",
+   "commit": "ce79d75134dc2f43e9f9832a17327495f8d2d5c1",
+   "stars": 357,
+   "size_kb": 65985,
+   "created": "2025-01-21",
+   "license": "apache-2.0",
+   "description": "Research infra for creating RL environments, post-training, and evals.",
+   "py_files": 792,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A1",
+   "rank": 2,
+   "role": "primary",
+   "repo": "inclusionAI/Ming-UniAudio",
+   "commit": "33f86a0a611b16ff1f29f6373303096d230c66dc",
+   "stars": 458,
+   "size_kb": 12992,
+   "created": "2025-09-29",
+   "license": "mit",
+   "description": "Ming-UniAudio: Speech LLM for Joint Understanding, Generation and Editing with Unified Representation",
+   "py_files": 39,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A1",
+   "rank": 3,
+   "role": "reserve",
+   "repo": "OpenHelix-Team/OpenHelix",
+   "commit": "d88867fa56977f401a7c89d62b9ebce87d8078f0",
+   "stars": 399,
+   "size_kb": 3371,
+   "created": "2025-04-13",
+   "license": "mit",
+   "description": "OpenHelix: An Open-source Dual-System VLA Model for Robotic Manipulation",
+   "py_files": 82,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A2",
+   "rank": 2,
+   "role": "primary",
+   "repo": "lambertae/drifting",
+   "commit": "8861066430db11d2fb0858d042c7845b99df49f1",
+   "stars": 595,
+   "size_kb": 27820,
+   "created": "2026-02-26",
+   "license": "mit",
+   "description": "",
+   "py_files": 28,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A2",
+   "rank": 3,
+   "role": "primary",
+   "repo": "jessielw/Reclaimerr",
+   "commit": "537db15d1ae7e0470ba5d9ad809115f0477c21cd",
+   "stars": 572,
+   "size_kb": 21556,
+   "created": "2026-01-03",
+   "license": "gpl-3.0",
+   "description": "Automatically reclaim space in your media library using customizable rules. Integrates with Jellyfin, Plex, and Emby (any or all of them) to analyze and manage your content. Functions similarly to Seerr (in reverse), providing efficient media cleanup",
+   "py_files": 500,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A2",
+   "rank": 4,
+   "role": "reserve",
+   "repo": "joinly-ai/joinly",
+   "commit": "4ea1259de329aa6965d9fdb806db64a7cdeeb683",
+   "stars": 569,
+   "size_kb": 1630,
+   "created": "2025-05-29",
+   "license": "mit",
+   "description": "Make your meetings accessible to AI Agents",
+   "py_files": 73,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A3",
+   "rank": 1,
+   "role": "primary",
+   "repo": "Alibaba-NLP/ZeroSearch",
+   "commit": "67de52289c584348dd6517339dde285d5cc1822f",
+   "stars": 1311,
+   "size_kb": 5230,
+   "created": "2025-05-07",
+   "license": "apache-2.0",
+   "description": "ZeroSearch: Incentivize the Search Capability of LLMs without Searching",
+   "py_files": 174,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A3",
+   "rank": 2,
+   "role": "primary",
+   "repo": "Simpleyyt/ai-manus",
+   "commit": "496547ce6a5f599333138342ec126a7ea8ec9646",
+   "stars": 1643,
+   "size_kb": 22025,
+   "created": "2025-04-26",
+   "license": "mit",
+   "description": "AI Manus is a general-purpose AI Agent system that supports running various tools and operations in a sandbox environment.",
+   "py_files": 225,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A3",
+   "rank": 4,
+   "role": "reserve",
+   "repo": "chiphuyen/sniffly",
+   "commit": "a237d7e9a9b37181626c049046c99b496f6c33c5",
+   "stars": 1277,
+   "size_kb": 4537,
+   "created": "2025-07-15",
+   "license": "mit",
+   "description": "Claude Code dashboard with usage stats, error analysis, and sharable feature",
+   "py_files": 47,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A4",
+   "rank": 1,
+   "role": "primary",
+   "repo": "nv-tlabs/3dgrut",
+   "commit": "bb203b1fa990e044412396483d4dbc1f3164ae02",
+   "stars": 2478,
+   "size_kb": 55914,
+   "created": "2025-03-20",
+   "license": "apache-2.0",
+   "description": "Ray tracing and hybrid rasterization of Gaussian particles",
+   "py_files": 143,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A4",
+   "rank": 3,
+   "role": "primary",
+   "repo": "dexmal/dexbotic",
+   "commit": "d8135fa7645558355a48c6374bb5767a6576a5b5",
+   "stars": 3232,
+   "size_kb": 34999,
+   "created": "2025-10-17",
+   "license": "mit",
+   "description": "Dexbotic: Open-Source Vision-Language-Action Toolbox",
+   "py_files": 234,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "A4",
+   "rank": 5,
+   "role": "reserve",
+   "repo": "rushindrasinha/youtube-shorts-pipeline",
+   "commit": "48835dea9c0cc9d119e19ad9365717006d6f59a6",
+   "stars": 2339,
+   "size_kb": 291,
+   "created": "2026-02-21",
+   "license": "mit",
+   "description": "Automated YouTube Shorts pipeline: news \u2192 script \u2192 AI visuals \u2192 voiceover \u2192 captions \u2192 upload",
+   "py_files": 42,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B1",
+   "rank": 2,
+   "role": "primary",
+   "repo": "AI-X-Labs/TS-Haystack",
+   "commit": "5e8d3162d47176e19fbd9c5f3d3cf9c6e0e9a7d4",
+   "stars": 14,
+   "size_kb": 1627,
+   "created": "2026-03-02",
+   "license": "other",
+   "description": "TS-Haystack: A Multi-Scale Retrieval Benchmark for Time Series Language Models",
+   "py_files": 294,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B1",
+   "rank": 3,
+   "role": "primary",
+   "repo": "mahm/dspy-demo",
+   "commit": "5817f6ef3930ca5b03b0dfa7955f5e49953909cb",
+   "stars": 12,
+   "size_kb": 222,
+   "created": "2025-10-27",
+   "license": "mit",
+   "description": "",
+   "py_files": 14,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B1",
+   "rank": 4,
+   "role": "reserve",
+   "repo": "zes0v0inn/DWT_EEG_Reconstruction",
+   "commit": "b7144772ce8fe8536b6f3f9c3c88006b7ace54d0",
+   "stars": 10,
+   "size_kb": 7857,
+   "created": "2025-05-15",
+   "license": "",
+   "description": "",
+   "py_files": 23,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B2",
+   "rank": 2,
+   "role": "primary",
+   "repo": "ericjiang18/Agent-Q-Mix",
+   "commit": "c1154769f9ab27707a35d331f3727c52a5c05ec8",
+   "stars": 21,
+   "size_kb": 48269,
+   "created": "2026-02-27",
+   "license": "",
+   "description": "",
+   "py_files": 1825,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B2",
+   "rank": 4,
+   "role": "primary",
+   "repo": "AbdelStark/jev-benchmarks",
+   "commit": "0d610cc53e79bcbec691312b0c4adb4a0e371642",
+   "stars": 27,
+   "size_kb": 489,
+   "created": "2026-09-17",
+   "license": "apache-2.0",
+   "description": "Probability-aware evaluation for typed decision models: calibration, selective risk, latency, and reproducible benchmarks.",
+   "py_files": 23,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B2",
+   "rank": 5,
+   "role": "reserve",
+   "repo": "franknobox/Ludens-Flow",
+   "commit": "a8bc7679643ff6a7ba52f78329a24cb1fa8d7803",
+   "stars": 32,
+   "size_kb": 2322,
+   "created": "2026-01-23",
+   "license": "mit",
+   "description": "This is a project warehouse established to participate in the 2026 SUAT AI Agent Innovation Competition.",
+   "py_files": 103,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B3",
+   "rank": 1,
+   "role": "primary",
+   "repo": "hzcar/ReCAP",
+   "commit": "36ea4b21f112020dad294b36be312d23addc94d0",
+   "stars": 61,
+   "size_kb": 350,
+   "created": "2025-05-25",
+   "license": "bsd-3-clause",
+   "description": "Code for ICML 2025 paper \u2014 Beyond Entropy: Region Confidence Proxy for Wild Test-Time Adaptation",
+   "py_files": 16,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B3",
+   "rank": 2,
+   "role": "primary",
+   "repo": "DeepExperience/VAD_Multimodal_OPD",
+   "commit": "4f2dd54103904a07dc39c3a60b2ad7bc29d8cb99",
+   "stars": 53,
+   "size_kb": 1719,
+   "created": "2026-07-30",
+   "license": "apache-2.0",
+   "description": "",
+   "py_files": 344,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B3",
+   "rank": 3,
+   "role": "reserve",
+   "repo": "MICS-Lab/thunder",
+   "commit": "be25af613fc532257d7c4c2418f12d0c3a18cc83",
+   "stars": 51,
+   "size_kb": 10262,
+   "created": "2025-05-15",
+   "license": "cc-by-4.0",
+   "description": "[NeurIPS25 D&B Spotlight] A tile-level histopathology image understanding benchmark",
+   "py_files": 63,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B4",
+   "rank": 1,
+   "role": "primary",
+   "repo": "decider/claude-hooks",
+   "commit": "5278ebda86544cf3d06cfdde6d1c0f8f36727a46",
+   "stars": 75,
+   "size_kb": 463,
+   "created": "2025-07-06",
+   "license": "mit",
+   "description": "Comprehensive hooks for Claude Code to enforce clean code practices and automate workflows",
+   "py_files": 18,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B4",
+   "rank": 2,
+   "role": "primary",
+   "repo": "Spongebobbbbbbbb/FDTA",
+   "commit": "b3b3b778acf93fa4269663b5ea1fd1d5ff8c6730",
+   "stars": 79,
+   "size_kb": 2243,
+   "created": "2025-11-28",
+   "license": "mit",
+   "description": "The official repository of the paper \"From Detection to Association: Learning Discriminative Object Embeddings for  Multi-Object Tracking\"",
+   "py_files": 124,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "A+B",
+   "band": "B4",
+   "rank": 3,
+   "role": "reserve",
+   "repo": "Kunjoe7/texgisa-survival",
+   "commit": "596c83fa98fb2b2cb0fc7195f96bd280f9018665",
+   "stars": 81,
+   "size_kb": 1322,
+   "created": "2025-10-11",
+   "license": "mit",
+   "description": "",
+   "py_files": 38,
+   "signal": null,
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 6,
+   "role": "primary",
+   "repo": "fasouto/termaid",
+   "commit": "78a6f312c4ffeda8b1e20be3887a4f2be1ebf026",
+   "stars": 568,
+   "size_kb": 2038,
+   "created": "2026-02-26",
+   "license": "mit",
+   "description": "Render Mermaid diagrams in your terminal or Python app",
+   "py_files": 123,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Copilot <223556219+Copilot"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 8,
+   "role": "primary",
+   "repo": "MINT-SJTU/Evo-RL",
+   "commit": "ec9842d8a8dd0371b4b50021547552e4608ec5ee",
+   "stars": 841,
+   "size_kb": 5856,
+   "created": "2026-02-24",
+   "license": "apache-2.0",
+   "description": "We release Evo-RL, the opensource real-world offline RL on So-101 and AgileX PiPER for easier reproduction.",
+   "py_files": 521,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B2",
+   "rank": 10,
+   "role": "primary",
+   "repo": "kumaran-is/claude-code-onboarding",
+   "commit": "a7f2fc5cbd389b09d08f10a8cddf88d20cd6e116",
+   "stars": 36,
+   "size_kb": 16918,
+   "created": "2026-02-01",
+   "license": "mit",
+   "description": "\ud83e\udd16 Team onboarding kit for Claude Code AI coding assistant. Pre-configured with agents, skills, slash commands, and MCP integrations for Java 21/Spring Boot WebFlux, Angular, Flutter, PostgreSQL, and Firebase. Clone \u2192 install \u2192 start building.",
+   "py_files": 38,
+   "signal": {
+    "instruction_files": [
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": []
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 21,
+   "role": "primary",
+   "repo": "mstan/MegaManX6Recomp",
+   "commit": "288918a735f3b68da25cc967955a3d917ac3cb89",
+   "stars": 79,
+   "size_kb": 13031,
+   "created": "2026-06-04",
+   "license": "other",
+   "description": "Mega Man X6 (USA) recompiled for the Sony PlayStation using psxrecomp \u00b7 Part of the R.A.I.D. community",
+   "py_files": 61,
+   "signal": {
+    "instruction_files": [
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude"
+    ]
+   },
+   "safety_decision": "NOT_EXCLUDED",
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 24,
+   "role": "primary",
+   "repo": "cruxible-ai/cruxible",
+   "commit": "e848cbb6787262db349912c48d9c008d8068ede8",
+   "stars": 17,
+   "size_kb": 41036,
+   "created": "2026-03-04",
+   "license": "apache-2.0",
+   "description": "Governed state engine for AI agents: typed, executable knowledge artifacts with a code-like lifecycle",
+   "py_files": 539,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md"
+    ],
+    "co_author_trailers": []
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 26,
+   "role": "primary",
+   "repo": "xuc865/roleagent",
+   "commit": "0ceb695424183fc21b5109e5561223654f06dc89",
+   "stars": 81,
+   "size_kb": 41521,
+   "created": "2026-06-09",
+   "license": "apache-2.0",
+   "description": "",
+   "py_files": 547,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-authored-by: Cursor <cursoragent@cursor"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 29,
+   "role": "primary",
+   "repo": "Stability-AI/stable-audio-3",
+   "commit": "4bf31f77c651378155dbbc9100897f220a212b9b",
+   "stars": 835,
+   "size_kb": 32119,
+   "created": "2026-03-19",
+   "license": "mit",
+   "description": "",
+   "py_files": 175,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude",
+     "Co-authored-by: Copilot Autofix powered by AI <175728472+Copilot"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 35,
+   "role": "primary",
+   "repo": "Luo-Yihao/FaithC",
+   "commit": "c8e7c78e804e9a7afa067a9f81184a22658e10cc",
+   "stars": 318,
+   "size_kb": 47375,
+   "created": "2025-11-06",
+   "license": "apache-2.0",
+   "description": "[CVPR 2026 (Oral)] Official Torch/CUDA Implementation of Faithful Contouring",
+   "py_files": 13,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-authored-by: Cursor <cursoragent@cursor"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 36,
+   "role": "primary",
+   "repo": "Sallyn0225/eidolon-sc",
+   "commit": "cd1c61751eddeaf1bd4cdef4133e5e67f3af4ec5",
+   "stars": 319,
+   "size_kb": 59660,
+   "created": "2026-09-25",
+   "license": "agpl-3.0",
+   "description": "\u548c\u300a\u5076\u50cf\u5927\u5e08 \u95ea\u8000\u8272\u5f69\u300b\u5076\u50cf\u5b9e\u65f6\u8bed\u97f3/\u6587\u5b57\u5bf9\u8bdd\u7684 AI \u5206\u8eab\uff1a\u65e5\u8bed\u539f\u58f0 + \u4e2d\u6587\u5b57\u5e55\u3001\u56de\u5fc6\u539f\u4f5c\u5267\u60c5\u3001\u8de8\u89d2\u8272\u5171\u4eab\u8bb0\u5fc6\uff1b\u652f\u6301 Google/GitHub \u767b\u5f55\u4e0e\u81ea\u5e26\u5bc6\u94a5\uff0cDocker Compose \u4e00\u952e\u90e8\u7f72\uff08\u53c2\u8003 LAPLACE Eidolon\uff09",
+   "py_files": 365,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md",
+     "frontend/AGENTS.md",
+     "frontend/CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 37,
+   "role": "primary",
+   "repo": "howyoungchen/deepRolePlay",
+   "commit": "a45667df2e36c04fddbef8f025dd289b139ad28a",
+   "stars": 119,
+   "size_kb": 3762,
+   "created": "2025-08-02",
+   "license": "mit",
+   "description": "DeepRolePlay is a groundbreaking multi-agent role-playing system that completely solves the character forgetting problem of traditional large language models through Agent collaboration mechanisms.",
+   "py_files": 42,
+   "signal": {
+    "instruction_files": [
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": []
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 38,
+   "role": "primary",
+   "repo": "porterminal/porterminal",
+   "commit": "a643cc34e3dc23ffed510ae3ed1fa03bf1aeb1f4",
+   "stars": 298,
+   "size_kb": 15788,
+   "created": "2025-12-30",
+   "license": "agpl-3.0",
+   "description": "Quick n' dirty web/mcp terminal tunneling your phone & pc ",
+   "py_files": 127,
+   "signal": {
+    "instruction_files": [
+     ".github/copilot-instructions.md",
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 39,
+   "role": "primary",
+   "repo": "axcslmd/video-auto-maker",
+   "commit": "3f4ae460ddd50f3b16e17bc3c9715a9829e01bc6",
+   "stars": 93,
+   "size_kb": 39328,
+   "created": "2026-08-24",
+   "license": "other",
+   "description": "",
+   "py_files": 160,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md"
+    ],
+    "co_author_trailers": []
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 45,
+   "role": "primary",
+   "repo": "livekit/eot-bench",
+   "commit": "b1cc6abceca916d994c4d044aa8285cba7fab9b2",
+   "stars": 73,
+   "size_kb": 65717,
+   "created": "2026-06-09",
+   "license": "apache-2.0",
+   "description": "LiveKit End-of-Turn Benchmark",
+   "py_files": 45,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 46,
+   "role": "primary",
+   "repo": "air-embodied-brain/Zetta-Embodiment",
+   "commit": "d7fd15ee63a5a1e7d546c5fc5b52db3b38331bc8",
+   "stars": 1310,
+   "size_kb": 5852,
+   "created": "2026-08-18",
+   "license": "apache-2.0",
+   "description": "Zetta is an efficient closed-loop embodied harness for self-evolving physical intelligence. It evolves code-based runtime critics and recovery skills online while keeping the base policy frozen. Project Page: https://air-embodied-brain.github.io/zetta/",
+   "py_files": 483,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Copilot <223556219+Copilot"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B3",
+   "rank": 56,
+   "role": "primary",
+   "repo": "ferretgeek/cliproxyapi-dashboard",
+   "commit": "75f124895798a7b45e538a9b132f0dd17bc8f112",
+   "stars": 65,
+   "size_kb": 3975,
+   "created": "2026-01-25",
+   "license": "mit",
+   "description": "CLIProxyAPI \u7684\u7f51\u9875\u7ba1\u7406\u9762\u677f\uff0c\u96c6\u4e2d\u67e5\u770b\u670d\u52a1\u72b6\u6001\u3001\u8bf7\u6c42\u65e5\u5fd7\u548c\u5386\u53f2\u7528\u91cf\uff1bLinux \u4e0b\u652f\u6301\u5347\u7ea7\u4e0e\u56de\u6eda\u3002",
+   "py_files": 10,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md"
+    ],
+    "co_author_trailers": []
+   },
+   "safety_decision": "NOT_EXCLUDED",
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 57,
+   "role": "primary",
+   "repo": "dbt-labs/dbt-mcp",
+   "commit": "88cfb9ffe08e97ed45cf935516906d3e817dce92",
+   "stars": 614,
+   "size_kb": 8403,
+   "created": "2025-03-12",
+   "license": "apache-2.0",
+   "description": "A MCP (Model Context Protocol) server for interacting with dbt.",
+   "py_files": 277,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md",
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-authored-by: Claude",
+     "Co-authored-by: Copilot Autofix powered by AI <175728472+Copilot"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 63,
+   "role": "reserve",
+   "repo": "toon-format/toon-python",
+   "commit": "536a508d486847cb01ec1869cf21d1f7556b0db0",
+   "stars": 767,
+   "size_kb": 551,
+   "created": "2025-11-01",
+   "license": "mit",
+   "description": "\ud83d\udc0d Community-driven Python implementation of TOON",
+   "py_files": 18,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md",
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B2",
+   "rank": 65,
+   "role": "reserve",
+   "repo": "MomentDerek/warp-translation",
+   "commit": "efea555ae2d4bc83444f12312e3f964bd5036a8a",
+   "stars": 35,
+   "size_kb": 9938,
+   "created": "2026-06-01",
+   "license": "other",
+   "description": "project to translate Warp",
+   "py_files": 74,
+   "signal": {
+    "instruction_files": [
+     ".agents/skills/trellis-meta/references/platform-files/agents.md",
+     ".claude/skills/trellis-meta/references/platform-files/agents.md",
+     "AGENTS.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 68,
+   "role": "reserve",
+   "repo": "William-Lu-stack/Flawless",
+   "commit": "147c5e848c23da5f6de390d894580f3082d5507e",
+   "stars": 767,
+   "size_kb": 2149,
+   "created": "2026-07-10",
+   "license": "other",
+   "description": "AI SRE AgenticOps for Kubernetes and cloud infrastructure.",
+   "py_files": 121,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md"
+    ],
+    "co_author_trailers": []
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 69,
+   "role": "reserve",
+   "repo": "LING71671/open-reverselab",
+   "commit": "d0ccbdca39419b0f2261c32659fe4fa16664f435",
+   "stars": 1321,
+   "size_kb": 7726,
+   "created": "2026-06-17",
+   "license": "gpl-3.0",
+   "description": "Open-source AI reverse-engineering agent platform and MCP server for Ghidra, Frida, x64dbg and Rizin \u2014 automated PE/APK/binary analysis, CTF and malware research, with 100+ MCP tools and a 194-article runnable knowledge base.",
+   "py_files": 89,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md",
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 73,
+   "role": "reserve",
+   "repo": "vllm-project/vllm-metal",
+   "commit": "93562f12c3c87462919c0b4a19f854825c1dedd7",
+   "stars": 1927,
+   "size_kb": 6490,
+   "created": "2025-12-12",
+   "license": "apache-2.0",
+   "description": "Community maintained hardware plugin for vLLM on Apple Silicon",
+   "py_files": 426,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md"
+    ],
+    "co_author_trailers": [
+     "Co-authored-by: Claude",
+     "Co-authored-by: Codex"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A4",
+   "rank": 77,
+   "role": "reserve",
+   "repo": "dsphper/lanhu-mcp",
+   "commit": "6ded5bd906992b0acdd504ce9358e0608a750de1",
+   "stars": 2535,
+   "size_kb": 2739,
+   "created": "2025-12-17",
+   "license": "mit",
+   "description": "\u26a1 \u9700\u6c42\u5206\u6790\u6548\u7387\u63d0\u5347 200%\uff01\u5168\u7403\u9996\u4e2a\u4e3a AI \u7f16\u7a0b\u65f6\u4ee3\u8bbe\u8ba1\u7684\u56e2\u961f\u534f\u4f5c MCP \u670d\u52a1\u5668\uff0c\u81ea\u52a8\u5206\u6790\u9700\u6c42\u81ea\u52a8\u7f16\u5199\u524d\u540e\u7aef\u4ee3\u7801\uff0c\u4e0b\u8f7d\u5207\u56fe",
+   "py_files": 28,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-authored-by: Cursor Agent <cursoragent@cursor"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 78,
+   "role": "reserve",
+   "repo": "khscience/OSkhQuant",
+   "commit": "84b8eb8df70c97288074a0f55f6122043a331bad",
+   "stars": 1611,
+   "size_kb": 2652,
+   "created": "2025-01-08",
+   "license": "other",
+   "description": "\u770b\u6d77\u91cf\u5316\u56de\u6d4b\u5e73\u53f0 khQuant \u5f00\u6e90\u7248 V2.2\uff1a\u514d\u8d39\u5f00\u6e90\u7684 A \u80a1\u91cf\u5316\u56de\u6d4b\u684c\u9762\u8f6f\u4ef6\u3002\u4e0d\u7528\u5f00\u6237\u3001\u4e0d\u7528\u88c5 QMT\uff0cBaoStock / Tushare \u4e0b\u8f7d\u6570\u636e\u5230\u672c\u5730 DuckDB\uff0cPython \u5199\u7b56\u7565\uff0c\u4e00\u952e\u51fa\u56de\u6d4b\u62a5\u544a\u3002",
+   "py_files": 130,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Cursor <cursoragent@cursor"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 84,
+   "role": "reserve",
+   "repo": "HumpbackLab/tidesense",
+   "commit": "13c1542373c68651f292f8684b56bc0c34204c34",
+   "stars": 139,
+   "size_kb": 21222,
+   "created": "2026-09-23",
+   "license": "",
+   "description": "Lightweight, open-source (hardware and software) stereo VIO",
+   "py_files": 112,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md"
+    ],
+    "co_author_trailers": []
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A4",
+   "rank": 92,
+   "role": "reserve",
+   "repo": "NovaSky-AI/SkyRL",
+   "commit": "cc4e3bbf766e2292a0f610dc923ca317f03eb12a",
+   "stars": 2473,
+   "size_kb": 54014,
+   "created": "2025-04-22",
+   "license": "apache-2.0",
+   "description": "SkyRL: A Modular Full-stack RL Library for LLMs",
+   "py_files": 903,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md",
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-authored-by: Claude",
+     "Co-authored-by: Codex <codex",
+     "Co-authored-by: Cursor Agent <cursoragent@cursor"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 94,
+   "role": "reserve",
+   "repo": "open-webui/oikb",
+   "commit": "e60d106167f728c9d520bd41e48bbbad5d6a6257",
+   "stars": 396,
+   "size_kb": 227,
+   "created": "2026-05-20",
+   "license": "mit",
+   "description": "Sync anything to Open WebUI Knowledge Bases",
+   "py_files": 68,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 98,
+   "role": "reserve",
+   "repo": "PrunaAI/pruna",
+   "commit": "3795e6374267d18e9bc68048061d4de734dbf695",
+   "stars": 1332,
+   "size_kb": 48765,
+   "created": "2025-03-11",
+   "license": "apache-2.0",
+   "description": "Pruna is a model optimization framework built for developers, enabling you to deliver faster, more efficient models with minimal overhead.",
+   "py_files": 245,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Claude",
+     "Co-authored-by: Cursor Agent <cursoragent@cursor"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 99,
+   "role": "reserve",
+   "repo": "tommasobbianchi/mesh2step",
+   "commit": "90d6c79c7410a8069fcfcb0b2b5f23c2fe421f62",
+   "stars": 99,
+   "size_kb": 3884,
+   "created": "2026-07-11",
+   "license": "mit",
+   "description": "Faceted triangle-mesh to B-Rep STEP converter (OCCT-backed, no surface fitting, no primitive recognition)",
+   "py_files": 174,
+   "signal": {
+    "instruction_files": [
+     "AGENTS.md",
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B3",
+   "rank": 104,
+   "role": "reserve",
+   "repo": "djskncxm/DuckAgent",
+   "commit": "d4024313a89855657d3e4520e5d41ae3e0ad0769",
+   "stars": 55,
+   "size_kb": 571,
+   "created": "2026-06-03",
+   "license": "",
+   "description": "",
+   "py_files": 51,
+   "signal": {
+    "instruction_files": [
+     "CLAUDE.md"
+    ],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 106,
+   "role": "reserve",
+   "repo": "OpenDCAI/DataMind",
+   "commit": "36e189d69e207d57410803c93c6d0a950be68921",
+   "stars": 456,
+   "size_kb": 18873,
+   "created": "2026-03-29",
+   "license": "apache-2.0",
+   "description": "All-in-one intelligent assistant powered by LlamaIndex \u2014 RAG, GraphRAG, NL2SQL, Skills & Memory with multimodal support.",
+   "py_files": 191,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 107,
+   "role": "reserve",
+   "repo": "DeepRoboticsLab/rl_training",
+   "commit": "9c0e710421b165a444b2c73e5a9d65ee3fafa299",
+   "stars": 297,
+   "size_kb": 48904,
+   "created": "2025-08-14",
+   "license": "bsd-3-clause",
+   "description": "RL_Training Repo Based on Isaaclab ",
+   "py_files": 87,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B3",
+   "rank": 108,
+   "role": "reserve",
+   "repo": "lack-jpg/gov_AP",
+   "commit": "58cfbef61938010551e678b7bae8a750a77fc91c",
+   "stars": 65,
+   "size_kb": 1060,
+   "created": "2026-07-29",
+   "license": "",
+   "description": "\u653f\u52a1\u591a\u667a\u80fd\u4f53\u5e73\u53f0 v3.0 \u5b8c\u6210\u5168\u90e8\u89c4\u5212\u4efb\u52a1\uff0c\u6b63\u5f0f\u8fdb\u5165\u91cc\u7a0b\u7891\u8282\u70b9\u3002\u5b9a\u4f4d\uff1a\u9762\u5411\u653f\u52a1\u300c\u9ad8\u6548\u529e\u6210\u4e00\u4ef6\u4e8b\u300d\u573a\u666f\u7684\u4f01\u4e1a\u7ea7\u591a\u667a\u80fd\u4f53\u534f\u540c\u4e0e\u6cbb\u7406\u5e73\u53f0\u3002 \u6280\u672f\u6808\uff1aPython 3.12 + FastAPI + LangGraph 1.x + MCP + A2A + RAG + AgentOps\u3002",
+   "py_files": 182,
+   "signal": {
+    "instruction_files": [],
+    "co_author_trailers": [
+     "Co-Authored-By: Claude",
+     "Co-authored-by: Cursor <cursoragent@cursor"
+    ]
+   },
+   "safety_decision": null,
+   "lineage_words_in_description": false
+  }
+ ],
+ "skipped": [
+  {
+   "tier": "A+B",
+   "band": "A2",
+   "rank": 1,
+   "repo": "amanaiproduct/personal-os",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "A+B",
+   "band": "A3",
+   "rank": 3,
+   "repo": "handsome-rich/Awesome-Auto-Research-Tools",
+   "reason": "2 Python files"
+  },
+  {
+   "tier": "A+B",
+   "band": "A4",
+   "rank": 2,
+   "repo": "lopopolo/harness-engineering",
+   "reason": "5 Python files"
+  },
+  {
+   "tier": "A+B",
+   "band": "A4",
+   "rank": 4,
+   "repo": "googlefonts/googlesans-code",
+   "reason": "4 Python files"
+  },
+  {
+   "tier": "A+B",
+   "band": "B1",
+   "rank": 1,
+   "repo": "hlsv02/ELV-Halluc",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "A+B",
+   "band": "B2",
+   "rank": 1,
+   "repo": "baoerger/editable-ppt-rebuilder",
+   "reason": "3 Python files"
+  },
+  {
+   "tier": "A+B",
+   "band": "B2",
+   "rank": 3,
+   "repo": "KohakuBlueleaf/TIPO-Agent",
+   "reason": "3 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B2",
+   "rank": 1,
+   "repo": "baoerger/editable-ppt-rebuilder",
+   "reason": "3 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 2,
+   "repo": "hlsv02/ELV-Halluc",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B2",
+   "rank": 3,
+   "repo": "KohakuBlueleaf/TIPO-Agent",
+   "reason": "3 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 4,
+   "repo": "amanaiproduct/personal-os",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 5,
+   "repo": "cdssywc/pyqt5-urdf-vtk",
+   "reason": "4 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 12,
+   "repo": "huynhtrankhanh/TocKiTiengViet",
+   "reason": "2 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A4",
+   "rank": 15,
+   "repo": "lopopolo/harness-engineering",
+   "reason": "5 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 17,
+   "repo": "behdanisohrab/carburetor",
+   "reason": "6 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 18,
+   "repo": "chenmisss/shanghai-landing-kit",
+   "reason": "2 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 20,
+   "repo": "handsome-rich/Awesome-Auto-Research-Tools",
+   "reason": "2 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 22,
+   "repo": "karpathy/hn-time-capsule",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 25,
+   "repo": "Hellek1/ib-mcp",
+   "reason": "6 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 28,
+   "repo": "tatookan/comfyui_ssl_gemini_EXP",
+   "reason": "2 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 30,
+   "repo": "OpenMOSS/MOSS-Audio",
+   "reason": "9 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 31,
+   "repo": "jayrodge/ai-agents",
+   "reason": "3 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A4",
+   "rank": 34,
+   "repo": "googlefonts/googlesans-code",
+   "reason": "4 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B2",
+   "rank": 40,
+   "repo": "dsdtx/video_license_plates_blur",
+   "reason": "9 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B2",
+   "rank": 43,
+   "repo": "ANRlm/dotfiles",
+   "reason": "6 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 48,
+   "repo": "jtydhr88/screenwriting-skills",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A2",
+   "rank": 53,
+   "repo": "spideymooon/McOracle",
+   "reason": "6 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 55,
+   "repo": "Cocoillok0812/FocusLife",
+   "reason": "6 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 59,
+   "repo": "inssekt/CocoonFE",
+   "reason": "2 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 66,
+   "repo": "GuglielmoCerri/TubeTrim",
+   "reason": "9 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B3",
+   "rank": 70,
+   "repo": "bytedance/Multi-Reward-Editing",
+   "reason": "9 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 71,
+   "repo": "juew/Skill-Routing-Kit",
+   "reason": "4 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B2",
+   "rank": 72,
+   "repo": "Larryvrh/gpt-image-2-artifact-cleaner",
+   "reason": "2 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A4",
+   "rank": 74,
+   "repo": "tourmind-com/Tourmind-Booking-Skills",
+   "reason": "3 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 75,
+   "repo": "valqore/valqore",
+   "reason": "6 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B4",
+   "rank": 76,
+   "repo": "sametbrr/llm-wiki-manager",
+   "reason": "5 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 80,
+   "repo": "liangdabiao/whiteboard-teacher-video",
+   "reason": "8 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 86,
+   "repo": "johnhalloran321/mcpSafetyScanner",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 89,
+   "repo": "jheuel/typst_embed_pdf",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 90,
+   "repo": "MeiGen-AI/PosterCraft",
+   "reason": "3 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 91,
+   "repo": "tokoroten/prompt-review",
+   "reason": "1 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B3",
+   "rank": 93,
+   "repo": "ClimBin/RestorMixer",
+   "reason": "5 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "B1",
+   "rank": 102,
+   "repo": "abergmanx/simple_agent",
+   "reason": "4 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A1",
+   "rank": 103,
+   "repo": "KAY53N/rusty-req",
+   "reason": "7 Python files"
+  },
+  {
+   "tier": "AI_ASSOCIATED",
+   "band": "A3",
+   "rank": 105,
+   "repo": "gavrielc/Nano-PDF",
+   "reason": "4 Python files"
+  }
+ ]
+}

@@ -1,0 +1,782 @@
+{
+ "repo": "porterminal/porterminal",
+ "dir": "porterminal__porterminal",
+ "commit": "a643cc34e3dc23ffed510ae3ed1fa03bf1aeb1f4",
+ "estimate_commit": "a643cc34e3dc23ffed510ae3ed1fa03bf1aeb1f4",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitattributes",
+  ".github/CODEOWNERS",
+  ".github/ISSUE_TEMPLATE/bug_report.md",
+  ".github/ISSUE_TEMPLATE/feature_request.md",
+  ".github/SECURITY.md",
+  ".github/copilot-instructions.md",
+  ".github/dependabot.yml",
+  ".github/pull_request_template.md",
+  ".github/workflows/ci.yml",
+  ".github/workflows/publish.yml",
+  ".github/workflows/verify.yml",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  ".ptn/ptn.yaml",
+  "CLAUDE.md",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "README.md",
+  "assets/banner.jpg",
+  "assets/demo.gif",
+  "assets/demo.mp4",
+  "assets/header.png",
+  "assets/header.svg",
+  "docs/CHANGELOG.md",
+  "docs/agent-access.md",
+  "docs/architecture.md",
+  "docs/buffer.md",
+  "docs/configuration.md",
+  "docs/debug.md",
+  "docs/debug/frontend-design-fixes.md",
+  "docs/debug/pinch-zoom-stale-text.md",
+  "docs/debug/touch-scrolling.md",
+  "docs/demo.md",
+  "docs/design/multi-client-sessions.md",
+  "docs/development.md",
+  "docs/frontend_features.md",
+  "docs/index.md",
+  "docs/installation.md",
+  "docs/security.md",
+  "docs/superpowers/specs/2026-06-24-agent-terminal-access-design.md",
+  "examples/agent-demo/checks.py",
+  "examples/agent-demo/invoice.py",
+  "examples/agent-demo/ptn.yaml",
+  "examples/agent-demo/receipt.py",
+  "frontend/index.html",
+  "frontend/package-lock.json",
+  "frontend/package.json",
+  "frontend/playwright.config.ts",
+  "frontend/playwright.protected.config.ts",
+  "frontend/src/bootstrap/lifecycle.ts",
+  "frontend/src/bootstrap/screenMirror.ts",
+  "frontend/src/bootstrap/toolbar.ts",
+  "frontend/src/clipboard/ClipboardManager.ts",
+  "frontend/src/clipboard/index.ts",
+  "frontend/src/config/keys.ts",
+  "frontend/src/config/paths.ts",
+  "frontend/src/core/events.ts",
+  "frontend/src/gestures/GestureRecognizer.ts",
+  "frontend/src/gestures/SelectionHandler.ts",
+  "frontend/src/gestures/SwipeDetector.ts",
+  "frontend/src/input/InputHandler.ts",
+  "frontend/src/input/KeyMapper.ts",
+  "frontend/src/input/ModifierManager.ts",
+  "frontend/src/main.ts",
+  "frontend/src/services/ConfigService.ts",
+  "frontend/src/services/ConnectionService.ts",
+  "frontend/src/services/ManagementService.ts",
+  "frontend/src/services/TabService.ts",
+  "frontend/src/styles/index.css",
+  "frontend/src/terminal/ResizeManager.ts",
+  "frontend/src/terminal/TerminalText.ts",
+  "frontend/src/types/index.ts",
+  "frontend/src/ui/AuthOverlay.ts",
+  "frontend/src/ui/ComposeInput.ts",
+  "frontend/src/ui/ConnectionStatus.ts",
+  "frontend/src/ui/CopyButton.ts",
+  "frontend/src/ui/DisconnectOverlay.ts",
+  "frontend/src/ui/SettingsOverlay.ts",
+  "frontend/src/ui/TerminalScreenMirror.ts",
+  "frontend/src/ui/TextViewOverlay.ts",
+  "frontend/src/ui/Toolbar.ts",
+  "frontend/src/ui/UpdateOverlay.ts",
+  "frontend/src/utils/share.ts",
+  "frontend/src/utils/storage.ts",
+  "frontend/src/vite-env.d.ts",
+  "frontend/tests/browser/globalSetup.ts",
+  "frontend/tests/browser/smoke.spec.ts",
+  "frontend/tests/protected-browser/environment.ts",
+  "frontend/tests/protected-browser/protected-path.spec.ts",
+  "frontend/tests/setup.ts",
+  "frontend/tests/unit/configService.test.ts",
+  "frontend/tests/unit/connectionService.test.ts",
+  "frontend/tests/unit/events.test.ts",
+  "frontend/tests/unit/fakeWebSocket.ts",
+  "frontend/tests/unit/managementService.test.ts",
+  "frontend/tests/unit/modifierManager.test.ts",
+  "frontend/tests/unit/paths.test.ts",
+  "frontend/tests/unit/storage.test.ts",
+  "frontend/tests/unit/swipeDetector.test.ts",
+  "frontend/tests/unit/tabService.test.ts",
+  "frontend/tsconfig.json",
+  "frontend/tsconfig.test.json",
+  "frontend/vite.config.ts",
+  "frontend/vitest.config.ts",
+  "install.ps1",
+  "install.sh",
+  "package.json",
+  "porterminal/__init__.py",
+  "porterminal/__main__.py",
+  "porterminal/access_path.py",
+  "porterminal/app.py",
+  "porterminal/application/__init__.py",
+  "porterminal/application/ports/__init__.py",
+  "porterminal/application/ports/agent_connection_port.py",
+  "porterminal/application/ports/connection_port.py",
+  "porterminal/application/ports/connection_registry_port.py",
+  "porterminal/application/ports/pty_factory.py",
+  "porterminal/application/services/__init__.py",
+  "porterminal/application/services/agent_terminal_service.py",
+  "porterminal/application/services/management_service.py",
+  "porterminal/application/services/session_service.py",
+  "porterminal/application/services/tab_service.py",
+  "porterminal/application/services/terminal_service.py",
+  "porterminal/asgi.py",
+  "porterminal/cli/__init__.py",
+  "porterminal/cli/args.py",
+  "porterminal/cli/clipboard.py",
+  "porterminal/cli/display.py",
+  "porterminal/cli/keypress.py",
+  "porterminal/cli/main.py",
+  "porterminal/cli/script_discovery.py",
+  "porterminal/cli/share.py",
+  "porterminal/composition.py",
+  "porterminal/config.py",
+  "porterminal/container.py",
+  "porterminal/domain/__init__.py",
+  "porterminal/domain/entities/__init__.py",
+  "porterminal/domain/entities/output_buffer.py",
+  "porterminal/domain/entities/session.py",
+  "porterminal/domain/entities/tab.py",
+  "porterminal/domain/ports/__init__.py",
+  "porterminal/domain/ports/pty_port.py",
+  "porterminal/domain/ports/session_repository.py",
+  "porterminal/domain/ports/tab_repository.py",
+  "porterminal/domain/services/__init__.py",
+  "porterminal/domain/services/environment_sanitizer.py",
+  "porterminal/domain/services/rate_limiter.py",
+  "porterminal/domain/services/session_limits.py",
+  "porterminal/domain/services/tab_limits.py",
+  "porterminal/domain/values/__init__.py",
+  "porterminal/domain/values/environment_rules.py",
+  "porterminal/domain/values/rate_limit_config.py",
+  "porterminal/domain/values/session_id.py",
+  "porterminal/domain/values/shell_command.py",
+  "porterminal/domain/values/tab_id.py",
+  "porterminal/domain/values/terminal_dimensions.py",
+  "porterminal/domain/values/user_id.py",
+  "porterminal/infrastructure/__init__.py",
+  "porterminal/infrastructure/auth.py",
+  "porterminal/infrastructure/cloudflared.py",
+  "porterminal/infrastructure/config/__init__.py",
+  "porterminal/infrastructure/config/config_service.py",
+  "porterminal/infrastructure/config/shell_detector.py",
+  "porterminal/infrastructure/network.py",
+  "porterminal/infrastructure/registry/__init__.py",
+  "porterminal/infrastructure/registry/user_connection_registry.py",
+  "porterminal/infrastructure/repositories/__init__.py",
+  "porterminal/infrastructure/repositories/in_memory_session.py",
+  "porterminal/infrastructure/repositories/in_memory_tab.py",
+  "porterminal/infrastructure/server.py",
+  "porterminal/infrastructure/web/__init__.py",
+  "porterminal/infrastructure/web/agent_connection.py",
+  "porterminal/infrastructure/web/mcp_adapter.py",
+  "porterminal/infrastructure/web/routes/__init__.py",
+  "porterminal/infrastructure/web/routes/agent.py",
+  "porterminal/infrastructure/web/routes/common.py",
+  "porterminal/infrastructure/web/routes/discovery.py",
+  "porterminal/infrastructure/web/routes/settings.py",
+  "porterminal/infrastructure/web/routes/websockets.py",
+  "porterminal/infrastructure/web/websocket_adapter.py",
+  "porterminal/logging_setup.py",
+  "porterminal/pty/__init__.py",
+  "porterminal/pty/env.py",
+  "porterminal/pty/manager.py",
+  "porterminal/pty/protocol.py",
+  "porterminal/pty/unix.py",
+  "porterminal/pty/windows.py",
+  "porterminal/static/assets/app-BNCGICuo.js",
+  "porterminal/static/assets/app-CDhygoTq.css",
+  "porterminal/static/assets/terminal-BrP-ENHg.css",
+  "porterminal/static/assets/terminal-DheoX0HF.js",
+  "porterminal/static/icon.svg",
+  "porterminal/static/index.html",
+  "porterminal/updater.py",
+  "pyproject.toml",
+  "scripts/agent_drive.py",
+  "scripts/prepare_demo.py",
+  "scripts/verify_distribution.py",
+  "tests/__init__.py",
+  "tests/application/__init__.py",
+  "tests/application/test_agent_shells.py",
+  "tests/application/test_agent_terminal_service.py",
+  "tests/application/test_session_service.py",
+  "tests/application/test_tab_service.py",
+  "tests/application/test_terminal_service.py",
+  "tests/cli/__init__.py",
+  "tests/cli/test_clipboard.py",
+  "tests/cli/test_display.py",
+  "tests/cli/test_entrypoint.py",
+  "tests/cli/test_keypress.py",
+  "tests/cli/test_main.py",
+  "tests/cli/test_script_discovery.py",
+  "tests/conftest.py",
+  "tests/domain/__init__.py",
+  "tests/domain/test_output_buffer.py",
+  "tests/domain/test_rate_limiter.py",
+  "tests/domain/test_session_limits.py",
+  "tests/domain/test_tab.py",
+  "tests/domain/test_tab_limits.py",
+  "tests/domain/test_terminal_dimensions.py",
+  "tests/e2e/test_agent_mcp_e2e.py",
+  "tests/infrastructure/__init__.py",
+  "tests/infrastructure/test_auth.py",
+  "tests/infrastructure/test_config_store.py",
+  "tests/infrastructure/test_in_memory_session.py",
+  "tests/infrastructure/test_in_memory_tab.py",
+  "tests/infrastructure/test_server.py",
+  "tests/infrastructure/test_shell_detector.py",
+  "tests/infrastructure/test_user_connection_registry.py",
+  "tests/pty/__init__.py",
+  "tests/pty/test_env.py",
+  "tests/pty/test_windows.py",
+  "tests/test_access_path.py",
+  "tests/test_agent_drive.py",
+  "tests/test_app_routes.py",
+  "tests/test_mcp_contract.py",
+  "tests/test_mcp_only.py",
+  "tests/test_updater.py",
+  "uv.lock"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitattributes",
+   "sha256": "c325b2e5c551a441403f4a7c2c937f09a28018353ec80e88a2673e4650ca3436"
+  },
+  {
+   "path": ".gitignore",
+   "sha256": "bc09f84431cc552bedb8b142d58c6cb23611de57534970b24fd73ab0ea9cb05f"
+  },
+  {
+   "path": "examples/agent-demo/checks.py",
+   "sha256": "519f0a0d65972060e699d50e366bcc208e70a60fa2a89b83d2145731a97a6806"
+  },
+  {
+   "path": "examples/agent-demo/invoice.py",
+   "sha256": "c46e62bb63c7099b758d00ed68230aa13b9ea46568d965a576d30ea2a36d2e9f"
+  },
+  {
+   "path": "examples/agent-demo/receipt.py",
+   "sha256": "8a769b60a6b3bf461e2001a09ed17eb1c8b2744f928dd1c028560ebf621f0aee"
+  },
+  {
+   "path": "porterminal/__init__.py",
+   "sha256": "11109f87523e81abcde73011b80f7f9361b4e9c20b2e4012588eacb432d0aebf"
+  },
+  {
+   "path": "porterminal/__main__.py",
+   "sha256": "5cba36d6baa6212ac864589a1c2e7c4eb82af04d20c47e166f776b883e0903b7"
+  },
+  {
+   "path": "porterminal/access_path.py",
+   "sha256": "963070df6336ebdc34b92f41f350e5dd97846127fe1ec2e3f40fa4a91bee0184"
+  },
+  {
+   "path": "porterminal/app.py",
+   "sha256": "f995b9e4acaef05103429589ee12122f2db9f5f4391a7e056030fc47ba6ee2a7"
+  },
+  {
+   "path": "porterminal/application/__init__.py",
+   "sha256": "43981089aff5d6e6df31c0dbce3bc8e91a145368c5264b90aec6d2b887d00910"
+  },
+  {
+   "path": "porterminal/application/ports/__init__.py",
+   "sha256": "463e5be28db2cd2ba879c95a8bd122c2cd26283b80b538cc75c66553fe2f6c0b"
+  },
+  {
+   "path": "porterminal/application/ports/agent_connection_port.py",
+   "sha256": "73ddabc872754a1d795bccfe6c1ecae1cdc7d48a3e86b463136cb2b09eaecaab"
+  },
+  {
+   "path": "porterminal/application/ports/connection_port.py",
+   "sha256": "917225f9fcf1dd26e953c915d6ba6680d788db65d224c6f35c6b7561cc193bc6"
+  },
+  {
+   "path": "porterminal/application/ports/connection_registry_port.py",
+   "sha256": "38064cbdc113196e0891e27638f436f704c427b1ca04b8ffa5596c9c6634ce79"
+  },
+  {
+   "path": "porterminal/application/ports/pty_factory.py",
+   "sha256": "5abafe0332428fe1e60a8e4479e68722ed4444523f7173a4ca34cde2eb8aa223"
+  },
+  {
+   "path": "porterminal/application/services/__init__.py",
+   "sha256": "0c5ae02363a7b36812564e8d148c4a8c1806446778d96d379ae6d3c176b61441"
+  },
+  {
+   "path": "porterminal/application/services/agent_terminal_service.py",
+   "sha256": "2fcc7d2723116ad5c262122d1c79f83d9c7e10919a640f40f79dde533b9ca8ce"
+  },
+  {
+   "path": "porterminal/application/services/management_service.py",
+   "sha256": "4708f1ed0e092a4d9206244237dfcd63dfa9ade5e54badaf90e9dd82211785f2"
+  },
+  {
+   "path": "porterminal/application/services/session_service.py",
+   "sha256": "e58aa45636953694f3cb65c0f7fc5e0a9a14e91f8eeb0abba80e61ce11034bc7"
+  },
+  {
+   "path": "porterminal/application/services/tab_service.py",
+   "sha256": "5425f258b5059e6e310fdb0960713163f265a670ad2475de478794dd581af9df"
+  },
+  {
+   "path": "porterminal/application/services/terminal_service.py",
+   "sha256": "c6193a866fb5435b5a69ebe18272aaee61726da4d84cc68dc3bcc38046f8ca76"
+  },
+  {
+   "path": "porterminal/asgi.py",
+   "sha256": "bb6d2f68d15018380309794a4a63b3511a9b2d9d3e366269619a74823f4674bb"
+  },
+  {
+   "path": "porterminal/cli/__init__.py",
+   "sha256": "3aa3550559f3b40113e9137403b0c26e3d75d92009ab7392ccb034fd888ebe1f"
+  },
+  {
+   "path": "porterminal/cli/args.py",
+   "sha256": "7a9fc6171116b905768dafee8b0eec2a4c61af75445685b5d5a643bed41fbbc9"
+  },
+  {
+   "path": "porterminal/cli/clipboard.py",
+   "sha256": "088f96e4c7e8a24a52e903d1645e5ec4a75a77c36674ec53c5db01a67b83bb6f"
+  },
+  {
+   "path": "porterminal/cli/display.py",
+   "sha256": "520c884cc31ef8816fd9fce0ff5f44781c8e9e55f9c5e15082d6bcf73bb10917"
+  },
+  {
+   "path": "porterminal/cli/keypress.py",
+   "sha256": "95fc93b58c1bb4a2b300eafdb1b2f6039299d8a7ac6f779400073284653b7c40"
+  },
+  {
+   "path": "porterminal/cli/main.py",
+   "sha256": "976aa3292e17f2ff65d975393ffe76afda4fae6d0e05aafcf17d2829bbab83fa"
+  },
+  {
+   "path": "porterminal/cli/script_discovery.py",
+   "sha256": "13bd1b0163f5802ca991a3ed2c43d79b3cab4d6acbcf5ffa6d3439d6f4706413"
+  },
+  {
+   "path": "porterminal/cli/share.py",
+   "sha256": "9804c04d17a2e0d59d88a41d0b460171b5f9ec65991cd0eac3ac71b0ef698cd5"
+  },
+  {
+   "path": "porterminal/composition.py",
+   "sha256": "a9824e69503380a7d046040f9b5263e8ce827a5b29e2606ae8be61589f741cee"
+  },
+  {
+   "path": "porterminal/config.py",
+   "sha256": "d784ec5c2a6de8bffe4c289bcb05997b9d0553d1637d6988c404a2e857a76adf"
+  },
+  {
+   "path": "porterminal/container.py",
+   "sha256": "a89ba13f7fff21a6bcbf818525753ac90dde1f0fc6a859fa18a4d523af3d0137"
+  },
+  {
+   "path": "porterminal/domain/__init__.py",
+   "sha256": "d7a5848f54802a122a92b407a9a6a7ebaa55df3b149f5684cfba3298de78c454"
+  },
+  {
+   "path": "porterminal/domain/entities/__init__.py",
+   "sha256": "748429e93d0cf8197f0c9a52386406043dbd465fc50d1d177d5ac32f4f1c939d"
+  },
+  {
+   "path": "porterminal/domain/entities/output_buffer.py",
+   "sha256": "89a9928dd0bc4bb972189349ce86d9edca43ff7e7852b28a382d74ac56c51c89"
+  },
+  {
+   "path": "porterminal/domain/entities/session.py",
+   "sha256": "4b3004a9baabe3d4217125bfd81a98549b2dd7feb2a3caacdb511f87fb812430"
+  },
+  {
+   "path": "porterminal/domain/entities/tab.py",
+   "sha256": "d51bc6152d557a7f2674fd0eaf42a0cb9629ece8dc230e13615536ea33ca1304"
+  },
+  {
+   "path": "porterminal/domain/ports/__init__.py",
+   "sha256": "af2018b6bbd26a741e72ba04cfbb4f1f358dfd4f62731e75167fec9c304d0e24"
+  },
+  {
+   "path": "porterminal/domain/ports/pty_port.py",
+   "sha256": "1c693b9321358f9bc6e5a79b0765c57eb863357e9ada0dfb79450fa603c9c6ed"
+  },
+  {
+   "path": "porterminal/domain/ports/session_repository.py",
+   "sha256": "1a1e5cd9c9de6e85d812e370f06c70d3a219c2932a84dd0703b288345162d8b4"
+  },
+  {
+   "path": "porterminal/domain/ports/tab_repository.py",
+   "sha256": "fd032e4ea8dcf40d3de6c0c89c3e1f93bb230aefeff9a5d73381f3090b0ec8ed"
+  },
+  {
+   "path": "porterminal/domain/services/__init__.py",
+   "sha256": "789632ae9d6c887a318af93678ef54187b9c9a7c8565bbd01f4d418c1005bf52"
+  },
+  {
+   "path": "porterminal/domain/services/environment_sanitizer.py",
+   "sha256": "46c9590e7f23b28f1b5f5846f69f4d432bf57b2d7dbb5179c404cf96aea9295c"
+  },
+  {
+   "path": "porterminal/domain/services/rate_limiter.py",
+   "sha256": "2347326ded4f5fbb985a5afb97dd8dde333cf721500d12aa0f9a7dfa54fc31ab"
+  },
+  {
+   "path": "porterminal/domain/services/session_limits.py",
+   "sha256": "12a5bfb6aaf406bddada0ce09790e0f34771d6e99c53a54caf8f842d1b46c7fc"
+  },
+  {
+   "path": "porterminal/domain/services/tab_limits.py",
+   "sha256": "9e8917f203fdff8d4c348750ec5ae2d892c0b38fc287e7f2dc28292874d99d3f"
+  },
+  {
+   "path": "porterminal/domain/values/__init__.py",
+   "sha256": "4ae5225bc10835781ba5a0aeaa67531a756b98fd31d85ba8273dc7b14cc1eccd"
+  },
+  {
+   "path": "porterminal/domain/values/environment_rules.py",
+   "sha256": "004c15bc0162ab0d0a56636baae3c806ea68271e5b8a0bfb161460791c4e3259"
+  },
+  {
+   "path": "porterminal/domain/values/rate_limit_config.py",
+   "sha256": "9278292c5f3b6859c79871b43d6780dfc0b856afd057187b8239dd64f900c97d"
+  },
+  {
+   "path": "porterminal/domain/values/session_id.py",
+   "sha256": "75805265d1ba5968e9d3a9946d36708ee7dbdf403a952b8af8d2b0ab10006af6"
+  },
+  {
+   "path": "porterminal/domain/values/shell_command.py",
+   "sha256": "f54ef6de7b1d0c2b16fccd7ba81a7ffdcbb7afdbae055baeaf49227daa22105d"
+  },
+  {
+   "path": "porterminal/domain/values/tab_id.py",
+   "sha256": "cca659d650505265d9dcf4251f48de8d443f000fd25535be67b8c223b4eadfb0"
+  },
+  {
+   "path": "porterminal/domain/values/terminal_dimensions.py",
+   "sha256": "996b4c422e34103b709caa5069d4d1e5e0f45662273beda481b514c365550996"
+  },
+  {
+   "path": "porterminal/domain/values/user_id.py",
+   "sha256": "7ac9064552feaa3e1ccd79631747b98a60e1d7da40ab5e9f697258d2567bde43"
+  },
+  {
+   "path": "porterminal/infrastructure/__init__.py",
+   "sha256": "ac86a2106e20caf7d28b1484af2d24036b8c852b504085aff4f4657ecd7baadb"
+  },
+  {
+   "path": "porterminal/infrastructure/auth.py",
+   "sha256": "80271d71fb739fcae2e40953fb965f0694d3765b5ac7e9f9c8b717ae963fe257"
+  },
+  {
+   "path": "porterminal/infrastructure/cloudflared.py",
+   "sha256": "38df33163212030e9e5657391dff5f197e2859fc29b96f9adf49610d23563d94"
+  },
+  {
+   "path": "porterminal/infrastructure/config/__init__.py",
+   "sha256": "25544e3a5c4525d44cead871ecb639cdc97da7c7fa3e4740d241aee6800169f9"
+  },
+  {
+   "path": "porterminal/infrastructure/config/config_service.py",
+   "sha256": "ef9433654013ce1b2c160f36938a83cece3cc8a9edb148114c61a768710cef12"
+  },
+  {
+   "path": "porterminal/infrastructure/config/shell_detector.py",
+   "sha256": "a2f264d6a4f88167a4c84d8acd488770af4de30ecfbdfe952b502f492e1225b0"
+  },
+  {
+   "path": "porterminal/infrastructure/network.py",
+   "sha256": "5e761b11729003c067acb165f5be0e4d38b1146d69545c5f795ba137e5cf91f5"
+  },
+  {
+   "path": "porterminal/infrastructure/registry/__init__.py",
+   "sha256": "ade35b21846bd5a94da6cef39bfa0436e4ba41634a8a23be586d3d2d3e4c2e63"
+  },
+  {
+   "path": "porterminal/infrastructure/registry/user_connection_registry.py",
+   "sha256": "bbd28e4a28c78912139f09ce04ac17b9838a6c582e87635bc6634cc48a28f2f7"
+  },
+  {
+   "path": "porterminal/infrastructure/repositories/__init__.py",
+   "sha256": "53217d969a1b5e029bf538bab9c0ba7c3702f4290c0060d38608041be45ff80c"
+  },
+  {
+   "path": "porterminal/infrastructure/repositories/in_memory_session.py",
+   "sha256": "3e99d6d7a1e37b9a6f63f347331796a55c66c23952c744f877102cc3919c01c2"
+  },
+  {
+   "path": "porterminal/infrastructure/repositories/in_memory_tab.py",
+   "sha256": "b577994242072dc751fe9fb39b9991e20f0002107a4d0cab40999cf24e037f89"
+  },
+  {
+   "path": "porterminal/infrastructure/server.py",
+   "sha256": "e94d066f358d24057798d1721394dd5cee33df6c19f6f3c7b796ad945b065a5d"
+  },
+  {
+   "path": "porterminal/infrastructure/web/__init__.py",
+   "sha256": "e05e65ded874fe391672e1750fd3ed3b120367d9a21859b4e891499016e23682"
+  },
+  {
+   "path": "porterminal/infrastructure/web/agent_connection.py",
+   "sha256": "e777437030c0991ebc2b323de8362bc76b07efd102adbc5f1c10a1472fc55b13"
+  },
+  {
+   "path": "porterminal/infrastructure/web/mcp_adapter.py",
+   "sha256": "def10c7cfc3a67d468f998971ddf4421b11f5ef7fabade86f902f508523981c0"
+  },
+  {
+   "path": "porterminal/infrastructure/web/routes/__init__.py",
+   "sha256": "6bb05df02ec892dfe75c78a579b5884ae9ae1f53798c454f4c6fa273054fbc1a"
+  },
+  {
+   "path": "porterminal/infrastructure/web/routes/agent.py",
+   "sha256": "cfc0a14e19ec33283c222c1a1613bf9d90d2ea2ff157544a9a65f464977d6414"
+  },
+  {
+   "path": "porterminal/infrastructure/web/routes/common.py",
+   "sha256": "70ec0401dcd7622b2d357950caeea28a48bb6599929484c9c9d2b46953b91892"
+  },
+  {
+   "path": "porterminal/infrastructure/web/routes/discovery.py",
+   "sha256": "84b71abdbce1fab3c6c377d62e4ea2fed189f18f0d6f7d5c153c6a50a81fea60"
+  },
+  {
+   "path": "porterminal/infrastructure/web/routes/settings.py",
+   "sha256": "dc39ddcb8dab8035a36259e907edd4a2d09f03116ac47a13781f99c3d264f2cd"
+  },
+  {
+   "path": "porterminal/infrastructure/web/routes/websockets.py",
+   "sha256": "a8a78038f34b8bf7753686d38254cdb88b54ae3dace6fe7589fdbb9ba6c39674"
+  },
+  {
+   "path": "porterminal/infrastructure/web/websocket_adapter.py",
+   "sha256": "bd58c885c7d68a43f0f8f29f4b2aa6dd8ecf6d3c4d8f59acb5fac7229720ea78"
+  },
+  {
+   "path": "porterminal/logging_setup.py",
+   "sha256": "0e1a0dfc574915b45ac1cb18cbc98b454df64c24f565f6761b843f00e2b066e0"
+  },
+  {
+   "path": "porterminal/pty/__init__.py",
+   "sha256": "58d9e2379b982ad84b30e4fb9f31fade991f142265b53a2291ae74359191d9c0"
+  },
+  {
+   "path": "porterminal/pty/env.py",
+   "sha256": "6bbdf34c3684c6be6a91505106c8661cf10185917b1edcf8e631e76e0083251d"
+  },
+  {
+   "path": "porterminal/pty/manager.py",
+   "sha256": "5beb9a3d60384a6365d34380e3e152d3903c6f42e8698a3400db31965d32a705"
+  },
+  {
+   "path": "porterminal/pty/protocol.py",
+   "sha256": "f8e3c721f2f12fa47f253ace40d076b7eb111fb2eab4580913742405c1c1a8d0"
+  },
+  {
+   "path": "porterminal/pty/unix.py",
+   "sha256": "3ce59bd4806f5a2d29eb7fcceadefbcde09f4a4b0758fa754bbf7f930399ce72"
+  },
+  {
+   "path": "porterminal/pty/windows.py",
+   "sha256": "992d0ad18e0ffa8362bfa4d22563678acdff883d710ccc7c3388f1ae6f3dc431"
+  },
+  {
+   "path": "porterminal/updater.py",
+   "sha256": "00b387b3176911c6d6403e23d72112d9570641381a1d9a19dbe7177721abbdb9"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "a4ca60837798e1dd25c248fa51af79ba7fe16b12e7a089f65da97551f6ea726e"
+  },
+  {
+   "path": "scripts/agent_drive.py",
+   "sha256": "5b01904118ec32473590cf0f34bda08860bf962e84018fb0b058010b39b84f72"
+  },
+  {
+   "path": "scripts/prepare_demo.py",
+   "sha256": "34c1f15fc33cbfc76732f0b14f24ccf820cda5464f75338dee563a43c102350a"
+  },
+  {
+   "path": "scripts/verify_distribution.py",
+   "sha256": "2e66f282204504059082e307406bafc6b86d03ae64c2a4a4a7b3c0085224ca5d"
+  },
+  {
+   "path": "tests/__init__.py",
+   "sha256": "7ffae069761ef78d780aacedc73766c054676148a5d5fa4c63f4c8543214033d"
+  },
+  {
+   "path": "tests/application/__init__.py",
+   "sha256": "50c5c1dcf997424647a67c21b7ec084521bdaef511283e7ecbd970923fc00dd1"
+  },
+  {
+   "path": "tests/application/test_agent_shells.py",
+   "sha256": "fb35c016910cdaa9b7a532458e1f810d954130c89d1e09d9c4e7b5bdf4ffe96d"
+  },
+  {
+   "path": "tests/application/test_agent_terminal_service.py",
+   "sha256": "776f0dd40d5aa22bdc621f828e356c92dcefe740a0863af1474d7b976cc464a5"
+  },
+  {
+   "path": "tests/application/test_session_service.py",
+   "sha256": "336d553b0f9e145c5c5f134c2fa1b1225ae1510ce84f8e79d3fef2745576e016"
+  },
+  {
+   "path": "tests/application/test_tab_service.py",
+   "sha256": "21619b40ddd3f85272ceb7cb131f1ec756a699cc016f702096039b837b43f4fb"
+  },
+  {
+   "path": "tests/application/test_terminal_service.py",
+   "sha256": "d515ae57234bdd06ae21993f24ec6923a26c9051df14bcef05adcfc1e9fdb1c5"
+  },
+  {
+   "path": "tests/cli/__init__.py",
+   "sha256": "da015fe1e6af97ff85521f50d896a7dadd64aa5d2bab02eebc005c2f6efc1f7c"
+  },
+  {
+   "path": "tests/cli/test_clipboard.py",
+   "sha256": "7c3bf0bdfc4dbfb43d77371f1e3b7fc046c33d0264b15b21ba941eed166b885d"
+  },
+  {
+   "path": "tests/cli/test_display.py",
+   "sha256": "a050fb6ffb46aa3cdd19f2bf44a3060bbccb79f752f93ea76da1be950184906a"
+  },
+  {
+   "path": "tests/cli/test_entrypoint.py",
+   "sha256": "ce412eb3fde152b4c4350cdc3d32d230c3968ced2d74615ae5dae253451021c4"
+  },
+  {
+   "path": "tests/cli/test_keypress.py",
+   "sha256": "1d9deb1ceb769c8a1817e04f6d4beb033232b600537e9bfd8fc4c9764cb9836e"
+  },
+  {
+   "path": "tests/cli/test_main.py",
+   "sha256": "3838a141ad9c4a2c632945e0c6480849cb159b3331df4451fc2adfd400c10de8"
+  },
+  {
+   "path": "tests/cli/test_script_discovery.py",
+   "sha256": "ecf6adcf30d43809f1be1aa88fe3942dbfeceaa4e92723679ce97431a135e347"
+  },
+  {
+   "path": "tests/conftest.py",
+   "sha256": "84f046084a28a8725c2b6a2f537d68a96deebc682723379eb88e907446fcd168"
+  },
+  {
+   "path": "tests/domain/__init__.py",
+   "sha256": "acb4ea9325e7c5fc282287e9391bbb02bdf313ed00cc21431c9c3621dd3de538"
+  },
+  {
+   "path": "tests/domain/test_output_buffer.py",
+   "sha256": "cdebbacaaf157ab40618124775ab9abb064fe2f1834442ca1c822f730165c5bc"
+  },
+  {
+   "path": "tests/domain/test_rate_limiter.py",
+   "sha256": "93ca6552f5d23e5e9865466f4c973e1180b1ba8232c2a9d8bc829c57e1f312b6"
+  },
+  {
+   "path": "tests/domain/test_session_limits.py",
+   "sha256": "439668121f9d8d116bad052a2c3f1e148c1260e23d8904160b75e2910be6dc2d"
+  },
+  {
+   "path": "tests/domain/test_tab.py",
+   "sha256": "b1ebc4a441c429322ad6e20d91d51d4857c08819b5c812e71af25eabd10b3e85"
+  },
+  {
+   "path": "tests/domain/test_tab_limits.py",
+   "sha256": "bfd4648dd45b9f3324c78115cfeb3f929f8274f617dc1040b3e73f2248d876c5"
+  },
+  {
+   "path": "tests/domain/test_terminal_dimensions.py",
+   "sha256": "998bc11f6b63fa6324b02e756751b5924f168eb090ffd3afe3da91f3da94cdf3"
+  },
+  {
+   "path": "tests/e2e/test_agent_mcp_e2e.py",
+   "sha256": "d9c5d3931808bcb331bc7b7793efaec8054e59021648eefc8bee95cf78bde150"
+  },
+  {
+   "path": "tests/infrastructure/__init__.py",
+   "sha256": "ecda076ea57749f6500d50b69e741bd3d83dc03686f9785287a67471fee98487"
+  },
+  {
+   "path": "tests/infrastructure/test_auth.py",
+   "sha256": "738570ff20e17956d8688453dad348db1bb6861d51b5dc44265ade1f3da7f075"
+  },
+  {
+   "path": "tests/infrastructure/test_config_store.py",
+   "sha256": "39604fa73cd52b55ac845c43af482f3d8e1467adf892021d10a4e28ed2cd9bcc"
+  },
+  {
+   "path": "tests/infrastructure/test_in_memory_session.py",
+   "sha256": "00d3a96f1c9e099d76fab9bfffb246f371b0973d046b390abf13de51db14feaf"
+  },
+  {
+   "path": "tests/infrastructure/test_in_memory_tab.py",
+   "sha256": "b0799743582330f380ae94b23353dd9247aa1ce8df0fb272ec8eb78342070d4c"
+  },
+  {
+   "path": "tests/infrastructure/test_server.py",
+   "sha256": "76e34718619154e46e01fb2f804943a974e61603d5ce4d1c40344aba43ae7a8c"
+  },
+  {
+   "path": "tests/infrastructure/test_shell_detector.py",
+   "sha256": "222f33d091c954f7e96d6eb74a33c0b7ddd0af6deaac60e255105104e670657c"
+  },
+  {
+   "path": "tests/infrastructure/test_user_connection_registry.py",
+   "sha256": "4180cee471b7a7ba36e2c89350508b7d8f390ddc3d75d8bb7af3ecd7337a0cb8"
+  },
+  {
+   "path": "tests/pty/__init__.py",
+   "sha256": "0ec67e4cd4651ad867e05a2e8ab6f27ef67a7ff040d64b2f39e4a9f4ce651763"
+  },
+  {
+   "path": "tests/pty/test_env.py",
+   "sha256": "f2b19b68b39a40e99b79dd873f2301ff8709ac7dcc6c9f6c02cca98ffd417811"
+  },
+  {
+   "path": "tests/pty/test_windows.py",
+   "sha256": "a1d4c5981587535ee1ea8bbb04318bae20ea58c2b2d05271c28d1d71ef727fa5"
+  },
+  {
+   "path": "tests/test_access_path.py",
+   "sha256": "cf78f69411fbe9ad3d43f62bbda7bfa97d76cbd8fd10eada6ad57787544db53e"
+  },
+  {
+   "path": "tests/test_agent_drive.py",
+   "sha256": "7820ceafd65f25ae82b310c15fd55ac199654bd1db7e744b1e5df358f913cf20"
+  },
+  {
+   "path": "tests/test_app_routes.py",
+   "sha256": "32ce2124479d269be4aff5fe495446d3f704b75c03ae5bc4802acd4181a31a5b"
+  },
+  {
+   "path": "tests/test_mcp_contract.py",
+   "sha256": "ed4afb5c7b2be3b57e6f07bf269654640057f233dd22412e391996270ba9625a"
+  },
+  {
+   "path": "tests/test_mcp_only.py",
+   "sha256": "e20d8dd00edb88ef416bc9dbf4582927a730ef379c6013459fa759c9a05f48b8"
+  },
+  {
+   "path": "tests/test_updater.py",
+   "sha256": "eaffa9f32ce7d1d7b6ff251a5cb2e5ebb165d3b9ee18f5fbbb05188e8018a944"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 254019,
+ "tier": "AI_ASSOCIATED"
+}

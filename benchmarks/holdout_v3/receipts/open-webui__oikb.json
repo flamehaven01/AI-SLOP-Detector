@@ -1,0 +1,385 @@
+{
+ "repo": "open-webui/oikb",
+ "dir": "open-webui__oikb",
+ "commit": "e60d106167f728c9d520bd41e48bbbad5d6a6257",
+ "estimate_commit": "e60d106167f728c9d520bd41e48bbbad5d6a6257",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".dockerignore",
+  ".github/workflows/docker.yml",
+  ".github/workflows/pypi.yml",
+  ".github/workflows/release.yml",
+  ".gitignore",
+  ".python-version",
+  "CHANGELOG.md",
+  "Dockerfile",
+  "Dockerfile.alpine",
+  "LICENSE",
+  "README.md",
+  "docker-compose.yaml",
+  "docs/guide.md",
+  "pyproject.toml",
+  "src/oikb/__init__.py",
+  "src/oikb/cli.py",
+  "src/oikb/client.py",
+  "src/oikb/config.py",
+  "src/oikb/connectors/__init__.py",
+  "src/oikb/connectors/airtable.py",
+  "src/oikb/connectors/asana.py",
+  "src/oikb/connectors/azure_blob.py",
+  "src/oikb/connectors/bitbucket.py",
+  "src/oikb/connectors/bookstack.py",
+  "src/oikb/connectors/clickup.py",
+  "src/oikb/connectors/confluence.py",
+  "src/oikb/connectors/discord.py",
+  "src/oikb/connectors/discourse.py",
+  "src/oikb/connectors/document360.py",
+  "src/oikb/connectors/dokuwiki.py",
+  "src/oikb/connectors/dropbox.py",
+  "src/oikb/connectors/egnyte.py",
+  "src/oikb/connectors/filesystem.py",
+  "src/oikb/connectors/fireflies.py",
+  "src/oikb/connectors/freshdesk.py",
+  "src/oikb/connectors/gcs.py",
+  "src/oikb/connectors/gdrive.py",
+  "src/oikb/connectors/gitbook.py",
+  "src/oikb/connectors/gitea.py",
+  "src/oikb/connectors/github.py",
+  "src/oikb/connectors/gitlab.py",
+  "src/oikb/connectors/gmail.py",
+  "src/oikb/connectors/gong.py",
+  "src/oikb/connectors/google_sites.py",
+  "src/oikb/connectors/guru.py",
+  "src/oikb/connectors/hubspot.py",
+  "src/oikb/connectors/jira.py",
+  "src/oikb/connectors/linear.py",
+  "src/oikb/connectors/nextcloud.py",
+  "src/oikb/connectors/notion.py",
+  "src/oikb/connectors/oracle_storage.py",
+  "src/oikb/connectors/outline.py",
+  "src/oikb/connectors/productboard.py",
+  "src/oikb/connectors/r2.py",
+  "src/oikb/connectors/s3.py",
+  "src/oikb/connectors/salesforce.py",
+  "src/oikb/connectors/servicenow.py",
+  "src/oikb/connectors/sharepoint.py",
+  "src/oikb/connectors/slab.py",
+  "src/oikb/connectors/slack.py",
+  "src/oikb/connectors/teams.py",
+  "src/oikb/connectors/web.py",
+  "src/oikb/connectors/xenforo.py",
+  "src/oikb/connectors/zendesk.py",
+  "src/oikb/connectors/zotero.py",
+  "src/oikb/connectors/zulip.py",
+  "src/oikb/daemon.py",
+  "src/oikb/env.py",
+  "src/oikb/history.py",
+  "src/oikb/ignore.py",
+  "src/oikb/kb_sync.py",
+  "src/oikb/logging.py",
+  "src/oikb/metrics.py",
+  "src/oikb/sync.py",
+  "src/oikb/watcher.py",
+  "src/oikb/webhooks.py",
+  "tests/test_confluence.py",
+  "tests/test_gdrive.py",
+  "tests/test_kb_sync.py",
+  "tests/test_nextcloud.py",
+  "tests/test_sharepoint.py",
+  "tests/test_watcher.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "240c15b028de3ea88698bbf94c3feb20bb16d594758e442a8880e06eb63519ee"
+  },
+  {
+   "path": "pyproject.toml",
+   "sha256": "f73424641c085891e89d8c441a2a4a4405b7b25f1ef244af47e31762765374ce"
+  },
+  {
+   "path": "src/oikb/__init__.py",
+   "sha256": "ee4499835beaa97aafdaf216ae16d81c3b70d2e13cee489edfb2a7dd9f8817ef"
+  },
+  {
+   "path": "src/oikb/cli.py",
+   "sha256": "abc2af15462eba7402d0066a0557d860580fea15abd885e364cb0fde723ba1bb"
+  },
+  {
+   "path": "src/oikb/client.py",
+   "sha256": "8dd0795d43600a575cc13b574c8cd790a434fb646a8b8616abe02c2f26046a52"
+  },
+  {
+   "path": "src/oikb/config.py",
+   "sha256": "8abfaf2b57360f9fe87adb70d3b71b2778f51a8ee84220744a3b9a48970a7735"
+  },
+  {
+   "path": "src/oikb/connectors/__init__.py",
+   "sha256": "f9ad0f1ce4f2b6f7865b6c94063e694096ca36237bac32e3b5dbe2e54184ebd2"
+  },
+  {
+   "path": "src/oikb/connectors/airtable.py",
+   "sha256": "b04c47ec89cf1ddc6e8153162a07f5d482a136a50ace5cbd2876e45b3c2aa302"
+  },
+  {
+   "path": "src/oikb/connectors/asana.py",
+   "sha256": "72b00c9e7810fcd35e768f398bf2b0b69358cceef9dde635c24c34c4807fc389"
+  },
+  {
+   "path": "src/oikb/connectors/azure_blob.py",
+   "sha256": "14854b2d5f87a738f547d7e7ba35b811aedc3f606bdba2d4362cc8f8079bfe90"
+  },
+  {
+   "path": "src/oikb/connectors/bitbucket.py",
+   "sha256": "093b5612380ddc953085c4f2827428f093e2b1fa43ab1a747feb57c24d8c07c6"
+  },
+  {
+   "path": "src/oikb/connectors/bookstack.py",
+   "sha256": "4e6caf60e06fc3ac01bea532cd0e93a66b5806deee2deb577e90d997519a4478"
+  },
+  {
+   "path": "src/oikb/connectors/clickup.py",
+   "sha256": "fc36f96c8292c92becebf5b5e023afe9d036878d743480426e98204664796bbc"
+  },
+  {
+   "path": "src/oikb/connectors/confluence.py",
+   "sha256": "8d41253b235a6f0c0640e78d4afaac6d20b04be5932601abf443a85d3643931b"
+  },
+  {
+   "path": "src/oikb/connectors/discord.py",
+   "sha256": "e036384010f81d4fc4378fb50a8e41ec45a8ee3ad0eab1771f6b3147e8f210dd"
+  },
+  {
+   "path": "src/oikb/connectors/discourse.py",
+   "sha256": "d85595ed9624b801c29416611a01dd67bdaac091b5729d2844fb4b086a364be9"
+  },
+  {
+   "path": "src/oikb/connectors/document360.py",
+   "sha256": "722d35306430fc80ff6b3f95b187bf113fe27b1168356edb10763dbc7e4cd0a4"
+  },
+  {
+   "path": "src/oikb/connectors/dokuwiki.py",
+   "sha256": "607025cc1f3451fe804c141fb2cccaa4c86965cb54e1c05b413d8b907dba2ae7"
+  },
+  {
+   "path": "src/oikb/connectors/dropbox.py",
+   "sha256": "846d99f844e77094441dab7051eeb486292ab3af382278bccfb5d94d831d5d18"
+  },
+  {
+   "path": "src/oikb/connectors/egnyte.py",
+   "sha256": "ca4786b5aa675016347bb385ed873a472ec64b8f01ef0150943c5accf5530608"
+  },
+  {
+   "path": "src/oikb/connectors/filesystem.py",
+   "sha256": "aa267b5a446133754ce510a61ba1227ee11ef2e2e26fb523ffb0fc5ba01bd919"
+  },
+  {
+   "path": "src/oikb/connectors/fireflies.py",
+   "sha256": "6650b9929f0a7ab4d3e9e8ca45d247dd0adda6045c186c4d5d4c6fbcdd1747f4"
+  },
+  {
+   "path": "src/oikb/connectors/freshdesk.py",
+   "sha256": "563954b0356cd2a39dcfc10d47564527c501aa1746d68b9543ada8bf5cb22d07"
+  },
+  {
+   "path": "src/oikb/connectors/gcs.py",
+   "sha256": "ccca04505011d99c3910ad057f953b8d705e7a700e8586fb3cc614add3904ece"
+  },
+  {
+   "path": "src/oikb/connectors/gdrive.py",
+   "sha256": "2af8af90318cd71d39cfedc72f6aa666b9fe073e4094f0492f97094f9625c317"
+  },
+  {
+   "path": "src/oikb/connectors/gitbook.py",
+   "sha256": "6199a7bc15e3ffde16868f6d145472732aeb3c2f77a2bf13b13c23e7cfece24c"
+  },
+  {
+   "path": "src/oikb/connectors/gitea.py",
+   "sha256": "bcee1e71fa9a0ce2db4c6c39c36c6c8920d89aec59b72249e30219ebaf1558b8"
+  },
+  {
+   "path": "src/oikb/connectors/github.py",
+   "sha256": "ae7dc4661d85bba53ec5ad2576d9d24cabeabc66591d29098e6c215ef999ab05"
+  },
+  {
+   "path": "src/oikb/connectors/gitlab.py",
+   "sha256": "50409fa5054bed86fb7bdc80c65ca991017fc4c91ce37abb1395e997a391971a"
+  },
+  {
+   "path": "src/oikb/connectors/gmail.py",
+   "sha256": "758543240432279af9b54850f3f4694e966082e6fa7b26eb761afe011394e227"
+  },
+  {
+   "path": "src/oikb/connectors/gong.py",
+   "sha256": "cfe055e4912427a0df6f4a6a3f00162004986648f5a326d10370c62c179a23a3"
+  },
+  {
+   "path": "src/oikb/connectors/google_sites.py",
+   "sha256": "acc26f644282ea7118d5fc90a7736fafaa12814885d9867fd7c70c636b37cdf1"
+  },
+  {
+   "path": "src/oikb/connectors/guru.py",
+   "sha256": "5476d8dbc5de5e6117ff3cd05e7b23f1cb20209e303733b48ec5aec2335c1d6e"
+  },
+  {
+   "path": "src/oikb/connectors/hubspot.py",
+   "sha256": "b81be09e6a54d9ff2419fa27e16dc7880d074a40ffbd666e523f6389fa78ed41"
+  },
+  {
+   "path": "src/oikb/connectors/jira.py",
+   "sha256": "f360b6f2c88df1f858ae742d98778f25560c6359ffbb139eb48a622440b2b617"
+  },
+  {
+   "path": "src/oikb/connectors/linear.py",
+   "sha256": "20947e4f5072655ca622ad262834f5a5d5ac19d83c900193bae4f575fc0df403"
+  },
+  {
+   "path": "src/oikb/connectors/nextcloud.py",
+   "sha256": "23c1663ae5bd4b0bb188ea420451baf3bf93325341e55113cdb645cf09b6d5d8"
+  },
+  {
+   "path": "src/oikb/connectors/notion.py",
+   "sha256": "1b16fbe6a444ed3bfefab24a81a1d2f90fdb1fa0cc906a40ec9f0eeb99368fac"
+  },
+  {
+   "path": "src/oikb/connectors/oracle_storage.py",
+   "sha256": "c7bb9df53855699ac7f36c44edd8d007d16cf61fb9cb83ab199d1a17a4e83f6b"
+  },
+  {
+   "path": "src/oikb/connectors/outline.py",
+   "sha256": "8b8628ee3db730cd914efffb7251982c192c3e064581138de90d5333ad17e663"
+  },
+  {
+   "path": "src/oikb/connectors/productboard.py",
+   "sha256": "b77bcf07fa7f9874f48b92a09190756ef97e6909abcd392f6e820f18c570c052"
+  },
+  {
+   "path": "src/oikb/connectors/r2.py",
+   "sha256": "5bc89c0da9dead49a03bdc70f0e2df9be154c9aaff55c9b3697767f1cb009c07"
+  },
+  {
+   "path": "src/oikb/connectors/s3.py",
+   "sha256": "d412799a321c82bde32cfbfa6ed6e212056c832c00bd80f9319c395153536e17"
+  },
+  {
+   "path": "src/oikb/connectors/salesforce.py",
+   "sha256": "7d9e92b04abc1400897b93652e07d9ae91284d25769e8e023e5382cc6837f63d"
+  },
+  {
+   "path": "src/oikb/connectors/servicenow.py",
+   "sha256": "7137953d429756caaba4d38249244a67fb5273a676ccdfcaf60c41bd55acf606"
+  },
+  {
+   "path": "src/oikb/connectors/sharepoint.py",
+   "sha256": "1ab19e86a7533407de9b28bd79c59b9a2997f598e25c18405728579928a0c73e"
+  },
+  {
+   "path": "src/oikb/connectors/slab.py",
+   "sha256": "114db0e322fec870856693394f88819b492f5a0c87f6c100ded0d4d98d78abc9"
+  },
+  {
+   "path": "src/oikb/connectors/slack.py",
+   "sha256": "9fbf4a54626a55428e58746ae5d2542cdadfc6c3bf8e5ac55d5bf835cfe239b7"
+  },
+  {
+   "path": "src/oikb/connectors/teams.py",
+   "sha256": "2b8cb77187cda218cc85578e01211ae9474ffbc9777ff80f2a6d48cb236a64f5"
+  },
+  {
+   "path": "src/oikb/connectors/web.py",
+   "sha256": "aac4c3363967975729ec72aaa219bcb6437e7e638cf251cbba1c0953b00953a1"
+  },
+  {
+   "path": "src/oikb/connectors/xenforo.py",
+   "sha256": "77ee314fdb324c5fd6c212a7859ef20beda4eee3f98cd48061738b48f3eef9a5"
+  },
+  {
+   "path": "src/oikb/connectors/zendesk.py",
+   "sha256": "6cef6bf402f5c1157a1579084e2014ad0772c1f3ac97ebd5f08f4b11077a13b1"
+  },
+  {
+   "path": "src/oikb/connectors/zotero.py",
+   "sha256": "86fe336095471ee4a6bfca8f2473c8109d9c7b72a1df6891060c678b02eb9335"
+  },
+  {
+   "path": "src/oikb/connectors/zulip.py",
+   "sha256": "979df5acbe187557c3f0d44517e641c5574721d1a02d93037a5b5791a34d6856"
+  },
+  {
+   "path": "src/oikb/daemon.py",
+   "sha256": "17e31fd0873584a9d5dc8e82dc561ba5e6c7658652067ac249c5d5a7a4814346"
+  },
+  {
+   "path": "src/oikb/env.py",
+   "sha256": "40b61c2ec1cb5d1997ec705d1c280665922a93bc715e5da1ffb83910af73ad9a"
+  },
+  {
+   "path": "src/oikb/history.py",
+   "sha256": "27af2b94b215256378d1d3e8d770f5031f85658cb874a6d8adf7043fa271cb0d"
+  },
+  {
+   "path": "src/oikb/ignore.py",
+   "sha256": "c2b2987e1eb5a1554372d89e80bf9f6e6254de1fa4050b765f5d75353001cec6"
+  },
+  {
+   "path": "src/oikb/kb_sync.py",
+   "sha256": "de8cf2c7b067c08f2afa55c0a3cc552ecc1595a24b443b5c8ce102a581f1ac62"
+  },
+  {
+   "path": "src/oikb/logging.py",
+   "sha256": "52063f25f0f8f527f3cccef9ce44de35197e12c1ed062c3c523223a02c46b5a5"
+  },
+  {
+   "path": "src/oikb/metrics.py",
+   "sha256": "8d85382c050f90838ad14d02fcd8ae2ff304bc8b1d6456536d1153ca99f78771"
+  },
+  {
+   "path": "src/oikb/sync.py",
+   "sha256": "45931e88ff8ddb098cb2f3ef964742b6d5460d9d8382e1125c7b264cf4d97275"
+  },
+  {
+   "path": "src/oikb/watcher.py",
+   "sha256": "0b2af06ff5d618a9c944e1fa93a15eee0dd6e98b86329f1999b2137af7d1d59b"
+  },
+  {
+   "path": "src/oikb/webhooks.py",
+   "sha256": "a87abf49b88a635b44ea581707d43846dcec9f6b7fdda3bcbdd10fae88fe67ba"
+  },
+  {
+   "path": "tests/test_confluence.py",
+   "sha256": "667e6ea3373557b65b6da262b753b803fd319bb2891a434eaee2537bf6c02f8b"
+  },
+  {
+   "path": "tests/test_gdrive.py",
+   "sha256": "4ef88e432872dd81186cafe576c3d188c374807d58b3952d510d155ceb359ba6"
+  },
+  {
+   "path": "tests/test_kb_sync.py",
+   "sha256": "e2b31d40535ae8055955a20c5f2d0eed6009290d9000876a93653d4e16a0cc9e"
+  },
+  {
+   "path": "tests/test_nextcloud.py",
+   "sha256": "ce20391c760169431ee5a9035936640aca4894044a164354b886f6678457e5a3"
+  },
+  {
+   "path": "tests/test_sharepoint.py",
+   "sha256": "7bad52fc46034ed57bdddd5a57dc8f63100a953ac0707187683027183beaca76"
+  },
+  {
+   "path": "tests/test_watcher.py",
+   "sha256": "d35deabf41a852f3aced11aa3ddb105241d463b90c4be92e60fb6b903fb22728"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 162185,
+ "tier": "AI_ASSOCIATED"
+}

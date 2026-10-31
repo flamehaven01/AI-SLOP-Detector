@@ -1,0 +1,700 @@
+{
+ "repo": "Spongebobbbbbbbb/FDTA",
+ "dir": "Spongebobbbbbbbb__FDTA",
+ "commit": "b3b3b778acf93fa4269663b5ea1fd1d5ff8c6730",
+ "estimate_commit": "b3b3b778acf93fa4269663b5ea1fd1d5ff8c6730",
+ "branch_moved": false,
+ "sparse_patterns": [
+  "*.py",
+  ".slopconfig.yaml",
+  "pyproject.toml",
+  "setup.cfg",
+  ".gitignore",
+  ".gitattributes"
+ ],
+ "tree_paths": [
+  ".gitignore",
+  "LICENSE",
+  "README.md",
+  "TrackEval/LICENSE",
+  "TrackEval/Readme.md",
+  "TrackEval/docs/BDD100k-format.txt",
+  "TrackEval/docs/DAVIS-format.txt",
+  "TrackEval/docs/How_To/Add_a_new_metric.md",
+  "TrackEval/docs/KITTI-format.txt",
+  "TrackEval/docs/MOTChallenge-Official/Readme.md",
+  "TrackEval/docs/MOTChallenge-format.txt",
+  "TrackEval/docs/MOTS-format.txt",
+  "TrackEval/docs/RobMOTS-Official/Readme.md",
+  "TrackEval/docs/TAO-format.txt",
+  "TrackEval/docs/YouTube-VIS-format.txt",
+  "TrackEval/minimum_requirements.txt",
+  "TrackEval/requirements.txt",
+  "TrackEval/scripts/comparison_plots.py",
+  "TrackEval/scripts/run_bdd.py",
+  "TrackEval/scripts/run_davis.py",
+  "TrackEval/scripts/run_headtracking_challenge.py",
+  "TrackEval/scripts/run_kitti.py",
+  "TrackEval/scripts/run_kitti_mots.py",
+  "TrackEval/scripts/run_mot_challenge.py",
+  "TrackEval/scripts/run_mots_challenge.py",
+  "TrackEval/scripts/run_person_path_22.py",
+  "TrackEval/scripts/run_rob_mots.py",
+  "TrackEval/scripts/run_tao.py",
+  "TrackEval/scripts/run_youtube_vis.py",
+  "TrackEval/tests/test_all_quick.py",
+  "TrackEval/tests/test_davis.py",
+  "TrackEval/tests/test_metrics.py",
+  "TrackEval/tests/test_mot17.py",
+  "TrackEval/tests/test_mots.py",
+  "TrackEval/trackeval/__init__.py",
+  "TrackEval/trackeval/_timing.py",
+  "TrackEval/trackeval/baselines/__init__.py",
+  "TrackEval/trackeval/baselines/baseline_utils.py",
+  "TrackEval/trackeval/baselines/non_overlap.py",
+  "TrackEval/trackeval/baselines/pascal_colormap.py",
+  "TrackEval/trackeval/baselines/stp.py",
+  "TrackEval/trackeval/baselines/thresholder.py",
+  "TrackEval/trackeval/baselines/vizualize.py",
+  "TrackEval/trackeval/datasets/__init__.py",
+  "TrackEval/trackeval/datasets/_base_dataset.py",
+  "TrackEval/trackeval/datasets/bdd100k.py",
+  "TrackEval/trackeval/datasets/davis.py",
+  "TrackEval/trackeval/datasets/head_tracking_challenge.py",
+  "TrackEval/trackeval/datasets/kitti_2d_box.py",
+  "TrackEval/trackeval/datasets/kitti_mots.py",
+  "TrackEval/trackeval/datasets/mot_challenge_2d_box.py",
+  "TrackEval/trackeval/datasets/mots_challenge.py",
+  "TrackEval/trackeval/datasets/person_path_22.py",
+  "TrackEval/trackeval/datasets/rob_mots.py",
+  "TrackEval/trackeval/datasets/rob_mots_classmap.py",
+  "TrackEval/trackeval/datasets/run_rob_mots.py",
+  "TrackEval/trackeval/datasets/tao.py",
+  "TrackEval/trackeval/datasets/youtube_vis.py",
+  "TrackEval/trackeval/eval.py",
+  "TrackEval/trackeval/metrics/__init__.py",
+  "TrackEval/trackeval/metrics/_base_metric.py",
+  "TrackEval/trackeval/metrics/clear.py",
+  "TrackEval/trackeval/metrics/count.py",
+  "TrackEval/trackeval/metrics/hota.py",
+  "TrackEval/trackeval/metrics/identity.py",
+  "TrackEval/trackeval/metrics/ideucl.py",
+  "TrackEval/trackeval/metrics/j_and_f.py",
+  "TrackEval/trackeval/metrics/track_map.py",
+  "TrackEval/trackeval/metrics/vace.py",
+  "TrackEval/trackeval/plotting.py",
+  "TrackEval/trackeval/utils.py",
+  "assets/teaser.png",
+  "configs/__init__.py",
+  "configs/bft.yaml",
+  "configs/dancetrack.yaml",
+  "configs/sportsmot.yaml",
+  "configs/util.py",
+  "data/__init__.py",
+  "data/bft.py",
+  "data/crowdhuman.py",
+  "data/dancetrack.py",
+  "data/joint_dataset.py",
+  "data/naive_sampler.py",
+  "data/one_dataset.py",
+  "data/seq_dataset.py",
+  "data/sportsmot.py",
+  "data/transforms.py",
+  "data/util.py",
+  "log/__init__.py",
+  "log/log.py",
+  "log/logger.py",
+  "models/Spatial_Adapter/__init__.py",
+  "models/Spatial_Adapter/ddn_loss/__init__.py",
+  "models/Spatial_Adapter/ddn_loss/balancer.py",
+  "models/Spatial_Adapter/ddn_loss/ddn_loss.py",
+  "models/Spatial_Adapter/ddn_loss/focalloss.py",
+  "models/Spatial_Adapter/depth_encoder.py",
+  "models/Spatial_Adapter/depth_predictor.py",
+  "models/__init__.py",
+  "models/deformable_detr/__init__.py",
+  "models/deformable_detr/backbone.py",
+  "models/deformable_detr/deformable_detr.py",
+  "models/deformable_detr/deformable_transformer.py",
+  "models/deformable_detr/matcher.py",
+  "models/deformable_detr/position_encoding.py",
+  "models/deformable_detr/segmentation.py",
+  "models/fdta/Temporal_Adapter.py",
+  "models/fdta/__init__.py",
+  "models/fdta/fdta.py",
+  "models/fdta/id_criterion.py",
+  "models/fdta/id_decoder.py",
+  "models/fdta/trajectory_modeling.py",
+  "models/ffn.py",
+  "models/misc.py",
+  "models/mlp.py",
+  "models/ops/MultiScaleDeformableAttention.egg-info/PKG-INFO",
+  "models/ops/MultiScaleDeformableAttention.egg-info/SOURCES.txt",
+  "models/ops/MultiScaleDeformableAttention.egg-info/dependency_links.txt",
+  "models/ops/MultiScaleDeformableAttention.egg-info/top_level.txt",
+  "models/ops/build/lib.linux-x86_64-3.11/MultiScaleDeformableAttention.cpython-311-x86_64-linux-gnu.so",
+  "models/ops/build/lib.linux-x86_64-3.11/functions/__init__.py",
+  "models/ops/build/lib.linux-x86_64-3.11/functions/ms_deform_attn_func.py",
+  "models/ops/build/lib.linux-x86_64-3.11/modules/__init__.py",
+  "models/ops/build/lib.linux-x86_64-3.11/modules/ms_deform_attn.py",
+  "models/ops/build/lib.linux-x86_64-cpython-312/MultiScaleDeformableAttention.cpython-312-x86_64-linux-gnu.so",
+  "models/ops/build/lib.linux-x86_64-cpython-312/functions/__init__.py",
+  "models/ops/build/lib.linux-x86_64-cpython-312/functions/ms_deform_attn_func.py",
+  "models/ops/build/lib.linux-x86_64-cpython-312/modules/__init__.py",
+  "models/ops/build/lib.linux-x86_64-cpython-312/modules/ms_deform_attn.py",
+  "models/ops/build/temp.linux-x86_64-3.11/.ninja_deps",
+  "models/ops/build/temp.linux-x86_64-3.11/.ninja_log",
+  "models/ops/build/temp.linux-x86_64-3.11/build.ninja",
+  "models/ops/build/temp.linux-x86_64-3.11/cpfs04/shared/sport/shaoyuqing/MOTIP_all/MOTIP/models/ops/src/cpu/ms_deform_attn_cpu.o",
+  "models/ops/build/temp.linux-x86_64-3.11/cpfs04/shared/sport/shaoyuqing/MOTIP_all/MOTIP/models/ops/src/cuda/ms_deform_attn_cuda.o",
+  "models/ops/build/temp.linux-x86_64-3.11/cpfs04/shared/sport/shaoyuqing/MOTIP_all/MOTIP/models/ops/src/vision.o",
+  "models/ops/build/temp.linux-x86_64-cpython-312/.ninja_deps",
+  "models/ops/build/temp.linux-x86_64-cpython-312/.ninja_log",
+  "models/ops/build/temp.linux-x86_64-cpython-312/build.ninja",
+  "models/ops/build/temp.linux-x86_64-cpython-312/cpfs04/shared/sport/shaoyuqing/MOTIP/models/ops/src/cpu/ms_deform_attn_cpu.o",
+  "models/ops/build/temp.linux-x86_64-cpython-312/cpfs04/shared/sport/shaoyuqing/MOTIP/models/ops/src/cuda/ms_deform_attn_cuda.o",
+  "models/ops/build/temp.linux-x86_64-cpython-312/cpfs04/shared/sport/shaoyuqing/MOTIP/models/ops/src/vision.o",
+  "models/ops/build/temp.linux-x86_64-cpython-312/mnt/shared-storage-user/solution/shaoyuqing/MOTIP_all/MOTIP/models/ops/src/cpu/ms_deform_attn_cpu.o",
+  "models/ops/build/temp.linux-x86_64-cpython-312/mnt/shared-storage-user/solution/shaoyuqing/MOTIP_all/MOTIP/models/ops/src/cuda/ms_deform_attn_cuda.o",
+  "models/ops/build/temp.linux-x86_64-cpython-312/mnt/shared-storage-user/solution/shaoyuqing/MOTIP_all/MOTIP/models/ops/src/vision.o",
+  "models/ops/dist/MultiScaleDeformableAttention-1.0-py3.11-linux-x86_64.egg",
+  "models/ops/dist/MultiScaleDeformableAttention-1.0-py3.12-linux-x86_64.egg",
+  "models/ops/functions/__init__.py",
+  "models/ops/functions/ms_deform_attn_func.py",
+  "models/ops/make.sh",
+  "models/ops/modules/__init__.py",
+  "models/ops/modules/ms_deform_attn.py",
+  "models/ops/setup.py",
+  "models/ops/src/cpu/ms_deform_attn_cpu.cpp",
+  "models/ops/src/cpu/ms_deform_attn_cpu.h",
+  "models/ops/src/cuda/ms_deform_attn_cuda.cu",
+  "models/ops/src/cuda/ms_deform_attn_cuda.h",
+  "models/ops/src/cuda/ms_deform_im2col_cuda.cuh",
+  "models/ops/src/ms_deform_attn.h",
+  "models/ops/src/vision.cpp",
+  "models/ops/test.py",
+  "models/runtime_tracker.py",
+  "requirements.txt",
+  "runtime_option.py",
+  "structures/__init__.py",
+  "structures/args.py",
+  "structures/instances.py",
+  "structures/ordered_set.py",
+  "submit_and_evaluate.py",
+  "tools/gen_bft_gts.py",
+  "tools/gen_crowdhuman_gts.py",
+  "tools/gen_depthmaps.py",
+  "tools/tools.py",
+  "train.py",
+  "utils/__init__.py",
+  "utils/box_ops.py",
+  "utils/misc.py",
+  "utils/nested_tensor.py"
+ ],
+ "submodules": [],
+ "snapshot_files": [
+  {
+   "path": ".gitignore",
+   "sha256": "7214855772899d986c1cf941055718a1bd63b3ea8382309ee7023be24de7d326"
+  },
+  {
+   "path": "TrackEval/scripts/comparison_plots.py",
+   "sha256": "07c326ddb76c0dc4c4f43cfb58aa07902e2bfc34bcf704483234647dbc70acae"
+  },
+  {
+   "path": "TrackEval/scripts/run_bdd.py",
+   "sha256": "07694148e20d746c3a7caaae87cdab393473276886dec338387202b92e955d40"
+  },
+  {
+   "path": "TrackEval/scripts/run_davis.py",
+   "sha256": "db14337128ecf49928000d900003e76b80e8e1210f8d94654558f871fc204aa4"
+  },
+  {
+   "path": "TrackEval/scripts/run_headtracking_challenge.py",
+   "sha256": "3812959355dabc9b922e6e597e2816a37ff29666f409bb24c8ad4711c751df9e"
+  },
+  {
+   "path": "TrackEval/scripts/run_kitti.py",
+   "sha256": "6e889e89b5a37e8cb6fd3a99c34901559f5b2a9d8d764bcec8c2ac0419084b24"
+  },
+  {
+   "path": "TrackEval/scripts/run_kitti_mots.py",
+   "sha256": "798b8b1d9ef304956294e5acb9ab8f03e1d3356499b624d23ce0491051153972"
+  },
+  {
+   "path": "TrackEval/scripts/run_mot_challenge.py",
+   "sha256": "dae02aed9d617aa650454930ba3af743e3904ece9c8ec8d32b3a1eede2d6f5dc"
+  },
+  {
+   "path": "TrackEval/scripts/run_mots_challenge.py",
+   "sha256": "3ad66d0c9b4a5ac20b2bde267842052de070201a2012daf830a8b2a53ae1a765"
+  },
+  {
+   "path": "TrackEval/scripts/run_person_path_22.py",
+   "sha256": "5e3ccc9b480b53a6e2819437453431d40588c38af31d65a2085de534ad63a581"
+  },
+  {
+   "path": "TrackEval/scripts/run_rob_mots.py",
+   "sha256": "d56cf328dd89d789bc9afa7566269c09ff66be631dec91848813f3e14317f7b1"
+  },
+  {
+   "path": "TrackEval/scripts/run_tao.py",
+   "sha256": "44dcb6eb27d9f2579c89d04f526e05dfdd48907bb6d46d5aa93c8256d07d7cb0"
+  },
+  {
+   "path": "TrackEval/scripts/run_youtube_vis.py",
+   "sha256": "4fddc298ec6a22285bcb9d98515b4955a689e1377b8da0f95834c59eed68df37"
+  },
+  {
+   "path": "TrackEval/tests/test_all_quick.py",
+   "sha256": "b2e1d17a12f95ad21c536ec11aa9c0e8174e25ec61cd896eeb444c40948ab650"
+  },
+  {
+   "path": "TrackEval/tests/test_davis.py",
+   "sha256": "12c5a45833cab94eca9c31418c719d845111183e3d3c8dcb93851f8a0b36ca86"
+  },
+  {
+   "path": "TrackEval/tests/test_metrics.py",
+   "sha256": "f158944b9845f1a2a627cd0b9ec661a2d2f74cbffdd37493b6e70b6c0b74cfda"
+  },
+  {
+   "path": "TrackEval/tests/test_mot17.py",
+   "sha256": "0a0f22469d20a80ee64109627961581f98604d29e1f46bee25d9565de9e625bd"
+  },
+  {
+   "path": "TrackEval/tests/test_mots.py",
+   "sha256": "f6e906d70a0d50d528c0c4568cea4bc522bc35db60b35b3f6b13600fd1840bb8"
+  },
+  {
+   "path": "TrackEval/trackeval/__init__.py",
+   "sha256": "636586f4cc90a0be21e8aff605fb7fe97c089b3c46fafd43745d4c41bedceae3"
+  },
+  {
+   "path": "TrackEval/trackeval/_timing.py",
+   "sha256": "62e60638efc675bccc35c7da65158f0f19ce31f332121efe7cc748bd92ad2b30"
+  },
+  {
+   "path": "TrackEval/trackeval/baselines/__init__.py",
+   "sha256": "dc462eb70779efb26be862da81a0506f43bfc9d3a2b4f72af0d30ef20e56867d"
+  },
+  {
+   "path": "TrackEval/trackeval/baselines/baseline_utils.py",
+   "sha256": "31f2a3b5ef023a4fc3e2a9dd184a9d78d3d542f3e99c59f136f140fac0f2a6cc"
+  },
+  {
+   "path": "TrackEval/trackeval/baselines/non_overlap.py",
+   "sha256": "eff1313faf25997254f6dfde76992e5570990036d55f4e9d320a14172c7a52a6"
+  },
+  {
+   "path": "TrackEval/trackeval/baselines/pascal_colormap.py",
+   "sha256": "64350a3519999aed195c258c888c14943e187554b2ec7ae776288eb259e377a6"
+  },
+  {
+   "path": "TrackEval/trackeval/baselines/stp.py",
+   "sha256": "28801ff9f4e86a0d0e8ae8647c59f47f5c231023c0b4bdd6f52421843b3584ea"
+  },
+  {
+   "path": "TrackEval/trackeval/baselines/thresholder.py",
+   "sha256": "2c363b9023eaa7156f6c336331079f97f09e3f0b4d9425e6f756daaf8e4a7dfa"
+  },
+  {
+   "path": "TrackEval/trackeval/baselines/vizualize.py",
+   "sha256": "2dd6d0b90944337fdf0da898e1fcd4740bc2ecd67825bccc0511e6fea2e85ec0"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/__init__.py",
+   "sha256": "f68d2395183750fb1be8d91602b721e549e1b247d5d0222691df48a509a6759d"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/_base_dataset.py",
+   "sha256": "9094b50490b5567ed6f22cac6aa6ec969f4d467d4d28515546e0b875ffe976f5"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/bdd100k.py",
+   "sha256": "54bd7b8fd781e25345fcd6e348d0dc7f21a27090e64c39d46e495c734ae0e468"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/davis.py",
+   "sha256": "e24f915909111ea4d2754a655af6fd395d61fa84d9027841df5ea8b81ef1c817"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/head_tracking_challenge.py",
+   "sha256": "e85a4f18363cbf8a86e7510a6eeb6a2027033c93d7255aed8339c342a3173cb8"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/kitti_2d_box.py",
+   "sha256": "9013c2a28dd39b4d1e484b6fc7822ba3a14e92e4bf048b7a2f2baf008b972079"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/kitti_mots.py",
+   "sha256": "0ebd20c29ba889dfacf08855594d5eb7be1b17018582045794e5560f3c8d9294"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/mot_challenge_2d_box.py",
+   "sha256": "625129937f555ed00e74d9ba1c17b95362150f5215fd980e6229041d2d12a780"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/mots_challenge.py",
+   "sha256": "e60dd031d3558cd67fc6c77f1075f9f9ef986574d622ce97753e843c27abfa9c"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/person_path_22.py",
+   "sha256": "6e31c42c3c7831f40c4fd6f49f835eff25eef28f10c901d2b9ff87d84fcf4fcd"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/rob_mots.py",
+   "sha256": "c495266286fd4aabb98a2aba386aa7dea1e2bda91295a2676e198b342208e130"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/rob_mots_classmap.py",
+   "sha256": "db79031762d5fb55c009999cdb89586a70d11a1deaf2e1948192387872a64d1e"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/run_rob_mots.py",
+   "sha256": "5d1bb96c2bb376b7cb4e00cada1e1ecab3974d6b06fad080f9e1708358a00a4a"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/tao.py",
+   "sha256": "8190898f07dc63f6c4bc0ab77cf0e14df5aa7daa624df48855c8c89e52b65c0e"
+  },
+  {
+   "path": "TrackEval/trackeval/datasets/youtube_vis.py",
+   "sha256": "f09556ae27954ceb1f5f95cc3062fa6fee20fd10291871ff6bd6eb42cc0e2462"
+  },
+  {
+   "path": "TrackEval/trackeval/eval.py",
+   "sha256": "559fe9dbc6c0fff7f8d81ad16f03bc2900f9e8e53f4f49cd4bdf0c24dd34eab5"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/__init__.py",
+   "sha256": "5fd5d495814450ecdb45e60cfd6a2b20b79c75a455d1a2ea2171a0df3cc2dc90"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/_base_metric.py",
+   "sha256": "dac8b87bf3801269aa280b1cf91184f483de4f4e5c158bd07a4b1733b1a5722b"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/clear.py",
+   "sha256": "ab3963eac401073fe1b2957c734af1e531368f42fca49627c14422350b2744f0"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/count.py",
+   "sha256": "ffce9a3ed557f164f7a811f0a8cf66f609eec0af822dbc87d8fdaef560032163"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/hota.py",
+   "sha256": "5e3c7a73b63fecd1b1486920c3a2e351e5e2177c24915f17062cd9a850ca908b"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/identity.py",
+   "sha256": "1c03dcc408163b60d75fead91e8c48283df56842056417a5dad722b3b5251553"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/ideucl.py",
+   "sha256": "1009ec40533df6fb28ad3397be745394a6ab970b02920e711808cb78b1720eeb"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/j_and_f.py",
+   "sha256": "9872e658209634e5b07cb080c43308073d65fa32003c9285ecbdf2e60898dccc"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/track_map.py",
+   "sha256": "6b80f288756c3b9da16b5e03e2f2b4d04e3bc7020b283bc085aa6cc382c5991e"
+  },
+  {
+   "path": "TrackEval/trackeval/metrics/vace.py",
+   "sha256": "13db97a61cc7291e5356c80a0a4f11a88b75a9664a81fc903d6bd41a1cd6ffdc"
+  },
+  {
+   "path": "TrackEval/trackeval/plotting.py",
+   "sha256": "6d3ebada977b6990527dab143e0e4a0bbf5f1dd64f46bf214701a64acadba13f"
+  },
+  {
+   "path": "TrackEval/trackeval/utils.py",
+   "sha256": "e20e57f0badcd7f9d768c96f244fbefc0fb2b4a9e28808f929f30e11aef6fc19"
+  },
+  {
+   "path": "configs/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "configs/util.py",
+   "sha256": "640640e40391efa4535ea537c6d0248ed381926b8504746681504c6cedb7b22b"
+  },
+  {
+   "path": "data/__init__.py",
+   "sha256": "7f03eff57105f5d57e5b3a1d432031d165d1269bddcb1c6c075e1d80ae205bb5"
+  },
+  {
+   "path": "data/bft.py",
+   "sha256": "2650379a2fbd55eac5fdf891b68e5182e594f0aac40205f7682c1ebc3d3ea5d4"
+  },
+  {
+   "path": "data/crowdhuman.py",
+   "sha256": "4dd4bbd0f16f5f5fb46dabb1dc6197178160eb70dc05d740c3454462cbbb9596"
+  },
+  {
+   "path": "data/dancetrack.py",
+   "sha256": "fbde7498a00dc0a8d7e153055f7b9e0959da8de617a8255665c8ee0c52b9752b"
+  },
+  {
+   "path": "data/joint_dataset.py",
+   "sha256": "ad97730f23412123465067bb44733f31ca545a9238d67b426b3559dd8e2d3659"
+  },
+  {
+   "path": "data/naive_sampler.py",
+   "sha256": "1feb108846c50abfee2bcd804385e0069c3cdad458cad5a52a647ad672d86fc9"
+  },
+  {
+   "path": "data/one_dataset.py",
+   "sha256": "5dbe660cd0cb81f4664c7a5d23699318b51ff9708361b9be4948290d2243bce7"
+  },
+  {
+   "path": "data/seq_dataset.py",
+   "sha256": "ff5c37bf0d7fb2c4bd605d50ef53babc1777bfd69b2f4a86f200c30fc6501429"
+  },
+  {
+   "path": "data/sportsmot.py",
+   "sha256": "9442d21206780eab91b95be04b8e8fa2f06bbcd445a7dd4836e1a1b9389e88f6"
+  },
+  {
+   "path": "data/transforms.py",
+   "sha256": "88fc6a6eb2610f5f096308121133085d5b1162d612234dcf4f3eb85649ca1508"
+  },
+  {
+   "path": "data/util.py",
+   "sha256": "84605f04ae8f0dbe9cc5183962be807db0bc5f28e874ac28baba87fdeb93ab44"
+  },
+  {
+   "path": "log/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "log/log.py",
+   "sha256": "08b989b30416b59d5795247e684cc8f68391e97ce185273de6995bc4bb9e1e28"
+  },
+  {
+   "path": "log/logger.py",
+   "sha256": "85a6c291a539f81656fa8277ca5da914b64a7e5ae8e9002660a79bde15648027"
+  },
+  {
+   "path": "models/Spatial_Adapter/__init__.py",
+   "sha256": "be9b137295f541c87ebde8e3453eebdd53c068a2dc3c1ef068ce11e40f07af60"
+  },
+  {
+   "path": "models/Spatial_Adapter/ddn_loss/__init__.py",
+   "sha256": "721b492c190ade3cdd95aa07bb845b3b6352bbed60ea494c3816a6b937cb960c"
+  },
+  {
+   "path": "models/Spatial_Adapter/ddn_loss/balancer.py",
+   "sha256": "2fbf1f20a3ef70956d75c934ab177fdc9c1688a9de2294ee69422d541097c3b7"
+  },
+  {
+   "path": "models/Spatial_Adapter/ddn_loss/ddn_loss.py",
+   "sha256": "cb414e54a26d742981a44eeb7e4c6d37241e17346b545fe2160f141604bc0c75"
+  },
+  {
+   "path": "models/Spatial_Adapter/ddn_loss/focalloss.py",
+   "sha256": "647eea4c53b87d3dacc7d084a19a086113a76e73fabf11bc8a43408e2a30ceaf"
+  },
+  {
+   "path": "models/Spatial_Adapter/depth_encoder.py",
+   "sha256": "aabc24ea548abefc9929566540141c1dd492a42a56c35d822c2db06b544d8241"
+  },
+  {
+   "path": "models/Spatial_Adapter/depth_predictor.py",
+   "sha256": "e9183c5d4ead344b8dc5b022dd3199fb8087190110f8ed409178ecc5759f9bb1"
+  },
+  {
+   "path": "models/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "models/deformable_detr/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "models/deformable_detr/backbone.py",
+   "sha256": "b0ab5c509dfbcaa4e75dd4cb7fbf3c79d8bbc7dbaa946f8c83a94bfb4f1a0c2a"
+  },
+  {
+   "path": "models/deformable_detr/deformable_detr.py",
+   "sha256": "b45f4143f808d5efca7c6e4badb4e502add5906c68f3a8affdfbb3f53b802c00"
+  },
+  {
+   "path": "models/deformable_detr/deformable_transformer.py",
+   "sha256": "5587d82cc93c1edf6e0f30cfc3ebd587dd63cbe3cd72547854dbf08385db1818"
+  },
+  {
+   "path": "models/deformable_detr/matcher.py",
+   "sha256": "0ea17be6e3d43e63273a52109dec5a2f5dccf5b7cb1f31d68c485fc05fe0026d"
+  },
+  {
+   "path": "models/deformable_detr/position_encoding.py",
+   "sha256": "c7f606cb0be2a9c84456565a60517edbd2c0bab918a5fd7d4f18618966fa2b51"
+  },
+  {
+   "path": "models/deformable_detr/segmentation.py",
+   "sha256": "a9b01357251289adbfbc3608e35c6070e554a43891f6f556fe4dd16aa8a59e43"
+  },
+  {
+   "path": "models/fdta/Temporal_Adapter.py",
+   "sha256": "0686bdc8e9306a6e4ccce230e3eda261fa751a8cf1967eff056904356cb749b0"
+  },
+  {
+   "path": "models/fdta/__init__.py",
+   "sha256": "7d6afcff0deb3965cc2a70f52110d983165e0cff3042692c493fab8efaa69ad6"
+  },
+  {
+   "path": "models/fdta/fdta.py",
+   "sha256": "192f147b249409b57b31893402642c5d0d44b55e91531b51b927c884c2762058"
+  },
+  {
+   "path": "models/fdta/id_criterion.py",
+   "sha256": "7e10c12fac33b97bc52f9bff99f0a45c1b51573b2f409dc1cf96f7506e3d531d"
+  },
+  {
+   "path": "models/fdta/id_decoder.py",
+   "sha256": "40548b80ea79cc17d22e3b45150f611ee1089b47bf2413ea62354c39d7b207f2"
+  },
+  {
+   "path": "models/fdta/trajectory_modeling.py",
+   "sha256": "500dbf31ba7ab5d33dea15c5d3200e510edae0d687a12baf3e17ed49e75e8e94"
+  },
+  {
+   "path": "models/ffn.py",
+   "sha256": "21f59aad811f37f62dc6ae599090d50166f7bdbe696a1afe9d71fa0e9f254b7f"
+  },
+  {
+   "path": "models/misc.py",
+   "sha256": "8cd8eebb2d6db9ae4251949bf8c725ba5170eccf1745a413037499cdffe6db33"
+  },
+  {
+   "path": "models/mlp.py",
+   "sha256": "83c078ab853a1b4de4bd64ba98c760f93f8900bc09d43933d9a73b419c68a518"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-3.11/functions/__init__.py",
+   "sha256": "e1a39c1cf23562b11d696d81f95cf8bef368c48149b681d1eadc7f6d188edd3a"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-3.11/functions/ms_deform_attn_func.py",
+   "sha256": "dd9906037ce7dc45b9ef6f39d4934bb4dddefc3e09049024496827714b6738bc"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-3.11/modules/__init__.py",
+   "sha256": "3a40cdcd146fc93c3f4ba9702924582f6502e5fcd1ceccf687e9d0e6ff2d7b5f"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-3.11/modules/ms_deform_attn.py",
+   "sha256": "96f497e71af1fbd4bd663bbf787c917f9939d52684ec71f1e839b02ccf373fec"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-cpython-312/functions/__init__.py",
+   "sha256": "e1a39c1cf23562b11d696d81f95cf8bef368c48149b681d1eadc7f6d188edd3a"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-cpython-312/functions/ms_deform_attn_func.py",
+   "sha256": "dd9906037ce7dc45b9ef6f39d4934bb4dddefc3e09049024496827714b6738bc"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-cpython-312/modules/__init__.py",
+   "sha256": "3a40cdcd146fc93c3f4ba9702924582f6502e5fcd1ceccf687e9d0e6ff2d7b5f"
+  },
+  {
+   "path": "models/ops/build/lib.linux-x86_64-cpython-312/modules/ms_deform_attn.py",
+   "sha256": "96f497e71af1fbd4bd663bbf787c917f9939d52684ec71f1e839b02ccf373fec"
+  },
+  {
+   "path": "models/ops/functions/__init__.py",
+   "sha256": "e1a39c1cf23562b11d696d81f95cf8bef368c48149b681d1eadc7f6d188edd3a"
+  },
+  {
+   "path": "models/ops/functions/ms_deform_attn_func.py",
+   "sha256": "dd9906037ce7dc45b9ef6f39d4934bb4dddefc3e09049024496827714b6738bc"
+  },
+  {
+   "path": "models/ops/modules/__init__.py",
+   "sha256": "3a40cdcd146fc93c3f4ba9702924582f6502e5fcd1ceccf687e9d0e6ff2d7b5f"
+  },
+  {
+   "path": "models/ops/modules/ms_deform_attn.py",
+   "sha256": "96f497e71af1fbd4bd663bbf787c917f9939d52684ec71f1e839b02ccf373fec"
+  },
+  {
+   "path": "models/ops/setup.py",
+   "sha256": "9675fc02e522204d6f3af59dca6dcad00b59a8b2b192e30e54f3e04279e279f2"
+  },
+  {
+   "path": "models/ops/test.py",
+   "sha256": "6066519322d749265c9983117ba8b012b35b6fbd46505d5b7842751eeb706942"
+  },
+  {
+   "path": "models/runtime_tracker.py",
+   "sha256": "aa84d789dd4183b279d832a679c48c03e908f2965a7374623028822fff61d528"
+  },
+  {
+   "path": "runtime_option.py",
+   "sha256": "1eddd465cebdf2646b23ec9c173da812b1122e50a8726d1dcde74f533ba5d3ad"
+  },
+  {
+   "path": "structures/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "structures/args.py",
+   "sha256": "ff682d2f83e5cc5e534ef2d3a6e41a34ecb78a6815111fef257c2ff13b406c0a"
+  },
+  {
+   "path": "structures/instances.py",
+   "sha256": "68a09523ad3f1ed12ec63081907f471eac71b92e6d5e5dd8473ea8a89c433772"
+  },
+  {
+   "path": "structures/ordered_set.py",
+   "sha256": "f091f379f842efdfb5c5b240a78781cf0cca976a085c027d401e34288f2f7c29"
+  },
+  {
+   "path": "submit_and_evaluate.py",
+   "sha256": "8d7568593f9d218a83a3967cf36e29e5a6c26b3cfd49c010e2e7d094283333e0"
+  },
+  {
+   "path": "tools/gen_bft_gts.py",
+   "sha256": "86d42ee2e05e54ff887483f7b569b42f261ce054ea1d8a0e3bda76229cec53e8"
+  },
+  {
+   "path": "tools/gen_crowdhuman_gts.py",
+   "sha256": "ccb58ccb24d6ec2aa73a828741c8b8d7a086640fd30c9be34cff6c7f3512dfd5"
+  },
+  {
+   "path": "tools/gen_depthmaps.py",
+   "sha256": "6d9945b810992fc99334fe5192b6ee00088e81aa5f7fceaa979d4c9f10d06ad7"
+  },
+  {
+   "path": "tools/tools.py",
+   "sha256": "6dd9944584e3792521b5693191db4323498f8251372927de3eaad8ee750b3c5d"
+  },
+  {
+   "path": "train.py",
+   "sha256": "c18d2ee52b5ceb982eef552312c71795de9cb1c608b6a5edd5e9ac38139aa991"
+  },
+  {
+   "path": "utils/__init__.py",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "path": "utils/box_ops.py",
+   "sha256": "5e24464c7268ad9485c8fdd3350099b17ff8ff543c84e2202764be426dc93e31"
+  },
+  {
+   "path": "utils/misc.py",
+   "sha256": "734f5d6597f25f62accfbdc25976faf81d11f5c0d69b49b1a0cd71fdd79a516f"
+  },
+  {
+   "path": "utils/nested_tensor.py",
+   "sha256": "5f9508a0b1d9a75fc8ea800b7c1fb56a29391ba09e93abc6820ba46d45b39ceb"
+  }
+ ],
+ "source_incomplete": [],
+ "git_dir_bytes": 284497,
+ "tier": "A+B"
+}
