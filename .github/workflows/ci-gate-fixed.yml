@@ -6,6 +6,10 @@ on:
   push:
     branches: [main, develop]
 
+# Jobs that run the checked-out code get a read-only token.
+permissions:
+  contents: read
+
 jobs:
   # Basic Mode: Simple quality check without CI gate features
   quality-check-basic:
@@ -76,12 +80,16 @@ jobs:
           name: quality-gate-failure-report
           path: report.md
 
-  # PR Comment Mode: Add analysis results as PR comment
-  pr-comment:
-    name: PR Analysis Comment
+  # PR Comment Mode: analysis and comment run in separate jobs. The analysis
+  # job runs the PR's code with a read-only token; the comment job runs no PR
+  # code and only posts the uploaded report.
+  pr-analysis:
+    name: PR Analysis
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
+      contents: read
+    outputs:
+      exit_code: ${{ steps.analysis.outputs.exit_code }}
 
     steps:
       - uses: actions/checkout@v4
@@ -103,20 +111,50 @@ jobs:
           slop-detector --project . -o report.md
           echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-analysis-report
+          path: report.md
+          if-no-files-found: ignore
+
+      - name: Fail when the analysis failed
+        if: steps.analysis.outputs.exit_code != '0'
+        run: exit 1
+
+  pr-comment:
+    name: PR Analysis Comment
+    needs: pr-analysis
+    # Same-repository PRs only: a fork PR's token cannot comment, and that
+    # must not read as an analysis failure (the analysis job reports it).
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download Report
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: pr-analysis-report
+
       # The report holds file names and messages from the PR's code: it is read
       # from the file as data, never interpolated into the script source.
       - name: Comment PR
         uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
         env:
-          ANALYSIS_EXIT: ${{ steps.analysis.outputs.exit_code }}
+          ANALYSIS_EXIT: ${{ needs.pr-analysis.outputs.exit_code }}
         with:
           script: |
             const fs = require('fs');
             const limit = 60000;  // GitHub caps a comment at 65536 characters
             let body;
             if (process.env.ANALYSIS_EXIT !== '0' || !fs.existsSync('report.md')) {
-              body = `Analysis failed (exit code ${process.env.ANALYSIS_EXIT}); no report was produced.`;
+              body = `Analysis failed (exit code ${process.env.ANALYSIS_EXIT || 'unknown'}); no report was produced.`;
             } else {
               const report = fs.readFileSync('report.md', 'utf8');
               body = report.length > limit ? report.slice(0, limit) + '\n\n(report truncated)' : report;
@@ -127,7 +165,3 @@ jobs:
               repo: context.repo.repo,
               body: '## AI Code Quality Analysis\n\n' + body
             });
-
-      - name: Fail when the analysis failed
-        if: steps.analysis.outputs.exit_code != '0'
-        run: exit 1

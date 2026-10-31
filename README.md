@@ -90,9 +90,10 @@ flowchart LR
 Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
 
 **Release track**
-- Stable tag: `v3.13.0`
-- Previous stable tag: `v3.12.0`
-- `v3.13.0`: blind hold-out benchmarks on public repositories and the fixes they pointed to: null objects, base-class defaults and framework hooks are no longer reported as placeholders, and logged `NotImplementedError` stubs, constant success reports and discarded results are. Hold-out v2 (development data): 3/12 -> 6/12 hollow found, 12 -> 4 of 828 genuine flagged. Hold-out v3 (independent draw, frozen detector, scored once): 9 of 374 and 10 of 741 genuine functions flagged; 3 of the 4 hollow functions found, too few to state a recall rate. See [benchmarks/holdout_v3/FINDINGS.md](benchmarks/holdout_v3/FINDINGS.md).
+- Stable tag: `v3.12.0`
+- Release candidate: `3.13.0` (on `main`, not tagged yet)
+- Previous stable tag: `v3.11.0`
+- `3.13.0` (candidate): blind hold-out benchmarks on public repositories and the fixes they pointed to: null objects, base-class defaults and framework hooks are no longer reported as placeholders, and logged `NotImplementedError` stubs, constant success reports and discarded results are. Hold-out v2 (development data): 3/12 -> 6/12 hollow found, 12 -> 4 of 828 genuine flagged. Hold-out v3 (independent draw, frozen detector, scored once): 9 of 374 and 10 of 741 genuine functions flagged; 3 of the 4 hollow functions found, too few to state a recall rate. See [benchmarks/holdout_v3/FINDINGS.md](benchmarks/holdout_v3/FINDINGS.md).
 - `v3.12.0`: catches code that only looks finished: stubs hidden behind logging (`return_constant_stub`), arguments returned unchanged (`return_input_stub`), catch-all handlers that return the success result (`failure_as_success`) and parameters a function never reads (`ignored_parameter`); measured on a recall corpus of lint-clean hollow code (4 of 29 found before, 18 of 29 now, 0 of 22 genuine flagged) and on 14 public repositories, with every added finding read in the source. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.11.0`: one scan engine (`ScanService`) behind the CLI, MCP and REST, with progress events, cancellation and typed errors; MCP and REST scans write nothing by default (REST history only with `"save_history": true`), the REST server binds `127.0.0.1`, and agent project responses say whether the score measured anything (`measurement_state`, `score_valid`, `reason`). Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.10.1`: function length counts logical lines and `try` / `with` are not nesting levels (far fewer false `god_function` and nesting findings); UTF-8 files with a byte order mark and single JS/TS/Go files are analyzed instead of scored as parse errors; scans of git repositories under non-ASCII folder names and HTML reports of projects no longer crash; a scan that measured nothing shows `NOT EVALUATED` and never passes `--fail-threshold`; an invalid or missing config stops the run before analysis. See [CHANGELOG.md](CHANGELOG.md).
@@ -175,7 +176,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 No project-side config needed. Run it against any folder of Python:
 
 ```bash
-pip install "ai-slop-detector>=3.13.0"
+pip install "ai-slop-detector>=3.12.0"
 slop-detector --project . --json --output slop.json
 python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
 ```
@@ -192,7 +193,7 @@ PowerShell — prefer it to `> slop.json` redirection.
 ## Quick Start
 
 ```bash
-pip install "ai-slop-detector>=3.13.0"
+pip install "ai-slop-detector>=3.12.0"
 
 slop-detector scan .                        # canonical analysis entry
 slop-detector review . --json              # canonical changed-code review
@@ -912,7 +913,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
-| **v3.13.0** | hold-out release: declared defaults (null objects, named bases, registered hooks, declared no-ops) are no longer placeholders; logged `NotImplementedError` stubs, constant success reports and discarded results are; blind hold-out v3 on 1119 functions from 47 public repositories: 19 genuine functions flagged, 3 of 4 hollow found, known limits listed; npm wrapper with provenance |
+| **3.13.0 (candidate)** | hold-out release: declared defaults (null objects, named bases, registered hooks, declared no-ops) are no longer placeholders; logged `NotImplementedError` stubs, constant success reports and discarded results are; blind hold-out v3 on 1119 functions from 47 public repositories: 19 genuine functions flagged, 3 of 4 hollow found, known limits listed; npm wrapper with provenance |
 | **v3.12.0** | detection release: stubs behind logging, unchanged-argument stubs, catch-all handlers returning the success result, ignored parameters; recall corpus 4/29 -> 18/29 hollow with 0/22 genuine flagged; external replay with every added finding read in the source; parity-checked fast replay and balanced parallel test runner for development |
 | **v3.11.0** | one engine release: CLI, MCP and REST run the same `ScanService` (CLI output unchanged over 70 compared cases); MCP and REST are read-only by default, REST history is opt-in, the REST server binds `127.0.0.1`; agent responses carry `measurement_state` / `score_valid` / `reason`; findings and scores unchanged |
 | **v3.10.1** | correctness release: `god_function` counts logical lines and nesting rises only for `if`/`for`/`while`/`except` (corpus: -608 / -471 / -472 findings, none added); BOM files and single JS/TS/Go files analyzed; crashes fixed for git repositories under non-ASCII folders and project HTML reports; `scan_coverage.measurement_state` / `score_valid` / `reason`, `NOT EVALUATED` in human reports, `--fail-threshold` fails when every file failed; strict config validation before the run; working pre-commit hook installer; `--inspector-read-only` alias of `--read-only` |

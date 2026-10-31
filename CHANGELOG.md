@@ -82,7 +82,10 @@ v3, run once on the frozen detector (`benchmarks/holdout_v3/FINDINGS.md`).
   the latest PyPI release; its PR comment reads the report from the file
   instead of placing it in the script source (a file name or finding message
   could break or inject into the script), and a failed analysis fails the job
-  instead of being posted as a report. The release workflow publishes only a
+  instead of being posted as a report. The analysis and the comment run in
+  separate jobs: the job that runs the PR's code has a read-only token, the
+  commenting job runs no PR code, and fork PRs (whose token cannot comment)
+  get no comment rather than a failed job. The release workflow publishes only a
   tagged commit on `main` whose `pyproject.toml` and `__version__` match the
   tag.
 
