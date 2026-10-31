@@ -9,13 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.13.0] - 2026-10-31
+
 Fewer findings on code that declares its defaults, a few more stubs caught,
 and blind hold-out benchmarks to measure both. The hold-out v1 and v2 numbers
 below are development data: the rules were written from those samples, so
 they are not an independent result. The independent measurement is hold-out
-v3 (`benchmarks/holdout_v3/PROTOCOL.md`, fixed before any v3 repository is
-drawn; not run yet).
+v3, run once on the frozen detector (`benchmarks/holdout_v3/FINDINGS.md`).
 
+- Hold-out v3 (1119 functions from 47 public repositories drawn after the
+  detector was frozen at `13f08e3`; labels committed before the scan; 47/47
+  measured, 0 excluded). Genuine functions flagged: A+B 9/374 (random stratum
+  4/128), AI_ASSOCIATED 10/741 (random stratum 4/248). Hollow functions found:
+  A+B 0/1, AI_ASSOCIATED 3/3. Only 4 of 1119 functions are hollow, so these
+  numbers do not establish a recall rate. The labeler is the rule author. The
+  miss and the 19 false alarms are listed with their cause; none is fixed in
+  this release, so v3 stays a measurement of the shipped rules. The source
+  shipped differs from the measured one only in the version string.
 - Hold-out benchmarks: `benchmarks/holdout` (v1, 180 functions from 35 public
   repositories) and `benchmarks/holdout_v2` (842 functions from seeded GitHub
   star-band frames), labeled from the source before any scan, with source
@@ -63,6 +73,9 @@ drawn; not run yet).
 - npm: the wrapper is published as `ai-slop-detector` with the PyPI version;
   with no Python backend installed it runs that PyPI release through `uvx` or
   `pipx`, so `npx ai-slop-detector` needs no Python install when uv is present.
+  From this release the npm package is published by the release workflow with
+  provenance.
+- Package metadata: the PyPI project links point at the public repository.
 
 ## [3.12.0] - 2026-10-26
 

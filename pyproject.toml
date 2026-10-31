@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-slop-detector"
-version = "3.12.0"
+version = "3.13.0"
 description = "Evidence-based static analyzer for detecting AI-generated code quality issues with context-aware validation"
 authors = [
     {name = "Flamehaven Labs", email = "info@flamehaven.space"}
@@ -79,10 +79,10 @@ slop-api = "slop_detector.api.server:run_server"
 slop-mcp = "slop_detector.mcp.server:main"
 
 [project.urls]
-Homepage = "https://github.com/flamehaven/ai-slop-detector"
+Homepage = "https://github.com/flamehaven01/AI-SLOP-Detector"
 Documentation = "https://ai-slop-detector.readthedocs.io"
-Repository = "https://github.com/flamehaven/ai-slop-detector"
-"Bug Tracker" = "https://github.com/flamehaven/ai-slop-detector/issues"
+Repository = "https://github.com/flamehaven01/AI-SLOP-Detector"
+"Bug Tracker" = "https://github.com/flamehaven01/AI-SLOP-Detector/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

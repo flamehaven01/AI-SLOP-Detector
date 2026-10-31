@@ -5,16 +5,30 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
-## Unreleased (main)
+## v3.13.0 — 2026-10-31
 
 ### Summary
 
 Blind hold-out benchmarks, and the fixes they pointed to. On 842 functions from
 public GitHub repositories (hold-out v2), 3.12.0 found 3 of 12 hollow functions
 and flagged 12 genuine ones, most of them null objects, base-class defaults and
-framework hooks. main finds 6 of 12 and flags 4. These are development numbers:
-the fixes were written from the same samples. The independent measurement is
-hold-out v3, whose protocol is fixed before any v3 repository is drawn.
+framework hooks. This release finds 6 of 12 and flags 4. These are development
+numbers: the fixes were written from the same samples.
+
+The independent measurement is hold-out v3: 1119 functions from 47 public
+repositories drawn after the detector was frozen, labeled and committed before
+the scan, scored once. It flagged 9 of 374 genuine functions in the A+B tier
+(4 of 128 in the random stratum) and 10 of 741 in repositories with AI
+instruction files or AI co-author trailers (4 of 248 random). Hollow code was
+rare: 4 of 1119 functions, of which 3 were found. That is too few to state a
+recall rate; the false-alarm rate is what v3 measures. The labeler is the
+rule author, so the labels are blind to the detector output but not
+independent of the rules. Details, every miss and false alarm with its cause:
+[benchmarks/holdout_v3/FINDINGS.md](../benchmarks/holdout_v3/FINDINGS.md).
+
+v3 found defects; this release fixes none of them, so v3 remains a measurement
+of the rules that ship. The shipped source differs from the measured commit
+`13f08e3` only in the version string.
 
 ### What moves when you upgrade
 
@@ -58,6 +72,19 @@ hold-out v3, whose protocol is fixed before any v3 repository is drawn.
 - An ignored input whose call site is in another module, and a hollow result
   only the meaning of names reveals (a "mail sent" with no recipient), are not
   found.
+- From hold-out v3, not fixed in this release:
+  - An empty `pass` body under a registering decorator is treated as declared
+    (`@register(...) def load_checkpoint(...): pass` is not reported); the one
+    v3 miss.
+  - `ignored_parameter` gave 1 true and 9 false flags: parameters kept by a
+    signature that siblings, a framework callback (a DSPy metric's `trace`) or
+    a base interface fix.
+  - `return_constant_stub` gave 0 true and 7 false flags: functions whose name
+    or docstring says the constant is the answer (`*_prompt`, `*_message`,
+    `create_done_message`, a `@tool` acknowledgement, a local `ping`).
+  - 5 interface no-ops are reported when their base is outside the module or
+    their reason is only in a comment, including a `@singledispatch` default
+    that raises `NotImplementedError`.
 
 ---
 
