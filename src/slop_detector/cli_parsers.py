@@ -143,6 +143,17 @@ Examples:
         help="Exit with code 1 if slop score exceeds threshold",
     )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+    parser.add_argument(
+        "--details",
+        action="store_true",
+        help="Show the full report tables in the terminal instead of the one-screen summary",
+    )
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Print one summary line (for CI logs); exit codes are unchanged",
+    )
     parser.add_argument("--version", action="version", version=f"ai-slop-detector {__version__}")
     parser.add_argument(
         "--no-color", action="store_true", help="Disable rich output (force plain text)"

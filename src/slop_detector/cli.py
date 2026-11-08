@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+import time
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -78,6 +79,15 @@ def _scan_request(args) -> ScanRequest:
             WritePolicy.READ_ONLY if getattr(args, "read_only", False) else WritePolicy.CACHE_ONLY
         ),
     )
+
+
+def _progress(args):
+    """The one-line terminal progress for a scan printed to the screen, or None."""
+    if args.json or getattr(args, "quiet", False) or args.output or getattr(args, "ci_report", False):
+        return None
+    from slop_detector.renderer_terminal import Progress
+
+    return Progress()
 
 
 def _report_scan_failure(exc: ScanFailedError) -> int:
@@ -353,7 +363,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if Path(args.path).is_dir() and not args.project:
         args.project = True
-        logging.info("Directory detected, enabling --project mode")
+        logging.debug("Directory detected, enabling --project mode")
 
     # Auto-detect .slopconfig.yaml when --config is not specified.
     # In project mode the config lives in the project root; in single-file
@@ -369,11 +379,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     # The CLI keeps its own gate, threshold and history steps (their order and
     # output); the scan itself runs through the same service as the GUI.
+    started = time.perf_counter()
     try:
-        outcome = ScanService().run(_scan_request(args))
+        outcome = ScanService().run(_scan_request(args), on_event=_progress(args))
     except ScanFailedError as exc:
         return _report_scan_failure(exc)
     result = outcome.result
+    args.elapsed = time.perf_counter() - started
 
     # --ci-mode (and --ci-claims-strict) add an exit policy to the normal scan;
     # only --ci-report replaces the normal report with the gate report.

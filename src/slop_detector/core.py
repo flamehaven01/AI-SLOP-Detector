@@ -212,7 +212,7 @@ class SlopDetector:
         """analyze_file inside a project-context scope."""
         path_obj = Path(file_path).resolve()
         file_path = str(path_obj)
-        logger.info(f"Analyzing: {file_path}")
+        logger.debug(f"Analyzing: {file_path}")
         facts = facts_for(path_obj, root)
         # Path facts depend on the root, so they are part of the cache key: the
         # same file scanned under two roots must not reuse the other's result.
@@ -382,7 +382,7 @@ class SlopDetector:
             project_path_obj, [pattern], {".py"}, ignore_patterns
         )
 
-        logger.info(f"Found {len(python_files)} Python files in {project_path}")
+        logger.debug(f"Found {len(python_files)} Python files in {project_path}")
         # Every language is discovered before any file is analyzed, so the
         # totals are known up front; analysis order stays Python, JS/TS, Go.
         js_files = self._discover_js_files(project_path_obj, ignore_patterns)

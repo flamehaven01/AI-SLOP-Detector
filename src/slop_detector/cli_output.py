@@ -69,7 +69,7 @@ def _write_json_output(args, result) -> None:
         print(output)
 
 
-def _route_file_output(out: str, result, rich_ok: bool) -> None:
+def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, elapsed=None) -> None:
     """Write result to file or console based on output extension and flags."""
     from slop_detector.cli_renderer import (
         generate_html_report,
@@ -87,8 +87,14 @@ def _route_file_output(out: str, result, rich_ok: bool) -> None:
     if out:
         _write_file(out, generate_text_report(result))
         return
-    if rich_ok:
+    if rich_ok and details:
         print_rich_report(result)
+        return
+    if rich_ok:
+        from slop_detector.renderer_terminal import print_summary
+        from slop_detector.report_view import build_report_view
+
+        print_summary(build_report_view(result), elapsed=elapsed)
         return
     print(generate_text_report(result))
 
@@ -101,4 +107,13 @@ def _handle_output(args, result) -> None:
         _write_json_output(args, result)
         return
     out = str(args.output) if args.output else ""
-    _route_file_output(out, result, RICH_AVAILABLE and not args.no_color)
+    if getattr(args, "quiet", False) and not out:
+        from slop_detector.renderer_terminal import quiet_line
+        from slop_detector.report_view import build_report_view
+
+        print(quiet_line(build_report_view(result)))
+        return
+    _route_file_output(
+        out, result, RICH_AVAILABLE and not args.no_color,
+        details=bool(getattr(args, "details", False)), elapsed=getattr(args, "elapsed", None),
+    )

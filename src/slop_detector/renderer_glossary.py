@@ -257,6 +257,29 @@ def coherence_display(result: Any) -> Dict[str, str]:
     }
 
 
+def _open_findings(result: Any) -> str:
+    """The step for a score below every threshold that still has pattern
+    findings: the band stays (it measures the score), the advice does not
+    say there is nothing to do."""
+    from slop_detector.finding_summary import get_finding_summary
+
+    summary = get_finding_summary(result) if hasattr(result, "file_results") else {}
+    total = int(summary.get("total", 0) or 0)
+    if not total:
+        return ""
+    severity = summary.get("severity", {}) or {}
+    urgent = int(severity.get("critical", 0) or 0) + int(severity.get("high", 0) or 0)
+    if urgent:
+        return (
+            f"The score is below every threshold, but {total} pattern finding(s) are open, "
+            f"{urgent} of them critical or high: review those before accepting this scan."
+        )
+    return (
+        f"The score is below every threshold; {total} lower-severity pattern finding(s) "
+        "are open for review."
+    )
+
+
 def next_steps(result: Any) -> List[str]:
     """Deterministic, 1-3 actionable next steps based on the metrics.
 
@@ -271,6 +294,9 @@ def next_steps(result: Any) -> List[str]:
     hotspots = getattr(result, "priority_hotspots", []) or []
 
     if not bad and not warn and deficit_files == 0:
+        open_findings = _open_findings(result)
+        if open_findings:
+            return [open_findings]
         return [
             "All metrics are healthy - no action needed. "
             "Add `slop-detector --project . --ci-mode hard` to CI to keep it that way."
