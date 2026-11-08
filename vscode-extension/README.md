@@ -1,4 +1,4 @@
-# AI SLOP Detector — VS Code Extension v3.8.9
+# AI SLOP Detector — VS Code Extension v3.13.0
 
 Real-time AI-generated code quality analysis inside VS Code. Surfaces
 deficit scores, structural anti-patterns, ML signals, clone detection,
@@ -6,6 +6,14 @@ interactive webview reports, and actionable diagnostics without leaving your
 editor.
 
 ---
+
+## What's New in v3.13.0 — Version Aligned with the 3.13.0 Core
+
+The extension package is version-aligned with the 3.13.0 core again (it had
+stayed at 3.8.9 since the 3.9.x releases). It adds no extension workflow
+change: views and diagnostics read the same JSON fields, and they now show
+the findings of the 3.13.0 backend. The version shown in the output channel
+is read from the extension manifest.
 
 ## What's New in v3.8.9 — Core Trust and Measurement Alignment
 
@@ -327,7 +335,7 @@ ext install Flamehaven.vscode-slop-detector
 ### From VSIX (Local)
 
 ```bash
-code --install-extension vscode-slop-detector-3.8.9.vsix
+code --install-extension vscode-slop-detector-3.13.0.vsix
 ```
 
 ---
@@ -467,6 +475,9 @@ Press **F5** to open Extension Development Host. The Output panel channel
 ## Changelog
 
 See the [full CHANGELOG](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md).
+
+**v3.13.0:** Extension package version-aligned with the 3.13.0 core (it had
+stayed at 3.8.9); the output channel reads the version from the manifest.
 
 **v3.8.9:** Extension package aligned with the core evidence boundary. Backend
 results now expose finding totals, scan coverage, and ML capability state, so a
