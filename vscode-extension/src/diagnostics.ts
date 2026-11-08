@@ -111,14 +111,26 @@ export function updateDiagnostics(uri: vscode.Uri, result: any): void {
         let diagSev = vscode.DiagnosticSeverity.Information;
         if (sev === 'critical')    { diagSev = vscode.DiagnosticSeverity.Error; }
         else if (sev === 'high')   { diagSev = vscode.DiagnosticSeverity.Warning; }
-        const msg = issue.suggestion
-            ? `${issue.message || 'Pattern issue'}\nSuggestion: ${issue.suggestion}`
-            : (issue.message || 'Pattern issue detected');
+        // One line; the fix is in the hover (and the AI copy), so VS Code's own
+        // diagnostic hover above it does not repeat a long text.
+        const msg = issue.message || 'Pattern issue detected';
         const l = Math.max(0, (issue.line || 1) - 1);
         diagnostics.push(makeDiag(
             new vscode.Range(l, issue.column || 0, l, 1000),
             msg, diagSev, 'SLOP Detector - Patterns', issue.pattern_id,
         ));
+    }
+
+    // Hollow review candidates: a separate, lower level, never an error or a
+    // warning (they are not scored and not verdicts).
+    if (config.get<boolean>('showHollowCandidates', true)) {
+        for (const c of result.semantic_findings ?? []) {
+            diagnostics.push(makeDiag(
+                lineRange(c.line),
+                `Hollow review (not scored): ${c.kind} in ${c.function}`,
+                vscode.DiagnosticSeverity.Information, 'SLOP Detector - Hollow review', c.kind,
+            ));
+        }
     }
 
     diagnosticCollection.set(uri, diagnostics);

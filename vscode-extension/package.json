@@ -42,7 +42,9 @@
     "onLanguage:python",
     "onLanguage:javascript",
     "onLanguage:typescript",
-    "onLanguage:go"
+    "onLanguage:go",
+    "onCommand:slop-detector.exportReport",
+    "onCommand:slop-detector.openReport"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -146,6 +148,23 @@
         "title": "Show Changed-Code Review (diff-aware)",
         "category": "SLOP Detector",
         "icon": "$(git-compare)"
+      },
+      {
+        "command": "slop-detector.exportReport",
+        "title": "Export Report (HTML / PDF / Markdown / AI)",
+        "category": "SLOP Detector",
+        "icon": "$(export)"
+      },
+      {
+        "command": "slop-detector.openReport",
+        "title": "Open Report in VS Code",
+        "category": "SLOP Detector",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "slop-detector.copyItemForAgent",
+        "title": "Copy Item for an AI Agent",
+        "category": "SLOP Detector"
       }
     ],
     "viewsContainers": {
@@ -177,6 +196,22 @@
           "command": "slop-detector.refreshTree",
           "when": "view == slopDetector.fileTree && slop.hasAnalyzed",
           "group": "navigation"
+        },
+        {
+          "command": "slop-detector.openReport",
+          "when": "view == slopDetector.fileTree && slop.hasAnalyzed",
+          "group": "navigation@2"
+        },
+        {
+          "command": "slop-detector.exportReport",
+          "when": "view == slopDetector.fileTree && slop.hasAnalyzed",
+          "group": "navigation@3"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "slop-detector.copyItemForAgent",
+          "when": "false"
         }
       ]
     },
@@ -211,10 +246,15 @@
           "default": false,
           "description": "Run analysis while typing (may impact performance)"
         },
+        "slopDetector.analyzeOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Analyze a file when it is opened or brought to the front (once, until it is saved again)"
+        },
         "slopDetector.showInlineWarnings": {
           "type": "boolean",
           "default": true,
-          "description": "Show inline warnings in editor"
+          "description": "Show the line's finding at the end of the line (the line under the cursor always shows it)"
         },
         "slopDetector.failThreshold": {
           "type": "number",
@@ -280,6 +320,16 @@
           },
           "default": [],
           "description": "Module names to skip in phantom_import detection (e.g. project-local flat modules). Mirrors phantom_import_allowlist in .slopconfig.yaml — entries here are shown in QuickFix suggestions."
+        },
+        "slopDetector.highlightLines": {
+          "type": "boolean",
+          "default": true,
+          "description": "Tint flagged lines by severity, mark them in the scroll bar, and frame the flagged line under the cursor"
+        },
+        "slopDetector.showHollowCandidates": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show hollow review candidates (not scored; backend 3.14+) in Problems, the editor and the Issues view"
         }
       }
     },

@@ -23,9 +23,11 @@ export function setLintTimer(t: ReturnType<typeof setTimeout> | undefined): void
 export const fileResults: Map<string, any> = new Map();
 let _treeRefresh:     (() => void) | undefined;
 let _codeLensRefresh: (() => void) | undefined;
+let _highlightRefresh: (() => void) | undefined;
 
 export function setTreeRefreshCallback(cb: () => void): void     { _treeRefresh = cb; }
 export function setCodeLensRefreshCallback(cb: () => void): void { _codeLensRefresh = cb; }
+export function setHighlightRefreshCallback(cb: () => void): void { _highlightRefresh = cb; }
 
 export function isFlaggedResult(result: any): boolean {
     return (result?.deficit_score || 0) >= 30 || result?.status !== 'clean';
@@ -43,6 +45,7 @@ export function updateFileResult(filePath: string, result: any): void {
     syncUiContext();
     _treeRefresh?.();
     _codeLensRefresh?.();
+    _highlightRefresh?.();
 }
 
 export function replaceFileResults(results: any[]): void {
@@ -55,4 +58,5 @@ export function replaceFileResults(results: any[]): void {
     syncUiContext();
     _treeRefresh?.();
     _codeLensRefresh?.();
+    _highlightRefresh?.();
 }

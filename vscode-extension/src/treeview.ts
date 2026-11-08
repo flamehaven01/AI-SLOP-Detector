@@ -4,6 +4,11 @@ import { fileResults, isFlaggedResult } from './state';
 
 type ItemType = 'empty' | 'file' | 'metric' | 'issue';
 
+function hollowCount(result: any): number {
+    if (!vscode.workspace.getConfiguration('slopDetector').get<boolean>('showHollowCandidates', true)) { return 0; }
+    return (result?.semantic_findings ?? []).length;
+}
+
 class SlopItem extends vscode.TreeItem {
     constructor(
         label: string,
@@ -32,7 +37,7 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
 
     private _rootItems(): SlopItem[] {
         const entries = [...fileResults.entries()]
-            .filter(([, r]) => isFlaggedResult(r))
+            .filter(([, r]) => isFlaggedResult(r) || hollowCount(r) > 0)
             .sort(([, a], [, b]) => (b.deficit_score || 0) - (a.deficit_score || 0));
 
         // Empty -> return [] so the declarative viewsWelcome renders the
@@ -48,16 +53,18 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
         const score  = result.deficit_score || 0;
         const status = result.status || 'unknown';
         const issues = (result.pattern_issues ?? []).length;
+        const hollow = hollowCount(result);
 
         const item = new SlopItem(
             path.basename(filePath),
-            issues > 0
+            issues + hollow > 0
                 ? vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
             'file', filePath,
         );
-        item.description = `${score.toFixed(1)}  ${status.toUpperCase()}`;
-        item.tooltip     = `${filePath}\nDeficit: ${score.toFixed(1)}/100  Issues: ${issues}`;
+        item.description = `${score.toFixed(1)}  ${status.toUpperCase()}` + (hollow ? `  · ${hollow} hollow` : '');
+        item.tooltip     = `${filePath}\nDeficit: ${score.toFixed(1)}/100  Issues: ${issues}` +
+            (hollow ? `\nHollow review candidates (not scored): ${hollow}` : '');
         item.iconPath    = score >= 50
             ? new vscode.ThemeIcon('error',   new vscode.ThemeColor('errorForeground'))
             : score >= 30
@@ -124,6 +131,23 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
             };
             it.contextValue = sev === 'critical' ? 'slopIssueCritical' : 'slopIssue';
             children.push(it);
+        }
+
+        if (vscode.workspace.getConfiguration('slopDetector').get<boolean>('showHollowCandidates', true)) {
+            for (const c of result.semantic_findings ?? []) {
+                const line = c.line || 1;
+                const it = new SlopItem(`${c.kind}  L${line}`, vscode.TreeItemCollapsibleState.None, 'issue', filePath, c);
+                it.description = `hollow review, not scored · ${c.function}`;
+                it.tooltip = `Hollow review candidate (not scored): evidence for a review, not a verdict.\n${c.function}: ${c.evidence ?? ''}`;
+                it.iconPath = new vscode.ThemeIcon('search', new vscode.ThemeColor('charts.purple'));
+                it.command = {
+                    command: 'vscode.open',
+                    title: 'Go to candidate',
+                    arguments: [vscode.Uri.file(filePath), { selection: new vscode.Range(line - 1, 0, line - 1, 0) }],
+                };
+                it.contextValue = 'slopHollow';
+                children.push(it);
+            }
         }
 
         return children;

@@ -107,6 +107,28 @@ export interface FileAnalysisOutput {
   flags?: string[];
   /** Patterns that raised on this file (not findings): {pattern_id, error_type, state}. */
   pattern_errors?: Array<{ pattern_id: string; error_type: string; state: string }>;
+  /** Hollow review candidates (3.14+): evidence for a review, never scored. */
+  semantic_findings?: SemanticFinding[];
+  /** What the hollow channel measured on this file (3.14+). */
+  semantic_coverage?: SemanticCoverage;
+}
+
+export interface SemanticFinding {
+  function: string;
+  kind: string;
+  line: number;
+  inputs?: string[];
+  evidence?: string;
+  status?: "REVIEW_CANDIDATE";
+}
+
+export interface SemanticCoverage {
+  state?: "MEASURED" | "SKIPPED" | "UNMEASURED";
+  functions?: number;
+  effect_states?: Record<string, number>;
+  unknown_reasons?: Record<string, number>;
+  open_call_details?: Record<string, number>;
+  error_type?: string;
 }
 
 export interface PolyglotFileOutput extends JsonObject {
