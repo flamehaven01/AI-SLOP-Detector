@@ -83,7 +83,9 @@ def _scan_request(args) -> ScanRequest:
 
 def _progress(args):
     """The one-line terminal progress for a scan printed to the screen, or None."""
-    if args.json or getattr(args, "quiet", False) or args.output or getattr(args, "ci_report", False):
+    if args.json or getattr(args, "ai", False) or getattr(args, "quiet", False) or args.output or getattr(
+        args, "ci_report", False
+    ):
         return None
     from slop_detector.renderer_terminal import Progress
 
@@ -280,6 +282,7 @@ def _activate_read_only(args) -> Optional[str]:
 
     incompatible = {
         "--output": bool(getattr(args, "output", None)),
+        "--report-dir": bool(getattr(args, "report_dir", None)),
         "--fix": bool(getattr(args, "fix", False)),
         "--dry-run": bool(getattr(args, "dry_run", False)),
         "--governance": bool(getattr(args, "governance", False)),

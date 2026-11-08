@@ -1,9 +1,11 @@
 # Reports: what the detector shows, to whom, and how
 
-Status: **contract approved for the 3.14 line; implementation in progress.**
-Implemented so far: the report view, the terminal summary, `--quiet`,
-`--details`, terminal progress and the Markdown hollow section (O2). Every
-other section is the contract the next steps are built against.
+Status: **contract approved for the 3.14 line; implemented (O2-O4).** The
+report view, the terminal summary (`--quiet`, `--details`, progress), the
+Markdown hollow section, the HTML report and its A4 PDF, the AI report
+(`--format ai`, MCP `slop_ai_report`, npm `aiReport()`) and the bundle
+(`--report-dir`). Showing hollow candidates in the VS Code extension is
+still open (section 8).
 
 ## 1. Two audiences, one source of truth
 
@@ -158,33 +160,24 @@ with no network access and no script from the repository.
 ## 7. AI report: `ai-slop-report/1`
 
 For an agent only: JSON Lines, one record per line, stable order, every item
-bound to the source it was computed from. The first record carries the
-schema version, tool and engine version, target and measurement state; each
-following record is one finding or candidate. Short explanations are fields
-of a record, never free text between records. The block below shows the
-fields in a compact form (shape only; values are illustrative); the emitted
-format is JSONL.
+bound to the source it was computed from. The first record is the header:
+schema, tool and engine version, target, measurement state per channel,
+counts, and the rules shared by every item (`hold_if`, `forbid`, `verify`,
+`prove`), stated once so items stay short. Each following record is one
+finding (by severity) or hollow candidate. Output of a two-function demo,
+abridged (`...` marks cut fields):
 
 ```
-ai-slop-report/1 tool=3.14.0 engine=analysis-cache-v48 target=src/ sha=<tree digest>
-state: pattern=MEASURED semantic=MEASURED files=9/9
-hold_if: source sha differs | state != MEASURED for the item's channel
-
-F1 FINDING god_function HIGH ml/pipeline.py:351 src=<sha256>
-  evidence: complexity 14, limit 10
-  fix: split the function along its branches; keep behavior
-  forbid: suppression comment, threshold or config change, deleting the function
-  prove (suggestion): re-scan ml/pipeline.py -> F1 absent, no new item; tests pass
-
-C1 REVIEW_CANDIDATE success_without_effect ml/data_collector.py:40 src=<sha256>
-  evidence: returns True; calls in the closed graph have no effect (2/2)
-  verify: is a real effect expected here? if yes -> fix; if no -> reject with reason
-  ...
+{"schema": "ai-slop-report/1", "record": "header", "tool": "ai-slop-detector", "version": "3.14.0", "engine": "analysis-cache-v48", "target": "demo", "files": 1, "score": 12.5, "status": "CLEAN", "measurement": {"pattern": "COMPLETE", "hollow": "MEASURED"}, "findings": 2, "candidates": 3, ..., "emitted": 5, "truncated": 0, "loop": ["VERIFY", "ACK_OR_REJECT", "FIX", "PROVE", "REPORT"], "hold_if": [...], "forbid": [...], "verify": {...}, "prove": {...}}
+{"record": "item", "id": "F25121da30296", "kind": "FINDING", "rule": "return_none_placeholder", "severity": "medium", "file": "pkg/store.py", "line": 4, "source_sha256": "ae59...", "channel_state": "COMPLETE", "evidence": "Function only returns None - likely placeholder", "fix": "Implement the function or clarify intent"}
+{"record": "item", "id": "Cda889280e711", "kind": "REVIEW_CANDIDATE", "rule": "failure_reported_as_success", "severity": null, "file": "pkg/store.py", "line": 21, "source_sha256": "ae59...", "channel_state": "MEASURED", "evidence": "send: a catch-all handler swallows the failure and the function goes on to report success", "fix": "NOT-APPLICABLE: decide in VERIFY first"}
 ```
 
-- Per item: id, kind, rule, severity or candidate, locator `file:line`, the
-  file's SHA-256, one-line evidence, fix direction, forbidden fixes, a prove
-  command and its expected result.
+- Per item: a stable id (from kind, rule, path and line), kind, rule,
+  severity (null for a candidate), path relative to the target, line, the
+  file's SHA-256, the channel's state, one-line evidence and the fix
+  direction. The models in `ai_report.py` are the schema (`schema()` gives
+  it as JSON Schema).
 - `prove` is a verification suggestion, not a command for an agent to run
   unattended; nothing taken from the analyzed repository is executed. Running
   it needs an approved test profile and environment boundary.
@@ -203,19 +196,19 @@ C1 REVIEW_CANDIDATE success_without_effect ml/data_collector.py:40 src=<sha256>
 | Entry point | What it gets |
 |---|---|
 | CLI | sections 3-7 |
-| npm wrapper (`npx ai-slop-detector ...`) | the same flags passed through; typed result keeps the JSON |
-| MCP / agent route | the AI report (and JSON on request) |
-| VS Code extension | findings as diagnostics as today; hollow candidates as a separate, lower-level "review" list, never as errors |
+| npm wrapper | `npx ai-slop-detector ...` passes every flag through; `aiReport(target, { limit })` returns the parsed records (typed in `types.d.ts`) |
+| MCP | tool `slop_ai_report` (`target`, `limit`): the JSON Lines as text and the records as `structuredContent`; the JSON snapshots stay on `slop_analyze_file` / `slop_analyze_project` |
+| VS Code extension | findings as diagnostics as today; hollow candidates as a separate, lower-level "review" list, never as errors (open) |
 
 ## 9. Build order
 
 | Step | Work | Check |
 |---|---|---|
-| O1 | this contract, reviewed | approval |
-| O2 | `ReportView` + Markdown + terminal (sections 3, 5) | renderer tests, rule 3/4/5 controls (UNMEASURED never "0", headline matches findings) |
-| O3 | AI report + schema (section 7) | schema validation, fail-closed test, one agent loop run on a sample |
-| O4 | HTML + print CSS (section 6) | three sample sizes, page-by-page PDF check |
-| O5 | `-o .pdf`, `--report-dir`, `--format ai`, npm / MCP / VS Code (sections 4, 8) | CLI smoke on each entry point |
+| O1 | this contract, reviewed | approved |
+| O2 | `ReportView` + Markdown + terminal (sections 3, 5) | done: renderer tests and controls (UNMEASURED never "0", the advice matches the findings), 3.13 / 3.14 comparison on one interpreter |
+| O3 | HTML + print CSS + PDF (section 6) | done: three sample sizes, page-by-page PDF check |
+| O4 | AI report + schema, `--format ai`, `--report-dir`, MCP, npm (sections 4, 7, 8) | done: schema and fail-closed tests, bundle failure contract, MCP and npm tests |
+| next | VS Code review list | before the 3.14 release |
 
 ## 10. Decisions
 

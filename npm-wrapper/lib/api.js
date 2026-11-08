@@ -143,7 +143,23 @@ function explain(identifier, options = {}) {
   return runJsonCommand(["explain", identifier, "--format", "json"], options);
 }
 
+/** The AI report ai-slop-report/1 of a file or project: the parsed JSON Lines
+ *  (records[0] is the header). The backend validates the report before it
+ *  writes it; a failed check rejects with its exit code. */
+async function aiReport(target = ".", options = {}) {
+  const args = ["scan", target, "--format", "ai"];
+  if (options.limit !== undefined) {
+    args.push("--ai-limit", String(options.limit));
+  }
+  const { stdout } = await runTextCommand(args, options);
+  return stdout
+    .split(/\r?\n/)
+    .filter((line) => line.trim())
+    .map((line) => JSON.parse(line));
+}
+
 module.exports = {
+  aiReport,
   computeHealth,
   explain,
   reviewChanges,

@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const { EventEmitter } = require("node:events");
 
 const {
+  aiReport,
   computeHealth,
   reviewChanges,
   runCleanupFamily,
@@ -167,3 +168,17 @@ test("runJsonCommand rejects with actionable parse context", async () => {
   );
 });
 
+
+test("aiReport runs scan --format ai and parses JSON Lines", async () => {
+  const header = { schema: "ai-slop-report/1", record: "header", emitted: 1, truncated: 2 };
+  const item = { record: "item", id: "F1", kind: "FINDING" };
+  const records = await aiReport("src", {
+    limit: 1,
+    candidate: { command: "ai-slop-detector", args: [] },
+    spawnImpl(command, args) {
+      assert.deepEqual(args, ["scan", "src", "--format", "ai", "--ai-limit", "1"]);
+      return createChild({ stdout: JSON.stringify(header) + "\r\n" + JSON.stringify(item) + "\n" });
+    },
+  });
+  assert.deepEqual(records, [header, item]);
+});

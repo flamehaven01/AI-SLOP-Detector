@@ -7,7 +7,7 @@
   "main": "./lib/api.js",
   "types": "./types.d.ts",
   "bin": {
-    "ai-slop-detector": "./bin/ai-slop-detector.js"
+    "ai-slop-detector": "bin/ai-slop-detector.js"
   },
   "exports": {
     ".": "./lib/api.js",

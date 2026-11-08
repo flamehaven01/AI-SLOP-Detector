@@ -59,8 +59,20 @@ Examples:
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument(
         "--format",
-        choices=["json"],
-        help="Structured output format alias (currently supports: json)",
+        choices=["json", "ai"],
+        help="Structured output: json (the full result) or ai (the AI report, JSON Lines)",
+    )
+    parser.add_argument(
+        "--ai-limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help="With --format ai or --report-dir: at most N items in the AI report (the header counts the rest)",
+    )
+    parser.add_argument(
+        "--report-dir",
+        metavar="DIR",
+        help="Write report.md, report.html, report.pdf, ai-report.jsonl and scan.json to DIR",
     )
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument(
@@ -378,3 +390,4 @@ def _normalize_format_args(args) -> None:
     """Map format aliases onto existing boolean output flags."""
     if getattr(args, "format", None) == "json":
         args.json = True
+    args.ai = getattr(args, "format", None) == "ai"

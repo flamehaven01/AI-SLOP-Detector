@@ -61,6 +61,24 @@ def _tool_definitions() -> list[dict[str, Any]]:
                 "additionalProperties": False,
             },
         },
+        {
+            "name": "slop_ai_report",
+            "description": (
+                "Return the AI report ai-slop-report/1 (JSON Lines) of a file or project: a header "
+                "with measurement state and the shared verify / forbid / prove rules, then one "
+                "record per finding or hollow review candidate bound to its file's SHA-256."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string"},
+                    "config_path": {"type": "string"},
+                    "limit": {"type": "integer", "minimum": 0},
+                },
+                "required": ["target"],
+                "additionalProperties": False,
+            },
+        },
     ]
 
 
@@ -88,6 +106,11 @@ def _surface_manifest() -> AgentSurfaceManifest:
                 "path": "tool:slop_analyze_project",
                 "method": "CALL",
                 "description": "Return a structured snapshot for a full project analysis",
+            },
+            {
+                "path": "tool:slop_ai_report",
+                "method": "CALL",
+                "description": "Return the AI report ai-slop-report/1 (JSON Lines) for a file or project",
             },
         ],
         notes=[
@@ -161,6 +184,28 @@ def _analyze_project(arguments: Dict[str, Any]) -> Dict[str, Any]:
     return _tool_result(AgentProjectResponse.from_result(result).model_dump())
 
 
+def _ai_report(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """The validated AI report: JSON Lines as text, the records as structuredContent."""
+    from slop_detector.ai_report import AiReportInvalid, render_ai_report
+
+    target = Path(arguments["target"])
+    if not target.exists():
+        return _tool_result({"error": "target_not_found", "target": str(target)}, is_error=True)
+    mode = "project" if target.is_dir() else "python_file"
+    try:
+        text = render_ai_report(_scan(target, mode, arguments.get("config_path")), arguments.get("limit"))
+    except ScanFailedError as exc:
+        return _tool_result({"error": "unsupported_language", "target": str(target), "detail": exc.detail}, is_error=True)
+    except AiReportInvalid as exc:
+        return _tool_result({"error": "ai_report_invalid", "detail": str(exc)}, is_error=True)
+    records = [json.loads(line) for line in text.splitlines()]
+    return {
+        "content": [{"type": "text", "text": text}],
+        "structuredContent": {"schema": records[0]["schema"], "records": records},
+        "isError": False,
+    }
+
+
 def _call_tool(name: str, arguments: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     arguments = arguments or {}
     if name == "slop_schema":
@@ -173,6 +218,10 @@ def _call_tool(name: str, arguments: Optional[Dict[str, Any]]) -> Dict[str, Any]
         if "project_path" not in arguments:
             return _tool_result({"error": "missing_project_path"}, is_error=True)
         return _analyze_project(arguments)
+    if name == "slop_ai_report":
+        if "target" not in arguments:
+            return _tool_result({"error": "missing_target"}, is_error=True)
+        return _ai_report(arguments)
     return _tool_result({"error": "unknown_tool", "tool_name": name}, is_error=True)
 
 

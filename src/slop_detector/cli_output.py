@@ -115,10 +115,47 @@ def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, el
     print(generate_text_report(result))
 
 
+def _write_ai_report(args, result) -> None:
+    """The AI report (JSON Lines) to stdout or --output; never an invalid one."""
+    from slop_detector.ai_report import AiReportInvalid, render_ai_report
+
+    try:
+        text = render_ai_report(result, getattr(args, "ai_limit", None))
+    except AiReportInvalid as exc:
+        print(f"[!] {exc}; nothing was written", file=sys.stderr)
+        raise SystemExit(2) from exc
+    if args.output:
+        _write_file(str(args.output), text, "AI report")
+    else:
+        sys.stdout.write(text)
+
+
+def _report_bundle(args, result) -> None:
+    """--report-dir: list what was written and what was not; exit 2 when the
+    bundle is incomplete."""
+    from slop_detector.report_bundle import write_bundle
+
+    written, failed = write_bundle(result, args.report_dir, getattr(args, "ai_limit", None))
+    print(f"[+] Reports in {args.report_dir}: {', '.join(written) or 'none'}")
+    for name, why in failed:
+        print(f"[!] not written: {name} - {why}", file=sys.stderr)
+    if failed:
+        raise SystemExit(2)
+
+
 def _handle_output(args, result) -> None:
     """Route analysis result to the appropriate output format."""
     from slop_detector.cli_renderer import RICH_AVAILABLE
 
+    _handle_screen_output(args, result, RICH_AVAILABLE)
+    if getattr(args, "report_dir", None):
+        _report_bundle(args, result)
+
+
+def _handle_screen_output(args, result, rich_available: bool) -> None:
+    if getattr(args, "ai", False):
+        _write_ai_report(args, result)
+        return
     if args.json:
         _write_json_output(args, result)
         return
@@ -130,6 +167,6 @@ def _handle_output(args, result) -> None:
         print(quiet_line(build_report_view(result)))
         return
     _route_file_output(
-        out, result, RICH_AVAILABLE and not args.no_color,
+        out, result, rich_available and not args.no_color,
         details=bool(getattr(args, "details", False)), elapsed=getattr(args, "elapsed", None),
     )
