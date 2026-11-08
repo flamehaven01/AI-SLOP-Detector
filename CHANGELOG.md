@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.13.0] - 2026-10-31
+## [3.13.0] - 2026-11-08
 
 Fewer findings on code that declares its defaults, and a few more stubs caught.
 
@@ -61,6 +61,9 @@ Fewer findings on code that declares its defaults, and a few more stubs caught.
   get no comment rather than a failed job. The release workflow publishes only a
   tagged commit on `main` whose `pyproject.toml` and `__version__` match the
   tag.
+- VS Code extension: version-aligned with the core at 3.13.0 (it had stayed at
+  3.8.9 through the 3.9.x-3.12.x releases); the output channel reads the
+  version from the extension manifest instead of a fixed string.
 
 ## [3.12.0] - 2026-10-26
 

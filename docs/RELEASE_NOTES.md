@@ -5,7 +5,7 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
-## v3.13.0 — 2026-10-31
+## v3.13.0 — 2026-11-08
 
 ### Summary
 
@@ -33,6 +33,8 @@ hooks that declare their defaults, and a few more stubs caught.
   throws away.
 - Scores of files with declared defaults go down; the scoring formula, bands
   and JSON keys are unchanged. Analysis cache `analysis-cache-v37`.
+- **The VS Code extension carries the core's version again** (3.13.0; it had
+  stayed at 3.8.9). Its views read the same JSON fields as before.
 
 ### Known limitations
 

@@ -4,8 +4,8 @@
 
 | Version | Supported |
 |---|---|
-| 3.12.x (latest release) | Yes |
-| < 3.12 | No: upgrade to the latest release |
+| 3.13.x (latest release) | Yes |
+| < 3.13 | No: upgrade to the latest release |
 
 Fixes are released as a new patch version on PyPI (`ai-slop-detector`) and npm
 (`ai-slop-detector`, the wrapper of the same version).
