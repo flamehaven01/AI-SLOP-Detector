@@ -34,7 +34,7 @@ from slop_detector.models import (
 from slop_detector.patterns.base import Axis, Issue, Severity
 from slop_detector.semantic import SemanticFinding
 
-CACHE_ENGINE_VERSION = "analysis-cache-v44"
+CACHE_ENGINE_VERSION = "analysis-cache-v45"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 

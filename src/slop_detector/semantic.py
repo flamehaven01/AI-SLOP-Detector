@@ -182,12 +182,17 @@ UNCLASSIFIED = "unclassified"
 _OPEN_CALL_DETAILS = (AMBIGUOUS, DYNAMIC, EXTERNAL, MODULE_DEFINED_UNRESOLVED, UNCLASSIFIED)
 _BUILTIN_NAMES = frozenset(dir(builtins))
 # Expressions whose result, made at run time, is the receiver: `(a or b).close()`.
-_RUNTIME_ROOTS = (ast.BinOp, ast.BoolOp, ast.Await, ast.Compare, ast.IfExp, ast.UnaryOp)
+_RUNTIME_ROOTS = (ast.BinOp, ast.BoolOp, ast.Await, ast.Compare, ast.IfExp, ast.UnaryOp, ast.NamedExpr)
+# Literals whose type is a builtin: a method on one is a builtin's (`{...}.get`).
+_BUILTIN_LITERALS = (
+    ast.Constant, ast.Dict, ast.List, ast.Set, ast.Tuple, ast.JoinedStr, ast.ListComp, ast.SetComp, ast.DictComp,
+)
 _VALUE = "value"  # a name the function binds to a value made at run time
 
 
 def _module_imports(tree: ast.AST) -> Set[str]:
-    """Names the module binds by a top-level import (inside `if` / `try` too)."""
+    """Names the module binds by a top-level import (inside `if` / `try` /
+    `except` too: `except ImportError: from scipy import ndimage`)."""
     names: Set[str] = set()
     pending: List[ast.stmt] = list(getattr(tree, "body", []))
     while pending:
@@ -195,7 +200,11 @@ def _module_imports(tree: ast.AST) -> Set[str]:
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             names |= _statement_targets(node)
         elif not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            pending.extend(n for n in ast.iter_child_nodes(node) if isinstance(n, ast.stmt))
+            for child in ast.iter_child_nodes(node):
+                if isinstance(child, ast.ExceptHandler):
+                    pending.extend(child.body)
+                elif isinstance(child, ast.stmt):
+                    pending.append(child)
     return names
 
 
@@ -480,7 +489,7 @@ class _Graph:
     def _module_name(self, name: str) -> str:
         """A name the caller does not bind and the module defines no function for."""
         if name in self.imported:
-            return EXTERNAL
+            return AMBIGUOUS if name in self.rebound_imports else EXTERNAL
         if name in _BUILTIN_NAMES and name not in self.intent.module_bindings:
             return EXTERNAL
         if name in self.classes:  # a constructor
@@ -489,45 +498,55 @@ class _Graph:
             return DYNAMIC
         return UNCLASSIFIED  # an undefined name, or one bound inside a block
 
-    def _receiver(self, receiver: str, caller: FunctionNode, attr: Optional[str] = None) -> str:
+    def _receiver(self, receiver: str, caller: FunctionNode, attr: Optional[str] = None, chain: bool = False) -> str:
         """`receiver.attr(...)` with a receiver other than the caller's own
-        instance (`attr` None: the root of a longer attribute chain)."""
-        if receiver in _IMPLICIT:
-            return UNCLASSIFIED  # `self` outside a method of the module's classes
+        instance (`chain`: `receiver.attr.more(...)`, `attr` its first link).
+        `self` / `cls` here is a name like any other: a parameter of a
+        top-level function or a value the caller assigns (a method's own
+        `self.m()` resolves in `_own_method` and never reaches this)."""
         if receiver in self.bound_in(caller):
             return self._local_binding(receiver, caller, called=False)
         if receiver in self.imported:
             return AMBIGUOUS if receiver in self.rebound_imports else EXTERNAL
         if ("", receiver) in self.ambiguous:
             return AMBIGUOUS
-        if receiver in self.classes:  # `Store.build(...)`
-            if self.classes[receiver].decorator_list or (receiver, attr) in self.ambiguous:
-                return AMBIGUOUS
-            return MODULE_DEFINED_UNRESOLVED if (receiver, attr) in self.functions else UNCLASSIFIED
+        if receiver in self.classes:
+            return self._class_member(receiver, attr, chain)
         if receiver in self.module_values:
             return DYNAMIC
         return UNCLASSIFIED
+
+    def _class_member(self, klass: str, attr: Optional[str], chain: bool) -> str:
+        """`Store.build(...)` (a method: a candidate) or `Logger.CURRENT.logkv(...)`
+        (a class attribute: it holds a run-time value); an attribute of a
+        method (`Store.build.cache_clear()`) or an undefined member is not
+        classified; a decorated class or a member bound again is ambiguous."""
+        if self.classes[klass].decorator_list or (klass, attr) in self.ambiguous:
+            return AMBIGUOUS
+        if (klass, attr) in self.functions:
+            return UNCLASSIFIED if chain else MODULE_DEFINED_UNRESOLVED
+        return DYNAMIC if chain else UNCLASSIFIED
 
     def _expression_target(self, func: ast.expr, caller: FunctionNode) -> str:
         """The target is an expression: a call's or a subscript's result is
         chosen at run time; an attribute chain is classified by its root (an
         operator's, a comparison's or an await's result: run time too)."""
-        if isinstance(func, (ast.Call, ast.Subscript)):
-            return DYNAMIC
+        if isinstance(func, (ast.Call, ast.Subscript) + _RUNTIME_ROOTS):
+            return DYNAMIC  # `(runner or default)(...)`, `(f if c else g)(...)`
         if not isinstance(func, ast.Attribute):
-            return UNCLASSIFIED
-        root = func.value
+            return UNCLASSIFIED  # `(lambda: ...)()`: not classified yet
+        first, root = func, func.value
         while isinstance(root, ast.Attribute):
-            root = root.value
+            first, root = root, root.value
         if isinstance(root, (ast.Call, ast.Subscript) + _RUNTIME_ROOTS):
             return DYNAMIC
-        if isinstance(root, ast.Constant):
-            return EXTERNAL  # a method of a builtin literal: `", ".join(...)`
+        if isinstance(root, _BUILTIN_LITERALS):
+            return EXTERNAL  # a method of a builtin literal: `", ".join(...)`, `{...}.get(...)`
         if not isinstance(root, ast.Name):
             return UNCLASSIFIED
         if root.id in _all_params(caller):
             return DYNAMIC  # `self.db.insert(...)`, `client.session.post(...)`
-        return self._receiver(root.id, caller)
+        return self._receiver(root.id, caller, first.attr, chain=True)
 
 
 def _left_to_subclasses(method: FunctionNode) -> bool:

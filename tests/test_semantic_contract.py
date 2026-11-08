@@ -535,6 +535,149 @@ def test_an_import_bound_again_is_not_explained_as_external():
     }
 
 
+T27B = """
+import ctypes
+try:
+    import cv2
+except ImportError:
+    from scipy import ndimage
+try:
+    import ujson as json
+except ImportError:
+    import json
+try:
+    from fast import blur
+except ImportError:
+    def blur(image):
+        return image
+
+class Logger:
+    CURRENT = None
+
+    def logkv(self, key):
+        return key
+
+class Env:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+    def kind(self, env):
+        cls = type(env)
+        return cls.__dict__.get("render")
+
+def literal_dict(key):
+    return {"a": 1}.get(key)
+
+def literal_list(item):
+    return ["mon", "tue"].index(item)
+
+def literal_set(items):
+    return {"a", "b"}.issubset(items)
+
+def literal_tuple(item):
+    return (1, 2).count(item)
+
+def literal_text(name):
+    return f"{name}:x".encode()
+
+def literal_comprehension(rows):
+    return [r for r in rows].count(None)
+
+def literal_dict_comprehension(rows):
+    return {r: r for r in rows}.values()
+
+def literal_set_comprehension(rows):
+    return {r for r in rows}.pop()
+
+def patched_forward(self, x):
+    return self.q_proj(x)
+
+def patched_factory(cls, x):
+    return cls.build(x)
+
+def rebound_self(value):
+    self = value
+    return self.curve_basis()
+
+def orphan(record):
+    return self.go(record)
+
+def chosen_or(runner, record):
+    return (runner or json.dumps)(record)
+
+def chosen_if(flag, record):
+    return (json.dumps if flag else json.loads)(record)
+
+def chosen_walrus(record):
+    return (fn := json.dumps)(record)
+
+def walrus_root(path):
+    return (p := path.parent).exists()
+
+def array_type(values):
+    return (ctypes.c_int32 * len(values))(*values)
+
+def immediate_lambda(record):
+    return (lambda r: r)(record)
+
+def except_import(mask):
+    return ndimage.label(mask)
+
+def two_imports(record):
+    return json.dumps(record)
+
+def fallback_def(image):
+    return blur(image)
+
+def class_attribute(key):
+    Logger.CURRENT.logkv(key)
+
+def method_attribute():
+    return Env.render.cache_clear()
+"""
+
+
+def test_t27b_labels_follow_the_evidence_the_source_shows():
+    import ast
+
+    graph = semantic._Graph(ast.parse(T27B))
+    states, _, _, details = semantic._with_effect(graph)
+    named = {graph.qualname(f): details[f] for f in states}
+    expected = {
+        "literal_dict": {"external"},  # a method of a builtin literal
+        "literal_list": {"external"},
+        "literal_set": {"external"},
+        "literal_tuple": {"external"},
+        "literal_text": {"external"},
+        "literal_comprehension": {"external"},
+        "literal_dict_comprehension": {"external"},
+        "literal_set_comprehension": {"external"},
+        "patched_forward": {"dynamic"},  # `self` is a parameter of a top-level function
+        "patched_factory": {"dynamic"},
+        "rebound_self": {"dynamic"},  # `self` assigned a value
+        "orphan": {"unclassified"},  # `self` bound nowhere
+        "chosen_or": {"dynamic"},  # which callable runs is chosen at run time
+        "chosen_if": {"dynamic"},
+        "chosen_walrus": {"dynamic"},
+        "walrus_root": {"dynamic"},
+        "array_type": {"dynamic"},  # `len` only builds a value
+        "immediate_lambda": {"unclassified"},  # deferred: the callee is written in place
+        "except_import": {"external"},  # imported in an except body
+        "two_imports": {"external"},  # imported in try and except, nothing else
+        "fallback_def": {"ambiguous"},  # imported, or the fallback def
+        "class_attribute": {"dynamic"},  # a class attribute holds a run-time value
+        "method_attribute": {"unclassified"},  # an attribute of a method, not a value
+        "Env.kind": {"dynamic"},  # `cls` is a local value here
+        "Env.draw": set(),  # the class's own method: still a closed edge
+    }
+    assert {name: named[name] for name in expected} == expected
+    draw = next(f for f in states if graph.qualname(f) == "Env.draw")
+    assert states[draw] == "NO_EFFECT_IN_CLOSED_GRAPH"
+
+
 def test_coverage_of_a_module_without_functions_is_measured_and_empty(tmp_path):
     result = SlopDetector(read_only=True).analyze_file(str(_write(tmp_path, "VALUE = 1\n")))
     assert result.semantic_coverage["state"] == "MEASURED"
@@ -596,7 +739,8 @@ def test_an_entry_from_an_older_engine_is_not_served(tmp_path):
     stat = path.stat()
     key = dict(file_path=str(path), file_size=stat.st_size, mtime_ns=stat.st_mtime_ns,
                content_hash="h", config_fingerprint="c")
-    for older in ("analysis-cache-v37", "analysis-cache-v42", "analysis-cache-v43"):  # v42: four open-call kinds, v43: first five-kind labels
+    # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b
+    for older in ("analysis-cache-v37", "analysis-cache-v42", "analysis-cache-v43", "analysis-cache-v44"):
         cache.put(result=fresh, engine_version=older, **key)
         assert cache.get(engine_version=CACHE_ENGINE_VERSION, **key) is None
         assert cache.get(engine_version=older, **key) is not None
