@@ -678,6 +678,75 @@ def test_t27b_labels_follow_the_evidence_the_source_shows():
     assert states[draw] == "NO_EFFECT_IN_CLOSED_GRAPH"
 
 
+R01 = """
+class Env:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+    @classmethod
+    def build(cls):
+        return cls.make()
+
+    def make(cls):
+        return True
+
+    def save(self, env):
+        cls = type(env)
+        cls.render()
+        return True
+
+    def swap(self, other):
+        self = other
+        self.render()
+        return True
+
+    def each(self, items):
+        for self in items:
+            self.render()
+        return True
+
+    def renamed(this):
+        self.render()
+        return True
+
+    @staticmethod
+    def static(value):
+        self.render()
+        return True
+
+    def bare():
+        self.render()
+        return True
+
+    def other_name(this):
+        this.render()
+        return True
+"""
+
+
+def test_self_or_cls_bound_again_is_not_the_class_s_own_method():
+    import ast
+
+    graph = semantic._Graph(ast.parse(R01))
+    states, _, _, details = semantic._with_effect(graph)
+    named = {graph.qualname(f): (states[f], details[f]) for f in states}
+    closed = ("NO_EFFECT_IN_CLOSED_GRAPH", set())
+    assert named["Env.draw"] == closed  # its own instance: still a closed edge
+    assert named["Env.build"] == closed  # a classmethod's own class
+    assert named["Env.save"] == ("EFFECT_UNKNOWN", {"dynamic"})  # `cls = type(env)`
+    assert named["Env.swap"] == ("EFFECT_UNKNOWN", {"dynamic"})  # `self` is another object here
+    assert named["Env.each"] == ("EFFECT_UNKNOWN", {"dynamic"})
+    assert named["Env.renamed"] == ("EFFECT_UNKNOWN", {"unclassified"})  # `self` is not its parameter
+    assert named["Env.static"] == ("EFFECT_UNKNOWN", {"unclassified"})
+    assert named["Env.bare"] == ("EFFECT_UNKNOWN", {"unclassified"})  # no parameter at all
+    assert named["Env.other_name"] == ("EFFECT_UNKNOWN", {"dynamic"})  # only `self` / `cls` name the instance
+    found = [f.function for f in semantic.semantic_findings(ast.parse(R01))]
+    assert "Env.save" not in found  # no success_without_effect through a guessed callee
+
+
 def test_coverage_of_a_module_without_functions_is_measured_and_empty(tmp_path):
     result = SlopDetector(read_only=True).analyze_file(str(_write(tmp_path, "VALUE = 1\n")))
     assert result.semantic_coverage["state"] == "MEASURED"
@@ -739,8 +808,8 @@ def test_an_entry_from_an_older_engine_is_not_served(tmp_path):
     stat = path.stat()
     key = dict(file_path=str(path), file_size=stat.st_size, mtime_ns=stat.st_mtime_ns,
                content_hash="h", config_fingerprint="c")
-    # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b
-    for older in ("analysis-cache-v37", "analysis-cache-v42", "analysis-cache-v43", "analysis-cache-v44"):
+    # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b, v45: before R-01
+    for older in ("analysis-cache-v37", "analysis-cache-v42", "analysis-cache-v43", "analysis-cache-v44", "analysis-cache-v45"):
         cache.put(result=fresh, engine_version=older, **key)
         assert cache.get(engine_version=CACHE_ENGINE_VERSION, **key) is None
         assert cache.get(engine_version=older, **key) is not None

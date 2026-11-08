@@ -409,7 +409,7 @@ class _Graph:
         return (callee, 0), ""
 
     def _own_method(self, receiver: str, name: str, caller: FunctionNode):
-        if receiver not in _IMPLICIT or not self.owner.get(caller):
+        if not self._own_instance(receiver, caller):
             return None, self._receiver(receiver, caller, name)
         key = (self.owner[caller], name)
         callee = self.functions.get(key)
@@ -420,6 +420,15 @@ class _Graph:
         if self.intent.is_contract(callee) or _left_to_subclasses(callee):
             return None, DYNAMIC
         return (callee, 1), ""
+
+    def _own_instance(self, receiver: str, caller: FunctionNode) -> bool:
+        """`self` / `cls` is the method's own instance or class only as its
+        first parameter, never bound again in its body (`cls = type(env)`,
+        `for self in items`): then `self.m()` is a method of the class."""
+        if receiver not in _IMPLICIT or not self.owner.get(caller):
+            return False
+        positional = _positional(caller)
+        return bool(positional) and positional[0] == receiver and receiver not in self.own_kinds(caller)
 
     def _inherited(self, owner: str, name: str) -> str:
         """`self.name(...)` where the class defines no `name`: a module base
