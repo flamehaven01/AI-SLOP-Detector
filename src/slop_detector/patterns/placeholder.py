@@ -8,7 +8,10 @@ from typing import List, Optional, Union
 
 from slop_detector.patterns.base import ASTPattern, Axis, Issue, RegexPattern, Severity
 from slop_detector.patterns.declared_intent import (
+    _TIME_LIMITED,
     DeclaredIntent,
+    _first_sentence,
+    _says_placeholder,
     declared_intent,
     is_declared_body,
 )
@@ -137,6 +140,73 @@ def _logging_job(name: str) -> bool:
     """`trace`, `log_event`, `auditAccess`: the function's job is the log line."""
     parts = re.findall(r"[a-z]+", re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", name).lower())
     return any(part in _LOGGING_JOB_WORDS for part in parts)
+
+
+# Text is several words or several lines (a prompt, a message, a template); a
+# token or an acknowledgement ("ok", "SUCCESS", "mail sent") is shorter.
+_TEXT_MIN_WORDS = 4
+
+# Words that report work as done ("uploaded successfully", "Sync complete").
+SUCCESS_CLAIM = re.compile(
+    r"\b(ok|done|success\w*|succeeded|sent|saved|stored|written|updated|created|deleted|"
+    r"uploaded|complete[d]?|synced|processed|finished)\b",
+    re.I,
+)
+
+
+def _provides_text(node: Union[ast.FunctionDef, ast.AsyncFunctionDef], value: object) -> bool:
+    """A function taking no input answers with text: the text is what it provides."""
+    if not isinstance(value, str):
+        return False
+    args = node.args
+    inputs = [
+        a for a in args.posonlyargs + args.args + args.kwonlyargs if a.arg not in ("self", "cls")
+    ]
+    if inputs or args.vararg or args.kwarg:
+        return False
+    # A docstring that says the function reads current state ("Get the current
+    # balance", "Check the status") promises a lookup; fixed text is not one.
+    if _STATE_LOOKUP_DOC.search(_first_sentence(ast.get_docstring(node) or "")):
+        return False
+    return "\n" in value.strip() or len(value.split()) >= _TEXT_MIN_WORDS
+
+
+# In the docstring's summary sentence: a lookup verb first ("Check the ...",
+# "Fetch ...") or state that changes ("current", "status", "latest", "live").
+# "Query context containing a UUID" names a fixture, not a lookup.
+_STATE_LOOKUP_DOC = re.compile(
+    r"^\s*(check\w*|fetch\w*|look ?up)\b|\b(current\w*|status|latest|live|real-?time)\b",
+    re.I,
+)
+
+
+_FIXED_ANSWER_DOC = re.compile(
+    r"\balways (returns?|answers?|gives?|yields?)\b"
+    r"|\b(fixed|constant|static) (answer|value|result|response|string|text)\b"
+    r"|\bthe only (supported|possible|valid)\b",
+    re.I,
+)
+
+
+def _declares_fixed_answer(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
+    """The docstring says the answer is fixed ("Always returns 'hubspot'"),
+    without calling it a placeholder or limiting it in time ("for now")."""
+    doc = ast.get_docstring(node) or ""
+    if not doc or _says_placeholder(node) or _TIME_LIMITED.search(doc):
+        return False
+    return bool(_FIXED_ANSWER_DOC.search(doc))
+
+
+def _declared_answer(node: Union[ast.FunctionDef, ast.AsyncFunctionDef], value: ast.expr) -> bool:
+    """The constant is the function's answer: its docstring fixes it, or a
+    function taking no input provides it as text. Text that reports success
+    claims work was done, so neither declares it."""
+    if isinstance(value, ast.Constant) and isinstance(value.value, str):
+        if SUCCESS_CLAIM.search(value.value):
+            return False
+    if _declares_fixed_answer(node):
+        return True
+    return isinstance(value, ast.Constant) and _provides_text(node, value.value)
 
 
 def _cosmetic_note(body: List[ast.stmt]) -> str:
@@ -305,6 +375,8 @@ class _IntentAwarePattern(ASTPattern):
 
     def check(self, tree: ast.AST, file, content) -> List[Issue]:
         self._intent = declared_intent(tree)
+        if self._intent.source_lines is None and isinstance(content, str):
+            self._intent.source_lines = content.splitlines()
         try:
             return super().check(tree, file, content)
         finally:
@@ -667,6 +739,8 @@ class ReturnConstantStubPattern(_IntentAwarePattern):
         if ret_val is None:
             return None
         if isinstance(ret_val, ast.Constant) and ret_val.value is None:
+            return None
+        if _declared_answer(node, ret_val):
             return None
 
         # return <non-None constant>  (int, str, bool, float, bytes, ...)

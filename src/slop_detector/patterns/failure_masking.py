@@ -5,7 +5,7 @@ the caller cannot tell a failure from a success: the result does not depend on
 whether the work happened. Only handlers that catch everything are read; a
 narrow exception with a fallback is a decision about that error.
 
-Left alone, because an external replay found them to be deliberate: a `try`
+Left alone, because they are usually deliberate: a `try`
 with several returns answering errors with its default, `except Exception:
 return True` after a `try` that returns something else (fail-open / fail-closed
 decisions), and a catch-all beside a handler that reports failure.

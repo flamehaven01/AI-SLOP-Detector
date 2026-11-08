@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
+from slop_detector import semantic
 from slop_detector.config import Config
 from slop_detector.core_project import (
     build_project_analysis,
@@ -71,6 +72,18 @@ from slop_detector.service.events import ScanObserver, ScanProgress
 from slop_detector.suppression_handler import SuppressionHandler
 
 logger = logging.getLogger(__name__)
+
+
+def _semantic_channel(tree: ast.AST, skip) -> tuple:
+    """(findings, coverage). A failure leaves the file analysed and says so:
+    no findings, state UNMEASURED; it is never read as "nothing found"."""
+    if "patterns" in skip:
+        return [], {"state": "SKIPPED"}
+    try:
+        return semantic.semantic_analysis(tree)
+    except Exception as e:  # RecursionError on a deep tree, an analysis defect
+        logger.warning(f"Semantic channel failed: {e}")
+        return [], {"state": "UNMEASURED", "error_type": type(e).__name__}
 
 # Prefix of the per-file error log line, by language (unchanged wording).
 _FAILURE_LABEL = {"python": "", "javascript": "JS/TS file ", "go": "Go file "}
@@ -250,7 +263,8 @@ class SlopDetector:
         result = self._build_file_analysis(file_path, content, tree, facts)
         # A partially measured result (a pattern raised) is not reused: the
         # failure may be transient, and a cache hit would hide the next answer.
-        if self._analysis_cache is not None and not result.pattern_errors:
+        unmeasured = result.pattern_errors or result.semantic_coverage.get("state") == "UNMEASURED"
+        if self._analysis_cache is not None and not unmeasured:
             self._analysis_cache.put(
                 file_path=file_path,
                 file_size=stat.st_size,
@@ -449,6 +463,7 @@ class SlopDetector:
             )
         )
 
+        semantic_findings, semantic_coverage = _semantic_channel(tree, skip)
         slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
             ldr, inflation, ddc, pattern_issues, skip=skip
         )
@@ -489,6 +504,8 @@ class SlopDetector:
             skipped_metrics=sorted(skip),
             flags=flags,
             pattern_errors=pattern_errors,
+            semantic_findings=semantic_findings,
+            semantic_coverage=semantic_coverage,
         )
 
         if len(suppression_ledger) >= 5 or len(suppression_directives) >= 3:

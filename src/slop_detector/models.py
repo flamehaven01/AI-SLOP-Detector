@@ -232,6 +232,12 @@ class FileAnalysis:
     # Patterns that raised on this file: not findings, but the file was not
     # fully measured ({pattern_id, error_type, state: "unmeasured"}).
     pattern_errors: List[Dict[str, str]] = field(default_factory=list)
+    # Facts from the module's closed call graph (slop_detector.semantic).
+    # Evidence only: never scored.
+    semantic_findings: List[Any] = field(default_factory=list)
+    # What that channel decided: {state: MEASURED | SKIPPED | UNMEASURED, ...};
+    # empty when it did not run (a non-Python file, a legacy cache entry).
+    semantic_coverage: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -288,6 +294,11 @@ class FileAnalysis:
         result["skipped_metrics"] = list(self.skipped_metrics)
         result["flags"] = list(self.flags)
         result["pattern_errors"] = [dict(item) for item in self.pattern_errors]
+        result["semantic_findings"] = [item.to_dict() for item in self.semantic_findings]
+        result["semantic_coverage"] = {
+            key: dict(value) if isinstance(value, dict) else value
+            for key, value in self.semantic_coverage.items()
+        }
         return result
 
 

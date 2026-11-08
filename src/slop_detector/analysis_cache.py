@@ -32,8 +32,9 @@ from slop_detector.models import (
     SuppressionLedgerEntry,
 )
 from slop_detector.patterns.base import Axis, Issue, Severity
+from slop_detector.semantic import SemanticFinding
 
-CACHE_ENGINE_VERSION = "analysis-cache-v37"
+CACHE_ENGINE_VERSION = "analysis-cache-v44"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 
@@ -188,6 +189,10 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
         skipped_metrics=data.get("skipped_metrics", []),
         flags=data.get("flags", []),
         pattern_errors=data.get("pattern_errors", []),
+        semantic_findings=[
+            SemanticFinding(**item) for item in data.get("semantic_findings", [])
+        ],
+        semantic_coverage=data.get("semantic_coverage", {}),
     )
 
 

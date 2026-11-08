@@ -7,9 +7,9 @@ read, and any unused parameter of a
 function whose returned value depends on none of its inputs, or whose body only
 builds values it discards. An unused positional parameter of a function
 returning nothing (a handler, a printer) is not reported: such signatures are
-usually fixed by the caller (measured: requiring only that the module calls the
-function with the argument added 62-104 findings on the 14-repository replay,
-mostly dispatch handlers and leftover helper arguments). Functions whose signature is fixed
+usually fixed by the caller (requiring only that the module calls the function
+with the argument mostly finds dispatch handlers and leftover helper
+arguments). Functions whose signature is fixed
 elsewhere are left alone (declared intent): contracts and overrides, callbacks
 registered by value, decorated functions, dunder methods, and methods of a
 class with a base the module does not define.
@@ -69,6 +69,7 @@ _KEPT_WORDS = (
     "backward",
     "no longer",
     "tracking only",
+    "reserved",
 )
 
 
@@ -216,6 +217,74 @@ def _parameter_names(function: ast.AST) -> List[str]:
     return [a.arg for a in args.posonlyargs + args.args + args.kwonlyargs]
 
 
+def fixed_signature(intent, node) -> Optional[str]:
+    """Why the signature is fixed elsewhere, or None.
+
+    "fixed": declared by the module (dunder, decorator, contract, override,
+    callback) or by a base the module does not define ("outside base").
+    "family": siblings take the same arguments (see signature_family).
+    """
+    if intent is None:
+        return "fixed"
+    if node.name.startswith("__") or node.decorator_list:
+        return "fixed"
+    if (
+        intent.is_contract(node)
+        or intent.overrides_module_base(node)
+        or intent.is_registered_by_value(node)
+    ):
+        return "fixed"
+    # A class named as a base or a null object declares the interface its
+    # defaults' arguments belong to (`AlgorithmBase`, `NullSink`): a method
+    # that reads none of its inputs. One that does the work and drops an
+    # option is judged like any other.
+    klass = intent.enclosing_class(node)
+    if klass is not None and intent.is_default_class(klass):
+        if not (set(_parameter_names(node)) - _IMPLICIT) & _uses(node):
+            return "fixed"
+    if signature_family(intent, node):
+        return "family"
+    return "outside base" if intent.has_outside_base(node) else None
+
+
+def signature_family(intent, node) -> list:
+    """Siblings taking the same arguments: an interface whose arguments the
+    caller fixes.
+
+    Methods of one class with the same parameter names (handlers dispatched by
+    name), or module functions with the same parameters in the same order that
+    the module hands over by value, when one of them reads an argument
+    (callbacks a caller invokes alike: `METRICS = [exact_match, overlap]` taking
+    `(gold, pred, trace=None)`). The same parameters or a shared name stem alone
+    are no family, and neither are stubs that read nothing.
+    """
+    container = intent.parent(node)
+    functions = (ast.FunctionDef, ast.AsyncFunctionDef)
+    if isinstance(container, ast.ClassDef):
+        mine = set(_parameter_names(node))
+        return [
+            other
+            for other in container.body
+            if isinstance(other, functions) and other is not node and set(_parameter_names(other)) == mine
+        ]
+    if not isinstance(container, ast.Module):
+        return []
+    order = _parameter_names(node)
+    family = [
+        other
+        for other in container.body
+        if isinstance(other, functions) and other is not node and _parameter_names(other) == order
+    ]
+    members = family + [node]
+    if not (order and any(set(order) & _uses(member) for member in members)):
+        return []
+    # The same parameters alone do not make an interface: the module must hand a
+    # member over by value (a dispatch table, a registered callback).
+    if not any(intent.is_registered_by_value(member) for member in members):
+        return []
+    return family
+
+
 class IgnoredParameterPattern(_IntentAwarePattern):
     """Detect parameters that do not affect the function's result."""
 
@@ -225,47 +294,10 @@ class IgnoredParameterPattern(_IntentAwarePattern):
     message = "Parameter is never used - it does not affect the result"
 
     def _fixed_signature(self, node) -> Optional[str]:
-        """Why the signature is fixed elsewhere, or None.
-
-        "fixed": declared by the module (dunder, decorator, contract, override,
-        callback) or by a base the module does not define ("outside base").
-        "family": sibling methods take the same arguments (see _family).
-        """
-        intent = self._intent
-        if intent is None:
-            return "fixed"
-        if node.name.startswith("__") or node.decorator_list:
-            return "fixed"
-        if (
-            intent.is_contract(node)
-            or intent.overrides_module_base(node)
-            or intent.is_registered_by_value(node)
-        ):
-            return "fixed"
-        # Methods of one class taking the same arguments form an interface
-        # (handlers dispatched by name): their arguments are fixed by the family.
-        klass = intent.enclosing_class(node)
-        if klass is not None:
-            mine = set(_parameter_names(node))
-            if any(
-                isinstance(other, (ast.FunctionDef, ast.AsyncFunctionDef))
-                and other is not node
-                and set(_parameter_names(other)) == mine
-                for other in klass.body
-            ):
-                return "family"
-        return "outside base" if intent.has_outside_base(node) else None
+        return fixed_signature(self._intent, node)
 
     def _family(self, node) -> list:
-        klass = self._intent.enclosing_class(node) if self._intent else None
-        mine = set(_parameter_names(node))
-        return [
-            other
-            for other in (klass.body if klass is not None else [])
-            if isinstance(other, (ast.FunctionDef, ast.AsyncFunctionDef))
-            and other is not node
-            and set(_parameter_names(other)) == mine
-        ]
+        return signature_family(self._intent, node) if self._intent else []
 
     _top_level: frozenset = frozenset()
 
