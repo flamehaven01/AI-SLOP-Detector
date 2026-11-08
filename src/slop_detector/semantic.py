@@ -188,24 +188,46 @@ _BUILTIN_LITERALS = (
     ast.Constant, ast.Dict, ast.List, ast.Set, ast.Tuple, ast.JoinedStr, ast.ListComp, ast.SetComp, ast.DictComp,
 )
 _VALUE = "value"  # a name the function binds to a value made at run time
+# Decorators that keep a method's first parameter the instance, by origin.
+_INSTANCE_DECORATORS = frozenset(
+    {"functools.cached_property", "abc.abstractmethod", "typing.override", "typing_extensions.override"}
+)
+_PROPERTY_PARTS = frozenset({"setter", "getter", "deleter"})
 
 
-def _module_imports(tree: ast.AST) -> Set[str]:
-    """Names the module binds by a top-level import (inside `if` / `try` /
-    `except` too: `except ImportError: from scipy import ndimage`)."""
-    names: Set[str] = set()
+def _import_sources(tree: ast.AST) -> Dict[str, Set[str]]:
+    """Where each top-level import binds its name from (inside `if` / `try` /
+    `except` too: `except ImportError: from scipy import ndimage`):
+    `import abc` -> abc, `import a.b as c` -> a.b, `from functools import
+    cached_property as cp` -> functools.cached_property."""
+    sources: Dict[str, Set[str]] = {}
+    for node in _top_statements(tree):
+        if isinstance(node, ast.Import):
+            for a in node.names:
+                origin = a.name if a.asname else a.name.split(".")[0]
+                sources.setdefault(a.asname or origin, set()).add(origin)
+        elif isinstance(node, ast.ImportFrom):
+            module = "." * node.level + (node.module or "")
+            for a in node.names:
+                sources.setdefault(a.asname or a.name, set()).add(module + "." + a.name)
+    return sources
+
+
+def _top_statements(tree: ast.AST):
+    """The module's top-level statements, those inside `if` / `try` /
+    `except` / `with` / loop blocks too; a def's or a class's body is not
+    entered (the def or class itself is yielded)."""
     pending: List[ast.stmt] = list(getattr(tree, "body", []))
     while pending:
         node = pending.pop()
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            names |= _statement_targets(node)
-        elif not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            for child in ast.iter_child_nodes(node):
-                if isinstance(child, ast.ExceptHandler):
-                    pending.extend(child.body)
-                elif isinstance(child, ast.stmt):
-                    pending.append(child)
-    return names
+        yield node
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.ExceptHandler):  # `except ImportError: class Layout: ...`
+                pending.extend(child.body)
+            elif isinstance(child, ast.stmt):
+                pending.append(child)
 
 
 def _value_bindings(tree: ast.AST) -> Set[str]:
@@ -214,25 +236,16 @@ def _value_bindings(tree: ast.AST) -> Set[str]:
     stores into the object, it does not bind `name`), or a `global`
     declaration in a function."""
     names: Set[str] = set()
-    pending: List[ast.stmt] = list(getattr(tree, "body", []))
-    while pending:
-        node = pending.pop()
+    for node in _top_statements(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             names.add(node.name)
-            continue
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            continue
-        targets = [getattr(node, "target", None)] + list(getattr(node, "targets", []))
-        targets += [item.optional_vars for item in getattr(node, "items", [])]
-        names |= {
-            n.id for t in targets if t is not None
-            for n in ast.walk(t) if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)
-        }
-        for child in ast.iter_child_nodes(node):
-            if isinstance(child, ast.ExceptHandler):  # `except ImportError: class Layout: ...`
-                pending.extend(child.body)
-            elif isinstance(child, ast.stmt):
-                pending.append(child)
+        elif not isinstance(node, (ast.Import, ast.ImportFrom)):
+            targets = [getattr(node, "target", None)] + list(getattr(node, "targets", []))
+            targets += [item.optional_vars for item in getattr(node, "items", [])]
+            names |= {
+                n.id for t in targets if t is not None
+                for n in ast.walk(t) if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)
+            }
     return names | {n for g in ast.walk(tree) if isinstance(g, ast.Global) for n in g.names}
 
 
@@ -279,9 +292,12 @@ class _Graph:
         self._bound: Dict[FunctionNode, Set[str]] = {}
         self._outer: Dict[FunctionNode, Set[str]] = {}
         self._imported: Dict[FunctionNode, Set[str]] = {}
-        self.imported = _module_imports(tree)
+        self.import_sources = _import_sources(tree)
+        self.imported = set(self.import_sources)
+        values = _value_bindings(tree)
         # Imported, and bound at top level another way too (`backend = connect()`).
-        self.rebound_imports = self.imported & _value_bindings(tree)
+        self.rebound_imports = self.imported & values
+        self._module_names = self.intent.module_bindings | values | self.imported
         self.never_run: Dict[FunctionNode, List[Tuple[ast.Call, FunctionNode]]] = {}
         self._kinds: Dict[FunctionNode, Dict[str, list]] = {}
         body = getattr(tree, "body", [])
@@ -428,7 +444,56 @@ class _Graph:
         if receiver not in _IMPLICIT or not self.owner.get(caller):
             return False
         positional = _positional(caller)
-        return bool(positional) and positional[0] == receiver and receiver not in self.own_kinds(caller)
+        return (
+            bool(positional)
+            and positional[0] == receiver
+            and receiver not in self.own_kinds(caller)
+            and self._instance_method(caller)
+        )
+
+    def _instance_method(self, caller: FunctionNode) -> bool:
+        """No decorator, or only ones that keep the first parameter the
+        instance, proven by origin: the builtin `property` and its setter /
+        getter / deleter, and `functools.cached_property`, `abc.abstractmethod`,
+        `typing(_extensions).override` by the module's imports. A staticmethod,
+        a classmethod (`cls.m()` is not bound like `self.m()`) or any other
+        decorator, alone or stacked, is not."""
+        if not caller.decorator_list:
+            return True
+        klass = self.classes.get(self.owner[caller])
+        if klass is None:
+            return False
+        local = {name for member in klass.body for name in _statement_targets(member)}
+        return all(self._keeps_instance(d, klass, local) for d in caller.decorator_list)
+
+    def _keeps_instance(self, decorator: ast.expr, klass: ast.ClassDef, local: Set[str]) -> bool:
+        """One decorator of a method of `klass` (`local`: the names its body binds)."""
+        if isinstance(decorator, ast.Attribute) and decorator.attr in _PROPERTY_PARTS:
+            return self._is_property(klass, decorator.value, local)
+        if isinstance(decorator, ast.Name) and decorator.id == "property":
+            return self._builtin_property(local)
+        root = decorator.value if isinstance(decorator, ast.Attribute) else decorator
+        if not isinstance(root, ast.Name) or root.id in local or root.id in self.rebound_imports:
+            return False
+        origins = self.import_sources.get(root.id, set())
+        if isinstance(decorator, ast.Attribute):
+            origins = {origin + "." + decorator.attr for origin in origins}
+        return bool(origins) and origins <= _INSTANCE_DECORATORS
+
+    def _builtin_property(self, local: Set[str]) -> bool:
+        """`property` is the builtin: neither the module nor the class binds it."""
+        return "property" not in self._module_names and "property" not in local
+
+    def _is_property(self, klass: ast.ClassDef, value: ast.expr, local: Set[str]) -> bool:
+        """`@size.setter`: `size` is a def of the class under the builtin `property`."""
+        return isinstance(value, ast.Name) and self._builtin_property(local) and any(
+            isinstance(member, _FUNCTIONS)
+            and member.name == value.id
+            and len(member.decorator_list) == 1
+            and isinstance(member.decorator_list[0], ast.Name)
+            and member.decorator_list[0].id == "property"
+            for member in klass.body
+        )
 
     def _inherited(self, owner: str, name: str) -> str:
         """`self.name(...)` where the class defines no `name`: a module base

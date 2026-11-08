@@ -735,7 +735,8 @@ def test_self_or_cls_bound_again_is_not_the_class_s_own_method():
     named = {graph.qualname(f): (states[f], details[f]) for f in states}
     closed = ("NO_EFFECT_IN_CLOSED_GRAPH", set())
     assert named["Env.draw"] == closed  # its own instance: still a closed edge
-    assert named["Env.build"] == closed  # a classmethod's own class
+    # A classmethod's `cls.m()` is not bound like `self.m()` (R-01b): open.
+    assert named["Env.build"] == ("EFFECT_UNKNOWN", {"dynamic"})
     assert named["Env.save"] == ("EFFECT_UNKNOWN", {"dynamic"})  # `cls = type(env)`
     assert named["Env.swap"] == ("EFFECT_UNKNOWN", {"dynamic"})  # `self` is another object here
     assert named["Env.each"] == ("EFFECT_UNKNOWN", {"dynamic"})
@@ -745,6 +746,221 @@ def test_self_or_cls_bound_again_is_not_the_class_s_own_method():
     assert named["Env.other_name"] == ("EFFECT_UNKNOWN", {"dynamic"})  # only `self` / `cls` name the instance
     found = [f.function for f in semantic.semantic_findings(ast.parse(R01))]
     assert "Env.save" not in found  # no success_without_effect through a guessed callee
+
+
+R01B = """
+import abc
+import functools
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
+
+def logged(fn):
+    return fn
+
+class Base:
+    def render(self, value=None):
+        return self
+
+    @property
+    def size(self):
+        return self.render()
+
+    @size.setter
+    def size(self, value):
+        self.render()
+
+    @functools.cached_property
+    def cached(self):
+        return self.render()
+
+    @abc.abstractmethod
+    def shape(self):
+        return self.render()
+
+    @override
+    def marked(self):
+        return self.render()
+
+    @logged
+    def wrapped(self):
+        return self.render()
+
+    @logged
+    @property
+    def mixed(self):
+        return self.render()
+
+    @staticmethod
+    def route(self):
+        return self.render()
+
+    @staticmethod
+    def route_cls(cls):
+        return cls.render()
+
+    @classmethod
+    def build(cls):
+        return cls.default()
+
+    @classmethod
+    def default(cls):
+        return cls
+
+    @classmethod
+    def unbound(cls, value):
+        return cls.render(value)
+
+class Other:
+    def render(self, value=None):
+        return "other"
+"""
+
+SHADOWED = """
+from widgets import cached_property
+from widgets import abstractmethod
+from .functools import cached_property as relative_cached
+import widgets as functools
+
+class Box:
+    property = staticmethod
+
+    def render(self):
+        return True
+
+    @cached_property
+    def a(self):
+        return self.render()
+
+    @functools.cached_property
+    def b(self):
+        return self.render()
+
+    @abstractmethod
+    def c(self):
+        return self.render()
+
+    @property
+    def d(self):
+        return self.render()
+
+    @relative_cached
+    def e(self):
+        return self.render()
+
+"""
+
+SETTERS = """
+class Tray:
+    def render(self):
+        return True
+
+    def plain(self):
+        return True
+
+    @plain.setter
+    def f(self, value):
+        self.render()
+
+    @logged
+    def g(self):
+        return True
+
+    @g.setter
+    def h(self, value):
+        self.render()
+"""
+
+REBOUND_DECORATORS = """
+import abc
+import functools
+abc = None
+property = None
+
+class Jar:
+    functools = None
+
+    def render(self):
+        return True
+
+    @property
+    def a(self):
+        return self.render()
+
+    @abc.abstractmethod
+    def b(self):
+        return self.render()
+
+    @functools.cached_property
+    def c(self):
+        return self.render()
+"""
+
+
+def _self_calls(source):
+    import ast
+
+    graph = semantic._Graph(ast.parse(source))
+    out = {}
+    for f in graph.owner:
+        calls = [n for n in semantic._own_nodes(f) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)]
+        setter = any(isinstance(d, ast.Attribute) and d.attr == "setter" for d in f.decorator_list)
+        tag = graph.qualname(f) + ("@setter" if setter else "")
+        out[tag] = [graph.resolution(c, f)[0] is not None for c in calls]
+    return out, graph
+
+
+def test_a_decorated_caller_keeps_its_instance_only_by_a_known_descriptor():
+    closed, _ = _self_calls(R01B)
+    assert closed["Base.size"] == [True]  # builtin property
+    assert closed["Base.size@setter"] == [True]  # the setter of that property
+    assert closed["Base.cached"] == [True]  # functools.cached_property
+    assert closed["Base.shape"] == [True]  # abc.abstractmethod
+    assert closed["Base.marked"] == [True]  # typing / typing_extensions override
+    assert closed["Base.wrapped"] == [False]  # an unknown decorator
+    assert closed["Base.mixed"] == [False]  # known + unknown: still unknown
+    assert closed["Base.route"] == [False]  # staticmethod: `self` is any argument
+    assert closed["Base.route_cls"] == [False]
+    assert closed["Base.build"] == [False]  # classmethod: `cls.m()` is not bound like `self.m()`
+    assert closed["Base.unbound"] == [False]
+    shadowed, _ = _self_calls(SHADOWED)
+    assert shadowed == {
+        "Box.render": [], "Box.a": [False], "Box.b": [False], "Box.c": [False],
+        "Box.d": [False],  # the class binds `property`
+        "Box.e": [False],  # a relative `functools` is not the standard one
+    }
+    setters, _ = _self_calls(SETTERS)
+    assert setters == {
+        "Tray.render": [], "Tray.plain": [], "Tray.g": [],
+        "Tray.f@setter": [False],  # `plain` is not a property
+        "Tray.h@setter": [False],  # `g` is under another decorator, not property
+    }
+    rebound, _ = _self_calls(REBOUND_DECORATORS)
+    # `property` and `abc` bound again by the module, `functools` by the class
+    assert rebound == {"Jar.render": [], "Jar.a": [False], "Jar.b": [False], "Jar.c": [False]}
+
+
+def test_the_descriptor_controls_run_as_python_says():
+    namespace = {}
+    exec(compile(R01B, "r01b", "exec"), namespace)
+    base, other = namespace["Base"], namespace["Other"]
+    assert base.route(other()) == "other"  # staticmethod: the argument decides
+    assert base.build() is base  # classmethod calling a classmethod
+    stranger = other()
+    assert base.unbound(stranger) is stranger  # `cls.render(x)`: `x` becomes `self`
+    item = base()
+    assert item.size is item and item.cached is item and item.marked() is item and item.shape() is item
+
+
+def test_a_classmethod_argument_is_not_mapped_past_self():
+    import ast
+
+    graph = semantic._Graph(ast.parse(R01B))
+    dropped, _ = semantic._dropped(graph)
+    unbound = next(f for f in graph.owner if f.name == "unbound")
+    # `cls.render(value)` passes `value` as `self`; it is not the dropped `value`.
+    assert (unbound, "value") not in dropped
 
 
 def test_coverage_of_a_module_without_functions_is_measured_and_empty(tmp_path):
@@ -808,8 +1024,10 @@ def test_an_entry_from_an_older_engine_is_not_served(tmp_path):
     stat = path.stat()
     key = dict(file_path=str(path), file_size=stat.st_size, mtime_ns=stat.st_mtime_ns,
                content_hash="h", config_fingerprint="c")
-    # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b, v45: before R-01
-    for older in ("analysis-cache-v37", "analysis-cache-v42", "analysis-cache-v43", "analysis-cache-v44", "analysis-cache-v45"):
+    # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b, v45: before R-01,
+    # v46: before R-01b
+    older_engines = ("v37", "v42", "v43", "v44", "v45", "v46")
+    for older in ("analysis-cache-" + v for v in older_engines):
         cache.put(result=fresh, engine_version=older, **key)
         assert cache.get(engine_version=CACHE_ENGINE_VERSION, **key) is None
         assert cache.get(engine_version=older, **key) is not None
