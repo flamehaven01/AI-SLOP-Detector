@@ -20,6 +20,11 @@ NOT_APPLICABLE = "NOT_APPLICABLE"
 # How many items the terminal lists before "+N more" (Inspector decision
 # FH-A0-A2-OUTPUT-CONTRACT: 5 pattern findings, 3 hollow candidates).
 TERMINAL_LIMITS = {"findings": 5, "candidates": 3}
+# PDF page 1: the top 5 items by priority, at most 3 of them hollow candidates.
+BRIEF_LIMITS = {"items": 5, "candidates": 3}
+# Priority on page 1: critical and high findings, then hollow candidates,
+# then the rest.
+_PRIORITY = {"critical": 0, "high": 1, "": 2, "medium": 3, "low": 4}
 
 
 @dataclass(frozen=True)
@@ -60,6 +65,10 @@ class ReportView:
     candidates: List[Item]
     semantic: SemanticState
     next_steps: List[str]
+    coverage: Dict[str, int] = field(default_factory=dict)
+    coverage_notes: List[str] = field(default_factory=list)
+    metrics: List[Dict[str, str]] = field(default_factory=list)
+    file_rows: List[Tuple[str, Optional[float], str, int]] = field(default_factory=list)
 
 
 def build_report_view(result: Any) -> ReportView:
@@ -74,7 +83,7 @@ def build_report_view(result: Any) -> ReportView:
         (item for f in files for item in _candidate_items(f)), key=lambda i: (i.file, i.line, i.rule)
     )
     severity = {name: sum(1 for i in findings if i.severity == name) for name in _SEVERITIES}
-    from slop_detector.renderer_glossary import next_steps
+    from slop_detector.renderer_glossary import file_metric_rows, next_steps, project_metric_rows
 
     return ReportView(
         target=str(getattr(result, "project_path", None) or getattr(result, "file_path", "")),
@@ -88,12 +97,65 @@ def build_report_view(result: Any) -> ReportView:
         candidates=candidates,
         semantic=_semantic_state(files),
         next_steps=next_steps(result) if is_project else [],
+        coverage=_coverage(result, is_project),
+        coverage_notes=_coverage_notes(result) if is_project else [],
+        metrics=(project_metric_rows(result) if is_project else file_metric_rows(result))
+        if score_is_valid(result) else [],
+        file_rows=[_file_row(f) for f in files],
     )
+
+
+def brief_items(view: ReportView) -> Tuple[List[Item], int]:
+    """Page 1 of the PDF: the top items by priority (critical and high
+    findings, then hollow candidates, then the rest), at most
+    BRIEF_LIMITS["candidates"] candidates; and how many items are left out."""
+    ranked = sorted(view.findings + view.candidates, key=lambda i: _PRIORITY.get(i.severity, 5))
+    chosen: List[Item] = []
+    candidates = 0
+    for item in ranked:
+        if len(chosen) == BRIEF_LIMITS["items"]:
+            break
+        if item.kind == REVIEW_CANDIDATE:
+            if candidates == BRIEF_LIMITS["candidates"]:
+                continue
+            candidates += 1
+        chosen.append(item)
+    return chosen, len(ranked) - len(chosen)
 
 
 def top(items: List[Item], limit: int) -> Tuple[List[Item], int]:
     """The first `limit` items and how many were left out."""
     return items[:limit], max(0, len(items) - limit)
+
+
+def _coverage(result: Any, is_project: bool) -> Dict[str, int]:
+    """Files analyzed, excluded, unsupported, failed and not fully measured."""
+    if not is_project:
+        return {"analyzed": 1}
+    coverage = getattr(result, "scan_coverage", None) or {}
+    return {
+        key: int((coverage.get(key) or {}).get("total", 0) or 0)
+        for key in ("analyzed", "excluded", "unsupported", "failed", "unmeasured")
+    }
+
+
+def _coverage_notes(result: Any) -> List[str]:
+    from slop_detector.renderer_glossary import capability_notes, incomplete_notes
+
+    coverage = getattr(result, "scan_coverage", None) or {}
+    if not coverage:
+        return []
+    return capability_notes(coverage) + incomplete_notes(coverage)
+
+
+def _file_row(f: Any) -> Tuple[str, Optional[float], str, int]:
+    score = getattr(f, "deficit_score", None)
+    return (
+        str(getattr(f, "file_path", "")),
+        None if score is None else float(score),
+        _value(getattr(f, "status", "")).upper(),
+        len(getattr(f, "pattern_issues", None) or []),
+    )
 
 
 def _file_results(result: Any) -> List[Any]:

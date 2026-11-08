@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from typing import Any
 
 
@@ -69,6 +70,18 @@ def _write_json_output(args, result) -> None:
         print(output)
 
 
+def _write_pdf(out: str, page_html: str) -> None:
+    """The PDF report, or a clear failure (exit 2) with nothing written."""
+    from slop_detector.report_pdf import PdfFailed, PdfUnavailable, write_pdf
+
+    try:
+        write_pdf(page_html, out)
+    except (PdfUnavailable, PdfFailed) as exc:
+        print(f"[!] {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
+    print(f"[+] PDF report saved to {out}")
+
+
 def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, elapsed=None) -> None:
     """Write result to file or console based on output extension and flags."""
     from slop_detector.cli_renderer import (
@@ -80,6 +93,9 @@ def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, el
 
     if out.endswith(".html"):
         _write_file(out, generate_html_report(result), "HTML report")
+        return
+    if out.endswith(".pdf"):
+        _write_pdf(out, generate_html_report(result))
         return
     if out.endswith(".md"):
         _write_file(out, generate_markdown_report(result), "Markdown report")

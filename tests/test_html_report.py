@@ -19,18 +19,25 @@ CODE = "def f(x):\n    return x + 1\n"
 ODD = "<b>x&y</b>"  # not a valid Windows file name; used as a project folder label only
 
 
+def _score_card(page: str) -> str:
+    """The headline score as the report shows it (the Score card's value)."""
+    import re
+
+    return re.search(r'<div class="k">Score</div><div class="v">(.*?)</div>', page).group(1)
+
+
 def test_project_result_renders(tmp_path: Path):
     (tmp_path / "m.py").write_text(CODE, encoding="utf-8")
     result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
     result.weighted_deficit_score, result.avg_deficit_score = 42.0, 7.0  # the headline is weighted
-    assert "Score: 42.0/100" in generate_html_report(result)
+    assert _score_card(generate_html_report(result)) == "42.0"
 
 
 def test_file_result_renders(tmp_path: Path):
     path = tmp_path / "m.py"
     path.write_text(CODE, encoding="utf-8")
     result = SlopDetector(read_only=True).analyze_file(str(path))
-    assert f"Score: {result.deficit_score:.1f}/100" in generate_html_report(result)
+    assert _score_card(generate_html_report(result)) == f"{result.deficit_score:.1f}"
 
 
 def test_report_text_is_escaped(tmp_path: Path):
@@ -44,7 +51,7 @@ def test_report_text_is_escaped(tmp_path: Path):
 
 def test_no_measurement_shows_not_available(tmp_path: Path):
     result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
-    assert "Score: N/A" in generate_html_report(result)
+    assert _score_card(generate_html_report(result)) == "N/A"
 
 
 def test_cli_writes_a_utf8_page_for_a_korean_project(tmp_path: Path):

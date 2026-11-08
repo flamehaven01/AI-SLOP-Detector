@@ -131,7 +131,7 @@ Next steps / Appendix (full file list, full paths).
 | A row or card split across pages | `break-inside: avoid` on each row and card; a section heading never ends a page (`break-after: avoid`) |
 | A long table loses its header on page 2 | the table header repeats on every page |
 | Page 1 overflows or is half empty | Page 1 is a one-page brief with a fixed content budget: headline, counts, measurement state, the top 5 items by priority (at most 3 of them hollow candidates, marked as such), the count of the rest, next steps. The rest starts on page 2 |
-| Every section on a new page wastes paper | only the brief and the appendix force a page break; the others flow |
+| Every section on a new page wastes paper | only the page-1 brief forces a page break; every other section flows (a forced break before the appendix left a page holding one short table in the large sample) |
 
 Acceptance: three sample sizes (a few files, a medium project, a large one)
 rendered to PDF and checked page by page before the format is called done:
