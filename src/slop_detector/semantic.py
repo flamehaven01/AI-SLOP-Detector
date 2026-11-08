@@ -193,6 +193,8 @@ _INSTANCE_DECORATORS = frozenset(
     {"functools.cached_property", "abc.abstractmethod", "typing.override", "typing_extensions.override"}
 )
 _PROPERTY_PARTS = frozenset({"setter", "getter", "deleter"})
+# The one class decorator that keeps a class's own methods as written, by origin.
+_STANDARD_DATACLASS = "dataclasses.dataclass"
 
 
 def _import_sources(tree: ast.AST) -> Dict[str, Set[str]]:
@@ -300,6 +302,7 @@ class _Graph:
         self._module_names = self.intent.module_bindings | values | self.imported
         self.never_run: Dict[FunctionNode, List[Tuple[ast.Call, FunctionNode]]] = {}
         self._kinds: Dict[FunctionNode, Dict[str, list]] = {}
+        self._class_of: Dict[FunctionNode, ast.ClassDef] = {}
         body = getattr(tree, "body", [])
         defined = {n.name for n in body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
         # Top-level classes bound once; values the module assigns at top level.
@@ -315,6 +318,7 @@ class _Graph:
                 for member in node.body:
                     if isinstance(member, _FUNCTIONS):
                         self._add(node.name, member)
+                        self._class_of[member] = node
 
     def _add(self, owner: str, node: FunctionNode) -> None:
         self.functions[(owner, node.name)] = node
@@ -391,13 +395,15 @@ class _Graph:
         caller binds itself (a parameter, a local, a comprehension variable)
         or the module binds twice; a `self.` call to a method a subclass in the
         module overrides (it dispatches on the instance) or the class binds
-        again (an instance attribute of the same name).
+        again (an instance attribute of the same name), or in a class under a
+        decorator or metaclass that may replace it.
 
         Why, for an open target: `external` (an imported name, a builtin, a
         method inherited only from imported bases), `dynamic` (chosen at run
         time: a parameter, a value the caller or the module assigns, an
         object's attribute, an expression's result, an overridable method),
-        `ambiguous` (bound more than once, or wrapped by a decorator),
+        `ambiguous` (bound more than once, or wrapped by a decorator, the
+        callee's or its class's, or by a metaclass),
         `module_defined_unresolved` (the module defines a candidate - a class,
         a nested def, a method of the class or of a module base - that the
         graph does not follow), `unclassified` (no evidence either way).
@@ -435,6 +441,8 @@ class _Graph:
             return None, self._inherited(self.owner[caller], name)
         if self.intent.is_contract(callee) or _left_to_subclasses(callee):
             return None, DYNAMIC
+        if not self._class_keeps(caller, name):
+            return None, AMBIGUOUS
         return (callee, 1), ""
 
     def _own_instance(self, receiver: str, caller: FunctionNode) -> bool:
@@ -472,13 +480,43 @@ class _Graph:
             return self._is_property(klass, decorator.value, local)
         if isinstance(decorator, ast.Name) and decorator.id == "property":
             return self._builtin_property(local)
+        origins = self._origins(decorator, local)
+        return bool(origins) and origins <= _INSTANCE_DECORATORS
+
+    def _origins(self, decorator: ast.expr, local: Set[str]) -> Set[str]:
+        """Where `name` / `name.attr` comes from by the module's imports; none
+        when `name` is bound again, by the module or in `local`."""
         root = decorator.value if isinstance(decorator, ast.Attribute) else decorator
         if not isinstance(root, ast.Name) or root.id in local or root.id in self.rebound_imports:
-            return False
+            return set()
         origins = self.import_sources.get(root.id, set())
         if isinstance(decorator, ast.Attribute):
             origins = {origin + "." + decorator.attr for origin in origins}
-        return bool(origins) and origins <= _INSTANCE_DECORATORS
+        return origins
+
+    def _class_keeps(self, caller: FunctionNode, name: str) -> bool:
+        """The class statement keeps its method `name` as written: no class
+        decorator, metaclass or class keyword (any may replace a method), or
+        only the standard `dataclasses.dataclass`, and then not a special
+        method (`__eq__`, `__post_init__`: it may generate or call one)."""
+        klass = self._class_of[caller]
+        if klass.keywords:
+            return False
+        if not klass.decorator_list:
+            return True
+        special = name.startswith("__") and name.endswith("__")
+        return not special and all(self._plain_dataclass(d) for d in klass.decorator_list)
+
+    def _plain_dataclass(self, decorator: ast.expr) -> bool:
+        """`@dataclass` / `@dataclasses.dataclass(frozen=True)`: the standard
+        one by origin, options only as constants and none of them `slots`
+        (that makes a new class object)."""
+        if isinstance(decorator, ast.Call):
+            options = decorator.keywords
+            if decorator.args or any(k.arg == "slots" or not isinstance(k.value, ast.Constant) for k in options):
+                return False
+            decorator = decorator.func
+        return self._origins(decorator, set()) == {_STANDARD_DATACLASS}
 
     def _builtin_property(self, local: Set[str]) -> bool:
         """`property` is the builtin: neither the module nor the class binds it."""

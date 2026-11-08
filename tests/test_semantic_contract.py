@@ -963,6 +963,197 @@ def test_a_classmethod_argument_is_not_mapped_past_self():
     assert (unbound, "value") not in dropped
 
 
+R01C = """
+import dataclasses
+from dataclasses import dataclass
+
+def swap(klass):
+    klass.render = lambda self: "swapped"
+    return klass
+
+class Meta(type):
+    def __new__(mcs, name, bases, namespace):
+        namespace["render"] = lambda self: "meta"
+        return super().__new__(mcs, name, bases, namespace)
+
+class Plain:
+    def render(self):
+        return "own"
+
+    def draw(self):
+        return self.render()
+
+    def __post_init__(self):
+        return None
+
+    def again(self):
+        return self.__post_init__()
+
+@dataclass
+class Point:
+    def render(self):
+        return "own"
+
+    def draw(self):
+        return self.render()
+
+    def __post_init__(self):
+        return None
+
+    def again(self):
+        return self.__post_init__()
+
+@dataclasses.dataclass(frozen=True, order=True)
+class Frozen:
+    def render(self):
+        return "own"
+
+    def draw(self):
+        return self.render()
+
+@swap
+class Swapped:
+    def render(self):
+        return "own"
+
+    def draw(self):
+        return self.render()
+
+@swap
+@dataclass
+class Stacked:
+    def render(self):
+        return "own"
+
+    def draw(self):
+        return self.render()
+
+class Made(metaclass=Meta):
+    def render(self):
+        return "own"
+
+    def draw(self):
+        return self.render()
+"""
+
+DATACLASS_OPTIONS = """
+import attr as dataclasses
+from dataclasses import dataclass
+from pydantic.dataclasses import dataclass as pydantic_dataclass
+from .dataclasses import dataclass as relative_dataclass
+from dataclasses import dataclass as rebound
+rebound = staticmethod(rebound)
+FLAG = True
+OPTIONS = {}
+
+class Base:
+    pass
+
+@dataclass(slots=True)
+class Slotted:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+@dataclass(eq=FLAG)
+class Flagged:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+@dataclass(**OPTIONS)
+class Spread:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+@dataclass(Base)
+class Positional:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+@dataclasses.dataclass
+class Attr:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+@pydantic_dataclass
+class Pydantic:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+@relative_dataclass
+class Relative:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+@rebound
+class Rebound:
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+
+class Keyword(Base, flag=True):
+    def render(self):
+        return True
+
+    def draw(self):
+        return self.render()
+"""
+
+
+def test_a_class_keeps_its_methods_only_without_a_transform_or_by_the_standard_dataclass():
+    closed, graph = _self_calls(R01C)
+    assert closed["Plain.draw"] == [True] and closed["Plain.again"] == [True]  # controls
+    assert closed["Point.draw"] == [True]  # the standard dataclass keeps a plain method
+    assert closed["Point.again"] == [False]  # a special method it may generate or call
+    assert closed["Frozen.draw"] == [True]  # constant options
+    assert closed["Swapped.draw"] == [False]  # a class decorator that replaces the method
+    assert closed["Stacked.draw"] == [False]  # dataclass under another decorator
+    assert closed["Made.draw"] == [False]  # a metaclass that replaces the method
+    states, _, _, details = semantic._with_effect(graph)
+    named = {graph.qualname(f): details[f] for f in states}
+    assert named["Swapped.draw"] == named["Made.draw"] == named["Point.again"] == {"ambiguous"}
+    options, _ = _self_calls(DATACLASS_OPTIONS)
+    drawn = {name: calls for name, calls in options.items() if name.endswith(".draw")}
+    # slots (a new class), options not constant, or not the standard dataclass by origin
+    assert drawn == {
+        name + ".draw": [False]
+        for name in ("Slotted", "Flagged", "Spread", "Positional", "Attr", "Pydantic", "Relative", "Rebound", "Keyword")
+    }
+
+
+def test_the_class_transform_controls_run_as_python_says():
+    namespace = {}
+    exec(compile(R01C, "r01c", "exec"), namespace)
+    assert namespace["Plain"]().draw() == "own"
+    assert namespace["Point"]().draw() == "own"
+    assert namespace["Frozen"]().draw() == "own"
+    assert namespace["Swapped"]().draw() == "swapped"  # a closed edge to `render` would be wrong
+    assert namespace["Stacked"]().draw() == "swapped"
+    assert namespace["Made"]().draw() == "meta"
+
+
 def test_coverage_of_a_module_without_functions_is_measured_and_empty(tmp_path):
     result = SlopDetector(read_only=True).analyze_file(str(_write(tmp_path, "VALUE = 1\n")))
     assert result.semantic_coverage["state"] == "MEASURED"
@@ -1025,8 +1216,8 @@ def test_an_entry_from_an_older_engine_is_not_served(tmp_path):
     key = dict(file_path=str(path), file_size=stat.st_size, mtime_ns=stat.st_mtime_ns,
                content_hash="h", config_fingerprint="c")
     # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b, v45: before R-01,
-    # v46: before R-01b
-    older_engines = ("v37", "v42", "v43", "v44", "v45", "v46")
+    # v46: before R-01b, v47: before R-01c
+    older_engines = ("v37", "v42", "v43", "v44", "v45", "v46", "v47")
     for older in ("analysis-cache-" + v for v in older_engines):
         cache.put(result=fresh, engine_version=older, **key)
         assert cache.get(engine_version=CACHE_ENGINE_VERSION, **key) is None
