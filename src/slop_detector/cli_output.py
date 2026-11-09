@@ -116,11 +116,14 @@ def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, el
 
 
 def _write_ai_report(args, result) -> None:
-    """The AI report (JSON Lines) to stdout or --output; never an invalid one."""
+    """The AI report (JSON Lines, or the Markdown work order with --format
+    ai-md) to stdout or --output; never an invalid one."""
     from slop_detector.ai_report import AiReportInvalid, render_ai_report
+    from slop_detector.ai_report_md import render_ai_report_md
 
+    render = render_ai_report_md if getattr(args, "format", None) == "ai-md" else render_ai_report
     try:
-        text = render_ai_report(result, getattr(args, "ai_limit", None))
+        text = render(result, getattr(args, "ai_limit", None))
     except AiReportInvalid as exc:
         print(f"[!] {exc}; nothing was written", file=sys.stderr)
         raise SystemExit(2) from exc

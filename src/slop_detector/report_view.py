@@ -261,7 +261,7 @@ def _candidate_items(f: Any) -> List[Item]:
             severity="",
             file=path,
             line=int(_field(c, "line", 0) or 0),
-            message=f"{_field(c, 'function')}: {_field(c, 'evidence')}".rstrip(": "),
+            message=f"{_field(c, 'function')}{_inputs(c)}: {_field(c, 'evidence')}".rstrip(": "),
         )
         for c in (getattr(f, "semantic_findings", None) or [])
     ] + [
@@ -278,6 +278,13 @@ def _candidate_items(f: Any) -> List[Item]:
         for c in (getattr(f, "claim_findings", None) or [])
         if not _field(c, "same_cause_as", None)
     ]
+
+
+def _inputs(c: Any) -> str:
+    """The values a semantic result is about (`input_never_used`: the unused
+    parameters; `effect_never_runs`: the callee), named so the item can be acted on."""
+    names = _field(c, "inputs", None) or []
+    return f" [{', '.join(str(n) for n in names)}]" if names else ""
 
 
 def _semantic_state(files: List[Any]) -> SemanticState:

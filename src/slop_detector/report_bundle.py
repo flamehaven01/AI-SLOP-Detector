@@ -11,12 +11,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple
 
-BUNDLE_FILES = ("report.md", "report.html", "report.pdf", "ai-report.jsonl", "scan.json")
+BUNDLE_FILES = ("report.md", "report.html", "report.pdf", "ai-report.jsonl", "ai-report.md", "scan.json")
 
 
 def write_bundle(result: Any, directory: str, ai_limit: Optional[int] = None) -> Tuple[List[str], List[Tuple[str, str]]]:
     """Write the bundle; return (files written, (file, why) not written)."""
     from slop_detector.ai_report import AiReportInvalid, render_ai_report
+    from slop_detector.ai_report_md import render_ai_report_md
     from slop_detector.cli_output import render_json
     from slop_detector.renderer_html import generate_html_report
     from slop_detector.renderer_markdown import generate_markdown_report
@@ -30,6 +31,7 @@ def write_bundle(result: Any, directory: str, ai_limit: Optional[int] = None) ->
         ("report.html", lambda: page),
         ("report.pdf", lambda: write_pdf(page, str(folder / "report.pdf"))),
         ("ai-report.jsonl", lambda: render_ai_report(result, ai_limit)),
+        ("ai-report.md", lambda: render_ai_report_md(result, ai_limit)),
         ("scan.json", lambda: render_json(result)),
     ]
     written: List[str] = []

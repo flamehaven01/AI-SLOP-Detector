@@ -117,7 +117,7 @@ def test_the_bundle_lists_what_it_could_not_write_and_removes_a_stale_copy(tmp_p
     (out / "report.pdf").write_bytes(b"%PDF- from an earlier run")
     monkeypatch.setenv(BROWSER_ENV, str(tmp_path / "missing-browser"))
     written, failed = write_bundle(result, str(out))
-    assert written == ["report.md", "report.html", "ai-report.jsonl", "scan.json"]
+    assert written == ["report.md", "report.html", "ai-report.jsonl", "ai-report.md", "scan.json"]
     assert [name for name, _ in failed] == ["report.pdf"]
     assert "ENV_BLOCKED" in failed[0][1] and "earlier run was removed" in failed[0][1]
     assert not (out / "report.pdf").exists()

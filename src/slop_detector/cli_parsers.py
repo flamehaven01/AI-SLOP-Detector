@@ -59,20 +59,26 @@ Examples:
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument(
         "--format",
-        choices=["json", "ai"],
-        help="Structured output: json (the full result) or ai (the AI report, JSON Lines)",
+        choices=["json", "ai", "ai-md"],
+        help=(
+            "Structured output: json (the full result), ai (the AI report, JSON Lines) or ai-md "
+            "(the same report as one Markdown work order for an agent)"
+        ),
     )
     parser.add_argument(
         "--ai-limit",
         type=int,
         default=None,
         metavar="N",
-        help="With --format ai or --report-dir: at most N items in the AI report (the header counts the rest)",
+        help=(
+            "With --format ai or --report-dir: at most N items in the AI report (the header counts the rest); "
+            "with ai-md: N full work-order blocks, the rest one backlog line each"
+        ),
     )
     parser.add_argument(
         "--report-dir",
         metavar="DIR",
-        help="Write report.md, report.html, report.pdf, ai-report.jsonl and scan.json to DIR",
+        help="Write report.md, report.html, report.pdf, ai-report.jsonl, ai-report.md and scan.json to DIR",
     )
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument(
@@ -390,4 +396,4 @@ def _normalize_format_args(args) -> None:
     """Map format aliases onto existing boolean output flags."""
     if getattr(args, "format", None) == "json":
         args.json = True
-    args.ai = getattr(args, "format", None) == "ai"
+    args.ai = getattr(args, "format", None) in ("ai", "ai-md")
