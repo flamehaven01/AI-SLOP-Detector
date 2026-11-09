@@ -47,6 +47,14 @@ class MetadataCache:
 def validate_root_access(client):
     """Validate ROOT access against a read-only admin endpoint."""
     return client.check()
+
+def checksum_stub(path):
+    """Compute the checksum of the stub file."""
+    return path
+
+def validate_options(config):
+    """Validate config options not implemented for the backend."""
+    return config.check()
 '''
 
 NOT_PROMISES = '''
@@ -125,6 +133,18 @@ def fetch_with_config(client):
 def configure_retry(adapter):
     """Configure the adapter with exponential backoff."""
     adapter.retries = 5
+
+def accept_atom(self, atom):
+    """Overload this to reject atoms for output."""
+    return 1
+
+def compute_score(item):
+    """Compute the score (not implemented yet)."""
+    return 0.0
+
+def compute_reward(item):
+    """Compute reward (stub -- actual verification is in score_eval)."""
+    return 0.0
 '''
 
 OTHER_SCOPES = '''
@@ -174,6 +194,8 @@ def test_a_promise_of_the_function_s_own_mechanism_is_extracted():
         ("explain", "computed_result"),
         ("MetadataCache.get", "cache"),
         ("validate_root_access", "validation"),
+        ("checksum_stub", "computed_result"),  # "stub" as an object, not the function's own disclosure
+        ("validate_options", "validation"),  # "not implemented" said of the options, not of this function
     }
     claim = next(c for c in _claims(PROMISES).claims if c.function == "PartnerClient.list_all")
     record = claim.to_dict()
@@ -191,6 +213,7 @@ def test_a_topic_an_object_a_negation_or_another_component_is_not_a_promise():
     # each excluded match is counted by its reason, never dropped silently
     assert set(result.excluded) >= {
         "negated", "predicate_about_mechanism", "attributed_elsewhere", "test_description", "mechanism_as_object",
+        "self_disclosed",
     }
     # a promise only in the second sentence is out of scope, not absent
     assert result.out_of_scope["later_sentences_not_analyzed"] >= 1
@@ -208,6 +231,6 @@ def test_functions_left_out_are_counted_by_reason():
 
 def test_test_code_and_unknown_test_status_are_not_analyzed():
     in_tests = _claims(PROMISES, is_test=True)
-    assert in_tests.claims == [] and in_tests.not_analyzed == {"test_code": 10}
+    assert in_tests.claims == [] and in_tests.not_analyzed == {"test_code": 12}
     unknown = _claims(PROMISES, is_test=None)
-    assert unknown.claims == [] and unknown.not_analyzed == {"test_status_unknown": 10}
+    assert unknown.claims == [] and unknown.not_analyzed == {"test_status_unknown": 12}

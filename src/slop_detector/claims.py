@@ -83,6 +83,17 @@ PROMISES: Dict[str, "re.Pattern[str]"] = {
 }
 
 # Why a match is not this function's own promise (checked in this order).
+# The sentence says the function itself is a stand-in: "(stub -- the real
+# check is in ...)", "is a placeholder", "not implemented". A stub named as
+# an object ("the stub file") is not a disclosure.
+_SELF_DISCLOSED = re.compile(
+    r"\((?:a |an |the )?(?:stub|placeholder|no-op|dummy)\b"
+    r"|\b(?:stub|placeholder|no-op)\s*(?:--|-|:|;|,)"
+    r"|\b(?:is|this is) (?:a |an |only a )?(?:stub|placeholder|no-op|dummy)\b"
+    # "not implemented" of the function itself, not of an object it handles
+    r"|(?:^|\(|--|:)\s*not (?:yet )?implemented\b|\b(?:this|it) is not (?:yet )?implemented\b",
+    re.I,
+)
 _TEST_DESCRIPTION = re.compile(r"^(?:tests?|check(?:s)? that|ensures? that|verif(?:y|ies) that|asserts?|regression)\b", re.I)
 _PREDICATE = re.compile(r"^(?:returns? (?:true|false|whether)|whether|true if|checks? (?:if|whether))\b", re.I)
 # The mechanism is another task's relation or another actor's, not this one's.
@@ -92,7 +103,9 @@ _RELATION = re.compile(
 _NEGATION = re.compile(r"\b(?:never|not|no|without|cannot|instead of)\b|n't\b", re.I)
 _ELSEWHERE = re.compile(
     r"\b(?:delegat\w* to|relies on|handled by|provided by|done by|left to)\b"
-    r"|\bthe (?:client|server|session|api|library|backend|framework|caller)'?s? (?:paginat|retr|cach|validat)",
+    r"|\bthe (?:client|server|session|api|library|backend|framework|caller)'?s? (?:paginat|retr|cach|validat)"
+    # an instruction to the overrider: the subclass does it, this default does not
+    r"|^(?:overload|override|overwrite|reimplement) (?:this|me|it)\b|\bsubclass(?:es)? (?:should|must|may|can)\b",
     re.I,
 )
 _AS_OBJECT = re.compile(
@@ -110,6 +123,8 @@ _OBJECT_VERBS = re.compile(
 def _excluded(sentence: str, match: "re.Match[str]") -> Optional[str]:
     """Why a match is not a promise of this function's own behavior, or None."""
     before = sentence[: match.start()]
+    if _SELF_DISCLOSED.search(sentence):
+        return "self_disclosed"
     if _TEST_DESCRIPTION.search(sentence):
         return "test_description"
     if _PREDICATE.search(sentence):
