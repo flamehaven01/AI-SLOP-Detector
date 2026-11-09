@@ -1307,6 +1307,14 @@ def verify_sizes(expected, actual):
     assert expected.size == actual.size
     return True
 
+def healthz(timeout_s=None):
+    del timeout_s
+    return {"status": "ok"}
+
+def reset(record):
+    record = {}
+    return True
+
 class ScanResult:
     pass
 
@@ -1354,7 +1362,9 @@ def test_a_handler_or_a_check_that_answers_success_whatever_happened_is_reported
     # no input read; a failing path; a signature an outside base fixes; an answer
     # built from the input (a serializer); a member read from the input
     # ... and a check that asserts (it fails loudly on a bad input)
-    for name in ("enabled", "validate_strict", "Plugin.supports", "serialize", "summarize", "verify_sizes"):
+    # ... and an input only deleted or overwritten, never read (`del timeout_s`)
+    for name in ("enabled", "validate_strict", "Plugin.supports", "serialize", "summarize", "verify_sizes",
+                 "healthz", "reset"):
         assert (name, "success_without_effect") not in found, name
 
 
@@ -1420,8 +1430,9 @@ def test_an_entry_from_an_older_engine_is_not_served(tmp_path):
     key = dict(file_path=str(path), file_size=stat.st_size, mtime_ns=stat.st_mtime_ns,
                content_hash="h", config_fingerprint="c")
     # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b, v45: before R-01,
-    # v46: before R-01b, v47: before R-01c, v48: before structured success reports
-    older_engines = ("v37", "v42", "v43", "v44", "v45", "v46", "v47", "v48")
+    # v46: before R-01b, v47: before R-01c, v48: before structured success reports,
+    # v49: before the read check counted only loads
+    older_engines = ("v37", "v42", "v43", "v44", "v45", "v46", "v47", "v48", "v49")
     for older in ("analysis-cache-" + v for v in older_engines):
         cache.put(result=fresh, engine_version=older, **key)
         assert cache.get(engine_version=CACHE_ENGINE_VERSION, **key) is None

@@ -1259,7 +1259,8 @@ def _checks_its_input(intent, function: FunctionNode) -> bool:
     nodes = _own_nodes(function)
     if any(isinstance(n, (ast.Assert, ast.Raise)) for n in nodes):
         return False  # it fails loudly on a bad input: the True is not unconditional
-    reads = any(isinstance(n, ast.Name) and n.id in params for n in nodes)
+    # A read is a load: `del timeout_s` or `record = {}` does not look at the input.
+    reads = any(isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id in params for n in nodes)
     return reads and not any(_names_outside_text(r.value) & params for r in _returns(function))
 
 
