@@ -1154,6 +1154,210 @@ def test_the_class_transform_controls_run_as_python_says():
     assert namespace["Made"]().draw() == "meta"
 
 
+SUCCESS_SHAPES = """
+class SendResult:
+    def __init__(self, ok=False, verbose=False):
+        self.ok = ok
+
+class Status:
+    SUCCESS = "success"
+
+def persist(record):
+    return None
+
+def save_status(record):
+    persist(record)
+    return {"status": "ok", "id": record}
+
+def save_flag(record):
+    persist(record)
+    return {"success": True}
+
+def save_result(record):
+    persist(record)
+    return SendResult(ok=True)
+
+def save_member(record):
+    persist(record)
+    return Status.SUCCESS
+
+def send(client, payload):
+    try:
+        client.post(payload)
+    except Exception:
+        pass
+    return {"ok": True}
+
+def save_computed(record):
+    persist(record)
+    return {"success": record}
+
+def read_flag(conn):
+    persist(conn)
+    return conn.connected
+
+def save_verbose(record):
+    persist(record)
+    return SendResult(verbose=True)
+
+def save_failed(record):
+    persist(record)
+    return {"status": "error"}
+
+def save_real(record):
+    persist(record)
+    record.saved = True
+    return {"status": "ok"}
+
+def save_mixed(record):
+    persist(record)
+    return {"status": "ok", "success": record}
+"""
+
+
+def test_a_constant_success_report_is_success_however_it_is_shaped():
+    import ast
+
+    found = {(f.function, f.kind) for f in semantic.semantic_findings(ast.parse(SUCCESS_SHAPES))}
+    for name in ("save_status", "save_flag", "save_result", "save_member"):
+        assert (name, "success_without_effect") in found, name
+    assert ("send", "failure_reported_as_success") in found  # {"ok": True} after a swallowed failure
+    # a computed success entry, a run-time member, a flag that is not success,
+    # a failure status, a real effect, one literal claim beside a computed one
+    for name in ("save_computed", "read_flag", "save_verbose", "save_failed", "save_real", "save_mixed"):
+        assert (name, "success_without_effect") not in found, name
+
+
+HANDLERS_AND_CHECKS = """
+import logging
+from framework import Base
+
+logger = logging.getLogger(__name__)
+REQUIRED = ("id", "email")
+
+def charge(gateway, item):
+    if not item:
+        return False
+    try:
+        ok = gateway.submit(item)
+    except Exception:
+        logger.exception("charge failed")
+        return True
+    return ok
+
+def charge_report(gateway, item):
+    if not item:
+        return {"status": "rejected"}
+    try:
+        receipt = gateway.submit(item)
+    except Exception:
+        logger.exception("charge failed")
+        return {"status": "ok"}
+    return {"status": receipt}
+
+def charge_error_dict(gateway, item):
+    try:
+        receipt = gateway.submit(item)
+    except Exception as exc:
+        return {"available": True, "error": str(exc)}
+    return {"receipt": receipt}
+
+def charge_honest(gateway, item):
+    try:
+        ok = gateway.submit(item)
+    except Exception:
+        return False
+    return ok
+
+def charge_reraise(gateway, item):
+    try:
+        ok = gateway.submit(item)
+    except Exception:
+        logger.exception("charge failed")
+        raise
+    return ok
+
+def charge_narrow(gateway, item):
+    try:
+        ok = gateway.submit(item)
+    except KeyError:
+        return {"status": "ok"}
+    return ok
+
+def no_work(item):
+    try:
+        value = item
+    except Exception:
+        return {"status": "ok"}
+    return value
+
+def validate_record(record):
+    for name in REQUIRED:
+        if name not in record:
+            logger.debug("missing %s", name)
+    return True
+
+def enabled():
+    return True
+
+def serialize(preview):
+    return {"ok": True, "effect": preview.effect}
+
+def verify_sizes(expected, actual):
+    assert expected.size == actual.size
+    return True
+
+class ScanResult:
+    pass
+
+def start_scan(root):
+    return ScanResult("scan", True, f"Scanned {root}")
+
+def ping(conn):
+    try:
+        conn.send()
+    except Exception:
+        return {"success": conn.ok}
+    return {"success": True}
+
+def summarize(result):
+    return {"passed": result.passed}
+
+def validate_strict(record):
+    if "id" not in record:
+        return False
+    return True
+
+class Plugin(Base):
+    def supports(self, feature):
+        if feature:
+            logger.debug("asked for %s", feature)
+        return True
+"""
+
+
+def test_a_handler_or_a_check_that_answers_success_whatever_happened_is_reported():
+    import ast
+
+    found = {(f.function, f.kind) for f in semantic.semantic_findings(ast.parse(HANDLERS_AND_CHECKS))}
+    # the handler's own answer is a success report, whatever the function's other returns
+    assert ("charge_report", "failure_reported_as_success") in found
+    # a bare True (a fail-open default far more often than a disguise), a report
+    # carrying the error, an honest False, a re-raise, a narrow handler, no work
+    # ... and a report built from what the input says (`{"success": conn.ok}`)
+    for name in ("charge", "charge_error_dict", "charge_honest", "charge_reraise", "charge_narrow", "no_work", "ping"):
+        assert (name, "failure_reported_as_success") not in found, name
+    # a check that reads its input and passes whatever it finds
+    assert ("validate_record", "success_without_effect") in found
+    # the input only shown in the report's text: the answer does not depend on it
+    assert ("start_scan", "success_without_effect") in found
+    # no input read; a failing path; a signature an outside base fixes; an answer
+    # built from the input (a serializer); a member read from the input
+    # ... and a check that asserts (it fails loudly on a bad input)
+    for name in ("enabled", "validate_strict", "Plugin.supports", "serialize", "summarize", "verify_sizes"):
+        assert (name, "success_without_effect") not in found, name
+
+
 def test_coverage_of_a_module_without_functions_is_measured_and_empty(tmp_path):
     result = SlopDetector(read_only=True).analyze_file(str(_write(tmp_path, "VALUE = 1\n")))
     assert result.semantic_coverage["state"] == "MEASURED"
@@ -1216,8 +1420,8 @@ def test_an_entry_from_an_older_engine_is_not_served(tmp_path):
     key = dict(file_path=str(path), file_size=stat.st_size, mtime_ns=stat.st_mtime_ns,
                content_hash="h", config_fingerprint="c")
     # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b, v45: before R-01,
-    # v46: before R-01b, v47: before R-01c
-    older_engines = ("v37", "v42", "v43", "v44", "v45", "v46", "v47")
+    # v46: before R-01b, v47: before R-01c, v48: before structured success reports
+    older_engines = ("v37", "v42", "v43", "v44", "v45", "v46", "v47", "v48")
     for older in ("analysis-cache-" + v for v in older_engines):
         cache.put(result=fresh, engine_version=older, **key)
         assert cache.get(engine_version=CACHE_ENGINE_VERSION, **key) is None

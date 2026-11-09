@@ -309,6 +309,25 @@ def _success_mark(node: ast.expr, keyword: Optional[str] = None) -> Optional[str
     return None
 
 
+def constant_success_marks(value: ast.expr, parameters: frozenset) -> List[str]:
+    """The success marks of a constructed report (`SendResult(ok=True)`,
+    `Report('ssh', Health.HEALTHY)`): the callee is a class, every argument is
+    a literal (an f-string may use `parameters`), and at least one marks
+    success. Empty for anything else, a method such as `var.set(True)` too."""
+    if not isinstance(value, ast.Call):
+        return []
+    callee_name = value.func.attr if isinstance(value.func, ast.Attribute) else ""
+    callee_name = callee_name or getattr(value.func, "id", "")
+    if not callee_name[:1].isupper():
+        return []
+    arguments = list(value.args) + [k.value for k in value.keywords]
+    if not arguments or not all(_literal_argument(a, parameters) for a in arguments):
+        return []
+    marked = [_success_mark(a) for a in value.args]
+    marked += [_success_mark(k.value, k.arg) for k in value.keywords]
+    return [m for m in marked if m]
+
+
 def _constant_success_report(value: ast.expr, function, content: str) -> Optional[str]:
     """`Report('ssh', True, f'placeholder for {target}')` -> "Report(... True ...)".
 
@@ -316,24 +335,12 @@ def _constant_success_report(value: ast.expr, function, content: str) -> Optiona
     (True, or a member such as HEALTHY): the result is the same whatever
     happened, and it says the work succeeded.
     """
-    if not isinstance(value, ast.Call):
-        return None
-    # A constructed report: the callee is a class (`SendResult`, `health.Report`);
-    # a method such as `var.set(True)` acts and is not a report.
-    callee_name = value.func.attr if isinstance(value.func, ast.Attribute) else ""
-    callee_name = callee_name or getattr(value.func, "id", "")
-    if not callee_name[:1].isupper():
-        return None
-    arguments = list(value.args) + [k.value for k in value.keywords]
     args = function.args
     parameters = frozenset(a.arg for a in args.posonlyargs + args.args + args.kwonlyargs)
-    if not arguments or not all(_literal_argument(a, parameters) for a in arguments):
-        return None
-    marked = [_success_mark(a) for a in value.args]
-    marked += [_success_mark(k.value, k.arg) for k in value.keywords]
-    marks = [m for m in marked if m]
+    marks = constant_success_marks(value, parameters)
     if not marks:
         return None
+    arguments = list(value.args) + [k.value for k in value.keywords]
     callee = _exception_type_text(value.func, content) or "a constructor"
     shown = f"{callee}(... {marks[0]} ...)"
     texts = [

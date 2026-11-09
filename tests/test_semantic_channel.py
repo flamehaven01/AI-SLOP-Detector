@@ -1000,7 +1000,9 @@ def test_a_context_manager_or_an_async_step_runs_code_from_elsewhere(tmp_path):
     for name in ("Repo.save", "drain", "collect", "guarded"):
         assert states[name] == "EFFECT_UNKNOWN", name
     assert states["scan"] == "NO_EFFECT_IN_CLOSED_GRAPH"
-    assert [f for f in _semantic(tmp_path, source) if f[1] == "success_without_effect"] == []
+    # The unknown ones are never candidates; `scan` walks its input, does
+    # nothing and reports success: a check that passes whatever it finds.
+    assert [f[0] for f in _semantic(tmp_path, source) if f[1] == "success_without_effect"] == ["scan"]
     import ast
 
     from slop_detector import semantic

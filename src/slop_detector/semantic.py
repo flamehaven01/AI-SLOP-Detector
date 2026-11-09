@@ -30,12 +30,22 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 
 from slop_detector.patterns.declared_intent import declared_intent
 from slop_detector.patterns.ignored_parameter import _documented_as_kept, fixed_signature
-from slop_detector.patterns.placeholder import _PURE_BUILTINS, SUCCESS_CLAIM, _is_log_call
+from slop_detector.patterns.placeholder import (
+    _PURE_BUILTINS,
+    _SUCCESS_KEYWORDS,
+    SUCCESS_CLAIM,
+    _is_log_call,
+    _literal_argument,
+    _success_mark,
+    constant_success_marks,
+)
 
 FunctionNode = Union[ast.FunctionDef, ast.AsyncFunctionDef]
 _FUNCTIONS = (ast.FunctionDef, ast.AsyncFunctionDef)
 _IMPLICIT = frozenset({"self", "cls"})
 _SUCCESS_TEXT_LIMIT = 40  # longer literals are content (a prompt, a template)
+_STATUS_KEYS = frozenset({"status", "state", "result"})  # dict keys whose value names the outcome
+_ERROR_KEYS = frozenset({"error", "errors", "exception"})  # a dict carrying one reports a failure
 
 
 @dataclass
@@ -1060,6 +1070,7 @@ def _local_effect(graph: _Graph, function: FunctionNode):
     reasons: Set[str] = set()
     details: Set[str] = set()
     dropped = {id(call) for call, _ in _never_run(graph, function)}
+    local = _local_names(graph, function)
     for node in _own_nodes(function):
         if _observed_effect(node):
             return EFFECT_OBSERVED, callees, set(), set()
@@ -1069,6 +1080,8 @@ def _local_effect(graph: _Graph, function: FunctionNode):
         if isinstance(node, ast.Call) and id(node) not in dropped:
             if _is_log_call(node) or _value_builtin(graph, function, node.func):
                 continue
+            if constant_success_marks(node, local):
+                continue  # a report built from literals (`SendResult(ok=True)`) is a value
             resolved, why = graph.resolution(node, function)
             if resolved is None:
                 reasons.add("open_call")
@@ -1076,6 +1089,12 @@ def _local_effect(graph: _Graph, function: FunctionNode):
             else:
                 callees.append(resolved[0])
     return (EFFECT_UNKNOWN if reasons else NO_EFFECT), callees, reasons, details
+
+
+def _local_names(graph: _Graph, function: FunctionNode) -> frozenset:
+    """Names whose value the function gets at run time: its parameters, its
+    own bindings, `self` / `cls`."""
+    return frozenset(graph.bound_in(function) | _all_params(function) | _IMPLICIT)
 
 
 def _with_effect(graph: _Graph):
@@ -1122,13 +1141,56 @@ def _returns(function: FunctionNode) -> List[ast.Return]:
     return [n for n in _own_nodes(function) if isinstance(n, ast.Return)]
 
 
-def _is_success(value: Optional[ast.expr]) -> bool:
+def _success_text(value: ast.expr) -> bool:
+    """`True`, or a short string that claims success (`"saved"`, `"ok"`)."""
     if not isinstance(value, ast.Constant):
         return False
     if value.value is True:
         return True
     text = value.value
     return isinstance(text, str) and len(text) <= _SUCCESS_TEXT_LIMIT and bool(SUCCESS_CLAIM.search(text))
+
+
+def _is_success(value: Optional[ast.expr], local: frozenset = frozenset()) -> bool:
+    """A value that says the work succeeded whatever happened: `True`, a
+    success word, a success member (`Status.SUCCESS`), a dict whose success or
+    status entry is such a literal (`{"status": "ok", "id": order_id}`), or a
+    constructed report of literals (`SendResult(ok=True)`). `local`: the
+    function's parameters and locals; a member read from one (`conn.connected`)
+    is a run-time value, not a constant."""
+    if value is None:
+        return False
+    if isinstance(value, ast.Attribute):
+        return _success_mark(value) is not None and _literal_argument(value, local)
+    if isinstance(value, ast.Dict):
+        return _success_dict(value, local)
+    return _success_text(value) or bool(constant_success_marks(value, local))
+
+
+def _success_dict(value: ast.Dict, local: frozenset) -> bool:
+    """Some entry under a success key (`ok`, `success`, ...) or a status key
+    (`status`, `state`, `result`) holds a literal success, and no such entry
+    holds anything else (a computed status is not a constant claim)."""
+    claims = []
+    for key, item in zip(value.keys, value.values):
+        if not (isinstance(key, ast.Constant) and isinstance(key.value, str)):
+            continue
+        name = key.value.lower()
+        if name in _ERROR_KEYS and not (isinstance(item, ast.Constant) and not item.value):
+            return False  # `{"available": True, "error": str(e)}` reports a failure
+        if name in _SUCCESS_KEYWORDS or name in _STATUS_KEYS:
+            claims.append(_entry_claims_success(key.value, item, local))
+    return bool(claims) and all(claims)
+
+
+def _entry_claims_success(key: str, item: ast.expr, local: frozenset) -> bool:
+    """One success or status entry: `"ok": True`, `"status": "ok"`, or a
+    success member (`Status.SUCCESS`) read from no run-time value."""
+    member = isinstance(item, ast.Attribute)
+    if key.lower() in _SUCCESS_KEYWORDS:
+        return _success_mark(item, key) is not None and (not member or _literal_argument(item, local))
+    marked = member and _success_mark(item) is not None
+    return _success_text(item) or (marked and _literal_argument(item, local))
 
 
 def _promises(function: FunctionNode, inputs: List[str]) -> bool:
@@ -1166,6 +1228,7 @@ def _success_only(graph: _Graph) -> Set[FunctionNode]:
     module function that only reports success (`return self._write(record)`
     where `_write` returns `True`): the least fixed point."""
     returns = {f: _returns(f) for f in graph.owner}
+    local = {f: _local_names(graph, f) for f in graph.owner}
     found: Set[FunctionNode] = set()
     changed = True
     while changed:
@@ -1173,7 +1236,7 @@ def _success_only(graph: _Graph) -> Set[FunctionNode]:
         for f, rs in returns.items():
             if f in found or not rs:
                 continue
-            if all(_is_success(r.value) or _returns_success_call(graph, f, r.value, found) for r in rs):
+            if all(_is_success(r.value, local[f]) or _returns_success_call(graph, f, r.value, found) for r in rs):
                 found.add(f)
                 changed = True
     return found
@@ -1184,6 +1247,38 @@ def _returns_success_call(graph: _Graph, caller: FunctionNode, value, found) -> 
         return False
     resolved = graph.resolve(value, caller)
     return resolved is not None and resolved[0] in found
+
+
+def _checks_its_input(intent, function: FunctionNode) -> bool:
+    """A check that looks at what it is given (`validate_record(record)`
+    reads `record`), with a signature nobody else fixes: an interface
+    default (`def supports(self, feature): return True`) is not one."""
+    if fixed_signature(intent, function) is not None:
+        return False
+    params = {a.arg for a in function.args.posonlyargs + function.args.args + function.args.kwonlyargs} - _IMPLICIT
+    nodes = _own_nodes(function)
+    if any(isinstance(n, (ast.Assert, ast.Raise)) for n in nodes):
+        return False  # it fails loudly on a bad input: the True is not unconditional
+    reads = any(isinstance(n, ast.Name) and n.id in params for n in nodes)
+    return reads and not any(_names_outside_text(r.value) & params for r in _returns(function))
+
+
+def _names_outside_text(value: Optional[ast.expr]) -> Set[str]:
+    """Names a returned value reads, those only shown inside an f-string left
+    out (`f"Scanned {root}"` reports, it does not depend on `root`). A
+    serializer (`{"ok": True, "effect": p.effect}`) depends on its input."""
+    if value is None:
+        return set()
+    names: Set[str] = set()
+    stack = [value]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, ast.JoinedStr):
+            continue
+        if isinstance(node, ast.Name):
+            names.add(node.id)
+        stack.extend(ast.iter_child_nodes(node))
+    return names
 
 
 def _reports_success(intent, function: FunctionNode, success_only: Set[FunctionNode]) -> bool:
@@ -1233,6 +1328,30 @@ def _swallowed_failures(function: FunctionNode) -> List[ast.ExceptHandler]:
         inner = _block_nodes(handler.body)
         if _catches_all(handler) and not any(isinstance(n, (ast.Raise, ast.Return)) for n in inner):
             found.append(handler)
+    return found
+
+
+def _success_handlers(function: FunctionNode, local: frozenset) -> List[ast.ExceptHandler]:
+    """Catch-all handlers around work (a call that can fail) whose own answer
+    is a constructed success report: log lines, then `return {"status": "ok"}`
+    or `return SendResult(ok=True)`. The caller cannot tell the failure from
+    a success, whatever the function's other returns say. A bare `True` is
+    left out: in a predicate (`is_enabled`, `pid_alive`) it is a deliberate
+    fail-open default far more often than a disguised failure."""
+    found = []
+    for node in _block_nodes(function.body):
+        if not isinstance(node, _TRY_NODES) or not _does_work(node.body):
+            continue
+        for handler in node.handlers:
+            body = [s for s in handler.body if not _is_log_statement(s)]
+            if (
+                _catches_all(handler)
+                and len(body) == 1
+                and isinstance(body[0], ast.Return)
+                and not isinstance(body[0].value, ast.Constant)
+                and _is_success(body[0].value, local)
+            ):
+                found.append(handler)
     return found
 
 
@@ -1307,6 +1426,16 @@ def _path_findings(graph: _Graph, function: FunctionNode, success_only, dropped)
         )
         for node in _finally_returns(function)
     ]
+    findings += [
+        SemanticFinding(
+            name,
+            "failure_reported_as_success",
+            handler.lineno,
+            [],
+            "a catch-all handler answers success, so a caller cannot tell the failure from a success",
+        )
+        for handler in _success_handlers(function, _local_names(graph, function))
+    ]
     if not _reports_success(graph.intent, function, success_only):
         return findings
     findings += [
@@ -1369,17 +1498,15 @@ def semantic_analysis(tree: ast.AST) -> Tuple[List[SemanticFinding], Dict[str, o
                 )
             )
         work = callees[function]
-        if work and effects[function] == NO_EFFECT and _reports_success(intent, function, success_only):
-            findings.append(
-                SemanticFinding(
-                    name,
-                    "success_without_effect",
-                    function.lineno,
-                    [],
-                    "reports success, and every call it makes resolves to module functions "
-                    "with no effect: " + ", ".join(sorted({graph.qualname(c) for c in work})),
-                )
+        checks = not work and _checks_its_input(intent, function)
+        if (work or checks) and effects[function] == NO_EFFECT and _reports_success(intent, function, success_only):
+            evidence = (
+                "reports success, and every call it makes resolves to module functions "
+                "with no effect: " + ", ".join(sorted({graph.qualname(c) for c in work}))
+                if work
+                else "reads its input and reports success whatever it finds, with no effect"
             )
+            findings.append(SemanticFinding(name, "success_without_effect", function.lineno, [], evidence))
         findings += [
             SemanticFinding(
                 name,
