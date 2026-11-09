@@ -50,6 +50,30 @@ def hollow_line(view: ReportView) -> str:
     return line
 
 
+def claim_line(view: ReportView) -> str:
+    """Docstring promises by state; never "0" when not measured."""
+    claims = view.claims
+    if claims.state == "NOT_APPLICABLE":
+        return "not applicable (no Python file)"
+    if claims.state == "SKIPPED":
+        return "skipped"
+    if claims.state == "UNMEASURED":
+        return "not measured (analysis failed)"
+    c = claims.counts
+    line = (
+        f"{c['extracted_claims']} docstring promise(s): {c['contradicted']} contradicted "
+        f"({c['candidates']} candidate(s), {c['merged']} merged into a finding), {c['undecided']} undecided, "
+        f"{c['supported']} with the structure, {c['delegated_in_module']} delegated, "
+        f"{c['not_evaluated']} not evaluated"
+    )
+    if c["unmeasured"]:
+        line += f", {c['unmeasured']} not measured"
+    if claims.state != "MEASURED":
+        parts = ", ".join(f"{n} {state}" for state, n in sorted(claims.files.items()))
+        line += f"  [partial: {parts} files]"
+    return line
+
+
 def quiet_line(view: ReportView) -> str:
     """One line for CI logs."""
     score = "N/A" if view.score is None else f"{view.score:.1f}"
@@ -105,6 +129,7 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
     head.add_row("Score", _score_line(view))
     head.add_row("Findings", _findings_line(view))
     head.add_row("Hollow", hollow_line(view))
+    head.add_row("Promises", claim_line(view))
     console.print(head)
     root = _root(view)
     _print_items(console, "Findings", view.findings, TERMINAL_LIMITS["findings"], root, False)

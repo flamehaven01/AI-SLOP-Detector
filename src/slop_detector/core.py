@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector import semantic
+from slop_detector.claim_findings import claim_analysis, fully_measured
 from slop_detector.config import Config
 from slop_detector.core_project import (
     build_project_analysis,
@@ -83,6 +84,18 @@ def _semantic_channel(tree: ast.AST, skip) -> tuple:
         return semantic.semantic_analysis(tree)
     except Exception as e:  # RecursionError on a deep tree, an analysis defect
         logger.warning(f"Semantic channel failed: {e}")
+        return [], {"state": "UNMEASURED", "error_type": type(e).__name__}
+
+
+def _claim_channel(tree: ast.AST, skip, facts: PathFacts, issues) -> tuple:
+    """(candidates, coverage) of docstring promises against the body; a
+    failure is UNMEASURED, never "no promise broken"."""
+    if "patterns" in skip:
+        return [], {"state": "SKIPPED"}
+    try:
+        return claim_analysis(tree, facts.is_test, issues)
+    except Exception as e:  # RecursionError on a deep tree, an analysis defect
+        logger.warning(f"Claim channel failed: {e}")
         return [], {"state": "UNMEASURED", "error_type": type(e).__name__}
 
 # Prefix of the per-file error log line, by language (unchanged wording).
@@ -263,7 +276,11 @@ class SlopDetector:
         result = self._build_file_analysis(file_path, content, tree, facts)
         # A partially measured result (a pattern raised) is not reused: the
         # failure may be transient, and a cache hit would hide the next answer.
-        unmeasured = result.pattern_errors or result.semantic_coverage.get("state") == "UNMEASURED"
+        unmeasured = (
+            result.pattern_errors
+            or result.semantic_coverage.get("state") == "UNMEASURED"
+            or not fully_measured(result.claim_coverage)
+        )
         if self._analysis_cache is not None and not unmeasured:
             self._analysis_cache.put(
                 file_path=file_path,
@@ -464,6 +481,7 @@ class SlopDetector:
         )
 
         semantic_findings, semantic_coverage = _semantic_channel(tree, skip)
+        claim_findings, claim_coverage = _claim_channel(tree, skip, facts, pattern_issues)
         slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
             ldr, inflation, ddc, pattern_issues, skip=skip
         )
@@ -506,6 +524,8 @@ class SlopDetector:
             pattern_errors=pattern_errors,
             semantic_findings=semantic_findings,
             semantic_coverage=semantic_coverage,
+            claim_findings=claim_findings,
+            claim_coverage=claim_coverage,
         )
 
         if len(suppression_ledger) >= 5 or len(suppression_directives) >= 3:

@@ -10,6 +10,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Dict, Iterator, Optional, cast
 
+from slop_detector.claim_findings import ClaimFinding
 from slop_detector.metrics.context_jargon import ContextJargonResult, JargonEvidence
 from slop_detector.metrics.docstring_inflation import (
     DocstringInflationDetail,
@@ -34,7 +35,7 @@ from slop_detector.models import (
 from slop_detector.patterns.base import Axis, Issue, Severity
 from slop_detector.semantic import SemanticFinding
 
-CACHE_ENGINE_VERSION = "analysis-cache-v50"
+CACHE_ENGINE_VERSION = "analysis-cache-v51"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 
@@ -193,6 +194,8 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
             SemanticFinding(**item) for item in data.get("semantic_findings", [])
         ],
         semantic_coverage=data.get("semantic_coverage", {}),
+        claim_findings=[ClaimFinding(**item) for item in data.get("claim_findings", [])],
+        claim_coverage=data.get("claim_coverage", {}),
     )
 
 

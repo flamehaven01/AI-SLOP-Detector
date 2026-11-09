@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from slop_detector import __version__
+from slop_detector.claim_findings import RULE as CLAIM_RULE
 from slop_detector.report_view import FINDING, REVIEW_CANDIDATE, Item, ReportView, build_report_view, short_path
 
 SCHEMA = "ai-slop-report/1"
@@ -58,6 +59,41 @@ class _Strict(BaseModel):
 class Measurement(_Strict):
     pattern: str
     hollow: str
+    claims: str
+
+
+class Claims(_Strict):
+    """Docstring promises over the measured files, by state (claim_judge)."""
+
+    extracted_claims: int
+    supported: int
+    delegated_in_module: int
+    provided_elsewhere: int
+    undecided: int
+    contradicted: int
+    unmeasured: int
+    not_evaluated: int
+    candidates: int
+    merged: int
+    undecided_by_reason: Dict[str, int]
+
+
+class Promise(_Strict):
+    """The docstring promise an item breaks (claim_findings.ClaimFinding)."""
+
+    function: str
+    line: int
+    claim_kind: str
+    promise: str
+    promise_line: int
+    basis: str
+    detail: str
+    looked_for: str
+    why: str
+    resolves: str
+    same_cause_as: List[str]
+    kind: Literal["claim_without_mechanism"]
+    status: str
 
 
 class Header(_Strict):
@@ -76,6 +112,7 @@ class Header(_Strict):
     severity: Dict[str, int]
     hollow_functions: int
     hollow_not_decidable: int
+    claims: Claims
     emitted: int
     truncated: int
     loop: List[str]
@@ -97,6 +134,7 @@ class Record(_Strict):
     channel_state: str
     evidence: str
     fix: str
+    promise: Optional[Promise] = None
 
 
 def schema() -> Dict[str, Any]:
@@ -123,7 +161,7 @@ def _record(item: Item, root: str, view: ReportView, digests: Dict[str, str]) ->
     if item.file not in digests:
         digests[item.file] = _sha256(item.file)
     finding = item.kind == FINDING
-    return {
+    record = {
         "record": "item",
         "id": _item_id(item, rel),
         "kind": item.kind,
@@ -132,10 +170,19 @@ def _record(item: Item, root: str, view: ReportView, digests: Dict[str, str]) ->
         "file": rel,
         "line": item.line,
         "source_sha256": digests[item.file],
-        "channel_state": view.measurement if finding else view.semantic.state,
+        "channel_state": _channel_state(item, view),
         "evidence": item.message or MISSING,
         "fix": item.suggestion or (MISSING if finding else "NOT-APPLICABLE: decide in VERIFY first"),
     }
+    if item.promise is not None:
+        record["promise"] = item.promise
+    return record
+
+
+def _channel_state(item: Item, view: ReportView) -> str:
+    if item.kind == FINDING:
+        return view.measurement
+    return view.claims.state if item.rule == CLAIM_RULE else view.semantic.state
 
 
 def build_records(view: ReportView, limit: Optional[int] = None) -> List[Dict[str, Any]]:
@@ -157,12 +204,13 @@ def build_records(view: ReportView, limit: Optional[int] = None) -> List[Dict[st
         "files": view.files,
         "score": view.score,
         "status": view.status,
-        "measurement": {"pattern": view.measurement, "hollow": view.semantic.state},
+        "measurement": {"pattern": view.measurement, "hollow": view.semantic.state, "claims": view.claims.state},
         "findings": len(view.findings),
         "candidates": len(view.candidates),
         "severity": view.severity,
         "hollow_functions": view.semantic.functions,
         "hollow_not_decidable": view.semantic.unknown,
+        "claims": dict(view.claims.counts, undecided_by_reason=dict(view.claims.undecided_by_reason)),
         "emitted": len(kept),
         "truncated": len(items) - len(kept),
         "loop": LOOP,

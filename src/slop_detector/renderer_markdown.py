@@ -381,7 +381,7 @@ def _md_findings_section(file_results) -> list:
 def _md_hollow_section(result, root_dir: str) -> list:
     """Hollow review candidates with what was measured (docs/REPORTS.md 2):
     never scored, and "not measured" is never written as zero."""
-    from slop_detector.renderer_terminal import hollow_line
+    from slop_detector.renderer_terminal import claim_line, hollow_line
     from slop_detector.report_view import build_report_view, short_path
 
     view = build_report_view(result)
@@ -393,6 +393,11 @@ def _md_hollow_section(result, root_dir: str) -> list:
     if sem.unknown_reasons:
         reasons = ", ".join(f"{k} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1]))
         lines.append(f"- Why functions were not decidable: {reasons}")
+    lines.append(f"- Docstring promises: {claim_line(view)}")
+    undecided = view.claims.undecided_by_reason
+    if undecided:
+        reasons = ", ".join(f"{k} {v}" for k, v in sorted(undecided.items(), key=lambda kv: -kv[1]))
+        lines.append(f"- Why promises were undecided: {reasons}")
     lines.append(
         "- A candidate is evidence for a review, not a verdict; it does not change the score."
     )

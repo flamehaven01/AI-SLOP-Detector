@@ -178,7 +178,7 @@ def _findings(view: ReportView, root: str) -> str:
 
 
 def _hollow(view: ReportView, root: str) -> str:
-    from slop_detector.renderer_terminal import hollow_line
+    from slop_detector.renderer_terminal import claim_line, hollow_line
 
     sem = view.semantic
     reasons = ", ".join(f"{_e(k)} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1]))
@@ -189,6 +189,7 @@ def _hollow(view: ReportView, root: str) -> str:
     ]
     if reasons:
         parts.append(f"<br>Why functions were not decidable: {reasons}")
+    parts.append(f"<br>Docstring promises: {_e(claim_line(view))}")
     parts.append("</div>")
     parts += [_item(i, root) for i in view.candidates]
     parts.append("</section>")

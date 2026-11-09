@@ -38,6 +38,9 @@ class Item:
     line: int
     message: str
     suggestion: str = ""
+    # The docstring promise this item breaks (claim_findings.ClaimFinding.to_dict),
+    # on a claim candidate or on the pattern finding it was merged into.
+    promise: Optional[Dict[str, Any]] = None
 
 
 @dataclass(frozen=True)
@@ -50,6 +53,24 @@ class SemanticState:
     functions: int = 0
     unknown: int = 0
     unknown_reasons: Dict[str, int] = field(default_factory=dict)
+
+
+# Claim counts kept in the view (claim_judge.ClaimJudgment.coverage keys).
+CLAIM_COUNTS = (
+    "extracted_claims", "supported", "delegated_in_module", "provided_elsewhere", "undecided",
+    "contradicted", "unmeasured", "not_evaluated", "candidates", "merged",
+)
+
+
+@dataclass(frozen=True)
+class ClaimState:
+    """What the claim channel measured: files per state and, over the measured
+    files, claims per state (claim_judge) and UNDECIDED claims by reason."""
+
+    state: str
+    files: Dict[str, int] = field(default_factory=dict)
+    counts: Dict[str, int] = field(default_factory=lambda: dict.fromkeys(CLAIM_COUNTS, 0))
+    undecided_by_reason: Dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -65,6 +86,7 @@ class ReportView:
     candidates: List[Item]
     semantic: SemanticState
     next_steps: List[str]
+    claims: ClaimState = ClaimState("NOT_APPLICABLE")
     coverage: Dict[str, int] = field(default_factory=dict)
     coverage_notes: List[str] = field(default_factory=list)
     metrics: List[Dict[str, str]] = field(default_factory=list)
@@ -96,6 +118,7 @@ def build_report_view(result: Any) -> ReportView:
         severity=severity,
         candidates=candidates,
         semantic=_semantic_state(files),
+        claims=_claim_state(files),
         next_steps=next_steps(result) if is_project else [],
         coverage=_coverage(result, is_project),
         coverage_notes=_coverage_notes(result) if is_project else [],
@@ -191,18 +214,38 @@ def _measurement(result: Any, is_project: bool) -> str:
 
 def _pattern_items(f: Any) -> List[Item]:
     path = str(getattr(f, "file_path", ""))
-    return [
-        Item(
-            kind=FINDING,
-            rule=str(getattr(issue, "pattern_id", "")),
-            severity=_issue_severity(issue),
-            file=path,
-            line=int(getattr(issue, "line", 0) or 0),
-            message=str(getattr(issue, "message", "")),
-            suggestion=str(getattr(issue, "suggestion", "") or ""),
+    merged = {
+        (rule, int(_field(c, "line", 0) or 0)): c
+        for c in (getattr(f, "claim_findings", None) or [])
+        for rule in (_field(c, "same_cause_as", None) or [])
+    }
+    items = []
+    for issue in getattr(f, "pattern_issues", None) or []:
+        rule = str(getattr(issue, "pattern_id", ""))
+        line = int(getattr(issue, "line", 0) or 0)
+        message = str(getattr(issue, "message", ""))
+        claim = merged.get((rule, line))
+        if claim is not None:
+            message += f"; also breaks its docstring: {_field(claim, 'evidence')}"
+        items.append(
+            Item(
+                kind=FINDING,
+                rule=rule,
+                severity=_issue_severity(issue),
+                file=path,
+                line=line,
+                message=message,
+                suggestion=str(getattr(issue, "suggestion", "") or ""),
+                promise=_promise(claim),
+            )
         )
-        for issue in (getattr(f, "pattern_issues", None) or [])
-    ]
+    return items
+
+
+def _promise(claim: Any) -> Optional[Dict[str, Any]]:
+    if claim is None:
+        return None
+    return claim.to_dict() if hasattr(claim, "to_dict") else dict(claim)
 
 
 def _field(obj: Any, name: str, default: Any = "") -> Any:
@@ -221,6 +264,19 @@ def _candidate_items(f: Any) -> List[Item]:
             message=f"{_field(c, 'function')}: {_field(c, 'evidence')}".rstrip(": "),
         )
         for c in (getattr(f, "semantic_findings", None) or [])
+    ] + [
+        Item(
+            kind=REVIEW_CANDIDATE,
+            rule=str(_field(c, "kind")),
+            severity="",
+            file=path,
+            line=int(_field(c, "line", 0) or 0),
+            message=f"{_field(c, 'function')}: {_field(c, 'evidence')}",
+            suggestion=str(_field(c, "resolves")),
+            promise=_promise(c),
+        )
+        for c in (getattr(f, "claim_findings", None) or [])
+        if not _field(c, "same_cause_as", None)
     ]
 
 
@@ -244,6 +300,26 @@ def _semantic_state(files: List[Any]) -> SemanticState:
     return SemanticState(
         state=_overall(states), files=states, functions=functions, unknown=unknown, unknown_reasons=reasons
     )
+
+
+def _claim_state(files: List[Any]) -> ClaimState:
+    """Files per state (a file without the channel is not counted); claims
+    counted over the measured files only."""
+    states: Dict[str, int] = {}
+    counts = {key: 0 for key in CLAIM_COUNTS}
+    reasons: Dict[str, int] = {}
+    for f in files:
+        coverage = getattr(f, "claim_coverage", None) or {}
+        state = coverage.get("state")
+        if not state:
+            continue
+        states[state] = states.get(state, 0) + 1
+        for key in CLAIM_COUNTS:
+            value = coverage.get(key, 0)
+            counts[key] += sum(value.values()) if isinstance(value, dict) else int(value or 0)
+        for reason, n in (coverage.get("undecided_by_reason") or {}).items():
+            reasons[reason] = reasons.get(reason, 0) + int(n)
+    return ClaimState(state=_overall(states), files=states, counts=counts, undecided_by_reason=reasons)
 
 
 def _overall(states: Dict[str, int]) -> str:

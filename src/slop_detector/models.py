@@ -1,5 +1,6 @@
 """Data models for SLOP detection."""
 
+import copy
 import logging as _logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -238,6 +239,10 @@ class FileAnalysis:
     # What that channel decided: {state: MEASURED | SKIPPED | UNMEASURED, ...};
     # empty when it did not run (a non-Python file, a legacy cache entry).
     semantic_coverage: Dict[str, Any] = field(default_factory=dict)
+    # Docstring promises against the body (slop_detector.claim_findings):
+    # review candidates, never scored; coverage counts every claim by state.
+    claim_findings: List[Any] = field(default_factory=list)
+    claim_coverage: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -299,6 +304,8 @@ class FileAnalysis:
             key: dict(value) if isinstance(value, dict) else value
             for key, value in self.semantic_coverage.items()
         }
+        result["claim_findings"] = [item.to_dict() for item in self.claim_findings]
+        result["claim_coverage"] = copy.deepcopy(self.claim_coverage)
         return result
 
 
