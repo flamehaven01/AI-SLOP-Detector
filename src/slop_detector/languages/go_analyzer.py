@@ -26,10 +26,10 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from slop_detector.diagnostic_bands import classify_deficit
+from slop_detector.finding_identity import bind_lines, read_source
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +89,8 @@ class GoIssue:
     line: int
     message: str
     suggestion: Optional[str] = None
+    fingerprint: Optional[str] = None
+    locator: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -97,6 +99,8 @@ class GoIssue:
             "line": self.line,
             "message": self.message,
             "suggestion": self.suggestion,
+            "fingerprint": self.fingerprint,
+            "locator": self.locator,
         }
 
 
@@ -123,6 +127,9 @@ class GoFileAnalysis:
     ast_mode: bool = False
     slop_score: float = 0.0
     status: str = "clean"  # clean | suspicious | critical_deficit
+    # SHA-256 of the bytes this result was computed from (finding_identity.read_source)
+    source_sha256: str = ""
+    content_origin: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -142,6 +149,8 @@ class GoFileAnalysis:
             "slop_score": round(self.slop_score, 2),
             "status": self.status,
             "issues": [i.to_dict() for i in self.issues],
+            "source_sha256": self.source_sha256,
+            "content_origin": self.content_origin,
         }
 
 
@@ -155,9 +164,8 @@ class GoAnalyzer:
 
     def analyze(self, file_path: str) -> GoFileAnalysis:
         """Analyze a single .go file and return GoFileAnalysis."""
-        path = Path(file_path)
         try:
-            content = path.read_text(encoding="utf-8", errors="ignore")
+            content, digest = read_source(file_path)
         except OSError as exc:
             logger.error(f"Cannot read {file_path}: {exc}")
             return GoFileAnalysis(
@@ -170,8 +178,8 @@ class GoAnalyzer:
             )
 
         if _TS_AVAILABLE:
-            return self._analyze_ast(file_path, content)
-        return self._analyze_regex(file_path, content)
+            return bind_lines(self._analyze_ast(file_path, content), content, digest)
+        return bind_lines(self._analyze_regex(file_path, content), content, digest)
 
     # ------------------------------------------------------------------
     # Regex analysis (always available)

@@ -154,6 +154,30 @@ def locate(findings: List[Any], tree: ast.AST, content: str, name_symbol: bool =
         finding.locator = "" if at_def else _locator(holder[3] if holder else tree, index, line, lines)
 
 
+def read_source(path: str) -> Tuple[str, str]:
+    """(text, SHA-256 of the bytes) of a file read once. The text is what
+    Path.read_text(encoding="utf-8", errors="ignore") gives (universal
+    newlines), so an analyzer that used it sees the same content."""
+    with open(path, "rb") as handle:
+        raw = handle.read()
+    text = raw.decode("utf-8", errors="ignore").replace(chr(13) + chr(10), chr(10)).replace(chr(13), chr(10))
+    return text, hashlib.sha256(raw).hexdigest()
+
+
+def bind_lines(result: Any, content: str, digest: str) -> Any:
+    """Bind a JS/TS or Go result to the bytes read and address its issues by
+    line text and line. These analyzers have no statement path: a line shift
+    changes the locator (and the id). They report one finding per rule and
+    line; two on one line would share an id, which the report refuses."""
+    result.source_sha256, result.content_origin = digest, "file_bytes"
+    lines = content.splitlines()
+    for issue in result.issues:
+        line = int(issue.line or 0)
+        issue.fingerprint = fingerprint(lines, line)
+        issue.locator = f"L{line}"
+    return result
+
+
 def semantic_part(symbol: Optional[str], subject: Optional[str], fingerprint_: Optional[str], line: int) -> str:
     """What the finding is: symbol, subject and the line's text; the line
     number only without symbol and fingerprint."""

@@ -184,7 +184,7 @@ def _file_row(f: Any) -> Tuple[str, Optional[float], str, int]:
         str(getattr(f, "file_path", "")),
         None if score is None else float(score),
         _value(getattr(f, "status", "")).upper(),
-        len(getattr(f, "pattern_issues", None) or []),
+        len(_issues(f)),
     )
 
 
@@ -256,13 +256,20 @@ def _pattern_item(path: str, issue: Any, claim: Any, binding: Dict[str, str]) ->
     )
 
 
+def _issues(f: Any) -> List[Any]:
+    """A Python result's pattern issues, or a JS/TS or Go result's issues."""
+    if hasattr(f, "pattern_issues"):
+        return list(getattr(f, "pattern_issues", None) or [])
+    return list(getattr(f, "issues", None) or [])
+
+
 def _pattern_items(f: Any) -> List[Item]:
     path, binding, merged = str(getattr(f, "file_path", "")), _binding(f), _merged_claims(f)
     return [
         _pattern_item(
             path, issue, merged.get((str(getattr(issue, "pattern_id", "")), int(getattr(issue, "line", 0) or 0))), binding
         )
-        for issue in getattr(f, "pattern_issues", None) or []
+        for issue in _issues(f)
     ]
 
 
