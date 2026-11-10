@@ -45,6 +45,7 @@ class Item:
     symbol: Optional[str] = None
     subject: Optional[str] = None
     fingerprint: Optional[str] = None
+    locator: Optional[str] = None
     source_sha256: str = ""
     content_origin: str = ""
 
@@ -250,6 +251,7 @@ def _pattern_item(path: str, issue: Any, claim: Any, binding: Dict[str, str]) ->
         symbol=getattr(issue, "symbol", None),
         subject=getattr(issue, "subject", None),
         fingerprint=getattr(issue, "fingerprint", None),
+        locator=getattr(issue, "locator", None),
         **binding,
     )
 
@@ -286,6 +288,7 @@ def _semantic_item(path: str, c: Any, binding: Dict[str, str]) -> Item:
         symbol=str(_field(c, "function")) or None,
         subject=",".join(inputs) or None,
         fingerprint=_field(c, "fingerprint", None),
+        locator=_field(c, "locator", None),
         **binding,
     )
 

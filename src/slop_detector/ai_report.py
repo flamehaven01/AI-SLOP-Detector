@@ -20,7 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from slop_detector import __version__
 from slop_detector.claim_findings import RULE as CLAIM_RULE
-from slop_detector.finding_identity import locus
+from slop_detector.finding_identity import semantic_part
 from slop_detector.report_view import FINDING, REVIEW_CANDIDATE, Item, ReportView, build_report_view, short_path
 
 SCHEMA = "ai-slop-report/1"
@@ -40,8 +40,9 @@ FORBID = [
 PROVE = {
     "suggestion": "re-scan the item's file with the same configuration",
     "expect": (
-        "the item's symbol is still there and the item's id is absent, no new item appears, "
-        "the project's tests pass; an absent symbol (moved, renamed, deleted) is HOLD, not a pass"
+        "the item's symbol is still there and no item with its semantic_key is left (one under "
+        "another id is the same finding moved, not fixed), no new item appears, the project's "
+        "tests pass; an absent symbol or an ambiguous match is HOLD, not a pass (prove_state)"
     ),
 }
 _VERIFY = {
@@ -129,6 +130,8 @@ class Header(_Strict):
 class Record(_Strict):
     record: Literal["item"]
     id: str
+    semantic_key: str
+    locator: str
     kind: Literal["FINDING", "REVIEW_CANDIDATE"]
     rule: str
     severity: Optional[Literal["critical", "high", "medium", "low"]]
@@ -147,15 +150,18 @@ def schema() -> Dict[str, Any]:
     return {"$id": SCHEMA, "header": Header.model_json_schema(), "item": Record.model_json_schema()}
 
 
-def _base_key(item: Item, rel: str) -> str:
-    """Kind, rule, path and where in the file (finding_identity.locus)."""
-    return f"{item.kind}|{item.rule}|{rel}|{locus(item.symbol, item.subject, item.fingerprint, item.line)}"
+def _semantic_key(item: Item, rel: str) -> str:
+    """What the finding is (finding_identity.semantic_part): kind, rule, path,
+    symbol, subject and the text of its line."""
+    key = f"{item.kind}|{item.rule}|{rel}|{semantic_part(item.symbol, item.subject, item.fingerprint, item.line)}"
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
 
 
 def _item_id(item: Item, rel: str) -> str:
-    """Stable across runs and line shifts of the same source. Two items with
-    one key are a defect the report refuses (validate), never renumbered."""
-    key = _base_key(item, rel).encode("utf-8")
+    """The semantic key and the structural locator (which copy, in this
+    snapshot). Two items with one id are a defect the report refuses
+    (validate), never renumbered."""
+    key = f"{_semantic_key(item, rel)}|{item.locator or ''}".encode("utf-8")
     prefix = "F" if item.kind == FINDING else "C"
     return prefix + hashlib.sha256(key).hexdigest()[:12]
 
@@ -166,6 +172,8 @@ def _record(item: Item, root: str, view: ReportView) -> Dict[str, Any]:
     record = {
         "record": "item",
         "id": _item_id(item, rel),
+        "semantic_key": _semantic_key(item, rel),
+        "locator": item.locator or "",
         "kind": item.kind,
         "rule": item.rule,
         "severity": item.severity if finding else None,
@@ -249,3 +257,29 @@ def render_ai_report(result: Any, limit: Optional[int] = None) -> str:
     records = build_records(build_report_view(result), limit)
     validate(records)
     return "\n".join(_line(r) for r in records) + "\n"
+
+
+def prove_state(
+    before: List[Dict[str, Any]], after: List[Dict[str, Any]], item_id: str, symbol_present: bool
+) -> str:
+    """PERSISTS, FIXED_CANDIDATE or HOLD for one item of `before`, from the
+    item records of a re-scan. A changed id is never a fix by itself: the
+    locator addresses one snapshot, the semantic key says what the finding is.
+    FIXED_CANDIDATE still needs the tests (PROVE); `symbol_present` comes from
+    the caller, who can see whether the item's function or class still exists."""
+    if not symbol_present:
+        return "HOLD"  # moved, renamed or deleted: nothing here to prove
+    after_ids = {r["id"] for r in after}
+    if item_id in after_ids:
+        return "PERSISTS"
+    key = next(r["semantic_key"] for r in before if r["id"] == item_id)
+    same_before = [r["id"] for r in before if r["semantic_key"] == key]
+    same_after = [r for r in after if r["semantic_key"] == key]
+    if not same_after:
+        return "FIXED_CANDIDATE"
+    if len(same_after) >= len(same_before):
+        return "PERSISTS"  # as many copies as before: this one moved
+    others = set(same_before) - {item_id}
+    if len(same_after) == len(same_before) - 1 and others <= after_ids:
+        return "FIXED_CANDIDATE"  # every other copy kept its address; this one is gone
+    return "HOLD"  # fewer copies under new addresses: which one went is not known

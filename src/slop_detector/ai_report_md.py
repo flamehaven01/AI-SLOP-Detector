@@ -234,6 +234,7 @@ def _block(n: int, record: Dict[str, Any], root: Path) -> List[str]:
     out = [
         f"### W{n:02d} {record['id']} {record['kind']} {record['rule']} {severity}",
         f"at [FACT]: {record['file']}:{record['line']}",
+        f"locator [FACT]: {record['locator'] or '(the symbol itself)'} semantic_key={record['semantic_key']}",
         f"bound_to [FACT]: sha256:{record['source_sha256']} ({current})",
         f"channel [FACT]: {record['channel_state']}",
         f"evidence [FACT]: {record['evidence']}",

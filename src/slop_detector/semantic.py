@@ -59,6 +59,7 @@ class SemanticFinding:
     # The line's fingerprint for a finding inside the body (finding_identity),
     # set at scan time; None at the function's def line.
     fingerprint: Optional[str] = None
+    locator: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -69,6 +70,7 @@ class SemanticFinding:
             "evidence": self.evidence,
             "status": self.status,
             "fingerprint": self.fingerprint,
+            "locator": self.locator,
         }
 
 

@@ -1,17 +1,21 @@
-"""Which finding an item is, independent of where its line happens to sit.
-
-Computed at scan time from the content the AST was built from (never from a
-later read of the file):
+"""Which finding an item is, computed at scan time from the content the AST
+was built from (never from a later read of the file).
 
 - `symbol`: the innermost function or class holding the line.
-- `fingerprint`: for a finding inside a body, the stripped text of its line
-  and of the line before and after it; none for a finding reported at its
-  symbol's own def line, which the symbol names already.
+- `fingerprint`: the stripped text of the finding's own line; none at its
+  symbol's def line, which the symbol names already.
+- `locator`: the address of the finding in this snapshot's AST, relative to
+  the symbol: the path of the innermost statement or handler holding the line
+  (`body[2]/handlers[0]`). A comment is not an AST node: a comment line is
+  addressed by the statement after it in its block (`~before`) or, at the end
+  of a block, the statement before it (`~after`), with the number of comment
+  lines between them. Blank lines and comments elsewhere leave it unchanged;
+  a statement inserted in front of it in the same block moves it.
 
-With the rule and the structured subject a pattern names (`Issue.subject`:
-the parameter, the imported module, the clone group), they key an item; a line
-number enters the key only when nothing else locates it. Two items with one
-key are not told apart by numbering: the report refuses to emit them.
+semantic_key (rule, path, symbol, subject, fingerprint) says what the finding
+is; the locator says which copy of it. The locator is valid only for the
+snapshot `source_sha256` names: a changed locator with the same semantic_key
+is the same finding moved, never a fix (ai_report.prove_state).
 """
 
 from __future__ import annotations
@@ -24,38 +28,121 @@ from slop_detector.claims import _qualname
 
 MODULE = "<module>"
 _SCOPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+_BLOCKS = ("body", "handlers", "orelse", "finalbody", "cases")
 
 
-def _spans(tree: ast.AST) -> List[Tuple[int, int, str]]:
-    """(def line, end line, qualname) of every function and class."""
+_Span = Tuple[int, int, str, ast.AST]
+
+
+def _spans(tree: ast.AST) -> List[_Span]:
+    """(def line, end line, qualname, node) of every function and class."""
     parents: Dict[ast.AST, ast.AST] = {c: n for n in ast.walk(tree) for c in ast.iter_child_nodes(n)}
     return [
-        (n.lineno, getattr(n, "end_lineno", None) or n.lineno, _qualname(parents, n))
+        (n.lineno, getattr(n, "end_lineno", None) or n.lineno, _qualname(parents, n), n)
         for n in ast.walk(tree)
         if isinstance(n, _SCOPES)
     ]
 
 
-def _holder(spans: List[Tuple[int, int, str]], line: int) -> Optional[Tuple[int, int, str]]:
+def _holder(spans: List[_Span], line: int) -> Optional[_Span]:
     holding = [s for s in spans if s[0] <= line <= s[1]]
     return min(holding, key=lambda s: s[1] - s[0]) if holding else None
 
 
+def _extent(node: ast.AST) -> Optional[Tuple[int, int]]:
+    """Line extent of a node; a match case (no lineno) spans its pattern and body."""
+    if hasattr(node, "lineno"):
+        return node.lineno, getattr(node, "end_lineno", None) or node.lineno
+    inner = [_extent(c) for c in [getattr(node, "pattern", None)] + list(getattr(node, "body", []) or []) if c]
+    inner = [e for e in inner if e]
+    return (min(e[0] for e in inner), max(e[1] for e in inner)) if inner else None
+
+
+class _Addresses:
+    """Every statement, handler and case with its path inside its scope, and
+    the block children of each container."""
+
+    def __init__(self, tree: ast.AST) -> None:
+        self.path: Dict[int, str] = {}
+        self.children: Dict[int, List[ast.AST]] = {}
+        self.in_scope: Dict[int, List[ast.AST]] = {}  # id(scope) -> its own statements
+        self._walk(tree, "", tree)
+
+    def _walk(self, node: ast.AST, prefix: str, scope: ast.AST) -> None:
+        kids: List[ast.AST] = []
+        for field in _BLOCKS:
+            for index, child in enumerate(getattr(node, field, None) or []):
+                if not isinstance(child, ast.AST):
+                    continue
+                kids.append(child)
+                if isinstance(child, _SCOPES):  # a scope addresses its own body
+                    self._walk(child, "", child)
+                    continue
+                address = f"{prefix}/{field}[{index}]" if prefix else f"{field}[{index}]"
+                self.path[id(child)] = address
+                self.in_scope.setdefault(id(scope), []).append(child)
+                self._walk(child, address, scope)
+        self.children[id(node)] = kids
+
+
+def _innermost(nodes: List[ast.AST], line: int) -> Optional[ast.AST]:
+    best, size = None, None
+    for node in nodes:
+        extent = _extent(node)
+        if extent and extent[0] <= line <= extent[1] and (size is None or extent[1] - extent[0] < size):
+            best, size = node, extent[1] - extent[0]
+    return best
+
+
+def _comment_lines(lines: List[str], start: int, end: int) -> int:
+    """Comment-only lines strictly between line `start` and line `end`."""
+    return sum(1 for n in range(start + 1, end) if 1 <= n <= len(lines) and lines[n - 1].strip().startswith("#"))
+
+
+def _comment_locator(index: _Addresses, container: ast.AST, line: int, lines: List[str]) -> str:
+    kids = [k for k in index.children.get(id(container), []) if _extent(k)]
+    after = [k for k in kids if _extent(k)[0] > line]
+    if after:
+        anchor = after[0]
+        return f"{_address(index, anchor)}~before{_comment_lines(lines, line, _extent(anchor)[0])}"
+    before = [k for k in kids if _extent(k)[1] < line]
+    if before:
+        anchor = before[-1]
+        return f"{_address(index, anchor)}~after{_comment_lines(lines, _extent(anchor)[1], line)}"
+    return f"~only{_comment_lines(lines, 0, line)}"
+
+
+def _address(index: _Addresses, node: ast.AST) -> str:
+    """A statement's path; a nested scope is addressed by its name."""
+    if isinstance(node, _SCOPES):
+        return f"def:{node.name}"
+    return index.path.get(id(node), "")
+
+
+def _locator(scope: ast.AST, index: _Addresses, line: int, lines: List[str]) -> str:
+    """The address of `line` among the statements of its own scope."""
+    holding = _innermost(index.in_scope.get(id(scope), []), line)
+    is_comment = 1 <= line <= len(lines) and lines[line - 1].strip().startswith("#")
+    if is_comment:
+        container = holding if holding is not None and _extent(holding)[0] < line else scope
+        return _comment_locator(index, container, line, lines)
+    return _address(index, holding) if holding is not None else ""
+
+
 def fingerprint(lines: List[str], line: int) -> Optional[str]:
-    """SHA-256 (16 hex) of the stripped text of `line` and its two
-    neighbours; None outside the content."""
+    """SHA-256 (16 hex) of the stripped text of `line`; None outside the content."""
     if not 1 <= line <= len(lines):
         return None
-    window = [lines[n - 1].strip() if 1 <= n <= len(lines) else "" for n in (line - 1, line, line + 1)]
-    return hashlib.sha256(chr(10).join(window).encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha256(lines[line - 1].strip().encode("utf-8")).hexdigest()[:16]
 
 
 def locate(findings: List[Any], tree: ast.AST, content: str, name_symbol: bool = True) -> None:
-    """Set `fingerprint` (and `symbol` when `name_symbol`) on each finding of
-    the module; a finding that names its symbol already keeps it."""
+    """Set `fingerprint` and `locator` (and `symbol` when `name_symbol`) on
+    each finding of the module; a finding that names its symbol keeps it."""
     if not findings:
         return
     spans = _spans(tree)
+    index = _Addresses(tree)
     lines = content.splitlines()
     for finding in findings:
         line = int(finding.line or 0)
@@ -64,10 +151,11 @@ def locate(findings: List[Any], tree: ast.AST, content: str, name_symbol: bool =
             finding.symbol = holder[2] if holder else MODULE
         at_def = holder is not None and holder[0] == line
         finding.fingerprint = None if at_def else fingerprint(lines, line)
+        finding.locator = "" if at_def else _locator(holder[3] if holder else tree, index, line, lines)
 
 
-def locus(symbol: Optional[str], subject: Optional[str], fingerprint_: Optional[str], line: int) -> str:
-    """The part of an item key that says where it is: the symbol, the subject
-    and the line fingerprint; the line number only without symbol and fingerprint."""
+def semantic_part(symbol: Optional[str], subject: Optional[str], fingerprint_: Optional[str], line: int) -> str:
+    """What the finding is: symbol, subject and the line's text; the line
+    number only without symbol and fingerprint."""
     where = fingerprint_ or ("" if symbol else f"L{line}")
     return f"{symbol or MODULE}|{subject or ''}|{where}"

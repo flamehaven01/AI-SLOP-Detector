@@ -35,7 +35,7 @@ from slop_detector.models import (
 from slop_detector.patterns.base import Axis, Issue, Severity
 from slop_detector.semantic import SemanticFinding
 
-CACHE_ENGINE_VERSION = "analysis-cache-v52"
+CACHE_ENGINE_VERSION = "analysis-cache-v53"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 
@@ -217,6 +217,7 @@ def _restore_issue(item: Dict[str, Any]) -> Issue:
         subject=item.get("subject"),
         symbol=item.get("symbol"),
         fingerprint=item.get("fingerprint"),
+        locator=item.get("locator"),
     )
 
 

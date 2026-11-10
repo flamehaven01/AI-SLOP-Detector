@@ -50,6 +50,7 @@ class Issue:
     subject: Optional[str] = None
     symbol: Optional[str] = None
     fingerprint: Optional[str] = None
+    locator: Optional[str] = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -66,6 +67,7 @@ class Issue:
             "subject": self.subject,
             "symbol": self.symbol,
             "fingerprint": self.fingerprint,
+            "locator": self.locator,
         }
 
 

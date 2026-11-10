@@ -170,15 +170,15 @@ def test_the_origin_of_the_hashed_content_is_stated(tmp_path):
     assert {r["source_origin"] for r in _items(_project(tmp_path))} == {"file_bytes"}
 
 
-def test_items_no_evidence_tells_apart_are_never_emitted(tmp_path):
-    # four identical lines: the middle two have the same text and the same neighbours
+def test_identical_lines_are_told_apart_by_their_statement_address(tmp_path):
+    # four identical lines (same text, same neighbours): D-S0-1 tells them apart by
+    # the locator (body[0]..body[3]); before it, the report was refused
     same = "def f(x):\n" + "    y = x  # TODO: same\n" * 4 + "    return y\n"
     _write(tmp_path, "same.py", same)
-    result = _project(tmp_path)
-    with pytest.raises(AiReportInvalid):
-        ai_report.render_ai_report(result)
-    with pytest.raises(AiReportInvalid):
-        render_ai_report_md(result)
+    todos = [r for r in _items(_project(tmp_path)) if r["rule"] == "todo_comment"]
+    assert len(todos) == 4 and len({r["id"] for r in todos}) == 4
+    assert len({r["semantic_key"] for r in todos}) == 1
+    assert sorted(r["locator"] for r in todos) == ["body[0]", "body[1]", "body[2]", "body[3]"]
 
 
 def test_a_duplicate_id_is_never_emitted(tmp_path, monkeypatch):
@@ -189,3 +189,13 @@ def test_a_duplicate_id_is_never_emitted(tmp_path, monkeypatch):
         ai_report.render_ai_report(result)
     with pytest.raises(AiReportInvalid):
         render_ai_report_md(result)
+
+
+def test_a_symbol_level_id_survives_a_change_to_the_def_line(tmp_path):
+    # a symbol-level finding is named by its symbol, not by the text of its def line
+    path = _write(tmp_path, "gen.py", FOUR)
+    before = {r["id"] for r in _items(_project(tmp_path)) if r["rule"] == "ignored_parameter"}
+    path.write_text(FOUR.replace("add_bare_except=False):", "add_bare_except=False, extra_flag=None):"),
+                    encoding="utf-8")
+    after = {r["id"] for r in _items(_project(tmp_path)) if r["rule"] == "ignored_parameter"}
+    assert len(before) == 4 and before <= after and len(after) == 5
