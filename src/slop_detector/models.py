@@ -243,6 +243,12 @@ class FileAnalysis:
     # review candidates, never scored; coverage counts every claim by state.
     claim_findings: List[Any] = field(default_factory=list)
     claim_coverage: Dict[str, Any] = field(default_factory=dict)
+    # SHA-256 of the bytes this result was computed from; "" when unknown
+    # (a result made before the field existed). Reports bind items to it.
+    source_sha256: str = ""
+    # What source_sha256 hashes: "file_bytes" (the file as read), "string_utf8"
+    # (a string given to analyze_code_string, UTF-8 encoded); "" when unknown.
+    content_origin: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -306,6 +312,8 @@ class FileAnalysis:
         }
         result["claim_findings"] = [item.to_dict() for item in self.claim_findings]
         result["claim_coverage"] = copy.deepcopy(self.claim_coverage)
+        result["source_sha256"] = self.source_sha256
+        result["content_origin"] = self.content_origin
         return result
 
 

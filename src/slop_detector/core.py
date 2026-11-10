@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Optional
 from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector import semantic
 from slop_detector.claim_findings import claim_analysis, fully_measured
+from slop_detector.finding_identity import locate
 from slop_detector.config import Config
 from slop_detector.core_project import (
     build_project_analysis,
@@ -97,6 +98,14 @@ def _claim_channel(tree: ast.AST, skip, facts: PathFacts, issues) -> tuple:
     except Exception as e:  # RecursionError on a deep tree, an analysis defect
         logger.warning(f"Claim channel failed: {e}")
         return [], {"state": "UNMEASURED", "error_type": type(e).__name__}
+
+def _bound(result: FileAnalysis, source_sha256: str, origin: str) -> FileAnalysis:
+    """A result made without _build_file_analysis (a parse failure), bound to
+    the bytes it was made from; its parse_error flag keeps it apart from a
+    measured result."""
+    result.source_sha256, result.content_origin = source_sha256, origin
+    return result
+
 
 # Prefix of the per-file error log line, by language (unchanged wording).
 _FAILURE_LABEL = {"python": "", "javascript": "JS/TS file ", "go": "Go file "}
@@ -246,24 +255,9 @@ class SlopDetector:
         content = raw_bytes.decode("utf-8-sig", errors="ignore")
         content_hash = hashlib.sha256(raw_bytes).hexdigest()
 
-        if self._analysis_cache is not None:
-            cached = self._analysis_cache.get(
-                file_path=file_path,
-                file_size=stat.st_size,
-                mtime_ns=stat.st_mtime_ns,
-                content_hash=content_hash,
-                config_fingerprint=cache_fingerprint,
-                engine_version=CACHE_ENGINE_VERSION,
-            )
-            if cached is not None:
-                logger.debug("File analysis cache hit: %s", file_path)
-                # Capability belongs to this execution environment, not the
-                # cached file content. Never surface a historical ML score when
-                # the current run cannot load its model.
-                cached.ml_scoring = self._ml_scoring
-                if self._ml_scorer is None:
-                    cached.ml_score = None
-                return cached
+        cached = self._cache_hit(file_path, stat, content_hash, cache_fingerprint)
+        if cached is not None:
+            return cached
 
         # Parse AST once
         try:
@@ -271,9 +265,9 @@ class SlopDetector:
         except SyntaxError as e:
             logger.warning(f"Syntax error in {file_path}: {e}")
             # Return minimal analysis
-            return create_error_analysis(file_path, str(e), content)
+            return _bound(create_error_analysis(file_path, str(e), content), content_hash, "file_bytes")
 
-        result = self._build_file_analysis(file_path, content, tree, facts)
+        result = self._build_file_analysis(file_path, content, tree, facts, content_hash, "file_bytes")
         # A partially measured result (a pattern raised) is not reused: the
         # failure may be transient, and a cache hit would hide the next answer.
         unmeasured = (
@@ -292,6 +286,30 @@ class SlopDetector:
                 engine_version=CACHE_ENGINE_VERSION,
             )
         return result
+
+    def _cache_hit(self, file_path: str, stat, content_hash: str, fingerprint: str) -> Optional[FileAnalysis]:
+        """The cached result for these bytes, or None. A hit stands only for the
+        bytes read now: an entry bound to other bytes is recomputed."""
+        if self._analysis_cache is None:
+            return None
+        cached = self._analysis_cache.get(
+            file_path=file_path,
+            file_size=stat.st_size,
+            mtime_ns=stat.st_mtime_ns,
+            content_hash=content_hash,
+            config_fingerprint=fingerprint,
+            engine_version=CACHE_ENGINE_VERSION,
+        )
+        if cached is None or cached.source_sha256 != content_hash:
+            return None
+        logger.debug("File analysis cache hit: %s", file_path)
+        # Capability belongs to this execution environment, not the
+        # cached file content. Never surface a historical ML score when
+        # the current run cannot load its model.
+        cached.ml_scoring = self._ml_scoring
+        if self._ml_scorer is None:
+            cached.ml_score = None
+        return cached
 
     def analyze_code_string(
         self, content: str, filename: str = "<string>", project_root: Optional[str] = None
@@ -314,23 +332,24 @@ class SlopDetector:
         Returns:
             FileAnalysis — same structure as analyze_file().
         """
+        digest = hashlib.sha256(content.encode("utf-8")).hexdigest()  # the source analyzed
         if project_root is None:
             try:
                 tree = ast.parse(content, filename=filename)
             except SyntaxError as e:
-                return create_error_analysis(filename, str(e), content)
+                return _bound(create_error_analysis(filename, str(e), content), digest, "string_utf8")
             with no_location_scope():
                 return self._build_file_analysis(
-                    filename, content, tree, path_facts(filename, None)
+                    filename, content, tree, path_facts(filename, None), digest, "string_utf8"
                 )
         path_obj = (Path(project_root) / filename).resolve()
         try:
             tree = ast.parse(content, filename=str(path_obj))
         except SyntaxError as e:
-            return create_error_analysis(str(path_obj), str(e), content)
+            return _bound(create_error_analysis(str(path_obj), str(e), content), digest, "string_utf8")
         with project_context_scope(), scan_root_scope(Path(project_root)):
             return self._build_file_analysis(
-                str(path_obj), content, tree, facts_for(path_obj, project_root)
+                str(path_obj), content, tree, facts_for(path_obj, project_root), digest, "string_utf8"
             )
 
     def analyze_project(
@@ -440,9 +459,16 @@ class SlopDetector:
         )
 
     def _build_file_analysis(
-        self, file_path: str, content: str, tree: ast.AST, facts: Optional[PathFacts] = None
+        self,
+        file_path: str,
+        content: str,
+        tree: ast.AST,
+        facts: Optional[PathFacts] = None,
+        source_sha256: str = "",
+        content_origin: str = "",
     ) -> FileAnalysis:
-        """Build a FileAnalysis from already-read source and parsed AST."""
+        """Build a FileAnalysis from already-read source and parsed AST;
+        `source_sha256` is the SHA-256 of the bytes `content` was decoded from."""
         from slop_detector.file_role import ROLE_SKIP
 
         facts = facts if facts is not None else facts_for(file_path)
@@ -480,7 +506,9 @@ class SlopDetector:
             )
         )
 
+        locate(pattern_issues, tree, content)
         semantic_findings, semantic_coverage = _semantic_channel(tree, skip)
+        locate(semantic_findings, tree, content, name_symbol=False)
         claim_findings, claim_coverage = _claim_channel(tree, skip, facts, pattern_issues)
         slop_score, slop_status, warnings, deficit_breakdown = self._calculate_slop_status(
             ldr, inflation, ddc, pattern_issues, skip=skip
@@ -526,6 +554,8 @@ class SlopDetector:
             semantic_coverage=semantic_coverage,
             claim_findings=claim_findings,
             claim_coverage=claim_coverage,
+            source_sha256=source_sha256,
+            content_origin=content_origin,
         )
 
         if len(suppression_ledger) >= 5 or len(suppression_directives) >= 3:

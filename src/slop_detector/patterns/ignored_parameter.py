@@ -365,15 +365,15 @@ class IgnoredParameterPattern(_IntentAwarePattern):
             if name not in options and name not in documented and not result_ignores_inputs:
                 continue
             evidence = self._evidence(dropped)
-            issues.append(
-                self.create_issue_from_node(
-                    node,
-                    file,
-                    message=(
-                        f"Parameter '{name}' of '{node.name}' is never used{evidence} - it does "
-                        "not affect the result"
-                    ),
-                    suggestion=f"Use '{name}' as the function promises, or remove it",
-                )
+            issue = self.create_issue_from_node(
+                node,
+                file,
+                message=(
+                    f"Parameter '{name}' of '{node.name}' is never used{evidence} - it does "
+                    "not affect the result"
+                ),
+                suggestion=f"Use '{name}' as the function promises, or remove it",
             )
+            issue.subject = name  # one finding per parameter at the same def line
+            issues.append(issue)
         return issues or None

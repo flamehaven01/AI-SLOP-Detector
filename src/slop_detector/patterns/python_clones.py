@@ -260,6 +260,7 @@ class ExactDuplicatePairPattern(BasePattern):
                         "Extract the shared logic into one helper or keep one public function "
                         "and route aliases to it explicitly."
                     ),
+                    subject=",".join(sorted(names)),
                 )
             )
         return issues
@@ -342,5 +343,6 @@ class FunctionClonePattern(BasePattern):
                     "If these functions represent a fragmented complex operation, "
                     "consider consolidating or using a data-driven dispatch table."
                 ),
+                subject=",".join(sorted(qualified_names)),
             )
         ]

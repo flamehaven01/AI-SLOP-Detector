@@ -65,7 +65,7 @@ class PhantomMemberPattern(BasePattern):
             message = f"No module '{finding.module}' in {installed}"
         else:
             message = f"'{finding.name}' is not defined in '{finding.module}' ({installed})"
-        return self.create_issue(
+        issue = self.create_issue(
             file=file,
             line=finding.line,
             column=finding.column,
@@ -75,3 +75,6 @@ class PhantomMemberPattern(BasePattern):
                 "invented, misspelled, or from a different version of the package."
             ),
         )
+        # one import line can name several members
+        issue.subject = finding.module if finding.name is None else f"{finding.module}.{finding.name}"
+        return issue

@@ -41,6 +41,12 @@ class Item:
     # The docstring promise this item breaks (claim_findings.ClaimFinding.to_dict),
     # on a claim candidate or on the pattern finding it was merged into.
     promise: Optional[Dict[str, Any]] = None
+    # Identity and binding, from the scan (finding_identity, FileAnalysis.source_sha256).
+    symbol: Optional[str] = None
+    subject: Optional[str] = None
+    fingerprint: Optional[str] = None
+    source_sha256: str = ""
+    content_origin: str = ""
 
 
 @dataclass(frozen=True)
@@ -212,34 +218,50 @@ def _measurement(result: Any, is_project: bool) -> str:
     return "PARTIAL" if getattr(result, "pattern_errors", None) else "COMPLETE"
 
 
-def _pattern_items(f: Any) -> List[Item]:
-    path = str(getattr(f, "file_path", ""))
-    merged = {
+def _binding(f: Any) -> Dict[str, str]:
+    """The scan-time hash and its origin, shared by every item of the file."""
+    return {
+        "source_sha256": str(getattr(f, "source_sha256", "") or ""),
+        "content_origin": str(getattr(f, "content_origin", "") or ""),
+    }
+
+
+def _merged_claims(f: Any) -> Dict[Tuple[str, int], Any]:
+    return {
         (rule, int(_field(c, "line", 0) or 0)): c
         for c in (getattr(f, "claim_findings", None) or [])
         for rule in (_field(c, "same_cause_as", None) or [])
     }
-    items = []
-    for issue in getattr(f, "pattern_issues", None) or []:
-        rule = str(getattr(issue, "pattern_id", ""))
-        line = int(getattr(issue, "line", 0) or 0)
-        message = str(getattr(issue, "message", ""))
-        claim = merged.get((rule, line))
-        if claim is not None:
-            message += f"; also breaks its docstring: {_field(claim, 'evidence')}"
-        items.append(
-            Item(
-                kind=FINDING,
-                rule=rule,
-                severity=_issue_severity(issue),
-                file=path,
-                line=line,
-                message=message,
-                suggestion=str(getattr(issue, "suggestion", "") or ""),
-                promise=_promise(claim),
-            )
+
+
+def _pattern_item(path: str, issue: Any, claim: Any, binding: Dict[str, str]) -> Item:
+    message = str(getattr(issue, "message", ""))
+    if claim is not None:
+        message += f"; also breaks its docstring: {_field(claim, 'evidence')}"
+    return Item(
+        kind=FINDING,
+        rule=str(getattr(issue, "pattern_id", "")),
+        severity=_issue_severity(issue),
+        file=path,
+        line=int(getattr(issue, "line", 0) or 0),
+        message=message,
+        suggestion=str(getattr(issue, "suggestion", "") or ""),
+        promise=_promise(claim),
+        symbol=getattr(issue, "symbol", None),
+        subject=getattr(issue, "subject", None),
+        fingerprint=getattr(issue, "fingerprint", None),
+        **binding,
+    )
+
+
+def _pattern_items(f: Any) -> List[Item]:
+    path, binding, merged = str(getattr(f, "file_path", "")), _binding(f), _merged_claims(f)
+    return [
+        _pattern_item(
+            path, issue, merged.get((str(getattr(issue, "pattern_id", "")), int(getattr(issue, "line", 0) or 0))), binding
         )
-    return items
+        for issue in getattr(f, "pattern_issues", None) or []
+    ]
 
 
 def _promise(claim: Any) -> Optional[Dict[str, Any]]:
@@ -252,32 +274,47 @@ def _field(obj: Any, name: str, default: Any = "") -> Any:
     return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)
 
 
+def _semantic_item(path: str, c: Any, binding: Dict[str, str]) -> Item:
+    inputs = [str(n) for n in (_field(c, "inputs", None) or [])]
+    return Item(
+        kind=REVIEW_CANDIDATE,
+        rule=str(_field(c, "kind")),
+        severity="",
+        file=path,
+        line=int(_field(c, "line", 0) or 0),
+        message=f"{_field(c, 'function')}{_inputs(c)}: {_field(c, 'evidence')}".rstrip(": "),
+        symbol=str(_field(c, "function")) or None,
+        subject=",".join(inputs) or None,
+        fingerprint=_field(c, "fingerprint", None),
+        **binding,
+    )
+
+
+def _claim_item(path: str, c: Any, binding: Dict[str, str]) -> Item:
+    return Item(
+        kind=REVIEW_CANDIDATE,
+        rule=str(_field(c, "kind")),
+        severity="",
+        file=path,
+        line=int(_field(c, "line", 0) or 0),
+        message=f"{_field(c, 'function')}: {_field(c, 'evidence')}",
+        suggestion=str(_field(c, "resolves")),
+        promise=_promise(c),
+        symbol=str(_field(c, "function")) or None,
+        subject=str(_field(c, "claim_kind")) or None,
+        **binding,
+    )
+
+
 def _candidate_items(f: Any) -> List[Item]:
-    path = str(getattr(f, "file_path", ""))
-    return [
-        Item(
-            kind=REVIEW_CANDIDATE,
-            rule=str(_field(c, "kind")),
-            severity="",
-            file=path,
-            line=int(_field(c, "line", 0) or 0),
-            message=f"{_field(c, 'function')}{_inputs(c)}: {_field(c, 'evidence')}".rstrip(": "),
-        )
-        for c in (getattr(f, "semantic_findings", None) or [])
-    ] + [
-        Item(
-            kind=REVIEW_CANDIDATE,
-            rule=str(_field(c, "kind")),
-            severity="",
-            file=path,
-            line=int(_field(c, "line", 0) or 0),
-            message=f"{_field(c, 'function')}: {_field(c, 'evidence')}",
-            suggestion=str(_field(c, "resolves")),
-            promise=_promise(c),
-        )
+    path, binding = str(getattr(f, "file_path", "")), _binding(f)
+    semantic = [_semantic_item(path, c, binding) for c in (getattr(f, "semantic_findings", None) or [])]
+    claims = [
+        _claim_item(path, c, binding)
         for c in (getattr(f, "claim_findings", None) or [])
         if not _field(c, "same_cause_as", None)
     ]
+    return semantic + claims
 
 
 def _inputs(c: Any) -> str:

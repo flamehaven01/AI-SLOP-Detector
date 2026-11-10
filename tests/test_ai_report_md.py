@@ -56,19 +56,20 @@ def test_every_item_is_worked_or_listed_exactly_once_in_priority_order(tmp_path)
     assert [rank[s] for s in severities] == sorted(rank[s] for s in severities)
 
 
-def test_each_block_binds_the_source_and_shows_its_code(tmp_path, monkeypatch):
+def test_each_block_binds_the_source_and_shows_its_code(tmp_path):
     result = _project(tmp_path)
     text = render_ai_report_md(result)
-    assert text.count("(code below read from this content)") == len(_ids(text, "WORK-ORDER"))
+    assert text.count("(the file is the content the scan analyzed)") == len(_ids(text, "WORK-ORDER"))
     assert "span [FACT]: pkg/store.py:6-8 `save_record`" in text
     assert "7|     persist(record)" in text
     # an unused input is named, so the item can be acted on
     result.file_results[0].semantic_findings.append(SemanticFinding("scale", "input_never_used", 2, ["factor"], "e"))
     assert "scale [factor]: e" in render_ai_report_md(result)
-    # the bound content differs from the file: every block is VOID, not repaired from the document
-    monkeypatch.setattr(ai_report, "_sha256", lambda path: "0" * 64)
+    # the scan-time hash differs from the file: every block is VOID, with no code
+    result.file_results[0].source_sha256 = "0" * 64
     stale = render_ai_report_md(result)
-    assert "read from this content" not in stale and stale.count("(VOID: now ") == len(_ids(stale, "WORK-ORDER"))
+    assert "scan analyzed)" not in stale and stale.count("(VOID: the file changed") == len(_ids(stale, "WORK-ORDER"))
+    assert "persist(record)" not in stale.split("## WORK-ORDER")[1]
 
 
 def test_a_broken_promise_carries_its_own_question(tmp_path):

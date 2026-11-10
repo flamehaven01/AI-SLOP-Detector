@@ -16,7 +16,8 @@ import hashlib
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from slop_detector.ai_report import FORBID, HOLD_IF, MISSING, build_records, validate
+from slop_detector import ai_report
+from slop_detector.ai_report import FORBID, HOLD_IF, MISSING
 from slop_detector.report_view import build_report_view
 
 FORMAT = "ai-slop-report/1 markdown work order"
@@ -101,7 +102,8 @@ def _rules(items: List[Dict[str, Any]], header: Dict[str, Any]) -> List[str]:
 
 
 def _source(root: Path, rel: str) -> Tuple[Optional[str], str]:
-    """(text, sha256) of the file as it is now; (None, MISSING) when unreadable."""
+    """(text, sha256) of the file as it is now, to compare with the scan-time
+    hash; (None, MISSING) when unreadable."""
     try:
         data = (root / rel).read_bytes()
     except OSError:
@@ -218,9 +220,16 @@ def _contract(header: Dict[str, Any]) -> List[str]:
 
 def _block(n: int, record: Dict[str, Any], root: Path) -> List[str]:
     text, sha = _source(root, record["file"])
-    # The code below is shown only from the bound content: a file that changed
-    # since its record was made is marked VOID (no verdict from this block).
-    current = "code below read from this content" if sha == record["source_sha256"] else f"VOID: now {sha[:16]}"
+    bound = record["source_sha256"]
+    # Code is shown only from the content the scan analyzed. A file that changed
+    # after the scan, or a result with no scan-time hash, gets no code and no
+    # verdict from this block: it is HOLD until re-scanned.
+    if bound == MISSING:
+        current, text = "MISSING: no scan-time hash; HOLD, re-scan", None
+    elif sha != bound:
+        current, text = f"VOID: the file changed after the scan (now {sha[:16]}); HOLD, re-scan", None
+    else:
+        current = "the file is the content the scan analyzed"
     severity = record["severity"] or "review"
     out = [
         f"### W{n:02d} {record['id']} {record['kind']} {record['rule']} {severity}",
@@ -237,7 +246,7 @@ def _block(n: int, record: Dict[str, Any], root: Path) -> List[str]:
             + (f": {promise['detail']}" if promise["detail"] else "") + ")"
         )
         out.append(f"verify [NORM]: {_claim_question(promise)}")
-    out += _code(text, record["line"], record["file"])
+    out += _code(text, record["line"], record["file"]) if text is not None else ["code [FACT]: NOT-APPLICABLE: HOLD"]
     out += [f"fix [DERIVED]: {record['fix']}", ""]
     return out
 
@@ -246,8 +255,9 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
     """The work order: every item in priority order; the first `limit` (all
     when None) as full blocks, the rest as one backlog line each."""
     view = build_report_view(result)
-    records = build_records(view)
-    validate(records)
+    # through the module, so the work order and the JSON Lines always run the same code
+    records = ai_report.build_records(view)
+    ai_report.validate(records)
     header, items = records[0], sorted(records[1:], key=lambda r: _RANK.get(r["severity"], 5))
     root = Path(view.target if view.is_project else str(Path(view.target).parent))
     blocks = items if limit is None else items[: max(0, limit)]

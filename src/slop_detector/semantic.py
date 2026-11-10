@@ -56,6 +56,9 @@ class SemanticFinding:
     inputs: List[str] = field(default_factory=list)
     evidence: str = ""
     status: str = "REVIEW_CANDIDATE"
+    # The line's fingerprint for a finding inside the body (finding_identity),
+    # set at scan time; None at the function's def line.
+    fingerprint: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -65,6 +68,7 @@ class SemanticFinding:
             "inputs": list(self.inputs),
             "evidence": self.evidence,
             "status": self.status,
+            "fingerprint": self.fingerprint,
         }
 
 
