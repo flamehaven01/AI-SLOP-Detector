@@ -155,3 +155,17 @@ def test_a_comment_is_addressed_inside_its_own_scope(tmp_path):
     _write(tmp_path, "nested.py", nested)
     todos = _rule(_records(tmp_path), "todo_comment")
     assert sorted(r["locator"] for r in todos) == ["def:on_hit~before0", "def:on_put~before0"]
+
+
+def test_a_reworded_violation_in_the_same_symbol_is_never_a_fix_candidate(tmp_path):
+    # FH-D-S0-1 review: the TODO text changes, so its fingerprint and semantic_key
+    # change and its id is gone, yet the same cause stays in the same symbol
+    path = _write(tmp_path, "run.py", "def run():\n    # TODO: validate input\n    return True\n")
+    before = _rule(_records(tmp_path), "todo_comment")
+    path.write_text("def run():\n    # TODO: validate all inputs\n    return True\n", encoding="utf-8")
+    after = _records(tmp_path)
+    assert before[0]["id"] not in {r["id"] for r in after}
+    assert prove_state(before, after, before[0]["id"], symbol_present=True) == "HOLD"
+    # the same comment removed: no same-cause violation is left in the symbol
+    path.write_text("def run():\n    return True\n", encoding="utf-8")
+    assert prove_state(before, _records(tmp_path), before[0]["id"], symbol_present=True) == "FIXED_CANDIDATE"

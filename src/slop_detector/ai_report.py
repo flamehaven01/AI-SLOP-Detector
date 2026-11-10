@@ -20,7 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from slop_detector import __version__
 from slop_detector.claim_findings import RULE as CLAIM_RULE
-from slop_detector.finding_identity import semantic_part
+from slop_detector.finding_identity import MODULE, semantic_part
 from slop_detector.report_view import FINDING, REVIEW_CANDIDATE, Item, ReportView, build_report_view, short_path
 
 SCHEMA = "ai-slop-report/1"
@@ -131,6 +131,8 @@ class Record(_Strict):
     record: Literal["item"]
     id: str
     semantic_key: str
+    cause_key: str
+    symbol: str
     locator: str
     kind: Literal["FINDING", "REVIEW_CANDIDATE"]
     rule: str
@@ -148,6 +150,13 @@ class Record(_Strict):
 def schema() -> Dict[str, Any]:
     """The JSON Schema of the two record kinds (for tooling and docs)."""
     return {"$id": SCHEMA, "header": Header.model_json_schema(), "item": Record.model_json_schema()}
+
+
+def _cause_key(item: Item, rel: str) -> str:
+    """The cause without the line's text: kind, rule, path, symbol, subject.
+    A reworded violation (a TODO with new words) keeps it."""
+    key = f"{item.kind}|{item.rule}|{rel}|{item.symbol or MODULE}|{item.subject or ''}"
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
 
 
 def _semantic_key(item: Item, rel: str) -> str:
@@ -173,6 +182,8 @@ def _record(item: Item, root: str, view: ReportView) -> Dict[str, Any]:
         "record": "item",
         "id": _item_id(item, rel),
         "semantic_key": _semantic_key(item, rel),
+        "cause_key": _cause_key(item, rel),
+        "symbol": item.symbol or MODULE,
         "locator": item.locator or "",
         "kind": item.kind,
         "rule": item.rule,
@@ -272,14 +283,28 @@ def prove_state(
     after_ids = {r["id"] for r in after}
     if item_id in after_ids:
         return "PERSISTS"
-    key = next(r["semantic_key"] for r in before if r["id"] == item_id)
-    same_before = [r["id"] for r in before if r["semantic_key"] == key]
-    same_after = [r for r in after if r["semantic_key"] == key]
+    same_text = _left(before, after, item_id, "semantic_key")
+    if same_text is not None:
+        return same_text
+    same_cause = _left(before, after, item_id, "cause_key")
+    if same_cause is None:
+        return "FIXED_CANDIDATE"  # no violation of this cause is left in the symbol
+    # the cause is still there under other words: it may be this finding, reworded
+    return "HOLD" if same_cause == "PERSISTS" else same_cause
+
+
+def _left(before: List[Dict[str, Any]], after: List[Dict[str, Any]], item_id: str, field: str) -> Optional[str]:
+    """What the re-scan says about the item among the records sharing its
+    `field`; None when none of them is left."""
+    after_ids = {r["id"] for r in after}
+    key = next(r[field] for r in before if r["id"] == item_id)
+    same_before = [r["id"] for r in before if r[field] == key]
+    same_after = [r for r in after if r[field] == key]
     if not same_after:
-        return "FIXED_CANDIDATE"
+        return None
     if len(same_after) >= len(same_before):
-        return "PERSISTS"  # as many copies as before: this one moved
+        return "PERSISTS"  # as many as before: this one moved or was reworded
     others = set(same_before) - {item_id}
     if len(same_after) == len(same_before) - 1 and others <= after_ids:
-        return "FIXED_CANDIDATE"  # every other copy kept its address; this one is gone
-    return "HOLD"  # fewer copies under new addresses: which one went is not known
+        return "FIXED_CANDIDATE"  # every other one kept its id; this one is gone
+    return "HOLD"  # fewer under new ids: which one went is not known
