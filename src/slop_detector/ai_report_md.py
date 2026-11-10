@@ -25,9 +25,20 @@ FORMAT = "ai-slop-report/1 markdown work order"
 SNIPPET_LINES = 20  # code shown per item; the full span is named so the agent can read the rest
 _RANK = {"critical": 0, "high": 1, None: 2, "medium": 3, "low": 4}  # report_view._PRIORITY, candidates third
 
+def _one_line(value: Any) -> str:
+    """Text from the analyzed repository on one Markdown line (S5-G2): a line
+    break is shown as a visible backslash-n, so it can never open a section
+    or an item block. Code excerpts need no such step: each of their lines
+    starts with its line number, and a fence closes only on a line that
+    starts with backticks."""
+    text = str(value).replace(chr(13) + chr(10), chr(10)).replace(chr(13), chr(10))
+    return text.replace(chr(10), chr(92) + "n")
+
+
 def _claim_question(promise: Dict[str, Any], rules: Ruleset) -> str:
     return rules.claim.question.format(
-        looked_for=promise["looked_for"], why=promise["why"], resolves=promise["resolves"]
+        looked_for=_one_line(promise["looked_for"]), why=_one_line(promise["why"]),
+        resolves=_one_line(promise["resolves"]),
     )
 
 
@@ -76,7 +87,7 @@ def _code(text: Optional[str], line: int, rel: str) -> List[str]:
     if line not in shown:
         shown += list(range(max(line - 2, shown[-1] + 1), min(line + 2, end) + 1))
     width = len(str(end))
-    out = [f"span [FACT]: {rel}:{start}-{end}" + (f" `{name}`" if name else ""), "```python"]
+    out = [f"span [FACT]: {_one_line(rel)}:{start}-{end}" + (f" `{name}`" if name else ""), "```python"]
     previous = None
     for n in shown:
         if previous is not None and n != previous + 1:
@@ -161,22 +172,22 @@ def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset) -> List[s
     severity = record["severity"] or "review"
     out = [
         f"### W{n:02d} {record['id']} {record['kind']} {record['rule']} {severity}",
-        f"at [FACT]: {record['file']}:{record['line']}",
+        f"at [FACT]: {_one_line(record['file'])}:{record['line']}",
         f"locator [FACT]: {record['locator'] or '(the symbol itself)'} semantic_key={record['semantic_key']}",
         f"bound_to [FACT]: sha256:{record['source_sha256']} ({current})",
         f"channel [FACT]: {record['channel_state']}",
-        f"evidence [FACT]: {record['evidence']}",
+        f"evidence [FACT]: {_one_line(record['evidence'])}",
     ]
     promise = record.get("promise")
     if promise:
         out.append(
-            f"promise [FACT]: \"{promise['promise']}\" (docstring line {promise['promise_line']}, "
+            f"promise [FACT]: \"{_one_line(promise['promise'])}\" (docstring line {promise['promise_line']}, "
             f"{promise['claim_kind']}; basis {promise['basis']}"
-            + (f": {promise['detail']}" if promise["detail"] else "") + ")"
+            + (f": {_one_line(promise['detail'])}" if promise["detail"] else "") + ")"
         )
         out.append(f"verify [NORM]: {_claim_question(promise, rules)}")
     out += _code(text, record["line"], record["file"]) if text is not None else ["code [FACT]: NOT-APPLICABLE: HOLD"]
-    out += [f"fix [DERIVED]: {record['fix']}", ""]
+    out += [f"fix [DERIVED]: {_one_line(record['fix'])}", ""]
     return out
 
 
@@ -197,7 +208,7 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
     out = [
         "# AI-SLOP WORK ORDER",
         f"format: {FORMAT} | tool {header['tool']} {header['version']} | engine {header['engine']}",
-        f"target: {Path(view.target).name} | files {header['files']} | score {score} {header['status']} "
+        f"target: {_one_line(Path(view.target).name)} | files {header['files']} | score {score} {header['status']} "
         "(pattern channel only)",
         f"items: {len(items)} | work order {len(blocks)} | backlog {len(backlog)}",
         f"ruleset: {RULESET_SCHEMA} {rules[0].version} sha256:{rules[1]}",
@@ -216,7 +227,7 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
     out += ["## BACKLOG", "same contract; open the file and work the item as a WORK-ORDER block"]
     if backlog:
         out += [
-            f"- {r['id']} {r['severity'] or 'review'} {r['rule']} {r['file']}:{r['line']} sha256:{r['source_sha256'][:16]}"
+            f"- {r['id']} {r['severity'] or 'review'} {r['rule']} {_one_line(r['file'])}:{r['line']} sha256:{r['source_sha256'][:16]}"
             for r in backlog
         ]
     else:
