@@ -14,47 +14,20 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from slop_detector import __version__
 from slop_detector.claim_findings import RULE as CLAIM_RULE
 from slop_detector.finding_identity import MODULE, semantic_part
+from slop_detector.work_order_rules import Ruleset, RulesetInvalid, header_fields, load_ruleset
 from slop_detector.report_view import FINDING, REVIEW_CANDIDATE, Item, ReportView, build_report_view, short_path
 
 SCHEMA = "ai-slop-report/1"
 MISSING = "MISSING"
-LOOP = ["VERIFY", "ACK_OR_REJECT", "FIX", "PROVE", "REPORT"]
-HOLD_IF = [
-    "the file's SHA-256 differs from source_sha256",
-    "the item's channel state is not MEASURED or COMPLETE",
-]
-FORBID = [
-    "a suppression comment or a noqa / pragma marker",
-    "a threshold, weight or config change",
-    "deleting or renaming the function to make the item vanish",
-]
-# Rules shared by every item, stated once in the header. `prove` is a
-# suggestion for a person or an approved test profile, not a command to run.
-PROVE = {
-    "suggestion": "re-scan the item's file with the same configuration",
-    # The policy prove_state applies, stated for the agent (FH-WO-005).
-    "expect": (
-        "PASS needs prove_state FIXED_CANDIDATE and the project's tests passing, with no new item. "
-        "prove_state: HOLD when the item's symbol is gone; PERSISTS when its id is still there, or "
-        "its semantic_key is under another id as often as before (moved: a locator is an address "
-        "in one snapshot); FIXED_CANDIDATE only when its semantic_key and its cause_key are both "
-        "left fewer times and every other item sharing them kept its id, or none is left; HOLD "
-        "when its cause_key is still there as often as before (reworded) or the match is ambiguous"
-    ),
-}
-_VERIFY = {
-    FINDING: "check the evidence at file:line; ACK and fix, or REJECT with the reason it does not apply",
-    REVIEW_CANDIDATE: (
-        "decide whether a real effect or use is expected here; if yes fix, if no REJECT with the reason"
-    ),
-}
+# The rules shared by every item (loop, hold_if, forbid, verify, prove) come
+# from the work-order ruleset (work_order_rules), stated once in the header.
 
 
 class AiReportInvalid(RuntimeError):
@@ -63,6 +36,12 @@ class AiReportInvalid(RuntimeError):
 
 class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class RulesetRef(_Strict):
+    schema_: Literal["ai-slop-work-order-rules/1"] = Field(alias="schema")
+    version: str
+    sha256: str
 
 
 class Measurement(_Strict):
@@ -129,6 +108,7 @@ class Header(_Strict):
     forbid: List[str]
     verify: Dict[str, str]
     prove: Dict[str, str]
+    ruleset: RulesetRef
 
 
 class Record(_Strict):
@@ -212,7 +192,17 @@ def _channel_state(item: Item, view: ReportView) -> str:
     return view.claims.state if item.rule == CLAIM_RULE else view.semantic.state
 
 
-def build_records(view: ReportView, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+def ruleset() -> Tuple[Ruleset, str]:
+    """The checked ruleset and its digest; AiReportInvalid when it cannot be trusted."""
+    try:
+        return load_ruleset()
+    except RulesetInvalid as exc:
+        raise AiReportInvalid(f"{exc}; nothing was written") from exc
+
+
+def build_records(
+    view: ReportView, limit: Optional[int] = None, rules: Optional[Tuple[Ruleset, str]] = None
+) -> List[Dict[str, Any]]:
     """The header and the item records (findings by severity, then
     candidates), at most `limit` items; the header says how many were left."""
     from slop_detector.analysis_cache import CACHE_ENGINE_VERSION
@@ -239,11 +229,7 @@ def build_records(view: ReportView, limit: Optional[int] = None) -> List[Dict[st
         "claims": dict(view.claims.counts, undecided_by_reason=dict(view.claims.undecided_by_reason)),
         "emitted": len(kept),
         "truncated": len(items) - len(kept),
-        "loop": LOOP,
-        "hold_if": HOLD_IF,
-        "forbid": FORBID,
-        "verify": _VERIFY,
-        "prove": PROVE,
+        **header_fields(*(rules or ruleset())),
     }
     return [header] + [_record(i, root, view) for i in kept]
 

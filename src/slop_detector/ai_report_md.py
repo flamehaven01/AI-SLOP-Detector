@@ -17,87 +17,27 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from slop_detector import ai_report
-from slop_detector.ai_report import FORBID, HOLD_IF, MISSING
+from slop_detector.ai_report import MISSING
+from slop_detector.work_order_rules import SCHEMA as RULESET_SCHEMA, Ruleset
 from slop_detector.report_view import build_report_view
 
 FORMAT = "ai-slop-report/1 markdown work order"
 SNIPPET_LINES = 20  # code shown per item; the full span is named so the agent can read the rest
 _RANK = {"critical": 0, "high": 1, None: 2, "medium": 3, "low": 4}  # report_view._PRIORITY, candidates third
 
-# What decides ACK or REJECT, by rule family. A rule outside the table gets
-# the header's question for its kind.
-_FAMILIES = {
-    "size": (
-        {"god_function", "nested_complexity", "deep_nesting"},
-        "Does the function do more than one job? ACK if it splits into named steps with the same behavior; "
-        "REJECT if it is one job laid out flat (a table, a dispatch, a fixed sequence).",
-    ),
-    "escape": (
-        {"lint_escape"},
-        "Is the silenced warning a real defect here? ACK: fix the cause and drop the marker; "
-        "REJECT: the marker is narrow (one code) and the reason is stated beside it.",
-    ),
-    "placeholder": (
-        {"return_constant_stub", "return_none_placeholder", "return_input_stub", "pass_placeholder",
-         "ellipsis_placeholder", "not_implemented", "interface_only_class", "todo_comment", "fixme_comment",
-         "hack_comment", "xxx_comment"},
-        "Do callers get the behavior the name and docstring promise? ACK: implement it or say in the code what "
-        "is intended; REJECT: the body is the whole contract (a declared default, a registered no-op, an "
-        "abstract hook) and that is stated.",
-    ),
-    "exception": (
-        {"empty_except", "bare_except", "failure_as_success"},
-        "Can the caller tell that the operation failed? ACK: handle, re-raise or report the failure; "
-        "REJECT: the failure is expected, harmless and the handler says why.",
-    ),
-    "dependency": (
-        {"runtime_unavailable_dependency", "undeclared_optional_dependency", "declared_outside_primary_metadata",
-         "phantom_import", "phantom_member"},
-        "Does a clean install provide this import at runtime? ACK: declare it or guard it with the documented "
-        "fallback; REJECT: name the declaration or guard that provides it (file:line).",
-    ),
-    "clone": (
-        {"function_clone_cluster", "exact_duplicate_pair"},
-        "Must the copies change together? ACK: keep one and call it; REJECT: they are meant to diverge "
-        "(name the difference that will appear).",
-    ),
-    "input": (
-        {"ignored_parameter", "input_never_used"},
-        "Should the value change the result or an effect? ACK: use it or remove it from the signature with its "
-        "callers; REJECT: the signature is fixed by a caller or protocol (name it).",
-    ),
-    "hollow": (
-        {"success_without_effect", "effect_never_runs", "failure_reported_as_success",
-         "finally_return_hides_failure", "success_ignores_outcome"},
-        "Does the reported success reflect work that happened? ACK: perform the effect or report the real "
-        "outcome; REJECT: name the effect the detector could not see (file:line).",
-    ),
-}
-
-
-def _question(rule: str, kind: str, default: Dict[str, str]) -> str:
-    for rules, question in _FAMILIES.values():
-        if rule in rules:
-            return question
-    return default[kind]
-
-
-def _claim_question(promise: Dict[str, Any]) -> str:
-    return (
-        f"the body needs {promise['looked_for']}; found: {promise['why']}. ACK: {promise['resolves']}; "
-        "REJECT: name the mechanism the detector missed (file:line)"
+def _claim_question(promise: Dict[str, Any], rules: Ruleset) -> str:
+    return rules.claim.question.format(
+        looked_for=promise["looked_for"], why=promise["why"], resolves=promise["resolves"]
     )
 
 
-def _rules(items: List[Dict[str, Any]], header: Dict[str, Any]) -> List[str]:
-    """The VERIFY question of every rule present, stated once."""
+def _rules(items: List[Dict[str, Any]], rules: Ruleset) -> List[str]:
+    """The VERIFY question of every rule present, stated once (from the ruleset)."""
     seen = sorted({(r["rule"], r["kind"]) for r in items})
     out = ["## RULES [NORM]", "VERIFY question per rule (an item block names its rule):"]
     for rule, kind in seen:
-        if rule == "claim_without_mechanism":
-            out.append(f"- {rule}: is the docstring promise kept? The item block states what the body needs")
-        else:
-            out.append(f"- {rule}: {_question(rule, kind, header['verify'])}")
+        line = rules.claim.rules_line if rule == "claim_without_mechanism" else rules.question(rule, kind)
+        out.append(f"- {rule}: {line}")
     return out + [""]
 
 
@@ -177,48 +117,36 @@ def _measurement(header: Dict[str, Any], view: Any) -> List[str]:
     return rows + [""] + nulls
 
 
-def _contract(header: Dict[str, Any]) -> List[str]:
+def _contract(header: Dict[str, Any], rules: Ruleset) -> List[str]:
+    """The contract, every line from the ruleset (the header carries the same
+    loop, hold_if, forbid and prove)."""
+    hold = [f"{rule} -> HOLD the item" for rule in header["hold_if"]] + list(rules.hard_stop)
     return [
         "## CONTRACT [FORMAT]",
-        "precedence: HARD-STOP > INVARIANTS > ALLOWED > WORK-ORDER > BACKLOG",
-        "tags: [FACT] measured by the detector at the locator | [DERIVED] the detector's fix direction, advisory | "
-        "[NORM] rule for the agent | [NULL] measured as nothing",
-        "empty values: NOT-MEASURED | NOT-APPLICABLE: <why> | MISSING",
-        "self-falsifier: each item is bound_to sha256 of its file; void_if sha256(file) != bound_to -> the item is "
-        "VOID: HOLD it, do not repair from this document, re-scan",
+        f"precedence: {rules.precedence}",
+        f"tags: {rules.tags}",
+        f"empty values: {rules.empty_values}",
+        f"self-falsifier: {rules.self_falsifier}",
         f"loop per item: {' -> '.join(header['loop'])}",
-        "VERIFY: bound_to MATCH, channel COMPLETE or MEASURED, then the rule's question (RULES) on the code shown",
+        f"VERIFY: {rules.verify_step}",
         f"PROVE: {header['prove']['suggestion']}; expect {header['prove']['expect']}",
         "",
         "## HARD-STOP [NORM]",
-        *[f"HS-{n:02d} {rule} -> HOLD the item" for n, rule in enumerate(HOLD_IF, 1)],
-        f"HS-{len(HOLD_IF) + 1:02d} the fix needs a FORBID change -> stop, REPORT HOLD",
-        f"HS-{len(HOLD_IF) + 2:02d} the fix changes a public signature, a return type or code outside the item's span "
-        "-> stop, needs a decision (D-*)",
-        f"HS-{len(HOLD_IF) + 3:02d} running code from the analyzed repository without an approved test profile",
-        f"HS-{len(HOLD_IF) + 4:02d} a REPORT field filled with placeholder text instead of NOT-MEASURED",
+        *[f"HS-{n:02d} {line}" for n, line in enumerate(hold, 1)],
         "",
         "## FORBID [NORM]",
-        *[f"- {rule}" for rule in FORBID],
+        *[f"- {rule}" for rule in header["forbid"]],
         "",
         "## INVARIANTS [NORM]",
-        "- score != review candidates: the score comes from the pattern channel only; a candidate never moves it",
-        "- FINDING != proven defect; REVIEW_CANDIDATE != defect: both are decided in VERIFY",
-        "- UNDECIDED != pass; NOT-MEASURED != 0",
-        "- REJECT with evidence is a result, not a failure: it is the false-alarm channel",
+        *[f"- {line}" for line in rules.invariants],
         "",
         "## ALLOWED [NORM]",
-        "A-01 read any file of the target",
-        "A-02 edit inside the item's span",
-        "A-03 add or change a test that proves the fix",
-        "A-04 claim_without_mechanism: reword the docstring to what the function does",
-        "D-01 decision first: split a function across files, merge clones across modules",
-        "D-02 decision first: add or change a dependency declaration",
+        *rules.allowed,
         "",
     ]
 
 
-def _block(n: int, record: Dict[str, Any], root: Path) -> List[str]:
+def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset) -> List[str]:
     text, sha = _source(root, record["file"])
     bound = record["source_sha256"]
     # Code is shown only from the content the scan analyzed. A file that changed
@@ -246,7 +174,7 @@ def _block(n: int, record: Dict[str, Any], root: Path) -> List[str]:
             f"{promise['claim_kind']}; basis {promise['basis']}"
             + (f": {promise['detail']}" if promise["detail"] else "") + ")"
         )
-        out.append(f"verify [NORM]: {_claim_question(promise)}")
+        out.append(f"verify [NORM]: {_claim_question(promise, rules)}")
     out += _code(text, record["line"], record["file"]) if text is not None else ["code [FACT]: NOT-APPLICABLE: HOLD"]
     out += [f"fix [DERIVED]: {record['fix']}", ""]
     return out
@@ -256,8 +184,10 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
     """The work order: every item in priority order; the first `limit` (all
     when None) as full blocks, the rest as one backlog line each."""
     view = build_report_view(result)
-    # through the module, so the work order and the JSON Lines always run the same code
-    records = ai_report.build_records(view)
+    # through the module, so the work order and the JSON Lines always run the same
+    # code; one ruleset read serves the header and every contract line
+    rules = ai_report.ruleset()
+    records = ai_report.build_records(view, rules=rules)
     ai_report.validate(records)
     header, items = records[0], sorted(records[1:], key=lambda r: _RANK.get(r["severity"], 5))
     root = Path(view.target if view.is_project else str(Path(view.target).parent))
@@ -270,18 +200,19 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
         f"target: {Path(view.target).name} | files {header['files']} | score {score} {header['status']} "
         "(pattern channel only)",
         f"items: {len(items)} | work order {len(blocks)} | backlog {len(backlog)}",
+        f"ruleset: {RULESET_SCHEMA} {rules[0].version} sha256:{rules[1]}",
         "",
-        *_contract(header),
+        *_contract(header, rules[0]),
         "## MEASUREMENT [FACT]",
         *_measurement(header, view),
         "",
-        *_rules(items, header),
+        *_rules(items, rules[0]),
         "## WORK-ORDER",
         "order: critical, high, review candidates, medium, low",
         "",
     ]
     for n, record in enumerate(blocks, 1):
-        out += _block(n, record, root)
+        out += _block(n, record, root, rules[0])
     out += ["## BACKLOG", "same contract; open the file and work the item as a WORK-ORDER block"]
     if backlog:
         out += [
