@@ -39,10 +39,14 @@ FORBID = [
 # suggestion for a person or an approved test profile, not a command to run.
 PROVE = {
     "suggestion": "re-scan the item's file with the same configuration",
+    # The policy prove_state applies, stated for the agent (FH-WO-005).
     "expect": (
-        "the item's symbol is still there and no item with its semantic_key is left (one under "
-        "another id is the same finding moved, not fixed), no new item appears, the project's "
-        "tests pass; an absent symbol or an ambiguous match is HOLD, not a pass (prove_state)"
+        "PASS needs prove_state FIXED_CANDIDATE and the project's tests passing, with no new item. "
+        "prove_state: HOLD when the item's symbol is gone; PERSISTS when its id is still there, or "
+        "its semantic_key is under another id as often as before (moved: a locator is an address "
+        "in one snapshot); FIXED_CANDIDATE only when its semantic_key and its cause_key are both "
+        "left fewer times and every other item sharing them kept its id, or none is left; HOLD "
+        "when its cause_key is still there as often as before (reworded) or the match is ambiguous"
     ),
 }
 _VERIFY = {
@@ -284,13 +288,14 @@ def prove_state(
     if item_id in after_ids:
         return "PERSISTS"
     same_text = _left(before, after, item_id, "semantic_key")
-    if same_text is not None:
+    if same_text in ("PERSISTS", "HOLD"):
         return same_text
+    # Fewer (or no) copies of the text: provisional until the cause agrees
+    # (FH-WO-006: a reworded twin keeps the cause at its count).
     same_cause = _left(before, after, item_id, "cause_key")
-    if same_cause is None:
-        return "FIXED_CANDIDATE"  # no violation of this cause is left in the symbol
-    # the cause is still there under other words: it may be this finding, reworded
-    return "HOLD" if same_cause == "PERSISTS" else same_cause
+    if same_cause is None or same_cause == "FIXED_CANDIDATE":
+        return "FIXED_CANDIDATE"
+    return "HOLD"  # the cause is left as often as before (reworded), or the match is ambiguous
 
 
 def _left(before: List[Dict[str, Any]], after: List[Dict[str, Any]], item_id: str, field: str) -> Optional[str]:

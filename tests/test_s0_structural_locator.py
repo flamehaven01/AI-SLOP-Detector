@@ -169,3 +169,39 @@ def test_a_reworded_violation_in_the_same_symbol_is_never_a_fix_candidate(tmp_pa
     # the same comment removed: no same-cause violation is left in the symbol
     path.write_text("def run():\n    return True\n", encoding="utf-8")
     assert prove_state(before, _records(tmp_path), before[0]["id"], symbol_present=True) == "FIXED_CANDIDATE"
+
+
+TWO_SAME = "def run():\n    # TODO: validate input\n    # TODO: validate input\n    return True\n"
+
+
+def test_one_of_two_identical_violations_reworded_is_hold_for_it(tmp_path):
+    # FH-WO-006: the reworded copy loses its semantic_key while its twin keeps its id;
+    # the cause is still there twice, so the gone id is not a fix
+    path = _write(tmp_path, "run.py", TWO_SAME)
+    before = _rule(_records(tmp_path), "todo_comment")
+    path.write_text(TWO_SAME.replace("    # TODO: validate input\n    return", "    # TODO: validate all inputs\n    return"),
+                    encoding="utf-8")
+    after = _records(tmp_path)
+    gone = [r for r in before if r["id"] not in {a["id"] for a in after}]
+    assert len(gone) == 1 and len(_rule(after, "todo_comment")) == 2
+    assert prove_state(before, after, gone[0]["id"], symbol_present=True) == "HOLD"
+
+
+def test_one_of_two_identical_violations_removed_is_one_fix_candidate(tmp_path):
+    path = _write(tmp_path, "run.py", TWO_SAME)
+    before = _rule(_records(tmp_path), "todo_comment")
+    path.write_text(TWO_SAME.replace("    # TODO: validate input\n    return", "    return"), encoding="utf-8")
+    after = _records(tmp_path)
+    states = sorted(prove_state(before, after, r["id"], symbol_present=True) for r in before)
+    assert states == ["FIXED_CANDIDATE", "PERSISTS"]  # one copy fewer: exactly one candidate
+
+
+def test_the_prove_policy_is_one_text_in_the_header_and_the_work_order(tmp_path):
+    # FH-WO-005: the policy the agent reads is the one prove_state applies
+    _write(tmp_path, "run.py", TWO_SAME)
+    result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
+    header = build_records(build_report_view(result))[0]
+    expect = header["prove"]["expect"]
+    for term in ("semantic_key", "cause_key", "locator", "HOLD", "FIXED_CANDIDATE", "symbol", "reworded", "moved"):
+        assert term in expect
+    assert expect in render_ai_report_md(result)
