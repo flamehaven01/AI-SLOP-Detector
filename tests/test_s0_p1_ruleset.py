@@ -47,7 +47,7 @@ def _canonical(path):
 
 def test_the_header_names_the_ruleset_and_its_canonical_digest(tmp_path):
     header = build_records(build_report_view(_result(tmp_path)))[0]
-    assert header["ruleset"]["schema"] == "ai-slop-work-order-rules/1"
+    assert header["ruleset"]["schema"] == "ai-slop-work-order-rules/2"
     assert header["ruleset"]["sha256"] == _canonical(rules.RULESET_PATH)
     data = json.loads(rules.RULESET_PATH.read_text(encoding="utf-8"))
     # the contract text in the header is the ruleset's, not code defaults
@@ -79,7 +79,7 @@ def test_a_changed_rule_changes_the_digest_and_the_text_a_reformat_does_not(tmp_
     ("empty_text", lambda d: d["forbid"].__setitem__(0, ""), None),
     ("rule_in_two_families", lambda d: d["families"]["size"]["rules"].append("todo_comment"), None),
     ("missing_field", lambda d: d.pop("prove"), None),
-    ("wrong_schema", lambda d: d.update(schema="ai-slop-work-order-rules/0"), None),
+    ("wrong_schema", lambda d: d.update(schema="ai-slop-work-order-rules/1"), None),
 ])
 def test_a_missing_or_invalid_ruleset_fails_every_report_closed(tmp_path, monkeypatch, name, change, raw):
     result = _result(tmp_path)

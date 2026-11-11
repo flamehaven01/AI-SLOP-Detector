@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from slop_detector import ai_report
 from slop_detector.ai_report import MISSING
-from slop_detector.work_order_rules import SCHEMA as RULESET_SCHEMA, Ruleset
+from slop_detector.work_order_rules import MODES, SCHEMA as RULESET_SCHEMA, Ruleset
 from slop_detector.report_view import build_report_view
 
 FORMAT = "ai-slop-report/1 markdown work order"
@@ -128,10 +128,24 @@ def _measurement(header: Dict[str, Any], view: Any) -> List[str]:
     return rows + [""] + nulls
 
 
-def _contract(header: Dict[str, Any], rules: Ruleset) -> List[str]:
+def _mode_lines(rules: Ruleset, mode: str) -> List[str]:
+    """What this reader is for and may do (the ruleset's mode); an agent's
+    preconditions start NOT-MEASURED, so the document alone never lets it act."""
+    spec = getattr(rules.modes, mode)
+    out = ["## AUTHORITY [NORM]", f"purpose: {spec.purpose}", f"authority: {spec.authority}", ""]
+    if mode == "agent":
+        out += ["## PRECONDITIONS [NORM]", *[f"{line} NOT-MEASURED" for line in spec.preconditions],
+                f"rule: {spec.precondition_rule}", ""]
+    return out
+
+
+def _contract(header: Dict[str, Any], rules: Ruleset, mode: str) -> List[str]:
     """The contract, every line from the ruleset (the header carries the same
-    loop, hold_if, forbid and prove)."""
+    loop, hold_if, forbid and prove); what differs by mode is its authority,
+    its preconditions, its allowed actions and its limits."""
+    spec = getattr(rules.modes, mode)
     hold = [f"{rule} -> HOLD the item" for rule in header["hold_if"]] + list(rules.hard_stop)
+    limits = ["## LIMITS [FACT]", *[f"- {line}" for line in spec.limits], ""] if mode == "auditor" else []
     return [
         "## CONTRACT [FORMAT]",
         f"precedence: {rules.precedence}",
@@ -142,6 +156,7 @@ def _contract(header: Dict[str, Any], rules: Ruleset) -> List[str]:
         f"VERIFY: {rules.verify_step}",
         f"PROVE: {header['prove']['suggestion']}; expect {header['prove']['expect']}",
         "",
+        *_mode_lines(rules, mode),
         "## HARD-STOP [NORM]",
         *[f"HS-{n:02d} {line}" for n, line in enumerate(hold, 1)],
         "",
@@ -152,12 +167,26 @@ def _contract(header: Dict[str, Any], rules: Ruleset) -> List[str]:
         *[f"- {line}" for line in rules.invariants],
         "",
         "## ALLOWED [NORM]",
-        *rules.allowed,
+        *spec.allowed,
         "",
+        *limits,
     ]
 
 
-def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset) -> List[str]:
+def _agent_read(text: Optional[str], record: Dict[str, Any], rules: Ruleset, current: str) -> List[str]:
+    """No code for an agent: the span to open in the target and the recheck
+    it must pass first (a VOID or MISSING item is HOLD before any read)."""
+    if text is None:
+        return [f"read [NORM]: HOLD: {current}"]
+    start, end, name = _span(text, record["line"])
+    rel = _one_line(record["file"])
+    return [
+        f"span [FACT]: {rel}:{start}-{end}" + (f" `{name}`" if name else ""),
+        f"read [NORM]: {rules.modes.agent.read.format(file=rel, span=f'{start}-{end}')}",
+    ]
+
+
+def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset, mode: str) -> List[str]:
     text, sha = _source(root, record["file"])
     bound = record["source_sha256"]
     # Code is shown only from the content the scan analyzed. A file that changed
@@ -186,14 +215,22 @@ def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset) -> List[s
             + (f": {_one_line(promise['detail'])}" if promise["detail"] else "") + ")"
         )
         out.append(f"verify [NORM]: {_claim_question(promise, rules)}")
-    out += _code(text, record["line"], record["file"]) if text is not None else ["code [FACT]: NOT-APPLICABLE: HOLD"]
+    if mode == "agent":
+        out += _agent_read(text, record, rules, current)
+    else:
+        out += _code(text, record["line"], record["file"]) if text is not None else ["code [FACT]: NOT-APPLICABLE: HOLD"]
     out += [f"fix [DERIVED]: {_one_line(record['fix'])}", ""]
     return out
 
 
-def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
+def render_ai_report_md(result: Any, limit: Optional[int] = None, mode: str = "auditor") -> str:
     """The work order: every item in priority order; the first `limit` (all
-    when None) as full blocks, the rest as one backlog line each."""
+    when None) as full blocks, the rest as one backlog line each. `mode` is
+    the reader: auditor (the default: evidence excerpts, read-only) or agent
+    (no code copied; it holds until its preconditions pass). Both render the
+    same records."""
+    if mode not in MODES:
+        raise ai_report.AiReportInvalid(f"unknown work-order mode {mode!r}; nothing was written")
     view = build_report_view(result)
     # through the module, so the work order and the JSON Lines always run the same
     # code; one ruleset read serves the header and every contract line
@@ -212,8 +249,9 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
         "(pattern channel only)",
         f"items: {len(items)} | work order {len(blocks)} | backlog {len(backlog)}",
         f"ruleset: {RULESET_SCHEMA} {rules[0].version} sha256:{rules[1]}",
+        f"mode: {mode}",
         "",
-        *_contract(header, rules[0]),
+        *_contract(header, rules[0], mode),
         "## MEASUREMENT [FACT]",
         *_measurement(header, view),
         "",
@@ -223,7 +261,7 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None) -> str:
         "",
     ]
     for n, record in enumerate(blocks, 1):
-        out += _block(n, record, root, rules[0])
+        out += _block(n, record, root, rules[0], mode)
     out += ["## BACKLOG", "same contract; open the file and work the item as a WORK-ORDER block"]
     if backlog:
         out += [

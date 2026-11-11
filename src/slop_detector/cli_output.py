@@ -121,9 +121,11 @@ def _write_ai_report(args, result) -> None:
     from slop_detector.ai_report import AiReportInvalid, render_ai_report
     from slop_detector.ai_report_md import render_ai_report_md
 
-    render = render_ai_report_md if getattr(args, "format", None) == "ai-md" else render_ai_report
     try:
-        text = render(result, getattr(args, "ai_limit", None))
+        if getattr(args, "format", None) == "ai-md":
+            text = render_ai_report_md(result, getattr(args, "ai_limit", None), getattr(args, "ai_mode", "auditor"))
+        else:
+            text = render_ai_report(result, getattr(args, "ai_limit", None))
     except AiReportInvalid as exc:
         print(f"[!] {exc}; nothing was written", file=sys.stderr)
         raise SystemExit(2) from exc

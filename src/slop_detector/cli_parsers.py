@@ -76,6 +76,15 @@ Examples:
         ),
     )
     parser.add_argument(
+        "--ai-mode",
+        choices=["auditor", "agent"],
+        default="auditor",
+        help=(
+            "With --format ai-md: auditor (default; evidence excerpts, read-only) or agent (no code "
+            "copied; it holds until its preconditions pass and grants no right to change code)"
+        ),
+    )
+    parser.add_argument(
         "--report-dir",
         metavar="DIR",
         help="Write report.md, report.html, report.pdf, ai-report.jsonl, ai-report.md and scan.json to DIR",

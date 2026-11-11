@@ -1,6 +1,11 @@
 """The work-order ruleset (S0-P1): every rule an agent reads in the AI report
 and the work order, as a versioned JSON file checked against its schema.
 
+Schema /2 keeps the common rules free of any authority to change code and
+puts what a reader may do in its mode: `auditor` (read-only, evidence
+excerpts and their limits) or `agent` (no code copied, a source recheck per
+item, preconditions that start NOT-MEASURED, changes only after approval).
+
 The digest is the SHA-256 of the canonical JSON (keys sorted, no spaces): a
 change to any rule changes it, a change of layout does not. A missing,
 unreadable or invalid ruleset raises RulesetInvalid; there is no default
@@ -18,7 +23,8 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, Validation
 from typing_extensions import Annotated, Literal
 
 RULESET_PATH = Path(__file__).parent / "config" / "work_order_rules.json"
-SCHEMA = "ai-slop-work-order-rules/1"
+SCHEMA = "ai-slop-work-order-rules/2"
+MODES = ("auditor", "agent")
 
 Text = Annotated[str, StringConstraints(min_length=1)]
 
@@ -46,13 +52,36 @@ class Claim(_Strict):
     question: Text  # format fields: looked_for, why, resolves
 
 
+class Auditor(_Strict):
+    purpose: Text
+    authority: Text
+    code: Literal["excerpt"]
+    allowed: List[Text] = Field(min_length=1)
+    limits: List[Text] = Field(min_length=1)
+
+
+class Agent(_Strict):
+    purpose: Text
+    authority: Text
+    code: Literal["locator"]
+    preconditions: List[Annotated[str, StringConstraints(pattern=r"^P[0-9]+ .+")]] = Field(min_length=1)
+    precondition_rule: Text
+    read: Annotated[str, StringConstraints(pattern=r".*[{]file[}].*[{]span[}].*")]
+    allowed: List[Text] = Field(min_length=1)
+
+
+class Modes(_Strict):
+    auditor: Auditor
+    agent: Agent
+
+
 class Family(_Strict):
     rules: List[Text] = Field(min_length=1)
     question: Text
 
 
 class Ruleset(_Strict):
-    schema_: Literal["ai-slop-work-order-rules/1"] = Field(alias="schema")
+    schema_: Literal["ai-slop-work-order-rules/2"] = Field(alias="schema")
     version: Annotated[str, StringConstraints(pattern=r"^[0-9]+[.][0-9]+[.][0-9]+$")]
     precedence: Text
     tags: Text
@@ -64,11 +93,11 @@ class Ruleset(_Strict):
     hard_stop: List[Text] = Field(min_length=1)
     forbid: List[Text] = Field(min_length=1)
     invariants: List[Text] = Field(min_length=1)
-    allowed: List[Text] = Field(min_length=1)
     prove: Prove
     verify: Verify
     claim: Claim
     families: Dict[Text, Family] = Field(min_length=1)
+    modes: Modes
 
     @model_validator(mode="after")
     def _one_family_per_rule(self) -> "Ruleset":

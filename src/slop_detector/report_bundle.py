@@ -31,7 +31,7 @@ def write_bundle(result: Any, directory: str, ai_limit: Optional[int] = None) ->
         ("report.html", lambda: page),
         ("report.pdf", lambda: write_pdf(page, str(folder / "report.pdf"))),
         ("ai-report.jsonl", lambda: render_ai_report(result, ai_limit)),
-        ("ai-report.md", lambda: render_ai_report_md(result, ai_limit)),
+        ("ai-report.md", lambda: render_ai_report_md(result, ai_limit, mode="auditor")),
         ("scan.json", lambda: render_json(result)),
     ]
     written: List[str] = []

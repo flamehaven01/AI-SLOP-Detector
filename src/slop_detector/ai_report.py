@@ -39,7 +39,7 @@ class _Strict(BaseModel):
 
 
 class RulesetRef(_Strict):
-    schema_: Literal["ai-slop-work-order-rules/1"] = Field(alias="schema")
+    schema_: Literal["ai-slop-work-order-rules/2"] = Field(alias="schema")
     version: str
     sha256: str
 
