@@ -197,7 +197,7 @@ def ruleset() -> Tuple[Ruleset, str]:
     try:
         return load_ruleset()
     except RulesetInvalid as exc:
-        raise AiReportInvalid(f"{exc}; nothing was written") from exc
+        raise AiReportInvalid(str(exc)) from exc
 
 
 def build_records(
@@ -244,7 +244,7 @@ def validate(records: List[Dict[str, Any]]) -> None:
             Record.model_validate(record)
         ids = [r["id"] for r in records[1:]]
         if len(set(ids)) != len(ids):
-            raise AiReportInvalid("the AI report has two items with one id; nothing was written")
+            raise AiReportInvalid("the AI report has two items with one id")
     except ValidationError as exc:
         raise AiReportInvalid(f"the AI report failed its schema: {exc.error_count()} error(s)") from exc
 

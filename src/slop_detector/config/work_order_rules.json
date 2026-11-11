@@ -130,7 +130,7 @@
         "A-02 judge each item TP, FP or UNSURE with the evidence shown, and say what more you needed"
       ],
       "limits": [
-        "an excerpt shows at most 20 lines of the item's span; the span line names the rest",
+        "an excerpt may not show the whole span; a 'not shown' line names the range to read",
         "the code shown is the content the scan analyzed; a VOID or MISSING item shows none",
         "JS/TS and Go locators are lines: a line shift moves them",
         "a REVIEW_CANDIDATE is not a defect until verified; the score comes from the pattern channel only"

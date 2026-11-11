@@ -78,14 +78,26 @@ def _span(text: str, line: int) -> Tuple[int, int, str]:
     return best
 
 
-def _code(text: Optional[str], line: int, rel: str) -> List[str]:
+def _shown(start: int, end: int, line: int, tier: str) -> List[int]:
+    """The lines of the span an excerpt shows: all of them (T1, `full`), the
+    signature and the evidence line with its neighbours (T2, `evidence`), or
+    the first SNIPPET_LINES and the evidence (`capped`, no budget given)."""
+    if tier == "full":
+        return list(range(start, end + 1))
+    if tier == "evidence":
+        return sorted({start} | set(range(max(start, line - 1), min(end, line + 1) + 1)))
+    shown = list(range(start, min(end, start + SNIPPET_LINES - 1) + 1))
+    if line not in shown:
+        shown += list(range(max(line - 2, shown[-1] + 1), min(line + 2, end) + 1))
+    return shown
+
+
+def _code(text: Optional[str], line: int, rel: str, tier: str = "capped") -> List[str]:
     if text is None:
         return ["code [FACT]: MISSING (file not readable)"]
     lines = text.splitlines()
     start, end, name = _span(text, line)
-    shown = list(range(start, min(end, start + SNIPPET_LINES - 1) + 1))
-    if line not in shown:
-        shown += list(range(max(line - 2, shown[-1] + 1), min(line + 2, end) + 1))
+    shown = _shown(start, end, line, tier)
     width = len(str(end))
     out = [f"span [FACT]: {_one_line(rel)}:{start}-{end}" + (f" `{name}`" if name else ""), "```python"]
     previous = None
@@ -96,6 +108,8 @@ def _code(text: Optional[str], line: int, rel: str) -> List[str]:
         previous = n
     if shown[-1] < end:
         out.append(f"{'':>{width}}| ... lines {shown[-1] + 1}-{end} not shown (read {rel}:{start}-{end})")
+    elif tier == "evidence" and len(shown) < end - start + 1:
+        out.append(f"{'':>{width}}| ... the rest of {start}-{end} not shown (read {rel}:{start}-{end})")
     out.append("```")
     return out
 
@@ -186,8 +200,14 @@ def _agent_read(text: Optional[str], record: Dict[str, Any], rules: Ruleset, cur
     ]
 
 
-def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset, mode: str) -> List[str]:
-    text, sha = _source(root, record["file"])
+def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset, mode: str, tier: str = "capped",
+           sources: Optional[Dict[str, Tuple[Optional[str], str]]] = None) -> List[str]:
+    if sources is not None and record["file"] in sources:
+        text, sha = sources[record["file"]]
+    else:
+        text, sha = _source(root, record["file"])
+        if sources is not None:
+            sources[record["file"]] = (text, sha)
     bound = record["source_sha256"]
     # Code is shown only from the content the scan analyzed. A file that changed
     # after the scan, or a result with no scan-time hash, gets no code and no
@@ -218,19 +238,22 @@ def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset, mode: str
     if mode == "agent":
         out += _agent_read(text, record, rules, current)
     else:
-        out += _code(text, record["line"], record["file"]) if text is not None else ["code [FACT]: NOT-APPLICABLE: HOLD"]
+        out += _code(text, record["line"], record["file"], tier) if text is not None else [
+            "code [FACT]: NOT-APPLICABLE: HOLD"]
     out += [f"fix [DERIVED]: {_one_line(record['fix'])}", ""]
     return out
 
 
-def render_ai_report_md(result: Any, limit: Optional[int] = None, mode: str = "auditor") -> str:
+def render_ai_report_md(
+    result: Any, limit: Optional[int] = None, mode: str = "auditor", token_budget: Optional[int] = None
+) -> str:
     """The work order: every item in priority order; the first `limit` (all
     when None) as full blocks, the rest as one backlog line each. `mode` is
     the reader: auditor (the default: evidence excerpts, read-only) or agent
     (no code copied; it holds until its preconditions pass). Both render the
     same records."""
     if mode not in MODES:
-        raise ai_report.AiReportInvalid(f"unknown work-order mode {mode!r}; nothing was written")
+        raise ai_report.AiReportInvalid(f"unknown work-order mode {mode!r}")
     view = build_report_view(result)
     # through the module, so the work order and the JSON Lines always run the same
     # code; one ruleset read serves the header and every contract line
@@ -239,17 +262,91 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None, mode: str = "a
     ai_report.validate(records)
     header, items = records[0], sorted(records[1:], key=lambda r: _RANK.get(r["severity"], 5))
     root = Path(view.target if view.is_project else str(Path(view.target).parent))
-    blocks = items if limit is None else items[: max(0, limit)]
-    backlog = items[len(blocks):]
+    sources: Dict[str, Tuple[Optional[str], str]] = {}
+    fixed = (header, view, rules, mode, root, sources)
+    if token_budget is None:
+        cut = len(items) if limit is None else max(0, limit)
+        return _document(fixed, items, ["capped"] * cut + [_INDEX] * (len(items) - cut), None)
+    if mode != "auditor":
+        raise ai_report.AiReportInvalid(
+            "--ai-token-budget bounds the auditor work order; an agent's is bounded by --ai-limit")
+    return _document(fixed, items, _fit(fixed, items, token_budget), token_budget)
+
+
+_INDEX = "index"  # T3: one index line
+_TIER_NAME = {"full": "T1", "evidence": "T2", _INDEX: "T3"}
+
+
+def estimate_tokens(text: str) -> int:
+    """Estimated tokens of a text: characters / 4, rounded up. No tokenizer
+    is used; the document says so beside the number."""
+    return (len(text) + 3) // 4
+
+
+def _index_line(record: Dict[str, Any], tiered: bool) -> str:
+    line = (f"- {record['id']} {record['severity'] or 'review'} {record['rule']} {_one_line(record['file'])}:"
+            f"{record['line']} sha256:{record['source_sha256'][:16]}")
+    return line + f" channel:{record['channel_state']} tier:3" if tiered else line
+
+
+def _fit(fixed, items: List[Dict[str, Any]], budget: int) -> List[str]:
+    """The deepest tier per item, in priority order, that keeps the whole
+    document within `budget`; every item keeps at least its index line."""
+    tiers = [_INDEX] * len(items)
+    if estimate_tokens(_document(fixed, items, tiers, budget)) > budget:
+        # The document states its budget, so the floor grows with the budget's
+        # digits: report the least budget that holds itself, not a guess.
+        least = budget
+        while estimate_tokens(_document(fixed, items, tiers, least)) > least:
+            least = estimate_tokens(_document(fixed, items, tiers, least))
+        raise ai_report.AiReportInvalid(
+            f"BUDGET_UNSATISFIABLE: the index of every item needs at least {least} estimated tokens; "
+            f"the budget is {budget}")
+    header, view, rules, mode, root, sources = fixed
+    room = budget * 4 - len(_document(fixed, items, tiers, budget))
+    # Priority is monotone: a lower item never gets more than a higher one, so
+    # once an item falls to T2 (or T3) every later item is at most that.
+    offer = ("full", "evidence")
+    for i, record in enumerate(items):
+        index = len(_index_line(record, True)) + 1
+        for tier in offer:
+            cost = len("\n".join(_block(i + 1, record, root, rules[0], mode, tier, sources))) + 1 - index
+            if cost <= room:
+                tiers[i], room = tier, room - cost
+                break
+        offer = offer[offer.index(tiers[i]):] if tiers[i] in offer else ()
+        if not offer:
+            break
+    # The estimate above ignores small layout effects (block numbers, counts);
+    # the rendered document is the check, and the last drawn item gives way.
+    while estimate_tokens(_document(fixed, items, tiers, budget)) > budget:
+        drawn = [i for i, tier in enumerate(tiers) if tier != _INDEX]
+        last = drawn[-1]
+        tiers[last] = "evidence" if tiers[last] == "full" else _INDEX
+    return tiers
+
+
+def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Optional[int]) -> str:
+    header, view, rules, mode, root, sources = fixed
+    drawn = [(r, t) for r, t in zip(items, tiers) if t != _INDEX]
+    listed = [r for r, t in zip(items, tiers) if t == _INDEX]
     score = "NOT-MEASURED" if header["score"] is None else f"{header['score']:.1f}"
     out = [
         "# AI-SLOP WORK ORDER",
         f"format: {FORMAT} | tool {header['tool']} {header['version']} | engine {header['engine']}",
         f"target: {_one_line(Path(view.target).name)} | files {header['files']} | score {score} {header['status']} "
         "(pattern channel only)",
-        f"items: {len(items)} | work order {len(blocks)} | backlog {len(backlog)}",
+        f"items: {len(items)} | work order {len(drawn)} | backlog {len(listed)}",
         f"ruleset: {RULESET_SCHEMA} {rules[0].version} sha256:{rules[1]}",
         f"mode: {mode}",
+    ]
+    if budget is not None:
+        counts = {name: sum(1 for t in tiers if _TIER_NAME[t] == name) for name in ("T1", "T2", "T3")}
+        out.append(
+            f"budget: {budget} estimated tokens (characters / 4, not a tokenizer count) | tiers T1 {counts['T1']}, "
+            f"T2 {counts['T2']}, T3 {counts['T3']} (T1 whole function, T2 signature, evidence and the range to "
+            "read, T3 index line)")
+    out += [
         "",
         *_contract(header, rules[0], mode),
         "## MEASUREMENT [FACT]",
@@ -260,14 +357,11 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None, mode: str = "a
         "order: critical, high, review candidates, medium, low",
         "",
     ]
-    for n, record in enumerate(blocks, 1):
-        out += _block(n, record, root, rules[0], mode)
+    for n, (record, tier) in enumerate(drawn, 1):
+        out += _block(n, record, root, rules[0], mode, tier, sources)
     out += ["## BACKLOG", "same contract; open the file and work the item as a WORK-ORDER block"]
-    if backlog:
-        out += [
-            f"- {r['id']} {r['severity'] or 'review'} {r['rule']} {_one_line(r['file'])}:{r['line']} sha256:{r['source_sha256'][:16]}"
-            for r in backlog
-        ]
+    if listed:
+        out += [_index_line(r, budget is not None) for r in listed]
     else:
         out.append("NOT-APPLICABLE: every item is in the work order")
     out += [
@@ -280,3 +374,4 @@ def render_ai_report_md(result: Any, limit: Optional[int] = None, mode: str = "a
         "",
     ]
     return "\n".join(out)
+

@@ -76,6 +76,17 @@ Examples:
         ),
     )
     parser.add_argument(
+        "--ai-token-budget",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "With --format ai-md (auditor): fit the work order in N estimated tokens (characters / 4). Each item "
+            "is drawn whole, as signature and evidence, or as one index line, in priority order; no item is left "
+            "out, and a budget below the index of every item fails (BUDGET_UNSATISFIABLE)"
+        ),
+    )
+    parser.add_argument(
         "--ai-mode",
         choices=["auditor", "agent"],
         default="auditor",

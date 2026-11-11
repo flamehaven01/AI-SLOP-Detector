@@ -123,7 +123,8 @@ def _write_ai_report(args, result) -> None:
 
     try:
         if getattr(args, "format", None) == "ai-md":
-            text = render_ai_report_md(result, getattr(args, "ai_limit", None), getattr(args, "ai_mode", "auditor"))
+            text = render_ai_report_md(result, getattr(args, "ai_limit", None), getattr(args, "ai_mode", "auditor"),
+                                       getattr(args, "ai_token_budget", None))
         else:
             text = render_ai_report(result, getattr(args, "ai_limit", None))
     except AiReportInvalid as exc:
