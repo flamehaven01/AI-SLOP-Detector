@@ -162,3 +162,71 @@ def test_every_budget_from_the_minimum_up_holds_the_document(tmp_path):
     whole = estimate_tokens(render_ai_report_md(result, token_budget=10 ** 7))
     over = [b for b in range(minimum, whole + 1) if estimate_tokens(render_ai_report_md(result, token_budget=b)) > b]
     assert over == []
+
+
+def test_an_index_line_states_whether_its_file_is_still_the_scanned_content(tmp_path):
+    # FH-S4-F01: a T3 line carries the full scan-time hash and its binding state
+    result = _result(tmp_path)
+    text = render_ai_report_md(result, token_budget=_minimum(result))
+    index = [l for l in text.splitlines() if INDEX.match(l)]
+    assert index and all(re.search(r" sha256:[0-9a-f]{64} binding:MATCH", l) for l in index)
+    (tmp_path / "pkg" / "jobs.py").write_text(LONG + SHORT + "# edited after the scan\n", encoding="utf-8")
+    stale = render_ai_report_md(result, token_budget=_minimum(result))
+    index = [l for l in stale.splitlines() if INDEX.match(l)]
+    assert index and all(" binding:VOID HOLD" in l for l in index)
+    # the backlog of --ai-limit (no budget) states it the same way
+    backlog = [l for l in render_ai_report_md(result, limit=0).splitlines() if INDEX.match(l)]
+    assert backlog and all(" binding:VOID HOLD" in l for l in backlog)
+    # a result with no scan-time hash is MISSING, held the same way
+    result.file_results[0].source_sha256 = ""
+    missing = [l for l in render_ai_report_md(result, limit=0).splitlines() if INDEX.match(l)]
+    assert missing and all(" sha256:MISSING binding:MISSING HOLD" in l for l in missing)
+
+
+def test_a_limit_and_a_budget_together_are_refused(tmp_path, capsys):
+    # FH-S4-F02: neither bound may silently override the other
+    result = _result(tmp_path)
+    for limit in (0, 1):
+        with pytest.raises(AiReportInvalid):
+            render_ai_report_md(result, limit=limit, token_budget=10 ** 7)
+    out = tmp_path / "wo.md"
+    with pytest.raises(SystemExit) as stop:
+        main([str(tmp_path), "--project", "--format", "ai-md", "--ai-limit", "1", "--ai-token-budget",
+              str(10 ** 7), "--no-history", "-o", str(out)])
+    assert stop.value.code == 2 and not out.exists() and "--ai-limit" in capsys.readouterr().err
+
+
+# A long function first, then short ones, all one severity: depth-first spends
+# the budget on the first item's whole body; breadth-first gives every item its
+# evidence first (S4-D1).
+BREADTH = "def long_first(items):\n" + "".join(f"    step_{n} = items[{n}]\n" for n in range(40)) + (
+    "    # TODO: check the steps\n    return step_0\n") + "".join(
+    f"\n\ndef short_{n}(x):\n    # TODO: check {n}\n    return x\n" for n in range(8))
+
+
+def _all_t2_budget(result):
+    """The least budget that holds every item at T2 (white-box: the renderer's own document)."""
+    import slop_detector.ai_report as ai_report
+    import slop_detector.ai_report_md as md
+    from pathlib import Path
+
+    view = build_report_view(result)
+    rules = ai_report.ruleset()
+    records = ai_report.build_records(view, rules=rules)
+    header, items = records[0], sorted(records[1:], key=lambda r: md._RANK.get(r["severity"], 5))
+    fixed = (header, view, rules, "auditor", Path(view.target), {})
+    budget = 1
+    while md.estimate_tokens(md._document(fixed, items, ["evidence"] * len(items), budget)) > budget:
+        budget = md.estimate_tokens(md._document(fixed, items, ["evidence"] * len(items), budget))
+    return budget
+
+
+def test_every_item_gets_its_evidence_before_any_item_gets_its_whole_body(tmp_path):
+    (tmp_path / "pyproject.toml").write_text("", encoding="utf-8")
+    (tmp_path / "pkg").mkdir()
+    (tmp_path / "pkg" / "b.py").write_text(BREADTH, encoding="utf-8")
+    result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
+    budget = _all_t2_budget(result) + 50
+    text = render_ai_report_md(result, token_budget=budget)
+    t1, t2, t3 = _tiers(text)
+    assert t3 == 0 and t1 + t2 == len(_ids(result))  # nobody is left at the index line

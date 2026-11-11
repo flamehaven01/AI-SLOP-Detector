@@ -270,6 +270,9 @@ def render_ai_report_md(
     if mode != "auditor":
         raise ai_report.AiReportInvalid(
             "--ai-token-budget bounds the auditor work order; an agent's is bounded by --ai-limit")
+    if limit is not None:  # FH-S4-F02: neither bound may silently override the other
+        raise ai_report.AiReportInvalid(
+            "--ai-limit and --ai-token-budget bound the work order in two different ways; give one")
     return _document(fixed, items, _fit(fixed, items, token_budget), token_budget)
 
 
@@ -283,9 +286,23 @@ def estimate_tokens(text: str) -> int:
     return (len(text) + 3) // 4
 
 
-def _index_line(record: Dict[str, Any], tiered: bool) -> str:
+def _binding(record: Dict[str, Any], fixed) -> str:
+    """MATCH when the file is still the content the scan analyzed; VOID (it
+    changed or is gone) and MISSING (no scan-time hash) hold the item."""
+    root, sources = fixed[4], fixed[5]
+    if record["source_sha256"] == MISSING:
+        return "MISSING HOLD"
+    if record["file"] not in sources:
+        sources[record["file"]] = _source(root, record["file"])
+    return "MATCH" if sources[record["file"]][1] == record["source_sha256"] else "VOID HOLD"
+
+
+def _index_line(record: Dict[str, Any], tiered: bool, fixed) -> str:
+    """One line per item not drawn as a block (FH-S4-F01): the full scan-time
+    hash and whether the file still holds it, so an index line never stands
+    for content the scan did not analyze."""
     line = (f"- {record['id']} {record['severity'] or 'review'} {record['rule']} {_one_line(record['file'])}:"
-            f"{record['line']} sha256:{record['source_sha256'][:16]}")
+            f"{record['line']} sha256:{record['source_sha256']} binding:{_binding(record, fixed)}")
     return line + f" channel:{record['channel_state']} tier:3" if tiered else line
 
 
@@ -304,19 +321,28 @@ def _fit(fixed, items: List[Dict[str, Any]], budget: int) -> List[str]:
             f"the budget is {budget}")
     header, view, rules, mode, root, sources = fixed
     room = budget * 4 - len(_document(fixed, items, tiers, budget))
-    # Priority is monotone: a lower item never gets more than a higher one, so
-    # once an item falls to T2 (or T3) every later item is at most that.
-    offer = ("full", "evidence")
-    for i, record in enumerate(items):
-        index = len(_index_line(record, True)) + 1
-        for tier in offer:
-            cost = len("\n".join(_block(i + 1, record, root, rules[0], mode, tier, sources))) + 1 - index
-            if cost <= room:
-                tiers[i], room = tier, room - cost
-                break
-        offer = offer[offer.index(tiers[i]):] if tiers[i] in offer else ()
-        if not offer:
+
+    def cost(i: int, tier: str) -> int:
+        """Characters a tier adds over the item's index line."""
+        block = _block(i + 1, items[i], root, rules[0], mode, tier, sources)
+        return len("\n".join(block)) + 1 - (len(_index_line(items[i], True, fixed)) + 1)
+
+    # Breadth first (S4-D1): every item gets its evidence (T2) before any item
+    # gets its whole body (T1). Both passes go in priority order and stop at
+    # the first item that does not fit, so a lower item never gets more than
+    # a higher one.
+    for i in range(len(items)):
+        need = cost(i, "evidence")
+        if need > room:
             break
+        tiers[i], room = "evidence", room - need
+    for i in range(len(items)):
+        if tiers[i] != "evidence":
+            break
+        need = cost(i, "full") - cost(i, "evidence")
+        if need > room:
+            break
+        tiers[i], room = "full", room - need
     # The estimate above ignores small layout effects (block numbers, counts);
     # the rendered document is the check, and the last drawn item gives way.
     while estimate_tokens(_document(fixed, items, tiers, budget)) > budget:
@@ -361,7 +387,7 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
         out += _block(n, record, root, rules[0], mode, tier, sources)
     out += ["## BACKLOG", "same contract; open the file and work the item as a WORK-ORDER block"]
     if listed:
-        out += [_index_line(r, budget is not None) for r in listed]
+        out += [_index_line(r, budget is not None, fixed) for r in listed]
     else:
         out.append("NOT-APPLICABLE: every item is in the work order")
     out += [
