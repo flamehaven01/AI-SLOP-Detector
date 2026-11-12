@@ -51,8 +51,9 @@ def test_every_item_is_worked_or_listed_exactly_once_in_priority_order(tmp_path)
     worked, listed = _ids(limited, "WORK-ORDER"), _ids(limited, "BACKLOG")
     assert len(worked) == 2 and sorted(worked + listed) == sorted(r["id"] for r in records)
     assert f"work order 2 | backlog {len(records) - 2}" in limited
-    severities = re.findall(r"^### W\d+ \S+ \S+ \S+ (\S+)$", full, re.M)
+    severities = re.findall(r"^#### W\d+ \S+ \S+ \S+ (\S+)$", full, re.M)
     rank = {"critical": 0, "high": 1, "review": 2, "medium": 3, "low": 4}
+    assert len(severities) == len(records)  # every item block counted, not an empty match
     assert [rank[s] for s in severities] == sorted(rank[s] for s in severities)
 
 
@@ -80,13 +81,18 @@ def test_each_block_binds_the_source_and_shows_its_code(tmp_path):
 
 def test_a_broken_promise_carries_its_own_question(tmp_path):
     text = render_ai_report_md(_project(tmp_path))
-    block = text.split("claim_without_mechanism review")[1].split("\n### ")[0]
+    # the item's own block: after its member header, up to the next family or item
+    block = text.split("REVIEW_CANDIDATE claim_without_mechanism review\n")[1].split("\n###")[0]
     assert 'promise [FACT]: "Fetch live exchange rates for the base currency."' in block
     assert (
         "verify [NORM]: the body needs an I/O call" in block
         and "found: every return is a literal" in block
     )
-    assert "fix [DERIVED]: implement the mechanism, or change the docstring" in block
+    # S2: the fix is the family's, stated once in its header
+    family = text.split("REVIEW_CANDIDATE claim_without_mechanism review | items")[1].split(
+        "#### W"
+    )[0]
+    assert "fix [DERIVED]: implement the mechanism, or change the docstring" in family
 
 
 def test_the_contract_comes_first_and_no_local_path_leaks(tmp_path):

@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### AI work order: families (S2)
+
+- Items are grouped into families for display: the items that share kind,
+  rule, severity, fix, channel state and evidence shape (the evidence sentence
+  with quoted names and numbers replaced). The family header (`### G01 ...`)
+  states the shared fix and channel once; every item keeps its own block
+  (`#### W01 ...`: id, location, locator, binding, evidence, promise, code),
+  its own verdict and its own response line. Severity stands in for a
+  fix-risk tier, which the detector does not compute yet.
+- `## FILES`: every file once with its scan-time SHA-256 and binding (MATCH,
+  VOID HOLD, MISSING HOLD); item blocks and index lines point to it (`B01`)
+  instead of repeating the hash. Paths come last on these lines.
+- The renderer reads the document back before writing it: every item exactly
+  once, at its own file and line, with its own evidence, bound to its file's
+  hash, under a family whose fix and channel are its own, family counts that
+  add up. Otherwise it refuses: `the work order is not lossless`.
+- Token budget (S4-D1 kept): the allocation pays for a family header when it
+  draws the family's first item, and the final check takes back the last
+  whole body before any item loses its evidence. Without these, the families
+  had a budget that held every item at T2 leave some at the index line.
+- The JSON Lines report (`--format ai`) is unchanged.
+- VS Code extension: "Copy work order" also carries the item's family header
+  and its FILES row, and still reads a work order from a 3.14 backend.
+
 ## [3.14.2] - 2026-11-12
 
 One defect of the AI outputs with tree-sitter installed, and the JS/TS and Go

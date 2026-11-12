@@ -26,7 +26,7 @@ SOURCE = (
 )
 JS = "function f(a){ console.log(a); if (a == 2) {} }\n"
 BLOCK = re.compile(
-    r"^### W\d+ ([FC][0-9a-f]{12}) (\S+) (\S+) (\S+)\nat \[FACT\]: (\S+):(\d+)\n", re.M
+    r"^#### W\d+ ([FC][0-9a-f]{12}) (\S+) (\S+) (\S+)\nat \[FACT\]: (\S+):(\d+)\n", re.M
 )
 
 
@@ -67,20 +67,21 @@ def test_both_modes_carry_the_same_items_bindings_and_policy(tmp_path):
     records = build_records(build_report_view(result))[1:]
     assert a_blocks == g_blocks and len(a_blocks) == len(records)
     assert any(b[4].endswith(".js") for b in a_blocks)  # JS findings in both
-    shas = lambda t: re.findall(r"^bound_to \[FACT\]: sha256:(\S+) ", t, re.M)  # noqa: E731
-    assert (
-        shas(auditor)
-        == shas(agent)
-        == [
-            r["source_sha256"]
-            for r in sorted(
-                records,
-                key=lambda r: {"critical": 0, "high": 1, None: 2, "medium": 3, "low": 4}[
-                    r["severity"]
-                ],
-            )
-        ]
-    )
+    # each item, in both modes, names a FILES row that holds its record's hash (S2)
+    by_id = {r["id"]: r for r in records}
+
+    def bound(text):
+        rows = dict(re.findall(r"^- (B\d+) binding:\S+(?: HOLD)? sha256:(\S+) file:", text, re.M))
+        refs = re.findall(
+            r"^#### W\d+ ([FC][0-9a-f]{12}) [^\n]*\n(?:[^\n]+\n)*?bound_to \[FACT\]: (B\d+) ",
+            text,
+            re.M,
+        )
+        return [(rid, rows[ref]) for rid, ref in refs]
+
+    assert bound(auditor) == bound(agent)
+    assert len(bound(auditor)) == len(records)
+    assert all(sha == by_id[rid]["source_sha256"] for rid, sha in bound(auditor))
     for name in ("MEASUREMENT", "RULES", "BACKLOG", "RESPONSE-FORM"):
         assert _section(auditor, name) == _section(agent, name)
     head = lambda t: [ln for ln in t.splitlines()[:6] if not ln.startswith("mode:")]  # noqa: E731

@@ -24,7 +24,7 @@ LONG = (
     + ("    # TODO: validate the steps\n    return step_0\n")
 )
 SHORT = "".join(f"\n\ndef stub_{n}():\n    # TODO: write {n}\n    return None\n" for n in range(4))
-BLOCK = re.compile(r"^### W\d+ ([FC][0-9a-f]{12}) ", re.M)
+BLOCK = re.compile(r"^#### W\d+ ([FC][0-9a-f]{12}) ", re.M)  # an item block (S2: inside its family)
 INDEX = re.compile(r"^- ([FC][0-9a-f]{12}) ", re.M)
 
 
@@ -44,6 +44,25 @@ def _minimum(result):
         render_ai_report_md(result, token_budget=1)
     assert "BUDGET_UNSATISFIABLE" in str(refused.value)
     return int(re.search(r"needs at least (\d+)", str(refused.value)).group(1))
+
+
+def _priority(records):
+    """The work order's priority order, derived here independently: severity
+    (candidates third), then the items of one S2 family together, families in
+    the order they first appear."""
+    rank = {"critical": 0, "high": 1, None: 2, "medium": 3, "low": 4}
+
+    def key(r):
+        shape = re.sub(
+            r"\d+(\.\d+)?", "<d>", re.sub(r"'[^']*'|\"[^\"]*\"|`[^`]*`", "<n>", r["evidence"])
+        )
+        return (r["kind"], r["rule"], str(r["severity"]), r["fix"], r["channel_state"], shape)
+
+    by_rank = sorted(records, key=lambda r: rank[r["severity"]])
+    first = {}
+    for i, r in enumerate(by_rank):
+        first.setdefault(key(r), i)
+    return sorted(by_rank, key=lambda r: (rank[r["severity"]], first[key(r)]))
 
 
 def _tiers(text):
@@ -73,7 +92,7 @@ def test_a_tight_budget_keeps_every_item_as_an_index_line(tmp_path):
     assert _tiers(text) == (0, 0, len(_ids(result)))
     assert estimate_tokens(text) <= minimum
     index = [ln for ln in text.splitlines() if INDEX.match(ln)]
-    assert all(" channel:" in ln and " sha256:" in ln and " tier:3" in ln for ln in index)
+    assert all(" channel:" in ln and " file:B" in ln and " tier:3" in ln for ln in index)
     with pytest.raises(AiReportInvalidError):
         render_ai_report_md(result, token_budget=minimum - 1)
 
@@ -82,13 +101,7 @@ def test_a_middle_budget_degrades_in_priority_order_and_never_drops_an_item(tmp_
     result = _result(tmp_path)
     minimum = _minimum(result)
     whole = estimate_tokens(render_ai_report_md(result, token_budget=10**7))
-    ordered = [
-        r["id"]
-        for r in sorted(
-            build_records(build_report_view(result))[1:],
-            key=lambda r: {"critical": 0, "high": 1, None: 2, "medium": 3, "low": 4}[r["severity"]],
-        )
-    ]
+    ordered = [r["id"] for r in _priority(build_records(build_report_view(result))[1:])]
     seen = set()
     for budget in range(minimum, whole + 1, max(1, (whole - minimum) // 12)):
         text = render_ai_report_md(result, token_budget=budget)
@@ -97,7 +110,7 @@ def test_a_middle_budget_degrades_in_priority_order_and_never_drops_an_item(tmp_
         assert sorted(drawn + INDEX.findall(text)) == _ids(result)  # each once
         assert drawn == ordered[: len(drawn)]  # monotone priority: the drawn items lead
         t1, t2, _ = _tiers(text)
-        blocks = text.split("## WORK-ORDER")[1].split("## BACKLOG")[0].split("### W")[1:]
+        blocks = text.split("## WORK-ORDER")[1].split("## BACKLOG")[0].split("#### W")[1:]
         assert all("not shown" not in b for b in blocks[:t1])  # T1 blocks come first, whole
         seen.add((t1, t2))
     assert any(t[1] > 0 for t in seen)  # T2 was used somewhere between the extremes
@@ -113,7 +126,7 @@ def test_a_t2_block_shows_the_signature_the_evidence_and_the_range_to_read(tmp_p
             .split("## WORK-ORDER")[1]
             .split("## BACKLOG")[0]
         )
-        found = [b for b in work.split("### W")[1:] if "32|     # TODO" in b and "15|" not in b]
+        found = [b for b in work.split("#### W")[1:] if "32|     # TODO" in b and "15|" not in b]
         if found:
             body = found[0]
             break
@@ -205,25 +218,37 @@ def test_every_budget_from_the_minimum_up_holds_the_document(tmp_path):
     assert over == []
 
 
+FILE_ROW = re.compile(
+    r"^- (B\d+) binding:(MATCH|VOID HOLD|MISSING HOLD) sha256:(\S+) file:(.+)$", re.M
+)
+
+
+def _bound(text):
+    """Each index line's binding and hash, through its file's FILES row (S2)."""
+    rows = {m.group(1): (m.group(2), m.group(3)) for m in FILE_ROW.finditer(text)}
+    refs = [re.search(r" file:(B\d+)", ln).group(1) for ln in text.splitlines() if INDEX.match(ln)]
+    return [rows[ref] for ref in refs]
+
+
 def test_an_index_line_states_whether_its_file_is_still_the_scanned_content(tmp_path):
-    # FH-S4-F01: a T3 line carries the full scan-time hash and its binding state
+    # FH-S4-F01: a T3 line carries the full scan-time hash and its binding
+    # state; since S2 through its file's FILES row, stated once per file
     result = _result(tmp_path)
     text = render_ai_report_md(result, token_budget=_minimum(result))
-    index = [ln for ln in text.splitlines() if INDEX.match(ln)]
-    assert index and all(re.search(r" sha256:[0-9a-f]{64} binding:MATCH", ln) for ln in index)
+    bound = _bound(text)
+    assert bound and all(b == "MATCH" and re.fullmatch(r"[0-9a-f]{64}", sha) for b, sha in bound)
     (tmp_path / "pkg" / "jobs.py").write_text(
         LONG + SHORT + "# edited after the scan\n", encoding="utf-8"
     )
     stale = render_ai_report_md(result, token_budget=_minimum(result))
-    index = [ln for ln in stale.splitlines() if INDEX.match(ln)]
-    assert index and all(" binding:VOID HOLD" in ln for ln in index)
+    assert _bound(stale) and all(b == "VOID HOLD" for b, _ in _bound(stale))
     # the backlog of --ai-limit (no budget) states it the same way
-    backlog = [ln for ln in render_ai_report_md(result, limit=0).splitlines() if INDEX.match(ln)]
-    assert backlog and all(" binding:VOID HOLD" in ln for ln in backlog)
+    backlog = _bound(render_ai_report_md(result, limit=0))
+    assert backlog and all(b == "VOID HOLD" for b, _ in backlog)
     # a result with no scan-time hash is MISSING, held the same way
     result.file_results[0].source_sha256 = ""
-    missing = [ln for ln in render_ai_report_md(result, limit=0).splitlines() if INDEX.match(ln)]
-    assert missing and all(" sha256:MISSING binding:MISSING HOLD" in ln for ln in missing)
+    missing = _bound(render_ai_report_md(result, limit=0))
+    assert missing and all(b == "MISSING HOLD" and sha == "MISSING" for b, sha in missing)
 
 
 def test_a_limit_and_a_budget_together_are_refused(tmp_path, capsys):
@@ -273,7 +298,7 @@ def _all_t2_budget(result):
     view = build_report_view(result)
     rules = ai_report.ruleset()
     records = ai_report.build_records(view, rules=rules)
-    header, items = records[0], sorted(records[1:], key=lambda r: md._RANK.get(r["severity"], 5))
+    header, items = records[0], md._grouped(records[1:])  # the work order's own order (S2)
     fixed = (header, view, rules, "auditor", Path(view.target), {})
     budget = 1
     while (

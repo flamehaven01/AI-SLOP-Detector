@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import re
+from itertools import groupby
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -63,6 +65,44 @@ def _rules(items: List[Dict[str, Any]], rules: Ruleset) -> List[str]:
         )
         out.append(f"- {rule}: {line}")
     return out + [""]
+
+
+def _shape(evidence: Any) -> str:
+    """The evidence sentence with quoted names and numbers replaced: findings
+    that read alike whatever function, parameter or value they name."""
+    text = re.sub(r"'[^']*'|\"[^\"]*\"|`[^`]*`", "<n>", str(evidence or ""))
+    return re.sub(r"\d+(\.\d+)?", "<d>", text)
+
+
+def _family_key(record: Dict[str, Any]) -> Tuple[str, ...]:
+    """S2: what the items of one family share. Severity stands in for the
+    fix-risk tier until S1 adds one; the channel state decides HOLD."""
+    return (
+        record["kind"],
+        record["rule"],
+        str(record["severity"]),
+        str(record["fix"]),
+        str(record["channel_state"]),
+        _shape(record["evidence"]),
+    )
+
+
+def _grouped(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Priority order (severity, candidates third), then the items of one
+    family together, families in the order they first appear. Every later
+    step (budget tiers, blocks, backlog) uses this one order."""
+    first: Dict[Tuple[str, ...], int] = {}
+    for i, record in enumerate(items):
+        first.setdefault(_family_key(record), i)
+    return sorted(items, key=lambda r: (_RANK.get(r["severity"], 5), first[_family_key(r)]))
+
+
+def _file_refs(items: List[Dict[str, Any]]) -> Dict[str, str]:
+    """B01, B02, ... per file, in the order of the items."""
+    refs: Dict[str, str] = {}
+    for record in items:
+        refs.setdefault(record["file"], f"B{len(refs) + 1:02d}")
+    return refs
 
 
 def _source(root: Path, rel: str) -> Tuple[Optional[str], str]:
@@ -237,7 +277,19 @@ def _agent_read(
     ]
 
 
-def _block(
+def _family(gid: str, record: Dict[str, Any], count: int) -> List[str]:
+    """S2 family header: what its items share, stated once (display only)."""
+    return [
+        f"### {gid} {record['kind']} {record['rule']} {record['severity'] or 'review'} | items {count}",
+        "family [FACT]: same kind, rule, severity, fix, channel and evidence shape: "
+        + _one_line(_shape(record["evidence"])),
+        f"channel [FACT]: {record['channel_state']}",
+        f"fix [DERIVED]: {_one_line(record['fix'])}",
+        "",
+    ]
+
+
+def _member_block(
     n: int,
     record: Dict[str, Any],
     root: Path,
@@ -245,7 +297,11 @@ def _block(
     mode: str,
     tier: str = "capped",
     sources: Optional[Dict[str, Tuple[Optional[str], str]]] = None,
+    bref: str = "",
 ) -> List[str]:
+    """One item inside its family: everything that is its own (id, location,
+    locator, binding, evidence, promise, code); the family states the fix and
+    the channel, FILES the scan-time hash."""
     if sources is not None and record["file"] in sources:
         text, sha = sources[record["file"]]
     else:
@@ -267,11 +323,10 @@ def _block(
         current = "the file is the content the scan analyzed"
     severity = record["severity"] or "review"
     out = [
-        f"### W{n:02d} {record['id']} {record['kind']} {record['rule']} {severity}",
+        f"#### W{n:02d} {record['id']} {record['kind']} {record['rule']} {severity}",
         f"at [FACT]: {_one_line(record['file'])}:{record['line']}",
         f"locator [FACT]: {record['locator'] or '(the symbol itself)'} semantic_key={record['semantic_key']}",
-        f"bound_to [FACT]: sha256:{record['source_sha256']} ({current})",
-        f"channel [FACT]: {record['channel_state']}",
+        f"bound_to [FACT]: {bref} ({current})",
         f"evidence [FACT]: {_one_line(record['evidence'])}",
     ]
     promise = record.get("promise")
@@ -291,8 +346,7 @@ def _block(
             if text is not None
             else ["code [FACT]: NOT-APPLICABLE: HOLD"]
         )
-    out += [f"fix [DERIVED]: {_one_line(record['fix'])}", ""]
-    return out
+    return out + [""]
 
 
 def render_ai_report_md(
@@ -314,22 +368,25 @@ def render_ai_report_md(
     rules = ai_report.ruleset()
     records = ai_report.build_records(view, rules=rules)
     ai_report.validate(records)
-    header, items = records[0], sorted(records[1:], key=lambda r: _RANK.get(r["severity"], 5))
+    header, items = records[0], _grouped(records[1:])
     root = Path(view.target if view.is_project else str(Path(view.target).parent))
     sources: Dict[str, Tuple[Optional[str], str]] = {}
     fixed = (header, view, rules, mode, root, sources)
     if token_budget is None:
         cut = len(items) if limit is None else max(0, limit)
-        return _document(fixed, items, ["capped"] * cut + [_INDEX] * (len(items) - cut), None)
-    if mode != "auditor":
+        doc = _document(fixed, items, ["capped"] * cut + [_INDEX] * (len(items) - cut), None)
+    elif mode != "auditor":
         raise ai_report.AiReportInvalidError(
             "--ai-token-budget bounds the auditor work order; an agent's is bounded by --ai-limit"
         )
-    if limit is not None:  # FH-S4-F02: neither bound may silently override the other
+    elif limit is not None:  # FH-S4-F02: neither bound may silently override the other
         raise ai_report.AiReportInvalidError(
             "--ai-limit and --ai-token-budget bound the work order in two different ways; give one"
         )
-    return _document(fixed, items, _fit(fixed, items, token_budget), token_budget)
+    else:
+        doc = _document(fixed, items, _fit(fixed, items, token_budget), token_budget)
+    _check_lossless(doc, items)
+    return doc
 
 
 _INDEX = "index"  # T3: one index line
@@ -353,15 +410,34 @@ def _binding(record: Dict[str, Any], fixed) -> str:
     return "MATCH" if sources[record["file"]][1] == record["source_sha256"] else "VOID HOLD"
 
 
-def _index_line(record: Dict[str, Any], tiered: bool, fixed) -> str:
-    """One line per item not drawn as a block (FH-S4-F01): the full scan-time
-    hash and whether the file still holds it, so an index line never stands
-    for content the scan did not analyze."""
-    line = (
-        f"- {record['id']} {record['severity'] or 'review'} {record['rule']} {_one_line(record['file'])}:"
-        f"{record['line']} sha256:{record['source_sha256']} binding:{_binding(record, fixed)}"
+def _index_line(record: Dict[str, Any], tiered: bool, bref: str) -> str:
+    """One line per item not drawn as a block (FH-S4-F01): its file's FILES
+    row states the full scan-time hash and whether the file still holds it,
+    so an index line never stands for content the scan did not analyze. The
+    path comes last (it may hold spaces)."""
+    tier = f" channel:{record['channel_state']} tier:3" if tiered else ""
+    return (
+        f"- {record['id']} {record['severity'] or 'review'} {record['rule']} file:{bref}{tier} "
+        f"at:{_one_line(record['file'])}:{record['line']}"
     )
-    return line + f" channel:{record['channel_state']} tier:3" if tiered else line
+
+
+def _files(items: List[Dict[str, Any]], refs: Dict[str, str], fixed) -> List[str]:
+    """Every file of the work order once: its scan-time hash and binding."""
+    first: Dict[str, Dict[str, Any]] = {}
+    for record in items:
+        first.setdefault(record["file"], record)
+    out = [
+        "## FILES [FACT]",
+        "bound_to per file: the SHA-256 of the bytes the scan analyzed; binding MATCH, VOID HOLD (the file "
+        "changed after the scan) or MISSING HOLD (no scan-time hash); an item names its file's row",
+    ]
+    for path, ref in refs.items():
+        record = first[path]
+        out.append(
+            f"- {ref} binding:{_binding(record, fixed)} sha256:{record['source_sha256']} file:{_one_line(path)}"
+        )
+    return out + [""]
 
 
 def _fit(fixed, items: List[Dict[str, Any]], budget: int) -> List[str]:
@@ -369,22 +445,46 @@ def _fit(fixed, items: List[Dict[str, Any]], budget: int) -> List[str]:
     document within `budget`; every item keeps at least its index line."""
     tiers = [_INDEX] * len(items)
     if estimate_tokens(_document(fixed, items, tiers, budget)) > budget:
-        # The document states its budget, so the floor grows with the budget's
-        # digits: report the least budget that holds itself, not a guess.
-        least = budget
-        while estimate_tokens(_document(fixed, items, tiers, least)) > least:
-            least = estimate_tokens(_document(fixed, items, tiers, least))
-        raise ai_report.AiReportInvalidError(
-            f"BUDGET_UNSATISFIABLE: the index of every item needs at least {least} estimated tokens; "
-            f"the budget is {budget}"
-        )
-    header, view, rules, mode, root, sources = fixed
+        _unsatisfiable(fixed, items, budget)
     room = budget * 4 - len(_document(fixed, items, tiers, budget))
+    _allocate(fixed, items, tiers, room)
+    return _settle(fixed, items, tiers, budget)
+
+
+def _unsatisfiable(fixed, items: List[Dict[str, Any]], budget: int) -> None:
+    """BUDGET_UNSATISFIABLE with the least budget that holds the index. The
+    document states its budget, so the floor grows with the budget's digits:
+    the least budget that holds itself, not a guess."""
+    tiers = [_INDEX] * len(items)
+    least = budget
+    while estimate_tokens(_document(fixed, items, tiers, least)) > least:
+        least = estimate_tokens(_document(fixed, items, tiers, least))
+    raise ai_report.AiReportInvalidError(
+        f"BUDGET_UNSATISFIABLE: the index of every item needs at least {least} estimated tokens; "
+        f"the budget is {budget}"
+    )
+
+
+def _allocate(fixed, items: List[Dict[str, Any]], tiers: List[str], room: int) -> None:
+    """T2 then T1 into `tiers`, within `room` characters over the index."""
+    header, view, rules, mode, root, sources = fixed
+    refs = _file_refs(items)
+
+    # The first item of a family brings the family header with it: items are
+    # grouped by family and drawn in order, so its header appears exactly when
+    # it is drawn.
+    heads = {
+        i for i in range(len(items)) if i == 0 or _family_key(items[i]) != _family_key(items[i - 1])
+    }
 
     def cost(i: int, tier: str) -> int:
-        """Characters a tier adds over the item's index line."""
-        block = _block(i + 1, items[i], root, rules[0], mode, tier, sources)
-        return len("\n".join(block)) + 1 - (len(_index_line(items[i], True, fixed)) + 1)
+        """Characters a tier adds over the item's index line, with its family
+        header when it opens one."""
+        bref = refs[items[i]["file"]]
+        block = _member_block(i + 1, items[i], root, rules[0], mode, tier, sources, bref)
+        if i in heads:
+            block = _family(f"G{len(heads):02d}", items[i], 1) + block
+        return len("\n".join(block)) + 1 - (len(_index_line(items[i], True, bref)) + 1)
 
     # Breadth first (S4-D1): every item gets its evidence (T2) before any item
     # gets its whole body (T1). Both passes go in priority order and stop at
@@ -402,12 +502,19 @@ def _fit(fixed, items: List[Dict[str, Any]], budget: int) -> List[str]:
         if need > room:
             break
         tiers[i], room = "full", room - need
-    # The estimate above ignores small layout effects (block numbers, counts);
-    # the rendered document is the check, and the last drawn item gives way.
+
+
+def _settle(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: int) -> List[str]:
+    """The rendered document is the check: the allocation's estimate ignores
+    small layout effects (block numbers, counts). Breadth first here too: the
+    last whole body gives way before any item loses its evidence, so a budget
+    that holds every item at T2 keeps it."""
     while estimate_tokens(_document(fixed, items, tiers, budget)) > budget:
-        drawn = [i for i, tier in enumerate(tiers) if tier != _INDEX]
-        last = drawn[-1]
-        tiers[last] = "evidence" if tiers[last] == "full" else _INDEX
+        whole = [i for i, tier in enumerate(tiers) if tier == "full"]
+        if whole:
+            tiers[whole[-1]] = "evidence"
+        else:
+            tiers[[i for i, tier in enumerate(tiers) if tier != _INDEX][-1]] = _INDEX
     return tiers
 
 
@@ -434,6 +541,7 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
             f"T2 {counts['T2']}, T3 {counts['T3']} (T1 whole function, T2 signature, evidence and the range to "
             "read, T3 index line)"
         )
+    refs = _file_refs(items)
     out += [
         "",
         *_contract(header, rules[0], mode),
@@ -441,15 +549,27 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
         *_measurement(header, view),
         "",
         *_rules(items, rules[0]),
+        *_files(items, refs, fixed),
         "## WORK-ORDER",
-        "order: critical, high, review candidates, medium, low",
+        "order: critical, high, review candidates, medium, low; within each, the items of one family "
+        "together (same kind, rule, severity, fix, channel and evidence shape)",
+        "grouping: display only: every item keeps its own block, its own verdict and its own response line",
         "",
     ]
-    for n, (record, tier) in enumerate(drawn, 1):
-        out += _block(n, record, root, rules[0], mode, tier, sources)
+    n = 0
+    for g, (_, family) in enumerate(
+        groupby(drawn, key=lambda drawn_item: _family_key(drawn_item[0])), 1
+    ):
+        members = list(family)
+        out += _family(f"G{g:02d}", members[0][0], len(members))
+        for record, tier in members:
+            n += 1
+            out += _member_block(
+                n, record, root, rules[0], mode, tier, sources, refs[record["file"]]
+            )
     out += ["## BACKLOG", "same contract; open the file and work the item as a WORK-ORDER block"]
     if listed:
-        out += [_index_line(r, budget is not None, fixed) for r in listed]
+        out += [_index_line(r, budget is not None, refs[r["file"]]) for r in listed]
     else:
         out.append("NOT-APPLICABLE: every item is in the work order")
     out += [
@@ -462,3 +582,109 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
         "",
     ]
     return "\n".join(out)
+
+
+_ROW = re.compile(r"^- (B\d+) binding:(?:MATCH|VOID HOLD|MISSING HOLD) sha256:(\S+) file:(.+)$")
+_GROUP = re.compile(r"^### G\d+ .* \| items (\d+)$")
+_MEMBER = re.compile(r"^#### W\d+ ([FC][0-9a-f]{12}) ")
+_INDEXED = re.compile(r"^- ([FC][0-9a-f]{12}) .*?file:(B\d+)(?: channel:\S+ tier:3)? at:(.+)$")
+
+
+def _field(lines: List[str], start: int, tag: str) -> Optional[str]:
+    """The value of `tag` in the block that starts at `start` (up to its blank line)."""
+    for line in lines[start + 1 :]:
+        if not line:
+            return None
+        if line.startswith(tag):
+            return line[len(tag) :]
+    return None
+
+
+def _read_item(
+    lines: List[str],
+    k: int,
+    found: "re.Match[str]",
+    is_member: bool,
+    fix: Optional[str],
+    channel: Optional[str],
+) -> Tuple[str, Tuple[Optional[str], ...]]:
+    """(file reference, the fields the document shows) for the item line at k:
+    a member's location, evidence and its family's fix and channel; an index
+    line's location."""
+    if is_member:
+        bref = (_field(lines, k, "bound_to [FACT]: ") or "").split(" ", 1)[0]
+        return bref, (
+            _field(lines, k, "at [FACT]: "),
+            _field(lines, k, "evidence [FACT]: "),
+            fix,
+            channel,
+        )
+    return found.group(2), (found.group(3),)
+
+
+def _own(record: Dict[str, Any], is_member: bool) -> Tuple[Optional[str], ...]:
+    """The same fields from the item's record."""
+    where = f"{_one_line(record['file'])}:{record['line']}"
+    if is_member:
+        return (
+            where,
+            _one_line(record["evidence"]),
+            _one_line(record["fix"]),
+            record["channel_state"],
+        )
+    return (where,)
+
+
+def _item_problems(
+    record: Optional[Dict[str, Any]],
+    rid: str,
+    bref: str,
+    shown: Tuple[Optional[str], ...],
+    files: Dict[str, Tuple[str, str]],
+) -> List[str]:
+    """What is wrong with one item line: not an item, not its record's fields,
+    or not bound to its file's scan-time hash."""
+    if record is None:
+        return [f"{rid} is not an item"]
+    problems = []
+    if shown != _own(record, len(shown) > 1):
+        problems.append(f"{rid} does not read as its record")
+    if files.get(bref) != (_one_line(record["file"]), record["source_sha256"]):
+        problems.append(f"{rid} is not bound to its file's scan-time hash")
+    return problems
+
+
+def _check_lossless(doc: str, items: List[Dict[str, Any]]) -> None:
+    """S2/S5: the rendered document read back. Every item appears exactly
+    once, at its own file and line, with its own evidence, bound to its file's
+    scan-time hash, under a family whose fix and channel are its own; the
+    family counts add up. Anything else is refused: nothing is written."""
+    by_id = {r["id"]: r for r in items}
+    lines = doc.split("\n")
+    files = {m.group(1): (m.group(3), m.group(2)) for m in map(_ROW.match, lines) if m}
+    seen: List[str] = []
+    problems: List[str] = []
+    counted = members = 0
+    fix = channel = None
+    for k, line in enumerate(lines):
+        group = _GROUP.match(line)
+        if group:
+            counted += int(group.group(1))
+            fix, channel = _field(lines, k, "fix [DERIVED]: "), _field(lines, k, "channel [FACT]: ")
+            continue
+        member = _MEMBER.match(line)
+        found = member or _INDEXED.match(line)
+        if found is None:
+            continue
+        seen.append(found.group(1))
+        members += member is not None
+        bref, shown = _read_item(lines, k, found, member is not None, fix, channel)
+        problems += _item_problems(by_id.get(found.group(1)), found.group(1), bref, shown, files)
+    if sorted(seen) != sorted(by_id):
+        problems.append(f"{len(seen)} item lines for {len(by_id)} items")
+    if counted != members:
+        problems.append(f"families count {counted} items, {members} drawn")
+    if problems:
+        raise ai_report.AiReportInvalidError(
+            "the work order is not lossless: " + "; ".join(problems[:5]) + "; nothing was written"
+        )

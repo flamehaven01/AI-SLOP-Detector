@@ -67,8 +67,9 @@ backlog and response form.
 | LIMITS | `[FACT]` | what the document cannot show |
 | MEASUREMENT | `[FACT]` | per channel: state and denominator (files, functions, docstring promises) |
 | RULES | `[NORM]` | one VERIFY question per rule present in the work order |
-| WORK-ORDER | | one block per item, in order: critical, high, review candidates, medium, low |
-| BACKLOG | | items beyond `--ai-limit`, one line each |
+| FILES | `[FACT]` | every file of the work order once: `B01`, its scan-time SHA-256 and its binding; items point to their file's row |
+| WORK-ORDER | | families in order (critical, high, review candidates, medium, low); in each family, one block per item |
+| BACKLOG | | items beyond `--ai-limit` or below the token budget, one index line each |
 | RESPONSE-FORM | `[FORMAT]` | one line per item worked, then a summary line |
 
 Tags: `[FACT]` is measured by the detector; `[DERIVED]` is the detector's fix
@@ -79,11 +80,19 @@ nothing. An empty value is never left blank: it reads `NOT-MEASURED`,
 ## One item
 
 ```
-### W03 C56ca6a2c17eb REVIEW_CANDIDATE claim_without_mechanism review
+## FILES [FACT]
+- B01 binding:MATCH sha256:df9a47d1...de64b48a file:orders/pricing.py
+
+## WORK-ORDER
+### G03 REVIEW_CANDIDATE claim_without_mechanism review | items 1
+family [FACT]: same kind, rule, severity, fix, channel and evidence shape: total_parallel: promises <n> (parallel); no call that could run concurrently
+channel [FACT]: MEASURED
+fix [DERIVED]: implement the mechanism, or change the docstring to what the function does
+
+#### W03 C56ca6a2c17eb REVIEW_CANDIDATE claim_without_mechanism review
 at [FACT]: orders/pricing.py:7
 locator [FACT]: (the symbol itself) semantic_key=8ba21dc309b8b5f1
-bound_to [FACT]: sha256:df9a47d1...de64b48a (the file is the content the scan analyzed)
-channel [FACT]: MEASURED
+bound_to [FACT]: B01 (the file is the content the scan analyzed)
 evidence [FACT]: total_parallel: promises "Sum the order values in parallel." (parallel); no call that could run concurrently
 promise [FACT]: "Sum the order values in parallel." (docstring line 8, parallel; basis no_concurrent_call)
 verify [NORM]: the body needs a concurrent call (pool, thread, process, task) or an await; found: no call that could run concurrently. ACK: implement the mechanism, or change the docstring to what the function does; REJECT: name the mechanism the detector missed (file:line)
@@ -91,10 +100,10 @@ span [FACT]: orders/pricing.py:7-12 `total_parallel`
  7| def total_parallel(values):
  8|     """Sum the order values in parallel."""
  ...
-fix [DERIVED]: implement the mechanism, or change the docstring to what the function does
 ```
 
-(The SHA-256 is shortened here; the document prints all 64 characters.)
+(The SHA-256 is shortened here; the document prints all 64 characters. A
+path comes last on a FILES row and an index line, since it may hold spaces.)
 
 - **id**: `F` for a pattern finding, `C` for a review candidate, then 12 hex
   characters of the SHA-256 of the semantic key and the locator.
@@ -112,6 +121,25 @@ fix [DERIVED]: implement the mechanism, or change the docstring to what the func
   subject without the line's text; a reworded TODO keeps it.
 - Two items with the same id are a defect: the report fails closed instead of
   numbering them.
+
+## Families
+
+Items are grouped for display: a family holds the items that share kind,
+rule, severity, fix, channel state and evidence shape (the evidence sentence
+with quoted names and numbers replaced, so `returns constant 0.1` and
+`returns constant 0.3` share a shape and `returns constant 'x'` does not).
+Severity stands in for a fix-risk tier, which the detector does not compute
+yet. The family header states the shared fix and channel once; every item
+keeps its own block (id, location, locator, binding, evidence, promise,
+code), its own verdict and its own response line. One component differing
+makes another family.
+
+The work order is lossless, and the renderer checks it before writing:
+reading the document back, every item appears exactly once, at its own file
+and line, with its own evidence, bound to its file's scan-time hash through
+FILES, under a family whose fix and channel are its own, and the family
+counts add up. A document that fails any of these is refused (`the work
+order is not lossless`), and nothing is written.
 
 ## Bound to the scanned bytes
 
@@ -162,7 +190,7 @@ header says so.
 |---|---|
 | T1 | the whole function (its AST span) |
 | T2 | the signature, the evidence lines and the range to read |
-| T3 | one index line: id, severity, rule, location, SHA-256, binding, channel |
+| T3 | one index line: id, severity, rule, its FILES row (SHA-256 and binding), channel, location |
 
 Every item gets at least its index line; none is left out. Items are
 allocated in priority order, breadth first: every item gets T2 before any item
