@@ -5,6 +5,38 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.14.1 — 2026-11-12
+
+### Summary
+
+A patch for two defects of the 3.14.0 AI outputs, and the VS Code extension
+brought up to the 3.14 report surfaces. Findings, scores and the analysis
+are unchanged. Every change is listed in the
+[Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **AI outputs on any console.** `--format ai` and `--format ai-md` printed to
+  a console whose code page lacks a character of the report (cp949 on a
+  Korean Windows, an em dash in a JS rule message or a docstring) failed with
+  `UnicodeEncodeError`. They are now written as UTF-8, like the `-o` file.
+- **A file scanned on its own is named.** A single JS/TS or Go file scanned
+  alone was located as `.` (`at [FACT]: .:3` in the work order); it is
+  located by its file name in every report.
+- **VS Code extension.** Docstring-promise candidates in the editor; "Copy
+  work order for an AI agent" copies the item as the backend's work order
+  writes it; Export Report writes the AI work order (auditor or agent); lines
+  of a file edited after its analysis are marked as possibly moved; each
+  channel's measurement state is shown. See the extension's README.
+- npm types declare the 3.14 file-result fields (`claim_findings`,
+  `claim_coverage`, `source_sha256`, `content_origin`).
+
+### Known limitations
+
+- The limitations listed for v3.14.0 still apply.
+
+---
+
 ## v3.14.0 — 2026-11-12
 
 ### Summary

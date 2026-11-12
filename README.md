@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.14.0" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.14.1" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg" alt="npm version"/></a>
   <a href="https://socket.dev/npm/package/ai-slop-detector"><img src="https://img.shields.io/badge/socket-report-6e56cf" alt="Socket"/></a>
@@ -36,8 +36,9 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
 
 **Release track**
-- Stable tag: `v3.14.0`
-- Previous stable tag: `v3.13.0`
+- Stable tag: `v3.14.1`
+- Previous stable tag: `v3.14.0`
+- `v3.14.1`: the AI report and the AI work order print on any console (they failed on a cp949 console for characters such as an em dash), a file scanned on its own is located by its name instead of `.`, and the VS Code extension shows docstring promises, copies an item as a work order for an AI agent, exports the work order and marks the lines of a file edited after its analysis. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.14.0`: new report surfaces (one-screen terminal summary, HTML report and A4 PDF, AI report and AI work order for agents, `--report-dir` bundle) and a separate, unscored hollow channel: functions that report success with no effect, inputs that reach nothing, and docstring promises the body cannot keep. Each item is bound to the SHA-256 of the bytes the scan analyzed, and Python item ids do not change when lines move. See [What You Get](#what-you-get) and [CHANGELOG.md](CHANGELOG.md).
 - `v3.13.0`: null objects, base-class defaults and framework hooks are no longer reported as placeholders, and logged `NotImplementedError` stubs, constant success reports and discarded results are. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.12.0`: catches code that only looks finished: stubs hidden behind logging (`return_constant_stub`), arguments returned unchanged (`return_input_stub`), catch-all handlers that return the success result (`failure_as_success`) and parameters a function never reads (`ignored_parameter`). See [CHANGELOG.md](CHANGELOG.md).
@@ -941,6 +942,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.14.1** | patch: AI outputs written to stdout as UTF-8 on any console code page; a file scanned alone located by its name; npm types for the 3.14 file-result fields; VS Code extension with docstring promises, work order copy and export, changed-file marking and channel states |
 | **v3.14.0** | report release: one report view behind a one-screen terminal summary, Markdown, a self-contained HTML report and its A4 PDF, the AI report (`ai-slop-report/1` JSON Lines) and the AI work order (`--format ai-md`, auditor and agent modes, token budget, versioned ruleset); unscored hollow channel (`success_without_effect`, `input_never_used`, `failure_reported_as_success`, `claim_without_mechanism`); item ids bound to the scanned bytes; VS Code highlights, hover and hollow review list; cache `analysis-cache-v53` |
 | **v3.13.0** | precision and detection release: declared defaults (null objects, named bases, registered hooks, declared no-ops) are no longer placeholders; logged `NotImplementedError` stubs, constant success reports and discarded results are; known limits listed in the release notes; npm wrapper with provenance |
 | **v3.12.0** | detection release: stubs behind logging, unchanged-argument stubs, catch-all handlers returning the success result, ignored parameters; balanced parallel test runner for development |

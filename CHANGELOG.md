@@ -9,10 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### VS Code extension 3.14.0 (Marketplace build)
+## [3.14.1] - 2026-11-12
 
-Built after the `v3.14.0` tag from `main`; needs the 3.14.0 backend. The
-core, PyPI and npm packages are unchanged.
+Two defects of the 3.14.0 AI outputs, and the VS Code extension brought up to
+the 3.14 report surfaces. Findings, scores and the analysis are unchanged.
+
+### Fixed
+
+- `--format ai` and `--format ai-md` written to stdout failed with
+  `UnicodeEncodeError` on a console whose code page lacks a character of the
+  report (cp949 on a Korean Windows: an em dash in a JS rule message, a
+  docstring promise or a code excerpt). Both are now written to stdout as
+  UTF-8, the encoding of the `-o` file. Output to a file was not affected.
+- A file scanned on its own was located as `.` when the scanned root was the
+  file itself (a single JS/TS or Go file): in the AI report, the work order
+  (`at [FACT]: .:3`) and the human reports. It is located by its name.
+- npm types: file results declare `claim_findings`, `claim_coverage`,
+  `source_sha256` and `content_origin`, which the 3.14.0 types left out.
+
+### VS Code extension
+
+Needs the 3.14 backend; 3.14.1 for the two fixes above (the extension itself
+works around both on a 3.14.0 backend).
 
 - Docstring-promise candidates (`claim_without_mechanism`) appear with the
   hollow candidates: Information diagnostics, purple highlights, the Issues
@@ -21,8 +39,7 @@ core, PyPI and npm packages are unchanged.
 - "Copy work order for an AI agent" copies the item as the backend's
   `--format ai-md` writes it (contract, the rule's VERIFY question, the item
   block, the response form); mode from `slopDetector.workOrderMode`
-  (`auditor` default, or `agent`). It reads the work order from a file, not
-  stdout.
+  (`auditor` default, or `agent`). It reads the work order from a file.
 - Export Report offers the AI work order (auditor with an optional token
   budget, or agent); the bundle description lists `ai-report.md`.
 - A file that differs from the bytes its analysis read (unsaved edits or a

@@ -213,9 +213,10 @@ export async function copyItemForAgent(filePath: string, line: number, rule: str
     const cfg = vscode.workspace.getConfiguration('slopDetector');
     const mode = cfg.get<string>('workOrderMode', 'auditor') === 'agent' ? 'agent' : 'auditor';
     const configPath = cfg.get<string>('configPath', '');
-    // Written to a file, not read from stdout: the backend writes the file as
-    // UTF-8, while its stdout follows the console code page (cp949 on a Korean
-    // Windows rejects characters such as an em dash in a finding message).
+    // Written to a file, not read from stdout: the file is UTF-8 on every
+    // backend, while the 3.14.0 backend's stdout follows the console code page
+    // (cp949 on a Korean Windows rejects an em dash in a finding message;
+    // fixed in 3.14.1).
     const out = path.join(os.tmpdir(), `slop-work-order-${process.pid}-${Date.now()}.md`);
     const args = ['scan', path.basename(filePath), '--format', 'ai-md', '--ai-mode', mode, '--no-history',
         ...(configPath ? ['--config', configPath] : []), '-o', out];

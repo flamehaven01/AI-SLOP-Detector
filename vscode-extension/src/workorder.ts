@@ -9,7 +9,8 @@ export function workOrderForItem(doc: string, fileName: string, line: number, ru
     const lines = doc.replace(/\r\n/g, '\n').split('\n');
     // The work order of a one-file scan: every item is in that file. A JS/TS or
     // Go file scanned alone is located as "." by the 3.14.0 backend (its header
-    // `target:` and the item's bound_to still name the file).
+    // `target:` and the item's bound_to still name the file); 3.14.1 writes
+    // the file name. Both are accepted.
     const at = [`at [FACT]: ${fileName}:${line + 1}`, `at [FACT]: .:${line + 1}`];
     const start = lines.findIndex((l, i) =>
         /^### W\d+ \S+ (FINDING|REVIEW_CANDIDATE) /.test(l) && l.split(' ')[4] === rule &&
