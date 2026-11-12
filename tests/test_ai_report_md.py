@@ -6,7 +6,7 @@ import re
 import pytest
 
 import slop_detector.ai_report as ai_report
-from slop_detector.ai_report import AiReportInvalid, build_records
+from slop_detector.ai_report import AiReportInvalidError, build_records
 from slop_detector.ai_report_md import render_ai_report_md
 from slop_detector.cli import main
 from slop_detector.core import SlopDetector
@@ -59,16 +59,22 @@ def test_every_item_is_worked_or_listed_exactly_once_in_priority_order(tmp_path)
 def test_each_block_binds_the_source_and_shows_its_code(tmp_path):
     result = _project(tmp_path)
     text = render_ai_report_md(result)
-    assert text.count("(the file is the content the scan analyzed)") == len(_ids(text, "WORK-ORDER"))
+    assert text.count("(the file is the content the scan analyzed)") == len(
+        _ids(text, "WORK-ORDER")
+    )
     assert "span [FACT]: pkg/store.py:6-8 `save_record`" in text
     assert "7|     persist(record)" in text
     # an unused input is named, so the item can be acted on
-    result.file_results[0].semantic_findings.append(SemanticFinding("scale", "input_never_used", 2, ["factor"], "e"))
+    result.file_results[0].semantic_findings.append(
+        SemanticFinding("scale", "input_never_used", 2, ["factor"], "e")
+    )
     assert "scale [factor]: e" in render_ai_report_md(result)
     # the scan-time hash differs from the file: every block is VOID, with no code
     result.file_results[0].source_sha256 = "0" * 64
     stale = render_ai_report_md(result)
-    assert "scan analyzed)" not in stale and stale.count("(VOID: the file changed") == len(_ids(stale, "WORK-ORDER"))
+    assert "scan analyzed)" not in stale and stale.count("(VOID: the file changed") == len(
+        _ids(stale, "WORK-ORDER")
+    )
     assert "persist(record)" not in stale.split("## WORK-ORDER")[1]
 
 
@@ -76,14 +82,27 @@ def test_a_broken_promise_carries_its_own_question(tmp_path):
     text = render_ai_report_md(_project(tmp_path))
     block = text.split("claim_without_mechanism review")[1].split("\n### ")[0]
     assert 'promise [FACT]: "Fetch live exchange rates for the base currency."' in block
-    assert "verify [NORM]: the body needs an I/O call" in block and "found: every return is a literal" in block
+    assert (
+        "verify [NORM]: the body needs an I/O call" in block
+        and "found: every return is a literal" in block
+    )
     assert "fix [DERIVED]: implement the mechanism, or change the docstring" in block
 
 
 def test_the_contract_comes_first_and_no_local_path_leaks(tmp_path):
     text = render_ai_report_md(_project(tmp_path))
-    order = ["## CONTRACT", "## HARD-STOP", "## FORBID", "## INVARIANTS", "## ALLOWED", "## MEASUREMENT",
-             "## RULES", "## WORK-ORDER", "## BACKLOG", "## RESPONSE-FORM"]
+    order = [
+        "## CONTRACT",
+        "## HARD-STOP",
+        "## FORBID",
+        "## INVARIANTS",
+        "## ALLOWED",
+        "## MEASUREMENT",
+        "## RULES",
+        "## WORK-ORDER",
+        "## BACKLOG",
+        "## RESPONSE-FORM",
+    ]
     assert [text.index(s) for s in order] == sorted(text.index(s) for s in order)
     assert str(tmp_path) not in text and str(tmp_path.as_posix()) not in text
     assert "- success_without_effect: Does the reported success reflect work that happened?" in text
@@ -92,7 +111,7 @@ def test_the_contract_comes_first_and_no_local_path_leaks(tmp_path):
 def test_an_invalid_report_is_never_written(tmp_path, monkeypatch, capsys):
     result = _project(tmp_path)
     monkeypatch.setattr(ai_report, "_record", lambda *a: {"record": "item"})
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         render_ai_report_md(result)
     out = tmp_path / "work.md"
     with pytest.raises(SystemExit) as stop:

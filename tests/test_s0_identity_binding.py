@@ -12,24 +12,28 @@ import json
 import pytest
 
 import slop_detector.ai_report as ai_report
-from slop_detector.ai_report import AiReportInvalid, MISSING, build_records
+from slop_detector.ai_report import MISSING, AiReportInvalidError, build_records
 from slop_detector.ai_report_md import render_ai_report_md
-from slop_detector.analysis_cache import FileAnalysisCache, deserialize_file_analysis, serialize_file_analysis
+from slop_detector.analysis_cache import (
+    FileAnalysisCache,
+    deserialize_file_analysis,
+    serialize_file_analysis,
+)
 from slop_detector.core import SlopDetector
 from slop_detector.report_view import build_report_view
 
 # One function, four unused parameters: four findings at the same line.
-FOUR = '''
+FOUR = """
 def generate(path, num_functions=3, add_cross_lang=False, add_mutable_defaults=False, add_bare_except=False):
     return {"path": path}
-'''
-TWO_TODOS = '''
+"""
+TWO_TODOS = """
 def work(x):
     # TODO: validate x
     y = x + 1
     # TODO: validate x
     return y
-'''
+"""
 
 
 def _write(tmp_path, name, text, raw=None):
@@ -59,7 +63,10 @@ def test_the_scan_binds_the_bytes_it_analyzed(tmp_path):
     first = detector.analyze_file(str(path))
     assert first.source_sha256 == hashlib.sha256(raw).hexdigest()
     assert first.to_dict()["source_sha256"] == first.source_sha256
-    assert deserialize_file_analysis(serialize_file_analysis(first)).source_sha256 == first.source_sha256
+    assert (
+        deserialize_file_analysis(serialize_file_analysis(first)).source_sha256
+        == first.source_sha256
+    )
     again = detector.analyze_file(str(path))  # a cache hit keeps the binding
     assert again.source_sha256 == first.source_sha256
 
@@ -102,7 +109,11 @@ def test_four_unused_parameters_are_four_items(tmp_path):
     [f] = result.file_results
     unused = [i for i in f.pattern_issues if i.pattern_id == "ignored_parameter"]
     assert sorted(i.subject for i in unused) == [
-        "add_bare_except", "add_cross_lang", "add_mutable_defaults", "num_functions"]
+        "add_bare_except",
+        "add_cross_lang",
+        "add_mutable_defaults",
+        "num_functions",
+    ]
     assert {i.symbol for i in unused} == {"generate"}
     ids = [r["id"] for r in _items(result) if r["rule"] == "ignored_parameter"]
     assert len(ids) == 4 and len(set(ids)) == 4
@@ -113,7 +124,10 @@ def test_ids_survive_a_line_shift_and_change_with_the_evidence(tmp_path):
     before = {r["id"] for r in _items(_project(tmp_path))}
     path.write_text("\n\n\n" + TWO_TODOS, encoding="utf-8")  # every line moves down
     assert {r["id"] for r in _items(_project(tmp_path))} == before
-    path.write_text(TWO_TODOS.replace("# TODO: validate x\n    return", "# TODO: check x\n    return"), encoding="utf-8")
+    path.write_text(
+        TWO_TODOS.replace("# TODO: validate x\n    return", "# TODO: check x\n    return"),
+        encoding="utf-8",
+    )
     after = {r["id"] for r in _items(_project(tmp_path))}
     assert len(after & before) == len(before) - 1  # only the edited line's item changed
 
@@ -185,9 +199,9 @@ def test_a_duplicate_id_is_never_emitted(tmp_path, monkeypatch):
     _write(tmp_path, "gen.py", FOUR)
     result = _project(tmp_path)
     monkeypatch.setattr(ai_report, "_item_id", lambda item, rel: "Fsame")
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         ai_report.render_ai_report(result)
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         render_ai_report_md(result)
 
 
@@ -195,7 +209,9 @@ def test_a_symbol_level_id_survives_a_change_to_the_def_line(tmp_path):
     # a symbol-level finding is named by its symbol, not by the text of its def line
     path = _write(tmp_path, "gen.py", FOUR)
     before = {r["id"] for r in _items(_project(tmp_path)) if r["rule"] == "ignored_parameter"}
-    path.write_text(FOUR.replace("add_bare_except=False):", "add_bare_except=False, extra_flag=None):"),
-                    encoding="utf-8")
+    path.write_text(
+        FOUR.replace("add_bare_except=False):", "add_bare_except=False, extra_flag=None):"),
+        encoding="utf-8",
+    )
     after = {r["id"] for r in _items(_project(tmp_path)) if r["rule"] == "ignored_parameter"}
     assert len(before) == 4 and before <= after and len(after) == 5

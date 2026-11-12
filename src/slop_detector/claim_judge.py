@@ -23,7 +23,14 @@ import ast
 from dataclasses import dataclass, field
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
-from slop_detector.claims import Claim, ClaimExtraction, _docstring_line, _is_stub, _qualname, extract_claims
+from slop_detector.claims import (
+    Claim,
+    ClaimExtraction,
+    _docstring_line,
+    _is_stub,
+    _qualname,
+    extract_claims,
+)
 from slop_detector.patterns.declared_intent import _first_sentence
 from slop_detector.patterns.placeholder import _is_log_call
 from slop_detector.semantic import FunctionNode, _Graph, _own_nodes, _real_bases, _statement_targets
@@ -36,8 +43,13 @@ CONTRADICTED = "CONTRADICTED"
 UNMEASURED = "UNMEASURED"
 NOT_EVALUATED = "NOT_EVALUATED"
 _STATE_KEYS = {
-    SUPPORTED: "supported", DELEGATED: "delegated_in_module", PROVIDED: "provided_elsewhere",
-    UNDECIDED: "undecided", CONTRADICTED: "contradicted", UNMEASURED: "unmeasured", NOT_EVALUATED: "not_evaluated",
+    SUPPORTED: "supported",
+    DELEGATED: "delegated_in_module",
+    PROVIDED: "provided_elsewhere",
+    UNDECIDED: "undecided",
+    CONTRADICTED: "contradicted",
+    UNMEASURED: "unmeasured",
+    NOT_EVALUATED: "not_evaluated",
 }
 PHASE2 = frozenset({"retry", "cache"})
 MAX_DEPTH = 3  # closed callees followed; past it a call is an unresolved path
@@ -47,26 +59,52 @@ _LOOPS = (ast.For, ast.AsyncFor, ast.While)
 _COMPREHENSIONS = (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
 _OPERATIONS = (ast.BinOp, ast.BoolOp, ast.Compare, ast.Subscript, ast.JoinedStr) + _COMPREHENSIONS
 # Builtins that only compute from their arguments (when the name is not rebound).
-_PURE_BUILTINS = frozenset({"len", "range", "enumerate", "zip", "sum", "min", "max", "abs", "round", "bool", "isinstance"})
+_PURE_BUILTINS = frozenset(
+    {"len", "range", "enumerate", "zip", "sum", "min", "max", "abs", "round", "bool", "isinstance"}
+)
 _REDUCTIONS = frozenset({"sum", "min", "max"})
 _WRAPPER_BUILTINS = frozenset({"staticmethod", "classmethod"})
 # str methods with no failure path; on a parameter declared `str` they are
 # still an open call (the annotation is not the runtime receiver).
-_TOTAL_STR_METHODS = frozenset({"strip", "lstrip", "rstrip", "lower", "upper", "casefold", "title", "capitalize", "swapcase"})
+_TOTAL_STR_METHODS = frozenset(
+    {"strip", "lstrip", "rstrip", "lower", "upper", "casefold", "title", "capitalize", "swapcase"}
+)
 # One request, one response, by import origin.
-_SINGLE_REQUEST = frozenset({"requests.get", "requests.post", "requests.request", "urllib.request.urlopen", "httpx.get"})
+_SINGLE_REQUEST = frozenset(
+    {"requests.get", "requests.post", "requests.request", "urllib.request.urlopen", "httpx.get"}
+)
 _IO_ROOTS = frozenset({"requests", "urllib", "httpx", "aiohttp", "socket", "sqlite3", "http"})
 # Concurrency that takes work: a call given the work as an argument, or a
 # runner (executor, pool, task group) whose bound name then receives a call.
-_CONCURRENT_CALLS = frozenset({
-    "asyncio.gather", "asyncio.wait", "asyncio.as_completed", "asyncio.create_task", "asyncio.ensure_future",
-    "asyncio.to_thread", "threading.Thread", "multiprocessing.Process", "ray.get", "dask.compute",
-})
-_CONCURRENT_RUNNERS = frozenset({
-    "concurrent.futures.ThreadPoolExecutor", "concurrent.futures.ProcessPoolExecutor", "multiprocessing.Pool",
-    "multiprocessing.pool.Pool", "multiprocessing.pool.ThreadPool", "asyncio.TaskGroup", "joblib.Parallel",
-    "trio.open_nursery", "anyio.create_task_group",
-})
+_CONCURRENT_CALLS = frozenset(
+    {
+        "asyncio.gather",
+        "asyncio.wait",
+        "asyncio.as_completed",
+        "asyncio.create_task",
+        "asyncio.ensure_future",
+        "asyncio.to_thread",
+        "threading.Thread",
+        "multiprocessing.Process",
+        "ray.get",
+        "dask.compute",
+    }
+)
+# Of those, a Thread or Process runs its work only once started (H3-F06).
+_STARTED_BY_CALL = frozenset({"threading.Thread", "multiprocessing.Process"})
+_CONCURRENT_RUNNERS = frozenset(
+    {
+        "concurrent.futures.ThreadPoolExecutor",
+        "concurrent.futures.ProcessPoolExecutor",
+        "multiprocessing.Pool",
+        "multiprocessing.pool.Pool",
+        "multiprocessing.pool.ThreadPool",
+        "asyncio.TaskGroup",
+        "joblib.Parallel",
+        "trio.open_nursery",
+        "anyio.create_task_group",
+    }
+)
 # Bases that add no method body.
 _NEUTRAL_BASES = frozenset({"abc.ABC", "typing.Generic", "typing.Protocol"})
 
@@ -162,7 +200,9 @@ def _literal(node: ast.AST) -> bool:
     if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
         return all(_literal(e) for e in node.elts)
     if isinstance(node, ast.Dict):
-        return all(k is not None and _literal(k) for k in node.keys) and all(_literal(v) for v in node.values)
+        return all(k is not None and _literal(k) for k in node.keys) and all(
+            _literal(v) for v in node.values
+        )
     if isinstance(node, ast.DictComp):
         return _literal(node.value)
     if isinstance(node, (ast.ListComp, ast.SetComp)):
@@ -180,7 +220,9 @@ def _reads(mod: _Module, fn: FunctionNode, node: ast.AST) -> bool:
         elif isinstance(c, ast.Call):
             opaque |= {id(n) for n in ast.walk(c.func)}
     return any(
-        isinstance(n, (ast.Name, ast.Attribute)) and isinstance(n.ctx, ast.Load) and id(n) not in opaque
+        isinstance(n, (ast.Name, ast.Attribute))
+        and isinstance(n.ctx, ast.Load)
+        and id(n) not in opaque
         for n in ast.walk(node)
     )
 
@@ -189,7 +231,8 @@ def _stores_state(mod: _Module, fn: FunctionNode) -> bool:
     """An attribute or item store, or a `global` / `nonlocal` name: the result
     may leave by another way than the return."""
     stores = any(
-        isinstance(n, (ast.Attribute, ast.Subscript)) and isinstance(n.ctx, ast.Store) for n in _own_nodes(fn)
+        isinstance(n, (ast.Attribute, ast.Subscript)) and isinstance(n.ctx, ast.Store)
+        for n in _own_nodes(fn)
     )
     return stores or bool(mod.graph.outer_names(fn))
 
@@ -202,7 +245,9 @@ def _falls_through(fn: FunctionNode) -> bool:
 def _params(fn: FunctionNode) -> Set[str]:
     a = fn.args
     named = a.posonlyargs + a.args + a.kwonlyargs + [x for x in (a.vararg, a.kwarg) if x]
-    rebound = {n.id for n in _own_nodes(fn) if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)}
+    rebound = {
+        n.id for n in _own_nodes(fn) if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)
+    }
     return {p.arg for p in named} - rebound
 
 
@@ -210,7 +255,9 @@ class _Calls:
     """The body's calls other than log calls and pure builtins: open ones,
     and the verdicts of the closed callees under the same kind."""
 
-    def __init__(self, mod: _Module, fn: FunctionNode, kind: str, depth: int, seen: FrozenSet[FunctionNode]):
+    def __init__(
+        self, mod: _Module, fn: FunctionNode, kind: str, depth: int, seen: FrozenSet[FunctionNode]
+    ):
         self.open: List[ast.Call] = []
         self.closed: List[Verdict] = []
         for call in _calls(fn):
@@ -250,9 +297,11 @@ class _Calls:
         return view
 
 
-def _detail(node: ast.AST) -> str:
+def _detail(node: Optional[ast.AST]) -> str:
     """Source-like text for the record (ast.unparse is 3.9+; 3.8 shows dotted
     names and the node type otherwise)."""
+    if node is None:
+        return "None"
     if hasattr(ast, "unparse"):
         return ast.unparse(node)[:80]
     if isinstance(node, ast.Name):
@@ -308,7 +357,8 @@ def _declared_str(fn: FunctionNode) -> Set[str]:
     """Parameters annotated `str` that the body does not rebind."""
     named = fn.args.posonlyargs + fn.args.args + fn.args.kwonlyargs
     return {
-        p.arg for p in named
+        p.arg
+        for p in named
         if (isinstance(p.annotation, ast.Name) and p.annotation.id == "str")
         or (isinstance(p.annotation, ast.Constant) and p.annotation.value == "str")
     } & _params(fn)
@@ -318,9 +368,21 @@ def _open_reason(fn: FunctionNode, call: ast.Call) -> str:
     """`declared_str_only` for a total str method on a parameter declared
     `str`: the annotation does not make the receiver a builtin str."""
     func = call.func
-    total = isinstance(func, ast.Attribute) and func.attr in _TOTAL_STR_METHODS and isinstance(func.value, ast.Name)
-    constant_args = not call.keywords and all(isinstance(a, ast.Constant) and isinstance(a.value, str) for a in call.args)
-    if total and constant_args and func.value.id in _declared_str(fn):
+    receiver = getattr(func, "value", None)
+    total = (
+        isinstance(func, ast.Attribute)
+        and func.attr in _TOTAL_STR_METHODS
+        and isinstance(receiver, ast.Name)
+    )
+    constant_args = not call.keywords and all(
+        isinstance(a, ast.Constant) and isinstance(a.value, str) for a in call.args
+    )
+    if (
+        total
+        and constant_args
+        and isinstance(receiver, ast.Name)
+        and receiver.id in _declared_str(fn)
+    ):
         return "declared_str_only"
     return "open_call"
 
@@ -330,7 +392,10 @@ def _logged_branch(fn: FunctionNode) -> bool:
     for n in _own_nodes(fn):
         if isinstance(n, (ast.If, ast.While, ast.IfExp)) and not isinstance(n.test, ast.Constant):
             test = {id(x) for x in ast.walk(n.test)}
-            if any(isinstance(x, ast.Call) and _is_log_call(x) and id(x) not in test for x in ast.walk(n)):
+            if any(
+                isinstance(x, ast.Call) and _is_log_call(x) and id(x) not in test
+                for x in ast.walk(n)
+            ):
                 return True
     return False
 
@@ -350,7 +415,10 @@ def _outcomes(mod: _Module, fn: FunctionNode, calls: _Calls) -> Tuple[Optional[V
         else:
             inner = [open_ids[id(x)] for x in ast.walk(value) if id(x) in open_ids]
             if inner:
-                return Verdict(UNDECIDED, _open_reason(fn, inner[0]), _detail(inner[0].func)), outcomes
+                return (
+                    Verdict(UNDECIDED, _open_reason(fn, inner[0]), _detail(inner[0].func)),
+                    outcomes,
+                )
             if _reads(mod, fn, value):
                 return Verdict(SUPPORTED, "outcome_from_input"), outcomes
     return None, outcomes
@@ -384,14 +452,18 @@ def _rule_check(mod: _Module, fn: FunctionNode, depth: int, seen) -> Verdict:
 
 
 # --- aggregation -------------------------------------------------------------------
-def _index(subscript: ast.AST) -> Optional[int]:
+def _index(subscript: Optional[ast.AST]) -> Optional[int]:
     """The constant int index of `x[0]` (3.8 wraps it in ast.Index), else None."""
     if not isinstance(subscript, ast.Subscript):
         return None
     index = subscript.slice
     if type(index).__name__ == "Index":
-        index = index.value
-    if isinstance(index, ast.Constant) and isinstance(index.value, int) and not isinstance(index.value, bool):
+        index = getattr(index, "value", index)  # ast.Index exists only on 3.8
+    if (
+        isinstance(index, ast.Constant)
+        and isinstance(index.value, int)
+        and not isinstance(index.value, bool)
+    ):
         return index.value
     return None
 
@@ -400,7 +472,11 @@ def _collection(node: ast.AST) -> Optional[str]:
     """A parameter or `self.attr` (the collection a constant index may read)."""
     if isinstance(node, ast.Name) and node.id != "self":
         return node.id
-    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "self":
+    if (
+        isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "self"
+    ):
         return "self." + node.attr
     return None
 
@@ -409,19 +485,20 @@ def _single_member(fn: FunctionNode) -> Optional[str]:
     """The one collection every return reads at one constant index, and that
     the body reads no other way outside log calls."""
     returns = _returns(fn)
-    keys = set()
+    keys: Set[Tuple[Optional[str], Optional[int]]] = set()
     for r in returns:
         v = r.value
-        if _index(v) is None:
-            keys.add(None)
-            continue
+        if not isinstance(v, ast.Subscript) or _index(v) is None:
+            return None
         keys.add((_collection(v.value), _index(v)))
-    if len(keys) != 1 or None in keys:
+    if len(keys) != 1:
         return None
     return _members_only_indexed(fn, next(iter(keys)))
 
 
-def _members_only_indexed(fn: FunctionNode, key: Tuple[Optional[str], int]) -> Optional[str]:
+def _members_only_indexed(
+    fn: FunctionNode, key: Tuple[Optional[str], Optional[int]]
+) -> Optional[str]:
     name, index = key
     if name is None:
         return None
@@ -432,15 +509,21 @@ def _members_only_indexed(fn: FunctionNode, key: Tuple[Optional[str], int]) -> O
         if id(n) in in_log or _collection(n) != name:
             continue
         parent = parents.get(id(n))
-        if not (isinstance(parent, ast.Subscript) and parent.value is n and _index(parent) == index):
+        if not (
+            isinstance(parent, ast.Subscript) and parent.value is n and _index(parent) == index
+        ):
             return None
     return f"{name}[{index}]"
 
 
 def _element_call(call: ast.Call, member: str) -> bool:
     func = call.func
-    return (isinstance(func, ast.Attribute) and _index(func.value) is not None
-            and f"{_collection(func.value.value)}[{_index(func.value)}]" == member)
+    return (
+        isinstance(func, ast.Attribute)
+        and isinstance(func.value, ast.Subscript)
+        and _index(func.value) is not None
+        and f"{_collection(func.value.value)}[{_index(func.value)}]" == member
+    )
 
 
 def _single_member_call(fn: FunctionNode) -> Optional[str]:
@@ -449,7 +532,12 @@ def _single_member_call(fn: FunctionNode) -> Optional[str]:
     members = set()
     for r in returns:
         v = r.value
-        if not (isinstance(v, ast.Call) and isinstance(v.func, ast.Attribute) and _index(v.func.value) is not None):
+        if not (
+            isinstance(v, ast.Call)
+            and isinstance(v.func, ast.Attribute)
+            and isinstance(v.func.value, ast.Subscript)
+            and _index(v.func.value) is not None
+        ):
             return None
         members.add((_collection(v.func.value.value), _index(v.func.value)))
     if len(members) != 1:
@@ -461,7 +549,9 @@ def _aggregate_evidence(mod: _Module, fn: FunctionNode) -> Optional[Verdict]:
     nodes = _own_nodes(fn)
     if any(isinstance(n, _LOOPS + _COMPREHENSIONS + (ast.Starred,)) for n in nodes):
         return Verdict(SUPPORTED, "iteration")
-    if any(isinstance(n, ast.Call) and mod.pure_builtin(fn, n, _REDUCTIONS) and n.args for n in nodes):
+    if any(
+        isinstance(n, ast.Call) and mod.pure_builtin(fn, n, _REDUCTIONS) and n.args for n in nodes
+    ):
         return Verdict(SUPPORTED, "reduction")
     return None
 
@@ -486,11 +576,17 @@ def _rule_aggregate(mod: _Module, fn: FunctionNode, depth: int, seen) -> Verdict
 # --- pagination ----------------------------------------------------------------------
 def _paging_evidence(mod: _Module, fn: FunctionNode) -> Optional[Verdict]:
     nodes = _own_nodes(fn)
-    if any(isinstance(n, _LOOPS + _COMPREHENSIONS) and any(isinstance(x, ast.Call) for x in ast.walk(n)) for n in nodes):
+    if any(
+        isinstance(n, _LOOPS + _COMPREHENSIONS)
+        and any(isinstance(x, ast.Call) for x in ast.walk(n))
+        for n in nodes
+    ):
         return Verdict(SUPPORTED, "loop_with_call")
     if any(isinstance(n, ast.YieldFrom) and isinstance(n.value, ast.Call) for n in nodes):
         return Verdict(SUPPORTED, "yield_from_call")
-    if fn in mod.graph.owner and any((mod.graph.resolve(c, fn) or (None,))[0] is fn for c in _calls(fn)):
+    if fn in mod.graph.owner and any(
+        (mod.graph.resolve(c, fn) or (None,))[0] is fn for c in _calls(fn)
+    ):
         return Verdict(SUPPORTED, "recursion")
     return None
 
@@ -507,7 +603,11 @@ def _rule_paginate(mod: _Module, fn: FunctionNode, depth: int, seen) -> Verdict:
     if requests:
         return Verdict(CONTRADICTED, "single_request", mod.origin(fn, requests[0].func) or "")
     returns = _returns(fn)
-    if returns and not _yields(fn) and all(r.value is not None and _literal(r.value) for r in returns):
+    if (
+        returns
+        and not _yields(fn)
+        and all(r.value is not None and _literal(r.value) for r in returns)
+    ):
         return Verdict(CONTRADICTED, "no_request", _detail(returns[0].value))
     return Verdict(UNDECIDED, "no_proof")
 
@@ -529,10 +629,56 @@ def _runners(mod: _Module, fn: FunctionNode) -> Dict[str, str]:
     return bound
 
 
-def _concurrent_call(mod: _Module, fn: FunctionNode, call: ast.Call, bound: Dict[str, str]) -> Optional[str]:
+def _elements(value: ast.AST) -> List[ast.AST]:
+    """What an assignment binds: the element of a list comprehension, the items
+    of a list or tuple display, else the value itself."""
+    if isinstance(value, ast.ListComp):
+        return [value.elt]
+    if isinstance(value, (ast.List, ast.Tuple)):
+        return list(value.elts)
+    return [value]
+
+
+def _loop_sources(nodes: List[ast.AST], names: Set[str]) -> Set[str]:
+    """`names` plus each collection a `for` loop takes one of them from."""
+    return names | {
+        n.iter.id
+        for n in nodes
+        if isinstance(n, (ast.For, ast.AsyncFor))
+        and isinstance(n.target, ast.Name)
+        and n.target.id in names
+        and isinstance(n.iter, ast.Name)
+    }
+
+
+def _started(fn: FunctionNode) -> Set[int]:
+    """Calls whose result the function starts: `Thread(...).start()`, a name
+    bound to one and then started, or a list of them started in a `for` loop."""
+    starts = [
+        c.func.value
+        for c in _calls(fn)
+        if isinstance(c.func, ast.Attribute) and c.func.attr == "start"
+    ]
+    nodes = _own_nodes(fn)
+    names = _loop_sources(nodes, {s.id for s in starts if isinstance(s, ast.Name)})
+    started = {id(s) for s in starts if isinstance(s, ast.Call)}
+    for n in nodes:
+        if (
+            isinstance(n, ast.Assign)
+            and len(n.targets) == 1
+            and isinstance(n.targets[0], ast.Name)
+            and n.targets[0].id in names
+        ):
+            started |= {id(e) for e in _elements(n.value)}
+    return started
+
+
+def _concurrent_call(
+    mod: _Module, fn: FunctionNode, call: ast.Call, bound: Dict[str, str], started: Set[int]
+) -> Optional[str]:
     origin = mod.origin(fn, call.func)
     if origin in _CONCURRENT_CALLS and (call.args or any(k.arg == "target" for k in call.keywords)):
-        return origin
+        return origin if origin not in _STARTED_BY_CALL or id(call) in started else None
     if isinstance(call.func, ast.Call) and mod.origin(fn, call.func.func) in _CONCURRENT_RUNNERS:
         return mod.origin(fn, call.func.func)  # `Parallel(n_jobs=4)(work)`
     func = call.func
@@ -544,8 +690,9 @@ def _concurrent_call(mod: _Module, fn: FunctionNode, call: ast.Call, bound: Dict
 def _concurrency(mod: _Module, fn: FunctionNode) -> Optional[str]:
     """A concurrent call given work, or a runner whose bound name receives a call."""
     bound = _runners(mod, fn)
+    started = _started(fn)
     for call in _calls(fn):
-        found = _concurrent_call(mod, fn, call, bound)
+        found = _concurrent_call(mod, fn, call, bound, started)
         if found:
             return found
     return None
@@ -562,7 +709,10 @@ def _rule_parallel(mod: _Module, fn: FunctionNode, depth: int, seen) -> Verdict:
     if pending:
         return pending
     in_log = _in_log(fn)
-    if any(isinstance(n, ast.Attribute) and isinstance(n.ctx, ast.Load) and id(n) not in in_log for n in nodes):
+    if any(
+        isinstance(n, ast.Attribute) and isinstance(n.ctx, ast.Load) and id(n) not in in_log
+        for n in nodes
+    ):
         return Verdict(UNDECIDED, "no_proof")  # an attribute read may run anything
     return Verdict(CONTRADICTED, "no_concurrent_call")
 
@@ -590,8 +740,12 @@ def _plain_decorators(mod: _Module, fn: FunctionNode) -> bool:
         return False
     local = {name for member in klass.body for name in _statement_targets(member)}
     for d in fn.decorator_list:
-        if isinstance(d, ast.Name) and d.id in _WRAPPER_BUILTINS and d.id not in mod.graph._module_names \
-                and d.id not in local:
+        if (
+            isinstance(d, ast.Name)
+            and d.id in _WRAPPER_BUILTINS
+            and d.id not in mod.graph._module_names
+            and d.id not in local
+        ):
             continue
         if not mod.graph._keeps_instance(d, klass, local):
             return False
@@ -605,14 +759,20 @@ def _empty(mod: _Module, fn: FunctionNode) -> bool:
 def _extension_point(mod: _Module, fn: FunctionNode, klass: ast.ClassDef) -> bool:
     """The class leaves another (non-special) method for subclasses to fill."""
     return any(
-        m is not fn and isinstance(m, _FUNCTIONS) and not (m.name.startswith("__") and m.name.endswith("__"))
+        m is not fn
+        and isinstance(m, _FUNCTIONS)
+        and not (m.name.startswith("__") and m.name.endswith("__"))
         and _empty(mod, m)
         for m in klass.body
     )
 
 
 def _module_bases(mod: _Module, klass: ast.ClassDef) -> List[ast.ClassDef]:
-    return [mod.graph.classes[b.id] for b in _real_bases(klass) if isinstance(b, ast.Name) and b.id in mod.graph.classes]
+    return [
+        mod.graph.classes[b.id]
+        for b in _real_bases(klass)
+        if isinstance(b, ast.Name) and b.id in mod.graph.classes
+    ]
 
 
 def _copies_contract(mod: _Module, fn: FunctionNode, klass: ast.ClassDef) -> bool:
@@ -633,7 +793,9 @@ def _unknown_base(mod: _Module, klass: ast.ClassDef, fn: FunctionNode, seen: Set
     for base in _real_bases(klass):
         node = base.value if isinstance(base, ast.Subscript) else base
         if isinstance(node, ast.Name) and node.id in mod.graph.classes:
-            if node.id not in seen and _unknown_base(mod, mod.graph.classes[node.id], fn, seen | {node.id}):
+            if node.id not in seen and _unknown_base(
+                mod, mod.graph.classes[node.id], fn, seen | {node.id}
+            ):
                 return True
         elif mod.origin(fn, node) not in _NEUTRAL_BASES:
             return True
@@ -650,7 +812,13 @@ def _alternative(mod: _Module, fn: FunctionNode, klass: ast.ClassDef) -> Optiona
     return None
 
 
-def _judge(mod: _Module, fn: FunctionNode, kind: str, depth: int = 0, seen: FrozenSet[FunctionNode] = frozenset()) -> Verdict:
+def _judge(
+    mod: _Module,
+    fn: FunctionNode,
+    kind: str,
+    depth: int = 0,
+    seen: FrozenSet[FunctionNode] = frozenset(),
+) -> Verdict:
     if not _plain_decorators(mod, fn):
         return Verdict(UNDECIDED, "decorated")
     klass = mod.graph._class_of.get(fn)
@@ -673,7 +841,9 @@ def judge_claims(tree: ast.AST, is_test: Optional[bool]) -> ClaimJudgment:
     mod = _Module(tree)
     parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
     functions = {
-        (_qualname(parents, n), _docstring_line(n)): n for n in ast.walk(tree) if isinstance(n, _FUNCTIONS)
+        (_qualname(parents, n), _docstring_line(n)): n
+        for n in ast.walk(tree)
+        if isinstance(n, _FUNCTIONS)
     }
     for claim in extraction.claims:
         if claim.kind in PHASE2:

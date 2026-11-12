@@ -36,7 +36,9 @@ _Span = Tuple[int, int, str, ast.AST]
 
 def _spans(tree: ast.AST) -> List[_Span]:
     """(def line, end line, qualname, node) of every function and class."""
-    parents: Dict[ast.AST, ast.AST] = {c: n for n in ast.walk(tree) for c in ast.iter_child_nodes(n)}
+    parents: Dict[ast.AST, ast.AST] = {
+        c: n for n in ast.walk(tree) for c in ast.iter_child_nodes(n)
+    }
     return [
         (n.lineno, getattr(n, "end_lineno", None) or n.lineno, _qualname(parents, n), n)
         for n in ast.walk(tree)
@@ -53,9 +55,13 @@ def _extent(node: ast.AST) -> Optional[Tuple[int, int]]:
     """Line extent of a node; a match case (no lineno) spans its pattern and body."""
     if hasattr(node, "lineno"):
         return node.lineno, getattr(node, "end_lineno", None) or node.lineno
-    inner = [_extent(c) for c in [getattr(node, "pattern", None)] + list(getattr(node, "body", []) or []) if c]
-    inner = [e for e in inner if e]
-    return (min(e[0] for e in inner), max(e[1] for e in inner)) if inner else None
+    inner = [
+        _extent(c)
+        for c in [getattr(node, "pattern", None)] + list(getattr(node, "body", []) or [])
+        if c
+    ]
+    spans = [e for e in inner if e]
+    return (min(e[0] for e in spans), max(e[1] for e in spans)) if spans else None
 
 
 class _Addresses:
@@ -89,26 +95,34 @@ def _innermost(nodes: List[ast.AST], line: int) -> Optional[ast.AST]:
     best, size = None, None
     for node in nodes:
         extent = _extent(node)
-        if extent and extent[0] <= line <= extent[1] and (size is None or extent[1] - extent[0] < size):
+        if (
+            extent
+            and extent[0] <= line <= extent[1]
+            and (size is None or extent[1] - extent[0] < size)
+        ):
             best, size = node, extent[1] - extent[0]
     return best
 
 
 def _comment_lines(lines: List[str], start: int, end: int) -> int:
     """Comment-only lines strictly between line `start` and line `end`."""
-    return sum(1 for n in range(start + 1, end) if 1 <= n <= len(lines) and lines[n - 1].strip().startswith("#"))
+    return sum(
+        1
+        for n in range(start + 1, end)
+        if 1 <= n <= len(lines) and lines[n - 1].strip().startswith("#")
+    )
 
 
 def _comment_locator(index: _Addresses, container: ast.AST, line: int, lines: List[str]) -> str:
-    kids = [k for k in index.children.get(id(container), []) if _extent(k)]
-    after = [k for k in kids if _extent(k)[0] > line]
+    kids = [(k, s) for k in index.children.get(id(container), []) for s in [_extent(k)] if s]
+    after = [(k, s) for k, s in kids if s[0] > line]
     if after:
-        anchor = after[0]
-        return f"{_address(index, anchor)}~before{_comment_lines(lines, line, _extent(anchor)[0])}"
-    before = [k for k in kids if _extent(k)[1] < line]
+        anchor, span = after[0]
+        return f"{_address(index, anchor)}~before{_comment_lines(lines, line, span[0])}"
+    before = [(k, s) for k, s in kids if s[1] < line]
     if before:
-        anchor = before[-1]
-        return f"{_address(index, anchor)}~after{_comment_lines(lines, _extent(anchor)[1], line)}"
+        anchor, span = before[-1]
+        return f"{_address(index, anchor)}~after{_comment_lines(lines, span[1], line)}"
     return f"~only{_comment_lines(lines, 0, line)}"
 
 
@@ -124,7 +138,8 @@ def _locator(scope: ast.AST, index: _Addresses, line: int, lines: List[str]) -> 
     holding = _innermost(index.in_scope.get(id(scope), []), line)
     is_comment = 1 <= line <= len(lines) and lines[line - 1].strip().startswith("#")
     if is_comment:
-        container = holding if holding is not None and _extent(holding)[0] < line else scope
+        span = _extent(holding) if holding is not None else None
+        container = holding if holding is not None and span and span[0] < line else scope
         return _comment_locator(index, container, line, lines)
     return _address(index, holding) if holding is not None else ""
 
@@ -151,7 +166,9 @@ def locate(findings: List[Any], tree: ast.AST, content: str, name_symbol: bool =
             finding.symbol = holder[2] if holder else MODULE
         at_def = holder is not None and holder[0] == line
         finding.fingerprint = None if at_def else fingerprint(lines, line)
-        finding.locator = "" if at_def else _locator(holder[3] if holder else tree, index, line, lines)
+        finding.locator = (
+            "" if at_def else _locator(holder[3] if holder else tree, index, line, lines)
+        )
 
 
 def read_source(path: str) -> Tuple[str, str]:
@@ -160,7 +177,11 @@ def read_source(path: str) -> Tuple[str, str]:
     newlines), so an analyzer that used it sees the same content."""
     with open(path, "rb") as handle:
         raw = handle.read()
-    text = raw.decode("utf-8", errors="ignore").replace(chr(13) + chr(10), chr(10)).replace(chr(13), chr(10))
+    text = (
+        raw.decode("utf-8", errors="ignore")
+        .replace(chr(13) + chr(10), chr(10))
+        .replace(chr(13), chr(10))
+    )
     return text, hashlib.sha256(raw).hexdigest()
 
 
@@ -178,7 +199,9 @@ def bind_lines(result: Any, content: str, digest: str) -> Any:
     return result
 
 
-def semantic_part(symbol: Optional[str], subject: Optional[str], fingerprint_: Optional[str], line: int) -> str:
+def semantic_part(
+    symbol: Optional[str], subject: Optional[str], fingerprint_: Optional[str], line: int
+) -> str:
     """What the finding is: symbol, subject and the line's text; the line
     number only without symbol and fingerprint."""
     where = fingerprint_ or ("" if symbol else f"L{line}")

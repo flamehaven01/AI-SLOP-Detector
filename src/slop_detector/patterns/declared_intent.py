@@ -467,7 +467,9 @@ def _declared_noop(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stm
     return intent.is_registered_by_value(function)
 
 
-def _declared_registered_empty(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
+def _declared_registered_empty(
+    intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt
+) -> bool:
     """An empty body under a registering decorator.
 
     A registered module function (a `click.group`) does nothing and claims

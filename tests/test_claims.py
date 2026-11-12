@@ -194,15 +194,23 @@ def test_a_promise_of_the_function_s_own_mechanism_is_extracted():
         ("explain", "computed_result"),
         ("MetadataCache.get", "cache"),
         ("validate_root_access", "validation"),
-        ("checksum_stub", "computed_result"),  # "stub" as an object, not the function's own disclosure
-        ("validate_options", "validation"),  # "not implemented" said of the options, not of this function
+        (
+            "checksum_stub",
+            "computed_result",
+        ),  # "stub" as an object, not the function's own disclosure
+        (
+            "validate_options",
+            "validation",
+        ),  # "not implemented" said of the options, not of this function
     }
     claim = next(c for c in _claims(PROMISES).claims if c.function == "PartnerClient.list_all")
     record = claim.to_dict()
     assert record["source"]["text"] == "Fetch every page of a paginated collection."
     assert record["source"]["line"] == 4  # the docstring's line in the source
     assert record["extraction"] == {
-        "state": "EXTRACTED", "scope": "FIRST_SUMMARY_SENTENCE", "confidence_basis": "EXPLICIT_BEHAVIORAL_PROMISE",
+        "state": "EXTRACTED",
+        "scope": "FIRST_SUMMARY_SENTENCE",
+        "confidence_basis": "EXPLICIT_BEHAVIORAL_PROMISE",
     }
     assert record["mechanism"] == {"state": "NOT_EVALUATED"}
 
@@ -212,7 +220,11 @@ def test_a_topic_an_object_a_negation_or_another_component_is_not_a_promise():
     assert result.claims == []
     # each excluded match is counted by its reason, never dropped silently
     assert set(result.excluded) >= {
-        "negated", "predicate_about_mechanism", "attributed_elsewhere", "test_description", "mechanism_as_object",
+        "negated",
+        "predicate_about_mechanism",
+        "attributed_elsewhere",
+        "test_description",
+        "mechanism_as_object",
         "self_disclosed",
     }
     # a promise only in the second sentence is out of scope, not absent
@@ -223,7 +235,12 @@ def test_functions_left_out_are_counted_by_reason():
     result = _claims(OTHER_SCOPES)
     # a nested function's promise is its own, under its own name
     assert [(c.function, c.kind) for c in result.claims] == [("outer.inner", "pagination")]
-    assert result.not_analyzed == {"non_english": 1, "no_docstring": 1, "stub_body": 1, "contract_or_abstract": 1}
+    assert result.not_analyzed == {
+        "non_english": 1,
+        "no_docstring": 1,
+        "stub_body": 1,
+        "contract_or_abstract": 1,
+    }
     coverage = result.coverage()
     assert coverage["functions"] == 6 and coverage["eligible_functions"] == 2
     assert coverage["functions_with_claims"] == 1 and coverage["extracted_claims"] == 1

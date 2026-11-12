@@ -42,7 +42,8 @@ PROMISES: Dict[str, "re.Pattern[str]"] = {
         re.I,
     ),
     "parallel": re.compile(
-        r"\bin parallel\b|\bconcurrently\b|\bsimultaneously\b|\bin (?:a )?(?:thread|process|worker) pool\b", re.I
+        r"\bin parallel\b|\bconcurrently\b|\bsimultaneously\b|\bin (?:a )?(?:thread|process|worker) pool\b",
+        re.I,
     ),
     "aggregation": re.compile(
         r"\b(?:weighted )?(?:mean|average|sum|median) (?:of|over|across) (?:the |all |its |each |every )?"
@@ -94,11 +95,16 @@ _SELF_DISCLOSED = re.compile(
     r"|(?:^|\(|--|:)\s*not (?:yet )?implemented\b|\b(?:this|it) is not (?:yet )?implemented\b",
     re.I,
 )
-_TEST_DESCRIPTION = re.compile(r"^(?:tests?|check(?:s)? that|ensures? that|verif(?:y|ies) that|asserts?|regression)\b", re.I)
-_PREDICATE = re.compile(r"^(?:returns? (?:true|false|whether)|whether|true if|checks? (?:if|whether))\b", re.I)
+_TEST_DESCRIPTION = re.compile(
+    r"^(?:tests?|check(?:s)? that|ensures? that|verif(?:y|ies) that|asserts?|regression)\b", re.I
+)
+_PREDICATE = re.compile(
+    r"^(?:returns? (?:true|false|whether)|whether|true if|checks? (?:if|whether))\b", re.I
+)
 # The mechanism is another task's relation or another actor's, not this one's.
 _RELATION = re.compile(
-    r"\b(?:in parallel|concurrently|simultaneously) (?:with|by)\b|\bmultiple (?:processes|threads|workers)\b", re.I
+    r"\b(?:in parallel|concurrently|simultaneously) (?:with|by)\b|\bmultiple (?:processes|threads|workers)\b",
+    re.I,
 )
 _NEGATION = re.compile(r"\b(?:never|not|no|without|cannot|instead of)\b|n't\b", re.I)
 _ELSEWHERE = re.compile(
@@ -159,7 +165,12 @@ class Claim:
         return {
             "kind": self.kind,
             "subject": "current_function",
-            "source": {"function": self.function, "line": self.line, "text": self.text, "phrase": self.phrase},
+            "source": {
+                "function": self.function,
+                "line": self.line,
+                "text": self.text,
+                "phrase": self.phrase,
+            },
             "extraction": {"state": "EXTRACTED", "scope": SCOPE, "confidence_basis": BASIS},
             "mechanism": {"state": "NOT_EVALUATED"},
         }
@@ -197,10 +208,11 @@ def _count(table: Dict[str, int], key: str) -> None:
 
 def _qualname(parents: Dict[ast.AST, ast.AST], node: ast.AST) -> str:
     names = []
-    while node is not None and not isinstance(node, ast.Module):
-        if isinstance(node, _FUNCTIONS + (ast.ClassDef,)):
-            names.append(node.name)
-        node = parents.get(node)
+    current: Optional[ast.AST] = node
+    while current is not None and not isinstance(current, ast.Module):
+        if isinstance(current, _FUNCTIONS + (ast.ClassDef,)):
+            names.append(current.name)
+        current = parents.get(current)
     return ".".join(reversed(names))
 
 
@@ -221,7 +233,10 @@ def _is_stub(function) -> bool:
     if _raises_not_implemented(function):
         return True
     body = _body_without_docstring(function)
-    return all(isinstance(n, ast.Pass) or (isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant)) for n in body)
+    return all(
+        isinstance(n, ast.Pass) or (isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant))
+        for n in body
+    )
 
 
 def _docstring_line(function) -> int:
@@ -253,7 +268,9 @@ def extract_claims(tree: ast.AST, is_test: Optional[bool]) -> ClaimExtraction:
         out.eligible += 1
         if len(" ".join(doc.split())) > len(sentence):
             _count(out.out_of_scope, "later_sentences_not_analyzed")
-        out.claims += _function_claims(function, sentence, _qualname(parents, function), out.excluded)
+        out.claims += _function_claims(
+            function, sentence, _qualname(parents, function), out.excluded
+        )
     return out
 
 
@@ -271,7 +288,9 @@ def _function_claims(function, sentence: str, name: str, excluded: Dict[str, int
     return claims
 
 
-def claims_for_file(tree: ast.AST, path: str, root: Optional[str] = None) -> Tuple[ClaimExtraction, Optional[bool]]:
+def claims_for_file(
+    tree: ast.AST, path: str, root: Optional[str] = None
+) -> Tuple[ClaimExtraction, Optional[bool]]:
     """Extraction with the file's test status from path facts (root rule)."""
     from slop_detector.path_facts import facts_for
 

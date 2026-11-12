@@ -6,7 +6,13 @@ import json
 import pytest
 
 import slop_detector.ai_report as ai_report
-from slop_detector.ai_report import AiReportInvalid, build_records, render_ai_report, schema, validate
+from slop_detector.ai_report import (
+    AiReportInvalidError,
+    build_records,
+    render_ai_report,
+    schema,
+    validate,
+)
 from slop_detector.cli import main
 from slop_detector.core import SlopDetector
 from slop_detector.mcp.server import MCPServer
@@ -14,7 +20,7 @@ from slop_detector.report_bundle import BUNDLE_FILES, write_bundle
 from slop_detector.report_pdf import BROWSER_ENV
 from slop_detector.report_view import build_report_view
 
-HOLLOW = '''
+HOLLOW = """
 def persist(record):
     return None
 
@@ -22,7 +28,7 @@ def persist(record):
 def save_record(record):
     persist(record)
     return True
-'''
+"""
 
 
 def _project(tmp_path):
@@ -40,7 +46,11 @@ def test_the_header_comes_first_and_every_item_is_bound_to_its_source(tmp_path):
     records = _lines(render_ai_report(result))
     header, items = records[0], records[1:]
     assert header["schema"] == "ai-slop-report/1" and header["record"] == "header"
-    assert header["findings"] + header["candidates"] == header["emitted"] + header["truncated"] == len(items)
+    assert (
+        header["findings"] + header["candidates"]
+        == header["emitted"] + header["truncated"]
+        == len(items)
+    )
     assert {"FINDING", "REVIEW_CANDIDATE"} == {i["kind"] for i in items}
     digest = hashlib.sha256((tmp_path / "pkg" / "store.py").read_bytes()).hexdigest()
     assert {i["source_sha256"] for i in items} == {digest}
@@ -59,8 +69,14 @@ def test_ids_are_stable_across_runs_and_distinct(tmp_path):
     # the same rule at two places is two items
     twice = ["def a(x):", "    return None", "", "", "def b(y):", "    return None", ""]
     (tmp_path / "pkg" / "twice.py").write_text(chr(10).join(twice), encoding="utf-8")
-    items = _lines(render_ai_report(SlopDetector(read_only=True).analyze_project(str(tmp_path))))[1:]
-    same_rule = [i["id"] for i in items if i["file"] == "pkg/twice.py" and i["rule"] == "return_none_placeholder"]
+    items = _lines(render_ai_report(SlopDetector(read_only=True).analyze_project(str(tmp_path))))[
+        1:
+    ]
+    same_rule = [
+        i["id"]
+        for i in items
+        if i["file"] == "pkg/twice.py" and i["rule"] == "return_none_placeholder"
+    ]
     assert len(same_rule) == 2 and len(set(same_rule)) == 2
 
 
@@ -81,11 +97,11 @@ def test_an_unmeasured_hollow_channel_is_stated_not_zeroed(tmp_path):
 def test_a_record_that_breaks_the_schema_is_never_emitted(tmp_path, monkeypatch, capsys):
     records = build_records(build_report_view(_project(tmp_path)))
     broken = [dict(records[0])] + [dict(records[1], line="three")]
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         validate(broken)
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         validate([dict(records[0], surprise=True)])  # no field outside the schema
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         validate([])
 
     monkeypatch.setattr(ai_report, "build_records", lambda view, limit=None: broken)
@@ -124,11 +140,15 @@ def test_the_bundle_lists_what_it_could_not_write_and_removes_a_stale_copy(tmp_p
     assert set(BUNDLE_FILES) - {"report.pdf"} == {p.name for p in out.iterdir()}
 
 
-def test_the_cli_exits_2_on_an_incomplete_bundle_and_read_only_refuses_it(tmp_path, monkeypatch, capsys):
+def test_the_cli_exits_2_on_an_incomplete_bundle_and_read_only_refuses_it(
+    tmp_path, monkeypatch, capsys
+):
     _project(tmp_path)
     monkeypatch.setenv(BROWSER_ENV, str(tmp_path / "missing-browser"))
     with pytest.raises(SystemExit) as stop:
-        main([str(tmp_path / "pkg"), "--report-dir", str(tmp_path / "r"), "--quiet", "--no-history"])
+        main(
+            [str(tmp_path / "pkg"), "--report-dir", str(tmp_path / "r"), "--quiet", "--no-history"]
+        )
     assert stop.value.code == 2
     assert "not written: report.pdf" in capsys.readouterr().err
     code = main([str(tmp_path / "pkg"), "--report-dir", str(tmp_path / "r2"), "--read-only"])
@@ -137,16 +157,27 @@ def test_the_cli_exits_2_on_an_incomplete_bundle_and_read_only_refuses_it(tmp_pa
 
 def test_the_mcp_tool_returns_the_same_report(tmp_path):
     _project(tmp_path)
-    response = MCPServer().handle_message({
-        "jsonrpc": "2.0", "id": 1, "method": "tools/call",
-        "params": {"name": "slop_ai_report", "arguments": {"target": str(tmp_path / "pkg"), "limit": 2}},
-    })
+    response = MCPServer().handle_message(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "slop_ai_report",
+                "arguments": {"target": str(tmp_path / "pkg"), "limit": 2},
+            },
+        }
+    )
     result = response["result"]
     assert result["isError"] is False
     records = result["structuredContent"]["records"]
     assert records[0]["emitted"] == 2 and _lines(result["content"][0]["text"]) == records
-    missing = MCPServer().handle_message({
-        "jsonrpc": "2.0", "id": 2, "method": "tools/call",
-        "params": {"name": "slop_ai_report", "arguments": {"target": str(tmp_path / "nope")}},
-    })
+    missing = MCPServer().handle_message(
+        {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {"name": "slop_ai_report", "arguments": {"target": str(tmp_path / "nope")}},
+        }
+    )
     assert missing["result"]["isError"] is True

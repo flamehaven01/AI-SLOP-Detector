@@ -11,17 +11,26 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple
 
-BUNDLE_FILES = ("report.md", "report.html", "report.pdf", "ai-report.jsonl", "ai-report.md", "scan.json")
+BUNDLE_FILES = (
+    "report.md",
+    "report.html",
+    "report.pdf",
+    "ai-report.jsonl",
+    "ai-report.md",
+    "scan.json",
+)
 
 
-def write_bundle(result: Any, directory: str, ai_limit: Optional[int] = None) -> Tuple[List[str], List[Tuple[str, str]]]:
+def write_bundle(
+    result: Any, directory: str, ai_limit: Optional[int] = None
+) -> Tuple[List[str], List[Tuple[str, str]]]:
     """Write the bundle; return (files written, (file, why) not written)."""
-    from slop_detector.ai_report import AiReportInvalid, render_ai_report
+    from slop_detector.ai_report import AiReportInvalidError, render_ai_report
     from slop_detector.ai_report_md import render_ai_report_md
     from slop_detector.cli_output import render_json
     from slop_detector.renderer_html import generate_html_report
     from slop_detector.renderer_markdown import generate_markdown_report
-    from slop_detector.report_pdf import PdfFailed, PdfUnavailable, write_pdf
+    from slop_detector.report_pdf import PdfFailedError, PdfUnavailableError, write_pdf
 
     folder = Path(directory)
     folder.mkdir(parents=True, exist_ok=True)
@@ -43,7 +52,13 @@ def write_bundle(result: Any, directory: str, ai_limit: Optional[int] = None) ->
             if text is not None:
                 target.write_text(text, encoding="utf-8")
             written.append(name)
-        except (AiReportInvalid, PdfUnavailable, PdfFailed, OSError, ValueError) as exc:
+        except (
+            AiReportInvalidError,
+            PdfUnavailableError,
+            PdfFailedError,
+            OSError,
+            ValueError,
+        ) as exc:
             reason = str(exc)
             if target.exists():
                 target.unlink()

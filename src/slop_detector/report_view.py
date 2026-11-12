@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 from slop_detector.core_project import score_is_valid
 from slop_detector.finding_summary import _SEVERITIES, _issue_severity
@@ -64,8 +64,16 @@ class SemanticState:
 
 # Claim counts kept in the view (claim_judge.ClaimJudgment.coverage keys).
 CLAIM_COUNTS = (
-    "extracted_claims", "supported", "delegated_in_module", "provided_elsewhere", "undecided",
-    "contradicted", "unmeasured", "not_evaluated", "candidates", "merged",
+    "extracted_claims",
+    "supported",
+    "delegated_in_module",
+    "provided_elsewhere",
+    "undecided",
+    "contradicted",
+    "unmeasured",
+    "not_evaluated",
+    "candidates",
+    "merged",
 )
 
 
@@ -109,7 +117,8 @@ def build_report_view(result: Any) -> ReportView:
         key=lambda i: (_SEVERITIES.index(i.severity), i.file, i.line, i.rule),
     )
     candidates = sorted(
-        (item for f in files for item in _candidate_items(f)), key=lambda i: (i.file, i.line, i.rule)
+        (item for f in files for item in _candidate_items(f)),
+        key=lambda i: (i.file, i.line, i.rule),
     )
     severity = {name: sum(1 for i in findings if i.severity == name) for name in _SEVERITIES}
     from slop_detector.renderer_glossary import file_metric_rows, next_steps, project_metric_rows
@@ -129,8 +138,11 @@ def build_report_view(result: Any) -> ReportView:
         next_steps=next_steps(result) if is_project else [],
         coverage=_coverage(result, is_project),
         coverage_notes=_coverage_notes(result) if is_project else [],
-        metrics=(project_metric_rows(result) if is_project else file_metric_rows(result))
-        if score_is_valid(result) else [],
+        metrics=(
+            (project_metric_rows(result) if is_project else file_metric_rows(result))
+            if score_is_valid(result)
+            else []
+        ),
         file_rows=[_file_row(f) for f in files],
     )
 
@@ -215,7 +227,9 @@ def _measurement(result: Any, is_project: bool) -> str:
     """The pattern channel: COMPLETE / PARTIAL / NO_MEASUREMENT for a project
     (`scan_coverage.measurement_state`), COMPLETE or PARTIAL for a file."""
     if is_project:
-        return str((getattr(result, "scan_coverage", None) or {}).get("measurement_state", "COMPLETE"))
+        return str(
+            (getattr(result, "scan_coverage", None) or {}).get("measurement_state", "COMPLETE")
+        )
     return "PARTIAL" if getattr(result, "pattern_errors", None) else "COMPLETE"
 
 
@@ -267,7 +281,12 @@ def _pattern_items(f: Any) -> List[Item]:
     path, binding, merged = str(getattr(f, "file_path", "")), _binding(f), _merged_claims(f)
     return [
         _pattern_item(
-            path, issue, merged.get((str(getattr(issue, "pattern_id", "")), int(getattr(issue, "line", 0) or 0))), binding
+            path,
+            issue,
+            merged.get(
+                (str(getattr(issue, "pattern_id", "")), int(getattr(issue, "line", 0) or 0))
+            ),
+            binding,
         )
         for issue in _issues(f)
     ]
@@ -283,7 +302,7 @@ def _field(obj: Any, name: str, default: Any = "") -> Any:
     return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)
 
 
-def _semantic_item(path: str, c: Any, binding: Dict[str, str]) -> Item:
+def _semantic_item(path: str, c: Any, binding: Mapping[str, Any]) -> Item:
     inputs = [str(n) for n in (_field(c, "inputs", None) or [])]
     return Item(
         kind=REVIEW_CANDIDATE,
@@ -318,7 +337,9 @@ def _claim_item(path: str, c: Any, binding: Dict[str, str]) -> Item:
 
 def _candidate_items(f: Any) -> List[Item]:
     path, binding = str(getattr(f, "file_path", "")), _binding(f)
-    semantic = [_semantic_item(path, c, binding) for c in (getattr(f, "semantic_findings", None) or [])]
+    semantic = [
+        _semantic_item(path, c, binding) for c in (getattr(f, "semantic_findings", None) or [])
+    ]
     claims = [
         _claim_item(path, c, binding)
         for c in (getattr(f, "claim_findings", None) or [])
@@ -352,7 +373,11 @@ def _semantic_state(files: List[Any]) -> SemanticState:
         for reason, n in (coverage.get("unknown_reasons") or {}).items():
             reasons[reason] = reasons.get(reason, 0) + int(n)
     return SemanticState(
-        state=_overall(states), files=states, functions=functions, unknown=unknown, unknown_reasons=reasons
+        state=_overall(states),
+        files=states,
+        functions=functions,
+        unknown=unknown,
+        unknown_reasons=reasons,
     )
 
 
@@ -373,7 +398,9 @@ def _claim_state(files: List[Any]) -> ClaimState:
             counts[key] += sum(value.values()) if isinstance(value, dict) else int(value or 0)
         for reason, n in (coverage.get("undecided_by_reason") or {}).items():
             reasons[reason] = reasons.get(reason, 0) + int(n)
-    return ClaimState(state=_overall(states), files=states, counts=counts, undecided_by_reason=reasons)
+    return ClaimState(
+        state=_overall(states), files=states, counts=counts, undecided_by_reason=reasons
+    )
 
 
 def _overall(states: Dict[str, int]) -> str:

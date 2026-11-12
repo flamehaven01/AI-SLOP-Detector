@@ -18,12 +18,20 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from slop_detector import ai_report
 from slop_detector.ai_report import MISSING
-from slop_detector.work_order_rules import MODES, SCHEMA as RULESET_SCHEMA, Ruleset
 from slop_detector.report_view import build_report_view
+from slop_detector.work_order_rules import MODES, Ruleset
+from slop_detector.work_order_rules import SCHEMA as RULESET_SCHEMA
 
 FORMAT = "ai-slop-report/1 markdown work order"
 SNIPPET_LINES = 20  # code shown per item; the full span is named so the agent can read the rest
-_RANK = {"critical": 0, "high": 1, None: 2, "medium": 3, "low": 4}  # report_view._PRIORITY, candidates third
+_RANK = {
+    "critical": 0,
+    "high": 1,
+    None: 2,
+    "medium": 3,
+    "low": 4,
+}  # report_view._PRIORITY, candidates third
+
 
 def _one_line(value: Any) -> str:
     """Text from the analyzed repository on one Markdown line (S5-G2): a line
@@ -37,7 +45,8 @@ def _one_line(value: Any) -> str:
 
 def _claim_question(promise: Dict[str, Any], rules: Ruleset) -> str:
     return rules.claim.question.format(
-        looked_for=_one_line(promise["looked_for"]), why=_one_line(promise["why"]),
+        looked_for=_one_line(promise["looked_for"]),
+        why=_one_line(promise["why"]),
         resolves=_one_line(promise["resolves"]),
     )
 
@@ -47,7 +56,11 @@ def _rules(items: List[Dict[str, Any]], rules: Ruleset) -> List[str]:
     seen = sorted({(r["rule"], r["kind"]) for r in items})
     out = ["## RULES [NORM]", "VERIFY question per rule (an item block names its rule):"]
     for rule, kind in seen:
-        line = rules.claim.rules_line if rule == "claim_without_mechanism" else rules.question(rule, kind)
+        line = (
+            rules.claim.rules_line
+            if rule == "claim_without_mechanism"
+            else rules.question(rule, kind)
+        )
         out.append(f"- {rule}: {line}")
     return out + [""]
 
@@ -99,7 +112,10 @@ def _code(text: Optional[str], line: int, rel: str, tier: str = "capped") -> Lis
     start, end, name = _span(text, line)
     shown = _shown(start, end, line, tier)
     width = len(str(end))
-    out = [f"span [FACT]: {_one_line(rel)}:{start}-{end}" + (f" `{name}`" if name else ""), "```python"]
+    out = [
+        f"span [FACT]: {_one_line(rel)}:{start}-{end}" + (f" `{name}`" if name else ""),
+        "```python",
+    ]
     previous = None
     for n in shown:
         if previous is not None and n != previous + 1:
@@ -107,9 +123,13 @@ def _code(text: Optional[str], line: int, rel: str, tier: str = "capped") -> Lis
         out.append(f"{n:>{width}}| {lines[n - 1] if n <= len(lines) else ''}")
         previous = n
     if shown[-1] < end:
-        out.append(f"{'':>{width}}| ... lines {shown[-1] + 1}-{end} not shown (read {rel}:{start}-{end})")
+        out.append(
+            f"{'':>{width}}| ... lines {shown[-1] + 1}-{end} not shown (read {rel}:{start}-{end})"
+        )
     elif tier == "evidence" and len(shown) < end - start + 1:
-        out.append(f"{'':>{width}}| ... the rest of {start}-{end} not shown (read {rel}:{start}-{end})")
+        out.append(
+            f"{'':>{width}}| ... the rest of {start}-{end} not shown (read {rel}:{start}-{end})"
+        )
     out.append("```")
     return out
 
@@ -117,14 +137,19 @@ def _code(text: Optional[str], line: int, rel: str, tier: str = "capped") -> Lis
 def _measurement(header: Dict[str, Any], view: Any) -> List[str]:
     sem, claims, m = view.semantic, header["claims"], header["measurement"]
     sev = " ".join(f"{k} {v}" for k, v in header["severity"].items())
-    undecided = ", ".join(f"{k} {v}" for k, v in sorted(claims["undecided_by_reason"].items(), key=lambda kv: -kv[1]))
-    unknown = ", ".join(f"{k} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1]))
+    undecided = ", ".join(
+        f"{k} {v}" for k, v in sorted(claims["undecided_by_reason"].items(), key=lambda kv: -kv[1])
+    )
+    unknown = ", ".join(
+        f"{k} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1])
+    )
     rows = [
         "| channel | state | denominator |",
         "|---|---|---|",
         f"| pattern | {m['pattern']} | {header['files']} files; {header['findings']} findings ({sev}) |",
         f"| hollow | {m['hollow']} | {sem.functions} functions; {sem.unknown} not decidable"
-        + (f" ({unknown})" if unknown else "") + " |",
+        + (f" ({unknown})" if unknown else "")
+        + " |",
         f"| claims | {m['claims']} | {claims['extracted_claims']} docstring promises; supported {claims['supported']}, "
         f"delegated {claims['delegated_in_module']}, undecided {claims['undecided']}"
         + (f" ({undecided})" if undecided else "")
@@ -138,7 +163,9 @@ def _measurement(header: Dict[str, Any], view: Any) -> List[str]:
         nulls.append("[NULL] claims contradicted: 0; an undecided promise is not a pass")
     for name, state in m.items():
         if state not in ("COMPLETE", "MEASURED"):
-            nulls.append(f"[NULL] {name} channel {state}: its items are HOLD; 0 there means NOT-MEASURED")
+            nulls.append(
+                f"[NULL] {name} channel {state}: its items are HOLD; 0 there means NOT-MEASURED"
+            )
     return rows + [""] + nulls
 
 
@@ -148,8 +175,12 @@ def _mode_lines(rules: Ruleset, mode: str) -> List[str]:
     spec = getattr(rules.modes, mode)
     out = ["## AUTHORITY [NORM]", f"purpose: {spec.purpose}", f"authority: {spec.authority}", ""]
     if mode == "agent":
-        out += ["## PRECONDITIONS [NORM]", *[f"{line} NOT-MEASURED" for line in spec.preconditions],
-                f"rule: {spec.precondition_rule}", ""]
+        out += [
+            "## PRECONDITIONS [NORM]",
+            *[f"{line} NOT-MEASURED" for line in spec.preconditions],
+            f"rule: {spec.precondition_rule}",
+            "",
+        ]
     return out
 
 
@@ -159,7 +190,11 @@ def _contract(header: Dict[str, Any], rules: Ruleset, mode: str) -> List[str]:
     its preconditions, its allowed actions and its limits."""
     spec = getattr(rules.modes, mode)
     hold = [f"{rule} -> HOLD the item" for rule in header["hold_if"]] + list(rules.hard_stop)
-    limits = ["## LIMITS [FACT]", *[f"- {line}" for line in spec.limits], ""] if mode == "auditor" else []
+    limits = (
+        ["## LIMITS [FACT]", *[f"- {line}" for line in spec.limits], ""]
+        if mode == "auditor"
+        else []
+    )
     return [
         "## CONTRACT [FORMAT]",
         f"precedence: {rules.precedence}",
@@ -187,7 +222,9 @@ def _contract(header: Dict[str, Any], rules: Ruleset, mode: str) -> List[str]:
     ]
 
 
-def _agent_read(text: Optional[str], record: Dict[str, Any], rules: Ruleset, current: str) -> List[str]:
+def _agent_read(
+    text: Optional[str], record: Dict[str, Any], rules: Ruleset, current: str
+) -> List[str]:
     """No code for an agent: the span to open in the target and the recheck
     it must pass first (a VOID or MISSING item is HOLD before any read)."""
     if text is None:
@@ -200,8 +237,15 @@ def _agent_read(text: Optional[str], record: Dict[str, Any], rules: Ruleset, cur
     ]
 
 
-def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset, mode: str, tier: str = "capped",
-           sources: Optional[Dict[str, Tuple[Optional[str], str]]] = None) -> List[str]:
+def _block(
+    n: int,
+    record: Dict[str, Any],
+    root: Path,
+    rules: Ruleset,
+    mode: str,
+    tier: str = "capped",
+    sources: Optional[Dict[str, Tuple[Optional[str], str]]] = None,
+) -> List[str]:
     if sources is not None and record["file"] in sources:
         text, sha = sources[record["file"]]
     else:
@@ -215,7 +259,10 @@ def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset, mode: str
     if bound == MISSING:
         current, text = "MISSING: no scan-time hash; HOLD, re-scan", None
     elif sha != bound:
-        current, text = f"VOID: the file changed after the scan (now {sha[:16]}); HOLD, re-scan", None
+        current, text = (
+            f"VOID: the file changed after the scan (now {sha[:16]}); HOLD, re-scan",
+            None,
+        )
     else:
         current = "the file is the content the scan analyzed"
     severity = record["severity"] or "review"
@@ -232,20 +279,27 @@ def _block(n: int, record: Dict[str, Any], root: Path, rules: Ruleset, mode: str
         out.append(
             f"promise [FACT]: \"{_one_line(promise['promise'])}\" (docstring line {promise['promise_line']}, "
             f"{promise['claim_kind']}; basis {promise['basis']}"
-            + (f": {_one_line(promise['detail'])}" if promise["detail"] else "") + ")"
+            + (f": {_one_line(promise['detail'])}" if promise["detail"] else "")
+            + ")"
         )
         out.append(f"verify [NORM]: {_claim_question(promise, rules)}")
     if mode == "agent":
         out += _agent_read(text, record, rules, current)
     else:
-        out += _code(text, record["line"], record["file"], tier) if text is not None else [
-            "code [FACT]: NOT-APPLICABLE: HOLD"]
+        out += (
+            _code(text, record["line"], record["file"], tier)
+            if text is not None
+            else ["code [FACT]: NOT-APPLICABLE: HOLD"]
+        )
     out += [f"fix [DERIVED]: {_one_line(record['fix'])}", ""]
     return out
 
 
 def render_ai_report_md(
-    result: Any, limit: Optional[int] = None, mode: str = "auditor", token_budget: Optional[int] = None
+    result: Any,
+    limit: Optional[int] = None,
+    mode: str = "auditor",
+    token_budget: Optional[int] = None,
 ) -> str:
     """The work order: every item in priority order; the first `limit` (all
     when None) as full blocks, the rest as one backlog line each. `mode` is
@@ -253,7 +307,7 @@ def render_ai_report_md(
     (no code copied; it holds until its preconditions pass). Both render the
     same records."""
     if mode not in MODES:
-        raise ai_report.AiReportInvalid(f"unknown work-order mode {mode!r}")
+        raise ai_report.AiReportInvalidError(f"unknown work-order mode {mode!r}")
     view = build_report_view(result)
     # through the module, so the work order and the JSON Lines always run the same
     # code; one ruleset read serves the header and every contract line
@@ -268,11 +322,13 @@ def render_ai_report_md(
         cut = len(items) if limit is None else max(0, limit)
         return _document(fixed, items, ["capped"] * cut + [_INDEX] * (len(items) - cut), None)
     if mode != "auditor":
-        raise ai_report.AiReportInvalid(
-            "--ai-token-budget bounds the auditor work order; an agent's is bounded by --ai-limit")
+        raise ai_report.AiReportInvalidError(
+            "--ai-token-budget bounds the auditor work order; an agent's is bounded by --ai-limit"
+        )
     if limit is not None:  # FH-S4-F02: neither bound may silently override the other
-        raise ai_report.AiReportInvalid(
-            "--ai-limit and --ai-token-budget bound the work order in two different ways; give one")
+        raise ai_report.AiReportInvalidError(
+            "--ai-limit and --ai-token-budget bound the work order in two different ways; give one"
+        )
     return _document(fixed, items, _fit(fixed, items, token_budget), token_budget)
 
 
@@ -301,8 +357,10 @@ def _index_line(record: Dict[str, Any], tiered: bool, fixed) -> str:
     """One line per item not drawn as a block (FH-S4-F01): the full scan-time
     hash and whether the file still holds it, so an index line never stands
     for content the scan did not analyze."""
-    line = (f"- {record['id']} {record['severity'] or 'review'} {record['rule']} {_one_line(record['file'])}:"
-            f"{record['line']} sha256:{record['source_sha256']} binding:{_binding(record, fixed)}")
+    line = (
+        f"- {record['id']} {record['severity'] or 'review'} {record['rule']} {_one_line(record['file'])}:"
+        f"{record['line']} sha256:{record['source_sha256']} binding:{_binding(record, fixed)}"
+    )
     return line + f" channel:{record['channel_state']} tier:3" if tiered else line
 
 
@@ -316,9 +374,10 @@ def _fit(fixed, items: List[Dict[str, Any]], budget: int) -> List[str]:
         least = budget
         while estimate_tokens(_document(fixed, items, tiers, least)) > least:
             least = estimate_tokens(_document(fixed, items, tiers, least))
-        raise ai_report.AiReportInvalid(
+        raise ai_report.AiReportInvalidError(
             f"BUDGET_UNSATISFIABLE: the index of every item needs at least {least} estimated tokens; "
-            f"the budget is {budget}")
+            f"the budget is {budget}"
+        )
     header, view, rules, mode, root, sources = fixed
     room = budget * 4 - len(_document(fixed, items, tiers, budget))
 
@@ -367,11 +426,14 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
         f"mode: {mode}",
     ]
     if budget is not None:
-        counts = {name: sum(1 for t in tiers if _TIER_NAME[t] == name) for name in ("T1", "T2", "T3")}
+        counts = {
+            name: sum(1 for t in tiers if _TIER_NAME[t] == name) for name in ("T1", "T2", "T3")
+        }
         out.append(
             f"budget: {budget} estimated tokens (characters / 4, not a tokenizer count) | tiers T1 {counts['T1']}, "
             f"T2 {counts['T2']}, T3 {counts['T3']} (T1 whole function, T2 signature, evidence and the range to "
-            "read, T3 index line)")
+            "read, T3 index line)"
+        )
     out += [
         "",
         *_contract(header, rules[0], mode),
@@ -400,4 +462,3 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
         "",
     ]
     return "\n".join(out)
-

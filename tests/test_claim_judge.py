@@ -150,7 +150,10 @@ def test_a_path_that_could_overturn_the_judgment_leaves_it_undecided():
     assert v[("upload_all", "parallel")] == ("UNDECIDED", "async")
     assert v[("upload_many", "parallel")] == ("UNDECIDED", "open_call")
     assert v[("RewardTool.calc_reward", "computed_result")] == ("UNDECIDED", "imported_base")
-    assert v[("Hooks.compute_biases", "computed_result")] == ("UNDECIDED", "extension_point_default")
+    assert v[("Hooks.compute_biases", "computed_result")] == (
+        "UNDECIDED",
+        "extension_point_default",
+    )
     assert v[("compute_score", "computed_result")] == ("UNDECIDED", "decorated")
     assert v[("compute_remote", "computed_result")] == ("UNDECIDED", "open_call")
     assert v[("list_via_client", "pagination")] == ("UNDECIDED", "open_call")
@@ -255,7 +258,10 @@ def upload_pool(client, paths):
 def upload_threads(client, paths):
     """Upload the files in parallel."""
     threads = [threading.Thread(target=client.put, args=(p,)) for p in paths]
-    return threads
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
 
 class Ensemble:
     def score(self):
@@ -333,11 +339,14 @@ def test_closed_callees_are_judged_by_the_same_rule():
 
 
 def test_coverage_keeps_states_reasons_and_failures_apart(monkeypatch):
-    source = CONTRADICTED + '''
+    source = (
+        CONTRADICTED
+        + '''
 def get_with_retry(client):
     """GET with up to five retries."""
     return client.get()
 '''
+    )
     result = judge_claims(ast.parse(source), False)
     cov = result.coverage()
     assert cov["extracted_claims"] == 8 and cov["contradicted"] == 7
@@ -362,59 +371,102 @@ def test_no_claim_is_judged_outside_product_code(is_test):
 
 # One control per branch: each source isolates the rule it names.
 BRANCH_CASES = {
-    "shadowed_len_is_an_open_call": ('''
+    "shadowed_len_is_an_open_call": (
+        '''
 len = lambda x: 3
 def explain(model, features):
     """Attribute the prediction to each feature with SHAP values."""
     return {f"f{i}": 0.0 for i in range(len(features))}
-''', "explain", "computed_result", ("UNDECIDED", "open_call")),
-    "rebound_import_has_no_origin": ('''
+''',
+        "explain",
+        "computed_result",
+        ("UNDECIDED", "open_call"),
+    ),
+    "rebound_import_has_no_origin": (
+        '''
 import threading
 threading = object()
 def upload_threads(client, paths):
     """Upload the files in parallel."""
-    return [threading.Thread(target=client.put, args=(p,)) for p in paths]
-''', "upload_threads", "parallel", ("UNDECIDED", "open_call")),
-    "dict_key_from_input_is_not_literal": ('''
+    threads = [threading.Thread(target=client.put, args=(p,)) for p in paths]
+    for t in threads:
+        t.start()
+''',
+        "upload_threads",
+        "parallel",
+        ("UNDECIDED", "open_call"),
+    ),
+    "dict_key_from_input_is_not_literal": (
+        '''
 def score_for(name):
     """Compute the score for the name."""
     return {name: 0.0}
-''', "score_for", "computed_result", ("UNDECIDED", "no_proof")),
-    "closed_result_returned_is_not_an_input_read": ('''
+''',
+        "score_for",
+        "computed_result",
+        ("UNDECIDED", "no_proof"),
+    ),
+    "closed_result_returned_is_not_an_input_read": (
+        '''
 def _always_ok(value):
     return True
 def validate_wrapped(value):
     """Validate the value."""
     return _always_ok(value)
-''', "validate_wrapped", "validation", ("CONTRADICTED", "single_outcome")),
-    "state_store_is_another_way_out": ('''
+''',
+        "validate_wrapped",
+        "validation",
+        ("CONTRADICTED", "single_outcome"),
+    ),
+    "state_store_is_another_way_out": (
+        '''
 class Totals:
     def compute_total(self, items):
         """Compute the total of the items."""
         self.total = 5
         return 0
-''', "Totals.compute_total", "computed_result", ("UNDECIDED", "stores_state")),
-    "falling_through_is_an_outcome": ('''
+''',
+        "Totals.compute_total",
+        "computed_result",
+        ("UNDECIDED", "stores_state"),
+    ),
+    "falling_through_is_an_outcome": (
+        '''
 def validate_soft(value):
     """Validate the value."""
     if not value:
         return False
-''', "validate_soft", "validation", ("SUPPORTED", "distinct_outcomes")),
-    "falling_through_is_no_value_return": ('''
+''',
+        "validate_soft",
+        "validation",
+        ("SUPPORTED", "distinct_outcomes"),
+    ),
+    "falling_through_is_no_value_return": (
+        '''
 def compute_maybe(x):
     """Compute the value of x."""
     if x:
         return 0
-''', "compute_maybe", "computed_result", ("UNDECIDED", "no_value_return")),
-    "rebound_parameter_is_not_declared_str": ('''
+''',
+        "compute_maybe",
+        "computed_result",
+        ("UNDECIDED", "no_value_return"),
+    ),
+    "rebound_parameter_is_not_declared_str": (
+        '''
 def lookup(name):
     return name
 def reject_unknown(name: str):
     """Reject names outside the list."""
     name = lookup(name)
     return name.strip()
-''', "reject_unknown", "rejection", ("UNDECIDED", "open_call")),
-    "two_level_delegation": ('''
+''',
+        "reject_unknown",
+        "rejection",
+        ("UNDECIDED", "open_call"),
+    ),
+    "two_level_delegation": (
+        '''
 def _require(value):
     if not value:
         raise ValueError(value)
@@ -424,26 +476,46 @@ def validate_chain(value):
     """Validate the value."""
     _mid(value)
     return True
-''', "validate_chain", "validation", ("DELEGATED_IN_MODULE", "closed_callee")),
-    "declared_str_call_as_statement": ('''
+''',
+        "validate_chain",
+        "validation",
+        ("DELEGATED_IN_MODULE", "closed_callee"),
+    ),
+    "declared_str_call_as_statement": (
+        '''
 def reject_spaces(name: str):
     """Reject names with spaces."""
     name.strip()
     return True
-''', "reject_spaces", "rejection", ("UNDECIDED", "declared_str_only")),
-    "strip_with_a_variable_argument": ('''
+''',
+        "reject_spaces",
+        "rejection",
+        ("UNDECIDED", "declared_str_only"),
+    ),
+    "strip_with_a_variable_argument": (
+        '''
 def reject_chars(name: str, chars):
     """Reject names with these characters."""
     return name.strip(chars)
-''', "reject_chars", "rejection", ("UNDECIDED", "open_call")),
-    "input_returned_is_an_outcome": ('''
+''',
+        "reject_chars",
+        "rejection",
+        ("UNDECIDED", "open_call"),
+    ),
+    "input_returned_is_an_outcome": (
+        '''
 def validate_positive(value):
     """Validate the value."""
     if value < 0:
         return None
     return value
-''', "validate_positive", "validation", ("SUPPORTED", "distinct_outcomes")),
-    "open_call_return_among_constants": ('''
+''',
+        "validate_positive",
+        "validation",
+        ("SUPPORTED", "distinct_outcomes"),
+    ),
+    "open_call_return_among_constants": (
+        '''
 def validate_mixed(client, value):
     """Validate the value."""
     if value is None:
@@ -451,52 +523,92 @@ def validate_mixed(client, value):
     if value == "":
         return True
     return client.check(value)
-''', "validate_mixed", "validation", ("UNDECIDED", "open_call")),
-    "generator_validator": ('''
+''',
+        "validate_mixed",
+        "validation",
+        ("UNDECIDED", "open_call"),
+    ),
+    "generator_validator": (
+        '''
 def validate_items(items):
     """Validate the items."""
     for item in items:
         yield item
-''', "validate_items", "validation", ("UNDECIDED", "generator")),
-    "live_io_by_origin": ('''
+''',
+        "validate_items",
+        "validation",
+        ("UNDECIDED", "generator"),
+    ),
+    "live_io_by_origin": (
+        '''
 import requests
 URL = "https://example.invalid/rates"
 def fetch_live_prices():
     """Fetch live prices from the exchange."""
     return requests.get(URL).json()
-''', "fetch_live_prices", "live_data", ("SUPPORTED", "io_call_by_origin")),
-    "live_without_io": ('''
+''',
+        "fetch_live_prices",
+        "live_data",
+        ("SUPPORTED", "io_call_by_origin"),
+    ),
+    "live_without_io": (
+        '''
 def fetch_live_scaled(rate):
     """Fetch live rates scaled by two."""
     return rate * 2
-''', "fetch_live_scaled", "live_data", ("UNDECIDED", "no_io_proof")),
-    "reduction": ('''
+''',
+        "fetch_live_scaled",
+        "live_data",
+        ("UNDECIDED", "no_io_proof"),
+    ),
+    "reduction": (
+        '''
 class Pool:
     def mean(self):
         """Mean of the member scores."""
         return sum(self.scores) / len(self.scores)
-''', "Pool.mean", "aggregation", ("SUPPORTED", "reduction")),
-    "element_call_beside_another_open_call": ('''
+''',
+        "Pool.mean",
+        "aggregation",
+        ("SUPPORTED", "reduction"),
+    ),
+    "element_call_beside_another_open_call": (
+        '''
 class Ens:
     def predict(self, x):
         """Weighted mean of the member models' scores."""
         record(x)
         return self.models[0].predict(x)
-''', "Ens.predict", "aggregation", ("UNDECIDED", "open_call")),
-    "collection_read_another_way": ('''
+''',
+        "Ens.predict",
+        "aggregation",
+        ("UNDECIDED", "open_call"),
+    ),
+    "collection_read_another_way": (
+        '''
 class Ens:
     def score(self):
         """Mean of the member scores."""
         everything = self.scores
         return self.scores[0]
-''', "Ens.score", "aggregation", ("UNDECIDED", "no_proof")),
-    "yield_from_call": ('''
+''',
+        "Ens.score",
+        "aggregation",
+        ("UNDECIDED", "no_proof"),
+    ),
+    "yield_from_call": (
+        '''
 class Pages:
     def fetch_all(self):
         """Fetch every page of the collection."""
         yield from self.client.pages()
-''', "Pages.fetch_all", "pagination", ("SUPPORTED", "yield_from_call")),
-    "recursion": ('''
+''',
+        "Pages.fetch_all",
+        "pagination",
+        ("SUPPORTED", "yield_from_call"),
+    ),
+    "recursion": (
+        '''
 class Walker:
     def get(self, url):
         return self.session.get(url)
@@ -507,36 +619,125 @@ class Walker:
         if page.next:
             return [page] + self.fetch_all(page.next)
         return [page]
-''', "Walker.fetch_all", "pagination", ("SUPPORTED", "recursion")),
-    "single_request_by_origin": ('''
+''',
+        "Walker.fetch_all",
+        "pagination",
+        ("SUPPORTED", "recursion"),
+    ),
+    "single_request_by_origin": (
+        '''
 import requests
 def list_everything(url):
     """Fetch every page of the collection."""
     return requests.get(url)
-''', "list_everything", "pagination", ("CONTRADICTED", "single_request")),
-    "runner_called_with_work": ('''
+''',
+        "list_everything",
+        "pagination",
+        ("CONTRADICTED", "single_request"),
+    ),
+    "runner_called_with_work": (
+        '''
 from joblib import Parallel, delayed
 def run_all(work, items):
     """Run the work in parallel."""
     return Parallel(n_jobs=4)(delayed(work)(i) for i in items)
-''', "run_all", "parallel", ("SUPPORTED", "concurrency_structure")),
-    "thread_given_no_work": ('''
+''',
+        "run_all",
+        "parallel",
+        ("SUPPORTED", "concurrency_structure"),
+    ),
+    "thread_given_no_work": (
+        '''
 import threading
 def run_jobs(client, jobs):
     """Run the jobs in parallel."""
-    threading.Thread()
+    threading.Thread().start()
     return [client.run(j) for j in jobs]
-''', "run_jobs", "parallel", ("UNDECIDED", "open_call")),
+''',
+        "run_jobs",
+        "parallel",
+        ("UNDECIDED", "open_call"),
+    ),
+    # H3-F06: a Thread or Process runs only once started; built and handed
+    # back, the caller decides, so the claim is not proven here
+    "threads_built_never_started": (
+        '''
+import threading
+def upload_threads(client, paths):
+    """Upload the files in parallel."""
+    threads = [threading.Thread(target=client.put, args=(p,)) for p in paths]
+    return threads
+''',
+        "upload_threads",
+        "parallel",
+        ("UNDECIDED", "open_call"),
+    ),
+    "process_built_never_started": (
+        '''
+import multiprocessing
+def run_jobs(client, jobs):
+    """Run the jobs in parallel."""
+    procs = [multiprocessing.Process(target=client.run, args=(j,)) for j in jobs]
+    for p in procs:
+        p.join()
+''',
+        "run_jobs",
+        "parallel",
+        ("UNDECIDED", "open_call"),
+    ),
+    "start_called_on_another_name": (
+        '''
+import threading
+def upload_one(client, path, other):
+    """Upload the file in parallel."""
+    t = threading.Thread(target=client.put, args=(path,))
+    other.start()
+    return t
+''',
+        "upload_one",
+        "parallel",
+        ("UNDECIDED", "open_call"),
+    ),
+    "thread_started_by_name": (
+        '''
+import threading
+def upload_one(client, path):
+    """Upload the file in parallel."""
+    t = threading.Thread(target=client.put, args=(path,))
+    t.start()
+    t.join()
+''',
+        "upload_one",
+        "parallel",
+        ("SUPPORTED", "concurrency_structure"),
+    ),
+    "thread_started_chained": (
+        '''
+import threading
+def upload_one(client, path):
+    """Upload the file in parallel."""
+    threading.Thread(target=client.put, args=(path,)).start()
+''',
+        "upload_one",
+        "parallel",
+        ("SUPPORTED", "concurrency_structure"),
+    ),
     # the caller may run several of these coroutines at once
-    "async_without_calls": ('''
+    "async_without_calls": (
+        '''
 async def total_async(values):
     """Sum the values in parallel."""
     total = 0
     for v in values:
         total += v
     return total
-''', "total_async", "parallel", ("UNDECIDED", "async")),
-    "attribute_read_may_run_anything": ('''
+''',
+        "total_async",
+        "parallel",
+        ("UNDECIDED", "async"),
+    ),
+    "attribute_read_may_run_anything": (
+        '''
 class Summer:
     def total(self):
         """Sum the values in parallel."""
@@ -544,25 +745,40 @@ class Summer:
         for v in self.values:
             total += v
         return total
-''', "Summer.total", "parallel", ("UNDECIDED", "no_proof")),
-    "rebound_staticmethod": ('''
+''',
+        "Summer.total",
+        "parallel",
+        ("UNDECIDED", "no_proof"),
+    ),
+    "rebound_staticmethod": (
+        '''
 staticmethod = lambda f: f
 class Props:
     @staticmethod
     def size():
         """Compute the size."""
         return 0
-''', "Props.size", "computed_result", ("UNDECIDED", "decorated")),
+''',
+        "Props.size",
+        "computed_result",
+        ("UNDECIDED", "decorated"),
+    ),
     # (an ABC's methods are contracts and never reach the judge)
-    "neutral_base": ('''
+    "neutral_base": (
+        '''
 from typing import Generic, TypeVar
 T = TypeVar("T")
 class Strict(Generic[T]):
     def compute_rate(self):
         """Compute the rate."""
         return 0.5
-''', "Strict.compute_rate", "computed_result", ("CONTRADICTED", "literal_result")),
-    "imported_base_through_a_module_base": ('''
+''',
+        "Strict.compute_rate",
+        "computed_result",
+        ("CONTRADICTED", "literal_result"),
+    ),
+    "imported_base_through_a_module_base": (
+        '''
 from vendor import Imported
 class Middle(Imported):
     pass
@@ -570,7 +786,11 @@ class Leaf(Middle):
     def compute_rate(self):
         """Compute the rate."""
         return 0.5
-''', "Leaf.compute_rate", "computed_result", ("UNDECIDED", "imported_base")),
+''',
+        "Leaf.compute_rate",
+        "computed_result",
+        ("UNDECIDED", "imported_base"),
+    ),
 }
 
 

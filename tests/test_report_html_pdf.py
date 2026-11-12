@@ -9,10 +9,23 @@ import pytest
 from slop_detector.cli import main
 from slop_detector.core import SlopDetector
 from slop_detector.renderer_html import generate_html_report, render_view_html
-from slop_detector.report_pdf import BROWSER_ENV, PdfFailed, PdfUnavailable, find_browser, write_pdf
-from slop_detector.report_view import BRIEF_LIMITS, FINDING, REVIEW_CANDIDATE, Item, brief_items, build_report_view
+from slop_detector.report_pdf import (
+    BROWSER_ENV,
+    PdfFailedError,
+    PdfUnavailableError,
+    find_browser,
+    write_pdf,
+)
+from slop_detector.report_view import (
+    BRIEF_LIMITS,
+    FINDING,
+    REVIEW_CANDIDATE,
+    Item,
+    brief_items,
+    build_report_view,
+)
 
-HOLLOW = '''
+HOLLOW = """
 def persist(record):
     return None
 
@@ -20,7 +33,7 @@ def persist(record):
 def save_record(record):
     persist(record)
     return True
-'''
+"""
 
 
 def _project(tmp_path, files):
@@ -34,8 +47,15 @@ def _project(tmp_path, files):
 def test_strings_from_the_repository_are_escaped_and_nothing_is_loaded(tmp_path):
     result = _project(tmp_path, {"pkg/store.py": HOLLOW})
     view = build_report_view(result)
-    hostile = Item(FINDING, "x", "high", str(tmp_path / '<img src=x onerror=alert(1)>.py'), 1,
-                   '<script>alert("x")</script>', 'fix "<b>"')
+    hostile = Item(
+        FINDING,
+        "x",
+        "high",
+        str(tmp_path / "<img src=x onerror=alert(1)>.py"),
+        1,
+        '<script>alert("x")</script>',
+        'fix "<b>"',
+    )
     page = render_view_html(view.__class__(**{**view.__dict__, "findings": [hostile]}))
     assert "<script>alert" not in page and "&lt;script&gt;alert" in page
     assert "<img src=x" not in page
@@ -66,14 +86,16 @@ def test_the_report_keeps_score_and_hollow_apart_and_never_shows_unmeasured_as_z
         f.semantic_coverage = {"state": "UNMEASURED"}
         f.semantic_findings = []
     page = generate_html_report(result)
-    card = re.search(r'<div class="k">Hollow</div><div class="v">(.*?)</div><div class="s">(.*?)</div>', page)
+    card = re.search(
+        r'<div class="k">Hollow</div><div class="v">(.*?)</div><div class="s">(.*?)</div>', page
+    )
     assert card.groups() == ("-", "not measured (analysis failed)")  # not "0"
 
 
 def test_no_browser_is_env_blocked_and_writes_nothing(tmp_path, monkeypatch):
     monkeypatch.setenv(BROWSER_ENV, str(tmp_path / "missing-browser"))
     target = tmp_path / "report.pdf"
-    with pytest.raises(PdfUnavailable, match="ENV_BLOCKED"):
+    with pytest.raises(PdfUnavailableError, match="ENV_BLOCKED"):
         write_pdf("<html></html>", str(target))
     assert not target.exists()
 
@@ -82,7 +104,7 @@ def test_a_browser_that_writes_no_pdf_fails_and_leaves_the_target_alone(tmp_path
     monkeypatch.setenv(BROWSER_ENV, sys.executable)  # runs, prints nothing to PDF
     target = tmp_path / "report.pdf"
     target.write_bytes(b"previous")
-    with pytest.raises(PdfFailed):
+    with pytest.raises(PdfFailedError):
         write_pdf("<html></html>", str(target))
     assert target.read_bytes() == b"previous"
 
@@ -98,7 +120,7 @@ def test_a_file_that_is_not_a_pdf_is_never_written(tmp_path, monkeypatch):
     monkeypatch.setenv(BROWSER_ENV, sys.executable)
     monkeypatch.setattr(report_pdf.subprocess, "run", fake_browser)
     target = tmp_path / "report.pdf"
-    with pytest.raises(PdfFailed):
+    with pytest.raises(PdfFailedError):
         write_pdf("<html></html>", str(target))
     assert not target.exists()
 
@@ -123,4 +145,6 @@ def test_an_installed_browser_prints_an_a4_pdf(tmp_path):
     data = target.read_bytes()
     assert data[:5] == b"%PDF-"
     box = re.search(rb"/MediaBox\s*\[\s*0 0 ([\d.]+) ([\d.]+)\s*\]", data)
-    assert box and abs(float(box.group(1)) - 595) < 1 and abs(float(box.group(2)) - 842) < 1  # A4 in points
+    assert (
+        box and abs(float(box.group(1)) - 595) < 1 and abs(float(box.group(2)) - 842) < 1
+    )  # A4 in points

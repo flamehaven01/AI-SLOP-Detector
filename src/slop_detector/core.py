@@ -8,10 +8,9 @@ import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector import semantic
+from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector.claim_findings import claim_analysis, fully_measured
-from slop_detector.finding_identity import locate
 from slop_detector.config import Config
 from slop_detector.core_project import (
     build_project_analysis,
@@ -47,6 +46,7 @@ from slop_detector.core_topology import (
 )
 from slop_detector.environment_resolution import environment_fingerprint
 from slop_detector.file_role import classify_file, is_static_literal_module
+from slop_detector.finding_identity import locate
 from slop_detector.ignore_handler import IgnoreHandler
 from slop_detector.masking import FrameworkMasker
 from slop_detector.metrics import DDCCalculator, InflationCalculator, LDRCalculator
@@ -98,6 +98,7 @@ def _claim_channel(tree: ast.AST, skip, facts: PathFacts, issues) -> tuple:
     except Exception as e:  # RecursionError on a deep tree, an analysis defect
         logger.warning(f"Claim channel failed: {e}")
         return [], {"state": "UNMEASURED", "error_type": type(e).__name__}
+
 
 def _bound(result: FileAnalysis, source_sha256: str, origin: str) -> FileAnalysis:
     """A result made without _build_file_analysis (a parse failure), bound to
@@ -265,9 +266,13 @@ class SlopDetector:
         except SyntaxError as e:
             logger.warning(f"Syntax error in {file_path}: {e}")
             # Return minimal analysis
-            return _bound(create_error_analysis(file_path, str(e), content), content_hash, "file_bytes")
+            return _bound(
+                create_error_analysis(file_path, str(e), content), content_hash, "file_bytes"
+            )
 
-        result = self._build_file_analysis(file_path, content, tree, facts, content_hash, "file_bytes")
+        result = self._build_file_analysis(
+            file_path, content, tree, facts, content_hash, "file_bytes"
+        )
         # A partially measured result (a pattern raised) is not reused: the
         # failure may be transient, and a cache hit would hide the next answer.
         unmeasured = (
@@ -287,7 +292,9 @@ class SlopDetector:
             )
         return result
 
-    def _cache_hit(self, file_path: str, stat, content_hash: str, fingerprint: str) -> Optional[FileAnalysis]:
+    def _cache_hit(
+        self, file_path: str, stat, content_hash: str, fingerprint: str
+    ) -> Optional[FileAnalysis]:
         """The cached result for these bytes, or None. A hit stands only for the
         bytes read now: an entry bound to other bytes is recomputed."""
         if self._analysis_cache is None:
@@ -337,7 +344,9 @@ class SlopDetector:
             try:
                 tree = ast.parse(content, filename=filename)
             except SyntaxError as e:
-                return _bound(create_error_analysis(filename, str(e), content), digest, "string_utf8")
+                return _bound(
+                    create_error_analysis(filename, str(e), content), digest, "string_utf8"
+                )
             with no_location_scope():
                 return self._build_file_analysis(
                     filename, content, tree, path_facts(filename, None), digest, "string_utf8"
@@ -346,10 +355,17 @@ class SlopDetector:
         try:
             tree = ast.parse(content, filename=str(path_obj))
         except SyntaxError as e:
-            return _bound(create_error_analysis(str(path_obj), str(e), content), digest, "string_utf8")
+            return _bound(
+                create_error_analysis(str(path_obj), str(e), content), digest, "string_utf8"
+            )
         with project_context_scope(), scan_root_scope(Path(project_root)):
             return self._build_file_analysis(
-                str(path_obj), content, tree, facts_for(path_obj, project_root), digest, "string_utf8"
+                str(path_obj),
+                content,
+                tree,
+                facts_for(path_obj, project_root),
+                digest,
+                "string_utf8",
             )
 
     def analyze_project(

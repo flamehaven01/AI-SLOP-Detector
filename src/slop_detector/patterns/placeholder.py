@@ -338,7 +338,7 @@ def _constant_success_report(value: ast.expr, function, content: str) -> Optiona
     args = function.args
     parameters = frozenset(a.arg for a in args.posonlyargs + args.args + args.kwonlyargs)
     marks = constant_success_marks(value, parameters)
-    if not marks:
+    if not marks or not isinstance(value, ast.Call):
         return None
     arguments = list(value.args) + [k.value for k in value.keywords]
     callee = _exception_type_text(value.func, content) or "a constructor"

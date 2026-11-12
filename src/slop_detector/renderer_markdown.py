@@ -385,13 +385,19 @@ def _md_hollow_section(result, root_dir: str) -> list:
     from slop_detector.report_view import build_report_view, short_path
 
     view = build_report_view(result)
-    lines = ["## Hollow Review Candidates (not scored)", "", f"- Hollow channel: {hollow_line(view)}"]
+    lines = [
+        "## Hollow Review Candidates (not scored)",
+        "",
+        f"- Hollow channel: {hollow_line(view)}",
+    ]
     sem = view.semantic
     if sem.files:
         states = ", ".join(f"{state} {n}" for state, n in sorted(sem.files.items()))
         lines.append(f"- Files by state: {states}")
     if sem.unknown_reasons:
-        reasons = ", ".join(f"{k} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1]))
+        reasons = ", ".join(
+            f"{k} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1])
+        )
         lines.append(f"- Why functions were not decidable: {reasons}")
     lines.append(f"- Docstring promises: {claim_line(view)}")
     undecided = view.claims.undecided_by_reason
@@ -406,7 +412,9 @@ def _md_hollow_section(result, root_dir: str) -> list:
         lines += ["| Location | Rule | Function: evidence |", "|---|---|---|"]
         for item in view.candidates:
             message = item.message.replace("|", chr(92) + "|")
-            lines.append(f"| `{short_path(item.file, root_dir)}:{item.line}` | `{item.rule}` | {message} |")
+            lines.append(
+                f"| `{short_path(item.file, root_dir)}:{item.line}` | `{item.rule}` | {message} |"
+            )
         lines.append("")
     return lines
 

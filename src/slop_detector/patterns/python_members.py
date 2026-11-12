@@ -76,5 +76,7 @@ class PhantomMemberPattern(BasePattern):
             ),
         )
         # one import line can name several members
-        issue.subject = finding.module if finding.name is None else f"{finding.module}.{finding.name}"
+        issue.subject = (
+            finding.module if finding.name is None else f"{finding.module}.{finding.name}"
+        )
         return issue

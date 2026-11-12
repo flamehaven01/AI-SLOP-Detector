@@ -12,7 +12,14 @@ from datetime import datetime
 from typing import List
 
 from slop_detector import __version__
-from slop_detector.report_view import REVIEW_CANDIDATE, Item, ReportView, brief_items, build_report_view, short_path
+from slop_detector.report_view import (
+    REVIEW_CANDIDATE,
+    Item,
+    ReportView,
+    brief_items,
+    build_report_view,
+    short_path,
+)
 
 _CSP = "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:"
 _PATH_CHARS = 72  # body text shortens longer paths in the middle; the appendix keeps them whole
@@ -128,9 +135,13 @@ def _cards(view: ReportView) -> str:
     sem = view.semantic
     if sem.state in ("MEASURED", "PARTIAL"):
         hollow_v = str(len(view.candidates))
-        hollow_s = f"review candidates, not scored; {sem.functions} functions, {sem.unknown} not decidable"
+        hollow_s = (
+            f"review candidates, not scored; {sem.functions} functions, {sem.unknown} not decidable"
+        )
         if sem.state == "PARTIAL":
-            hollow_s += "; " + ", ".join(f"{n} files {state}" for state, n in sorted(sem.files.items()))
+            hollow_s += "; " + ", ".join(
+                f"{n} files {state}" for state, n in sorted(sem.files.items())
+            )
     else:
         hollow_v = "-"
         hollow_s = {"SKIPPED": "skipped", "UNMEASURED": "not measured (analysis failed)"}.get(
@@ -138,15 +149,22 @@ def _cards(view: ReportView) -> str:
         )
     cards = [
         ("Score", score, f"{view.status} (score band, out of 100)"),
-        ("Findings", str(len(view.findings)),
-         f"critical {sev['critical']} / high {sev['high']} / medium {sev['medium']} / low {sev['low']}"),
+        (
+            "Findings",
+            str(len(view.findings)),
+            f"critical {sev['critical']} / high {sev['high']} / medium {sev['medium']} / low {sev['low']}",
+        ),
         ("Hollow", hollow_v, hollow_s),
         ("Measurement", view.measurement, f"hollow channel: {sem.state}"),
     ]
-    return '<div class="kpis">' + "".join(
-        f'<div class="card"><div class="k">{_e(k)}</div><div class="v">{_e(v)}</div><div class="s">{_e(s)}</div></div>'
-        for k, v, s in cards
-    ) + "</div>"
+    return (
+        '<div class="kpis">'
+        + "".join(
+            f'<div class="card"><div class="k">{_e(k)}</div><div class="v">{_e(v)}</div><div class="s">{_e(s)}</div></div>'
+            for k, v, s in cards
+        )
+        + "</div>"
+    )
 
 
 def _brief(view: ReportView, root: str, when: str) -> str:
@@ -163,17 +181,25 @@ def _brief(view: ReportView, root: str, when: str) -> str:
         "not a verdict.</p>",
         "<h2>Top items</h2>",
     ]
-    parts += [_item(i, root) for i in chosen] or ['<p class="rest">No finding and no review candidate.</p>']
+    parts += [_item(i, root) for i in chosen] or [
+        '<p class="rest">No finding and no review candidate.</p>'
+    ]
     if rest:
         parts.append(f'<p class="rest">{rest} more item(s) in the sections below.</p>')
     if view.next_steps:
-        parts.append("<h2>Next steps</h2><ol>" + "".join(f"<li>{_e(s)}</li>" for s in view.next_steps) + "</ol>")
+        parts.append(
+            "<h2>Next steps</h2><ol>"
+            + "".join(f"<li>{_e(s)}</li>" for s in view.next_steps)
+            + "</ol>"
+        )
     parts.append("</section>")
     return "".join(parts)
 
 
 def _findings(view: ReportView, root: str) -> str:
-    body = "".join(_item(i, root) for i in view.findings) or '<p class="rest">No pattern finding.</p>'
+    body = (
+        "".join(_item(i, root) for i in view.findings) or '<p class="rest">No pattern finding.</p>'
+    )
     return f'<section id="findings"><h2>Findings ({len(view.findings)})</h2>{body}</section>'
 
 
@@ -181,7 +207,9 @@ def _hollow(view: ReportView, root: str) -> str:
     from slop_detector.renderer_terminal import claim_line, hollow_line
 
     sem = view.semantic
-    reasons = ", ".join(f"{_e(k)} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1]))
+    reasons = ", ".join(
+        f"{_e(k)} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1])
+    )
     parts = [
         f'<section id="hollow"><h2>Hollow review candidates ({len(view.candidates)}, not scored)</h2>',
         f'<div class="note">{_e(hollow_line(view))}. A candidate is evidence for a review, '
@@ -196,15 +224,20 @@ def _hollow(view: ReportView, root: str) -> str:
     return "".join(parts)
 
 
-def _table(head: List[str], rows: List[List[str]], widths: List[int], numeric: frozenset = frozenset()) -> str:
+def _table(
+    head: List[str], rows: List[List[str]], widths: List[int], numeric: frozenset = frozenset()
+) -> str:
     """A table with fixed column widths (percent): a fixed layout keeps a long
     cell from widening its column and pushing the table off the page."""
+
     def cell(tag: str, i: int, text: str) -> str:
         cls = ' class="num"' if i in numeric else ""
         return f"<{tag}{cls}>{text}</{tag}>"
 
     thead = "<tr>" + "".join(cell("th", i, _e(h)) for i, h in enumerate(head)) + "</tr>"
-    tbody = "".join("<tr>" + "".join(cell("td", i, c) for i, c in enumerate(r)) + "</tr>" for r in rows)
+    tbody = "".join(
+        "<tr>" + "".join(cell("td", i, c) for i, c in enumerate(r)) + "</tr>" for r in rows
+    )
     cols = "".join(f'<col style="width:{w}%">' for w in widths)
     return f"<table><colgroup>{cols}</colgroup><thead>{thead}</thead><tbody>{tbody}</tbody></table>"
 
@@ -212,16 +245,25 @@ def _table(head: List[str], rows: List[List[str]], widths: List[int], numeric: f
 def _score_details(view: ReportView) -> str:
     if not view.metrics:
         return '<section id="score"><h2>Score details</h2><p class="rest">Not evaluated: nothing was measured.</p></section>'
-    rows = [[_e(m["label"]), _e(m["value"]), _e(m["direction"]), _e(m["means"])] for m in view.metrics]
+    rows = [
+        [_e(m["label"]), _e(m["value"]), _e(m["direction"]), _e(m["means"])] for m in view.metrics
+    ]
     table = _table(["Metric", "Value", "Healthy", "Meaning"], rows, [30, 13, 11, 46])
     return f'<section id="score" class="keep"><h2>Score details</h2>{table}</section>'
 
 
 def _coverage(view: ReportView) -> str:
-    labels = {"analyzed": "Analyzed", "excluded": "Excluded", "unsupported": "Unsupported",
-              "failed": "Failed", "unmeasured": "Not fully measured"}
+    labels = {
+        "analyzed": "Analyzed",
+        "excluded": "Excluded",
+        "unsupported": "Unsupported",
+        "failed": "Failed",
+        "unmeasured": "Not fully measured",
+    }
     rows = [[labels[k], str(v)] for k, v in view.coverage.items()]
-    rows += [[f"Hollow channel: {_e(state)}", str(n)] for state, n in sorted(view.semantic.files.items())]
+    rows += [
+        [f"Hollow channel: {_e(state)}", str(n)] for state, n in sorted(view.semantic.files.items())
+    ]
     notes = "".join(f"<li>{_e(n)}</li>" for n in view.coverage_notes)
     return (
         '<section id="coverage" class="keep"><h2>Coverage</h2>'
@@ -233,8 +275,12 @@ def _coverage(view: ReportView) -> str:
 
 def _appendix(view: ReportView, root: str) -> str:
     rows = [
-        [f'<code class="loc">{_e(short_path(path, root))}</code>', "N/A" if score is None else f"{score:.1f}",
-         _e(status.replace("_", " ")), str(n)]
+        [
+            f'<code class="loc">{_e(short_path(path, root))}</code>',
+            "N/A" if score is None else f"{score:.1f}",
+            _e(status.replace("_", " ")),
+            str(n),
+        ]
         for path, score, status, n in sorted(view.file_rows, key=lambda r: -(r[1] or 0))
     ]
     return (
@@ -247,9 +293,13 @@ def _appendix(view: ReportView, root: str) -> str:
 
 def _chips() -> str:
     sevs = ["critical", "high", "medium", "low", "review"]
-    return '<div class="chips">' + "".join(
-        f'<button type="button" data-sev="{s}" aria-pressed="true">{s}</button>' for s in sevs
-    ) + "</div>"
+    return (
+        '<div class="chips">'
+        + "".join(
+            f'<button type="button" data-sev="{s}" aria-pressed="true">{s}</button>' for s in sevs
+        )
+        + "</div>"
+    )
 
 
 def render_view_html(view: ReportView, when: str = "") -> str:
@@ -258,8 +308,14 @@ def render_view_html(view: ReportView, when: str = "") -> str:
     when = when or datetime.now().strftime("%Y-%m-%d %H:%M")
     nav = "".join(
         f'<a href="#{i}">{t}</a>'
-        for i, t in (("summary", "Summary"), ("findings", "Findings"), ("hollow", "Hollow"),
-                     ("score", "Score"), ("coverage", "Coverage"), ("files", "Files"))
+        for i, t in (
+            ("summary", "Summary"),
+            ("findings", "Findings"),
+            ("hollow", "Hollow"),
+            ("score", "Score"),
+            ("coverage", "Coverage"),
+            ("files", "Files"),
+        )
     )
     return (
         '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'

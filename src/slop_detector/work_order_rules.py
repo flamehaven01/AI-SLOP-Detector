@@ -8,7 +8,7 @@ item, preconditions that start NOT-MEASURED, changes only after approval).
 
 The digest is the SHA-256 of the canonical JSON (keys sorted, no spaces): a
 change to any rule changes it, a change of layout does not. A missing,
-unreadable or invalid ruleset raises RulesetInvalid; there is no default
+unreadable or invalid ruleset raises RulesetInvalidError; there is no default
 text to fall back on, so a report is never written under unchecked rules.
 """
 
@@ -19,7 +19,14 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    ValidationError,
+    model_validator,
+)
 from typing_extensions import Annotated, Literal
 
 RULESET_PATH = Path(__file__).parent / "config" / "work_order_rules.json"
@@ -29,7 +36,7 @@ MODES = ("auditor", "agent")
 Text = Annotated[str, StringConstraints(min_length=1)]
 
 
-class RulesetInvalid(RuntimeError):
+class RulesetInvalidError(RuntimeError):
     """The ruleset is missing, unreadable or fails its schema."""
 
 
@@ -64,7 +71,9 @@ class Agent(_Strict):
     purpose: Text
     authority: Text
     code: Literal["locator"]
-    preconditions: List[Annotated[str, StringConstraints(pattern=r"^P[0-9]+ .+")]] = Field(min_length=1)
+    preconditions: List[Annotated[str, StringConstraints(pattern=r"^P[0-9]+ .+")]] = Field(
+        min_length=1
+    )
     precondition_rule: Text
     read: Annotated[str, StringConstraints(pattern=r".*[{]file[}].*[{]span[}].*")]
     allowed: List[Text] = Field(min_length=1)
@@ -105,7 +114,9 @@ class Ruleset(_Strict):
         for name, family in self.families.items():
             for rule in family.rules:
                 if rule in seen:
-                    raise ValueError(f"rule {rule!r} is in two families: {seen[rule]!r} and {name!r}")
+                    raise ValueError(
+                        f"rule {rule!r} is in two families: {seen[rule]!r} and {name!r}"
+                    )
                 seen[rule] = name
         return self
 
@@ -123,16 +134,20 @@ def canonical_digest(data: Any) -> str:
 
 
 def load_ruleset(path: Optional[Path] = None) -> Tuple[Ruleset, str]:
-    """(ruleset, canonical digest); RulesetInvalid when it cannot be trusted."""
+    """(ruleset, canonical digest); RulesetInvalidError when it cannot be trusted."""
     source = Path(path) if path is not None else RULESET_PATH
     try:
         data = json.loads(source.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
-        raise RulesetInvalid(f"the work-order ruleset {source.name} cannot be read: {type(exc).__name__}") from exc
+        raise RulesetInvalidError(
+            f"the work-order ruleset {source.name} cannot be read: {type(exc).__name__}"
+        ) from exc
     try:
         ruleset = Ruleset.model_validate(data)
     except ValidationError as exc:
-        raise RulesetInvalid(f"the work-order ruleset fails its schema: {exc.error_count()} error(s)") from exc
+        raise RulesetInvalidError(
+            f"the work-order ruleset fails its schema: {exc.error_count()} error(s)"
+        ) from exc
     return ruleset, canonical_digest(data)
 
 
@@ -146,4 +161,3 @@ def header_fields(ruleset: Ruleset, digest: str) -> Dict[str, Any]:
         "prove": ruleset.prove.model_dump(),
         "ruleset": {"schema": SCHEMA, "version": ruleset.version, "sha256": digest},
     }
-

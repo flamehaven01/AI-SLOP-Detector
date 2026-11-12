@@ -186,17 +186,22 @@ def _analyze_project(arguments: Dict[str, Any]) -> Dict[str, Any]:
 
 def _ai_report(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """The validated AI report: JSON Lines as text, the records as structuredContent."""
-    from slop_detector.ai_report import AiReportInvalid, render_ai_report
+    from slop_detector.ai_report import AiReportInvalidError, render_ai_report
 
     target = Path(arguments["target"])
     if not target.exists():
         return _tool_result({"error": "target_not_found", "target": str(target)}, is_error=True)
     mode = "project" if target.is_dir() else "python_file"
     try:
-        text = render_ai_report(_scan(target, mode, arguments.get("config_path")), arguments.get("limit"))
+        text = render_ai_report(
+            _scan(target, mode, arguments.get("config_path")), arguments.get("limit")
+        )
     except ScanFailedError as exc:
-        return _tool_result({"error": "unsupported_language", "target": str(target), "detail": exc.detail}, is_error=True)
-    except AiReportInvalid as exc:
+        return _tool_result(
+            {"error": "unsupported_language", "target": str(target), "detail": exc.detail},
+            is_error=True,
+        )
+    except AiReportInvalidError as exc:
         return _tool_result({"error": "ai_report_invalid", "detail": str(exc)}, is_error=True)
     records = [json.loads(line) for line in text.splitlines()]
     return {

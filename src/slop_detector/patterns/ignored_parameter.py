@@ -265,7 +265,9 @@ def signature_family(intent, node) -> list:
         return [
             other
             for other in container.body
-            if isinstance(other, functions) and other is not node and set(_parameter_names(other)) == mine
+            if isinstance(other, functions)
+            and other is not node
+            and set(_parameter_names(other)) == mine
         ]
     if not isinstance(container, ast.Module):
         return []

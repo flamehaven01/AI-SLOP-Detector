@@ -9,7 +9,11 @@ from rich.console import Console
 import slop_detector.claim_judge as claim_judge
 import slop_detector.core as core
 from slop_detector.ai_report import render_ai_report
-from slop_detector.analysis_cache import FileAnalysisCache, deserialize_file_analysis, serialize_file_analysis
+from slop_detector.analysis_cache import (
+    FileAnalysisCache,
+    deserialize_file_analysis,
+    serialize_file_analysis,
+)
 from slop_detector.claim_findings import RULE, ClaimFinding
 from slop_detector.core import SlopDetector
 from slop_detector.path_facts import facts_for
@@ -74,15 +78,27 @@ def test_a_contradicted_claim_is_a_review_candidate_with_its_promise(tmp_path):
     f = _file(result, "rates.py")
     [claim] = f.claim_findings
     assert (claim.function, claim.kind, claim.claim_kind, claim.basis) == (
-        "fetch_exchange_rates", RULE, "live_data", "literal_result")
+        "fetch_exchange_rates",
+        RULE,
+        "live_data",
+        "literal_result",
+    )
     assert (claim.line, claim.promise_line) == (2, 3)  # the def line; the docstring line
     assert claim.promise == "Fetch live exchange rates for the base currency."
     assert claim.looked_for and claim.why and claim.resolves and claim.same_cause_as == []
     assert f.claim_coverage["state"] == "MEASURED"
-    assert (f.claim_coverage["contradicted"], f.claim_coverage["candidates"], f.claim_coverage["merged"]) == (1, 1, 0)
+    assert (
+        f.claim_coverage["contradicted"],
+        f.claim_coverage["candidates"],
+        f.claim_coverage["merged"],
+    ) == (1, 1, 0)
     view = build_report_view(result)
     [item] = [i for i in view.candidates if i.rule == RULE]
-    assert item.kind == REVIEW_CANDIDATE and item.line == 2 and item.promise["basis"] == "literal_result"
+    assert (
+        item.kind == REVIEW_CANDIDATE
+        and item.line == 2
+        and item.promise["basis"] == "literal_result"
+    )
     assert "promises" in item.message and item.suggestion == claim.resolves
     # the stub elsewhere keeps its own finding, without the promise
     assert all(i.promise is None for i in view.findings)
@@ -91,7 +107,9 @@ def test_a_contradicted_claim_is_a_review_candidate_with_its_promise(tmp_path):
 def test_the_claim_channel_never_changes_the_score(tmp_path, monkeypatch):
     files = {"rates.py": CANDIDATE, "token.py": MERGED, "summary.py": OTHER_EVIDENCE}
     with_claims = _project(tmp_path, files)
-    monkeypatch.setattr(core, "claim_analysis", lambda tree, is_test, issues: ([], {"state": "MEASURED"}))
+    monkeypatch.setattr(
+        core, "claim_analysis", lambda tree, is_test, issues: ([], {"state": "MEASURED"})
+    )
     without = _project(tmp_path, files)
     assert with_claims.weighted_deficit_score == without.weighted_deficit_score
     assert with_claims.overall_status == without.overall_status
@@ -109,9 +127,14 @@ def test_the_same_cause_and_evidence_is_one_item(tmp_path):
     view = build_report_view(result)
     assert [i for i in view.candidates if i.rule == RULE] == []
     [finding] = [i for i in view.findings if i.rule == "return_constant_stub"]
-    assert "also breaks its docstring" in finding.message and finding.promise["basis"] == "single_outcome"
+    assert (
+        "also breaks its docstring" in finding.message
+        and finding.promise["basis"] == "single_outcome"
+    )
     [record] = [r for r in _ai(result)[1:] if r["rule"] == "return_constant_stub"]
-    assert record["kind"] == "FINDING" and record["promise"]["same_cause_as"] == ["return_constant_stub"]
+    assert record["kind"] == "FINDING" and record["promise"]["same_cause_as"] == [
+        "return_constant_stub"
+    ]
 
 
 def test_other_evidence_on_the_same_function_stays_a_candidate(tmp_path):
@@ -121,16 +144,22 @@ def test_other_evidence_on_the_same_function_stays_a_candidate(tmp_path):
     assert [(c.basis, c.same_cause_as) for c in summary.claim_findings] == [("literal_result", [])]
     # the constant-return rule fired on this def line, but the basis differs
     assert "return_constant_stub" in {i.pattern_id for i in upload.pattern_issues}
-    assert [(c.basis, c.same_cause_as) for c in upload.claim_findings] == [("no_concurrent_call", [])]
-    assert {i.message.split(":")[0] for i in build_report_view(result).candidates if i.rule == RULE} == {
-        "summarize", "upload_all"}
+    assert [(c.basis, c.same_cause_as) for c in upload.claim_findings] == [
+        ("no_concurrent_call", [])
+    ]
+    assert {
+        i.message.split(":")[0] for i in build_report_view(result).candidates if i.rule == RULE
+    } == {"summarize", "upload_all"}
 
 
 def test_the_json_and_the_cache_keep_every_field(tmp_path):
     f = _file(_project(tmp_path, {"rates.py": CANDIDATE, "token.py": MERGED}), "token.py")
     data = f.to_dict()
     assert data["claim_findings"] == [c.to_dict() for c in f.claim_findings]
-    assert data["claim_coverage"] == f.claim_coverage and data["claim_coverage"] is not f.claim_coverage
+    assert (
+        data["claim_coverage"] == f.claim_coverage
+        and data["claim_coverage"] is not f.claim_coverage
+    )
     restored = deserialize_file_analysis(serialize_file_analysis(f))
     assert [c.to_dict() for c in restored.claim_findings] == data["claim_findings"]
     assert all(isinstance(c, ClaimFinding) for c in restored.claim_findings)
@@ -152,14 +181,19 @@ def test_a_failed_channel_is_unmeasured_never_cached_and_never_zero(tmp_path, mo
 
     monkeypatch.setattr(core, "claim_analysis", boom)
     failed = detector.analyze_file(str(path))
-    assert failed.claim_findings == [] and failed.claim_coverage == {"state": "UNMEASURED", "error_type": "RecursionError"}
+    assert failed.claim_findings == [] and failed.claim_coverage == {
+        "state": "UNMEASURED",
+        "error_type": "RecursionError",
+    }
     assert puts == []
     monkeypatch.undo()
     # one judgment failing is counted, and the result is not cached either
     monkeypatch.setattr(detector._analysis_cache, "put", lambda **kw: puts.append(kw))
     monkeypatch.setitem(claim_judge.RULES, "live_data", lambda *a: 1 / 0)
     partial = detector.analyze_file(str(path))
-    assert partial.claim_coverage["state"] == "MEASURED" and partial.claim_coverage["unmeasured"] == 1
+    assert (
+        partial.claim_coverage["state"] == "MEASURED" and partial.claim_coverage["unmeasured"] == 1
+    )
     assert partial.claim_findings == [] and puts == []
     monkeypatch.undo()
     monkeypatch.setattr(detector._analysis_cache, "put", lambda **kw: puts.append(kw))
@@ -170,7 +204,9 @@ def test_a_failed_channel_is_unmeasured_never_cached_and_never_zero(tmp_path, mo
 def test_every_report_states_the_channel_and_never_writes_zero_when_not_measured(tmp_path):
     result = _project(tmp_path, {"rates.py": CANDIDATE})
     view = build_report_view(result)
-    assert claim_line(view).startswith("1 docstring promise(s): 1 contradicted (1 candidate(s), 0 merged")
+    assert claim_line(view).startswith(
+        "1 docstring promise(s): 1 contradicted (1 candidate(s), 0 merged"
+    )
     out = io.StringIO()
     print_summary(view, console=Console(file=out, width=240, color_system=None))
     assert "Promises" in out.getvalue() and "1 docstring promise(s)" in out.getvalue()
@@ -208,8 +244,11 @@ def test_skipped_test_code_and_no_python_are_counted_not_judged(tmp_path):
     (tmp_path / "pyproject.toml").write_text("", encoding="utf-8")
     path = tmp_path / "tests" / "test_rates.py"
     path.parent.mkdir()
-    path.write_text(CANDIDATE, encoding="utf-8")  # a project scan leaves tests/ out; one file is judged
+    path.write_text(
+        CANDIDATE, encoding="utf-8"
+    )  # a project scan leaves tests/ out; one file is judged
     f = SlopDetector(read_only=True).analyze_file(str(path))
     assert f.claim_findings == [] and f.claim_coverage["not_analyzed_by_reason"]["test_code"] == 1
-    assert build_report_view(SlopDetector(read_only=True).analyze_project(str(tmp_path / "none"))).claims.state == (
-        "NOT_APPLICABLE")
+    assert build_report_view(
+        SlopDetector(read_only=True).analyze_project(str(tmp_path / "none"))
+    ).claims.state == ("NOT_APPLICABLE")

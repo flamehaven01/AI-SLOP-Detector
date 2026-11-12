@@ -21,8 +21,14 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from slop_detector import __version__
 from slop_detector.claim_findings import RULE as CLAIM_RULE
 from slop_detector.finding_identity import MODULE, semantic_part
-from slop_detector.work_order_rules import Ruleset, RulesetInvalid, header_fields, load_ruleset
-from slop_detector.report_view import FINDING, REVIEW_CANDIDATE, Item, ReportView, build_report_view, short_path
+from slop_detector.report_view import (
+    FINDING,
+    Item,
+    ReportView,
+    build_report_view,
+    short_path,
+)
+from slop_detector.work_order_rules import Ruleset, RulesetInvalidError, header_fields, load_ruleset
 
 SCHEMA = "ai-slop-report/1"
 MISSING = "MISSING"
@@ -30,7 +36,7 @@ MISSING = "MISSING"
 # from the work-order ruleset (work_order_rules), stated once in the header.
 
 
-class AiReportInvalid(RuntimeError):
+class AiReportInvalidError(RuntimeError):
     """The report failed its own schema; nothing was written."""
 
 
@@ -162,7 +168,7 @@ def _item_id(item: Item, rel: str) -> str:
 def _record(item: Item, root: str, view: ReportView) -> Dict[str, Any]:
     rel = short_path(item.file, root)
     finding = item.kind == FINDING
-    record = {
+    record: Dict[str, Any] = {
         "record": "item",
         "id": _item_id(item, rel),
         "semantic_key": _semantic_key(item, rel),
@@ -179,7 +185,8 @@ def _record(item: Item, root: str, view: ReportView) -> Dict[str, Any]:
         "source_origin": item.content_origin or MISSING,
         "channel_state": _channel_state(item, view),
         "evidence": item.message or MISSING,
-        "fix": item.suggestion or (MISSING if finding else "NOT-APPLICABLE: decide in VERIFY first"),
+        "fix": item.suggestion
+        or (MISSING if finding else "NOT-APPLICABLE: decide in VERIFY first"),
     }
     if item.promise is not None:
         record["promise"] = item.promise
@@ -193,11 +200,11 @@ def _channel_state(item: Item, view: ReportView) -> str:
 
 
 def ruleset() -> Tuple[Ruleset, str]:
-    """The checked ruleset and its digest; AiReportInvalid when it cannot be trusted."""
+    """The checked ruleset and its digest; AiReportInvalidError when it cannot be trusted."""
     try:
         return load_ruleset()
-    except RulesetInvalid as exc:
-        raise AiReportInvalid(str(exc)) from exc
+    except RulesetInvalidError as exc:
+        raise AiReportInvalidError(str(exc)) from exc
 
 
 def build_records(
@@ -220,13 +227,19 @@ def build_records(
         "files": view.files,
         "score": view.score,
         "status": view.status,
-        "measurement": {"pattern": view.measurement, "hollow": view.semantic.state, "claims": view.claims.state},
+        "measurement": {
+            "pattern": view.measurement,
+            "hollow": view.semantic.state,
+            "claims": view.claims.state,
+        },
         "findings": len(view.findings),
         "candidates": len(view.candidates),
         "severity": view.severity,
         "hollow_functions": view.semantic.functions,
         "hollow_not_decidable": view.semantic.unknown,
-        "claims": dict(view.claims.counts, undecided_by_reason=dict(view.claims.undecided_by_reason)),
+        "claims": dict(
+            view.claims.counts, undecided_by_reason=dict(view.claims.undecided_by_reason)
+        ),
         "emitted": len(kept),
         "truncated": len(items) - len(kept),
         **header_fields(*(rules or ruleset())),
@@ -235,18 +248,20 @@ def build_records(
 
 
 def validate(records: List[Dict[str, Any]]) -> None:
-    """Every record against its model; raise AiReportInvalid on the first failure."""
+    """Every record against its model; raise AiReportInvalidError on the first failure."""
     try:
         if not records:
-            raise AiReportInvalid("an AI report needs its header record")
+            raise AiReportInvalidError("an AI report needs its header record")
         Header.model_validate(records[0])
         for record in records[1:]:
             Record.model_validate(record)
         ids = [r["id"] for r in records[1:]]
         if len(set(ids)) != len(ids):
-            raise AiReportInvalid("the AI report has two items with one id")
+            raise AiReportInvalidError("the AI report has two items with one id")
     except ValidationError as exc:
-        raise AiReportInvalid(f"the AI report failed its schema: {exc.error_count()} error(s)") from exc
+        raise AiReportInvalidError(
+            f"the AI report failed its schema: {exc.error_count()} error(s)"
+        ) from exc
 
 
 def _line(record: Dict[str, Any]) -> str:
@@ -284,7 +299,9 @@ def prove_state(
     return "HOLD"  # the cause is left as often as before (reworded), or the match is ambiguous
 
 
-def _left(before: List[Dict[str, Any]], after: List[Dict[str, Any]], item_id: str, field: str) -> Optional[str]:
+def _left(
+    before: List[Dict[str, Any]], after: List[Dict[str, Any]], item_id: str, field: str
+) -> Optional[str]:
     """What the re-scan says about the item among the records sharing its
     `field`; None when none of them is left."""
     after_ids = {r["id"] for r in after}

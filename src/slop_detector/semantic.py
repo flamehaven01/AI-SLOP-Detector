@@ -136,8 +136,16 @@ def _named(function: FunctionNode) -> Set[str]:
 # lambda and match variables (MatchAs / MatchStar: 3.10+), and `global` /
 # `nonlocal` declarations.
 _BINDING_NODES = (
-    ast.Name, ast.arg, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.ExceptHandler,
-    ast.Import, ast.ImportFrom, ast.Global, ast.Nonlocal,
+    ast.Name,
+    ast.arg,
+    ast.FunctionDef,
+    ast.AsyncFunctionDef,
+    ast.ClassDef,
+    ast.ExceptHandler,
+    ast.Import,
+    ast.ImportFrom,
+    ast.Global,
+    ast.Nonlocal,
 ) + tuple(getattr(ast, n) for n in ("MatchAs", "MatchStar") if hasattr(ast, n))
 
 
@@ -198,15 +206,36 @@ UNCLASSIFIED = "unclassified"
 _OPEN_CALL_DETAILS = (AMBIGUOUS, DYNAMIC, EXTERNAL, MODULE_DEFINED_UNRESOLVED, UNCLASSIFIED)
 _BUILTIN_NAMES = frozenset(dir(builtins))
 # Expressions whose result, made at run time, is the receiver: `(a or b).close()`.
-_RUNTIME_ROOTS = (ast.BinOp, ast.BoolOp, ast.Await, ast.Compare, ast.IfExp, ast.UnaryOp, ast.NamedExpr)
+_RUNTIME_ROOTS = (
+    ast.BinOp,
+    ast.BoolOp,
+    ast.Await,
+    ast.Compare,
+    ast.IfExp,
+    ast.UnaryOp,
+    ast.NamedExpr,
+)
 # Literals whose type is a builtin: a method on one is a builtin's (`{...}.get`).
 _BUILTIN_LITERALS = (
-    ast.Constant, ast.Dict, ast.List, ast.Set, ast.Tuple, ast.JoinedStr, ast.ListComp, ast.SetComp, ast.DictComp,
+    ast.Constant,
+    ast.Dict,
+    ast.List,
+    ast.Set,
+    ast.Tuple,
+    ast.JoinedStr,
+    ast.ListComp,
+    ast.SetComp,
+    ast.DictComp,
 )
 _VALUE = "value"  # a name the function binds to a value made at run time
 # Decorators that keep a method's first parameter the instance, by origin.
 _INSTANCE_DECORATORS = frozenset(
-    {"functools.cached_property", "abc.abstractmethod", "typing.override", "typing_extensions.override"}
+    {
+        "functools.cached_property",
+        "abc.abstractmethod",
+        "typing.override",
+        "typing_extensions.override",
+    }
 )
 _PROPERTY_PARTS = frozenset({"setter", "getter", "deleter"})
 # The one class decorator that keeps a class's own methods as written, by origin.
@@ -261,8 +290,11 @@ def _value_bindings(tree: ast.AST) -> Set[str]:
             targets = [getattr(node, "target", None)] + list(getattr(node, "targets", []))
             targets += [item.optional_vars for item in getattr(node, "items", [])]
             names |= {
-                n.id for t in targets if t is not None
-                for n in ast.walk(t) if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)
+                n.id
+                for t in targets
+                if t is not None
+                for n in ast.walk(t)
+                if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)
             }
     return names | {n for g in ast.walk(tree) if isinstance(g, ast.Global) for n in g.names}
 
@@ -282,14 +314,14 @@ def _class_rebinds(klass: ast.ClassDef) -> Set[str]:
         for name in _statement_targets(node):
             seen[name] = seen.get(name, 0) + 1
     rebound = {name for name, count in seen.items() if count > 1}
-    for node in ast.walk(klass):
+    for sub in ast.walk(klass):
         if (
-            isinstance(node, ast.Attribute)
-            and isinstance(node.ctx, (ast.Store, ast.Del))
-            and isinstance(node.value, ast.Name)
-            and node.value.id in _IMPLICIT
+            isinstance(sub, ast.Attribute)
+            and isinstance(sub.ctx, (ast.Store, ast.Del))
+            and isinstance(sub.value, ast.Name)
+            and sub.value.id in _IMPLICIT
         ):
-            rebound.add(node.attr)
+            rebound.add(sub.attr)
     return rebound
 
 
@@ -320,10 +352,16 @@ class _Graph:
         self._kinds: Dict[FunctionNode, Dict[str, list]] = {}
         self._class_of: Dict[FunctionNode, ast.ClassDef] = {}
         body = getattr(tree, "body", [])
-        defined = {n.name for n in body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+        defined = {
+            n.name
+            for n in body
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        }
         # Top-level classes bound once; values the module assigns at top level.
         self.classes: Dict[str, ast.ClassDef] = {
-            n.name: n for n in body if isinstance(n, ast.ClassDef) and ("", n.name) not in self.ambiguous
+            n.name: n
+            for n in body
+            if isinstance(n, ast.ClassDef) and ("", n.name) not in self.ambiguous
         }
         self.module_values = self.intent.module_bindings - self.imported - defined
         for node in body:
@@ -389,9 +427,13 @@ class _Graph:
                 kinds.setdefault(node.name, []).append(node)
             elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
                 kinds.setdefault(node.id, []).append(_VALUE)
-            elif isinstance(node, ast.ExceptHandler) or type(node).__name__ in ("MatchAs", "MatchStar"):
-                if node.name:
-                    kinds.setdefault(node.name, []).append(_VALUE)
+            elif isinstance(node, ast.ExceptHandler) or type(node).__name__ in (
+                "MatchAs",
+                "MatchStar",
+            ):
+                name = getattr(node, "name", None)
+                if name:
+                    kinds.setdefault(name, []).append(_VALUE)
         self._kinds[function] = kinds
         return kinds
 
@@ -403,7 +445,9 @@ class _Graph:
         """(callee, positional offset) for a call into the module, or None (open edge)."""
         return self.resolution(call, caller)[0]
 
-    def resolution(self, call: ast.Call, caller: FunctionNode) -> Tuple[Optional[Tuple[FunctionNode, int]], str]:
+    def resolution(
+        self, call: ast.Call, caller: FunctionNode
+    ) -> Tuple[Optional[Tuple[FunctionNode, int]], str]:
         """(callee, positional offset), or (None, why the target is open).
 
         A call joins the closed graph only when its target is certain. Open:
@@ -529,7 +573,9 @@ class _Graph:
         (that makes a new class object)."""
         if isinstance(decorator, ast.Call):
             options = decorator.keywords
-            if decorator.args or any(k.arg == "slots" or not isinstance(k.value, ast.Constant) for k in options):
+            if decorator.args or any(
+                k.arg == "slots" or not isinstance(k.value, ast.Constant) for k in options
+            ):
                 return False
             decorator = decorator.func
         return self._origins(decorator, set()) == {_STANDARD_DATACLASS}
@@ -540,13 +586,17 @@ class _Graph:
 
     def _is_property(self, klass: ast.ClassDef, value: ast.expr, local: Set[str]) -> bool:
         """`@size.setter`: `size` is a def of the class under the builtin `property`."""
-        return isinstance(value, ast.Name) and self._builtin_property(local) and any(
-            isinstance(member, _FUNCTIONS)
-            and member.name == value.id
-            and len(member.decorator_list) == 1
-            and isinstance(member.decorator_list[0], ast.Name)
-            and member.decorator_list[0].id == "property"
-            for member in klass.body
+        return (
+            isinstance(value, ast.Name)
+            and self._builtin_property(local)
+            and any(
+                isinstance(member, _FUNCTIONS)
+                and member.name == value.id
+                and len(member.decorator_list) == 1
+                and isinstance(member.decorator_list[0], ast.Name)
+                and member.decorator_list[0].id == "property"
+                for member in klass.body
+            )
         )
 
     def _inherited(self, owner: str, name: str) -> str:
@@ -558,11 +608,13 @@ class _Graph:
         bases = _real_bases(klass) if klass else []
         if not bases:
             return UNCLASSIFIED
-        local = [self.classes[b.id] for b in bases if isinstance(b, ast.Name) and b.id in self.classes]
+        local = [
+            self.classes[b.id] for b in bases if isinstance(b, ast.Name) and b.id in self.classes
+        ]
         why = self._from_module_bases(local, name) if len(local) == len(bases) else EXTERNAL
         if why == AMBIGUOUS:
             return why  # a module base binds it again, whatever adds methods here
-        if klass.decorator_list or klass.keywords:
+        if klass is None or klass.decorator_list or klass.keywords:
             return UNCLASSIFIED
         if why == EXTERNAL and not all(self._imported_root(b) for b in bases):
             return UNCLASSIFIED
@@ -584,7 +636,11 @@ class _Graph:
                 return AMBIGUOUS
             found = found or (base.name, name) in self.functions
             parents = _real_bases(base)
-            inner = [self.classes[b.id] for b in parents if isinstance(b, ast.Name) and b.id in self.classes]
+            inner = [
+                self.classes[b.id]
+                for b in parents
+                if isinstance(b, ast.Name) and b.id in self.classes
+            ]
             mixed = mixed or len(inner) < len(parents) or bool(base.decorator_list or base.keywords)
             local += inner
         return MODULE_DEFINED_UNRESOLVED if found and not mixed else UNCLASSIFIED
@@ -594,7 +650,11 @@ class _Graph:
         node = base.value if isinstance(base, ast.Subscript) else base
         while isinstance(node, ast.Attribute):
             node = node.value
-        return isinstance(node, ast.Name) and node.id in self.imported and node.id not in self.rebound_imports
+        return (
+            isinstance(node, ast.Name)
+            and node.id in self.imported
+            and node.id not in self.rebound_imports
+        )
 
     def _local_binding(self, name: str, caller: FunctionNode, called: bool = True) -> str:
         """A name the caller binds: a parameter is the caller's choice, a
@@ -626,7 +686,9 @@ class _Graph:
             return DYNAMIC
         return UNCLASSIFIED  # an undefined name, or one bound inside a block
 
-    def _receiver(self, receiver: str, caller: FunctionNode, attr: Optional[str] = None, chain: bool = False) -> str:
+    def _receiver(
+        self, receiver: str, caller: FunctionNode, attr: Optional[str] = None, chain: bool = False
+    ) -> str:
         """`receiver.attr(...)` with a receiver other than the caller's own
         instance (`chain`: `receiver.attr.more(...)`, `attr` its first link).
         `self` / `cls` here is a name like any other: a parameter of a
@@ -737,7 +799,9 @@ def _local_targets(function: FunctionNode) -> Set[str]:
     return names
 
 
-def _stored_in(graph: _Graph, function: FunctionNode, start: ast.AST, parents) -> Optional[Tuple[List[str], ast.AST]]:
+def _stored_in(
+    graph: _Graph, function: FunctionNode, start: ast.AST, parents
+) -> Optional[Tuple[List[str], ast.AST]]:
     """(the locals a value flows into, the assignment) when the value only feeds
     an assignment to plain names (`prompt = f"Q: {question}"`), else None (any
     other use).
@@ -764,7 +828,9 @@ def _passes_value(graph: _Graph, function: FunctionNode, node: ast.AST, parent) 
     return isinstance(parent, _VALUE_EXPRESSIONS + (ast.IfExp,))
 
 
-def _local_store(graph: _Graph, function: FunctionNode, node: ast.AST, assignment) -> Optional[Tuple[List[str], ast.AST]]:
+def _local_store(
+    graph: _Graph, function: FunctionNode, node: ast.AST, assignment
+) -> Optional[Tuple[List[str], ast.AST]]:
     """The locals an assignment stores `node` in, or None when the store is a
     use: an attribute or item target, `_ = ...` (a deliberate discard, like
     `del`) or a `global` / `nonlocal` name (state outside the call)."""
@@ -797,12 +863,16 @@ class _Versions:
             if names is None:
                 continue
             targets = statement.targets if isinstance(statement, ast.Assign) else [statement.target]
-            top_store_ids |= {id(n) for t in targets for n in ast.walk(t) if isinstance(n, ast.Name)}
+            top_store_ids |= {
+                id(n) for t in targets for n in ast.walk(t) if isinstance(n, ast.Name)
+            }
             for name in names:
                 top.setdefault(name, []).append(position)
         self.params = set(params)
         unversioned = _unversioned(nodes, top_store_ids)
-        self.defs = {name: sorted(set(found)) for name, found in top.items() if name not in unversioned}
+        self.defs = {
+            name: sorted(set(found)) for name, found in top.items() if name not in unversioned
+        }
 
     def keys(self, name: str) -> List[str]:
         if name not in self.defs:
@@ -845,7 +915,9 @@ def _annotation_only(nodes: List[ast.AST]) -> Set[int]:
     return {
         id(node.target)
         for node in nodes
-        if isinstance(node, ast.AnnAssign) and node.value is None and isinstance(node.target, ast.Name)
+        if isinstance(node, ast.AnnAssign)
+        and node.value is None
+        and isinstance(node.target, ast.Name)
     }
 
 
@@ -858,7 +930,9 @@ def _bound_names_in_nested(nodes: List[ast.AST]) -> Set[str]:
     return names
 
 
-def _frame_calls(graph: _Graph, function: FunctionNode, nodes: List[ast.AST]) -> Tuple[List[ast.Call], bool]:
+def _frame_calls(
+    graph: _Graph, function: FunctionNode, nodes: List[ast.AST]
+) -> Tuple[List[ast.Call], bool]:
     """(the `locals()` / `vars()` snapshots, whether `eval` / `exec` runs)."""
     snapshots: List[ast.Call] = []
     dynamic = False
@@ -900,11 +974,22 @@ def _param_reads(graph: _Graph, function: FunctionNode) -> Dict[str, List[Option
     for name in _bound_names_in_nested(nodes) & set(reads):
         reads[name].append(None)
     for snapshot in snapshots:
-        _record_snapshot(graph, function, snapshot, params | locals_, params, parents, versions, reads)
+        _record_snapshot(
+            graph, function, snapshot, params | locals_, params, parents, versions, reads
+        )
     return reads
 
 
-def _record_snapshot(graph: _Graph, function: FunctionNode, snapshot: ast.Call, names, params, parents, versions, reads) -> None:
+def _record_snapshot(
+    graph: _Graph,
+    function: FunctionNode,
+    snapshot: ast.Call,
+    names,
+    params,
+    parents,
+    versions,
+    reads,
+) -> None:
     """`locals()` reads every value the frame holds at that point into wherever
     the snapshot goes: returned or passed on is a use, dropped is not."""
     sinks = _read_sinks(graph, function, snapshot, parents, versions)
@@ -914,7 +999,9 @@ def _record_snapshot(graph: _Graph, function: FunctionNode, snapshot: ast.Call, 
             reads[key].extend(sinks)
 
 
-def _record_read(graph: _Graph, function: FunctionNode, node: ast.Name, params, parents, versions, reads) -> None:
+def _record_read(
+    graph: _Graph, function: FunctionNode, node: ast.Name, params, parents, versions, reads
+) -> None:
     """A load sends the value it sees on; rebinding or deleting a parameter
     handles it on purpose (a use); an assignment to a local defines it."""
     annotation = parents.get(node)
@@ -939,7 +1026,9 @@ def _record_augmented(function: FunctionNode, node: ast.AugAssign, versions, rea
             reads[previous].append((function, versions.defined(name, node)))
 
 
-def _read_sinks(graph: _Graph, function: FunctionNode, node: ast.AST, parents, versions: "_Versions") -> List[Optional[Tuple]]:
+def _read_sinks(
+    graph: _Graph, function: FunctionNode, node: ast.AST, parents, versions: "_Versions"
+) -> List[Optional[Tuple]]:
     """Where one read sends the value: a module parameter, local definitions,
     or None (a use)."""
     if isinstance(node, ast.Name):
@@ -996,7 +1085,9 @@ def _dropped(graph: _Graph) -> Tuple[Set[Tuple[FunctionNode, str]], Dict]:
 def _value_builtin(graph: _Graph, function: FunctionNode, func: ast.expr) -> bool:
     """A pure builtin or one that only builds a value (`dict`, `list`, ...)."""
     if isinstance(func, ast.Name) and func.id in _VALUE_BUILTINS:
-        return func.id not in graph.intent.module_bindings and func.id not in graph.bound_in(function)
+        return func.id not in graph.intent.module_bindings and func.id not in graph.bound_in(
+            function
+        )
     return _pure_builtin(graph, function, func)
 
 
@@ -1049,7 +1140,9 @@ def _observed_effect(node: ast.AST) -> bool:
         return True
     if isinstance(node, (ast.Assign, ast.AugAssign, ast.AnnAssign, ast.Delete)):
         targets = node.targets if isinstance(node, (ast.Assign, ast.Delete)) else [node.target]
-        return any(isinstance(t, (ast.Attribute, ast.Subscript)) for tg in targets for t in ast.walk(tg))
+        return any(
+            isinstance(t, (ast.Attribute, ast.Subscript)) for tg in targets for t in ast.walk(tg)
+        )
     return False
 
 
@@ -1122,7 +1215,9 @@ def _with_effect(graph: _Graph):
         f: (own_reasons or {"unknown_callee"}) if states[f] == EFFECT_UNKNOWN else set()
         for f, (_, _, own_reasons, _) in local.items()
     }
-    details = {f: own if states[f] == EFFECT_UNKNOWN else set() for f, (_, _, _, own) in local.items()}
+    details = {
+        f: own if states[f] == EFFECT_UNKNOWN else set() for f, (_, _, _, own) in local.items()
+    }
     return states, {f: callees for f, (_, callees, _, _) in local.items()}, reasons, details
 
 
@@ -1137,9 +1232,13 @@ def _coverage(states, reasons, details) -> Dict[str, object]:
     return {
         "state": "MEASURED",
         "functions": len(states),
-        "effect_states": {s: sum(1 for v in states.values() if v == s) for s in sorted(_EFFECT_RANK)},
+        "effect_states": {
+            s: sum(1 for v in states.values() if v == s) for s in sorted(_EFFECT_RANK)
+        },
         "unknown_reasons": dict(sorted(counts.items())),
-        "open_call_details": {k: sum(1 for d in details.values() if k in d) for k in _OPEN_CALL_DETAILS},
+        "open_call_details": {
+            k: sum(1 for d in details.values() if k in d) for k in _OPEN_CALL_DETAILS
+        },
     }
 
 
@@ -1154,7 +1253,11 @@ def _success_text(value: ast.expr) -> bool:
     if value.value is True:
         return True
     text = value.value
-    return isinstance(text, str) and len(text) <= _SUCCESS_TEXT_LIMIT and bool(SUCCESS_CLAIM.search(text))
+    return (
+        isinstance(text, str)
+        and len(text) <= _SUCCESS_TEXT_LIMIT
+        and bool(SUCCESS_CLAIM.search(text))
+    )
 
 
 def _is_success(value: Optional[ast.expr], local: frozenset = frozenset()) -> bool:
@@ -1194,7 +1297,9 @@ def _entry_claims_success(key: str, item: ast.expr, local: frozenset) -> bool:
     success member (`Status.SUCCESS`) read from no run-time value."""
     member = isinstance(item, ast.Attribute)
     if key.lower() in _SUCCESS_KEYWORDS:
-        return _success_mark(item, key) is not None and (not member or _literal_argument(item, local))
+        return _success_mark(item, key) is not None and (
+            not member or _literal_argument(item, local)
+        )
     marked = member and _success_mark(item) is not None
     return _success_text(item) or (marked and _literal_argument(item, local))
 
@@ -1242,7 +1347,10 @@ def _success_only(graph: _Graph) -> Set[FunctionNode]:
         for f, rs in returns.items():
             if f in found or not rs:
                 continue
-            if all(_is_success(r.value, local[f]) or _returns_success_call(graph, f, r.value, found) for r in rs):
+            if all(
+                _is_success(r.value, local[f]) or _returns_success_call(graph, f, r.value, found)
+                for r in rs
+            ):
                 found.add(f)
                 changed = True
     return found
@@ -1261,12 +1369,16 @@ def _checks_its_input(intent, function: FunctionNode) -> bool:
     default (`def supports(self, feature): return True`) is not one."""
     if fixed_signature(intent, function) is not None:
         return False
-    params = {a.arg for a in function.args.posonlyargs + function.args.args + function.args.kwonlyargs} - _IMPLICIT
+    params = {
+        a.arg for a in function.args.posonlyargs + function.args.args + function.args.kwonlyargs
+    } - _IMPLICIT
     nodes = _own_nodes(function)
     if any(isinstance(n, (ast.Assert, ast.Raise)) for n in nodes):
         return False  # it fails loudly on a bad input: the True is not unconditional
     # A read is a load: `del timeout_s` or `record = {}` does not look at the input.
-    reads = any(isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id in params for n in nodes)
+    reads = any(
+        isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id in params for n in nodes
+    )
     return reads and not any(_names_outside_text(r.value) & params for r in _returns(function))
 
 
@@ -1277,7 +1389,7 @@ def _names_outside_text(value: Optional[ast.expr]) -> Set[str]:
     if value is None:
         return set()
     names: Set[str] = set()
-    stack = [value]
+    stack: List[ast.AST] = [value]
     while stack:
         node = stack.pop()
         if isinstance(node, ast.JoinedStr):
@@ -1305,7 +1417,8 @@ def _catches_all(handler: ast.ExceptHandler) -> bool:
         return True
     types = handler.type.elts if isinstance(handler.type, ast.Tuple) else [handler.type]
     return any(
-        (t.id if isinstance(t, ast.Name) else t.attr if isinstance(t, ast.Attribute) else "") in _CATCH_ALL
+        (t.id if isinstance(t, ast.Name) else t.attr if isinstance(t, ast.Attribute) else "")
+        in _CATCH_ALL
         for t in types
     )
 
@@ -1367,7 +1480,11 @@ def _is_docstring(statement: ast.stmt) -> bool:
 
 
 def _is_log_statement(statement: ast.stmt) -> bool:
-    return isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call) and _is_log_call(statement.value)
+    return (
+        isinstance(statement, ast.Expr)
+        and isinstance(statement.value, ast.Call)
+        and _is_log_call(statement.value)
+    )
 
 
 def _block_nodes(statements: List[ast.stmt]) -> List[ast.AST]:
@@ -1409,7 +1526,11 @@ def _open_call_store(graph: _Graph, function: FunctionNode, node: ast.AST) -> Op
     """The name in `name = open_call(...)` (or `= await open_call(...)`); None
     for any other statement, a log line, a module or value-building call, and
     `_ = ...` (a deliberate discard)."""
-    if not (isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
+    if not (
+        isinstance(node, ast.Assign)
+        and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+    ):
         return None
     name = node.targets[0].id
     value = node.value.value if isinstance(node.value, ast.Await) else node.value
@@ -1420,7 +1541,9 @@ def _open_call_store(graph: _Graph, function: FunctionNode, node: ast.AST) -> Op
     return name
 
 
-def _path_findings(graph: _Graph, function: FunctionNode, success_only, dropped) -> List[SemanticFinding]:
+def _path_findings(
+    graph: _Graph, function: FunctionNode, success_only, dropped
+) -> List[SemanticFinding]:
     """Paths on which a failure ends in a success report."""
     name = graph.qualname(function)
     findings = [
@@ -1506,14 +1629,20 @@ def semantic_analysis(tree: ast.AST) -> Tuple[List[SemanticFinding], Dict[str, o
             )
         work = callees[function]
         checks = not work and _checks_its_input(intent, function)
-        if (work or checks) and effects[function] == NO_EFFECT and _reports_success(intent, function, success_only):
+        if (
+            (work or checks)
+            and effects[function] == NO_EFFECT
+            and _reports_success(intent, function, success_only)
+        ):
             evidence = (
                 "reports success, and every call it makes resolves to module functions "
                 "with no effect: " + ", ".join(sorted({graph.qualname(c) for c in work}))
                 if work
                 else "reads its input and reports success whatever it finds, with no effect"
             )
-            findings.append(SemanticFinding(name, "success_without_effect", function.lineno, [], evidence))
+            findings.append(
+                SemanticFinding(name, "success_without_effect", function.lineno, [], evidence)
+            )
         findings += [
             SemanticFinding(
                 name,

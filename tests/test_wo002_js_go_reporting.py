@@ -10,7 +10,7 @@ from slop_detector.ai_report import build_records, render_ai_report
 from slop_detector.ai_report_md import render_ai_report_md
 from slop_detector.core import SlopDetector
 from slop_detector.languages.go_analyzer import GoAnalyzer
-from slop_detector.languages.js_analyzer import JSAnalyzer, _TS_AVAILABLE
+from slop_detector.languages.js_analyzer import _TS_AVAILABLE, JSAnalyzer
 from slop_detector.report_view import FINDING, build_report_view
 
 JS = "function f(a){ console.log(a); var x = 1; if (a == 2) {} }\n"
@@ -55,7 +55,9 @@ def test_each_language_result_is_bound_to_the_bytes_its_analyzer_read(tmp_path):
     (tmp_path / "a.js").write_bytes(JS.encode() + b"// edited after the scan\n")
     void = render_ai_report_md(result)
     assert "console.log(a)" not in void.split("## WORK-ORDER")[1].split("m.go")[0]
-    assert void.count("(VOID: the file changed after the scan") == len([r for r in items if r["file"] == "a.js"])
+    assert void.count("(VOID: the file changed after the scan") == len(
+        [r for r in items if r["file"] == "a.js"]
+    )
 
 
 def test_reading_bytes_leaves_the_analysis_unchanged(tmp_path):
@@ -72,17 +74,44 @@ def test_reading_bytes_leaves_the_analysis_unchanged(tmp_path):
         js_ref = js._analyze_ast(str(js_path), js_text, "javascript", False, False)
     else:
         js_ref = js._analyze_regex(str(js_path), js_text, "javascript", False)
-    go_ref = go._analyze_ast(str(go_path), go_text) if hasattr(go, "_analyze_ast") and _go_ts() else (
-        go._analyze_regex(str(go_path), go_text))
+    go_ref = (
+        go._analyze_ast(str(go_path), go_text)
+        if hasattr(go, "_analyze_ast") and _go_ts()
+        else (go._analyze_regex(str(go_path), go_text))
+    )
     for new, ref in ((js.analyze(str(js_path)), js_ref), (go.analyze(str(go_path)), go_ref)):
         a, b = new.to_dict(), ref.to_dict()
         assert a["slop_score"] == b["slop_score"] and a["status"] == b["status"]
         assert [(i["pattern_id"], i["line"], i["message"]) for i in a["issues"]] == [
-            (i["pattern_id"], i["line"], i["message"]) for i in b["issues"]]
-        assert {k: v for k, v in a.items() if k not in _BINDING} == {k: v for k, v in b.items() if k not in _BINDING}
+            (i["pattern_id"], i["line"], i["message"]) for i in b["issues"]
+        ]
+        assert {k: v for k, v in a.items() if k not in _BINDING} == {
+            k: v for k, v in b.items() if k not in _BINDING
+        }
 
 
 _BINDING = {"source_sha256", "content_origin", "issues"}
+
+
+def test_both_analysis_paths_bind_the_bytes_read(tmp_path, monkeypatch):
+    # the regex fallback and the tree-sitter path (when installed) each bind
+    # the result, whatever the environment has installed
+    from slop_detector.languages import go_analyzer, js_analyzer
+
+    (tmp_path / "a.js").write_bytes(JS.encode())
+    (tmp_path / "m.go").write_bytes(GO.encode())
+    paths = [False] + [True] * (js_analyzer._TS_AVAILABLE or go_analyzer._TS_AVAILABLE)
+    for ts in paths:
+        for module, analyzer, name in (
+            (js_analyzer, JSAnalyzer(), "a.js"),
+            (go_analyzer, GoAnalyzer(), "m.go"),
+        ):
+            if ts and not module._TS_AVAILABLE:
+                continue
+            monkeypatch.setattr(module, "_TS_AVAILABLE", ts)
+            result = analyzer.analyze(str(tmp_path / name))
+            assert result.source_sha256 == _sha(tmp_path / name), (name, ts)
+            assert result.issues and all(i.locator for i in result.issues), (name, ts)
 
 
 def _go_ts():
@@ -92,11 +121,15 @@ def _go_ts():
 
 
 def test_the_project_score_is_the_same_with_or_without_the_language_items(tmp_path):
-    result = _project(tmp_path, {"a.js": JS.encode(), "m.go": GO.encode(), "p.py": b"def f(x):\n    return x\n"})
+    result = _project(
+        tmp_path, {"a.js": JS.encode(), "m.go": GO.encode(), "p.py": b"def f(x):\n    return x\n"}
+    )
     before = (result.weighted_deficit_score, str(result.overall_status))
     view = build_report_view(result)
     assert view.score == result.weighted_deficit_score and before == (
-        result.weighted_deficit_score, str(result.overall_status))
+        result.weighted_deficit_score,
+        str(result.overall_status),
+    )
 
 
 def test_the_bytes_decode_to_what_read_text_gave(tmp_path):

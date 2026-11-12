@@ -134,8 +134,12 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
     root = _root(view)
     _print_items(console, "Findings", view.findings, TERMINAL_LIMITS["findings"], root, False)
     _print_items(
-        console, "Hollow review candidates (not scored)", view.candidates,
-        TERMINAL_LIMITS["candidates"], root, True,
+        console,
+        "Hollow review candidates (not scored)",
+        view.candidates,
+        TERMINAL_LIMITS["candidates"],
+        root,
+        True,
     )
     steps = _steps(view)
     if steps:
@@ -145,7 +149,9 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
     console.print("\n[dim]Full tables: --details   Report file: -o report.md[/dim]")
 
 
-def _print_items(console: Any, title: str, items: List[Item], limit: int, root: str, candidates: bool) -> None:
+def _print_items(
+    console: Any, title: str, items: List[Item], limit: int, root: str, candidates: bool
+) -> None:
     from rich.table import Table
 
     if not items:

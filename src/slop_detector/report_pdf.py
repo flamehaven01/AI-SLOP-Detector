@@ -19,7 +19,15 @@ from typing import List, Optional
 # A browser to use instead of the search below (a path to chrome / msedge /
 # chromium).
 BROWSER_ENV = "SLOP_PDF_BROWSER"
-_NAMES = ("chrome", "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "msedge", "microsoft-edge")
+_NAMES = (
+    "chrome",
+    "google-chrome",
+    "google-chrome-stable",
+    "chromium",
+    "chromium-browser",
+    "msedge",
+    "microsoft-edge",
+)
 _WINDOWS = (
     ("PROGRAMFILES", "Google/Chrome/Application/chrome.exe"),
     ("PROGRAMFILES(X86)", "Google/Chrome/Application/chrome.exe"),
@@ -37,11 +45,11 @@ _MAC = (
 RENDER_TIMEOUT_S = 180
 
 
-class PdfUnavailable(RuntimeError):
+class PdfUnavailableError(RuntimeError):
     """ENV_BLOCKED: no Chromium-based browser to print with."""
 
 
-class PdfFailed(RuntimeError):
+class PdfFailedError(RuntimeError):
     """The browser ran and did not produce a complete PDF."""
 
 
@@ -90,11 +98,11 @@ def _command(browser: str, page: Path, out: Path, profile: Path) -> List[str]:
 
 
 def write_pdf(page_html: str, target: str) -> None:
-    """Print `page_html` to the PDF file `target`, or raise PdfUnavailable /
-    PdfFailed leaving `target` untouched."""
+    """Print `page_html` to the PDF file `target`, or raise PdfUnavailableError /
+    PdfFailedError leaving `target` untouched."""
     browser = find_browser()
     if browser is None:
-        raise PdfUnavailable(unavailable_message())
+        raise PdfUnavailableError(unavailable_message())
     with tempfile.TemporaryDirectory(prefix="slop-pdf-") as tmp:
         work = Path(tmp)
         page, out = work / "report.html", work / "report.pdf"
@@ -102,10 +110,14 @@ def write_pdf(page_html: str, target: str) -> None:
         try:
             subprocess.run(
                 _command(browser, page, out, work / "profile"),
-                capture_output=True, timeout=RENDER_TIMEOUT_S, check=False,
+                capture_output=True,
+                timeout=RENDER_TIMEOUT_S,
+                check=False,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
-            raise PdfFailed(f"the browser did not finish printing the PDF ({type(exc).__name__})") from exc
+            raise PdfFailedError(
+                f"the browser did not finish printing the PDF ({type(exc).__name__})"
+            ) from exc
         if not out.is_file() or not out.read_bytes()[:5] == b"%PDF-":
-            raise PdfFailed("the browser ran but wrote no PDF")
+            raise PdfFailedError("the browser ran but wrote no PDF")
         shutil.copyfile(out, target)

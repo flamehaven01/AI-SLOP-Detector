@@ -386,7 +386,9 @@ class JSAnalyzer:
         language = "typescript" if is_ts else "javascript"
 
         if _TS_AVAILABLE:
-            return bind_lines(self._analyze_ast(file_path, content, language, is_ts, is_tsx), content, digest)
+            return bind_lines(
+                self._analyze_ast(file_path, content, language, is_ts, is_tsx), content, digest
+            )
         return bind_lines(self._analyze_regex(file_path, content, language, is_ts), content, digest)
 
     @staticmethod

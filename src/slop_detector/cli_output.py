@@ -72,11 +72,11 @@ def _write_json_output(args, result) -> None:
 
 def _write_pdf(out: str, page_html: str) -> None:
     """The PDF report, or a clear failure (exit 2) with nothing written."""
-    from slop_detector.report_pdf import PdfFailed, PdfUnavailable, write_pdf
+    from slop_detector.report_pdf import PdfFailedError, PdfUnavailableError, write_pdf
 
     try:
         write_pdf(page_html, out)
-    except (PdfUnavailable, PdfFailed) as exc:
+    except (PdfUnavailableError, PdfFailedError) as exc:
         print(f"[!] {exc}", file=sys.stderr)
         raise SystemExit(2) from exc
     print(f"[+] PDF report saved to {out}")
@@ -118,16 +118,20 @@ def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, el
 def _write_ai_report(args, result) -> None:
     """The AI report (JSON Lines, or the Markdown work order with --format
     ai-md) to stdout or --output; never an invalid one."""
-    from slop_detector.ai_report import AiReportInvalid, render_ai_report
+    from slop_detector.ai_report import AiReportInvalidError, render_ai_report
     from slop_detector.ai_report_md import render_ai_report_md
 
     try:
         if getattr(args, "format", None) == "ai-md":
-            text = render_ai_report_md(result, getattr(args, "ai_limit", None), getattr(args, "ai_mode", "auditor"),
-                                       getattr(args, "ai_token_budget", None))
+            text = render_ai_report_md(
+                result,
+                getattr(args, "ai_limit", None),
+                getattr(args, "ai_mode", "auditor"),
+                getattr(args, "ai_token_budget", None),
+            )
         else:
             text = render_ai_report(result, getattr(args, "ai_limit", None))
-    except AiReportInvalid as exc:
+    except AiReportInvalidError as exc:
         print(f"[!] {exc}; nothing was written", file=sys.stderr)
         raise SystemExit(2) from exc
     if args.output:
@@ -173,6 +177,9 @@ def _handle_screen_output(args, result, rich_available: bool) -> None:
         print(quiet_line(build_report_view(result)))
         return
     _route_file_output(
-        out, result, rich_available and not args.no_color,
-        details=bool(getattr(args, "details", False)), elapsed=getattr(args, "elapsed", None),
+        out,
+        result,
+        rich_available and not args.no_color,
+        details=bool(getattr(args, "details", False)),
+        elapsed=getattr(args, "elapsed", None),
     )

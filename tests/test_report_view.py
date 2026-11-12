@@ -13,7 +13,7 @@ from slop_detector.renderer_markdown import generate_markdown_report
 from slop_detector.renderer_terminal import Progress, hollow_line, print_summary, quiet_line
 from slop_detector.report_view import REVIEW_CANDIDATE, build_report_view, short_path
 
-HOLLOW = '''
+HOLLOW = """
 def persist(record):
     return None
 
@@ -21,7 +21,7 @@ def persist(record):
 def save_record(record):
     persist(record)
     return True
-'''
+"""
 
 
 def _project(tmp_path, files):
@@ -48,14 +48,24 @@ def test_the_view_separates_findings_from_review_candidates(tmp_path):
     assert view.next_steps == next_steps(result)  # the project's own next steps, not recomputed
     # the view reads the result; it does not change the score or the status
     assert view.score == result.weighted_deficit_score
-    assert view.status == str(getattr(result.overall_status, "value", result.overall_status)).upper()
+    assert (
+        view.status == str(getattr(result.overall_status, "value", result.overall_status)).upper()
+    )
 
 
 def test_a_clean_band_with_a_high_finding_keeps_the_band_and_asks_for_review():
-    issue = SimpleNamespace(pattern_id="god_function", severity="high", line=3, message="m", suggestion="")
+    issue = SimpleNamespace(
+        pattern_id="god_function", severity="high", line=3, message="m", suggestion=""
+    )
     result = SimpleNamespace(
-        avg_deficit_score=0.0, weighted_deficit_score=0.0, avg_ldr=1.0, avg_inflation=0.0, avg_ddc=1.0,
-        deficit_files=0, priority_hotspots=[], file_results=[SimpleNamespace(pattern_issues=[issue])],
+        avg_deficit_score=0.0,
+        weighted_deficit_score=0.0,
+        avg_ldr=1.0,
+        avg_inflation=0.0,
+        avg_ddc=1.0,
+        deficit_files=0,
+        priority_hotspots=[],
+        file_results=[SimpleNamespace(pattern_issues=[issue])],
     )
     steps = next_steps(result)
     assert "no action needed" not in " ".join(steps)

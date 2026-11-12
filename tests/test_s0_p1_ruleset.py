@@ -10,7 +10,7 @@ import shutil
 import pytest
 
 import slop_detector.work_order_rules as rules
-from slop_detector.ai_report import AiReportInvalid, build_records, render_ai_report
+from slop_detector.ai_report import AiReportInvalidError, build_records, render_ai_report
 from slop_detector.ai_report_md import render_ai_report_md
 from slop_detector.cli import main
 from slop_detector.core import SlopDetector
@@ -42,7 +42,9 @@ def _copy(tmp_path, monkeypatch, change=None, raw=None):
 
 def _canonical(path):
     data = json.loads(path.read_text(encoding="utf-8"))
-    return hashlib.sha256(json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
 
 
 def test_the_header_names_the_ruleset_and_its_canonical_digest(tmp_path):
@@ -55,7 +57,9 @@ def test_the_header_names_the_ruleset_and_its_canonical_digest(tmp_path):
     assert header["prove"] == data["prove"] and header["loop"] == data["loop"]
     assert header["verify"] == data["verify"]
     text = render_ai_report_md(_result(tmp_path))
-    assert f"ruleset: {data['schema']} {data['version']} sha256:{header['ruleset']['sha256']}" in text
+    assert (
+        f"ruleset: {data['schema']} {data['version']} sha256:{header['ruleset']['sha256']}" in text
+    )
 
 
 def test_a_changed_rule_changes_the_digest_and_the_text_a_reformat_does_not(tmp_path, monkeypatch):
@@ -72,24 +76,33 @@ def test_a_changed_rule_changes_the_digest_and_the_text_a_reformat_does_not(tmp_
     assert "- todo_comment: A changed question?" in render_ai_report_md(result)
 
 
-@pytest.mark.parametrize("name, change, raw", [
-    ("missing", None, None),
-    ("not_json", None, "{ not json"),
-    ("unknown_key", lambda d: d.update(extra=1), None),
-    ("empty_text", lambda d: d["forbid"].__setitem__(0, ""), None),
-    ("rule_in_two_families", lambda d: d["families"]["size"]["rules"].append("todo_comment"), None),
-    ("missing_field", lambda d: d.pop("prove"), None),
-    ("wrong_schema", lambda d: d.update(schema="ai-slop-work-order-rules/1"), None),
-])
-def test_a_missing_or_invalid_ruleset_fails_every_report_closed(tmp_path, monkeypatch, name, change, raw):
+@pytest.mark.parametrize(
+    "name, change, raw",
+    [
+        ("missing", None, None),
+        ("not_json", None, "{ not json"),
+        ("unknown_key", lambda d: d.update(extra=1), None),
+        ("empty_text", lambda d: d["forbid"].__setitem__(0, ""), None),
+        (
+            "rule_in_two_families",
+            lambda d: d["families"]["size"]["rules"].append("todo_comment"),
+            None,
+        ),
+        ("missing_field", lambda d: d.pop("prove"), None),
+        ("wrong_schema", lambda d: d.update(schema="ai-slop-work-order-rules/1"), None),
+    ],
+)
+def test_a_missing_or_invalid_ruleset_fails_every_report_closed(
+    tmp_path, monkeypatch, name, change, raw
+):
     result = _result(tmp_path)
     if name == "missing":
         monkeypatch.setattr(rules, "RULESET_PATH", tmp_path / "absent.json")
     else:
         _copy(tmp_path, monkeypatch, change, raw)
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         render_ai_report(result)
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         render_ai_report_md(result)
     out = tmp_path / "wo.md"
     with pytest.raises(SystemExit) as stop:

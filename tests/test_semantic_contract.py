@@ -442,7 +442,9 @@ def test_an_open_call_is_classified_only_by_evidence_the_module_shows():
         "Hooked2.run": "ambiguous",  # the module base sets it, decorator or not
         "undefined": "unclassified",
     }
-    assert {name: named[name] for name in expected} == {name: {why} for name, why in expected.items()}
+    assert {name: named[name] for name in expected} == {
+        name: {why} for name, why in expected.items()
+    }
     # A label explains an open call: no call joins or leaves the closed graph.
     for f in states:
         assert bool(details[f]) == ("open_call" in reasons[f]), graph.qualname(f)
@@ -740,10 +742,16 @@ def test_self_or_cls_bound_again_is_not_the_class_s_own_method():
     assert named["Env.save"] == ("EFFECT_UNKNOWN", {"dynamic"})  # `cls = type(env)`
     assert named["Env.swap"] == ("EFFECT_UNKNOWN", {"dynamic"})  # `self` is another object here
     assert named["Env.each"] == ("EFFECT_UNKNOWN", {"dynamic"})
-    assert named["Env.renamed"] == ("EFFECT_UNKNOWN", {"unclassified"})  # `self` is not its parameter
+    assert named["Env.renamed"] == (
+        "EFFECT_UNKNOWN",
+        {"unclassified"},
+    )  # `self` is not its parameter
     assert named["Env.static"] == ("EFFECT_UNKNOWN", {"unclassified"})
     assert named["Env.bare"] == ("EFFECT_UNKNOWN", {"unclassified"})  # no parameter at all
-    assert named["Env.other_name"] == ("EFFECT_UNKNOWN", {"dynamic"})  # only `self` / `cls` name the instance
+    assert named["Env.other_name"] == (
+        "EFFECT_UNKNOWN",
+        {"dynamic"},
+    )  # only `self` / `cls` name the instance
     found = [f.function for f in semantic.semantic_findings(ast.parse(R01))]
     assert "Env.save" not in found  # no success_without_effect through a guessed callee
 
@@ -904,7 +912,11 @@ def _self_calls(source):
     graph = semantic._Graph(ast.parse(source))
     out = {}
     for f in graph.owner:
-        calls = [n for n in semantic._own_nodes(f) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)]
+        calls = [
+            n
+            for n in semantic._own_nodes(f)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+        ]
         setter = any(isinstance(d, ast.Attribute) and d.attr == "setter" for d in f.decorator_list)
         tag = graph.qualname(f) + ("@setter" if setter else "")
         out[tag] = [graph.resolution(c, f)[0] is not None for c in calls]
@@ -926,13 +938,18 @@ def test_a_decorated_caller_keeps_its_instance_only_by_a_known_descriptor():
     assert closed["Base.unbound"] == [False]
     shadowed, _ = _self_calls(SHADOWED)
     assert shadowed == {
-        "Box.render": [], "Box.a": [False], "Box.b": [False], "Box.c": [False],
+        "Box.render": [],
+        "Box.a": [False],
+        "Box.b": [False],
+        "Box.c": [False],
         "Box.d": [False],  # the class binds `property`
         "Box.e": [False],  # a relative `functools` is not the standard one
     }
     setters, _ = _self_calls(SETTERS)
     assert setters == {
-        "Tray.render": [], "Tray.plain": [], "Tray.g": [],
+        "Tray.render": [],
+        "Tray.plain": [],
+        "Tray.g": [],
         "Tray.f@setter": [False],  # `plain` is not a property
         "Tray.h@setter": [False],  # `g` is under another decorator, not property
     }
@@ -950,7 +967,9 @@ def test_the_descriptor_controls_run_as_python_says():
     stranger = other()
     assert base.unbound(stranger) is stranger  # `cls.render(x)`: `x` becomes `self`
     item = base()
-    assert item.size is item and item.cached is item and item.marked() is item and item.shape() is item
+    assert (
+        item.size is item and item.cached is item and item.marked() is item and item.shape() is item
+    )
 
 
 def test_a_classmethod_argument_is_not_mapped_past_self():
@@ -1139,7 +1158,17 @@ def test_a_class_keeps_its_methods_only_without_a_transform_or_by_the_standard_d
     # slots (a new class), options not constant, or not the standard dataclass by origin
     assert drawn == {
         name + ".draw": [False]
-        for name in ("Slotted", "Flagged", "Spread", "Positional", "Attr", "Pydantic", "Relative", "Rebound", "Keyword")
+        for name in (
+            "Slotted",
+            "Flagged",
+            "Spread",
+            "Positional",
+            "Attr",
+            "Pydantic",
+            "Relative",
+            "Rebound",
+            "Keyword",
+        )
     }
 
 
@@ -1221,10 +1250,20 @@ def test_a_constant_success_report_is_success_however_it_is_shaped():
     found = {(f.function, f.kind) for f in semantic.semantic_findings(ast.parse(SUCCESS_SHAPES))}
     for name in ("save_status", "save_flag", "save_result", "save_member"):
         assert (name, "success_without_effect") in found, name
-    assert ("send", "failure_reported_as_success") in found  # {"ok": True} after a swallowed failure
+    assert (
+        "send",
+        "failure_reported_as_success",
+    ) in found  # {"ok": True} after a swallowed failure
     # a computed success entry, a run-time member, a flag that is not success,
     # a failure status, a real effect, one literal claim beside a computed one
-    for name in ("save_computed", "read_flag", "save_verbose", "save_failed", "save_real", "save_mixed"):
+    for name in (
+        "save_computed",
+        "read_flag",
+        "save_verbose",
+        "save_failed",
+        "save_real",
+        "save_mixed",
+    ):
         assert (name, "success_without_effect") not in found, name
 
 
@@ -1347,13 +1386,23 @@ class Plugin(Base):
 def test_a_handler_or_a_check_that_answers_success_whatever_happened_is_reported():
     import ast
 
-    found = {(f.function, f.kind) for f in semantic.semantic_findings(ast.parse(HANDLERS_AND_CHECKS))}
+    found = {
+        (f.function, f.kind) for f in semantic.semantic_findings(ast.parse(HANDLERS_AND_CHECKS))
+    }
     # the handler's own answer is a success report, whatever the function's other returns
     assert ("charge_report", "failure_reported_as_success") in found
     # a bare True (a fail-open default far more often than a disguise), a report
     # carrying the error, an honest False, a re-raise, a narrow handler, no work
     # ... and a report built from what the input says (`{"success": conn.ok}`)
-    for name in ("charge", "charge_error_dict", "charge_honest", "charge_reraise", "charge_narrow", "no_work", "ping"):
+    for name in (
+        "charge",
+        "charge_error_dict",
+        "charge_honest",
+        "charge_reraise",
+        "charge_narrow",
+        "no_work",
+        "ping",
+    ):
         assert (name, "failure_reported_as_success") not in found, name
     # a check that reads its input and passes whatever it finds
     assert ("validate_record", "success_without_effect") in found
@@ -1363,8 +1412,16 @@ def test_a_handler_or_a_check_that_answers_success_whatever_happened_is_reported
     # built from the input (a serializer); a member read from the input
     # ... and a check that asserts (it fails loudly on a bad input)
     # ... and an input only deleted or overwritten, never read (`del timeout_s`)
-    for name in ("enabled", "validate_strict", "Plugin.supports", "serialize", "summarize", "verify_sizes",
-                 "healthz", "reset"):
+    for name in (
+        "enabled",
+        "validate_strict",
+        "Plugin.supports",
+        "serialize",
+        "summarize",
+        "verify_sizes",
+        "healthz",
+        "reset",
+    ):
         assert (name, "success_without_effect") not in found, name
 
 
@@ -1427,8 +1484,13 @@ def test_an_entry_from_an_older_engine_is_not_served(tmp_path):
     fresh = SlopDetector(read_only=True).analyze_file(str(path))
     cache = FileAnalysisCache(tmp_path / "cache.db")
     stat = path.stat()
-    key = dict(file_path=str(path), file_size=stat.st_size, mtime_ns=stat.st_mtime_ns,
-               content_hash="h", config_fingerprint="c")
+    key = dict(
+        file_path=str(path),
+        file_size=stat.st_size,
+        mtime_ns=stat.st_mtime_ns,
+        content_hash="h",
+        config_fingerprint="c",
+    )
     # v42: four open-call kinds, v43: first five-kind labels, v44: before T27b, v45: before R-01,
     # v46: before R-01b, v47: before R-01c, v48: before structured success reports,
     # v49: before the read check counted only loads
@@ -1467,7 +1529,9 @@ def report(entry):
         subprocess.run(
             [sys.executable, "-c", script, str(path)],
             env={**os.environ, "PYTHONHASHSEED": seed, "PYTHONPATH": src},
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout
         for seed in ("0", "1", "2", "3")
     }

@@ -190,9 +190,7 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
         skipped_metrics=data.get("skipped_metrics", []),
         flags=data.get("flags", []),
         pattern_errors=data.get("pattern_errors", []),
-        semantic_findings=[
-            SemanticFinding(**item) for item in data.get("semantic_findings", [])
-        ],
+        semantic_findings=[SemanticFinding(**item) for item in data.get("semantic_findings", [])],
         semantic_coverage=data.get("semantic_coverage", {}),
         claim_findings=[ClaimFinding(**item) for item in data.get("claim_findings", [])],
         claim_coverage=data.get("claim_coverage", {}),

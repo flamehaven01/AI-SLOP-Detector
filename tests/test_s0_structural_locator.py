@@ -11,14 +11,14 @@ changed id as a fix.
 import pytest
 
 import slop_detector.ai_report as ai_report
-from slop_detector.ai_report import AiReportInvalid, build_records, prove_state
+from slop_detector.ai_report import AiReportInvalidError, build_records, prove_state
 from slop_detector.ai_report_md import render_ai_report_md
 from slop_detector.core import SlopDetector
 from slop_detector.report_view import build_report_view
 
 # The corpus shapes: one import guarded four times, one handler repeated, one
 # comment repeated before different methods of a class.
-GUARDS = '''
+GUARDS = """
 def load():
     try:
         import nonexistent_opt_pkg
@@ -29,8 +29,8 @@ def load():
     except ImportError:
         nonexistent_opt_pkg = None
     return nonexistent_opt_pkg
-'''
-HANDLERS = '''
+"""
+HANDLERS = """
 def run(jobs, log):
     try:
         jobs.first()
@@ -45,8 +45,8 @@ def run(jobs, log):
     except Exception:
         pass
     log("done")
-'''
-CLASS_TODOS = '''
+"""
+CLASS_TODOS = """
 class Policy:
     # TODO: unify the Any type
     def on_hit(self, key):
@@ -55,7 +55,7 @@ class Policy:
     # TODO: unify the Any type
     def on_put(self, key):
         return key
-'''
+"""
 
 
 def _write(tmp_path, name, text):
@@ -67,19 +67,26 @@ def _write(tmp_path, name, text):
 
 
 def _records(tmp_path):
-    return build_records(build_report_view(SlopDetector(read_only=True).analyze_project(str(tmp_path))))[1:]
+    return build_records(
+        build_report_view(SlopDetector(read_only=True).analyze_project(str(tmp_path)))
+    )[1:]
 
 
 def _rule(records, rule):
     return [r for r in records if r["rule"] == rule]
 
 
-@pytest.mark.parametrize("name, source, rule, count", [
-    ("guards.py", GUARDS, "undeclared_optional_dependency", 2),
-    ("handlers.py", HANDLERS, "empty_except", 3),
-    ("policy.py", CLASS_TODOS, "todo_comment", 2),
-])
-def test_repeated_identical_code_is_several_items_not_a_refused_report(tmp_path, name, source, rule, count):
+@pytest.mark.parametrize(
+    "name, source, rule, count",
+    [
+        ("guards.py", GUARDS, "undeclared_optional_dependency", 2),
+        ("handlers.py", HANDLERS, "empty_except", 3),
+        ("policy.py", CLASS_TODOS, "todo_comment", 2),
+    ],
+)
+def test_repeated_identical_code_is_several_items_not_a_refused_report(
+    tmp_path, name, source, rule, count
+):
     _write(tmp_path, name, source)
     items = _rule(_records(tmp_path), rule)
     assert len(items) == count
@@ -92,7 +99,9 @@ def test_a_blank_or_comment_line_keeps_every_id(tmp_path):
     path = _write(tmp_path, "handlers.py", HANDLERS)
     before = {r["id"] for r in _rule(_records(tmp_path), "empty_except")}
     # right above the reported except line: its neighbour text changes, its AST does not
-    edited = HANDLERS.replace("        jobs.second()\n    except", "        jobs.second()\n        # a note\n\n    except")
+    edited = HANDLERS.replace(
+        "        jobs.second()\n    except", "        jobs.second()\n        # a note\n\n    except"
+    )
     path.write_text(edited, encoding="utf-8")
     assert {r["id"] for r in _rule(_records(tmp_path), "empty_except")} == before
 
@@ -100,8 +109,10 @@ def test_a_blank_or_comment_line_keeps_every_id(tmp_path):
 def test_fixing_one_copy_leaves_the_other_ids_and_is_a_fix_candidate(tmp_path):
     path = _write(tmp_path, "handlers.py", HANDLERS)
     before = _rule(_records(tmp_path), "empty_except")
-    fixed = HANDLERS.replace("        jobs.second()\n    except Exception:\n        pass\n",
-                             "        jobs.second()\n    except Exception:\n        log(\"second failed\")\n")
+    fixed = HANDLERS.replace(
+        "        jobs.second()\n    except Exception:\n        pass\n",
+        '        jobs.second()\n    except Exception:\n        log("second failed")\n',
+    )
     path.write_text(fixed, encoding="utf-8")
     after = _records(tmp_path)
     gone = [r for r in before if r["id"] not in {a["id"] for a in after}]
@@ -115,12 +126,16 @@ def test_a_moved_finding_is_never_read_as_fixed(tmp_path):
     path = _write(tmp_path, "handlers.py", HANDLERS)
     before = _rule(_records(tmp_path), "empty_except")
     # a new sibling statement in front shifts every locator: ids change, the findings stay
-    path.write_text(HANDLERS.replace("def run(jobs, log):\n", "def run(jobs, log):\n    jobs.prepare()\n"),
-                    encoding="utf-8")
+    path.write_text(
+        HANDLERS.replace("def run(jobs, log):\n", "def run(jobs, log):\n    jobs.prepare()\n"),
+        encoding="utf-8",
+    )
     after = _records(tmp_path)
     moved = [r for r in before if r["id"] not in {a["id"] for a in after}]
     assert moved  # the address changed
-    assert all(prove_state(before, after, r["id"], symbol_present=True) == "PERSISTS" for r in moved)
+    assert all(
+        prove_state(before, after, r["id"], symbol_present=True) == "PERSISTS" for r in moved
+    )
 
 
 def test_a_vanished_symbol_or_an_ambiguous_match_is_hold(tmp_path):
@@ -133,13 +148,15 @@ def test_a_vanished_symbol_or_an_ambiguous_match_is_hold(tmp_path):
     assert prove_state(before, before, before[0]["id"], symbol_present=True) == "PERSISTS"
 
 
-def test_the_work_order_shows_the_locator_and_the_report_still_refuses_a_true_duplicate(tmp_path, monkeypatch):
+def test_the_work_order_shows_the_locator_and_the_report_still_refuses_a_true_duplicate(
+    tmp_path, monkeypatch
+):
     _write(tmp_path, "handlers.py", HANDLERS)
     result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
     text = render_ai_report_md(result)
     assert text.count("locator [FACT]: ") == len(build_records(build_report_view(result))) - 1
     monkeypatch.setattr(ai_report, "_item_id", lambda item, rel: "Fsame")
-    with pytest.raises(AiReportInvalid):
+    with pytest.raises(AiReportInvalidError):
         render_ai_report_md(result)
 
 
@@ -151,7 +168,9 @@ def test_consecutive_identical_comments_are_counted_apart(tmp_path):
 
 def test_a_comment_is_addressed_inside_its_own_scope(tmp_path):
     # the class sits inside an if: the comments belong to the class, not to the if
-    nested = "import sys\nif sys:\n" + "".join("    " + line + "\n" for line in CLASS_TODOS.strip().splitlines())
+    nested = "import sys\nif sys:\n" + "".join(
+        "    " + line + "\n" for line in CLASS_TODOS.strip().splitlines()
+    )
     _write(tmp_path, "nested.py", nested)
     todos = _rule(_records(tmp_path), "todo_comment")
     assert sorted(r["locator"] for r in todos) == ["def:on_hit~before0", "def:on_put~before0"]
@@ -162,13 +181,18 @@ def test_a_reworded_violation_in_the_same_symbol_is_never_a_fix_candidate(tmp_pa
     # change and its id is gone, yet the same cause stays in the same symbol
     path = _write(tmp_path, "run.py", "def run():\n    # TODO: validate input\n    return True\n")
     before = _rule(_records(tmp_path), "todo_comment")
-    path.write_text("def run():\n    # TODO: validate all inputs\n    return True\n", encoding="utf-8")
+    path.write_text(
+        "def run():\n    # TODO: validate all inputs\n    return True\n", encoding="utf-8"
+    )
     after = _records(tmp_path)
     assert before[0]["id"] not in {r["id"] for r in after}
     assert prove_state(before, after, before[0]["id"], symbol_present=True) == "HOLD"
     # the same comment removed: no same-cause violation is left in the symbol
     path.write_text("def run():\n    return True\n", encoding="utf-8")
-    assert prove_state(before, _records(tmp_path), before[0]["id"], symbol_present=True) == "FIXED_CANDIDATE"
+    assert (
+        prove_state(before, _records(tmp_path), before[0]["id"], symbol_present=True)
+        == "FIXED_CANDIDATE"
+    )
 
 
 TWO_SAME = "def run():\n    # TODO: validate input\n    # TODO: validate input\n    return True\n"
@@ -179,8 +203,12 @@ def test_one_of_two_identical_violations_reworded_is_hold_for_it(tmp_path):
     # the cause is still there twice, so the gone id is not a fix
     path = _write(tmp_path, "run.py", TWO_SAME)
     before = _rule(_records(tmp_path), "todo_comment")
-    path.write_text(TWO_SAME.replace("    # TODO: validate input\n    return", "    # TODO: validate all inputs\n    return"),
-                    encoding="utf-8")
+    path.write_text(
+        TWO_SAME.replace(
+            "    # TODO: validate input\n    return", "    # TODO: validate all inputs\n    return"
+        ),
+        encoding="utf-8",
+    )
     after = _records(tmp_path)
     gone = [r for r in before if r["id"] not in {a["id"] for a in after}]
     assert len(gone) == 1 and len(_rule(after, "todo_comment")) == 2
@@ -190,7 +218,9 @@ def test_one_of_two_identical_violations_reworded_is_hold_for_it(tmp_path):
 def test_one_of_two_identical_violations_removed_is_one_fix_candidate(tmp_path):
     path = _write(tmp_path, "run.py", TWO_SAME)
     before = _rule(_records(tmp_path), "todo_comment")
-    path.write_text(TWO_SAME.replace("    # TODO: validate input\n    return", "    return"), encoding="utf-8")
+    path.write_text(
+        TWO_SAME.replace("    # TODO: validate input\n    return", "    return"), encoding="utf-8"
+    )
     after = _records(tmp_path)
     states = sorted(prove_state(before, after, r["id"], symbol_present=True) for r in before)
     assert states == ["FIXED_CANDIDATE", "PERSISTS"]  # one copy fewer: exactly one candidate
@@ -202,6 +232,15 @@ def test_the_prove_policy_is_one_text_in_the_header_and_the_work_order(tmp_path)
     result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
     header = build_records(build_report_view(result))[0]
     expect = header["prove"]["expect"]
-    for term in ("semantic_key", "cause_key", "locator", "HOLD", "FIXED_CANDIDATE", "symbol", "reworded", "moved"):
+    for term in (
+        "semantic_key",
+        "cause_key",
+        "locator",
+        "HOLD",
+        "FIXED_CANDIDATE",
+        "symbol",
+        "reworded",
+        "moved",
+    ):
         assert term in expect
     assert expect in render_ai_report_md(result)

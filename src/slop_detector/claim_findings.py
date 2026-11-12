@@ -90,16 +90,22 @@ class ClaimFinding:
 def _def_lines(tree: ast.AST) -> Dict[int, int]:
     """Docstring line -> def line (a claim is keyed by its docstring line)."""
     return {
-        _docstring_line(n): n.lineno for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+        _docstring_line(n): n.lineno
+        for n in ast.walk(tree)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
     }
 
 
 def _same_cause(basis: str, line: int, issues: List[Any]) -> List[str]:
     rules = SAME_EVIDENCE.get(basis, frozenset())
-    return sorted({i.pattern_id for i in issues if i.pattern_id in rules and int(i.line or 0) == line})
+    return sorted(
+        {i.pattern_id for i in issues if i.pattern_id in rules and int(i.line or 0) == line}
+    )
 
 
-def claim_analysis(tree: ast.AST, is_test: Optional[bool], issues: List[Any]) -> Tuple[List[ClaimFinding], Dict[str, Any]]:
+def claim_analysis(
+    tree: ast.AST, is_test: Optional[bool], issues: List[Any]
+) -> Tuple[List[ClaimFinding], Dict[str, Any]]:
     """(candidates, coverage). `issues` are the file's pattern findings."""
     judgment = judge_claims(tree, is_test)
     defs = _def_lines(tree)
@@ -124,8 +130,9 @@ def claim_analysis(tree: ast.AST, is_test: Optional[bool], issues: List[Any]) ->
         )
     coverage = judgment.coverage()
     coverage["state"] = "MEASURED"
-    coverage["candidates"] = sum(1 for f in findings if not f.same_cause_as)
-    coverage["merged"] = len(findings) - coverage["candidates"]
+    candidates = sum(1 for f in findings if not f.same_cause_as)
+    coverage["candidates"] = candidates
+    coverage["merged"] = len(findings) - candidates
     return findings, coverage
 
 
