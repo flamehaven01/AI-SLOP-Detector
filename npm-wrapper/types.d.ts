@@ -111,6 +111,59 @@ export interface FileAnalysisOutput {
   semantic_findings?: SemanticFinding[];
   /** What the hollow channel measured on this file (3.14+). */
   semantic_coverage?: SemanticCoverage;
+  /** Docstring promises the body cannot keep (3.14+): review candidates, never
+   *  scored. A promise with same_cause_as is shown on that finding instead. */
+  claim_findings?: ClaimFinding[];
+  /** What the docstring-promise channel measured on this file (3.14+). */
+  claim_coverage?: ClaimCoverage;
+  /** SHA-256 of the bytes this result was computed from (3.14+). */
+  source_sha256?: string;
+  /** Where those bytes came from: "file_bytes" or "string_utf8" (3.14+). */
+  content_origin?: string;
+}
+
+export interface ClaimFinding {
+  function: string;
+  line: number;
+  kind: "claim_without_mechanism";
+  status?: "REVIEW_CANDIDATE";
+  /** pagination, parallel, aggregation, rejection, validation, live_data, computed_result */
+  claim_kind: string;
+  /** The docstring sentence and its line. */
+  promise: string;
+  promise_line: number;
+  basis: string;
+  detail?: string;
+  /** What the body would need, and what was found instead. */
+  looked_for: string;
+  why: string;
+  resolves?: string;
+  /** Pattern rules this promise is merged into (same function, same cause). */
+  same_cause_as: string[];
+}
+
+export interface ClaimCoverage {
+  state?: "MEASURED" | "SKIPPED" | "UNMEASURED";
+  functions?: number;
+  eligible_functions?: number;
+  functions_with_claims?: number;
+  extracted_claims?: number;
+  supported?: number;
+  delegated_in_module?: number;
+  provided_elsewhere?: number;
+  undecided?: number;
+  contradicted?: number;
+  unmeasured?: number;
+  candidates?: number;
+  merged?: number;
+  claims_by_kind?: Record<string, number>;
+  not_analyzed_by_reason?: Record<string, number>;
+  excluded_matches_by_reason?: Record<string, number>;
+  undecided_by_reason?: Record<string, number>;
+  not_evaluated?: Record<string, number>;
+  out_of_scope?: Record<string, number>;
+  by_kind?: Record<string, Record<string, number>>;
+  error_type?: string;
 }
 
 export interface SemanticFinding {

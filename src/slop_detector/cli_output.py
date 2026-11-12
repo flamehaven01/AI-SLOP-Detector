@@ -137,7 +137,20 @@ def _write_ai_report(args, result) -> None:
     if args.output:
         _write_file(str(args.output), text, "AI report")
     else:
+        _write_stdout_utf8(text)
+
+
+def _write_stdout_utf8(text: str) -> None:
+    """A machine document is UTF-8 whatever the console code page: through the
+    byte stream when stdout has one (a cp949 console cannot encode an em dash
+    in a finding message or a docstring)."""
+    buffer = getattr(sys.stdout, "buffer", None)
+    if buffer is None:
         sys.stdout.write(text)
+        return
+    sys.stdout.flush()
+    buffer.write(text.encode("utf-8"))
+    buffer.flush()
 
 
 def _report_bundle(args, result) -> None:

@@ -412,8 +412,10 @@ def _overall(states: Dict[str, int]) -> str:
 
 
 def short_path(path: str, root: str) -> str:
-    """`path` relative to the scanned root when it is inside it."""
+    """`path` relative to the scanned root when it is inside it; a file scanned
+    on its own (the root is the file) by its name, never "."."""
     try:
-        return Path(path).resolve().relative_to(Path(root).resolve()).as_posix()
+        relative = Path(path).resolve().relative_to(Path(root).resolve())
     except (ValueError, OSError):
         return Path(path).as_posix()
+    return relative.as_posix() if relative.parts else Path(path).name
