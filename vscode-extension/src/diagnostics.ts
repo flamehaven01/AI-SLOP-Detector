@@ -47,15 +47,19 @@ export function updateDiagnostics(uri: vscode.Uri, result: any): void {
         ? `, ML: ${(result.ml_score.slop_probability * 100).toFixed(0)}% [${result.ml_score.label}]`
         : '';
 
-    // Summary diagnostic at top of file
+    // Summary diagnostic at top of file. A JS/TS or Go result has no inflation
+    // or DDC: those are not shown rather than shown as 0.
+    const metrics = result.language
+        ? `${result.language}: LDR-equivalent ${(result.ldr?.ldr_score ?? 0).toFixed(3)}  ` +
+          `Purity: ${purity.toFixed(3)} (${nCritical} critical)`
+        : `LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}  ` +
+          `Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}  ` +
+          `DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}  ` +
+          `Purity: ${purity.toFixed(3)} (${nCritical} critical)`;
     diagnostics.push(makeDiag(
         FILE_TOP,
         `Code Quality Score: ${deficitScore.toFixed(1)}/100 — ` +
-        `${(result.status ?? 'unknown').toUpperCase()}${mlPart}${clonePart}\n` +
-        `LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}  ` +
-        `Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}  ` +
-        `DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}  ` +
-        `Purity: ${purity.toFixed(3)} (${nCritical} critical)`,
+        `${(result.status ?? 'unknown').toUpperCase()}${mlPart}${clonePart}\n` + metrics,
         overallSev, 'SLOP Detector',
     ));
 

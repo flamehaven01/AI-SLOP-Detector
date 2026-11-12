@@ -3,6 +3,7 @@ import * as path from 'path';
 import { statusBarItem, outputChannel, replaceFileResults } from './state';
 import { analyzeDocument, extractJson } from './analyzer';
 import * as client from './client';
+import { projectFileResults } from './findings';
 
 interface ResultQuickPickItem extends vscode.QuickPickItem {
     filePath?: string;
@@ -23,7 +24,8 @@ export async function analyzeWorkspace(): Promise<void> {
     statusBarItem.text = '$(sync~spin) SLOP: Analyzing workspace...';
     try {
         const result = await client.scanProject(rootPath);
-        replaceFileResults(result.file_results ?? []);
+        const files = projectFileResults(result, rootPath);
+        replaceFileResults(files);
         const icon = result.overall_status === 'clean' ? '$(check)' : '$(warning)';
         statusBarItem.text = `${icon} SLOP: ${result.avg_deficit_score.toFixed(1)} avg (${result.total_files} files)`;
 
@@ -33,7 +35,7 @@ export async function analyzeWorkspace(): Promise<void> {
             kind: vscode.QuickPickItemKind.Separator,
         });
 
-        const deficitFiles = (result.file_results ?? [])
+        const deficitFiles = files
             .filter((f: any) => f.status !== 'clean')
             .sort((a: any, b: any) => b.deficit_score - a.deficit_score);
 
@@ -42,7 +44,9 @@ export async function analyzeWorkspace(): Promise<void> {
             items.push({
                 label: `${fIcon} ${path.basename(f.file_path)}`,
                 description: `${f.deficit_score.toFixed(1)}/100 — ${f.status.toUpperCase()}`,
-                detail: `LDR: ${(f.ldr?.ldr_score ?? 0).toFixed(2)}  Inflation: ${(f.inflation?.inflation_score ?? 0).toFixed(2)}  DDC: ${(f.ddc?.usage_ratio ?? 0).toFixed(2)}`,
+                detail: f.language
+                    ? `${f.language}: LDR-equivalent ${(f.ldr?.ldr_score ?? 0).toFixed(2)}`
+                    : `LDR: ${(f.ldr?.ldr_score ?? 0).toFixed(2)}  Inflation: ${(f.inflation?.inflation_score ?? 0).toFixed(2)}  DDC: ${(f.ddc?.usage_ratio ?? 0).toFixed(2)}`,
                 filePath: f.file_path,
             });
         }

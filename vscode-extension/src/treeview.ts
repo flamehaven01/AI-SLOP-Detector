@@ -96,10 +96,12 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
 
         // 4D metric summary row
         const metric = new SlopItem(
-            `LDR ${(result.ldr?.ldr_score ?? 0).toFixed(2)}  ` +
-            `DDC ${(result.ddc?.usage_ratio ?? 0).toFixed(2)}  ` +
-            `Purity ${purity.toFixed(2)}  ` +
-            `Infl ${(result.inflation?.inflation_score ?? 0).toFixed(2)}`,
+            result.language
+                ? `${result.language}  LDR-eq ${(result.ldr?.ldr_score ?? 0).toFixed(2)}  Purity ${purity.toFixed(2)}`
+                : `LDR ${(result.ldr?.ldr_score ?? 0).toFixed(2)}  ` +
+                  `DDC ${(result.ddc?.usage_ratio ?? 0).toFixed(2)}  ` +
+                  `Purity ${purity.toFixed(2)}  ` +
+                  `Infl ${(result.inflation?.inflation_score ?? 0).toFixed(2)}`,
             vscode.TreeItemCollapsibleState.None, 'metric', filePath,
         );
         metric.iconPath = new vscode.ThemeIcon('graph-line');

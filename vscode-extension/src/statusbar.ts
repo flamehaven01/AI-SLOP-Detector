@@ -37,9 +37,11 @@ export function updateStatusBar(result: any, changed = false): void {
         `Score: ${deficitScore.toFixed(1)}/100  Status: ${status}\n` +
         `LDR Grade: ${ldrGrade}\n\n` +
         `Metrics:\n` +
-        `- LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}\n` +
-        `- Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}\n` +
-        `- DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}\n` +
+        (result.language
+            ? `- ${result.language}: LDR-equivalent ${(result.ldr?.ldr_score ?? 0).toFixed(3)}\n`
+            : `- LDR: ${(result.ldr?.ldr_score ?? 0).toFixed(3)}\n` +
+              `- Inflation: ${(result.inflation?.inflation_score ?? 0).toFixed(3)}\n` +
+              `- DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}\n`) +
         `- Purity: ${purity.toFixed(3)} (${nCritical} critical)\n` +
         cloneLine +
         mlTooltip +

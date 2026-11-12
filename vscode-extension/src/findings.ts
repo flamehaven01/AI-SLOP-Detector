@@ -1,6 +1,42 @@
 /** One list of what a file result reports, located by line: the single
  *  source for diagnostics, hover, line highlights and the tree. */
 
+import * as path from 'path';
+
+/** A JS/TS or Go file result (js_file_results / go_file_results) in the field
+ *  names of a Python file result, so every view reads one shape. Its path is
+ *  made absolute against the scanned root (the backend gives it relative). The
+ *  Python metrics it has no counterpart for (inflation, DDC) are left out. */
+export function languageFileResult(f: any, root: string): any {
+    return {
+        ...f,
+        file_path: path.resolve(root, String(f.file_path ?? '')),
+        deficit_score: typeof f.slop_score === 'number' ? f.slop_score : 0,
+        pattern_issues: Array.isArray(f.issues) ? f.issues : [],
+        ldr: { ldr_score: typeof f.ldr_equivalent === 'number' ? f.ldr_equivalent : 0 },
+        inflation: {},
+        ddc: {},
+        warnings: [],
+    };
+}
+
+/** The result of a one-file scan: a Python file's own result, or the single
+ *  language result of the project-shaped output a JS/TS or Go file comes back
+ *  as (no top-level file_path; the file under js_file_results / go_file_results). */
+export function asFileResult(raw: any, root: string): any {
+    if (!raw || typeof raw !== 'object' || 'file_path' in raw) { return raw; }
+    const lang = [...(raw.js_file_results ?? []), ...(raw.go_file_results ?? [])];
+    return lang.length === 1 ? languageFileResult(lang[0], root) : raw;
+}
+
+/** Files of a project scan, every language in one list. */
+export function projectFileResults(scan: any, root: string): any[] {
+    return [
+        ...(scan?.file_results ?? []),
+        ...[...(scan?.js_file_results ?? []), ...(scan?.go_file_results ?? [])].map((f) => languageFileResult(f, root)),
+    ];
+}
+
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
 
 /** A docstring promise the body cannot keep (backend 3.14+ claim channel). */

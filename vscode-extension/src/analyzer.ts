@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import { asFileResult } from './findings';
 import { statusBarItem, outputChannel, updateFileResult } from './state';
 import { updateDiagnostics } from './diagnostics';
 import { updateStatusBar } from './statusbar';
@@ -15,7 +17,8 @@ export function extractJson(stdout: string): any {
 
 export async function runSlopDetector(filePath: string): Promise<ISlopReport> {
     outputChannel.appendLine(`[*] scan ${filePath}`);
-    const raw    = await client.scanFile(filePath);
+    // A JS/TS or Go file comes back project-shaped: take its own result.
+    const raw    = asFileResult(await client.scanFile(filePath), path.dirname(filePath));
     const parsed = parseSlopReport(raw);
     if (!parsed.ok) {
         const { field, expected, got } = parsed.error;

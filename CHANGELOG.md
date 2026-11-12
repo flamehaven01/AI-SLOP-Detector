@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### VS Code extension 3.14.1 (Marketplace build)
+
+Built after the `v3.14.1` tag from `main`; the core, PyPI and npm packages
+are unchanged.
+
+- JS/TS and Go files: a file analyzed on its own comes back from the backend
+  in the project shape (its result under `js_file_results` /
+  `go_file_results`), which the extension rejected ("CLI output schema
+  mismatch") and so showed no line findings for these languages. The
+  extension now reads that result: line highlights, hover, Problems, the
+  Issues view and "Copy work order" work for JS/TS and Go. Analyze
+  Workspace lists JS/TS and Go files too.
+- For those files the summary, the status bar tooltip and the Issues view
+  show the language and its LDR-equivalent instead of the Python-only
+  inflation and DDC values (which they printed as 0).
+- Checked in VS Code 1.145.3 with the packaged extension on
+  `examples/demo_project`: diagnostics, hovers (docstring promise, merged
+  promise), the copied work order for a Python and a JS item, the
+  changed-file marking and its removal after a revert.
+
 ## [3.14.1] - 2026-11-12
 
 Two defects of the 3.14.0 AI outputs, and the VS Code extension brought up to
