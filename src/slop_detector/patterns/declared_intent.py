@@ -12,8 +12,10 @@ way. Evidence the module states:
 - a `property` / `cached_property` / `classmethod` / `staticmethod` is a
   declared accessor;
 - another decorator supplies the body (a `...` body under it is a signature),
-  or registers it (an empty `pass` / `return None` body under it, such as a
-  `click.group`, does nothing and claims nothing);
+  or registers a module function (an empty `pass` / `return None` body under
+  it, such as a `click.group`, does nothing and claims nothing); an empty
+  registered method is an operation of its class and needs its docstring to
+  declare the no-op;
 - the class name says it is a default: a null object (`NullRenderer`,
   `NoopSink`) or a base (`BaseFeature`, `AirLLMBaseModel`), so its one-line
   bodies are the defaults; a `return` in a subclass of such a named base is a
@@ -234,6 +236,8 @@ class DeclaredIntent:
         self._abstract: Set[ast.ClassDef] = {k for k in classes if self._declared_abstract(k)}
         self._name_refs, self._self_attr_refs, self._defined_in = _value_references(tree)
         self.module_bindings: Set[str] = _module_bindings(tree)
+        # Source lines, set by the first pattern that has the content.
+        self.source_lines: Optional[list] = None
 
     @staticmethod
     def _declared_abstract(klass: ast.ClassDef) -> bool:
@@ -243,6 +247,9 @@ class DeclaredIntent:
             keyword.arg == "metaclass" and _simple_name(keyword.value) in _ABSTRACT_METACLASSES
             for keyword in klass.keywords
         )
+
+    def parent(self, node: ast.AST) -> Optional[ast.AST]:
+        return self._parent.get(node)
 
     def enclosing_class(self, function: FunctionNode) -> Optional[ast.ClassDef]:
         parent = self._parent.get(function)
@@ -414,6 +421,36 @@ def _only_statement(function: FunctionNode, stmt: ast.stmt) -> bool:
     return body == [stmt]
 
 
+# A comment in an empty body that says the emptiness is meant: "# Don't send
+# ActionComplete - workflow ends here". "# load the checkpoint" describes work
+# the body does not do, and a TODO marks it unfinished.
+_INTENT_COMMENT = re.compile(
+    r"\b(nothing|intentional\w*|deliberate\w*|on purpose|no-?op|skip\w*|ignor\w*|not|no|without)\b|n't\b",
+    re.I,
+)
+# Unfinished or limited in time: "# not ready yet", "# currently unavailable".
+_UNFINISHED_COMMENT = re.compile(
+    r"\b(todo|fixme|xxx|wip|placeholder|stub|implement\w*|yet|currently|later|for now|"
+    r"temporar\w*|unavailable|not (ready|working|done|finished|supported|available))\b",
+    re.I,
+)
+
+
+def _explains_empty_body(intent: DeclaredIntent, function: FunctionNode) -> bool:
+    """A comment inside the function body says the empty body is meant."""
+    lines = intent.source_lines
+    if not lines or not function.body:
+        return False
+    # From the `def` line (decorators left out), so a comment above `pass` counts.
+    first, last = function.lineno, getattr(function, "end_lineno", None) or function.body[-1].lineno
+    comments = [
+        line.split("#", 1)[1] for line in lines[first - 1 : last] if line.lstrip().startswith("#")
+    ]
+    if any(_UNFINISHED_COMMENT.search(c) for c in comments):
+        return False
+    return any(_INTENT_COMMENT.search(c) for c in comments)
+
+
 def _declared_noop(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
     """An empty body its own summary sentence declares a no-op, in a place whose
     signature something else fixes (an outside or module base, a named base, a
@@ -430,13 +467,30 @@ def _declared_noop(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stm
     return intent.is_registered_by_value(function)
 
 
+def _declared_registered_empty(
+    intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt
+) -> bool:
+    """An empty body under a registering decorator.
+
+    A registered module function (a `click.group`) does nothing and claims
+    nothing; a registered method is an operation of its class, so an empty one
+    needs its summary sentence or a comment in its body to declare the no-op.
+    """
+    if intent.enclosing_class(function) is None:
+        return True
+    return _only_statement(function, stmt) and (
+        _declares_noop(function) or _explains_empty_body(intent, function)
+    )
+
+
 def is_declared_body(intent: DeclaredIntent, function: FunctionNode, stmt: ast.stmt) -> bool:
     """The one-statement body `stmt` is declared intent, not an unfinished stub.
 
     A contract method is declared whatever its body. A `return` is declared in
     an accessor or in an override of a module base (a hook answering a
     question); a `...` body is declared under an implementing decorator, an
-    empty one under any registering decorator. An override that is `pass` or
+    empty one under a registering decorator of a module function, or of a
+    method whose docstring declares the no-op. An override that is `pass` or
     raises stays a placeholder unless its class name or interface declares it
     (`_named_default`), or its summary sentence declares an empty body a no-op
     where a base or a registration fixes the signature (`_declared_noop`).
@@ -448,7 +502,7 @@ def is_declared_body(intent: DeclaredIntent, function: FunctionNode, stmt: ast.s
     ):
         return True
     if _is_empty(stmt) and intent.has_implementing_decorator(function):
-        return True
+        return _declared_registered_empty(intent, function, stmt)
     if isinstance(stmt, ast.Return):
         return intent.is_accessor(function) or intent.overrides_module_base(function)
     return _is_ellipsis(stmt) and intent.has_implementing_decorator(function)

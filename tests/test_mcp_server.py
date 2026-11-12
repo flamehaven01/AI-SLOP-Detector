@@ -43,6 +43,7 @@ def test_tools_list_exposes_agent_surface_tools():
         "slop_schema",
         "slop_analyze_file",
         "slop_analyze_project",
+        "slop_ai_report",
     }
 
 

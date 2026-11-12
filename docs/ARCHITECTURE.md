@@ -1,6 +1,6 @@
 # Architecture
 
-**Current contract:** v3.13.0. This page describes the current implementation, not a product roadmap or a performance benchmark.
+**Current contract:** v3.14.0. This page describes the current implementation, not a product roadmap or a performance benchmark.
 
 ## Purpose And Boundary
 
@@ -44,6 +44,22 @@ core_scoring   core_topology   core_project
 - `core_topology.py`: DCF, Jensen-Shannon distance, and exact or deterministic approximate coherence calculations.
 - `core_project.py`: discovery policy, coverage envelope, and project result aggregation.
 - `service/`: `ScanService` runs one scan the same way for every surface (config resolution, per-run options, gate and threshold decisions, progress events, cancellation, typed failures); `ExportService` renders the CLI's report formats. It adds no analysis. Its default writes nothing; the CLI asks it to keep the analysis cache and records history itself.
+
+## Review Channels And Reports (3.14)
+
+Two channels run beside the pattern and metric channel on each Python file. Neither changes the score or the status band; a failure inside either marks that channel `UNMEASURED` for the file, and the file is still analyzed.
+
+- `semantic.py` (hollow channel): a closed call graph of one module. A function's effect state is `EFFECT_OBSERVED`, `EFFECT_UNKNOWN` or `NO_EFFECT_IN_CLOSED_GRAPH`; only the last can produce a review candidate (`success_without_effect`, `input_never_used`, `failure_reported_as_success`, ...). Calls the graph does not follow are counted with their reason in `semantic_coverage`.
+- `claims.py` and `claim_judge.py` (docstring promises): the first sentence's own action is extracted, then judged against the body as supported, delegated, undecided or contradicted; `claim_findings.py` turns a contradiction into a `claim_without_mechanism` candidate or merges it into an existing finding.
+
+Every report reads one `ReportView` (`report_view.py`) built once from the result; renderers format it and compute nothing of their own:
+
+- `renderer_terminal.py`, `renderer_markdown.py`, `renderer_html.py` (and `report_pdf.py`, which prints the HTML with an installed Chromium) for people.
+- `ai_report.py`: the AI report `ai-slop-report/1`, pydantic-validated records with ids from `finding_identity.py` (symbol, subject, line fingerprint, structural locator) and the scan-time SHA-256 of each file.
+- `ai_report_md.py`: the same records as the AI work order, its rule texts from `config/work_order_rules.json` (loaded and digested by `work_order_rules.py`). See [AI_WORK_ORDER.md](AI_WORK_ORDER.md).
+- `report_bundle.py`: `--report-dir`.
+
+What each surface shows: [REPORTS.md](REPORTS.md).
 
 ## Source Scope
 

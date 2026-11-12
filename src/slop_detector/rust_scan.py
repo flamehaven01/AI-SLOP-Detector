@@ -23,8 +23,8 @@ def _candidate_binary_paths() -> List[Path]:
     return [candidate for candidate in candidates if candidate is not None]
 
 
-# Measured 2026-10-14 (release build, best of 3): the slowest of 16 replay-corpus
-# repositories took 0.243 s (7,539 entries); 30 s is over 100x that. A timeout
+# Measured 2026-10-14 (release build, best of 3): a 7,539-entry tree took
+# 0.243 s; 30 s is over 100x that. A timeout
 # costs only time: discovery falls back to the Python walk, same file set.
 RUST_SCAN_TIMEOUT_SECONDS = 30.0
 

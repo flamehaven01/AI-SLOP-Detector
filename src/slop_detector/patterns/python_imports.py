@@ -389,6 +389,19 @@ class PhantomImportPattern(BasePattern):
         is_guarded: bool,
         declared_sources: FrozenSet[str],
     ) -> Issue:
+        issue = self._import_issue(file, line, column, module_name, is_guarded, declared_sources)
+        issue.subject = module_name  # one import line can name several modules
+        return issue
+
+    def _import_issue(
+        self,
+        file: Path,
+        line: int,
+        column: int,
+        module_name: str,
+        is_guarded: bool,
+        declared_sources: FrozenSet[str],
+    ) -> Issue:
         if declared_sources:
             locations = ", ".join(sorted(declared_sources))
             return Issue(
@@ -457,7 +470,7 @@ class PhantomImportPattern(BasePattern):
         declared_sources: FrozenSet[str],
     ) -> Issue:
         locations = ", ".join(sorted(declared_sources))
-        return Issue(
+        issue = Issue(
             pattern_id="declared_outside_primary_metadata",
             severity=Severity.LOW,
             axis=self.axis,
@@ -472,4 +485,6 @@ class PhantomImportPattern(BasePattern):
                 "Keep dependency declarations aligned with pyproject.toml so package "
                 "installation and analysis use the same contract."
             ),
+            subject=module_name,
         )
+        return issue

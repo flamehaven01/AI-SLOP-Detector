@@ -1,460 +1,213 @@
-# AI SLOP Detector — VS Code Extension v3.13.0
+# AI SLOP Detector for VS Code
 
-Real-time AI-generated code quality analysis inside VS Code. Surfaces
-deficit scores, structural anti-patterns, ML signals, clone detection,
-interactive webview reports, and actionable diagnostics without leaving your
+Finds code that looks finished but is not: stubs, swallowed failures,
+inputs a function never uses, success reported without an effect. The
+results show up where you write code: on the line, in a hover, in Problems
+and in a sidebar, and you can export them as an HTML, PDF, Markdown or AI
+report without leaving the editor.
+
+Everything runs locally through the `ai-slop-detector` Python backend.
+Nothing is sent anywhere.
+
+---
+
+## What you see in the editor
+
+| Where | What |
+|---|---|
+| **Flagged lines** | A tint and a coloured bar by severity (critical red, high orange, medium yellow, low grey; hollow review purple, dashed) and a mark in the scroll bar |
+| **End of the line** | `■ MEDIUM empty_except: Empty handler for 'Exception' ...`, with `(+N)` when the line has more |
+| **The line under the cursor** | A stronger tint, a frame and the full text in bold; the status bar names the item (`SLOP MEDIUM empty_except`) |
+| **Hover** | For every item on the line: a severity badge, the rule, what was found, the **Fix**, and two links: **Copy for AI agent** and **Open report** |
+| **Problems** (`Ctrl+Shift+M`) | One short line per item, the rule as the code (filter by `god_function`, `empty_except`, ...) |
+| **Issues view** (SLOP icon in the Activity Bar) | Files by score, each with its findings and hollow candidates; click to jump |
+| **Status bar** | The file's score: `Good (12.5)`, `Warning (34.1)`, `Error (67.8)` |
+| **CodeLens** | The file's score at the top, a hint above flagged functions |
+
+A file is analyzed when you open it or bring it to the front (once, until
+you save it again), on every save, and optionally while you type.
+
+### Hollow review candidates
+
+With the backend 3.14 or newer, the detector also follows calls inside a
+module and reports functions whose result does not depend on what they do,
+for example a `save_record()` that returns `True` while every call it makes
+has no effect, or a catch-all handler that turns a failure into success.
+
+They are **review candidates, not findings**: they never change the score,
+they appear at the Information level and in purple, and the hover says so.
+Decide whether a real effect is expected there; if it is, fix it. When a
+call goes to another module or a value chosen at run time, the detector
+cannot decide and says nothing. Turn them off with
+`slopDetector.showHollowCandidates`.
+
+---
+
+## Reports from the extension
+
+**SLOP Detector: Export Report** (also the export icon in the Issues view)
+writes a report of the workspace, or of the open file when no folder is open:
+
+| Format | For |
+|---|---|
+| HTML | One self-contained page: summary cards, the top items, every finding, hollow candidates, score details, coverage and the file list. Severity filters on screen; prints to A4 |
+| PDF (A4) | The same page printed. Needs Chrome, Edge or Chromium installed; without one the export says so and offers HTML instead |
+| Markdown | A PR, an issue or a wiki page |
+| AI report (JSON Lines) | `ai-slop-report/1` for an agent: a header with the rules every item shares, then one line per item bound to its file's SHA-256 |
+| All reports | `report.md`, `report.html`, `report.pdf`, `ai-report.jsonl` and `scan.json` in one folder |
+
+When it is written, an **Open** button opens it: HTML in a VS Code tab or
+your browser, Markdown with its preview, PDF in your PDF viewer.
+
+**SLOP Detector: Open Report in VS Code** (the preview icon in the Issues
+view, or the hover link) builds the HTML report and shows it beside the
 editor.
 
+**Copy for AI agent** (in the hover) copies one item as JSON: rule,
+location, evidence, fix direction and the fixes that are not allowed
+(a suppression comment, a threshold change, deleting the function).
+
+The reports need the backend 3.14 or newer; an older backend gets a message
+saying so.
+
 ---
 
-## What's New in v3.13.0 — Version Aligned with the 3.13.0 Core
+## Commands (`Ctrl+Shift+P`, then "SLOP")
 
-The extension package is version-aligned with the 3.13.0 core again (it had
-stayed at 3.8.9 since the 3.9.x releases). It adds no extension workflow
-change: views and diagnostics read the same JSON fields, and they now show
-the findings of the 3.13.0 backend. The version shown in the output channel
-is read from the extension manifest.
-
-## What's New in v3.8.9 — Core Trust and Measurement Alignment
-
-### 3.8.9 extension alignment
-
-This extension package is version-aligned with the 3.8.9 core trust release.
-It does not introduce a separate extension workflow change. Existing views and
-diagnostics now consume a backend that discloses project finding totals, scan
-coverage, and ML capability state rather than allowing a `clean` weighted score
-to imply an empty finding set.
-
-The prior `Refresh Issues`, exact-path selection, and Quick Fix reliability
-changes remain part of v3.8.8.
-
-## What's New in v3.8.3 — Webview Surfaces + Typed npm Data Layer
-
-### Four interactive webview panels
-
-The extension moves beyond text diagnostics with theme-aware webviews (styled
-with VS Code CSS variables only — no external UI dependencies):
-
-| Command | What it shows |
+| Command | What it does |
 |---|---|
-| **Show 4D Breakdown** | Penalty attribution — *why* a file's deficit is not 0.0, top driver first |
-| **Show Cleanup Plan** | Confidence-ranked `sweep` family (`safe` / `needs` / `unsafe`) with evidence |
-| **Show Pulse Dashboard** | Project health header + priority hotspots (deficit x churn x coverage) |
-| **Show Changed-Code Review** | Diff-aware review — introduced-vs-inherited slop, recommended actions |
-
-### Typed npm data layer
-
-Analysis no longer shells out by hand. The extension consumes the
-`ai-slop-detector` npm package's runtime API and TypeScript contracts, so
-results are typed end-to-end and the modern `scan / review / pulse / sweep`
-command surface is used throughout. The hand-written output schema was retired
-in favour of the package's generated types.
-
-### Onboarding + state-aware UI
-
-- **Getting-started walkthrough** mapped to `scan -> diagnose -> patch -> gate -> calibrate`
-- **State-aware empty states** with actionable links (`Get Started`, `Analyze`)
-- **Context-key view menus** — Analyze before the first run, Refresh after
-- **`slopDetector.domain` setting** (8 profiles) wired into config bootstrap
-
-> Note: the extension now depends on the `ai-slop-detector` npm package; see
-> [Requirements](#requirements).
-
----
-
-## What's New in v3.7.5
-
-### `phantom_import` False Positive Fix — Flat-Module Projects
-
-`phantom_import` now correctly handles projects where Python files are
-not organized as packages (no `__init__.py`, no `pyproject.toml`).
-Sibling `.py` files in the same directory are automatically recognised
-as local modules and never flagged as phantom imports.
-
-The `phantom_import_allowlist` key in `.slopconfig.yaml` is now fully
-wired to the detection engine — previously it was parsed but silently
-ignored. A new **QuickFix** action in the editor lets you add a flagged
-module directly from the Problems panel:
-
-> **Right-click → SLOP: Allowlist 'module_name' — add to phantom_import_allowlist in .slopconfig.yaml**
-
-The action either appends the entry to an existing `phantom_import_allowlist:` section
-or creates one at the end of the file.
-
-### New Setting: `slopDetector.phantomImportAllowlist`
-
-```jsonc
-"slopDetector.phantomImportAllowlist": ["my_local_module", "another_sibling"]
-```
-
-Documents which local modules you want allowlisted. When a phantom_import
-QuickFix fires, VS Code surfaces this setting alongside the `.slopconfig.yaml`
-entry suggestion so you have a clear, in-editor record.
-
----
-
-## What's New in v3.7.4
-
-### False Positive Patch — ABC / Optional / FastAPI / Extras
-
-Six sources of false positives eliminated:
-
-- `ellipsis_placeholder` / `interface_only_class`: `@abstractmethod` bodies no
-  longer trigger stub warnings
-- `return_none_placeholder`: `return None` in `-> Optional[T]` methods is the
-  Null Object pattern, not a placeholder
-- `phantom_import`: PEP-508 extras specifiers (`psycopg[binary]`) are stripped
-  before resolution, fixing guarded optional-dep imports
-- `function_clone_cluster`: FastAPI / Flask route files with an `app` or `router`
-  assignment are exempt from clone-cluster flagging
-- Jargon matching: `\b` word boundaries prevent `neural` matching inside
-  `neural_network_training` identifiers
-
----
-
-## What's New in v3.6.0
-
-### CI Gate Bug Fix — `--ci-mode hard` Now Exits Non-Zero
-
-The core CLI had a silent bug: `--ci-mode hard` only propagated its exit code
-when `--ci-report` was also passed. Without `--ci-report`, it returned 0 even on
-`CRITICAL_DEFICIT` files. This is now fixed — `hard` mode always gates correctly.
-
-Pre-commit hooks were also rewritten to use `python -m slop_detector.cli` (the
-`.exe` wrapper on Windows did not reliably propagate exit codes):
-
-```yaml
-repos:
-  - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.6.0
-    hooks:
-      - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
-      # - id: slop-detector-warn   # soft mode — reports only, never blocks
-      # - id: slop-detector-patterns  # fast per-file pattern scan
-```
-
-### Historical Claude Code Skill Note
-
-The old `/slop*` labels were host-specific aliases, not a separate product
-surface. Install the current skill and use the canonical `review`, `pulse`,
-`sweep`, and `scan` workflow:
-
-```bash
-cp -r claude-skills/slop-detector ~/.claude/skills/slop-detector
-```
-
-| Canonical surface | Use it for |
-|---|---|
-| `review` | Changed-code evidence |
-| `pulse` | Hotspot prioritization |
-| `sweep` | Bounded cleanup planning |
-| `scan` | Full baseline analysis |
-
-See [`docs/CLAUDE_CODE_SKILL.md`](../docs/CLAUDE_CODE_SKILL.md) for full reference.
-
----
-
-## What's New in v3.5.0
-
-### Go Language Support (Phase 3c)
-
-The extension now activates on **Go files** (`.go`). Install the Go extra and
-get 6 Go-specific patterns detected in real-time:
-
-```bash
-pip install "ai-slop-detector[go]"
-```
-
-| Pattern | Meaning |
-|---|---|
-| `go_empty_func` | Empty `{}` function body |
-| `go_panic` | `panic()` crash-on-error anti-pattern |
-| `go_fmt_print` | `fmt.Print*` debug output left in code |
-| `go_ignored_error` | `_ = fn()` silently discarded error |
-| `go_todo_comment` | `// TODO` inline marker |
-| `go_god_function` | Function exceeding 50 lines |
-
-### JS/TS Full Analysis (Phase 3b)
-
-JavaScript and TypeScript files now receive full structural analysis via the
-dedicated **JS/TS Analyzer** — not just cross-language pattern matching.
-
-### Domain-Aware `--init` (Phase 3a)
-
-`slop-detector.initConfig` auto-detects your project domain (library, web app,
-CLI tool, data pipeline) and generates a `.slopconfig.yaml` with domain-specific
-thresholds pre-tuned for that type of project.
-
-### CI Stability Fix
-
-Fixed a `jq exit 5` parse error in CI pipelines: calibration milestone hints
-were being written to stdout alongside the JSON payload. Hints are now correctly
-sent to stderr.
-
----
-
-## What's New in v3.2.1
-
-### LEDA Self-Evolving Configuration Loop
-
-> **Current behavior (detector v3.9.2+):** Self-Calibrate shows an advisory report
-> only. The **Apply** button is gone and the CLI no longer writes weights, because
-> the legacy history is not provenance-stable; see the detector's
-> `docs/SELF_CALIBRATION.md`. The notes below describe v3.2.1.
-
-The biggest addition: the extension now exposes the **LEDA calibration loop** —
-the engine that can tune detection weights from repository-local run history.
-This is operational calibration for one codebase, not an externally validated
-control.
-
-- **Bootstrap Config** (`slop-detector.initConfig`): Generates a `.slopconfig.yaml`
-  in your workspace root with domain-specific overrides and secure `.gitignore` injection.
-  Run this once on a new project.
-- **Self-Calibrate** (`slop-detector.selfCalibrate`): Runs the 4D grid-search
-  calibration (LDR × Inflation × DDC × Purity) against your analysis history, shows
-  the result in the Output panel, and offers a one-click **Apply** button to write
-  the optimal weights back to `.slopconfig.yaml`.
-
-> **The more repeated history you have, the more repository-specific evidence it
-> can use.** After 10+ multi-run files the LEDA engine can recommend weights from
-> observed edit/review behavior and Git history. Run self-calibrate periodically
-> if you want that repository-local tuning signal refreshed over time.
-
-### Purity Dimension (4D Scoring)
-
-The **Purity score** (`exp(−0.5 × n_critical)`) is now visible everywhere:
-
-- **Diagnostics summary** — appended after LDR / Inflation / DDC
-- **Status bar tooltip** — shows `Purity: 0.xxx (N critical)`
-
-This completes the 4D metric display: LDR + Inflation + DDC + Purity.
-
-### Other v3.2.1 Fixes
-
-- `calibrate()` min_events guard: correctly handles fewer events than the minimum
-  without raising, returns `insufficient_data` status
-- Git noise filter (P2): per-file deduplication prevents FP overcounting across runs
-- Black + ruff CI green across all source files
-
-## What's New in v3.1.1
-
-- **Clone Detection in Core Metrics**: `function_clone_cluster` results are
-  now visible in the Core Metrics summary row — CRITICAL/PASS at a glance.
-- **Workspace QuickPick**: "Analyze Workspace" now shows a sorted QuickPick
-  list of deficit files. Click any file to open it directly in the editor.
-- **JSON parse fix**: `extractJson()` strips `[INFO]` log lines before parsing.
-- **History Trends formatting**: formatted column table (Runs / Latest / Best /
-  Worst / Trend) replaces raw JSON dump.
-
----
-
-## Features
-
-### Inline Diagnostics (Problems Panel)
-
-Every analysis run produces structured diagnostics in the Problems panel:
-
-| Source label | Diagnostic type | Severity |
-|---|---|---|
-| SLOP Detector | Summary: score, status, LDR/ICR/DDC/Purity, ML score, Clone | Error / Warning / Info |
-| SLOP Detector - Inflation | Unjustified jargon term at exact line | Warning |
-| SLOP Detector - Docstring | Over-documented function (doc/impl ratio) | Error / Warning |
-| SLOP Detector - Evidence | Unjustified quality claim lacking evidence | Warning |
-| SLOP Detector - DDC | Unused imports summary | Info |
-| SLOP Detector - Patterns | Structural anti-patterns (god_function, dead_code, phantom_import, function_clone_cluster, etc.) | Error / Warning / Info |
-
-Pattern diagnostics use `pattern_id` as the diagnostic code — VS Code's
-Problems panel filter works natively (e.g., filter for `god_function` only).
-
-### Status Bar
-
-Right side of the status bar shows live quality at a glance:
-
-```
-$(check) Good (12.4)      <- score below warn threshold
-$(warning) Warning (34.1) <- score >= warnThreshold
-$(error) Error (67.8)     <- score >= failThreshold
-$(sync~spin) Analyzing... <- analysis in progress
-```
-
-**Tooltip includes:**
-- Deficit Score and Status
-- LDR / Inflation / DDC / **Purity** metric values
-- ML slop probability (when model is present)
-- Clone Detection: PASS or CRITICAL
-
-### Workspace Analysis (QuickPick)
-
-"Analyze Workspace" scans all supported files (Python, JS/TS, Go) and opens an interactive QuickPick:
-
-```
-$(error) src/slop_detector/cli.py          [67.8] INFLATED_SIGNAL
-$(warning) src/slop_detector/core.py       [34.1] SUSPICIOUS
-$(check) src/slop_detector/models.py       [11.2] CLEAN
-```
-
-Click any entry to open the file directly in the editor.
-
-### Lint on Save / Lint on Type
-
-- **Lint on save** (default: on) — triggers on every `Ctrl+S`
-- **Lint on type** (default: off) — triggers with 1500ms debounce
-
-### Commands (Ctrl+Shift+P → "SLOP")
-
-| Command | Description |
-|---|---|
-| SLOP Detector: Analyze Current File | Run analysis on active file |
-| SLOP Detector: Analyze Workspace | Scan workspace, open QuickPick of deficit files |
-| SLOP Detector: Show 4D Breakdown | **[v3.8.3]** Webview: penalty attribution (why not 0.0) |
-| SLOP Detector: Show Cleanup Plan | **[v3.8.3]** Webview: confidence-ranked sweep family |
-| SLOP Detector: Show Pulse Dashboard | **[v3.8.3]** Webview: health + priority hotspots |
-| SLOP Detector: Show Changed-Code Review | **[v3.8.3]** Webview: diff-aware review |
-| SLOP Detector: Auto-Fix Issues | Apply or preview (dry-run) auto-fixable patterns |
-| SLOP Detector: Show Gate Decision (SNP) | Display SNP gate result |
-| SLOP Detector: Run Cross-File Analysis | Detect cycles, duplicates, hotspots |
-| SLOP Detector: Show File History | View historical score for current file |
-| SLOP Detector: Show History Trends | Formatted table: Runs / Latest / Best / Worst / Trend |
-| SLOP Detector: Export History to JSONL | Export full history DB to `.jsonl` |
-| SLOP Detector: Bootstrap .slopconfig.yaml | **[v3.2.1]** Generate config + inject .gitignore entry |
-| SLOP Detector: Run Self-Calibration | **[v3.2.1]** 4D LEDA calibration → optional Apply to config |
-| SLOP Detector: Install Git Pre-Commit Hook | Set up pre-commit quality gate |
+| Analyze Current File | Analyze the active file |
+| Analyze Workspace | Analyze every supported file; pick a file to open |
+| Export Report (HTML / PDF / Markdown / AI) | Write a report (see above) |
+| Open Report in VS Code | Show the HTML report in a tab |
+| Show 4D Breakdown (why not 0.0) | Penalty attribution: why the score is not 0 |
+| Show Cleanup Plan | Confidence-ranked cleanup families (dead code, duplicates, unused dependencies, ...) |
+| Show Pulse Dashboard (health + hotspots) | Project health and priority hotspots |
+| Show Changed-Code Review (diff-aware) | Findings in changed code only |
+| Auto-Fix Detected Issues | Apply or preview the auto-fixable patterns |
+| Show Gate Decision (SNP) | The quality gate result |
+| Run Cross-File Analysis | Import cycles, duplicates, hotspots |
+| Show File History / Show History Trends / Export History to JSONL | Scores over time |
+| Bootstrap .slopconfig.yaml | Write a config for the project |
+| Run Self-Calibration | Suggest weights from your history |
+| Install Git Pre-Commit Hook | Run the gate before each commit |
+| Show SLOP Output Panel | The log of every backend call |
+| Refresh Issues | Analyze the workspace again |
 
 ---
 
 ## Installation
 
-### From Marketplace
-
-Search **"AI SLOP Detector"** in the VS Code Extensions panel, or:
+Search **AI SLOP Detector** in the Extensions view, or:
 
 ```
 ext install Flamehaven.vscode-slop-detector
 ```
 
-### From VSIX (Local)
+From a `.vsix` file:
 
 ```bash
-code --install-extension vscode-slop-detector-3.13.0.vsix
+code --install-extension vscode-slop-detector-<version>.vsix
 ```
-
----
 
 ## Requirements
 
-- **Python 3.8+**
-- `ai-slop-detector` installed in the Python environment VS Code uses:
+- **Python 3.8+** with `ai-slop-detector` installed in the interpreter VS Code uses:
 
 ```bash
-pip install ai-slop-detector          # core only
-pip install "ai-slop-detector[ml]"    # + ML secondary signal
+pip install ai-slop-detector          # core
 pip install "ai-slop-detector[js]"    # + JS/TS tree-sitter patterns
-pip install "ai-slop-detector[go]"    # + Go analysis (v3.5.0)
+pip install "ai-slop-detector[go]"    # + Go analysis
 pip install "ai-slop-detector[full]"  # everything
 ```
 
-Since v3.8.3 the extension consumes the **`ai-slop-detector` npm package** as its
-data layer; it is bundled with the extension and delegates to the Python backend
-above (it does not reimplement analysis). Set `slopDetector.pythonPath` if your
-Python interpreter is not on `PATH`.
+- Set `slopDetector.pythonPath` when that interpreter is not `python` on `PATH`.
+- Hollow review candidates and the reports need the backend 3.14 or newer;
+  with an older backend the extension shows the pattern findings only.
+- PDF reports need Chrome, Edge or Chromium installed.
+
+The extension talks to the backend through the bundled `ai-slop-detector`
+npm package; it does not reimplement the analysis.
 
 ---
 
-## Configuration
+## Settings
 
-Open Settings (`Ctrl+,`) and search **"SLOP Detector"**, or edit `settings.json`:
+Open Settings (`Ctrl+,`) and search **SLOP Detector**, or edit `settings.json`:
 
 ```jsonc
 {
   "slopDetector.enable": true,
+  "slopDetector.analyzeOnOpen": true,          // analyze a file when it is opened
   "slopDetector.lintOnSave": true,
-  "slopDetector.lintOnType": false,
-  "slopDetector.showInlineWarnings": true,
-  "slopDetector.failThreshold": 50.0,            // deficit_score >= 50 -> Error
-  "slopDetector.warnThreshold": 30.0,            // deficit_score >= 30 -> Warning
+  "slopDetector.lintOnType": false,            // 1.5 s after you stop typing
+  "slopDetector.highlightLines": true,         // tint flagged lines, frame the cursor line
+  "slopDetector.showInlineWarnings": true,     // the finding at the end of its line
+  "slopDetector.showHollowCandidates": true,   // hollow review candidates (backend 3.14+)
+  "slopDetector.enableCodeLens": true,
+  "slopDetector.failThreshold": 50.0,          // score >= 50: the file summary is an Error
+  "slopDetector.warnThreshold": 30.0,          // score >= 30: a Warning
   "slopDetector.pythonPath": "python",
-  "slopDetector.configPath": "",                 // path to .slopconfig.yaml (optional)
-  "slopDetector.recordHistory": true,            // write results to ~/.slop-detector/history.db
-  "slopDetector.phantomImportAllowlist": []      // [v3.7.5] module names to skip in phantom_import
+  "slopDetector.configPath": "",               // a .slopconfig.yaml (optional)
+  "slopDetector.recordHistory": true,          // keep scores in ~/.slop-detector/history.db
+  "slopDetector.domain": "",                   // domain profile for --init
+  "slopDetector.phantomImportAllowlist": []    // module names phantom_import skips
 }
 ```
 
-### `phantom_import_allowlist` — flat-module projects
+### Score bands
 
-For projects where sibling `.py` files import each other directly (no `pyproject.toml`
-or `__init__.py`), the detector automatically discovers sibling modules. If a false
-positive still occurs, add the module name to `.slopconfig.yaml`:
+| Status | Score |
+|---|---|
+| CLEAN | < 30 |
+| SUSPICIOUS | 30 - 49 |
+| INFLATED_SIGNAL | 50 - 69 |
+| CRITICAL_DEFICIT | >= 70 |
+
+A band measures the score. A file can be CLEAN and still have findings; the
+editor shows them either way.
+
+### `phantom_import` in flat-module projects
+
+Sibling `.py` files that import each other without a `pyproject.toml` or an
+`__init__.py` are discovered automatically. If one is still reported, use
+the Quick Fix in Problems, or add it to `.slopconfig.yaml`:
 
 ```yaml
 phantom_import_allowlist:
   - my_local_module
-  - another_sibling
 ```
-
-Or use the QuickFix action in the Problems panel — it writes the entry directly into `.slopconfig.yaml`.
-
-### Deficit Score Thresholds
-
-| Status | deficit_score |
-|---|---|
-| CLEAN | < 30 |
-| SUSPICIOUS | 30 – 49 |
-| INFLATED_SIGNAL | 50 – 69 |
-| CRITICAL_DEFICIT | >= 70 |
-
-Recommended: `warnThreshold: 30`, `failThreshold: 50` (defaults).
 
 ---
 
-## Pattern Reference
+## Pattern reference
 
-The maintained, language-aware catalog is
-[docs/PATTERNS.md](../docs/PATTERNS.md). The abbreviated list below is a
-convenience overview, not a version-pinned pattern count.
+The maintained catalog is [docs/PATTERNS.md](../docs/PATTERNS.md); this list
+is an overview. Use the `pattern_id` as the Problems filter.
 
-Use the `pattern_id` as a Problems panel filter code.
+**Placeholder / stub**: `pass_placeholder`, `ellipsis_placeholder`,
+`not_implemented`, `return_none_placeholder`, `return_constant_stub`,
+`todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`
 
-**Placeholder / Stub**
-- `pass_placeholder` — function body is only `pass`
-- `ellipsis_placeholder` — function body is only `...`
-- `not_implemented` — `raise NotImplementedError` (non-abstract)
-- `return_none_placeholder` — function body is only `return None`
-- `return_constant_stub` — function body is `return <literal>`
-- `todo_comment` — inline `# TODO`
-- `fixme_comment` — inline `# FIXME`
-- `hack_comment` — inline `# HACK`
-- `xxx_comment` — inline `# XXX`
+**Structural**: `god_function` (over 50 logic lines or cyclomatic complexity
+over 10), `dead_code`, `deep_nesting`, `empty_except`, `interface_only_class`,
+`nested_complexity`, `placeholder_variable_naming`
 
-**Structural**
-- `god_function` — >50 logic lines or cyclomatic complexity >10
-- `dead_code` — statements after `return`/`raise`/`break`/`continue`
-- `deep_nesting` — control-flow depth >4
-- `empty_except` — bare or typed `except: pass`
-- `interface_only_class` — class with ≥50% placeholder methods
-- `nested_complexity` — deep nesting AND high cyclomatic complexity combined
-- `placeholder_variable_naming` — numbered variable sequences (data1, data2…)
+**Quality**: `phantom_import` (an import that cannot be resolved),
+`function_clone_cluster` (structurally identical function bodies)
 
-**Quality**
-- `phantom_import` — import that cannot be resolved (hallucinated dependency)
-- `function_clone_cluster` — structurally identical function bodies (AST JSD)
+**Cross-language**: `js_var_usage`, `js_console_log`, `ruby_array_each`,
+`go_print_format`
 
-**Cross-Language**
-- `js_var_usage` — JavaScript `var` in Python file
-- `js_console_log` — `console.log` in Python file
-- `ruby_array_each` — Ruby-style `.each` block
-- `go_print_format` — Go `fmt.Printf` style
+**Go** (`ai-slop-detector[go]`): `go_empty_func`, `go_panic`, `go_fmt_print`,
+`go_ignored_error`, `go_todo_comment`, `go_god_function`
 
-**Go** (`pip install "ai-slop-detector[go]"`)
-- `go_empty_func` — empty function body `{}`
-- `go_panic` — `panic()` crash-on-error anti-pattern
-- `go_fmt_print` — `fmt.Print*` debug output left in code
-- `go_ignored_error` — `_ = fn()` silently discarded error
-- `go_todo_comment` — `// TODO` inline marker
-- `go_god_function` — function exceeding 50 lines
+**Lint escape**: `noqa_overuse`, `type_ignore_overuse`
 
-**Lint Escape**
-- `noqa_overuse` — excessive `# noqa` suppression
-- `type_ignore_overuse` — excessive `# type: ignore`
+**Hollow review candidates** (backend 3.14+, not scored):
+`success_without_effect`, `input_never_used`, `effect_never_runs`,
+`failure_reported_as_success`, `success_ignores_outcome`,
+`finally_return_hides_failure`
 
 ---
 
@@ -462,54 +215,21 @@ Use the `pattern_id` as a Problems panel filter code.
 
 ```bash
 cd vscode-extension
-npm install
-npm run compile    # one-time build
-npm run watch      # auto-recompile on changes
+npm ci
+npm run check      # type check
+npm run bundle     # out/extension.js
 ```
 
-Press **F5** to open Extension Development Host. The Output panel channel
-**"SLOP Detector"** logs all CLI invocations and their stdout/stderr.
+Press **F5** for an Extension Development Host. A development build says so
+in the status bar (`SLOP: Ready (dev build)`) and in the **SLOP Detector**
+output channel, which logs every backend call.
 
 ---
 
-## Changelog
+## Changes
 
-See the [full CHANGELOG](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md).
-
-**v3.13.0:** Extension package version-aligned with the 3.13.0 core (it had
-stayed at 3.8.9); the output channel reads the version from the manifest.
-
-**v3.8.9:** Extension package aligned with the core evidence boundary. Backend
-results now expose finding totals, scan coverage, and ML capability state, so a
-weighted `clean` status is not presented as an empty finding set.
-
-**v3.8.3:** Four interactive webview panels (4D breakdown, cleanup plan, pulse dashboard, diff-aware review); typed `ai-slop-detector` npm data layer replacing hand-rolled subprocess calls; getting-started walkthrough, state-aware empty states, context-key menus, and `slopDetector.domain` setting.
-
-**v3.7.5:** `phantom_import` FP fix for flat-module projects (sibling discovery + allowlist wired); new `addModuleToAllowlist` QuickFix action; `slopDetector.phantomImportAllowlist` setting.
-
-**v3.7.4:** False positive patch: ABC `@abstractmethod`, `Optional[T]` return, FastAPI router clone exemption, PEP-508 extras parsing, jargon `\b` boundary fix.
-
-**v3.6.0:** CI gate bug fix (`--ci-mode hard` always exits non-zero), Claude Code skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`).
-
-**v3.5.0:** Go analysis (GoAnalyzer v1.0.0 — 6 patterns), JS/TS full structural
-analysis, domain-aware `--init`, CI jq fix (calibration hints → stderr).
-
-**v3.2.1:** LEDA self-calibration UI (`initConfig`, `selfCalibrate`), Purity
-dimension in diagnostics + tooltip, min_events bugfix, black/ruff CI green.
-
-**v3.1.1:** Clone Detection in Core Metrics, table style unification, Workspace
-QuickPick, JSON parse fix, History Trends formatting, pattern refactoring.
-
-**v3.1.0:** Function clone detection (AST JSD), return_constant_stub,
-placeholder_variable_naming, SPAR adversarial regression, GQG scoring.
-
-**v3.0.x:** Self-calibration, CI gate (`--ci-mode`), cross-file analysis,
-configurable god_function thresholds with domain overrides.
-
-**v2.9.x:** Phantom import detection, history database, History Trends command.
-
----
+See the [CHANGELOG](../CHANGELOG.md).
 
 ## License
 
-MIT License — see [LICENSE](LICENSE)
+MIT, see [LICENSE](LICENSE)

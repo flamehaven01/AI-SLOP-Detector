@@ -1,0 +1,161 @@
+{
+  "schema": "ai-slop-work-order-rules/2",
+  "version": "2.0.0",
+  "precedence": "HARD-STOP > INVARIANTS > ALLOWED > WORK-ORDER > BACKLOG",
+  "tags": "[FACT] measured by the detector at the locator | [DERIVED] the detector's fix direction, advisory | [NORM] rule for the agent | [NULL] measured as nothing",
+  "empty_values": "NOT-MEASURED | NOT-APPLICABLE: <why> | MISSING",
+  "self_falsifier": "each item is bound_to sha256 of its file; void_if sha256(file) != bound_to -> the item is VOID: HOLD it, do not repair from this document, re-scan",
+  "loop": [
+    "VERIFY",
+    "ACK_OR_REJECT",
+    "FIX",
+    "PROVE",
+    "REPORT"
+  ],
+  "verify_step": "bound_to MATCH, channel COMPLETE or MEASURED, then the rule's question (RULES) on the item's code",
+  "hold_if": [
+    "the file's SHA-256 differs from source_sha256",
+    "the item's channel state is not MEASURED or COMPLETE"
+  ],
+  "hard_stop": [
+    "the fix needs a FORBID change -> stop, REPORT HOLD",
+    "the fix changes a public signature, a return type or code outside the item's span -> stop, needs a decision (D-*)",
+    "running code from the analyzed repository without an approved test profile",
+    "a REPORT field filled with placeholder text instead of NOT-MEASURED"
+  ],
+  "forbid": [
+    "a suppression comment or a noqa / pragma marker",
+    "a threshold, weight or config change",
+    "deleting or renaming the function to make the item vanish"
+  ],
+  "invariants": [
+    "score != review candidates: the score comes from the pattern channel only; a candidate never moves it",
+    "FINDING != proven defect; REVIEW_CANDIDATE != defect: both are decided in VERIFY",
+    "UNDECIDED != pass; NOT-MEASURED != 0",
+    "REJECT with evidence is a result, not a failure: it is the false-alarm channel"
+  ],
+  "prove": {
+    "suggestion": "re-scan the item's file with the same configuration",
+    "expect": "PASS needs prove_state FIXED_CANDIDATE and the project's tests passing, with no new item. prove_state: HOLD when the item's symbol is gone; PERSISTS when its id is still there, or its semantic_key is under another id as often as before (moved: a locator is an address in one snapshot); FIXED_CANDIDATE only when its semantic_key and its cause_key are both left fewer times and every other item sharing them kept its id, or none is left; HOLD when its cause_key is still there as often as before (reworded) or the match is ambiguous"
+  },
+  "verify": {
+    "FINDING": "check the evidence at file:line; ACK and fix, or REJECT with the reason it does not apply",
+    "REVIEW_CANDIDATE": "decide whether a real effect or use is expected here; if yes fix, if no REJECT with the reason"
+  },
+  "claim": {
+    "rules_line": "is the docstring promise kept? The item block states what the body needs",
+    "question": "the body needs {looked_for}; found: {why}. ACK: {resolves}; REJECT: name the mechanism the detector missed (file:line)"
+  },
+  "families": {
+    "size": {
+      "rules": [
+        "god_function",
+        "nested_complexity",
+        "deep_nesting"
+      ],
+      "question": "Does the function do more than one job? ACK if it splits into named steps with the same behavior; REJECT if it is one job laid out flat (a table, a dispatch, a fixed sequence)."
+    },
+    "escape": {
+      "rules": [
+        "lint_escape"
+      ],
+      "question": "Is the silenced warning a real defect here? ACK: fix the cause and drop the marker; REJECT: the marker is narrow (one code) and the reason is stated beside it."
+    },
+    "placeholder": {
+      "rules": [
+        "return_constant_stub",
+        "return_none_placeholder",
+        "return_input_stub",
+        "pass_placeholder",
+        "ellipsis_placeholder",
+        "not_implemented",
+        "interface_only_class",
+        "todo_comment",
+        "fixme_comment",
+        "hack_comment",
+        "xxx_comment"
+      ],
+      "question": "Do callers get the behavior the name and docstring promise? ACK: implement it or say in the code what is intended; REJECT: the body is the whole contract (a declared default, a registered no-op, an abstract hook) and that is stated."
+    },
+    "exception": {
+      "rules": [
+        "empty_except",
+        "bare_except",
+        "failure_as_success"
+      ],
+      "question": "Can the caller tell that the operation failed? ACK: handle, re-raise or report the failure; REJECT: the failure is expected, harmless and the handler says why."
+    },
+    "dependency": {
+      "rules": [
+        "runtime_unavailable_dependency",
+        "undeclared_optional_dependency",
+        "declared_outside_primary_metadata",
+        "phantom_import",
+        "phantom_member"
+      ],
+      "question": "Does a clean install provide this import at runtime? ACK: declare it or guard it with the documented fallback; REJECT: name the declaration or guard that provides it (file:line)."
+    },
+    "clone": {
+      "rules": [
+        "function_clone_cluster",
+        "exact_duplicate_pair"
+      ],
+      "question": "Must the copies change together? ACK: keep one and call it; REJECT: they are meant to diverge (name the difference that will appear)."
+    },
+    "input": {
+      "rules": [
+        "ignored_parameter",
+        "input_never_used"
+      ],
+      "question": "Should the value change the result or an effect? ACK: use it or remove it from the signature with its callers; REJECT: the signature is fixed by a caller or protocol (name it)."
+    },
+    "hollow": {
+      "rules": [
+        "success_without_effect",
+        "effect_never_runs",
+        "failure_reported_as_success",
+        "finally_return_hides_failure",
+        "success_ignores_outcome"
+      ],
+      "question": "Does the reported success reflect work that happened? ACK: perform the effect or report the real outcome; REJECT: name the effect the detector could not see (file:line)."
+    }
+  },
+  "modes": {
+    "auditor": {
+      "purpose": "evaluate the evidence of each item; the work order is read, nothing is changed",
+      "authority": "read-only: no file of the target is changed and no code or test from the target is run",
+      "code": "excerpt",
+      "allowed": [
+        "A-01 read this document, and the target's files at the bound content when available",
+        "A-02 judge each item TP, FP or UNSURE with the evidence shown, and say what more you needed"
+      ],
+      "limits": [
+        "an excerpt may not show the whole span; a 'not shown' line names the range to read",
+        "the code shown is the content the scan analyzed; a VOID or MISSING item shows none",
+        "JS/TS and Go locators are lines: a line shift moves them",
+        "a REVIEW_CANDIDATE is not a defect until verified; the score comes from the pattern channel only"
+      ]
+    },
+    "agent": {
+      "purpose": "verify, fix or reject, prove and report each item in the target repository",
+      "authority": "no change without the operator's approval for this work order: this document grants no right to change files or to run code or tests",
+      "code": "locator",
+      "preconditions": [
+        "P1 the target repository is readable at the paths of this document",
+        "P2 sha256 of the file of every worked item equals its bound_to",
+        "P3 the operator approved changes to the target for this work order",
+        "P4 an approved test profile exists for PROVE"
+      ],
+      "precondition_rule": "each precondition starts NOT-MEASURED; any FAIL or NOT-MEASURED -> HOLD every item, do not partially proceed",
+      "read": "open {file}:{span} in the target; HOLD unless sha256(file) == bound_to and the line still reads the evidence",
+      "allowed": [
+        "A-01 read any file of the target",
+        "A-02 after P1-P4 PASS: edit inside the item's span",
+        "A-03 after P1-P4 PASS: add or change a test that proves the fix",
+        "A-04 after P1-P4 PASS: claim_without_mechanism: reword the docstring to what the function does",
+        "D-01 decision first: split a function across files, merge clones across modules",
+        "D-02 decision first: add or change a dependency declaration"
+      ]
+    }
+  }
+}

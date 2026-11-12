@@ -43,6 +43,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from slop_detector.diagnostic_bands import classify_deficit
+from slop_detector.finding_identity import bind_lines, read_source
 from slop_detector.masking import FrameworkMasker
 from slop_detector.models import MaskedIssue
 
@@ -139,6 +140,8 @@ class JSIssue:
     column: int
     message: str
     suggestion: Optional[str] = None
+    fingerprint: Optional[str] = None
+    locator: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -148,6 +151,8 @@ class JSIssue:
             "column": self.column,
             "message": self.message,
             "suggestion": self.suggestion,
+            "fingerprint": self.fingerprint,
+            "locator": self.locator,
         }
 
 
@@ -196,6 +201,9 @@ class JSFileAnalysis:
     # Slop score (0-100, lower is better)
     slop_score: float = 0.0
     status: str = "clean"  # clean | suspicious | critical_deficit
+    # SHA-256 of the bytes this result was computed from (finding_identity.read_source)
+    source_sha256: str = ""
+    content_origin: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -220,6 +228,8 @@ class JSFileAnalysis:
             "slop_score": self.slop_score,
             "status": self.status,
             "issues": [i.to_dict() for i in self.issues],
+            "source_sha256": self.source_sha256,
+            "content_origin": self.content_origin,
             "function_metrics": [
                 {
                     "name": f.name,
@@ -370,14 +380,16 @@ class JSAnalyzer:
 
     def analyze(self, file_path: str) -> JSFileAnalysis:
         path = Path(file_path)
-        content = path.read_text(encoding="utf-8", errors="ignore")
+        content, digest = read_source(file_path)
         is_ts = path.suffix.lower() in {".ts", ".tsx"}
         is_tsx = path.suffix.lower() == ".tsx"
         language = "typescript" if is_ts else "javascript"
 
         if _TS_AVAILABLE:
-            return self._analyze_ast(file_path, content, language, is_ts, is_tsx)
-        return self._analyze_regex(file_path, content, language, is_ts)
+            return bind_lines(
+                self._analyze_ast(file_path, content, language, is_ts, is_tsx), content, digest
+            )
+        return bind_lines(self._analyze_regex(file_path, content, language, is_ts), content, digest)
 
     @staticmethod
     def _recount_visible_issues(issues: List[JSIssue]) -> Dict[str, int]:

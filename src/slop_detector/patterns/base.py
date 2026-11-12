@@ -43,6 +43,14 @@ class Issue:
     message: str
     code: Optional[str] = None
     suggestion: Optional[str] = None
+    # Identity beside the line (slop_detector.finding_identity): what the
+    # finding is about when one symbol holds several (`subject`, set by the
+    # pattern), the innermost function or class and the line's fingerprint
+    # (set at scan time from the analyzed content).
+    subject: Optional[str] = None
+    symbol: Optional[str] = None
+    fingerprint: Optional[str] = None
+    locator: Optional[str] = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -56,6 +64,10 @@ class Issue:
             "message": self.message,
             "code": self.code,
             "suggestion": self.suggestion,
+            "subject": self.subject,
+            "symbol": self.symbol,
+            "fingerprint": self.fingerprint,
+            "locator": self.locator,
         }
 
 

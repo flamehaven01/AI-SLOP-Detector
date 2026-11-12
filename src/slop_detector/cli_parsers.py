@@ -59,8 +59,46 @@ Examples:
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument(
         "--format",
-        choices=["json"],
-        help="Structured output format alias (currently supports: json)",
+        choices=["json", "ai", "ai-md"],
+        help=(
+            "Structured output: json (the full result), ai (the AI report, JSON Lines) or ai-md "
+            "(the same report as one Markdown work order for an agent)"
+        ),
+    )
+    parser.add_argument(
+        "--ai-limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "With --format ai or --report-dir: at most N items in the AI report (the header counts the rest); "
+            "with ai-md: N full work-order blocks, the rest one backlog line each"
+        ),
+    )
+    parser.add_argument(
+        "--ai-token-budget",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "With --format ai-md (auditor): fit the work order in N estimated tokens (characters / 4). Each item "
+            "is drawn whole, as signature and evidence, or as one index line, in priority order; no item is left "
+            "out, and a budget below the index of every item fails (BUDGET_UNSATISFIABLE)"
+        ),
+    )
+    parser.add_argument(
+        "--ai-mode",
+        choices=["auditor", "agent"],
+        default="auditor",
+        help=(
+            "With --format ai-md: auditor (default; evidence excerpts, read-only) or agent (no code "
+            "copied; it holds until its preconditions pass and grants no right to change code)"
+        ),
+    )
+    parser.add_argument(
+        "--report-dir",
+        metavar="DIR",
+        help="Write report.md, report.html, report.pdf, ai-report.jsonl, ai-report.md and scan.json to DIR",
     )
     parser.add_argument("--config", "-c", help="Path to .slopconfig.yaml configuration file")
     parser.add_argument(
@@ -143,6 +181,17 @@ Examples:
         help="Exit with code 1 if slop score exceeds threshold",
     )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+    parser.add_argument(
+        "--details",
+        action="store_true",
+        help="Show the full report tables in the terminal instead of the one-screen summary",
+    )
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Print one summary line (for CI logs); exit codes are unchanged",
+    )
     parser.add_argument("--version", action="version", version=f"ai-slop-detector {__version__}")
     parser.add_argument(
         "--no-color", action="store_true", help="Disable rich output (force plain text)"
@@ -367,3 +416,4 @@ def _normalize_format_args(args) -> None:
     """Map format aliases onto existing boolean output flags."""
     if getattr(args, "format", None) == "json":
         args.json = True
+    args.ai = getattr(args, "format", None) in ("ai", "ai-md")

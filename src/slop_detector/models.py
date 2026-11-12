@@ -1,5 +1,6 @@
 """Data models for SLOP detection."""
 
+import copy
 import logging as _logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -232,6 +233,22 @@ class FileAnalysis:
     # Patterns that raised on this file: not findings, but the file was not
     # fully measured ({pattern_id, error_type, state: "unmeasured"}).
     pattern_errors: List[Dict[str, str]] = field(default_factory=list)
+    # Facts from the module's closed call graph (slop_detector.semantic).
+    # Evidence only: never scored.
+    semantic_findings: List[Any] = field(default_factory=list)
+    # What that channel decided: {state: MEASURED | SKIPPED | UNMEASURED, ...};
+    # empty when it did not run (a non-Python file, a legacy cache entry).
+    semantic_coverage: Dict[str, Any] = field(default_factory=dict)
+    # Docstring promises against the body (slop_detector.claim_findings):
+    # review candidates, never scored; coverage counts every claim by state.
+    claim_findings: List[Any] = field(default_factory=list)
+    claim_coverage: Dict[str, Any] = field(default_factory=dict)
+    # SHA-256 of the bytes this result was computed from; "" when unknown
+    # (a result made before the field existed). Reports bind items to it.
+    source_sha256: str = ""
+    # What source_sha256 hashes: "file_bytes" (the file as read), "string_utf8"
+    # (a string given to analyze_code_string, UTF-8 encoded); "" when unknown.
+    content_origin: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -288,6 +305,15 @@ class FileAnalysis:
         result["skipped_metrics"] = list(self.skipped_metrics)
         result["flags"] = list(self.flags)
         result["pattern_errors"] = [dict(item) for item in self.pattern_errors]
+        result["semantic_findings"] = [item.to_dict() for item in self.semantic_findings]
+        result["semantic_coverage"] = {
+            key: dict(value) if isinstance(value, dict) else value
+            for key, value in self.semantic_coverage.items()
+        }
+        result["claim_findings"] = [item.to_dict() for item in self.claim_findings]
+        result["claim_coverage"] = copy.deepcopy(self.claim_coverage)
+        result["source_sha256"] = self.source_sha256
+        result["content_origin"] = self.content_origin
         return result
 
 

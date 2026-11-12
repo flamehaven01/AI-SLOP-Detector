@@ -267,6 +267,8 @@ ignore:
   # Test suite — tests/corpus/ contains intentional high-deficit fixtures
   # designed to be caught by the tool; Rule-0 would false-positive on them
   - "tests/**"
+  # examples/demo_project is written to show findings (README screenshots)
+  - "examples/**"
   - "**/*_test.py"
   - "**/test_*.py"
   # Type stubs

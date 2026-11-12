@@ -378,6 +378,47 @@ def _md_findings_section(file_results) -> list:
     return lines
 
 
+def _md_hollow_section(result, root_dir: str) -> list:
+    """Hollow review candidates with what was measured (docs/REPORTS.md 2):
+    never scored, and "not measured" is never written as zero."""
+    from slop_detector.renderer_terminal import claim_line, hollow_line
+    from slop_detector.report_view import build_report_view, short_path
+
+    view = build_report_view(result)
+    lines = [
+        "## Hollow Review Candidates (not scored)",
+        "",
+        f"- Hollow channel: {hollow_line(view)}",
+    ]
+    sem = view.semantic
+    if sem.files:
+        states = ", ".join(f"{state} {n}" for state, n in sorted(sem.files.items()))
+        lines.append(f"- Files by state: {states}")
+    if sem.unknown_reasons:
+        reasons = ", ".join(
+            f"{k} {v}" for k, v in sorted(sem.unknown_reasons.items(), key=lambda kv: -kv[1])
+        )
+        lines.append(f"- Why functions were not decidable: {reasons}")
+    lines.append(f"- Docstring promises: {claim_line(view)}")
+    undecided = view.claims.undecided_by_reason
+    if undecided:
+        reasons = ", ".join(f"{k} {v}" for k, v in sorted(undecided.items(), key=lambda kv: -kv[1]))
+        lines.append(f"- Why promises were undecided: {reasons}")
+    lines.append(
+        "- A candidate is evidence for a review, not a verdict; it does not change the score."
+    )
+    lines.append("")
+    if view.candidates:
+        lines += ["| Location | Rule | Function: evidence |", "|---|---|---|"]
+        for item in view.candidates:
+            message = item.message.replace("|", chr(92) + "|")
+            lines.append(
+                f"| `{short_path(item.file, root_dir)}:{item.line}` | `{item.rule}` | {message} |"
+            )
+        lines.append("")
+    return lines
+
+
 def generate_markdown_report(result) -> str:
     """Generate a detailed developer-focused Markdown report."""
     is_project = hasattr(result, "project_path")
@@ -404,6 +445,7 @@ def generate_markdown_report(result) -> str:
     if is_project:
         lines += _md_project_metrics_section(result)
         lines += _md_finding_summary_section(result)
+        lines += _md_hollow_section(result, root_dir)
         lines += _md_scan_coverage_section(result)
         lines += _md_ml_scoring_section(result)
         lines += _md_next_steps_section(result)
@@ -413,6 +455,7 @@ def generate_markdown_report(result) -> str:
         lines += _md_priority_hotspots_section(result)
     else:
         lines += _md_file_metrics_section(result)
+        lines += _md_hollow_section(result, root_dir)
         lines += _md_ml_scoring_section(result)
         lines += _md_suppression_section(result)
 

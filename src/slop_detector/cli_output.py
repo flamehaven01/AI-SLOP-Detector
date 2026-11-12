@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from typing import Any
 
 
@@ -69,7 +70,19 @@ def _write_json_output(args, result) -> None:
         print(output)
 
 
-def _route_file_output(out: str, result, rich_ok: bool) -> None:
+def _write_pdf(out: str, page_html: str) -> None:
+    """The PDF report, or a clear failure (exit 2) with nothing written."""
+    from slop_detector.report_pdf import PdfFailedError, PdfUnavailableError, write_pdf
+
+    try:
+        write_pdf(page_html, out)
+    except (PdfUnavailableError, PdfFailedError) as exc:
+        print(f"[!] {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
+    print(f"[+] PDF report saved to {out}")
+
+
+def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, elapsed=None) -> None:
     """Write result to file or console based on output extension and flags."""
     from slop_detector.cli_renderer import (
         generate_html_report,
@@ -81,24 +94,92 @@ def _route_file_output(out: str, result, rich_ok: bool) -> None:
     if out.endswith(".html"):
         _write_file(out, generate_html_report(result), "HTML report")
         return
+    if out.endswith(".pdf"):
+        _write_pdf(out, generate_html_report(result))
+        return
     if out.endswith(".md"):
         _write_file(out, generate_markdown_report(result), "Markdown report")
         return
     if out:
         _write_file(out, generate_text_report(result))
         return
-    if rich_ok:
+    if rich_ok and details:
         print_rich_report(result)
         return
+    if rich_ok:
+        from slop_detector.renderer_terminal import print_summary
+        from slop_detector.report_view import build_report_view
+
+        print_summary(build_report_view(result), elapsed=elapsed)
+        return
     print(generate_text_report(result))
+
+
+def _write_ai_report(args, result) -> None:
+    """The AI report (JSON Lines, or the Markdown work order with --format
+    ai-md) to stdout or --output; never an invalid one."""
+    from slop_detector.ai_report import AiReportInvalidError, render_ai_report
+    from slop_detector.ai_report_md import render_ai_report_md
+
+    try:
+        if getattr(args, "format", None) == "ai-md":
+            text = render_ai_report_md(
+                result,
+                getattr(args, "ai_limit", None),
+                getattr(args, "ai_mode", "auditor"),
+                getattr(args, "ai_token_budget", None),
+            )
+        else:
+            text = render_ai_report(result, getattr(args, "ai_limit", None))
+    except AiReportInvalidError as exc:
+        print(f"[!] {exc}; nothing was written", file=sys.stderr)
+        raise SystemExit(2) from exc
+    if args.output:
+        _write_file(str(args.output), text, "AI report")
+    else:
+        sys.stdout.write(text)
+
+
+def _report_bundle(args, result) -> None:
+    """--report-dir: list what was written and what was not; exit 2 when the
+    bundle is incomplete."""
+    from slop_detector.report_bundle import write_bundle
+
+    written, failed = write_bundle(result, args.report_dir, getattr(args, "ai_limit", None))
+    print(f"[+] Reports in {args.report_dir}: {', '.join(written) or 'none'}")
+    for name, why in failed:
+        print(f"[!] not written: {name} - {why}", file=sys.stderr)
+    if failed:
+        raise SystemExit(2)
 
 
 def _handle_output(args, result) -> None:
     """Route analysis result to the appropriate output format."""
     from slop_detector.cli_renderer import RICH_AVAILABLE
 
+    _handle_screen_output(args, result, RICH_AVAILABLE)
+    if getattr(args, "report_dir", None):
+        _report_bundle(args, result)
+
+
+def _handle_screen_output(args, result, rich_available: bool) -> None:
+    if getattr(args, "ai", False):
+        _write_ai_report(args, result)
+        return
     if args.json:
         _write_json_output(args, result)
         return
     out = str(args.output) if args.output else ""
-    _route_file_output(out, result, RICH_AVAILABLE and not args.no_color)
+    if getattr(args, "quiet", False) and not out:
+        from slop_detector.renderer_terminal import quiet_line
+        from slop_detector.report_view import build_report_view
+
+        print(quiet_line(build_report_view(result)))
+        return
+    _route_file_output(
+        out,
+        result,
+        rich_available and not args.no_color,
+        details=bool(getattr(args, "details", False)),
+        elapsed=getattr(args, "elapsed", None),
+    )

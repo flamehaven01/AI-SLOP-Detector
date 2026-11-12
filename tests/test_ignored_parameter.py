@@ -245,3 +245,82 @@ def test_a_boolean_answer_ignoring_its_inputs_is_still_reported(tmp_path):
         return True
     """
     assert len(_found(tmp_path, source)) == 2
+
+
+def test_registered_module_functions_sharing_a_signature_are_a_callback_family(tmp_path):
+    """Metrics share `(gold, pred, trace=None)` and the module hands them over
+    together: the caller fixes the signature, and no sibling reads `trace`."""
+    source = """
+    def exact_match(gold, pred, trace=None):
+        return float(pred.answer == gold.answer)
+
+    def overlap(gold, pred, trace=None):
+        return len(set(pred.tokens) & set(gold.tokens)) / len(gold.tokens)
+
+    METRICS = [exact_match, overlap]
+    """
+    assert _found(tmp_path, source) == []
+
+
+def test_a_shared_signature_without_a_registration_is_no_family(tmp_path):
+    """`validate` and `save` take the same arguments; nothing connects them, so
+    the ignored `strict` option is reported."""
+    source = """
+    def validate(payload, strict=False):
+        return bool(payload)
+
+    def save(payload, strict=False):
+        return store_record(payload, strict=strict)
+    """
+    assert [line for line, _ in _found(tmp_path, source)] == [2]
+
+
+def test_a_shared_name_stem_alone_is_no_family(tmp_path):
+    source = """
+    def _java_extra_walk(node, stem, bodies=None):
+        return node.children
+
+    def _scala_extra_walk(node, stem, bodies=None):
+        return [c for c in node.children if c.kind == stem]
+    """
+    assert [line for line, _ in _found(tmp_path, source)] == [2, 5]
+
+
+def test_sibling_stubs_reading_nothing_are_not_a_family(tmp_path):
+    source = """
+    def can_delete(user, resource):
+        return True
+
+    def can_edit(user, resource):
+        return True
+    """
+    assert len(_found(tmp_path, source)) == 4
+
+
+def test_a_method_of_a_class_named_as_a_base_fixes_the_interface(tmp_path):
+    source = """
+    class AlgorithmBase:
+        def hyperparameters(self, model, config=None):
+            return {"steps": 10}
+    """
+    assert _found(tmp_path, source) == []
+
+
+def test_the_same_method_outside_a_named_base_is_reported(tmp_path):
+    source = """
+    class Algorithm:
+        def hyperparameters(self, model, config=None):
+            return {"steps": 10}
+    """
+    assert [line for line, _ in _found(tmp_path, source)] == [3]
+
+
+def test_a_working_method_of_a_named_base_still_honours_its_options(tmp_path):
+    """A class named as a base fixes the signature of its defaults, not of a
+    method that does the work and drops one option."""
+    source = """
+    class BaseGenerate:
+        def generate(self, embeds, max_length=256, min_tokens=0):
+            return self.model.run(embeds, max_length)
+    """
+    assert [line for line, _ in _found(tmp_path, source)] == [3]

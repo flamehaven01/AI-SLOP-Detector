@@ -107,6 +107,28 @@ export interface FileAnalysisOutput {
   flags?: string[];
   /** Patterns that raised on this file (not findings): {pattern_id, error_type, state}. */
   pattern_errors?: Array<{ pattern_id: string; error_type: string; state: string }>;
+  /** Hollow review candidates (3.14+): evidence for a review, never scored. */
+  semantic_findings?: SemanticFinding[];
+  /** What the hollow channel measured on this file (3.14+). */
+  semantic_coverage?: SemanticCoverage;
+}
+
+export interface SemanticFinding {
+  function: string;
+  kind: string;
+  line: number;
+  inputs?: string[];
+  evidence?: string;
+  status?: "REVIEW_CANDIDATE";
+}
+
+export interface SemanticCoverage {
+  state?: "MEASURED" | "SKIPPED" | "UNMEASURED";
+  functions?: number;
+  effect_states?: Record<string, number>;
+  unknown_reasons?: Record<string, number>;
+  open_call_details?: Record<string, number>;
+  error_type?: string;
 }
 
 export interface PolyglotFileOutput extends JsonObject {
@@ -298,6 +320,53 @@ export function runCleanupFamily(
   options?: RunOptions,
 ): Promise<SweepOutput>;
 export function explain(identifier: string, options?: RunOptions): Promise<ExplainOutput>;
+
+/** One record of the AI report `ai-slop-report/1` (JSON Lines). */
+export interface AiReportHeader {
+  schema: "ai-slop-report/1";
+  record: "header";
+  tool: "ai-slop-detector";
+  version: string;
+  engine: string;
+  target: string;
+  files: number;
+  score: number | null;
+  status: string;
+  measurement: { pattern: string; hollow: string };
+  findings: number;
+  candidates: number;
+  severity: Record<string, number>;
+  hollow_functions: number;
+  hollow_not_decidable: number;
+  emitted: number;
+  truncated: number;
+  loop: string[];
+  hold_if: string[];
+  forbid: string[];
+  verify: Record<string, string>;
+  prove: { suggestion: string; expect: string };
+}
+
+export interface AiReportItem {
+  record: "item";
+  id: string;
+  kind: "FINDING" | "REVIEW_CANDIDATE";
+  rule: string;
+  severity: "critical" | "high" | "medium" | "low" | null;
+  file: string;
+  line: number;
+  source_sha256: string;
+  channel_state: string;
+  evidence: string;
+  fix: string;
+}
+
+/** The AI report of a file or project: the header, then one item per finding
+ *  or hollow review candidate. `limit` caps the items (the header counts the rest). */
+export function aiReport(
+  target?: string,
+  options?: RunOptions & { limit?: number },
+): Promise<[AiReportHeader, ...AiReportItem[]]>;
 export function runJsonCommand<T = CommandOutput>(
   forwardedArgs: string[],
   options?: RunOptions,

@@ -10,6 +10,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Dict, Iterator, Optional, cast
 
+from slop_detector.claim_findings import ClaimFinding
 from slop_detector.metrics.context_jargon import ContextJargonResult, JargonEvidence
 from slop_detector.metrics.docstring_inflation import (
     DocstringInflationDetail,
@@ -32,8 +33,9 @@ from slop_detector.models import (
     SuppressionLedgerEntry,
 )
 from slop_detector.patterns.base import Axis, Issue, Severity
+from slop_detector.semantic import SemanticFinding
 
-CACHE_ENGINE_VERSION = "analysis-cache-v37"
+CACHE_ENGINE_VERSION = "analysis-cache-v53"
 DEFAULT_CACHE_DB = Path.home() / ".slop-detector" / "analysis_cache.db"
 
 
@@ -188,6 +190,14 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
         skipped_metrics=data.get("skipped_metrics", []),
         flags=data.get("flags", []),
         pattern_errors=data.get("pattern_errors", []),
+        semantic_findings=[SemanticFinding(**item) for item in data.get("semantic_findings", [])],
+        semantic_coverage=data.get("semantic_coverage", {}),
+        claim_findings=[ClaimFinding(**item) for item in data.get("claim_findings", [])],
+        claim_coverage=data.get("claim_coverage", {}),
+        # absent in a result written before the field existed: left empty
+        # (MISSING), never filled from a later read of the file
+        source_sha256=data.get("source_sha256", ""),
+        content_origin=data.get("content_origin", ""),
     )
 
 
@@ -202,6 +212,10 @@ def _restore_issue(item: Dict[str, Any]) -> Issue:
         message=item["message"],
         code=item.get("code"),
         suggestion=item.get("suggestion"),
+        subject=item.get("subject"),
+        symbol=item.get("symbol"),
+        fingerprint=item.get("fingerprint"),
+        locator=item.get("locator"),
     )
 
 

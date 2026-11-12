@@ -5,6 +5,68 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.14.0 — 2026-11-12
+
+### Summary
+
+A report release. One report view now feeds a one-screen terminal summary,
+Markdown, a self-contained HTML report and its A4 PDF, and two outputs for AI
+agents: the AI report (`--format ai`, JSON Lines) and the AI work order
+(`--format ai-md`), a Markdown document an agent can verify, fix and prove
+from. A new hollow channel lists code that reports work it does not do as
+review candidates, separately from the score. Every change is listed in the
+[Changelog](../CHANGELOG.md). The surfaces are shown in the README under
+[What You Get](../README.md#what-you-get); the work order is described in
+[AI_WORK_ORDER.md](AI_WORK_ORDER.md).
+
+### What moves when you upgrade
+
+- **The terminal shows a summary.** The default screen holds the score, the
+  top 5 findings, the top 3 hollow candidates and the next steps. The 3.13
+  tables are behind `--details`; `--quiet` prints one line. Scripts that read
+  stdout should use `--json` or `--format ai`; JSON only gains keys and exit
+  codes are unchanged.
+- **Hollow review candidates are new and unscored.** `success_without_effect`,
+  `input_never_used`, `failure_reported_as_success`,
+  `finally_return_hides_failure`, `success_ignores_outcome`,
+  `effect_never_runs` and `claim_without_mechanism` appear in their own
+  section, with how many functions were analyzed and how many could not be
+  decided. They never change the score or the status band.
+- **Some placeholder findings move.** An empty registered method is reported
+  unless it declares the no-op; a comment marking the body unfinished keeps
+  the finding; success text is never a declared answer; fixed text where the
+  docstring promises a state lookup is reported. `ignored_parameter` is
+  narrower for named bases and parameter families. Scores of the affected
+  files move by the existing penalty of each finding.
+- **New outputs.** `-o report.html`, `-o report.pdf` (needs an installed
+  Chrome, Edge or Chromium), `--format ai`, `--format ai-md` with
+  `--ai-mode`, `--ai-limit`, `--ai-token-budget`, and `--report-dir` for all of
+  them at once.
+- Analysis cache `analysis-cache-v53`; entries from 3.13 are recomputed.
+
+### Known limitations
+
+- The hollow channel follows calls inside one module. A call into another
+  module, a parameter's method or a value chosen at run time is open, and a
+  function that depends on one is `EFFECT_UNKNOWN`, not a candidate. On the
+  code measured during development that was more than half of the functions,
+  so many hollow functions are not found.
+- Docstring promises are checked for pagination, parallel work, aggregation,
+  rejection, validation, live data and computed results. Retry and cache
+  promises are extracted but `NOT_EVALUATED`. A parallel promise counts a
+  `Thread` or `Process` as its mechanism only when the function starts it
+  (`.start()` on the object, its name, or the list a loop starts); threads
+  appended to a list and started elsewhere leave the promise undecided.
+- JS/TS and Go item locators are lines: a line shift changes their ids.
+- The token budget is an estimate (characters / 4). On a very large project
+  the index of every item alone can exceed a model's context; splitting a work
+  order is not available yet.
+- The agent work order states its preconditions; the detector does not check
+  them or the agent's response.
+- The limitations listed for v3.13.0 still apply.
+
+---
+
 ## v3.13.0 — 2026-11-08
 
 ### Summary

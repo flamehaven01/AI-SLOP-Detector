@@ -9,6 +9,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.14.0] - 2026-11-12
+
+New report surfaces for people and for AI agents, and a separate, unscored
+channel for code that reports work it does not do.
+
+### Changes you see when upgrading
+
+- The default terminal output is a one-screen summary (top 5 findings, top 3
+  hollow candidates, next steps). `--details` prints the full tables of 3.13,
+  `--quiet` one line; per-file `[INFO] Analyzing` lines moved to debug. JSON
+  output (`--json`) only gains keys. Exit codes do not change.
+- Next steps no longer say "no action needed" while pattern findings are open;
+  the score band is unchanged.
+- Pattern channel (scored): an empty registered *method* is a
+  `pass_placeholder` unless its summary sentence or a comment in its body
+  declares the no-op (a registered module function such as a `click.group`
+  stays exempt); a comment that marks the body unfinished ("not ready yet",
+  "currently unavailable") keeps the finding; text that reports work as done
+  ("uploaded successfully") is never a declared answer; fixed text returned
+  where the docstring promises a state lookup ("Check the status") is
+  reported. `ignored_parameter`: in a class named as a base or a null object,
+  only a method that reads none of its inputs is exempt; a sibling family needs a member
+  handed over by value (a dispatch table, a registered callback), not only the
+  same parameter names.
+- Analysis cache `analysis-cache-v53`; older entries are not served.
+
+### Reports
+
+- One report view behind every human surface: findings and review candidates
+  are separate kinds, each channel states its measurement state
+  (`MEASURED`, `SKIPPED`, `UNMEASURED`; never "0 findings" for a channel that
+  did not run), and hollow results carry their denominator.
+- HTML report: one self-contained page (inline CSS and script, a CSP that
+  allows no network request, every repository string escaped) with a page-1
+  brief; `-o report.pdf` prints it to A4 with an installed Chrome, Edge or
+  Chromium (nothing is downloaded; without a browser the command fails with
+  `ENV_BLOCKED`, exit 2, and writes nothing).
+- AI report `ai-slop-report/1` (`--format ai`, JSON Lines): a header with the
+  rules shared by every item and one record per item; every record is checked
+  against the schema before anything is written (fail closed, exit 2);
+  `--ai-limit N`. MCP tool `slop_ai_report`; npm `aiReport()`.
+- AI work order (`--format ai-md`): the same records as one Markdown document
+  for an agent: contract, hard stops, forbidden changes, invariants, a VERIFY
+  question per rule, one block per item and a response form.
+  - `--ai-mode auditor` (default: code excerpts, read-only) or `agent` (no
+    code copied; preconditions P1-P4 start `NOT-MEASURED` and every item holds
+    until they pass; the document grants no right to change code).
+  - Rule texts come from `config/work_order_rules.json`
+    (`ai-slop-work-order-rules/2`), strictly validated and identified by the
+    SHA-256 of its canonical JSON; a missing or invalid ruleset fails every AI
+    report closed.
+  - `--ai-token-budget N` (auditor): each item drawn whole, as signature and
+    evidence, or as one index line, breadth first in priority order; no item is
+    left out; a budget below the index of every item is refused with
+    `BUDGET_UNSATISFIABLE` and the least budget that holds. Tokens are
+    estimated as characters / 4. `--ai-limit` and `--ai-token-budget` together
+    are refused.
+  - Repository text (evidence, file paths, docstring promises) is printed on
+    one line, so it cannot open a section of the document.
+  - See [docs/AI_WORK_ORDER.md](docs/AI_WORK_ORDER.md).
+- `--report-dir DIR` writes `report.md`, `report.html`, `report.pdf`,
+  `ai-report.jsonl`, `ai-report.md` and `scan.json`, lists what it could not
+  write and exits 2 when incomplete; `--read-only` refuses it.
+- Item identity: an id is built from the rule, path, enclosing symbol,
+  subject and the text of the line (no line number), plus a structural locator
+  that tells identical copies apart; two items with one id fail the report
+  closed. Each item is bound to the SHA-256 of the bytes the scan analyzed
+  (`source_sha256`, `content_origin`); a file changed after the scan is shown
+  as `VOID HOLD`, a result without the hash as `MISSING HOLD`, with no code.
+  `prove_state` tells a fixed item from a moved or reworded one.
+
+### Hollow channel (review candidates, not scored)
+
+- A closed module call graph finds `success_without_effect` (a function that
+  reports success while every call it makes resolves to module code with no
+  effect), `input_never_used` (a value passed through module helpers that drop
+  it), `failure_reported_as_success`, `finally_return_hides_failure`,
+  `success_ignores_outcome` and `effect_never_runs` (a coroutine or generator
+  called as a statement). Calls the graph cannot follow are counted with their
+  reason (`external`, `dynamic`, `ambiguous`, `module_defined_unresolved`,
+  `unclassified`), and a function whose effect cannot be decided is
+  `EFFECT_UNKNOWN`, never a candidate.
+- Docstring promises: the first sentence's own action (pagination, parallel
+  work, aggregation, rejection, validation, live data, a computed result) is
+  checked against the body. `claim_without_mechanism` is reported only when
+  the body cannot keep the promise and no open call could; a promise that
+  merges into an existing finding is shown on that finding instead.
+- A failure inside the channel marks it `UNMEASURED` for that file; the file
+  is still analyzed and the score is unchanged.
+
+### VS Code extension
+
+- Flagged lines get a severity tint, a left bar and a scroll-bar mark; the
+  line under the cursor gets a frame and a status-bar message;
+  `showInlineWarnings` now works.
+- Hover with severity, rule, evidence, fix and links to copy the item for an
+  AI agent or open the report; hollow candidates as Information-level
+  diagnostics in a separate list; Export Report (HTML, PDF, Markdown, AI
+  JSON Lines, all) and Open Report.
+
+### Other
+
+- `examples/demo_project`: the project the README screenshots and excerpts
+  were made from.
+- npm wrapper: the `bin` path has no `./` prefix (npm 11 publish warning).
+
 ## [3.13.0] - 2026-11-08
 
 Fewer findings on code that declares its defaults, and a few more stubs caught.

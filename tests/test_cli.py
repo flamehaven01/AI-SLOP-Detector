@@ -673,7 +673,7 @@ def test_generate_html_report():
 
     html = generate_html_report(result)
     assert "<!DOCTYPE html>" in html
-    assert "SLOP Detection Report" in html
+    assert "AI SLOP Detector report" in html
     assert "25.0" in html
 
 

@@ -1,6 +1,6 @@
 # CLI Usage
 
-**Current contract:** v3.13.0. Run `slop-detector --help` in the installed environment for the authoritative option list.
+**Current contract:** v3.14.0. Run `slop-detector --help` in the installed environment for the authoritative option list.
 
 ## Canonical Commands
 
@@ -44,7 +44,7 @@ slop-detector review . --base origin/main --json --output review.json
 slop-detector pulse . --format=json
 ```
 
-`--json` and `--format json` are equivalent, and they are the only way to get JSON: for normal scans the output file's extension selects the human renderer (`.md` for Markdown, `.html` for HTML), and any other name, `.json` included, receives the plain-text report. Operational commands support plain text and JSON; use JSON for agents and CI.
+`--json` and `--format json` are equivalent, and they are the only way to get the full JSON result: for normal scans the output file's extension selects the human renderer (`.md` for Markdown, `.html` for HTML, `.pdf` for the HTML report printed to A4 by an installed Chrome, Edge or Chromium), and any other name, `.json` included, receives the plain-text report. Operational commands support plain text and JSON; use JSON for agents and CI.
 
 Read project results with their scope:
 
@@ -53,10 +53,37 @@ Read project results with their scope:
 - `scan_coverage.measurement_state`: `COMPLETE`, `PARTIAL` (some files or checks could not be measured; the score covers the rest) or `NO_MEASUREMENT` (no file was analyzed; `score_valid` is false and `reason` is `all_analysis_failed`, `all_excluded` or `no_eligible_files`). Human reports then show `NOT EVALUATED` and `N/A`.
 - `ml_scoring`: optional ML capability state.
 - `coherence_level`: exact or deterministic-approximate topology mode.
+- Per file (3.14+): `source_sha256` and `content_origin` (the bytes the scan analyzed); `semantic_findings` and `semantic_coverage` (the hollow channel: candidates, functions analyzed, effect states and why functions were not decidable); `claim_findings` and `claim_coverage` (docstring promises and their verdicts). These channels are not part of the score; an empty coverage (`{}`) means the channel did not run for that file.
 
 `--fail-threshold N` exits 1 when the headline score (weighted for a project) is above `N`, and when every file failed to analyze; a scan with nothing to measure is not evaluated and exits 0. A hard CI gate (`--ci-mode hard`) fails an incomplete scan and warns without failing when there was nothing to measure.
 
 `clean` means the measured configured signals are below the applicable status threshold. It is not a claim that the project is complete, safe, or fully covered.
+
+## Reports
+
+```bash
+slop-detector scan .                    # one-screen summary
+slop-detector scan . --details          # the full metric tables
+slop-detector scan . --quiet            # one line, for CI logs
+slop-detector scan . -o report.html     # or report.md / report.pdf
+slop-detector scan . --format ai -o ai-report.jsonl     # AI report, JSON Lines
+slop-detector scan . --format ai-md -o ai-report.md     # AI work order (auditor)
+slop-detector scan . --format ai-md --ai-mode agent -o ai-work.md
+slop-detector scan . --format ai-md --ai-token-budget 32000 -o ai-report.md
+slop-detector scan . --report-dir slop-report           # all of the above at once
+```
+
+- `--ai-limit N` caps the AI report at N items (the header counts the rest);
+  with `ai-md` it gives N full blocks and one backlog line for each other
+  item. `--ai-limit` and `--ai-token-budget` together are refused.
+- `--report-dir DIR` writes `report.md`, `report.html`, `report.pdf`,
+  `ai-report.jsonl`, `ai-report.md` and `scan.json`, lists any file it could
+  not write and exits 2 when incomplete. `--read-only` refuses file output.
+- An AI report that fails its schema or ruleset check writes nothing and
+  exits 2.
+
+What each surface shows: [REPORTS.md](REPORTS.md). The work order:
+[AI_WORK_ORDER.md](AI_WORK_ORDER.md).
 
 ## Configuration And Init
 
