@@ -15,31 +15,47 @@ Nothing is sent anywhere.
 
 | Where | What |
 |---|---|
-| **Flagged lines** | A tint and a coloured bar by severity (critical red, high orange, medium yellow, low grey; hollow review purple, dashed) and a mark in the scroll bar |
+| **Flagged lines** | A tint and a coloured bar by severity (critical red, high orange, medium yellow, low grey; review candidates purple, dashed) and a mark in the scroll bar |
 | **End of the line** | `■ MEDIUM empty_except: Empty handler for 'Exception' ...`, with `(+N)` when the line has more |
 | **The line under the cursor** | A stronger tint, a frame and the full text in bold; the status bar names the item (`SLOP MEDIUM empty_except`) |
-| **Hover** | For every item on the line: a severity badge, the rule, what was found, the **Fix**, and two links: **Copy for AI agent** and **Open report** |
+| **Hover** | For every item on the line: a severity badge, the rule, what was found, the docstring promise it breaks (if any), the **Fix**, and two links: **Copy work order for an AI agent** and **Open report**; at the bottom, the file score and what each channel measured (`pattern COMPLETE · hollow MEASURED · promises MEASURED`) |
 | **Problems** (`Ctrl+Shift+M`) | One short line per item, the rule as the code (filter by `god_function`, `empty_except`, ...) |
-| **Issues view** (SLOP icon in the Activity Bar) | Files by score, each with its findings and hollow candidates; click to jump |
-| **Status bar** | The file's score: `Good (12.5)`, `Warning (34.1)`, `Error (67.8)` |
+| **Issues view** (SLOP icon in the Activity Bar) | Files by score, each with its findings and review candidates; click to jump |
+| **Status bar** | The file's score and review candidates: `Good (12.5) · 2 review`, `Warning (34.1)`, `Error (67.8)`; the tooltip lists what each channel measured |
 | **CodeLens** | The file's score at the top, a hint above flagged functions |
 
 A file is analyzed when you open it or bring it to the front (once, until
 you save it again), on every save, and optionally while you type.
 
-### Hollow review candidates
+**After you edit a file** (backend 3.14+): the analysis is bound to the
+SHA-256 of the bytes it read. Once the file differs from them (unsaved
+edits, or a change on disk), its highlights turn faint and dotted, the end
+of the line says `(file changed - analyze again)`, the hover offers
+**Analyze again**, and the status bar and the Issues view say `changed`,
+so a line that may have moved is never shown as exact.
 
-With the backend 3.14 or newer, the detector also follows calls inside a
-module and reports functions whose result does not depend on what they do,
-for example a `save_record()` that returns `True` while every call it makes
-has no effect, or a catch-all handler that turns a failure into success.
+### Review candidates
+
+With the backend 3.14 or newer, the detector also reports two kinds of
+review candidate:
+
+- **Hollow code**: it follows calls inside a module and reports functions
+  whose result does not depend on what they do, for example a
+  `save_record()` that returns `True` while every call it makes has no
+  effect, or a catch-all handler that turns a failure into success.
+- **Docstring promises** (`claim_without_mechanism`): the first sentence of a
+  docstring says the function does something (`"Sum the values in
+  parallel."`) and the body cannot do it (no concurrent call, no await). The
+  hover shows the promise, what the body would need and what was found. A
+  promise broken by code that already has a finding (a constant answer under
+  `"Compute the discount"`) is shown on that finding instead.
 
 They are **review candidates, not findings**: they never change the score,
 they appear at the Information level and in purple, and the hover says so.
-Decide whether a real effect is expected there; if it is, fix it. When a
-call goes to another module or a value chosen at run time, the detector
-cannot decide and says nothing. Turn them off with
-`slopDetector.showHollowCandidates`.
+Decide whether the effect or the mechanism is expected there; if it is,
+implement it or change the docstring. When a call goes to another module or
+a value chosen at run time, the detector cannot decide and says nothing.
+Turn them off with `slopDetector.showHollowCandidates`.
 
 ---
 
@@ -50,11 +66,12 @@ writes a report of the workspace, or of the open file when no folder is open:
 
 | Format | For |
 |---|---|
-| HTML | One self-contained page: summary cards, the top items, every finding, hollow candidates, score details, coverage and the file list. Severity filters on screen; prints to A4 |
+| HTML | One self-contained page: summary cards, the top items, every finding, review candidates, score details, coverage and the file list. Severity filters on screen; prints to A4 |
 | PDF (A4) | The same page printed. Needs Chrome, Edge or Chromium installed; without one the export says so and offers HTML instead |
 | Markdown | A PR, an issue or a wiki page |
-| AI report (JSON Lines) | `ai-slop-report/1` for an agent: a header with the rules every item shares, then one line per item bound to its file's SHA-256 |
-| All reports | `report.md`, `report.html`, `report.pdf`, `ai-report.jsonl` and `scan.json` in one folder |
+| AI work order (Markdown) | A document for an AI agent: the rules it must follow, a VERIFY question per rule, one block per item bound to its file's SHA-256, and a response form. **Auditor** (code excerpts, read-only; optional token budget) or **Agent** (no code copied; holds until operator approval, matching hashes and a test profile are confirmed) |
+| AI report (JSON Lines) | `ai-slop-report/1`: a header with the rules every item shares, then one line per item |
+| All reports | `report.md`, `report.html`, `report.pdf`, `ai-report.jsonl`, `ai-report.md` and `scan.json` in one folder |
 
 When it is written, an **Open** button opens it: HTML in a VS Code tab or
 your browser, Markdown with its preview, PDF in your PDF viewer.
@@ -63,9 +80,14 @@ your browser, Markdown with its preview, PDF in your PDF viewer.
 view, or the hover link) builds the HTML report and shows it beside the
 editor.
 
-**Copy for AI agent** (in the hover) copies one item as JSON: rule,
-location, evidence, fix direction and the fixes that are not allowed
-(a suppression comment, a threshold change, deleting the function).
+**Copy work order for an AI agent** (in the hover) copies that one item as
+the backend writes it in the work order: the contract (hard stops, the
+fixes that are not allowed, invariants), the VERIFY question of its rule,
+its block (location, SHA-256 of the file, evidence, the code) and the
+response form. Paste it into an agent chat. The mode follows
+`slopDetector.workOrderMode` (`auditor` by default). Save the file first:
+the work order is bound to the bytes on disk. More on the format:
+[docs/AI_WORK_ORDER.md](../docs/AI_WORK_ORDER.md).
 
 The reports need the backend 3.14 or newer; an older backend gets a message
 saying so.
@@ -78,7 +100,7 @@ saying so.
 |---|---|
 | Analyze Current File | Analyze the active file |
 | Analyze Workspace | Analyze every supported file; pick a file to open |
-| Export Report (HTML / PDF / Markdown / AI) | Write a report (see above) |
+| Export Report (HTML / PDF / Markdown / AI work order / AI JSON Lines) | Write a report (see above) |
 | Open Report in VS Code | Show the HTML report in a tab |
 | Show 4D Breakdown (why not 0.0) | Penalty attribution: why the score is not 0 |
 | Show Cleanup Plan | Confidence-ranked cleanup families (dead code, duplicates, unused dependencies, ...) |
@@ -122,8 +144,9 @@ pip install "ai-slop-detector[full]"  # everything
 ```
 
 - Set `slopDetector.pythonPath` when that interpreter is not `python` on `PATH`.
-- Hollow review candidates and the reports need the backend 3.14 or newer;
-  with an older backend the extension shows the pattern findings only.
+- Review candidates, the reports, the work order and the changed-file
+  marking need the backend 3.14 or newer; with an older backend the
+  extension shows the pattern findings only.
 - PDF reports need Chrome, Edge or Chromium installed.
 
 The extension talks to the backend through the bundled `ai-slop-detector`
@@ -143,7 +166,8 @@ Open Settings (`Ctrl+,`) and search **SLOP Detector**, or edit `settings.json`:
   "slopDetector.lintOnType": false,            // 1.5 s after you stop typing
   "slopDetector.highlightLines": true,         // tint flagged lines, frame the cursor line
   "slopDetector.showInlineWarnings": true,     // the finding at the end of its line
-  "slopDetector.showHollowCandidates": true,   // hollow review candidates (backend 3.14+)
+  "slopDetector.showHollowCandidates": true,   // review candidates: hollow code, docstring promises (backend 3.14+)
+  "slopDetector.workOrderMode": "auditor",     // the copied work order: "auditor" or "agent"
   "slopDetector.enableCodeLens": true,
   "slopDetector.failThreshold": 50.0,          // score >= 50: the file summary is an Error
   "slopDetector.warnThreshold": 30.0,          // score >= 30: a Warning
@@ -207,7 +231,8 @@ over 10), `dead_code`, `deep_nesting`, `empty_except`, `interface_only_class`,
 **Hollow review candidates** (backend 3.14+, not scored):
 `success_without_effect`, `input_never_used`, `effect_never_runs`,
 `failure_reported_as_success`, `success_ignores_outcome`,
-`finally_return_hides_failure`
+`finally_return_hides_failure`, and `claim_without_mechanism` (a docstring
+promise the body cannot keep)
 
 ---
 
@@ -218,6 +243,14 @@ cd vscode-extension
 npm ci
 npm run check      # type check
 npm run bundle     # out/extension.js
+```
+
+Package the vsix with the links of this README resolved against this folder
+(vsce's default base is the repository root):
+
+```bash
+BASE="$(node -p "require('./package.json').repository.url")/blob/main/$(basename "$PWD")"
+npx vsce package --baseContentUrl "$BASE" --baseImagesUrl "$BASE"
 ```
 
 Press **F5** for an Extension Development Host. A development build says so

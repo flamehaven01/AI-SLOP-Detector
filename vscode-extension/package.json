@@ -151,7 +151,7 @@
       },
       {
         "command": "slop-detector.exportReport",
-        "title": "Export Report (HTML / PDF / Markdown / AI)",
+        "title": "Export Report (HTML / PDF / Markdown / AI work order / AI JSON Lines)",
         "category": "SLOP Detector",
         "icon": "$(export)"
       },
@@ -163,7 +163,7 @@
       },
       {
         "command": "slop-detector.copyItemForAgent",
-        "title": "Copy Item for an AI Agent",
+        "title": "Copy Work Order Item for an AI Agent",
         "category": "SLOP Detector"
       }
     ],
@@ -329,7 +329,17 @@
         "slopDetector.showHollowCandidates": {
           "type": "boolean",
           "default": true,
-          "description": "Show hollow review candidates (not scored; backend 3.14+) in Problems, the editor and the Issues view"
+          "description": "Show review candidates (not scored; backend 3.14+): hollow code and docstring promises the body cannot keep, in Problems, the editor and the Issues view"
+        },
+        "slopDetector.workOrderMode": {
+          "type": "string",
+          "enum": ["auditor", "agent"],
+          "enumDescriptions": [
+            "Code excerpts, read-only: the agent judges each item",
+            "No code copied: the agent opens the file and holds until its preconditions (operator approval, matching hashes, a test profile) pass"
+          ],
+          "default": "auditor",
+          "description": "Mode of the work order that 'Copy work order for an AI agent' copies (backend 3.14+ --format ai-md)"
         }
       }
     },

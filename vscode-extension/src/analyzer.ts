@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { statusBarItem, outputChannel, updateFileResult } from './state';
 import { updateDiagnostics } from './diagnostics';
 import { updateStatusBar } from './statusbar';
+import { bindingOf } from './binding';
 import { parseSlopReport, ISlopReport } from './schema';
 import * as client from './client';
 
@@ -40,8 +41,8 @@ export async function analyzeDocument(document: vscode.TextDocument): Promise<vo
     try {
         const result = await runSlopDetector(filePath);
         updateDiagnostics(document.uri, result);
-        updateStatusBar(result);
         updateFileResult(filePath, result);
+        updateStatusBar(result, bindingOf(filePath) === 'CHANGED');
         outputChannel.appendLine(
             `[+] Analysis complete: Deficit=${result.deficit_score}, Status=${result.status}`
         );

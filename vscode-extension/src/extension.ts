@@ -20,6 +20,8 @@ import { SlopCodeLensProvider } from './codelens';
 import { SlopHoverProvider } from './hover';
 import { LineHighlighter } from './decorations';
 import { copyItemForAgent, exportReport, openReport } from './report';
+import { Binding, bindingOf } from './binding';
+import { updateStatusBar } from './statusbar';
 
 const LANGUAGES = [{ language: 'python' }, { language: 'javascript' }, { language: 'typescript' }, { language: 'go' }];
 
@@ -74,6 +76,31 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.window.onDidChangeTextEditorSelection((event) => highlighter.refresh(event.textEditor)),
         vscode.workspace.onDidChangeConfiguration((event) => {
             if (event.affectsConfiguration('slopDetector')) { highlighter.refreshAll(); treeProvider.refresh(); }
+        }),
+    );
+
+    // A file edited after its analysis: its lines are dimmed and the hover, the
+    // tree and the status bar say so until it is analyzed again. Redrawn only
+    // when the state flips (or a new result arrives), not on every keystroke.
+    const bindingSeen = new Map<string, { state: Binding; result: unknown }>();
+    const onBinding = (document: vscode.TextDocument) => {
+        const filePath = document.uri.fsPath;
+        const result = fileResults.get(filePath);
+        if (!result) { return; }
+        const state = bindingOf(filePath);
+        const seen = bindingSeen.get(filePath);
+        if (seen && seen.state === state && seen.result === result) { return; }
+        bindingSeen.set(filePath, { state, result });
+        highlighter.refreshAll();
+        treeProvider.refresh();
+        if (vscode.window.activeTextEditor?.document === document) { updateStatusBar(result, state === 'CHANGED'); }
+    };
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeTextDocument((event) => onBinding(event.document)),
+        vscode.workspace.onDidSaveTextDocument((document) => onBinding(document)),
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            const result = editor && fileResults.get(editor.document.uri.fsPath);
+            if (editor && result) { updateStatusBar(result, bindingOf(editor.document.uri.fsPath) === 'CHANGED'); }
         }),
     );
 

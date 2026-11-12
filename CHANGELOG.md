@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### VS Code extension 3.14.0 (Marketplace build)
+
+Built after the `v3.14.0` tag from `main`; needs the 3.14.0 backend. The
+core, PyPI and npm packages are unchanged.
+
+- Docstring-promise candidates (`claim_without_mechanism`) appear with the
+  hollow candidates: Information diagnostics, purple highlights, the Issues
+  view, and a hover with the promise, what the body needs and what was
+  found. A promise merged into a finding is shown on that finding.
+- "Copy work order for an AI agent" copies the item as the backend's
+  `--format ai-md` writes it (contract, the rule's VERIFY question, the item
+  block, the response form); mode from `slopDetector.workOrderMode`
+  (`auditor` default, or `agent`). It reads the work order from a file, not
+  stdout.
+- Export Report offers the AI work order (auditor with an optional token
+  budget, or agent); the bundle description lists `ai-report.md`.
+- A file that differs from the bytes its analysis read (unsaved edits or a
+  change on disk) has faint, dotted highlights, an "Analyze again" link in
+  the hover, and "changed" in the status bar and the Issues view.
+- The hover, the status bar tooltip and the Issues view state what each
+  channel measured (`pattern`, `hollow`, `promises`); a channel that did
+  not run reads "n/a" or "not measured", never 0. The status bar follows
+  the active editor.
+- README links resolve against the extension's own folder in the vsix (see its
+  Development section).
+
 ## [3.14.0] - 2026-11-12
 
 New report surfaces for people and for AI agents, and a separate, unscored

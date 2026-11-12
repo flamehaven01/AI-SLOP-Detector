@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { diagnosticCollection } from './state';
+import { lineItems } from './findings';
 
 const FILE_TOP  = new vscode.Range(0, 0, 0, 0);
 const FULL_LINE = new vscode.Range(0, 0, 0, 1000);
@@ -121,14 +122,14 @@ export function updateDiagnostics(uri: vscode.Uri, result: any): void {
         ));
     }
 
-    // Hollow review candidates: a separate, lower level, never an error or a
-    // warning (they are not scored and not verdicts).
+    // Review candidates (hollow code, docstring promises): a separate, lower
+    // level, never an error or a warning (they are not scored and not verdicts).
     if (config.get<boolean>('showHollowCandidates', true)) {
-        for (const c of result.semantic_findings ?? []) {
+        for (const c of lineItems(result).filter((i) => i.kind === 'candidate')) {
             diagnostics.push(makeDiag(
-                lineRange(c.line),
-                `Hollow review (not scored): ${c.kind} in ${c.function}`,
-                vscode.DiagnosticSeverity.Information, 'SLOP Detector - Hollow review', c.kind,
+                new vscode.Range(c.line, 0, c.line, 1000),
+                `Review (not scored): ${c.rule} - ${c.message}`,
+                vscode.DiagnosticSeverity.Information, 'SLOP Detector - Review', c.rule,
             ));
         }
     }

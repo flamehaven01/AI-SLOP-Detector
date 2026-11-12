@@ -5,8 +5,9 @@ import * as path from 'path';
 import * as client from './client';
 import { fileResults, outputChannel } from './state';
 import { lineItems } from './findings';
+import { workOrderForItem } from './workorder';
 
-type Format = 'html' | 'pdf' | 'md' | 'ai' | 'bundle';
+type Format = 'html' | 'pdf' | 'md' | 'ai' | 'aimd' | 'bundle';
 
 interface FormatPick extends vscode.QuickPickItem { format: Format; ext: string }
 
@@ -14,9 +15,40 @@ const FORMATS: FormatPick[] = [
     { label: '$(globe) HTML report', description: 'one page; filters; prints to A4', format: 'html', ext: 'html' },
     { label: '$(file-pdf) PDF report (A4)', description: 'needs Chrome, Edge or Chromium installed', format: 'pdf', ext: 'pdf' },
     { label: '$(markdown) Markdown report', description: 'for a PR, an issue or a wiki', format: 'md', ext: 'md' },
-    { label: '$(hubot) AI report (JSON Lines)', description: 'ai-slop-report/1 for an agent', format: 'ai', ext: 'jsonl' },
-    { label: '$(folder) All reports', description: 'md, html, pdf, ai-report.jsonl and scan.json in one folder', format: 'bundle', ext: '' },
+    {
+        label: '$(hubot) AI work order (Markdown)',
+        description: 'rules, evidence and a response form for an AI agent; auditor or agent mode',
+        format: 'aimd', ext: 'md',
+    },
+    { label: '$(json) AI report (JSON Lines)', description: 'ai-slop-report/1, one record per item', format: 'ai', ext: 'jsonl' },
+    {
+        label: '$(folder) All reports',
+        description: 'report.md, .html, .pdf, ai-report.jsonl, ai-report.md and scan.json in one folder',
+        format: 'bundle', ext: '',
+    },
 ];
+
+/** How an AI work order is written (backend 3.14+ --format ai-md). */
+interface WorkOrder { mode: 'auditor' | 'agent'; budget?: number }
+
+async function askWorkOrder(): Promise<WorkOrder | undefined> {
+    const modes = [
+        { label: 'Auditor', description: 'default: code excerpts, read-only; the agent judges each item', mode: 'auditor' as const },
+        {
+            label: 'Agent', mode: 'agent' as const,
+            description: 'no code copied; holds until its preconditions pass (operator approval, matching hashes, a test profile)',
+        },
+    ];
+    const pick = await vscode.window.showQuickPick(modes, { placeHolder: 'AI work order mode' });
+    if (!pick) { return undefined; }
+    if (pick.mode === 'agent') { return { mode: 'agent' }; }
+    const budget = await vscode.window.showInputBox({
+        prompt: 'Token budget (estimated as characters / 4). Leave empty for every item in full.',
+        validateInput: (v) => (v.trim() === '' || /^[1-9]\d*$/.test(v.trim()) ? undefined : 'a whole number, or empty'),
+    });
+    if (budget === undefined) { return undefined; }
+    return { mode: 'auditor', budget: budget.trim() ? Number(budget.trim()) : undefined };
+}
 
 function scanTarget(): string | undefined {
     const folder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -32,10 +64,17 @@ function historyArgs(): string[] {
     return args;
 }
 
-function backendArgs(format: Format, target: string, out: string): string[] {
+function workOrderArgs(order: WorkOrder): string[] {
+    const args = ['--format', 'ai-md', '--ai-mode', order.mode];
+    if (order.budget) { args.push('--ai-token-budget', String(order.budget)); }
+    return args;
+}
+
+function backendArgs(format: Format, target: string, out: string, order?: WorkOrder): string[] {
     const base = ['scan', target, ...historyArgs()];
     if (format === 'bundle') { return [...base, '--report-dir', out, '--quiet']; }
     if (format === 'ai') { return [...base, '--format', 'ai', '-o', out]; }
+    if (format === 'aimd') { return [...base, ...workOrderArgs(order ?? { mode: 'auditor' }), '-o', out]; }
     return [...base, '-o', out];
 }
 
@@ -45,6 +84,10 @@ function explainFailure(error: any): string {
     if (text.includes('ENV_BLOCKED')) {
         return 'PDF needs Chrome, Edge or Chromium installed (or the slop-detector setting SLOP_PDF_BROWSER). ' +
                'Export HTML instead and print it to PDF from a browser: it has the same A4 layout.';
+    }
+    if (text.includes('BUDGET_UNSATISFIABLE')) {
+        const line = text.split(/\r?\n/).find((l) => l.includes('BUDGET_UNSATISFIABLE')) ?? text;
+        return line.replace(/^\[!\]\s*/, '').trim() + ' Give a larger budget, or none.';
     }
     if (/unrecognized arguments|invalid choice/.test(text)) {
         return 'This export needs the ai-slop-detector 3.14 backend or newer. Update it with ' +
@@ -82,6 +125,8 @@ export async function exportReport(): Promise<void> {
     if (!target) { vscode.window.showWarningMessage('Open a folder or a file to report on.'); return; }
     const pick = await vscode.window.showQuickPick(FORMATS, { placeHolder: 'Export the AI SLOP Detector report as...' });
     if (!pick) { return; }
+    const order = pick.format === 'aimd' ? await askWorkOrder() : undefined;
+    if (pick.format === 'aimd' && !order) { return; }
     const root = vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(path.dirname(target));
     let out: string | undefined;
     if (pick.format === 'bundle') {
@@ -89,8 +134,9 @@ export async function exportReport(): Promise<void> {
         const confirmed = await vscode.window.showInputBox({ prompt: 'Folder for the reports', value: out });
         out = confirmed || undefined;
     } else {
+        const name = pick.format === 'aimd' ? `ai-work-order-${order!.mode}.md` : `slop-report.${pick.ext}`;
         const uri = await vscode.window.showSaveDialog({
-            defaultUri: vscode.Uri.joinPath(root, `slop-report.${pick.ext}`),
+            defaultUri: vscode.Uri.joinPath(root, name),
             filters: { [pick.label.replace(/\$\([^)]*\)\s*/, '')]: [pick.ext] },
         });
         out = uri?.fsPath;
@@ -99,8 +145,8 @@ export async function exportReport(): Promise<void> {
     const dest = out;
     try {
         await vscode.window.withProgress(
-            { location: vscode.ProgressLocation.Notification, title: `AI SLOP Detector: writing ${pick.format.toUpperCase()} report` },
-            () => client.runText(backendArgs(pick.format, target, dest), root.fsPath),
+            { location: vscode.ProgressLocation.Notification, title: `AI SLOP Detector: writing the ${pick.label.replace(/\$\([^)]*\)\s*/, '')}` },
+            () => client.runText(backendArgs(pick.format, target, dest, order), root.fsPath),
         );
     } catch (error) {
         const why = explainFailure(error);
@@ -152,23 +198,41 @@ export async function openReport(): Promise<void> {
     }
 }
 
-/** Command (from a hover): copy one item as an ai-slop-report/1 style record. */
+/** Command (from a hover): copy one item as a work order an AI agent can act
+ *  on, cut from a fresh `--format ai-md` scan of the file (the mode follows
+ *  slopDetector.workOrderMode). */
 export async function copyItemForAgent(filePath: string, line: number, rule: string): Promise<void> {
     const result = fileResults.get(filePath);
     const item = result ? lineItems(result).find((i) => i.line === line && i.rule === rule) : undefined;
     if (!item) { vscode.window.showWarningMessage('The item is gone: analyze the file again.'); return; }
-    const record = {
-        record: 'item',
-        kind: item.kind === 'finding' ? 'FINDING' : 'REVIEW_CANDIDATE',
-        rule: item.rule,
-        severity: item.kind === 'finding' ? item.severity : null,
-        file: vscode.workspace.asRelativePath(filePath),
-        line: item.line + 1,
-        evidence: item.message,
-        fix: item.suggestion || (item.kind === 'finding' ? 'MISSING' : 'NOT-APPLICABLE: decide in VERIFY first'),
-        forbid: ['a suppression comment', 'a threshold or config change', 'deleting the function to make the item vanish'],
-        prove: 're-scan the file: the item is gone, no new item appears, the tests pass',
-    };
-    await vscode.env.clipboard.writeText(JSON.stringify(record, null, 2));
-    vscode.window.setStatusBarMessage('$(copy) SLOP item copied for an AI agent', 3000);
+    const open = vscode.workspace.textDocuments.find((d) => d.uri.fsPath === filePath);
+    if (open?.isDirty) {
+        vscode.window.showWarningMessage('Save the file first: the work order is bound to the bytes on disk.');
+        return;
+    }
+    const cfg = vscode.workspace.getConfiguration('slopDetector');
+    const mode = cfg.get<string>('workOrderMode', 'auditor') === 'agent' ? 'agent' : 'auditor';
+    const configPath = cfg.get<string>('configPath', '');
+    // Written to a file, not read from stdout: the backend writes the file as
+    // UTF-8, while its stdout follows the console code page (cp949 on a Korean
+    // Windows rejects characters such as an em dash in a finding message).
+    const out = path.join(os.tmpdir(), `slop-work-order-${process.pid}-${Date.now()}.md`);
+    const args = ['scan', path.basename(filePath), '--format', 'ai-md', '--ai-mode', mode, '--no-history',
+        ...(configPath ? ['--config', configPath] : []), '-o', out];
+    let text: string | undefined;
+    try {
+        await client.runText(args, path.dirname(filePath));
+        text = workOrderForItem(fs.readFileSync(out, 'utf-8'), path.basename(filePath), line, rule);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Work order not built: ${explainFailure(error)}`);
+        return;
+    } finally {
+        fs.rmSync(out, { force: true });
+    }
+    if (!text) {
+        vscode.window.showWarningMessage('The file changed since this analysis and the item is not in a fresh work order: analyze it again.');
+        return;
+    }
+    await vscode.env.clipboard.writeText(text);
+    vscode.window.setStatusBarMessage(`$(copy) SLOP work order (${mode}) copied for an AI agent`, 4000);
 }

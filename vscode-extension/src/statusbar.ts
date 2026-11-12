@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
 import { statusBarItem } from './state';
+import { candidateCount, channelLine } from './findings';
 
-export function updateStatusBar(result: any): void {
+/** The file's score, its review candidates and whether the file changed after
+ *  the analysis (then the numbers describe the previous content). */
+export function updateStatusBar(result: any, changed = false): void {
     const deficitScore = result.deficit_score || 0;
     const status = result.status || 'unknown';
 
@@ -10,7 +13,9 @@ export function updateStatusBar(result: any): void {
     if (deficitScore >= 50) { icon = '$(error)'; label = 'Error'; }
     else if (deficitScore >= 30) { icon = '$(warning)'; label = 'Warning'; }
 
-    statusBarItem.text = `${icon} ${label} (${deficitScore.toFixed(1)})`;
+    const review = candidateCount(result);
+    statusBarItem.text = `${changed ? '$(history)' : icon} ${label} (${deficitScore.toFixed(1)})` +
+        (review ? ` · ${review} review` : '') + (changed ? ' · changed' : '');
 
     const ldrGrade = result.ldr?.grade ?? 'N/A';
     const mlTooltip = result.ml_score
@@ -37,5 +42,8 @@ export function updateStatusBar(result: any): void {
         `- DDC: ${(result.ddc?.usage_ratio ?? 0).toFixed(3)}\n` +
         `- Purity: ${purity.toFixed(3)} (${nCritical} critical)\n` +
         cloneLine +
-        mlTooltip;
+        mlTooltip +
+        `\nMeasured: ${channelLine(result)}` +
+        (review ? `\nReview candidates (not scored): ${review}` : '') +
+        (changed ? '\n\nThe file changed after this analysis: save or run Analyze Current File.' : '');
 }

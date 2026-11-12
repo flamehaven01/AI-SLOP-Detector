@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { fileResults, isFlaggedResult } from './state';
+import { candidateCount, channelLine, lineItems } from './findings';
+import { bindingOf } from './binding';
 
 type ItemType = 'empty' | 'file' | 'metric' | 'issue';
 
 function hollowCount(result: any): number {
     if (!vscode.workspace.getConfiguration('slopDetector').get<boolean>('showHollowCandidates', true)) { return 0; }
-    return (result?.semantic_findings ?? []).length;
+    return candidateCount(result);
 }
 
 class SlopItem extends vscode.TreeItem {
@@ -62,9 +64,13 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
                 : vscode.TreeItemCollapsibleState.None,
             'file', filePath,
         );
-        item.description = `${score.toFixed(1)}  ${status.toUpperCase()}` + (hollow ? `  · ${hollow} hollow` : '');
+        const changed = bindingOf(filePath) === 'CHANGED';
+        item.description = `${score.toFixed(1)}  ${status.toUpperCase()}` + (hollow ? `  · ${hollow} review` : '') +
+            (changed ? '  · changed since analysis' : '');
         item.tooltip     = `${filePath}\nDeficit: ${score.toFixed(1)}/100  Issues: ${issues}` +
-            (hollow ? `\nHollow review candidates (not scored): ${hollow}` : '');
+            (hollow ? `\nReview candidates (not scored): ${hollow}` : '') +
+            `\nMeasured: ${channelLine(result)}` +
+            (changed ? '\nThe file changed after this analysis: analyze it again.' : '');
         item.iconPath    = score >= 50
             ? new vscode.ThemeIcon('error',   new vscode.ThemeColor('errorForeground'))
             : score >= 30
@@ -134,11 +140,12 @@ export class SlopTreeProvider implements vscode.TreeDataProvider<SlopItem> {
         }
 
         if (vscode.workspace.getConfiguration('slopDetector').get<boolean>('showHollowCandidates', true)) {
-            for (const c of result.semantic_findings ?? []) {
-                const line = c.line || 1;
-                const it = new SlopItem(`${c.kind}  L${line}`, vscode.TreeItemCollapsibleState.None, 'issue', filePath, c);
-                it.description = `hollow review, not scored · ${c.function}`;
-                it.tooltip = `Hollow review candidate (not scored): evidence for a review, not a verdict.\n${c.function}: ${c.evidence ?? ''}`;
+            for (const c of lineItems(result).filter((i) => i.kind === 'candidate')) {
+                const line = c.line + 1;
+                const it = new SlopItem(`${c.rule}  L${line}`, vscode.TreeItemCollapsibleState.None, 'issue', filePath, c);
+                it.description = `review, not scored · ${c.message.split(':')[0]}`;
+                it.tooltip = `Review candidate (not scored): evidence for a review, not a verdict.\n${c.message}` +
+                    (c.promise ? `\nNeeds: ${c.promise.lookedFor}` : '');
                 it.iconPath = new vscode.ThemeIcon('search', new vscode.ThemeColor('charts.purple'));
                 it.command = {
                     command: 'vscode.open',

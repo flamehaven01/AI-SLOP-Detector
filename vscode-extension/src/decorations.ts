@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { fileResults } from './state';
 import { LineItem, SEVERITY_LABEL, lineItems } from './findings';
+import { bindingOf } from './binding';
 
 type Level = LineItem['severity'];
 const LEVELS: Level[] = ['critical', 'high', 'medium', 'low', 'review'];
@@ -16,8 +17,20 @@ const COLORS: Record<Level, { bar: string; tint: string; strong: string }> = {
 };
 const INLINE_CHARS = 110;
 
-function lineType(level: Level, active: boolean): vscode.TextEditorDecorationType {
+function lineType(level: Level, active: boolean, stale = false): vscode.TextEditorDecorationType {
     const c = COLORS[level];
+    // A file changed since its analysis: the same colour, faint and dotted,
+    // so a line that may have moved is not presented as exact.
+    if (stale) {
+        return vscode.window.createTextEditorDecorationType({
+            isWholeLine: true,
+            backgroundColor: 'rgba(139, 148, 158, 0.06)',
+            borderColor: c.bar,
+            borderStyle: 'dotted',
+            borderWidth: '0 0 0 2px',
+            rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+        });
+    }
     return vscode.window.createTextEditorDecorationType({
         isWholeLine: true,
         backgroundColor: active ? c.strong : c.tint,
@@ -33,13 +46,19 @@ function lineType(level: Level, active: boolean): vscode.TextEditorDecorationTyp
 export class LineHighlighter implements vscode.Disposable {
     private readonly normal = new Map<Level, vscode.TextEditorDecorationType>();
     private readonly active = new Map<Level, vscode.TextEditorDecorationType>();
+    private readonly stale = new Map<Level, vscode.TextEditorDecorationType>();
     private statusMessage: vscode.Disposable | undefined;
 
     constructor() {
         for (const level of LEVELS) {
             this.normal.set(level, lineType(level, false));
             this.active.set(level, lineType(level, true));
+            this.stale.set(level, lineType(level, false, true));
         }
+    }
+
+    private allTypes(): vscode.TextEditorDecorationType[] {
+        return [...this.normal.values(), ...this.active.values(), ...this.stale.values()];
     }
 
     /** Redraw every visible editor (after an analysis or a settings change). */
@@ -57,9 +76,10 @@ export class LineHighlighter implements vscode.Disposable {
         const items = enabled && result
             ? lineItems(result).filter((i) => showHollow || i.kind === 'finding')
             : [];
+        const changed = bindingOf(editor.document.uri.fsPath) === 'CHANGED';
         const activeLines = new Set(editor.selections.map((s) => s.active.line));
         const byType = new Map<vscode.TextEditorDecorationType, vscode.DecorationOptions[]>();
-        for (const t of [...this.normal.values(), ...this.active.values()]) { byType.set(t, []); }
+        for (const t of this.allTypes()) { byType.set(t, []); }
 
         const firstOnLine = new Map<number, LineItem[]>();
         for (const item of items) {
@@ -71,10 +91,10 @@ export class LineHighlighter implements vscode.Disposable {
         for (const [line, onLine] of firstOnLine) {
             const top = onLine[0]; // most severe first
             const isActive = activeLines.has(line);
-            const type = (isActive ? this.active : this.normal).get(top.severity)!;
+            const type = (changed ? this.stale : isActive ? this.active : this.normal).get(top.severity)!;
             const option: vscode.DecorationOptions = { range: editor.document.lineAt(line).range };
             if (inline || isActive) {
-                option.renderOptions = { after: this.inlineText(onLine, isActive) };
+                option.renderOptions = { after: this.inlineText(onLine, isActive, changed) };
             }
             byType.get(type)!.push(option);
         }
@@ -82,14 +102,17 @@ export class LineHighlighter implements vscode.Disposable {
         this.showActiveInStatusBar(firstOnLine.get(editor.selection.active.line));
     }
 
-    private inlineText(onLine: LineItem[], active: boolean): vscode.ThemableDecorationAttachmentRenderOptions {
+    private inlineText(
+        onLine: LineItem[], active: boolean, changed: boolean,
+    ): vscode.ThemableDecorationAttachmentRenderOptions {
         const top = onLine[0];
         const more = onLine.length > 1 ? `  (+${onLine.length - 1})` : '';
         let text = `${SEVERITY_LABEL[top.severity]} ${top.rule}: ${top.message}`;
         if (text.length > INLINE_CHARS) { text = text.slice(0, INLINE_CHARS - 3) + '...'; }
+        if (changed) { text = `(file changed - analyze again) ${text}`; }
         return {
             contentText: `  ■ ${text}${more}${active ? '   (hover for the fix)' : ''}`,
-            color: COLORS[top.severity].bar,
+            color: changed ? '#8b949e' : COLORS[top.severity].bar,
             fontStyle: active ? 'normal' : 'italic',
             fontWeight: active ? 'bold' : 'normal',
             margin: '0 0 0 1.5em',
@@ -109,6 +132,6 @@ export class LineHighlighter implements vscode.Disposable {
 
     dispose(): void {
         this.statusMessage?.dispose();
-        for (const t of [...this.normal.values(), ...this.active.values()]) { t.dispose(); }
+        for (const t of this.allTypes()) { t.dispose(); }
     }
 }
