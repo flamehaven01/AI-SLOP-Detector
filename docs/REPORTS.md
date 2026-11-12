@@ -1,11 +1,13 @@
 # Reports: what the detector shows, to whom, and how
 
-Status: **contract approved for the 3.14 line; implemented (O2-O4).** The
-report view, the terminal summary (`--quiet`, `--details`, progress), the
-Markdown hollow section, the HTML report and its A4 PDF, the AI report
-(`--format ai`, MCP `slop_ai_report`, npm `aiReport()`) and the bundle
-(`--report-dir`). Showing hollow candidates in the VS Code extension is
-still open (section 8).
+Status: **released in 3.14.0.** The report view, the terminal summary
+(`--quiet`, `--details`, progress), the Markdown hollow section, the HTML
+report and its A4 PDF, the AI report (`--format ai`, MCP `slop_ai_report`,
+npm `aiReport()`), the AI work order (`--format ai-md`, see
+[AI_WORK_ORDER.md](AI_WORK_ORDER.md)), the bundle (`--report-dir`) and the
+hollow review list in the VS Code extension.
+
+![HTML report of examples/demo_project](assets/html-report.png)
 
 ## 1. Two audiences, one source of truth
 
@@ -94,8 +96,9 @@ Full tables: --details   Report file: -o report.md
 |---|---|
 | `-o report.md` / `-o report.html` | as today, rebuilt on the report view |
 | `-o report.pdf` | new: the HTML report printed to A4 |
-| `--report-dir DIR` | new, only when given: the bundle `report.md`, `report.html`, `report.pdf`, `ai-report.jsonl`, `scan.json` |
+| `--report-dir DIR` | new, only when given: the bundle `report.md`, `report.html`, `report.pdf`, `ai-report.jsonl`, `ai-report.md`, `scan.json` |
 | `--format ai` | new: the AI report (JSON Lines) on stdout |
+| `--format ai-md` | new: the same records as one Markdown work order for an agent ([AI_WORK_ORDER.md](AI_WORK_ORDER.md)) |
 
 - A plain `scan` writes no file, as today. `--read-only` keeps refusing file
   output.
@@ -190,6 +193,9 @@ abridged (`...` marks cut fields):
 - The report is checked against its JSON schema before it is written; if the
   check fails, nothing is written and the command fails (fail closed).
 - Size is bounded (`--ai-limit N`, the truncated count is stated).
+- The same records as a Markdown work order, with the rules, the evidence
+  and a response form in one document: `--format ai-md`, described in
+  [AI_WORK_ORDER.md](AI_WORK_ORDER.md).
 
 ## 8. Same report on every entry point
 
@@ -198,7 +204,7 @@ abridged (`...` marks cut fields):
 | CLI | sections 3-7 |
 | npm wrapper | `npx ai-slop-detector ...` passes every flag through; `aiReport(target, { limit })` returns the parsed records (typed in `types.d.ts`) |
 | MCP | tool `slop_ai_report` (`target`, `limit`): the JSON Lines as text and the records as `structuredContent`; the JSON snapshots stay on `slop_analyze_file` / `slop_analyze_project` |
-| VS Code extension | findings as diagnostics as today; hollow candidates as a separate, lower-level "review" list, never as errors (open) |
+| VS Code extension | findings as diagnostics as today; hollow candidates as a separate, lower-level "review" list, never as errors |
 
 ## 9. Build order
 
@@ -208,7 +214,8 @@ abridged (`...` marks cut fields):
 | O2 | `ReportView` + Markdown + terminal (sections 3, 5) | done: renderer tests and controls (UNMEASURED never "0", the advice matches the findings), 3.13 / 3.14 comparison on one interpreter |
 | O3 | HTML + print CSS + PDF (section 6) | done: three sample sizes, page-by-page PDF check |
 | O4 | AI report + schema, `--format ai`, `--report-dir`, MCP, npm (sections 4, 7, 8) | done: schema and fail-closed tests, bundle failure contract, MCP and npm tests |
-| next | VS Code review list | before the 3.14 release |
+| O5 | VS Code review list | done: Information-level diagnostics and a separate list |
+| O6 | AI work order (`--format ai-md`), auditor and agent modes, token budget | done: see [AI_WORK_ORDER.md](AI_WORK_ORDER.md) |
 
 ## 10. Decisions
 

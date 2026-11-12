@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.13.0" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.14.0" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg" alt="npm version"/></a>
   <a href="https://socket.dev/npm/package/ai-slop-detector"><img src="https://img.shields.io/badge/socket-report-6e56cf" alt="Socket"/></a>
@@ -30,14 +30,15 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 |---|---|
 | **Deterministic** | The same input gives byte-identical JSON across cache, hash seed, Rust helper and working directory; `--read-only` writes nothing to the project or the home directory. |
 | **Says when it measured nothing** | Every project result carries `measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`) and `score_valid`. When nothing was measured, human reports read `NOT EVALUATED` instead of a clean verdict, and a scan whose files all failed to analyze fails `--fail-threshold`. |
-| **Its own tests are tested** | More than 1,500 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.12.0, 21 of 21 breakages of the new rules were caught (v3.11.0: 25 of 25). |
+| **Its own tests are tested** | More than 1,900 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.14.0, 133 of 133 breakages of the item identity, binding, work-order and docstring-promise rules were caught (v3.12.0: 21 of 21). |
 | **Rules state their reasons** | Each rule ships with tests that name the code shape it reports and the shapes it leaves alone; the [CHANGELOG](CHANGELOG.md) records every behavior change. |
 
 Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
 
 **Release track**
-- Stable tag: `v3.13.0`
-- Previous stable tag: `v3.12.0`
+- Stable tag: `v3.14.0`
+- Previous stable tag: `v3.13.0`
+- `v3.14.0`: new report surfaces (one-screen terminal summary, HTML report and A4 PDF, AI report and AI work order for agents, `--report-dir` bundle) and a separate, unscored hollow channel: functions that report success with no effect, inputs that reach nothing, and docstring promises the body cannot keep. Each item is bound to the SHA-256 of the bytes the scan analyzed, and Python item ids do not change when lines move. See [What You Get](#what-you-get) and [CHANGELOG.md](CHANGELOG.md).
 - `v3.13.0`: null objects, base-class defaults and framework hooks are no longer reported as placeholders, and logged `NotImplementedError` stubs, constant success reports and discarded results are. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.12.0`: catches code that only looks finished: stubs hidden behind logging (`return_constant_stub`), arguments returned unchanged (`return_input_stub`), catch-all handlers that return the success result (`failure_as_success`) and parameters a function never reads (`ignored_parameter`). See [CHANGELOG.md](CHANGELOG.md).
 - `v3.11.0`: one scan engine (`ScanService`) behind the CLI, MCP and REST, with progress events, cancellation and typed errors; MCP and REST scans write nothing by default (REST history only with `"save_history": true`), the REST server binds `127.0.0.1`, and agent project responses say whether the score measured anything (`measurement_state`, `score_valid`, `reason`). Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
@@ -214,9 +215,89 @@ The npm surface is intentionally thin:
 > Use `--output <path>` instead — it writes UTF-8 bytes (no BOM) directly,
 > skipping the shell.
 
+---
+
+## What You Get
+
+One scan gives a person one screen of what matters and an AI agent a work
+order it can verify and act on. Everything below was produced from
+[`examples/demo_project`](examples/demo_project) with:
+
+```bash
+slop-detector --project examples/demo_project --report-dir demo-report
+```
+
+**HTML report** (`-o report.html`; `-o report.pdf` prints the same page to A4
+with an installed Chrome, Edge or Chromium). Pattern findings are scored;
+hollow review candidates (code that reports work it does not do, inputs that
+reach nothing, docstring promises the body cannot keep) are listed separately
+and never move the score.
+
 <p align="center">
-  <img src="docs/assets/cli-output.png" alt="CLI Output Example" width="800"/>
+  <img src="docs/assets/html-report.png" alt="HTML report of examples/demo_project" width="800"/>
 </p>
+
+**Terminal** (the default screen; `--details` prints the full metric tables,
+`--quiet` one line):
+
+```text
+AI SLOP Detector 3.14.0 - examples\demo_project (3 files, 1.3 s)    measurement: COMPLETE
+Score     13.5/100  CLEAN (score band)
+Findings  9  (critical 0 / high 2 / medium 6 / low 1)
+Hollow    4 review candidate(s), not scored  -  7 functions, 2 not decidable
+Promises  2 docstring promise(s): 2 contradicted (1 candidate(s), 1 merged into a finding), 0
+          undecided, 0 with the structure, 0 delegated, 0 not evaluated
+
+Findings  top 5 of 9
+HIGH    orders/pricing.py:1   return_constant_stub     Function 'compute_discount' returns constant 0.1
+                                                       - likely stub; also breaks its docstring:
+                                                       promises "Compute the discount for the order."
+                                                       (computed_result); every return is a literal
+                                                       (0.1)
+HIGH    orders/pricing.py:15  pass_placeholder         Empty function with only pass - placeholder not
+                                                       implemented
+MEDIUM  orders/pricing.py:1   ignored_parameter        Parameter 'order' of 'compute_discount' is never
+                                                       used - it does not affect the result
+MEDIUM  orders/pricing.py:3   todo_comment             TODO comment - incomplete implementation
+MEDIUM  orders/store.py:4     return_none_placeholder  Function only returns None - likely placeholder
+  +4 more (--details or -o report.md)
+
+Hollow review candidates (not scored)  top 3 of 4
+  orders/pricing.py:7  claim_without_mechanism  total_parallel: promises "Sum the order values in
+                                                parallel." (parallel); no call that could run
+                                                concurrently
+  orders/store.py:8    input_never_used         save_record : the value reaches no result and no
+                                                effect, here or in the module functions it is passed to
+  orders/store.py:8    success_without_effect   save_record: reports success, and every call it makes
+                                                resolves to module functions with no effect: persist
+  +1 more (--details or -o report.md)
+
+Next
+  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical or high:
+review those before accepting this scan.
+
+Full tables: --details   Report file: -o report.md
+```
+
+**AI work order** (`--format ai-md`, also written as `ai-report.md` by
+`--report-dir`): a Markdown document for an agent with the rules it must
+follow, a VERIFY question per rule, and one block per item bound to the
+SHA-256 of the bytes the scan analyzed. The auditor mode (default) shows the
+code and grants no right to change it; `--ai-mode agent` copies no code and
+holds until its preconditions (repository readable, hashes match, operator
+approval, a test profile) pass. `--ai-token-budget N` fits it in an estimated
+budget. Details: [docs/AI_WORK_ORDER.md](docs/AI_WORK_ORDER.md).
+
+```
+### W03 C56ca6a2c17eb REVIEW_CANDIDATE claim_without_mechanism review
+at [FACT]: orders/pricing.py:7
+bound_to [FACT]: sha256:df9a47d1...de64b48a (the file is the content the scan analyzed)
+evidence [FACT]: total_parallel: promises "Sum the order values in parallel." (parallel); no call that could run concurrently
+verify [NORM]: the body needs a concurrent call (pool, thread, process, task) or an await; found: no call that could run concurrently. ACK: implement the mechanism, or change the docstring to what the function does; REJECT: name the mechanism the detector missed (file:line)
+span [FACT]: orders/pricing.py:7-12 `total_parallel`
+```
+
+All report surfaces and their rules: [docs/REPORTS.md](docs/REPORTS.md).
 
 ---
 
@@ -348,6 +429,8 @@ Use the docs by task, not by chronology:
 - [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
 
 **Interfaces**
+- [docs/REPORTS.md](docs/REPORTS.md): terminal, Markdown, HTML / PDF, AI report
+- [docs/AI_WORK_ORDER.md](docs/AI_WORK_ORDER.md): the work order for AI agents
 - [docs/CLI_USAGE.md](docs/CLI_USAGE.md)
 - [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
 - [docs/CONFIG_EXAMPLES.md](docs/CONFIG_EXAMPLES.md)
@@ -405,9 +488,9 @@ Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
 
 ### Readable, actionable output
 
-Scores are not a black box. Every project and file report renders each metric
-with its **value**, **healthy direction**, and a one-line **what it means**, plus
-a deficit-band legend:
+Scores are not a black box. The full report (`--details`, Markdown, HTML)
+renders each metric with its **value**, **healthy direction**, and a one-line
+**what it means**, plus a deficit-band legend:
 
 ```
 Project Metrics
@@ -858,6 +941,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.14.0** | report release: one report view behind a one-screen terminal summary, Markdown, a self-contained HTML report and its A4 PDF, the AI report (`ai-slop-report/1` JSON Lines) and the AI work order (`--format ai-md`, auditor and agent modes, token budget, versioned ruleset); unscored hollow channel (`success_without_effect`, `input_never_used`, `failure_reported_as_success`, `claim_without_mechanism`); item ids bound to the scanned bytes; VS Code highlights, hover and hollow review list; cache `analysis-cache-v53` |
 | **v3.13.0** | precision and detection release: declared defaults (null objects, named bases, registered hooks, declared no-ops) are no longer placeholders; logged `NotImplementedError` stubs, constant success reports and discarded results are; known limits listed in the release notes; npm wrapper with provenance |
 | **v3.12.0** | detection release: stubs behind logging, unchanged-argument stubs, catch-all handlers returning the success result, ignored parameters; balanced parallel test runner for development |
 | **v3.11.0** | one engine release: CLI, MCP and REST run the same `ScanService` (CLI output unchanged over 70 compared cases); MCP and REST are read-only by default, REST history is opt-in, the REST server binds `127.0.0.1`; agent responses carry `measurement_state` / `score_valid` / `reason`; findings and scores unchanged |
