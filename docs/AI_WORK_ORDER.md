@@ -106,7 +106,8 @@ fix [DERIVED]: implement the mechanism, or change the docstring to what the func
   symbol (`body[0]/handlers[0]`). A comment is addressed by the statement after
   it (`body[1]~before0`) or before it (`~after<k>`). Two identical blocks in
   one function get different locators. JS/TS and Go items use the line, so a
-  line shift moves them.
+  line shift moves them; two findings of one rule on one line add the column
+  (JS/TS, `L38C12`) or their order on the line (Go, `L7#2`).
 - **cause_key** (in the JSON Lines record): kind, rule, path, symbol and
   subject without the line's text; a reworded TODO keeps it.
 - Two items with the same id are a defect: the report fails closed instead of

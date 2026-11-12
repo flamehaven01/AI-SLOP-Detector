@@ -9,10 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### VS Code extension 3.14.1 (Marketplace build)
+## [3.14.2] - 2026-11-12
 
-Built after the `v3.14.1` tag from `main`; the core, PyPI and npm packages
-are unchanged.
+One defect of the AI outputs with tree-sitter installed, and the JS/TS and Go
+fix of the VS Code extension. Findings, scores and the analysis are unchanged.
+
+### Fixed
+
+- Two JS/TS or Go findings of one rule on one line (`(a: any, b: any)`) had
+  one id, so the AI report, the work order and `--report-dir` refused the whole
+  project ("the AI report has two items with one id"). Seen with tree-sitter
+  installed (`ai-slop-detector[js]`); the regex fallback reported only one of
+  the two. Such findings are now located by their column (JS/TS, `L38C12`) or
+  their order on the line (Go, `L7#2`); a finding alone on its line keeps its
+  locator and its id.
+
+### VS Code extension
+
+Shipped first in the Marketplace build of 3.14.1 (built after that tag) and
+part of 3.14.2.
 
 - JS/TS and Go files: a file analyzed on its own comes back from the backend
   in the project shape (its result under `js_file_results` /

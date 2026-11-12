@@ -5,6 +5,35 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.14.2 — 2026-11-12
+
+### Summary
+
+A patch for one defect of the AI outputs with tree-sitter installed, and the
+JS/TS and Go fix of the VS Code extension. Findings, scores and the analysis
+are unchanged. Every change is listed in the [Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **Two findings of one rule on one line keep two ids.** A TypeScript line
+  such as `(a: any, b: any)` gave two `js_any_type` findings with one id, and
+  the AI report, the work order and `--report-dir` then refused the whole
+  project ("two items with one id"). With `ai-slop-detector[js]` installed,
+  this project's own 3.13.0 tree had three such lines. They are now located
+  by their column (JS/TS) or their order on the line (Go); a finding alone on
+  its line keeps its id.
+- **VS Code extension: JS/TS and Go files show their findings.** A JS/TS or Go
+  file analyzed on its own was rejected ("CLI output schema mismatch") and
+  showed no line findings; it now shows them, and Analyze Workspace lists
+  these files. Their summary shows the language and its LDR-equivalent
+  instead of inflation and DDC printed as 0.
+
+### Known limitations
+
+- The limitations listed for v3.14.0 still apply.
+
+---
+
 ## v3.14.1 — 2026-11-12
 
 ### Summary
