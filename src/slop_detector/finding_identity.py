@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+from collections import Counter
 from typing import Any, Dict, List, Optional, Tuple
 
 from slop_detector.claims import _qualname
@@ -188,14 +189,25 @@ def read_source(path: str) -> Tuple[str, str]:
 def bind_lines(result: Any, content: str, digest: str) -> Any:
     """Bind a JS/TS or Go result to the bytes read and address its issues by
     line text and line. These analyzers have no statement path: a line shift
-    changes the locator (and the id). They report one finding per rule and
-    line; two on one line would share an id, which the report refuses."""
+    changes the locator (and the id). Findings of one rule on one line (two
+    `any` types in one signature) are told apart by their column (JS/TS) or
+    their order on the line (Go, which has no column); a finding alone on its
+    line keeps the line locator."""
     result.source_sha256, result.content_origin = digest, "file_bytes"
     lines = content.splitlines()
+    shared = Counter((issue.pattern_id, int(issue.line or 0)) for issue in result.issues)
+    order: Counter = Counter()
     for issue in result.issues:
         line = int(issue.line or 0)
         issue.fingerprint = fingerprint(lines, line)
-        issue.locator = f"L{line}"
+        key = (issue.pattern_id, line)
+        order[key] += 1
+        if shared[key] == 1:
+            issue.locator = f"L{line}"
+        elif getattr(issue, "column", None) is not None:
+            issue.locator = f"L{line}C{issue.column}"
+        else:
+            issue.locator = f"L{line}#{order[key]}"
     return result
 
 
