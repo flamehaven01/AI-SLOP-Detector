@@ -201,10 +201,9 @@ def _file_row(f: Any) -> Tuple[str, Optional[float], str, int]:
 
 
 def _file_results(result: Any) -> List[Any]:
-    out = list(getattr(result, "file_results", []) or [])
-    out += list(getattr(result, "js_file_results", []) or [])
-    out += list(getattr(result, "go_file_results", []) or [])
-    return out
+    from slop_detector.language_registry import all_file_results
+
+    return all_file_results(result)
 
 
 def _value(raw: Any) -> str:

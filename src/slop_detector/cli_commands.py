@@ -94,15 +94,16 @@ def _run_js_analysis(path: str, result=None) -> None:
     exclusions; this renders those results instead of analyzing again. Only a
     single JS/TS file given as the target is analyzed here, once.
     """
-    results = getattr(result, "js_file_results", None)
+    from slop_detector import language_registry as registry
+
+    js = registry.spec("javascript")
+    results = getattr(result, js.result_key, None)
     if results is None:
         target = Path(path)
-        if not (target.is_file() and target.suffix.lower() in (".js", ".jsx", ".ts", ".tsx")):
+        if not (target.is_file() and target.suffix.lower() in js.extensions):
             print(f"[!] No JS/TS files found at {path}")
             return
-        from slop_detector.languages.js_analyzer import JSAnalyzer
-
-        results = [JSAnalyzer().analyze(str(target))]
+        results = [js.analyzer().analyze(str(target))]
 
     print(f"\n[JS/TS Analysis] {len(results)} files")
     clean = sum(1 for r in results if r.status == "clean")

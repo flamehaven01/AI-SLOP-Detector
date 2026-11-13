@@ -57,11 +57,9 @@ class CIGate:
     def _all_file_results(result: ProjectAnalysis) -> List[Any]:
         """Every analyzed file: Python, JS/TS and Go (all of them count toward
         the project score, so all of them are judged)."""
-        return (
-            list(result.file_results)
-            + list(getattr(result, "js_file_results", []) or [])
-            + list(getattr(result, "go_file_results", []) or [])
-        )
+        from slop_detector.language_registry import all_file_results
+
+        return all_file_results(result)
 
     def _classify_files(self, result: ProjectAnalysis) -> tuple[List[str], List[str], List[str]]:
         """Classify file results into (failed, warned, quarantined) lists."""

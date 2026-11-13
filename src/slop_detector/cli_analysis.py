@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+from slop_detector import language_registry
 from slop_detector.core import SlopDetector
 from slop_detector.core_project import build_project_analysis, record_analysis_failure
 from slop_detector.models import ProjectAnalysis
@@ -33,10 +34,13 @@ def _build_fallback_project_analysis(
         except Exception as exc:
             record_analysis_failure(failures, file_path, scan_root, "python", exc)
 
-    js_results = detector._analyze_js_files(scan_root, ignore_patterns, failures)
-    go_results = detector._analyze_go_files(scan_root, ignore_patterns, failures)
-    all_results = file_results + js_results + go_results
-    if not all_results:
+    adapter_results = {
+        adapter.name: detector._analyze_language_files(
+            adapter, scan_root, ignore_patterns, failures
+        )
+        for adapter in language_registry.languages()
+    }
+    if not file_results and not any(adapter_results.values()):
         return None
 
     # One aggregation for every project result (bands, weights, parse errors).
@@ -45,8 +49,7 @@ def _build_fallback_project_analysis(
         str(scan_root),
         str(scan_root),
         file_results,
-        js_results,
-        go_results,
+        adapter_results,
         scan_coverage,
         detector.config.use_weighted_analysis(),
         detector._compute_coherence_vr,

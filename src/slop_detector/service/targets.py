@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from slop_detector import language_registry
 from slop_detector.core import SlopDetector
 from slop_detector.core_project import (
     build_project_analysis,
@@ -14,32 +15,31 @@ from slop_detector.models import ProjectAnalysis
 
 
 def target_kind(target: Path, project: bool) -> str:
-    """ "project", "python_file", or "source_file" (a single JS/TS or Go file)."""
+    """ "project", "python_file", or "source_file" (a single file of a
+    registered language other than Python)."""
     if project:
         return "project"
-    suffix = target.suffix.lower()
-    if suffix in SlopDetector._JS_EXTENSIONS | SlopDetector._GO_EXTENSIONS:
+    if language_registry.spec_for_suffix(target.suffix) is not None:
         return "source_file"
     return "python_file"
 
 
 def analyze_single_source_file(detector: SlopDetector, path: Path) -> ProjectAnalysis:
-    """A single JS/TS or Go file is a project of that one file, in its own language."""
-    is_js = path.suffix.lower() in detector._JS_EXTENSIONS
-    language = "javascript" if is_js else "go"
-    analyze = detector.analyze_js_file if is_js else detector.analyze_go_file
+    """A single file of a registered language is a project of that one file."""
+    adapter = language_registry.spec_for_suffix(path.suffix)
+    if adapter is None:
+        raise ValueError(f"{path} is not a file of a registered language")
     results: list = []
     failures: list = []
     try:
-        results.append(analyze(str(path)))
+        results.append(detector.analyze_language_file(adapter, str(path)))
     except Exception as exc:
-        record_analysis_failure(failures, path, path.parent, language, exc)
+        record_analysis_failure(failures, path, path.parent, adapter.name, exc)
     return build_project_analysis(
         str(path),
         str(path.parent),
         [],
-        results if is_js else [],
-        [] if is_js else results,
+        {adapter.name: results},
         scan_coverage([], []),
         detector.config.use_weighted_analysis(),
         detector._compute_coherence_vr,

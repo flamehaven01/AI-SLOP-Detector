@@ -23,6 +23,7 @@ src/slop_detector/
   core_scoring.py         deterministic file-score helpers
   core_topology.py        DCF and structural coherence helpers
   core_project.py         discovery, coverage, aggregation
+  language_registry.py    the analyzed languages other than Python (see ADDING_A_LANGUAGE.md)
   cli*.py                 parsers, routing, analysis, output, history, init
   operations*.py          audit, health, cleanup, architecture helpers
   metrics/                LDR, inflation, dependency and related signals

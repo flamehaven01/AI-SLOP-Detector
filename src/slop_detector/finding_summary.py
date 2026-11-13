@@ -41,7 +41,6 @@ def get_finding_summary(project_result: Any) -> Dict[str, Any]:
     summary = getattr(project_result, "finding_summary", None)
     if summary:
         return summary
-    results = list(getattr(project_result, "file_results", []))
-    results.extend(getattr(project_result, "js_file_results", []))
-    results.extend(getattr(project_result, "go_file_results", []))
-    return build_finding_summary(results)
+    from slop_detector.language_registry import all_file_results
+
+    return build_finding_summary(all_file_results(project_result))

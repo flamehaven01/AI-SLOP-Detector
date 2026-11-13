@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from slop_detector.core_project import score_is_valid
+from slop_detector.language_registry import language_results
 
 
 class AnalysisRequest(BaseModel):
@@ -119,7 +120,13 @@ class AgentFileResponse(BaseModel):
 
 
 class AgentProjectResponse(BaseModel):
-    """Structured project-analysis snapshot for agents."""
+    """Structured project-analysis snapshot for agents.
+
+    One `<language>_file_results` list per registered language
+    (language_registry): the declared fields are the released languages; a
+    language registered later is kept as an extra field of the same shape."""
+
+    model_config = ConfigDict(extra="allow")
 
     schema_version: str = "1.0"
     kind: str = "agent_project_analysis"
@@ -173,14 +180,12 @@ class AgentProjectResponse(BaseModel):
                 "has_suppression_ledger": bool(getattr(result, "suppression_ledger", [])),
             },
             file_results=file_results,
-            js_file_results=[
-                item.to_dict() if hasattr(item, "to_dict") else item
-                for item in getattr(result, "js_file_results", [])
-            ],
-            go_file_results=[
-                item.to_dict() if hasattr(item, "to_dict") else item
-                for item in getattr(result, "go_file_results", [])
-            ],
+            **{
+                adapter.result_key: [
+                    item.to_dict() if hasattr(item, "to_dict") else item for item in results
+                ]
+                for adapter, results in language_results(result)
+            },
             priority_hotspots=[
                 item.to_dict() if hasattr(item, "to_dict") else item
                 for item in getattr(result, "priority_hotspots", [])
