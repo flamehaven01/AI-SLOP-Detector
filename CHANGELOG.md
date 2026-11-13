@@ -24,11 +24,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The renderer reads the document back before writing it: every item exactly
   once, at its own file and line, with its own evidence, bound to its file's
   hash, under a family whose fix and channel are its own, family counts that
-  add up. Otherwise it refuses: `the work order is not lossless`.
+  add up; every field an item block or index line shows (kind, rule,
+  severity, locator, semantic key, promise) equals its record (FH-S2-01).
+  Otherwise it refuses: `the work order is not lossless`.
 - Token budget (S4-D1 kept): the allocation pays for a family header when it
   draws the family's first item, and the final check takes back the last
   whole body before any item loses its evidence. Without these, the families
   had a budget that held every item at T2 leave some at the index line.
+- An item's evidence form is the cheaper of T2 and T1 (FH-S4-D1-01): a short
+  function whose whole body costs less than its excerpt is drawn whole, and
+  the final check only demotes a T1 whose excerpt is cheaper.
+- The work order names its own format, `ai-slop-work-order/2`, beside its
+  records' `ai-slop-report/1` (FH-S2-FORMAT).
 - The JSON Lines report (`--format ai`) is unchanged.
 - VS Code extension: "Copy work order" also carries the item's family header
   and its FILES row, and still reads a work order from a 3.14 backend.

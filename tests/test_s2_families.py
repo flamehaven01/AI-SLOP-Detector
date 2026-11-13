@@ -404,6 +404,154 @@ def test_the_allocation_pays_for_what_it_draws(tmp_path, monkeypatch):
     assert taken and max(taken) <= 2, max(taken)
 
 
+PROMISED = 'def compute_total(order):\n    """Compute the total for the order."""\n    return 0.1\n'
+
+
+def _altered(lines, record, field):
+    """One shown field of one item changed, everything else as rendered."""
+    out = []
+    for ln in lines:
+        if ln.startswith("#### W"):
+            head = ln.split(" ")
+            if field == "severity":
+                head[-1] = "low" if head[-1] != "low" else "medium"
+            elif field == "kind":
+                head[3] = "REVIEW_CANDIDATE" if head[3] == "FINDING" else "FINDING"
+            elif field == "rule":
+                head[4] = head[4] + "_x"
+            ln = " ".join(head)
+        elif ln.startswith("locator [FACT]: ") and field == "locator":
+            ln = ln.replace("locator [FACT]: ", "locator [FACT]: body[9]", 1)
+        elif ln.startswith("locator [FACT]: ") and field == "semantic_key":
+            ln = ln[:-1] + ("0" if ln[-1] != "0" else "1")
+        elif ln.startswith("promise [FACT]: ") and field == "promise":
+            ln = ln.replace("Compute the total", "Compute the sum")
+        out.append(ln)
+    return out
+
+
+@pytest.mark.parametrize(
+    "field", ["severity", "kind", "rule", "locator", "semantic_key", "promise"]
+)
+def test_the_gate_checks_every_field_an_item_block_shows(tmp_path, monkeypatch, field):
+    # FH-S2-01: each shown field of an item, changed alone, is refused
+    (tmp_path / "pkg").mkdir(exist_ok=True)
+    (tmp_path / "pkg" / "d.py").write_text(PROMISED, encoding="utf-8")
+    result = _project(tmp_path)
+    target = "return_constant_stub" if field == "promise" else "todo_comment"
+    original = ai_report_md._member_block
+
+    def member(n, record, *args, **kwargs):
+        lines = original(n, record, *args, **kwargs)
+        chosen = record["rule"] == target and record["file"] == (
+            "pkg/d.py" if field == "promise" else "pkg/b.py"
+        )
+        return _altered(lines, record, field) if chosen else lines
+
+    plain = render_ai_report_md(result)
+    assert "promise [FACT]: " in plain  # the promise is there to change
+    monkeypatch.setattr(ai_report_md, "_member_block", member)
+    with pytest.raises(AiReportInvalidError, match="not lossless"):
+        render_ai_report_md(result)
+
+
+@pytest.mark.parametrize("field", ["severity", "rule"])
+def test_the_gate_checks_every_field_an_index_line_shows(tmp_path, monkeypatch, field):
+    result = _project(tmp_path)
+    original = ai_report_md._index_line
+
+    def index_line(record, tiered, bref):
+        line = original(record, tiered, bref)
+        if record["rule"] != "todo_comment":
+            return line
+        parts = line.split(" ")
+        if field == "severity":
+            parts[2] = "low"
+        else:
+            parts[3] = parts[3] + "_x"
+        return " ".join(parts)
+
+    monkeypatch.setattr(ai_report_md, "_index_line", index_line)
+    with pytest.raises(AiReportInvalidError, match="not lossless"):
+        render_ai_report_md(result, limit=0)
+
+
+def test_an_item_whose_whole_body_is_cheaper_than_its_excerpt_is_drawn_whole(tmp_path):
+    # FH-S4-D1-01: for a short function the whole body (T1) costs less than the
+    # signature, evidence and range to read (T2); a budget that holds T1 but
+    # not T2 draws the item whole instead of leaving it at the index line
+    from pathlib import Path
+
+    from slop_detector import ai_report
+
+    result = _project(tmp_path)
+    view = build_report_view(result)
+    rules = ai_report.ruleset()
+    records = ai_report.build_records(view, rules=rules)
+    items = ai_report_md._grouped(records[1:])
+    fixed = (records[0], view, rules, "auditor", Path(view.target), {})
+    rest = [ai_report_md._INDEX] * (len(items) - 1)
+
+    def holding(tiers):
+        budget = 1
+        while (
+            ai_report_md.estimate_tokens(ai_report_md._document(fixed, items, tiers, budget))
+            > budget
+        ):
+            budget = ai_report_md.estimate_tokens(
+                ai_report_md._document(fixed, items, tiers, budget)
+            )
+        return budget
+
+    whole, excerpt = holding(["full"] + rest), holding(["evidence"] + rest)
+    assert whole < excerpt  # the case this control is about
+    text = render_ai_report_md(result, token_budget=whole)
+    t1, t2, t3 = (int(n) for n in re.search(r"tiers T1 (\d+), T2 (\d+), T3 (\d+)", text).groups())
+    assert t1 >= 1, (t1, t2, t3)
+
+
+def test_the_whole_body_pass_goes_past_an_item_already_drawn_whole(tmp_path):
+    # FH-S2-P1: a short item drawn whole in the evidence pass (T1 cheaper than
+    # T2) is skipped by the whole-body pass, which goes on to the long items
+    # after it; stopping there would leave every later item at T2 whatever
+    # the budget. Room is exactly every item's evidence form plus the whole
+    # body of each long item up to the first long item after a short one.
+    from pathlib import Path
+
+    from slop_detector import ai_report
+
+    (tmp_path / "pkg").mkdir(exist_ok=True)
+    (tmp_path / "pkg" / "c.py").write_text(LONGS, encoding="utf-8")
+    result = _project(tmp_path)
+    view = build_report_view(result)
+    rules = ai_report.ruleset()
+    records = ai_report.build_records(view, rules=rules)
+    items = ai_report_md._grouped(records[1:])
+    fixed = (records[0], view, rules, "auditor", Path(view.target), {})
+    cost = ai_report_md._coster(fixed, items)
+    short = [i for i in range(len(items)) if cost(i, "full") <= cost(i, "evidence")]
+    later = [i for i in range(len(items)) if short and i > short[0]]
+    long_after = [i for i in later if cost(i, "full") > cost(i, "evidence")]
+    assert short and long_after  # the case this control is about
+    target = long_after[0]
+    room = sum(min(cost(i, "full"), cost(i, "evidence")) for i in range(len(items))) + sum(
+        cost(i, "full") - cost(i, "evidence")
+        for i in range(target + 1)
+        if cost(i, "full") > cost(i, "evidence")
+    )
+    tiers = [ai_report_md._INDEX] * len(items)
+    ai_report_md._allocate(fixed, items, tiers, room)
+    assert tiers[short[0]] == "full" and tiers[target] == "full", (short[0], target, tiers)
+
+
+def test_the_work_order_names_its_own_format(tmp_path):
+    # FH-S2-FORMAT: the Markdown work order changed with S2; its records did not
+    text = render_ai_report_md(_project(tmp_path))
+    assert text.splitlines()[1].startswith(
+        "format: ai-slop-work-order/2 markdown work order | records ai-slop-report/1 | tool "
+    )
+
+
 def test_a_document_that_would_lose_an_item_is_never_written(tmp_path, monkeypatch):
     result = _project(tmp_path)
     original = ai_report_md._member_block

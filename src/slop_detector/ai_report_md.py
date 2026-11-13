@@ -16,7 +16,7 @@ import hashlib
 import re
 from itertools import groupby
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from slop_detector import ai_report
 from slop_detector.ai_report import MISSING
@@ -24,7 +24,9 @@ from slop_detector.report_view import build_report_view
 from slop_detector.work_order_rules import MODES, Ruleset
 from slop_detector.work_order_rules import SCHEMA as RULESET_SCHEMA
 
-FORMAT = "ai-slop-report/1 markdown work order"
+# The work order's own format: /2 since S2 (families, FILES, `#### W` items);
+# its items are `ai-slop-report/1` records, named beside it in the header.
+FORMAT = "ai-slop-work-order/2 markdown work order"
 SNIPPET_LINES = 20  # code shown per item; the full span is named so the agent can read the rest
 _RANK = {
     "critical": 0,
@@ -289,6 +291,19 @@ def _family(gid: str, record: Dict[str, Any], count: int) -> List[str]:
     ]
 
 
+def _locator_text(record: Dict[str, Any]) -> str:
+    return f"{record['locator'] or '(the symbol itself)'} semantic_key={record['semantic_key']}"
+
+
+def _promise_text(promise: Dict[str, Any]) -> str:
+    return (
+        f"\"{_one_line(promise['promise'])}\" (docstring line {promise['promise_line']}, "
+        f"{promise['claim_kind']}; basis {promise['basis']}"
+        + (f": {_one_line(promise['detail'])}" if promise["detail"] else "")
+        + ")"
+    )
+
+
 def _member_block(
     n: int,
     record: Dict[str, Any],
@@ -325,18 +340,13 @@ def _member_block(
     out = [
         f"#### W{n:02d} {record['id']} {record['kind']} {record['rule']} {severity}",
         f"at [FACT]: {_one_line(record['file'])}:{record['line']}",
-        f"locator [FACT]: {record['locator'] or '(the symbol itself)'} semantic_key={record['semantic_key']}",
+        f"locator [FACT]: {_locator_text(record)}",
         f"bound_to [FACT]: {bref} ({current})",
         f"evidence [FACT]: {_one_line(record['evidence'])}",
     ]
     promise = record.get("promise")
     if promise:
-        out.append(
-            f"promise [FACT]: \"{_one_line(promise['promise'])}\" (docstring line {promise['promise_line']}, "
-            f"{promise['claim_kind']}; basis {promise['basis']}"
-            + (f": {_one_line(promise['detail'])}" if promise["detail"] else "")
-            + ")"
-        )
+        out.append(f"promise [FACT]: {_promise_text(promise)}")
         out.append(f"verify [NORM]: {_claim_question(promise, rules)}")
     if mode == "agent":
         out += _agent_read(text, record, rules, current)
@@ -465,39 +475,47 @@ def _unsatisfiable(fixed, items: List[Dict[str, Any]], budget: int) -> None:
     )
 
 
-def _allocate(fixed, items: List[Dict[str, Any]], tiers: List[str], room: int) -> None:
-    """T2 then T1 into `tiers`, within `room` characters over the index."""
+def _coster(fixed, items: List[Dict[str, Any]]) -> Callable[[int, str], int]:
+    """cost(i, tier): the characters a tier adds over item i's index line,
+    with its family header when it opens one (items are grouped by family and
+    drawn in order, so a family's header appears exactly when its first item
+    is drawn)."""
     header, view, rules, mode, root, sources = fixed
     refs = _file_refs(items)
-
-    # The first item of a family brings the family header with it: items are
-    # grouped by family and drawn in order, so its header appears exactly when
-    # it is drawn.
     heads = {
         i for i in range(len(items)) if i == 0 or _family_key(items[i]) != _family_key(items[i - 1])
     }
 
     def cost(i: int, tier: str) -> int:
-        """Characters a tier adds over the item's index line, with its family
-        header when it opens one."""
         bref = refs[items[i]["file"]]
         block = _member_block(i + 1, items[i], root, rules[0], mode, tier, sources, bref)
         if i in heads:
             block = _family(f"G{len(heads):02d}", items[i], 1) + block
         return len("\n".join(block)) + 1 - (len(_index_line(items[i], True, bref)) + 1)
 
-    # Breadth first (S4-D1): every item gets its evidence (T2) before any item
-    # gets its whole body (T1). Both passes go in priority order and stop at
-    # the first item that does not fit, so a lower item never gets more than
-    # a higher one.
+    return cost
+
+
+def _allocate(fixed, items: List[Dict[str, Any]], tiers: List[str], room: int) -> None:
+    """Evidence first, then whole bodies, into `tiers`, within `room`
+    characters over the index."""
+    cost = _coster(fixed, items)
+    # Breadth first (S4-D1): every item gets its evidence before any item gets
+    # more. An item's evidence form is the cheaper of T2 and T1 (FH-S4-D1-01):
+    # a short function's whole body costs less than its excerpt with the range
+    # to read, and it carries the same evidence. Both passes go in priority
+    # order and stop at the first item that does not fit.
     for i in range(len(items)):
-        need = cost(i, "evidence")
+        excerpt, whole = cost(i, "evidence"), cost(i, "full")
+        tier, need = ("full", whole) if whole <= excerpt else ("evidence", excerpt)
         if need > room:
             break
-        tiers[i], room = "evidence", room - need
+        tiers[i], room = tier, room - need
     for i in range(len(items)):
-        if tiers[i] != "evidence":
+        if tiers[i] == _INDEX:
             break
+        if tiers[i] == "full":
+            continue
         need = cost(i, "full") - cost(i, "evidence")
         if need > room:
             break
@@ -508,9 +526,16 @@ def _settle(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: int) -
     """The rendered document is the check: the allocation's estimate ignores
     small layout effects (block numbers, counts). Breadth first here too: the
     last whole body gives way before any item loses its evidence, so a budget
-    that holds every item at T2 keeps it."""
+    that holds every item at its evidence form keeps it; only a whole body
+    whose excerpt is cheaper gives way to it (FH-S4-D1-01), any other change
+    would not shorten the document."""
+    cost = _coster(fixed, items)
     while estimate_tokens(_document(fixed, items, tiers, budget)) > budget:
-        whole = [i for i, tier in enumerate(tiers) if tier == "full"]
+        whole = [
+            i
+            for i, tier in enumerate(tiers)
+            if tier == "full" and cost(i, "full") > cost(i, "evidence")
+        ]
         if whole:
             tiers[whole[-1]] = "evidence"
         else:
@@ -525,7 +550,8 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
     score = "NOT-MEASURED" if header["score"] is None else f"{header['score']:.1f}"
     out = [
         "# AI-SLOP WORK ORDER",
-        f"format: {FORMAT} | tool {header['tool']} {header['version']} | engine {header['engine']}",
+        f"format: {FORMAT} | records {header['schema']} | tool {header['tool']} {header['version']} | "
+        f"engine {header['engine']}",
         f"target: {_one_line(Path(view.target).name)} | files {header['files']} | score {score} {header['status']} "
         "(pattern channel only)",
         f"items: {len(items)} | work order {len(drawn)} | backlog {len(listed)}",
@@ -586,8 +612,10 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
 
 _ROW = re.compile(r"^- (B\d+) binding:(?:MATCH|VOID HOLD|MISSING HOLD) sha256:(\S+) file:(.+)$")
 _GROUP = re.compile(r"^### G\d+ .* \| items (\d+)$")
-_MEMBER = re.compile(r"^#### W\d+ ([FC][0-9a-f]{12}) ")
-_INDEXED = re.compile(r"^- ([FC][0-9a-f]{12}) .*?file:(B\d+)(?: channel:\S+ tier:3)? at:(.+)$")
+_MEMBER = re.compile(r"^#### W\d+ ([FC][0-9a-f]{12}) (\S+) (\S+) (\S+)$")
+_INDEXED = re.compile(
+    r"^- ([FC][0-9a-f]{12}) (\S+) (\S+) file:(B\d+)(?: channel:\S+ tier:3)? at:(.+)$"
+)
 
 
 def _field(lines: List[str], start: int, tag: str) -> Optional[str]:
@@ -609,30 +637,44 @@ def _read_item(
     channel: Optional[str],
 ) -> Tuple[str, Tuple[Optional[str], ...]]:
     """(file reference, the fields the document shows) for the item line at k:
-    a member's location, evidence and its family's fix and channel; an index
-    line's location."""
+    a member's kind, rule, severity, location, locator and semantic key,
+    evidence, promise and its family's fix and channel; an index line's
+    severity, rule and location."""
     if is_member:
         bref = (_field(lines, k, "bound_to [FACT]: ") or "").split(" ", 1)[0]
         return bref, (
+            found.group(2),
+            found.group(3),
+            found.group(4),
             _field(lines, k, "at [FACT]: "),
+            _field(lines, k, "locator [FACT]: "),
             _field(lines, k, "evidence [FACT]: "),
+            _field(lines, k, "promise [FACT]: "),
             fix,
             channel,
         )
-    return found.group(2), (found.group(3),)
+    return found.group(4), (found.group(2), found.group(3), found.group(5))
 
 
 def _own(record: Dict[str, Any], is_member: bool) -> Tuple[Optional[str], ...]:
-    """The same fields from the item's record."""
+    """The same fields from the item's record (FH-S2-01: every field an item
+    block or an index line shows)."""
     where = f"{_one_line(record['file'])}:{record['line']}"
+    severity = record["severity"] or "review"
     if is_member:
+        promise = record.get("promise")
         return (
+            record["kind"],
+            record["rule"],
+            severity,
             where,
+            _locator_text(record),
             _one_line(record["evidence"]),
+            _promise_text(promise) if promise else None,
             _one_line(record["fix"]),
             record["channel_state"],
         )
-    return (where,)
+    return (severity, record["rule"], where)
 
 
 def _item_problems(
@@ -641,13 +683,14 @@ def _item_problems(
     bref: str,
     shown: Tuple[Optional[str], ...],
     files: Dict[str, Tuple[str, str]],
+    is_member: bool,
 ) -> List[str]:
     """What is wrong with one item line: not an item, not its record's fields,
     or not bound to its file's scan-time hash."""
     if record is None:
         return [f"{rid} is not an item"]
     problems = []
-    if shown != _own(record, len(shown) > 1):
+    if shown != _own(record, is_member):
         problems.append(f"{rid} does not read as its record")
     if files.get(bref) != (_one_line(record["file"]), record["source_sha256"]):
         problems.append(f"{rid} is not bound to its file's scan-time hash")
@@ -679,7 +722,9 @@ def _check_lossless(doc: str, items: List[Dict[str, Any]]) -> None:
         seen.append(found.group(1))
         members += member is not None
         bref, shown = _read_item(lines, k, found, member is not None, fix, channel)
-        problems += _item_problems(by_id.get(found.group(1)), found.group(1), bref, shown, files)
+        problems += _item_problems(
+            by_id.get(found.group(1)), found.group(1), bref, shown, files, member is not None
+        )
     if sorted(seen) != sorted(by_id):
         problems.append(f"{len(seen)} item lines for {len(by_id)} items")
     if counted != members:

@@ -111,7 +111,10 @@ def test_a_middle_budget_degrades_in_priority_order_and_never_drops_an_item(tmp_
         assert drawn == ordered[: len(drawn)]  # monotone priority: the drawn items lead
         t1, t2, _ = _tiers(text)
         blocks = text.split("## WORK-ORDER")[1].split("## BACKLOG")[0].split("#### W")[1:]
-        assert all("not shown" not in b for b in blocks[:t1])  # T1 blocks come first, whole
+        # every T1 block is whole and every T2 block an excerpt; since
+        # FH-S4-D1-01 a short function whose whole body costs less than its
+        # excerpt is drawn whole wherever it stands, so T1 blocks need not lead
+        assert sum("not shown" not in b for b in blocks) == t1
         seen.add((t1, t2))
     assert any(t[1] > 0 for t in seen)  # T2 was used somewhere between the extremes
 

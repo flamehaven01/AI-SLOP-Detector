@@ -60,7 +60,7 @@ backlog and response form.
 
 | Section | Tag | Content |
 |---|---|---|
-| header | | tool and engine version, target, score, item counts, the ruleset id and digest, the mode |
+| header | | the format (`ai-slop-work-order/2`, items from `ai-slop-report/1` records), tool and engine version, target, score, item counts, the ruleset id and digest, the mode |
 | CONTRACT | `[FORMAT]` | precedence, tag meanings, empty values, the per-item loop, how an item is invalidated, how a fix is proved |
 | AUTHORITY, PRECONDITIONS | `[NORM]` | what the mode allows; the agent's P1-P4 |
 | HARD-STOP, FORBID, INVARIANTS, ALLOWED | `[NORM]` | when to stop, what never to do (suppression comments, threshold or config changes, deleting a function to make its item vanish), what always holds |
@@ -135,10 +135,12 @@ code), its own verdict and its own response line. One component differing
 makes another family.
 
 The work order is lossless, and the renderer checks it before writing:
-reading the document back, every item appears exactly once, at its own file
-and line, with its own evidence, bound to its file's scan-time hash through
-FILES, under a family whose fix and channel are its own, and the family
-counts add up. A document that fails any of these is refused (`the work
+reading the document back, every item appears exactly once and every field
+it shows equals its record: in an item block the kind, rule and severity,
+the file and line, the locator and semantic key, the evidence and the
+promise; on an index line the severity, rule, file and line. Each is bound to
+its file's scan-time hash through FILES, under a family whose fix and channel
+are its own, and the family counts add up. A document that fails any of these is refused (`the work
 order is not lossless`), and nothing is written.
 
 ## Bound to the scanned bytes
@@ -193,10 +195,14 @@ header says so.
 | T3 | one index line: id, severity, rule, its FILES row (SHA-256 and binding), channel, location |
 
 Every item gets at least its index line; none is left out. Items are
-allocated in priority order, breadth first: every item gets T2 before any item
-gets T1, and both passes stop at the first item that does not fit, so a lower
-item never gets more detail than a higher one. The rendered document is then
-checked against the budget. A budget smaller than the index of every item is
+allocated in priority order, breadth first: every item gets its evidence form
+before any item gets more, and both passes stop at the first item that does
+not fit. An item's evidence form is the cheaper of T2 and T1: for a short
+function the whole body costs less than the excerpt with its range to read,
+and it carries the same evidence, so such an item is drawn whole wherever it
+stands. The second pass upgrades the remaining T2 items to T1. The rendered
+document is then checked against the budget; when it is over, the last T1
+whose excerpt is cheaper gives way to T2 before any item loses its evidence. A budget smaller than the index of every item is
 refused with `BUDGET_UNSATISFIABLE` and the least budget that would hold, and
 nothing is written:
 
