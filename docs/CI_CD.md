@@ -43,7 +43,7 @@ jobs:
 | `hard` | A reviewed repository policy | Returns non-zero when the configured gate decides to fail, or when the scan is incomplete (a file could not be analyzed; see `scan_coverage.failed`). |
 | `quarantine` | Gradual enforcement of repeated violations | Persists local quarantine state; persist that file as an artifact or cache if runs are ephemeral. |
 
-The gate judges Python files only: JS/TS and Go files and their findings appear in every report but are not counted toward `--ci-mode hard` yet, even when they put the project in a deficit band (a project of one Go file with three critical `go_panic` findings, project score 100, passes the hard gate in 3.15.1). Review those reports before relying on the gate for a JS/TS or Go codebase. The detailed decision is part of the report. Do not duplicate historical thresholds in CI configuration docs: thresholds, ignores, and pattern policy belong in `.slopconfig.yaml` and should be reviewed per repository.
+The gate judges every analyzed file. A Python file is judged by its deficit score, critical and high findings, inflation and DDC; a JS/TS or Go file by its score and its critical and high findings, with the same thresholds (it has no inflation or DDC metric, and an unmeasured metric is never judged). Up to 3.15.1 the gate read Python files only: a project of one Go file with three critical `go_panic` findings and score 100 passed `--ci-mode hard`. The detailed decision is part of the report. Do not duplicate historical thresholds in CI configuration docs: thresholds, ignores, and pattern policy belong in `.slopconfig.yaml` and should be reviewed per repository.
 
 ## JSON-First Automation
 

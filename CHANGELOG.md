@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.15.2] - 2026-11-13
+
+The CI gate judges JS/TS and Go files. Findings, scores and the analysis are
+unchanged; the gate's decision can change.
+
+### Changes you see when upgrading
+
+- A project with JS/TS or Go files can fail `--ci-mode hard` (or be warned or
+  quarantined) where it passed before: those files are now judged.
+
+### Fixed
+
+- `--ci-mode` (hard, soft and quarantine; CLI, MCP and REST share it) read
+  Python file results only. A project of one Go file with five `panic()` calls
+  (three critical `go_panic` findings, score 100, CRITICAL_DEFICIT) passed
+  `--ci-mode hard` with exit 0, although those files already counted toward the
+  project score. JS/TS and Go files are now judged with the thresholds of a
+  Python file: a score at or above the critical band or three critical
+  findings fail, a score in the suspicious band or five high findings warn.
+  They have no inflation or DDC metric, and an unmeasured metric is never
+  judged. Quarantine records a JS/TS or Go file with its own score.
+- The 3.15.1 README and docs/CI_CD.md said the gate judges Python files only;
+  they now describe the gate as it is.
+
 ## [3.15.1] - 2026-11-13
 
 Every finding now reaches every human report, with its fix. Findings, scores

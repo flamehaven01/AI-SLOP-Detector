@@ -5,6 +5,34 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.15.2 — 2026-11-13
+
+### Summary
+
+A gate patch. `--ci-mode` judges JS/TS and Go files with the thresholds of
+Python files. Findings, scores and the analysis are unchanged; the gate's
+decision can change. Every change is listed in the [Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **JS/TS and Go files are judged by the gate.** A file whose score is in the
+  critical band, or that has three critical findings, fails `--ci-mode hard`;
+  one in the suspicious band, or with five high findings, warns. Up to 3.15.1
+  the gate read Python files only: a Go-only project at score 100 with three
+  critical `go_panic` findings passed with exit 0. **A project with JS/TS or Go
+  files can now fail a gate it passed before.**
+- Inflation and DDC are Python metrics; JS/TS and Go files are not judged on
+  them.
+
+### Verification
+
+- 12 new controls (the measured Go-only project through the CLI gate path,
+  and every threshold for JS/TS and Go in hard, soft and quarantine mode);
+  9 of them fail on 3.15.1. 11 of 11 deliberately broken copies of the gate
+  were caught.
+
+---
+
 ## v3.15.1 — 2026-11-13
 
 ### Summary
@@ -41,8 +69,7 @@ analyzers were written without fix texts. Details: the 3.15.1 entry of the
 
 ### Known limitations
 
-- `--ci-mode hard` judges Python files only; JS/TS and Go findings are not
-  counted by the gate yet (documented in README and docs/CI_CD.md).
+- `--ci-mode hard` judged Python files only; fixed in 3.15.2.
 - The limitations listed for v3.14.0 still apply.
 
 ---

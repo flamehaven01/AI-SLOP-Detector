@@ -53,11 +53,25 @@ class CIGate:
             return self._evaluate_project(cast(ProjectAnalysis, result))
         return self._evaluate_file(cast(FileAnalysis, result))
 
+    @staticmethod
+    def _all_file_results(result: ProjectAnalysis) -> List[Any]:
+        """Every analyzed file: Python, JS/TS and Go (all of them count toward
+        the project score, so all of them are judged)."""
+        return (
+            list(result.file_results)
+            + list(getattr(result, "js_file_results", []) or [])
+            + list(getattr(result, "go_file_results", []) or [])
+        )
+
     def _classify_files(self, result: ProjectAnalysis) -> tuple[List[str], List[str], List[str]]:
         """Classify file results into (failed, warned, quarantined) lists."""
         failed, warned, quarantined = [], [], []
-        for file_result in result.file_results:
-            v = self._check_file_thresholds(file_result)
+        for file_result in self._all_file_results(result):
+            v = (
+                self._check_file_thresholds(file_result)
+                if isinstance(file_result, FileAnalysis)
+                else self._check_language_thresholds(file_result)
+            )
             if v == GateVerdict.FAIL:
                 failed.append(file_result.file_path)
             elif v == GateVerdict.WARN:
@@ -307,6 +321,24 @@ class CIGate:
 
         return GateVerdict.PASS
 
+    def _check_language_thresholds(self, file_result: Any) -> GateVerdict:
+        """A JS/TS or Go file against the thresholds of a Python file: its score
+        and the severities of its findings. It has no inflation or DDC metric,
+        and a metric that was not measured is never judged."""
+        score = float(getattr(file_result, "slop_score", 0.0))
+        severities = [str(getattr(i, "severity", "")) for i in getattr(file_result, "issues", [])]
+        if (
+            score >= self.thresholds.deficit_fail
+            or severities.count("critical") >= self.thresholds.critical_patterns_fail
+        ):
+            return GateVerdict.FAIL
+        if (
+            score >= self.thresholds.deficit_warn
+            or severities.count("high") >= self.thresholds.high_patterns_warn
+        ):
+            return GateVerdict.WARN
+        return GateVerdict.PASS
+
     def _update_quarantine(self, file_path: str, result: Any) -> None:
         """Update quarantine record for a file."""
         if file_path not in self.quarantine_records:
@@ -320,14 +352,17 @@ class CIGate:
             )
         elif isinstance(result, ProjectAnalysis):
             file_result = next(
-                (fr for fr in result.file_results if fr.file_path == file_path), None
+                (fr for fr in self._all_file_results(result) if fr.file_path == file_path), None
             )
             if file_result:
-                record.last_deficit_score = file_result.deficit_score
-                record.violations.append(
-                    f"Deficit: {file_result.deficit_score:.1f}, "
-                    f"Patterns: {len(file_result.pattern_issues)}"
+                score = float(
+                    getattr(file_result, "deficit_score", getattr(file_result, "slop_score", 0.0))
                 )
+                findings = getattr(file_result, "pattern_issues", None)
+                if findings is None:
+                    findings = getattr(file_result, "issues", [])
+                record.last_deficit_score = score
+                record.violations.append(f"Deficit: {score:.1f}, Patterns: {len(findings)}")
 
     def _should_escalate(self, file_path: str) -> bool:
         """Check if file should escalate from quarantine to fail."""

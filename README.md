@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.15.1" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.15.2" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg" alt="npm version"/></a>
   <a href="https://socket.dev/npm/package/ai-slop-detector"><img src="https://img.shields.io/badge/socket-report-6e56cf" alt="Socket"/></a>
@@ -36,8 +36,9 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
 
 **Release track**
-- Stable tag: `v3.15.1`
-- Previous stable tag: `v3.15.0`
+- Stable tag: `v3.15.2`
+- Previous stable tag: `v3.15.1`
+- `v3.15.2`: `--ci-mode hard` judges JS/TS and Go files with the thresholds of Python files (score band, critical and high findings). Up to 3.15.1 the gate read Python files only, so a Go-only project at score 100 with three critical findings passed it. A project with JS/TS or Go files can now fail a gate it passed before. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.15.1`: every finding reaches every human report with its fix: `report.md` and `--details` list JS/TS and Go findings and the hollow candidates (they did not), and JS/TS and Go findings carry a fix in the default install. Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.15.0`: the AI work order groups its items into families that share a rule, fix and evidence shape, binds each file to its scan-time SHA-256 once in a FILES table, and reads itself back before it is written: an item that is missing, doubled or shown with a field that differs from its record makes it refuse. Within a token budget, a short function whose whole body costs less than its excerpt is shown whole. The work order names its format `ai-slop-work-order/2`; the JSON Lines report, findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.14.2`: two JS/TS or Go findings of one rule on one line (`(a: any, b: any)`) keep two ids, so the AI report, the work order and `--report-dir` no longer refuse such a project; the VS Code extension shows the findings of JS/TS and Go files. See [CHANGELOG.md](CHANGELOG.md).
@@ -777,8 +778,8 @@ repos:
 ```bash
 --ci-mode soft        # informational, never fails build
 --ci-mode hard        # fails: deficit_score >= 70, critical_patterns >= 3, inflation >= 1.5, ddc < 0.5
-                      # (judges Python files only: JS/TS and Go files and findings are reported
-                      #  but not counted yet, even when they put the project in a deficit band)
+                      # (every analyzed file: Python, JS/TS and Go; JS/TS and Go have no
+                      #  inflation or DDC metric, so only their score and findings are judged)
 --ci-mode quarantine  # escalates repeat offenders after 3 violations
 ```
 
@@ -956,6 +957,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.15.2** | gate patch: `--ci-mode hard` (and soft and quarantine) judge JS/TS and Go files by their score band and critical/high findings, like Python files; up to 3.15.1 they were not judged |
 | **v3.15.1** | report patch: `report.md` and `--details` list every finding of every language and the hollow candidates, each with its fix; fix text for the JS/TS regex fallback and two Go rules; CI docs state that the gate judges Python files only |
 | **v3.15.0** | work-order release: items grouped into families, one FILES table of scan-time hashes, a read-back check that refuses a lossy document, short functions drawn whole within a token budget; format `ai-slop-work-order/2` (JSON Lines, findings and scores unchanged); VS Code extension reads the new format |
 | **v3.14.2** | patch: JS/TS and Go findings of one rule on one line told apart by column or order (the AI outputs refused such projects with tree-sitter installed); VS Code extension shows JS/TS and Go findings |
