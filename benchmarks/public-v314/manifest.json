@@ -1,0 +1,38 @@
+{
+  "packet": "public-v314",
+  "created": "2026-11-13",
+  "release": {
+    "package": "ai-slop-detector",
+    "version": "3.14.2",
+    "wheel": "ai_slop_detector-3.14.2-py3-none-any.whl",
+    "wheel_sha256_pypi": "ae992d51dcfc64831f13212223194591606d5deb818103f4c1b6605c54adbc5d"
+  },
+  "source": {
+    "tag": "v3.14.2",
+    "commit": "e947300664ba35c82652cfda29d64e3deccf89b0",
+    "note": "this repository; tag and commit as listed"
+  },
+  "parts": {
+    "part15": {
+      "environment": "environments/windows-py312.json",
+      "inputs": [
+        "examples/demo_project at v3.14.2 (git archive)",
+        "repository tree at v3.14.2 (git archive), own .slopconfig.yaml"
+      ],
+      "token_estimate": "characters / 4, the detector's own estimate; not a tokenizer count",
+      "safety_tests": "part15/test_m15_safety.py (links and junctions pointing outside --out; 6 tests)",
+      "invocations": "three CLI invocations on the same fixed input; see surfaces.invocations in m15_results.json"
+    }
+  },
+  "files": {
+    "environments/windows-py312.json": "b4db85444046fc3cf0f3a726b2700cd825c1a28d6ca0643cac9636befab2faa8",
+    "part15/figures/part15_budget_tiers.png": "07d5b0af721a02539d454d55ebcf8b8056ce95ddfb47c6826d484658c4571348",
+    "part15/figures/part15_surfaces.png": "33e1afa6792bd8a0f40518974e9c94ab15e0ad7b05d631d30920e591dc9f0002",
+    "part15/m15.py": "0d8a5fdcf3b6752b4541f0744874b15e68311002825590708bdef8ee118a2099",
+    "part15/m15_results.json": "470480afcdb968a14410c864f62b596f8de409db23acae5be660ca2b55fa5f9d",
+    "part15/plot15.py": "0168e3983d4755056c4c9256e0d6c9f6ada7ef028ce2784e9591d1ec2b50b441",
+    "part15/test_m15_safety.py": "f88e707994b5d05c8ee1b9dbcc097242b7dafa8f6aab07ad6f299b26f1339548",
+    "README.md": "84f2f1c3a7897e5c77df3e8ef97c93492fea2c9856b5dfa80f5be45582723406"
+  },
+  "digest_note": "SHA-256 of each file as stored in the repository (LF line endings for text files)"
+}

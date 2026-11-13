@@ -1,0 +1,221 @@
+{
+ "tool_version": "3.14.2",
+ "python": "3.12.16",
+ "surfaces": {
+  "invocations": [
+   "slop-detector --project examples/demo_project",
+   "slop-detector --project examples/demo_project --report-dir bundle",
+   "slop-detector --project examples/demo_project --format ai-md --ai-mode agent -o ai-work.md"
+  ],
+  "analyses": 3,
+  "exit": [
+   0,
+   0,
+   0
+  ],
+  "bundle_stderr_tail": "[INFO] Analyzed 1 JS/TS files",
+  "rows": {
+   "terminal (default)": {
+    "bytes": 3724,
+    "lines": 56,
+    "est_tokens": 931
+   },
+   "ai-report.jsonl": {
+    "bytes": 10256,
+    "lines": 15,
+    "est_tokens": 2564
+   },
+   "ai-report.md": {
+    "bytes": 15541,
+    "lines": 278,
+    "est_tokens": 3885
+   },
+   "report.html": {
+    "bytes": 19017,
+    "lines": 70,
+    "est_tokens": 4754
+   },
+   "report.md": {
+    "bytes": 5084,
+    "lines": 96,
+    "est_tokens": 1269
+   },
+   "report.pdf": {
+    "bytes": 111899
+   },
+   "scan.json": {
+    "bytes": 21816,
+    "lines": 693,
+    "est_tokens": 5454
+   },
+   "ai-work.md (agent)": {
+    "bytes": 16015,
+    "lines": 224,
+    "est_tokens": 4004
+   }
+  }
+ },
+ "terminal_demo": "AI SLOP Detector 3.14.2 - examples\\demo_project (3 files, 0.6 s)    \nmeasurement: COMPLETE\nScore     13.5/100  CLEAN (score band)                                         \nFindings  9  (critical 0 / high 2 / medium 6 / low 1)                          \nHollow    4 review candidate(s), not scored  -  7 functions, 2 not decidable   \nPromises  2 docstring promise(s): 2 contradicted (1 candidate(s), 1 merged into\n          a finding), 0 undecided, 0 with the structure, 0 delegated, 0 not    \n          evaluated                                                            \n\nFindings  top 5 of 9\nHIGH    orders/pricing.py:1   return_constant_stub     Function                \n                                                       'compute_discount'      \n                                                       returns constant 0.1 -  \n                                                       likely stub; also breaks\n                                                       its docstring: promises \n                                                       \"Compute the discount   \n                                                       for the order.\"         \n                                                       (computed_result); every\n                                                       return is a literal     \n                                                       (0.1)                   \nHIGH    orders/pricing.py:15  pass_placeholder         Empty function with only\n                                                       pass - placeholder not  \n                                                       implemented             \nMEDIUM  orders/pricing.py:1   ignored_parameter        Parameter 'order' of    \n                                                       'compute_discount' is   \n                                                       never used - it does not\n                                                       affect the result       \nMEDIUM  orders/pricing.py:3   todo_comment             TODO comment -          \n                                                       incomplete              \n                                                       implementation          \nMEDIUM  orders/store.py:4     return_none_placeholder  Function only returns   \n                                                       None - likely           \n                                                       placeholder             \n  +4 more (--details or -o report.md)\n\nHollow review candidates (not scored)  top 3 of 4\n  orders/pricing.py:7  claim_without_mechanism  total_parallel: promises \"Sum  \n                                                the order values in parallel.\" \n                                                (parallel); no call that could \n                                                run concurrently               \n  orders/store.py:8    input_never_used         save_record : the value reaches\n                                                no result and no effect, here  \n                                                or in the module functions it  \n                                                is passed to                   \n  orders/store.py:8    success_without_effect   save_record: reports success,  \n                                                and every call it makes        \n                                                resolves to module functions   \n                                                with no effect: persist        \n  +1 more (--details or -o report.md)\n\nNext\n  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 \nof them critical or high: review those before accepting this scan.\n\nFull tables: --details   Report file: -o report.md\n",
+ "void": {
+  "items": 13,
+  "void_before": 0,
+  "void_after": 5,
+  "void_block": "### W01 F7843b06ebed5 FINDING return_constant_stub high\nat [FACT]: orders/pricing.py:1\nlocator [FACT]: (the symbol itself) semantic_key=cc98d772f4bda209\nbound_to [FACT]: sha256:df9a47d1b9c8090449a1387d42eac29d9e4da479c634ae6399cf2633de64b48a (VOID: the file changed after the scan (now f7f47a6c67ac8989); HOLD, re-scan)\nchannel [FACT]: COMPLETE\nevidence [FACT]: Function 'compute_discount' returns constant 0.1 - likely stub; also breaks its docstring: promises \"Compute the discount for the order.\" (computed_result); every return is a literal (0.1)\npromise [FACT]: \"Compute the discount for the order.\" (docstring line 2, computed_result; basis literal_result: 0.1)\nverify [NORM]: the body needs a value computed from the inputs, or an open call that could compute it; found: every return is a literal. ACK: implement the mechanism, or change the docstring to what the function does; REJECT: name the mechanism the detector missed (file:line)\ncode [FACT]: NOT-APPLICABLE: HOLD\nfix [DERIVED]: Implement meaningful logic or remove the function\n"
+ },
+ "prove": {
+  "items_before": 13,
+  "rows": [
+   {
+    "edit": "unrelated: 3 comment lines added at the top",
+    "pricing_items": 5,
+    "ids_kept": 5,
+    "states": [
+     "PERSISTS"
+    ]
+   },
+   {
+    "edit": "real fix: compute_discount reads the order",
+    "item": "F7843b06ebed5 return_constant_stub",
+    "symbol_present": true,
+    "state": "FIXED_CANDIDATE",
+    "other_pricing_items_still_present": {
+     "F1460a9de24e9 pass_placeholder": true,
+     "Ffa1ade5ca3c1 ignored_parameter": false,
+     "F750f20564ecc todo_comment": true,
+     "C56ca6a2c17eb claim_without_mechanism": true
+    }
+   },
+   {
+    "edit": "reworded: the TODO says the same thing differently",
+    "item": "F750f20564ecc todo_comment",
+    "symbol_present": true,
+    "state": "HOLD",
+    "other_pricing_items_still_present": {
+     "F7843b06ebed5 return_constant_stub": true,
+     "F1460a9de24e9 pass_placeholder": true,
+     "Ffa1ade5ca3c1 ignored_parameter": true,
+     "C56ca6a2c17eb claim_without_mechanism": true
+    }
+   },
+   {
+    "edit": "deleted: compute_discount removed",
+    "item": "F7843b06ebed5 return_constant_stub",
+    "symbol_present": false,
+    "state": "HOLD",
+    "other_pricing_items_still_present": {
+     "F1460a9de24e9 pass_placeholder": true,
+     "Ffa1ade5ca3c1 ignored_parameter": false,
+     "F750f20564ecc todo_comment": false,
+     "C56ca6a2c17eb claim_without_mechanism": true
+    }
+   },
+   {
+    "edit": "only the TODO comment deleted",
+    "item": "F750f20564ecc todo_comment",
+    "symbol_present": true,
+    "state": "FIXED_CANDIDATE",
+    "other_pricing_items_still_present": {
+     "F7843b06ebed5 return_constant_stub": true,
+     "F1460a9de24e9 pass_placeholder": true,
+     "Ffa1ade5ca3c1 ignored_parameter": true,
+     "C56ca6a2c17eb claim_without_mechanism": true
+    }
+   }
+  ]
+ },
+ "budget": {
+  "target": "repository source at tag v3.14.2 with its own .slopconfig.yaml",
+  "files": 138,
+  "items": 128,
+  "unbudgeted": {
+   "bytes": 178872,
+   "lines": 3433,
+   "est_tokens": 44714
+  },
+  "rows": [
+   {
+    "budget": 1000,
+    "refused": "BUDGET_UNSATISFIABLE: the index of every item needs at least 7845 estimated tokens; the budget is 1000"
+   },
+   {
+    "budget": 2000,
+    "refused": "BUDGET_UNSATISFIABLE: the index of every item needs at least 7845 estimated tokens; the budget is 2000"
+   },
+   {
+    "budget": 3000,
+    "refused": "BUDGET_UNSATISFIABLE: the index of every item needs at least 7845 estimated tokens; the budget is 3000"
+   },
+   {
+    "budget": 4000,
+    "refused": "BUDGET_UNSATISFIABLE: the index of every item needs at least 7845 estimated tokens; the budget is 4000"
+   },
+   {
+    "budget": 6000,
+    "refused": "BUDGET_UNSATISFIABLE: the index of every item needs at least 7845 estimated tokens; the budget is 6000"
+   },
+   {
+    "budget": 8000,
+    "est_tokens": 7969,
+    "T1": 1,
+    "T2": 0,
+    "T3": 127
+   },
+   {
+    "budget": 12000,
+    "est_tokens": 11887,
+    "T1": 2,
+    "T2": 24,
+    "T3": 102
+   },
+   {
+    "budget": 16000,
+    "est_tokens": 15877,
+    "T1": 2,
+    "T2": 48,
+    "T3": 78
+   },
+   {
+    "budget": 24000,
+    "est_tokens": 23867,
+    "T1": 2,
+    "T2": 98,
+    "T3": 28
+   },
+   {
+    "budget": 32000,
+    "est_tokens": 30833,
+    "T1": 6,
+    "T2": 122,
+    "T3": 0
+   },
+   {
+    "budget": 48000,
+    "est_tokens": 47947,
+    "T1": 33,
+    "T2": 95,
+    "T3": 0
+   },
+   {
+    "budget": 64000,
+    "est_tokens": 62999,
+    "T1": 63,
+    "T2": 65,
+    "T3": 0
+   },
+   {
+    "budget": 96000,
+    "est_tokens": 72264,
+    "T1": 128,
+    "T2": 0,
+    "T3": 0
+   },
+   {
+    "budget": 128000,
+    "est_tokens": 72264,
+    "T1": 128,
+    "T2": 0,
+    "T3": 0
+   }
+  ]
+ }
+}

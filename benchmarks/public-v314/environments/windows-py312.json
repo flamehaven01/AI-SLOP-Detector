@@ -1,0 +1,33 @@
+{
+  "id": "windows-py312",
+  "measured": "2026-11-13",
+  "os": "Microsoft Windows 11 Pro 10.0.22631",
+  "python": "CPython 3.12.16 (uv-managed), fresh venv, run with -I",
+  "installer": "uv pip install \"ai-slop-detector==3.14.2\" from PyPI, no extras",
+  "packages": {
+    "ai-slop-detector": "3.14.2",
+    "annotated-types": "0.8.0",
+    "colorama": "0.4.6",
+    "jinja2": "3.1.6",
+    "mando": "0.7.1",
+    "markdown-it-py": "4.3.0",
+    "markupsafe": "3.0.4",
+    "mdurl": "0.1.2",
+    "pydantic": "2.14.3",
+    "pydantic-core": "2.50.4",
+    "pygments": "2.21.0",
+    "pyyaml": "6.0.3",
+    "radon": "6.0.1",
+    "rich": "15.0.0",
+    "six": "1.17.0",
+    "typing-extensions": "4.16.0",
+    "typing-inspection": "0.4.5"
+  },
+  "optional_extras": {
+    "js (tree-sitter)": "not installed: JS/TS analyzed by the regex fallback",
+    "go (tree-sitter)": "not installed"
+  },
+  "pdf_browser": "Google Chrome 157.0.8103.78 (already installed; the detector downloads nothing)",
+  "plotting": "matplotlib 3.11.2 in a separate venv (not needed for the measurement)",
+  "import_environment_note": "import rules judge imports against the installed packages; e.g. 'jwt' is reported as phantom_import in the repository source because pyjwt is not installed here"
+}
