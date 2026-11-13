@@ -191,7 +191,12 @@ def _coverage_notes(result: Any) -> List[str]:
 
 
 def _file_row(f: Any) -> Tuple[str, Optional[float], str, int]:
+    """(path, score, status, item count) of one file. The score is the one the
+    project score counts (core_project.result_slop_score): a Python file's
+    deficit_score, an adapter's slop_score; N/A only when it has neither."""
     score = getattr(f, "deficit_score", None)
+    if score is None:
+        score = getattr(f, "slop_score", None)
     return (
         str(getattr(f, "file_path", "")),
         None if score is None else float(score),

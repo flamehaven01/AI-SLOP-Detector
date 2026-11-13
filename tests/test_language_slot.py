@@ -147,7 +147,8 @@ def test_the_toy_language_reaches_every_report(scanned):
 
     view = build_report_view(scanned)
     assert [i.rule for i in view.findings].count("toy_stub") == 3
-    assert any(row[0].endswith("a.toy") for row in view.file_rows)
+    (toy_row,) = [row for row in view.file_rows if row[0].endswith("a.toy")]
+    assert toy_row[1] == 90.0, toy_row  # its own score, not N/A
     for render in (generate_markdown_report, generate_html_report, generate_text_report):
         assert render(scanned).count("toy_stub") >= 3, render.__module__
     assert "toy_file_results" in scanned.to_dict()
