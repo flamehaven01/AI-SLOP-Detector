@@ -1,6 +1,7 @@
 # Reports: what the detector shows, to whom, and how
 
-Status: **released in 3.14.0.** The report view, the terminal summary
+Status: **released in 3.14.0**; `report.md` and `--details` list their
+findings from the report view since 3.15.1. The report view, the terminal summary
 (`--quiet`, `--details`, progress), the Markdown hollow section, the HTML
 report and its A4 PDF, the AI report (`--format ai`, MCP `slop_ai_report`,
 npm `aiReport()`), the AI work order (`--format ai-md`, see
@@ -55,8 +56,8 @@ full-fidelity record; the view and the AI report are derived from it.
 
 ## 3. Terminal (default `scan`)
 
-Today: one `[INFO] Analyzing: <path>` line per file, then summary and metric
-tables, then next steps. The hollow channel is not shown.
+Before 3.14.0 the terminal printed one `[INFO] Analyzing: <path>` line per
+file, then summary and metric tables, then next steps, and no hollow channel.
 
 The important part fits one terminal screen. Output of the implemented
 summary on a two-function demo module (abridged):
@@ -86,7 +87,10 @@ Full tables: --details   Report file: -o report.md
   when output is not a TTY. Per-file lines only with `--verbose`.
 - Lists are capped at 5 pattern findings and 3 hollow candidates
   (`report_view.TERMINAL_LIMITS`), with the remaining count shown.
-- The full tables of 3.13 are kept behind `--details`.
+- `--details` prints the full tables, then every finding and hollow review
+  candidate with its location, rule, evidence and fix (since 3.15.1; before,
+  findings were listed only for files in a deficit band, and JS/TS and Go
+  findings not at all).
 - `--quiet`: one summary line (for CI logs). Exit codes do not change.
 - `--json` / `--format json` unchanged.
 
@@ -94,7 +98,7 @@ Full tables: --details   Report file: -o report.md
 
 | Command | Writes |
 |---|---|
-| `-o report.md` / `-o report.html` | as today, rebuilt on the report view |
+| `-o report.md` / `-o report.html` | rebuilt on the report view: every finding of every language with its own fix, the files, the hollow candidates (`report.md` since 3.15.1) |
 | `-o report.pdf` | new: the HTML report printed to A4 |
 | `--report-dir DIR` | new, only when given: the bundle `report.md`, `report.html`, `report.pdf`, `ai-report.jsonl`, `ai-report.md`, `scan.json` |
 | `--format ai` | new: the AI report (JSON Lines) on stdout |
@@ -171,12 +175,13 @@ finding (by severity) or hollow candidate. Output of a two-function demo,
 abridged (`...` marks cut fields):
 
 ```
-{"schema": "ai-slop-report/1", "record": "header", "tool": "ai-slop-detector", "version": "3.14.0", "engine": "analysis-cache-v48", "target": "demo", "files": 1, "score": 12.5, "status": "CLEAN", "measurement": {"pattern": "COMPLETE", "hollow": "MEASURED"}, "findings": 2, "candidates": 3, ..., "emitted": 5, "truncated": 0, "loop": ["VERIFY", "ACK_OR_REJECT", "FIX", "PROVE", "REPORT"], "hold_if": [...], "forbid": [...], "verify": {...}, "prove": {...}}
+{"schema": "ai-slop-report/1", "record": "header", "tool": "ai-slop-detector", "version": "3.14.0", "engine": "analysis-cache-v53", "target": "demo", "files": 1, "score": 12.5, "status": "CLEAN", "measurement": {"pattern": "COMPLETE", "hollow": "MEASURED"}, "findings": 2, "candidates": 3, ..., "emitted": 5, "truncated": 0, "loop": ["VERIFY", "ACK_OR_REJECT", "FIX", "PROVE", "REPORT"], "hold_if": [...], "forbid": [...], "verify": {...}, "prove": {...}}
 {"record": "item", "id": "F25121da30296", "kind": "FINDING", "rule": "return_none_placeholder", "severity": "medium", "file": "pkg/store.py", "line": 4, "source_sha256": "ae59...", "channel_state": "COMPLETE", "evidence": "Function only returns None - likely placeholder", "fix": "Implement the function or clarify intent"}
 {"record": "item", "id": "Cda889280e711", "kind": "REVIEW_CANDIDATE", "rule": "failure_reported_as_success", "severity": null, "file": "pkg/store.py", "line": 21, "source_sha256": "ae59...", "channel_state": "MEASURED", "evidence": "send: a catch-all handler swallows the failure and the function goes on to report success", "fix": "NOT-APPLICABLE: decide in VERIFY first"}
 ```
 
-- Per item: a stable id (from kind, rule, path and line), kind, rule,
+- Per item: a stable id (from the semantic key and the locator, no line
+  number; see [AI_WORK_ORDER.md](AI_WORK_ORDER.md)), kind, rule,
   severity (null for a candidate), path relative to the target, line, the
   file's SHA-256, the channel's state, one-line evidence and the fix
   direction. The models in `ai_report.py` are the schema (`schema()` gives

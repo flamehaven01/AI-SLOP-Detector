@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.15.1] - 2026-11-13
+
+Every finding now reaches every human report, with its fix. Findings, scores
+and the analysis are unchanged.
+
+### Fixed
+
+- `report.md` (`-o report.md`, `--report-dir`) lists its findings from the
+  report view behind the HTML report: JS/TS and Go findings appear (they never
+  did), each finding carries its own fix (most read "Review specific line for
+  code quality improvements."), the report names the tool version, and the
+  fixed closing text ("Files with scores > 0.5 ...", "Purify Terminology")
+  that ignored the scan is gone. A files table follows the findings.
+  3.14.0 said every human surface reads one report view; for the findings of
+  `report.md` and `--details` that was not true until now.
+- `--details` (plain and rich) lists every finding and hollow review candidate
+  with its location, rule, evidence and fix. Before, it listed findings only
+  for files in a deficit band, so a scan could report "9 pattern findings are
+  open, review them" and show none; JS/TS and Go findings and the hollow
+  candidates were not listed at all. The single-file rich report listed no
+  findings either.
+- JS/TS findings from the regex fallback (the default install, without
+  `ai-slop-detector[js]`) and the Go `go_fmt_print` and `go_todo_comment`
+  findings had no fix, shown as `fix [DERIVED]: MISSING` in the AI report and
+  work order. They carry the same fix text as the tree-sitter path (one table
+  for both parsers) or a new one for the two Go rules.
+
+### Documentation
+
+- CI: `--ci-mode hard` judges Python files only. JS/TS and Go files and
+  their findings are reported but not counted by the gate, even when they put
+  the project in a deficit band; README and docs/CI_CD.md now say so.
+  Counting them is a behavior change planned for a minor release.
+- docs/REPORTS.md: the item id is built from the semantic key and the locator
+  (no line number), and the 3.14.0 example header names `analysis-cache-v53`.
+
 ## [3.15.0] - 2026-11-13
 
 The AI work order (`--format ai-md`) groups its items into families, binds

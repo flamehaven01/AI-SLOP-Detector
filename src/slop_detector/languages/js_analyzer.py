@@ -256,6 +256,17 @@ _RE_CONSOLE_LOG = re.compile(r"\bconsole\.(log|warn|error|info)\s*\(")
 _RE_ANY_TYPE = re.compile(r":\s*any\b")
 _RE_EMPTY_ARROW = re.compile(r"=>\s*\{\s*\}")
 _RE_DOUBLE_EQUALS = re.compile(r"(?<![=!<>])==(?!=)")
+
+# One fix text per rule, whichever parser (tree-sitter or the regex fallback)
+# found the issue.
+_JS_FIX = {
+    "js_var_usage": "Replace var with let (mutable) or const (immutable)",
+    "js_console_log": "Remove debug logs or use a proper logging library",
+    "js_any_type": "Use a specific type or 'unknown' with type guards",
+    "js_empty_arrow": "Implement the function body or remove it",
+    "js_double_equals": "Replace == with ===",
+    "js_callback_hell": "Refactor to async/await or flatten promise chains",
+}
 _RE_CONTROL_BLOCK_OPEN = re.compile(
     r"^\s*(?:if|else(?:\s+if)?|for|while|switch|try|catch|finally|do)\b[^{]*\{\s*$"
 )
@@ -493,7 +504,7 @@ class JSAnalyzer:
                             row,
                             col,
                             "var declaration — use let or const",
-                            "Replace var with let (mutable) or const (immutable)",
+                            _JS_FIX["js_var_usage"],
                         )
                     )
             elif node.type == "call_expression":
@@ -514,7 +525,7 @@ class JSAnalyzer:
                                 row,
                                 col,
                                 f"console.{prop.text.decode()} in production code",
-                                "Remove debug logs or use a proper logging library",
+                                _JS_FIX["js_console_log"],
                             )
                         )
             elif is_ts and node.type == "type_annotation":
@@ -528,7 +539,7 @@ class JSAnalyzer:
                             row,
                             col,
                             "TypeScript 'any' type disables type safety",
-                            "Use a specific type or 'unknown' with type guards",
+                            _JS_FIX["js_any_type"],
                         )
                     )
             elif node.type == "arrow_function":
@@ -546,7 +557,7 @@ class JSAnalyzer:
                             row,
                             col,
                             "Empty arrow function — placeholder not implemented",
-                            "Implement the function body or remove it",
+                            _JS_FIX["js_empty_arrow"],
                         )
                     )
             elif node.type == "binary_expression":
@@ -560,7 +571,7 @@ class JSAnalyzer:
                             row,
                             op.start_point[1],
                             "Loose equality (==) — use strict === instead",
-                            "Replace == with ===",
+                            _JS_FIX["js_double_equals"],
                         )
                     )
             for child in node.children:
@@ -615,7 +626,7 @@ class JSAnalyzer:
                     deepest[0],
                     deepest[1],
                     f"Max nesting depth {max_depth} — callback hell risk",
-                    "Refactor to async/await or flatten promise chains",
+                    _JS_FIX["js_callback_hell"],
                 )
             )
         return metrics, god_issues, god_count, max_complexity, max_depth
@@ -685,6 +696,7 @@ class JSAnalyzer:
                         i,
                         line.index("var"),
                         "var declaration — use let or const",
+                        _JS_FIX["js_var_usage"],
                     )
                 )
             m = _RE_CONSOLE_LOG.search(line)
@@ -696,6 +708,7 @@ class JSAnalyzer:
                         i,
                         m.start(),
                         f"console.{m.group(1)} in production code",
+                        _JS_FIX["js_console_log"],
                     )
                 )
             if is_ts:
@@ -708,6 +721,7 @@ class JSAnalyzer:
                             i,
                             m2.start(),
                             "TypeScript 'any' type disables type safety",
+                            _JS_FIX["js_any_type"],
                         )
                     )
             m3 = _RE_EMPTY_ARROW.search(line)
@@ -719,12 +733,20 @@ class JSAnalyzer:
                         i,
                         m3.start(),
                         "Empty arrow function — placeholder",
+                        _JS_FIX["js_empty_arrow"],
                     )
                 )
             m4 = _RE_DOUBLE_EQUALS.search(line)
             if m4:
                 issues.append(
-                    JSIssue("js_double_equals", "medium", i, m4.start(), "Loose equality (==)")
+                    JSIssue(
+                        "js_double_equals",
+                        "medium",
+                        i,
+                        m4.start(),
+                        "Loose equality (==)",
+                        _JS_FIX["js_double_equals"],
+                    )
                 )
 
         if max_depth > GOD_DEPTH_THRESHOLD:
@@ -735,6 +757,7 @@ class JSAnalyzer:
                     deepest_line,
                     0,
                     f"Max nesting depth {max_depth} — callback hell risk",
+                    _JS_FIX["js_callback_hell"],
                 )
             )
 

@@ -5,6 +5,48 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.15.1 — 2026-11-13
+
+### Summary
+
+A patch for the human reports. Every finding of every language now reaches
+`report.md` and `--details`, each with its fix. Findings, scores and the
+analysis are unchanged. Every change is listed in the [Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **`report.md` matches the HTML report.** It lists every finding (JS/TS and
+  Go included, which it never did) with its own fix, then the files, and names
+  the tool version. The fixed closing recommendations are gone.
+- **`--details` lists what it counts.** Every finding and hollow review
+  candidate, with location, rule, evidence and fix, in plain and rich output.
+  Before, a clean-band scan said findings were open and listed none.
+- **JS/TS and Go findings carry a fix in the default install.** The regex
+  fallback (no `ai-slop-detector[js]`) and two Go rules left the fix empty
+  (`MISSING` in the AI report and work order).
+
+### Why it happened
+
+The analysis was right in every case; the reports were not. 3.14.0 built one
+report view for the terminal summary, the HTML report and the AI outputs, but
+the findings of `report.md` and `--details` still came from older code that read
+Python file results only and listed files by their deficit band. The fallback
+analyzers were written without fix texts. Details: the 3.15.1 entry of the
+[Changelog](../CHANGELOG.md).
+
+### Verification
+
+- 9 new controls fail on the 3.15.0 code and pass on 3.15.1; 12 of 12
+  deliberately broken copies of the new code were caught.
+
+### Known limitations
+
+- `--ci-mode hard` judges Python files only; JS/TS and Go findings are not
+  counted by the gate yet (documented in README and docs/CI_CD.md).
+- The limitations listed for v3.14.0 still apply.
+
+---
+
 ## v3.15.0 — 2026-11-13
 
 ### Summary

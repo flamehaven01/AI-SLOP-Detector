@@ -233,7 +233,7 @@ def test_markdown_summary_shows_the_score_behind_the_status(root):
         "slop_detector.models", fromlist=["SlopStatus"]
     ).SlopStatus.SUSPICIOUS
     summary = (
-        generate_markdown_report(project).split("## 1. Executive Summary", 1)[1].split("\n\n", 1)[0]
+        generate_markdown_report(project).split("## Executive Summary", 1)[1].split("\n\n", 1)[0]
     )
     row = [line for line in summary.splitlines() if "SUSPICIOUS" in line]
     assert row, summary

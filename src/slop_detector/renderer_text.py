@@ -168,6 +168,7 @@ def _text_project_section(result) -> list:
                 f"coverage {coverage} ({', '.join(hotspot.reasons)})"
             )
         lines.append("")
+    lines += _text_items_section(result, result.project_path)
     lines += ["=" * 80, "FILE-LEVEL ANALYSIS", "=" * 80, ""]
     for fr in result.file_results:
         if fr.status != "clean":
@@ -202,6 +203,33 @@ def _text_single_file_section(result) -> list:
             lines.append(f"  - ... and {len(suppression_ledger) - 10} more")
     if result.warnings:
         lines += ["", "Warnings:"] + [f"  - {w}" for w in result.warnings]
+    lines += [""] + _text_items_section(result, str(Path(result.file_path).parent))
+    return lines
+
+
+def _text_items_section(result, root: str) -> list:
+    """Every finding and review candidate of the report view (all languages,
+    the items the summary counts), each with its fix. Files below a deficit
+    band still list their findings here (3.15.1)."""
+    from slop_detector.renderer_terminal import hollow_line
+    from slop_detector.report_view import build_report_view, short_path
+
+    view = build_report_view(result)
+    lines = [f"Findings ({len(view.findings)}):"]
+    for n, items in enumerate((view.findings, view.candidates)):
+        if n:
+            lines += ["", f"Hollow review candidates: {hollow_line(view)}"]
+        for item in items:
+            lines.append(
+                f"  {(item.severity or 'review').upper():<8} "
+                f"{short_path(item.file, root)}:{item.line}  {item.rule}"
+            )
+            lines.append(f"           {item.message}")
+            if item.suggestion:
+                lines.append(f"           fix: {item.suggestion}")
+        if not n and not items:
+            lines.append("  none")
+    lines.append("")
     return lines
 
 

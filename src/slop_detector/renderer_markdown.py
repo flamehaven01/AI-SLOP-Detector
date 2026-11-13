@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from slop_detector import __version__
 from slop_detector.ast_index import walk_nodes
 from slop_detector.core_project import score_is_valid
 from slop_detector.finding_summary import get_finding_summary
@@ -101,7 +102,7 @@ def _md_summary_section(score_label: str, score: str, inflation: str, status: st
     # The status sits next to the score it was derived from (a project's status is
     # the band of its weighted deficit; the average is in Project Metrics).
     return [
-        "## 1. Executive Summary",
+        "## Executive Summary",
         "| Metric | Score | Status | Description |",
         "| :--- | :--- | :--- | :--- |",
         f"| **{score_label}** | {score} | {status} | Closer to 0.0 is better. High score indicates low logic density. |",
@@ -303,78 +304,57 @@ def _md_priority_hotspots_section(result) -> list:
     return lines
 
 
-def _md_findings_section(file_results) -> list:
-    lines = ["## 3. Detailed Findings"]
-    if not file_results:
-        return lines + ["_No files analyzed._"]
+def _md_cell(text: object) -> str:
+    """One Markdown table cell: a pipe or a line break in repository text
+    cannot open another cell or row."""
+    return str(text).replace("|", chr(92) + "|").replace("\r", " ").replace("\n", " ")
+
+
+def _md_findings_section(result, root_dir: str, file_results) -> list:
+    """The findings of the report view, the one behind the HTML report too:
+    every language, each with its own fix; then the files, then unjustified
+    jargon per file (docs/REPORTS.md)."""
+    from slop_detector.report_view import build_report_view, short_path
+
+    view = build_report_view(result)
+    lines = [f"## Findings ({len(view.findings)})", ""]
+    if view.findings:
+        lines += ["| Severity | Location | Rule | Finding | Fix |", "|---|---|---|---|---|"]
+        for item in view.findings:
+            lines.append(
+                f"| {item.severity.upper()} | `{_md_cell(short_path(item.file, root_dir))}:"
+                f"{item.line}` | `{item.rule}` | {_md_cell(item.message)} | "
+                f"{_md_cell(item.suggestion) if item.suggestion else '-'} |"
+            )
+    else:
+        lines.append("_No pattern findings._")
+    lines.append("")
+
+    if view.file_rows:
+        lines += ["### Files", "", "| File | Score | Status | Findings |", "|---|---:|---|---:|"]
+        for path, score, state, count in sorted(view.file_rows, key=lambda r: -(r[1] or 0)):
+            shown = "N/A" if score is None else f"{score:.1f}"
+            lines.append(
+                f"| `{_md_cell(short_path(path, root_dir))}` | {shown} | "
+                f"{state.replace('_', ' ')} | {count} |"
+            )
+        lines.append("")
 
     for file_path, f_res in file_results:
-        if (
-            f_res.deficit_score < 30.0
-            and not f_res.pattern_issues
-            and not f_res.inflation.jargon_details
-        ):
+        jargon = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
+        if not jargon:
             continue
         lines += [
-            f"### [L] `{Path(str(file_path)).name}`",
-            f"- **Deficit Score**: {f_res.deficit_score:.2f}",
-            f"- **Lines of Code**: {f_res.ldr.total_lines}",
+            f"### Jargon in `{_md_cell(short_path(str(file_path), root_dir))}`",
+            "",
+            "| Line | Term | Category | Fix |",
+            "| :--- | :--- | :--- | :--- |",
         ]
-        if f_res.ldr.total_lines == 0:
-            lines += [
-                "#### [!] Anti-Patterns & Risk",
-                "| Line | Issue | Mitigation Strategy |",
-                "| :--- | :--- | :--- |",
-                "| — | Empty file (0 LOC): nothing to analyze | Remove the file if unused, or add implementation / mark as intentional stub |",
-                "",
-                "---",
-            ]
-            continue
-
-        jargon_issues = [d for d in f_res.inflation.jargon_details if not d.get("justified")]
-        if jargon_issues:
-            lines += [
-                "#### [-] Inflation (Jargon) Detected",
-                "| Line | Term | Category | Actionable Mitigation |",
-                "| :--- | :--- | :--- | :--- |",
-            ]
-            for det in jargon_issues:
-                lines.append(
-                    f"| {det['line']} | `{det['word']}` | {det['category']} | {get_mitigation('jargon')} |"
-                )
-            lines.append("")
-
-        if hasattr(f_res, "pattern_issues") and f_res.pattern_issues:
-            lines += [
-                "#### [!] Anti-Patterns & Risk",
-                "| Line | Issue | Mitigation Strategy |",
-                "| :--- | :--- | :--- |",
-            ]
-            for p in f_res.pattern_issues:
-                desc = p.message if hasattr(p, "message") else str(p)
-                line_val = p.line if hasattr(p, "line") else "-"
-                desc_lower = desc.lower()
-                issue_key = (
-                    "mutable_default"
-                    if "mutable default" in desc_lower
-                    else (
-                        "bare_except"
-                        if "bare except" in desc_lower
-                        else (
-                            "broad_except"
-                            if "broad exception" in desc_lower
-                            else (
-                                "empty_function"
-                                if "empty function" in desc_lower
-                                else "unused_import" if "unused import" in desc_lower else "unknown"
-                            )
-                        )
-                    )
-                )
-                lines.append(f"| {line_val} | {desc} | {get_mitigation(issue_key, desc)} |")
-            lines.append("")
-
-        lines.append("---")
+        for det in jargon:
+            lines.append(
+                f"| {det['line']} | `{det['word']}` | {det['category']} | {get_mitigation('jargon')} |"
+            )
+        lines.append("")
     return lines
 
 
@@ -433,7 +413,12 @@ def generate_markdown_report(result) -> str:
     lines = ["# AI Code Quality Audit Report"]
     if timestamp:
         lines.append(f"**Date**: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-    lines += [f"**Target**: `{root_dir}`", f"**Status**: {status}", ""]
+    lines += [
+        f"**Target**: `{root_dir}`",
+        f"**Status**: {status}",
+        f"**Tool**: ai-slop-detector {__version__}",
+        "",
+    ]
 
     lines += _md_summary_section(
         score_label,
@@ -469,12 +454,5 @@ def generate_markdown_report(result) -> str:
     else:
         file_results = [(result.file_path, result)]
 
-    lines += _md_findings_section(file_results)
-
-    lines += [
-        "## 4. Global Recommendations",
-        "- **Refactor High-Deficit Modules**: Files with scores > 0.5 lack sufficient logic. Verify they aren't just empty wrappers.",
-        "- **Purify Terminology**: Replace abstract 'hype' terms with concrete engineering definitions.",
-        "- **Harden Error Handling**: Eliminate bare except clauses to ensure system stability and debuggability.",
-    ]
+    lines += _md_findings_section(result, root_dir, file_results)
     return "\n".join(lines)

@@ -267,10 +267,42 @@ def _render_rich_project(console, result) -> None:
             f"coverage={'yes' if getattr(result, 'coverage_analysis_available', False) else 'no'}[/dim]"
         )
         console.print()
+    _print_rich_items(console, result, result.project_path)
     if result.deficit_files > 0:
         console.print(_build_rich_files_table(result))
     else:
-        console.print(Panel("No deficit detected in project files.", style="green"))
+        console.print(Panel("No file scores in a deficit band.", style="green"))
+
+
+def _print_rich_items(console, result, root: str) -> None:
+    """Every finding and review candidate of the report view (all languages,
+    the items the summary counts), each with its fix (3.15.1)."""
+    from slop_detector.renderer_terminal import hollow_line
+    from slop_detector.report_view import build_report_view, short_path
+
+    view = build_report_view(result)
+    titles = (
+        f"Findings ({len(view.findings)})",
+        f"Hollow review candidates: {hollow_line(view)}",
+    )
+    for title, items in zip(titles, (view.findings, view.candidates)):
+        if not items:
+            console.print(f"[dim]{escape(title)}: none[/dim]")
+            console.print()
+            continue
+        table = Table(title=escape(title), box=box.ROUNDED, header_style="bold cyan")
+        for col in ("Severity", "Location", "Rule", "Finding", "Fix"):
+            table.add_column(col, overflow="fold")
+        for item in items:
+            table.add_row(
+                (item.severity or "review").upper(),
+                escape(f"{short_path(item.file, root)}:{item.line}"),
+                escape(item.rule),
+                escape(item.message),
+                escape(item.suggestion) if item.suggestion else "-",
+            )
+        console.print(table)
+        console.print()
 
 
 def _append_pattern_issues_rich(content, result) -> None:
@@ -480,6 +512,7 @@ def _render_rich_single_file(console, result) -> None:
     if questions:
         console.print(_build_questions_panel(questions))
         console.print()
+    _print_rich_items(console, result, str(Path(result.file_path).parent))
     extra = Text()
     suppression_ledger = getattr(result, "suppression_ledger", [])
     if suppression_ledger:

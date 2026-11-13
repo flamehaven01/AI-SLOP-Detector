@@ -222,7 +222,13 @@ class GoAnalyzer:
                 # TODO/FIXME in comment
                 if _RE_TODO.search(line):
                     issues.append(
-                        GoIssue("go_todo_comment", "low", i, f"Unresolved marker: {line.strip()}")
+                        GoIssue(
+                            "go_todo_comment",
+                            "low",
+                            i,
+                            f"Unresolved marker: {line.strip()}",
+                            "Resolve the marker or track it in an issue",
+                        )
                     )
                 continue
 
@@ -265,7 +271,15 @@ class GoAnalyzer:
             # Pattern checks on code lines
             if _RE_FMT_PRINT.search(line):
                 fmt_print += 1
-                issues.append(GoIssue("go_fmt_print", "medium", i, "Debug print statement"))
+                issues.append(
+                    GoIssue(
+                        "go_fmt_print",
+                        "medium",
+                        i,
+                        "Debug print statement",
+                        "Remove the debug print or use a logger",
+                    )
+                )
 
             if _RE_PANIC.search(line):
                 panic += 1
