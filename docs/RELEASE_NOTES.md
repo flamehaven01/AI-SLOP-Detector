@@ -5,6 +5,51 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.15.0 — 2026-11-13
+
+### Summary
+
+A work-order release. The AI work order (`--format ai-md`) groups its items
+into families, binds each file to its scan-time SHA-256 once, and reads itself
+back before it is written. The JSON Lines report, findings, scores and the
+analysis are unchanged. Every change is listed in the [Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **The work order has a new layout and names it.** The header reads
+  `format: ai-slop-work-order/2 markdown work order | records ai-slop-report/1`.
+  Items are `#### Wnn` blocks under `### Gnn` family headers that state the
+  shared fix and channel once; a `## FILES` table holds each file's SHA-256 and
+  binding, and items point to their row (`B01`). A tool that parses the
+  Markdown work order needs to follow this layout; the item fields are the same.
+  The JSON Lines report (`--format ai`) does not change.
+- **A lossy work order is never written.** The renderer reads the document
+  back: every item exactly once, every field it shows equal to its record,
+  every item bound to its file's hash, family counts that add up. Otherwise it
+  stops with `the work order is not lossless` and writes nothing.
+- **More evidence within the same token budget.** Short functions whose whole
+  body costs less than an excerpt are drawn whole, and family headers are paid
+  for in the allocation. On a snapshot of this repository (227 items), the
+  auditor work order at 32,000 estimated tokens shows the evidence of 144 items
+  instead of 113 with 3.14.2.
+- **VS Code extension:** "Copy work order" carries the item's family header and
+  its FILES row; it still reads a work order from a 3.14 backend.
+
+### Verification
+
+- Test suite: 2,010 passed, 2 skipped (Python 3.14); 1,969 passed, 34 skipped
+  (Python 3.8).
+- Mutation testing: 24 of 24 deliberately broken copies of the family key,
+  file table, read-back check and budget allocation were caught.
+
+### Known limitations
+
+- Severity stands in for a fix-risk tier in the family key; the detector does
+  not compute a fix-risk tier yet.
+- The limitations listed for v3.14.0 still apply.
+
+---
+
 ## v3.14.2 — 2026-11-12
 
 ### Summary

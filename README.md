@@ -5,7 +5,7 @@
 <h1 align="center">AI-SLOP Detector</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.14.2" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.15.0" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg" alt="npm version"/></a>
   <a href="https://socket.dev/npm/package/ai-slop-detector"><img src="https://img.shields.io/badge/socket-report-6e56cf" alt="Socket"/></a>
@@ -30,14 +30,15 @@ Catches what a normal linter passes over: empty functions with real-looking bodi
 |---|---|
 | **Deterministic** | The same input gives byte-identical JSON across cache, hash seed, Rust helper and working directory; `--read-only` writes nothing to the project or the home directory. |
 | **Says when it measured nothing** | Every project result carries `measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`) and `score_valid`. When nothing was measured, human reports read `NOT EVALUATED` instead of a clean verdict, and a scan whose files all failed to analyze fails `--fail-threshold`. |
-| **Its own tests are tested** | More than 1,900 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.14.0, 133 of 133 breakages of the item identity, binding, work-order and docstring-promise rules were caught (v3.12.0: 21 of 21). |
+| **Its own tests are tested** | More than 1,900 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.14.0, 133 of 133 breakages of the item identity, binding, work-order and docstring-promise rules were caught; in v3.15.0, 24 of 24 breakages of the work-order families, file table, read-back check and budget (v3.12.0: 21 of 21). |
 | **Rules state their reasons** | Each rule ships with tests that name the code shape it reports and the shapes it leaves alone; the [CHANGELOG](CHANGELOG.md) records every behavior change. |
 
 Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
 
 **Release track**
-- Stable tag: `v3.14.2`
-- Previous stable tag: `v3.14.1`
+- Stable tag: `v3.15.0`
+- Previous stable tag: `v3.14.2`
+- `v3.15.0`: the AI work order groups its items into families that share a rule, fix and evidence shape, binds each file to its scan-time SHA-256 once in a FILES table, and reads itself back before it is written: an item that is missing, doubled or shown with a field that differs from its record makes it refuse. Within a token budget, a short function whose whole body costs less than its excerpt is shown whole. The work order names its format `ai-slop-work-order/2`; the JSON Lines report, findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.14.2`: two JS/TS or Go findings of one rule on one line (`(a: any, b: any)`) keep two ids, so the AI report, the work order and `--report-dir` no longer refuse such a project; the VS Code extension shows the findings of JS/TS and Go files. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.14.1`: the AI report and the AI work order print on any console (they failed on a cp949 console for characters such as an em dash), a file scanned on its own is located by its name instead of `.`, and the VS Code extension shows docstring promises, copies an item as a work order for an AI agent, exports the work order and marks the lines of a file edited after its analysis. See [CHANGELOG.md](CHANGELOG.md).
 - `v3.14.0`: new report surfaces (one-screen terminal summary, HTML report and A4 PDF, AI report and AI work order for agents, `--report-dir` bundle) and a separate, unscored hollow channel: functions that report success with no effect, inputs that reach nothing, and docstring promises the body cannot keep. Each item is bound to the SHA-256 of the bytes the scan analyzed, and Python item ids do not change when lines move. See [What You Get](#what-you-get) and [CHANGELOG.md](CHANGELOG.md).
@@ -283,17 +284,26 @@ Full tables: --details   Report file: -o report.md
 
 **AI work order** (`--format ai-md`, also written as `ai-report.md` by
 `--report-dir`): a Markdown document for an agent with the rules it must
-follow, a VERIFY question per rule, and one block per item bound to the
-SHA-256 of the bytes the scan analyzed. The auditor mode (default) shows the
+follow, a VERIFY question per rule, a FILES table that binds each file to the
+SHA-256 of the bytes the scan analyzed, and one block per item, grouped into
+families that share a rule, fix and evidence shape. Before it is written, the
+document is read back: an item that is missing, doubled or shown with a field
+that differs from its record makes it refuse. The auditor mode (default) shows the
 code and grants no right to change it; `--ai-mode agent` copies no code and
 holds until its preconditions (repository readable, hashes match, operator
 approval, a test profile) pass. `--ai-token-budget N` fits it in an estimated
 budget. Details: [docs/AI_WORK_ORDER.md](docs/AI_WORK_ORDER.md).
 
 ```
-### W03 C56ca6a2c17eb REVIEW_CANDIDATE claim_without_mechanism review
+## FILES [FACT]
+- B01 binding:MATCH sha256:df9a47d1...de64b48a file:orders/pricing.py
+
+### G03 REVIEW_CANDIDATE claim_without_mechanism review | items 1
+fix [DERIVED]: implement the mechanism, or change the docstring to what the function does
+
+#### W03 C56ca6a2c17eb REVIEW_CANDIDATE claim_without_mechanism review
 at [FACT]: orders/pricing.py:7
-bound_to [FACT]: sha256:df9a47d1...de64b48a (the file is the content the scan analyzed)
+bound_to [FACT]: B01 (the file is the content the scan analyzed)
 evidence [FACT]: total_parallel: promises "Sum the order values in parallel." (parallel); no call that could run concurrently
 verify [NORM]: the body needs a concurrent call (pool, thread, process, task) or an await; found: no call that could run concurrently. ACK: implement the mechanism, or change the docstring to what the function does; REJECT: name the mechanism the detector missed (file:line)
 span [FACT]: orders/pricing.py:7-12 `total_parallel`
@@ -943,6 +953,7 @@ code --install-extension vscode-slop-detector-3.7.3.vsix
 
 | Version | Highlights |
 |---|---|
+| **v3.15.0** | work-order release: items grouped into families, one FILES table of scan-time hashes, a read-back check that refuses a lossy document, short functions drawn whole within a token budget; format `ai-slop-work-order/2` (JSON Lines, findings and scores unchanged); VS Code extension reads the new format |
 | **v3.14.2** | patch: JS/TS and Go findings of one rule on one line told apart by column or order (the AI outputs refused such projects with tree-sitter installed); VS Code extension shows JS/TS and Go findings |
 | **v3.14.1** | patch: AI outputs written to stdout as UTF-8 on any console code page; a file scanned alone located by its name; npm types for the 3.14 file-result fields; VS Code extension with docstring promises, work order copy and export, changed-file marking and channel states |
 | **v3.14.0** | report release: one report view behind a one-screen terminal summary, Markdown, a self-contained HTML report and its A4 PDF, the AI report (`ai-slop-report/1` JSON Lines) and the AI work order (`--format ai-md`, auditor and agent modes, token budget, versioned ruleset); unscored hollow channel (`success_without_effect`, `input_never_used`, `failure_reported_as_success`, `claim_without_mechanism`); item ids bound to the scanned bytes; VS Code highlights, hover and hollow review list; cache `analysis-cache-v53` |

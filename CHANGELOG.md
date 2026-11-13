@@ -7,38 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [3.15.0] - 2026-11-13
 
-### AI work order: families (S2)
+The AI work order (`--format ai-md`) groups its items into families, binds
+each file once, and reads itself back before it is written. The JSON Lines
+report (`--format ai`), findings, scores and the analysis are unchanged.
 
-- Items are grouped into families for display: the items that share kind,
-  rule, severity, fix, channel state and evidence shape (the evidence sentence
-  with quoted names and numbers replaced). The family header (`### G01 ...`)
-  states the shared fix and channel once; every item keeps its own block
-  (`#### W01 ...`: id, location, locator, binding, evidence, promise, code),
-  its own verdict and its own response line. Severity stands in for a
-  fix-risk tier, which the detector does not compute yet.
+### Changes you see when upgrading
+
+- The work order names its own format, `ai-slop-work-order/2 markdown work
+  order`, beside its records' `ai-slop-report/1`. A tool that parses the
+  Markdown work order reads item blocks as `#### Wnn ...` under family
+  headers `### Gnn ...` and the file hash from the `## FILES` table; the
+  item fields themselves are unchanged.
+
+### AI work order
+
+- Families: items that share kind, rule, severity, fix, channel state and
+  evidence shape (the evidence sentence with quoted names and numbers
+  replaced) are grouped for display. The family header (`### G01 ...`) states
+  the shared fix and channel once; every item keeps its own block (`#### W01
+  ...`: id, location, locator, binding, evidence, promise, code), its own
+  verdict and its own response line. Severity stands in for a fix-risk tier,
+  which the detector does not compute yet.
 - `## FILES`: every file once with its scan-time SHA-256 and binding (MATCH,
   VOID HOLD, MISSING HOLD); item blocks and index lines point to it (`B01`)
-  instead of repeating the hash. Paths come last on these lines.
-- The renderer reads the document back before writing it: every item exactly
-  once, at its own file and line, with its own evidence, bound to its file's
-  hash, under a family whose fix and channel are its own, family counts that
-  add up; every field an item block or index line shows (kind, rule,
-  severity, locator, semantic key, promise) equals its record (FH-S2-01).
-  Otherwise it refuses: `the work order is not lossless`.
-- Token budget (S4-D1 kept): the allocation pays for a family header when it
-  draws the family's first item, and the final check takes back the last
-  whole body before any item loses its evidence. Without these, the families
-  had a budget that held every item at T2 leave some at the index line.
-- An item's evidence form is the cheaper of T2 and T1 (FH-S4-D1-01): a short
-  function whose whole body costs less than its excerpt is drawn whole, and
-  the final check only demotes a T1 whose excerpt is cheaper.
-- The work order names its own format, `ai-slop-work-order/2`, beside its
-  records' `ai-slop-report/1` (FH-S2-FORMAT).
-- The JSON Lines report (`--format ai`) is unchanged.
-- VS Code extension: "Copy work order" also carries the item's family header
-  and its FILES row, and still reads a work order from a 3.14 backend.
+  instead of repeating the hash. Paths come last on these lines, since a path
+  may hold spaces.
+- Read-back check: before it is written, the document is read back. Every
+  item appears exactly once, bound to its file's hash, under a family whose
+  fix and channel are its own, and family counts add up; every field an item
+  block shows (kind, rule, severity, file and line, locator and semantic key,
+  evidence, promise) and every field an index line shows (severity, rule,
+  file and line) equals the item's record. Otherwise nothing is written:
+  `the work order is not lossless`.
+- Token budget: family headers are paid for in the allocation. An item's
+  evidence form is the cheaper of T2 (signature, evidence, range to read) and
+  T1 (the whole function): a short function whose whole body costs less than
+  its excerpt is drawn whole, and the whole-body pass goes on past it to the
+  longer items. On a snapshot of this repository (227 items, same script),
+  the auditor work order at 32,000 estimated tokens shows the evidence of 144
+  items instead of 113 with 3.14.2, 71 of them whole instead of 6; at 16,000,
+  18 instead of 12.
+
+### VS Code extension
+
+- "Copy work order" also carries the item's family header and its FILES row,
+  and still reads a work order from a 3.14 backend.
 
 ## [3.14.2] - 2026-11-12
 
