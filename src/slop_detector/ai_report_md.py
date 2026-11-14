@@ -147,6 +147,26 @@ def _shown(start: int, end: int, line: int, tier: str) -> List[int]:
     return shown
 
 
+# Fence names that differ from the language registry's name (JS/TS family).
+_FENCE_BY_SUFFIX = {".py": "python", ".ts": "typescript", ".tsx": "tsx", ".jsx": "jsx"}
+
+
+def _fence(rel: str) -> str:
+    """The code block language of a file: Python, else the registered
+    language of its extension (javascript, go, rust, ...), else none."""
+    from slop_detector import language_registry
+
+    suffix = Path(rel).suffix.lower()
+    adapter = language_registry.spec_for_suffix(suffix)
+    return _FENCE_BY_SUFFIX.get(suffix) or (adapter.name if adapter else "")
+
+
+def _target_name(target: str) -> str:
+    """The target's name; a relative target with no name (the dot) as written."""
+    path = Path(target)
+    return path.name or (target if not path.is_absolute() else MISSING)
+
+
 def _code(text: Optional[str], line: int, rel: str, tier: str = "capped") -> List[str]:
     if text is None:
         return ["code [FACT]: MISSING (file not readable)"]
@@ -156,7 +176,7 @@ def _code(text: Optional[str], line: int, rel: str, tier: str = "capped") -> Lis
     width = len(str(end))
     out = [
         f"span [FACT]: {_one_line(rel)}:{start}-{end}" + (f" `{name}`" if name else ""),
-        "```python",
+        "```" + _fence(rel),
     ]
     previous = None
     for n in shown:
@@ -552,7 +572,7 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
         "# AI-SLOP WORK ORDER",
         f"format: {FORMAT} | records {header['schema']} | tool {header['tool']} {header['version']} | "
         f"engine {header['engine']}",
-        f"target: {_one_line(Path(view.target).name)} | files {header['files']} | score {score} {header['status']} "
+        f"target: {_one_line(_target_name(view.target))} | files {header['files']} | score {score} {header['status']} "
         "(pattern channel only)",
         f"items: {len(items)} | work order {len(drawn)} | backlog {len(listed)}",
         f"ruleset: {RULESET_SCHEMA} {rules[0].version} sha256:{rules[1]}",

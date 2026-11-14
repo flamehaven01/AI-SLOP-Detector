@@ -318,7 +318,7 @@ def _md_findings_section(result, root_dir: str, file_results) -> list:
     """The findings of the report view, the one behind the HTML report too:
     every language, each with its own fix; then the files, then unjustified
     jargon per file (docs/REPORTS.md)."""
-    from slop_detector.report_view import build_report_view, short_path
+    from slop_detector.report_view import build_report_view, short_path, where
 
     view = build_report_view(result)
     lines = [f"## Findings ({len(view.findings)})", ""]
@@ -326,8 +326,7 @@ def _md_findings_section(result, root_dir: str, file_results) -> list:
         lines += ["| Severity | Location | Rule | Finding | Fix |", "|---|---|---|---|---|"]
         for item in view.findings:
             lines.append(
-                f"| {item.severity.upper()} | `{_md_cell(short_path(item.file, root_dir))}:"
-                f"{item.line}` | `{item.rule}` | {_md_cell(item.message)} | "
+                f"| {item.severity.upper()} | `{_md_cell(where(item, root_dir))}` | `{item.rule}` | {_md_cell(item.message)} | "
                 f"{_md_cell(item.suggestion) if item.suggestion else '-'} |"
             )
     else:
@@ -366,7 +365,7 @@ def _md_hollow_section(result, root_dir: str) -> list:
     """Hollow review candidates with what was measured (docs/REPORTS.md 2):
     never scored, and "not measured" is never written as zero."""
     from slop_detector.renderer_terminal import claim_line, hollow_line
-    from slop_detector.report_view import build_report_view, short_path
+    from slop_detector.report_view import build_report_view, where
 
     view = build_report_view(result)
     lines = [
@@ -396,9 +395,7 @@ def _md_hollow_section(result, root_dir: str) -> list:
         lines += ["| Location | Rule | Function: evidence |", "|---|---|---|"]
         for item in view.candidates:
             message = item.message.replace("|", chr(92) + "|")
-            lines.append(
-                f"| `{short_path(item.file, root_dir)}:{item.line}` | `{item.rule}` | {message} |"
-            )
+            lines.append(f"| `{where(item, root_dir)}` | `{item.rule}` | {message} |")
         lines.append("")
     return lines
 

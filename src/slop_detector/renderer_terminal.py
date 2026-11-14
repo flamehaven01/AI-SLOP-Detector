@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, List, Optional
 
 from slop_detector import __version__
-from slop_detector.report_view import TERMINAL_LIMITS, Item, ReportView, short_path, top
+from slop_detector.report_view import TERMINAL_LIMITS, Item, ReportView, top, where
 
 _SEVERITY_STYLE = {"critical": "bold red", "high": "red", "medium": "yellow", "low": "dim"}
 
@@ -94,9 +94,8 @@ def _quiet_hollow(view: ReportView) -> str:
 def _item_rows(items: List[Item], root: str, candidates: bool) -> List[tuple]:
     rows = []
     for item in items:
-        where = f"{short_path(item.file, root)}:{item.line}"
         label = "" if candidates else item.severity.upper()
-        rows.append((label, where, item.rule, item.message))
+        rows.append((label, where(item, root), item.rule, item.message))
     return rows
 
 
@@ -166,9 +165,9 @@ def _print_items(
     table = Table.grid(padding=(0, 2))
     for _ in range(4):
         table.add_column(overflow="fold")
-    for label, where, rule, message in _item_rows(shown, root, candidates):
+    for label, at, rule, message in _item_rows(shown, root, candidates):
         style = _SEVERITY_STYLE.get(label.lower(), "")
-        table.add_row(f"[{style}]{label}[/{style}]" if style else label, where, rule, message)
+        table.add_row(f"[{style}]{label}[/{style}]" if style else label, at, rule, message)
     console.print(table)
     if rest:
         console.print(f"  [dim]+{rest} more (--details or -o report.md)[/dim]")
