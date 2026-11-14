@@ -66,9 +66,8 @@ def _go_analyzer() -> Any:
 
 
 def _go_ast() -> bool:
-    from slop_detector.languages import go_analyzer
-
-    return bool(go_analyzer._TS_AVAILABLE)
+    # The Go analyzer has no tree-sitter path (it reads every file by regex).
+    return False
 
 
 def _go_not_measured() -> Tuple[str, ...]:

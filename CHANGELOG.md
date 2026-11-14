@@ -22,6 +22,9 @@ reports show their score.
   (additive keys).
 - The Markdown report's Scan Coverage table has one column per analyzed
   language (a Rust column is added).
+- With the `[go]` extra installed, Go results say `ast_mode: false` and
+  `scan_coverage.analysis_modes.go` says `mode: regex`, `ast_available: false`
+  (they said `true` / `tree_sitter_ast`). Go findings and scores are unchanged.
 
 ### Added
 
@@ -40,6 +43,10 @@ reports show their score.
 
 ### Fixed
 
+- Go: with tree-sitter-go installed, a Go result said `ast_mode: true` and
+  scan coverage said the Go files were read with tree-sitter, although the
+  analyzer's tree-sitter path only reused the regex result. The analyzer now
+  has the one (regex) path, and its results and scan coverage say so.
 - `report.html` and `report.md` listed JS/TS and Go files with score `N/A`
   although their score counts toward the project score; they show it now.
 - VS Code extension: `.jsx` and `.tsx` files were not analyzed in the editor
@@ -57,8 +64,7 @@ reports show their score.
   `scan_coverage.analysis_modes`). Earlier text said 3.9.
 - Go: the analyzer reads every file with its regex reader; `[go]` installs
   tree-sitter-go, which the analyzer does not use yet. The docs no longer
-  describe Go as tree-sitter analysis. With `[go]` installed, `ast_mode` and
-  `analysis_modes.go.mode` still say tree-sitter (a known labeling defect).
+  describe Go as tree-sitter analysis.
 - `docs/ADDING_A_LANGUAGE.md`: how a language is added and what the tests
   enforce.
 

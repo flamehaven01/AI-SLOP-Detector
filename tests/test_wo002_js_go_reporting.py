@@ -74,11 +74,7 @@ def test_reading_bytes_leaves_the_analysis_unchanged(tmp_path):
         js_ref = js._analyze_ast(str(js_path), js_text, "javascript", False, False)
     else:
         js_ref = js._analyze_regex(str(js_path), js_text, "javascript", False)
-    go_ref = (
-        go._analyze_ast(str(go_path), go_text)
-        if hasattr(go, "_analyze_ast") and _go_ts()
-        else (go._analyze_regex(str(go_path), go_text))
-    )
+    go_ref = go._analyze_regex(str(go_path), go_text)  # Go has one (regex) path
     for new, ref in ((js.analyze(str(js_path)), js_ref), (go.analyze(str(go_path)), go_ref)):
         a, b = new.to_dict(), ref.to_dict()
         assert a["slop_score"] == b["slop_score"] and a["status"] == b["status"]
@@ -94,30 +90,20 @@ _BINDING = {"source_sha256", "content_origin", "issues"}
 
 
 def test_both_analysis_paths_bind_the_bytes_read(tmp_path, monkeypatch):
-    # the regex fallback and the tree-sitter path (when installed) each bind
-    # the result, whatever the environment has installed
-    from slop_detector.languages import go_analyzer, js_analyzer
+    # JS/TS: the regex fallback and the tree-sitter path (when installed) each
+    # bind the result; Go has one (regex) path.
+    from slop_detector.languages import js_analyzer
 
     (tmp_path / "a.js").write_bytes(JS.encode())
     (tmp_path / "m.go").write_bytes(GO.encode())
-    paths = [False] + [True] * (js_analyzer._TS_AVAILABLE or go_analyzer._TS_AVAILABLE)
-    for ts in paths:
-        for module, analyzer, name in (
-            (js_analyzer, JSAnalyzer(), "a.js"),
-            (go_analyzer, GoAnalyzer(), "m.go"),
-        ):
-            if ts and not module._TS_AVAILABLE:
-                continue
-            monkeypatch.setattr(module, "_TS_AVAILABLE", ts)
-            result = analyzer.analyze(str(tmp_path / name))
-            assert result.source_sha256 == _sha(tmp_path / name), (name, ts)
-            assert result.issues and all(i.locator for i in result.issues), (name, ts)
-
-
-def _go_ts():
-    from slop_detector.languages import go_analyzer
-
-    return go_analyzer._TS_AVAILABLE
+    for ts in [False] + [True] * js_analyzer._TS_AVAILABLE:
+        monkeypatch.setattr(js_analyzer, "_TS_AVAILABLE", ts)
+        result = JSAnalyzer().analyze(str(tmp_path / "a.js"))
+        assert result.source_sha256 == _sha(tmp_path / "a.js"), ts
+        assert result.issues and all(i.locator for i in result.issues), ts
+    result = GoAnalyzer().analyze(str(tmp_path / "m.go"))
+    assert result.source_sha256 == _sha(tmp_path / "m.go")
+    assert result.issues and all(i.locator for i in result.issues)
 
 
 def test_the_project_score_is_the_same_with_or_without_the_language_items(tmp_path):

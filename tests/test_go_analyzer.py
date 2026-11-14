@@ -304,3 +304,26 @@ class TestSlopDetectorGoIntegration:
         detector = SlopDetector()
         result = detector.analyze_project(str(tmp_path))
         assert result.go_file_results == []
+
+
+class TestGoAnalysisModeIsWhatRan:
+    """The Go analyzer reads every file with its regex reader (it has no
+    tree-sitter path), so a result never says tree-sitter, whatever is
+    installed (FH-GO-AST-001: with tree-sitter-go installed it said ast_mode
+    True and analysis_modes mode tree_sitter_ast)."""
+
+    def test_a_file_result_says_regex(self, analyzer, tmp_path):
+        path = write_go(tmp_path, "m.go", "package main\n\nfunc main() {}\n")
+        assert analyzer.analyze(path).ast_mode is False
+
+    def test_scan_coverage_says_regex(self, tmp_path):
+        from slop_detector.core import SlopDetector
+
+        (tmp_path / "pyproject.toml").write_text('[project]\nname = "g"\n', encoding="utf-8")
+        (tmp_path / "m.go").write_text("package main\n\nfunc main() {}\n", encoding="utf-8")
+        result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
+        assert result.scan_coverage["analysis_modes"]["go"] == {
+            "mode": "regex",
+            "ast_available": False,
+            "not_measured": [],
+        }

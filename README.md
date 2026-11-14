@@ -617,9 +617,8 @@ Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error h
 (> 60 lines). Results appear under `go_file_results` in JSON output.
 Every Go file is read by the regex reader, which measures every Go rule. The `[go]`
 extra (Python 3.10+) installs tree-sitter-go, but the analyzer does not parse with it
-yet: with it installed, results are the same, and `ast_mode` /
-`analysis_modes.go.mode` say tree-sitter although the regex reader ran (a known
-labeling defect).
+yet: with it installed, results are the same, and they say so (`ast_mode` false,
+`analysis_modes.go.mode` `regex`).
 
 ---
 

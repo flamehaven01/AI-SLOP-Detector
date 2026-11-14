@@ -1,7 +1,7 @@
 """
 Go Analyzer (v1.0.0)
 
-Regex-based analysis with optional tree-sitter-go AST mode.
+Regex-based analysis (the [go] extra's tree-sitter-go is not used yet).
 Detects AI slop patterns in .go files.
 
 Metrics:
@@ -33,24 +33,11 @@ from slop_detector.finding_identity import bind_lines, read_source
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Optional tree-sitter-go (AST mode)
-# ---------------------------------------------------------------------------
-
-_TS_AVAILABLE = False
-
-# The regex path measures every Go check this analyzer reports (the AST
-# path currently reuses it), so a regex result misses nothing.
+# Every Go file is read by the regex reader, which measures every Go check
+# this analyzer reports. There is no tree-sitter path yet: the [go] extra
+# installs tree-sitter-go, which this analyzer does not use, so a result never
+# says ast_mode True.
 REGEX_FALLBACK_NOT_MEASURED: tuple = ()
-
-try:
-    import tree_sitter_go as _tsgo
-    from tree_sitter import Language as _Language
-
-    _GO_LANG = _Language(_tsgo.language())
-    _TS_AVAILABLE = True
-except ImportError:  # pragma: no cover
-    logger.debug("tree-sitter-go unavailable — Go analysis will use regex fallback")
 
 # ---------------------------------------------------------------------------
 # Thresholds
@@ -177,8 +164,6 @@ class GoAnalyzer:
                 ldr_equivalent=0.0,
             )
 
-        if _TS_AVAILABLE:
-            return bind_lines(self._analyze_ast(file_path, content), content, digest)
         return bind_lines(self._analyze_regex(file_path, content), content, digest)
 
     # ------------------------------------------------------------------
@@ -334,17 +319,6 @@ class GoAnalyzer:
             slop_score=slop_score,
             status=status,
         )
-
-    # ------------------------------------------------------------------
-    # AST analysis (tree-sitter-go, optional)
-    # ------------------------------------------------------------------
-
-    def _analyze_ast(self, file_path: str, content: str) -> GoFileAnalysis:  # pragma: no cover
-        """AST mode — richer metrics when tree-sitter-go is installed."""
-        # Fall back to regex; AST enrichment is a future enhancement
-        result = self._analyze_regex(file_path, content)
-        result.ast_mode = True
-        return result
 
     # ------------------------------------------------------------------
     # Scoring
