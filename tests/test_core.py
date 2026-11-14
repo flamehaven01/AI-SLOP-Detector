@@ -710,7 +710,9 @@ def test_analyze_project_includes_non_python_results_in_aggregate(detector, tmp_
     monkeypatch.setattr(detector, "analyze_file", lambda path, root=None: py_result)
     by_language = {"javascript": [js_result], "go": [go_result]}
     monkeypatch.setattr(
-        detector, "_analyze_language_list", lambda adapter, *a, **k: by_language[adapter.name]
+        detector,
+        "_analyze_language_list",
+        lambda adapter, *a, **k: by_language.get(adapter.name, []),
     )
 
     result = detector.analyze_project(str(tmp_path))
@@ -734,7 +736,9 @@ def test_analyze_project_js_only_is_not_reported_as_empty_clean(detector, tmp_pa
     )
     by_language = {"javascript": [js_result], "go": []}
     monkeypatch.setattr(
-        detector, "_analyze_language_list", lambda adapter, *a, **k: by_language[adapter.name]
+        detector,
+        "_analyze_language_list",
+        lambda adapter, *a, **k: by_language.get(adapter.name, []),
     )
 
     result = detector.analyze_project(str(tmp_path))

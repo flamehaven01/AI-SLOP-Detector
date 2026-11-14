@@ -212,6 +212,8 @@ export interface ScanOutput {
   file_results: FileAnalysisOutput[];
   js_file_results: PolyglotFileOutput[];
   go_file_results: PolyglotFileOutput[];
+  /** Rust results, one per .rs file. */
+  rust_file_results: PolyglotFileOutput[];
 }
 
 export interface AuditAction {

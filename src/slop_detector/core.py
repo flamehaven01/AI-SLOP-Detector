@@ -618,7 +618,7 @@ class SlopDetector:
             project_path_obj,
             [f"**/*{ext}" for ext in adapter.extensions],
             adapter.extensions,
-            ignore_patterns,
+            list(ignore_patterns) + list(adapter.extra_ignore),
         )
 
     def _analyze_language_list(

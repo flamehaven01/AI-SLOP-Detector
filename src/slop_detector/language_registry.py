@@ -36,6 +36,9 @@ class LanguageSpec:
     fallback_mode: str  # analysis_modes name when the AST parser was not used
     ast_available: Callable[[], bool]
     fallback_not_measured: Callable[[], Tuple[str, ...]]
+    # Ignore patterns for this language's files only (build output of its
+    # toolchain); other languages' files under the same paths are analyzed.
+    extra_ignore: Tuple[str, ...] = ()
 
 
 def _js_analyzer() -> Any:
@@ -74,6 +77,24 @@ def _go_not_measured() -> Tuple[str, ...]:
     return tuple(go_analyzer.REGEX_FALLBACK_NOT_MEASURED)
 
 
+def _rust_analyzer() -> Any:
+    from slop_detector.languages.rust_analyzer import RustAnalyzer
+
+    return RustAnalyzer()
+
+
+def _rust_ast() -> bool:
+    from slop_detector.languages import rust_analyzer
+
+    return bool(rust_analyzer._TS_AVAILABLE)
+
+
+def _rust_not_measured() -> Tuple[str, ...]:
+    from slop_detector.languages import rust_analyzer
+
+    return tuple(rust_analyzer.REGEX_FALLBACK_NOT_MEASURED)
+
+
 # Order is the analysis order and the order of every listing.
 LANGUAGES: Tuple[LanguageSpec, ...] = (
     LanguageSpec(
@@ -95,6 +116,18 @@ LANGUAGES: Tuple[LanguageSpec, ...] = (
         fallback_mode="regex",
         ast_available=_go_ast,
         fallback_not_measured=_go_not_measured,
+    ),
+    LanguageSpec(
+        name="rust",
+        label="Rust",
+        result_key="rust_file_results",
+        extensions=frozenset({".rs"}),
+        analyzer=_rust_analyzer,
+        fallback_mode="token_scanner",
+        ast_available=_rust_ast,
+        fallback_not_measured=_rust_not_measured,
+        # Cargo's build directory: generated sources, not the project's code.
+        extra_ignore=("target/**", "**/target/**"),
     ),
 )
 

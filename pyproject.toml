@@ -49,6 +49,11 @@ go = [
     "tree-sitter>=0.25.0",
     "tree-sitter-go>=0.23.0",
 ]
+# Rust AST analysis (tree-sitter-rust, optional; a token scanner is used without it)
+rust = [
+    "tree-sitter>=0.25.0",
+    "tree-sitter-rust>=0.23.0",
+]
 # ML dependencies removed in v3.7.0 (Now uses pure-Python ThresholdClassifier)
 api = [
     "fastapi>=0.109.0",

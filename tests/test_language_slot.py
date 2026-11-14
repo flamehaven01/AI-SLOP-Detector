@@ -288,3 +288,33 @@ def test_init_counts_the_toy_language(toy, tmp_path):
 
     (tmp_path / "a.toy").write_text(TOY_SOURCE, encoding="utf-8")
     assert cli_init._count_repo_languages(tmp_path).get("toy") == 1
+
+
+def _ts_list(text, name):
+    body = re.search(name + r"[^=]*=\s*\[(.*?)\]", text, re.S).group(1)
+    return set(re.findall(r"'([^']+)'", body))
+
+
+def test_the_vscode_extension_has_one_language_list_covering_the_registry():
+    ext_src = ROOT / "vscode-extension" / "src"
+    languages_ts = (ext_src / "languages.ts").read_text(encoding="utf-8")
+    extensions = _ts_list(languages_ts, "SUPPORTED_EXTENSIONS")
+    ids = _ts_list(languages_ts, "LANGUAGE_IDS")
+    registered = {e for item in registry.LANGUAGES for e in item.extensions} | {".py"}
+    assert registered <= extensions, registered - extensions
+    import json
+
+    activation = json.loads((ROOT / "vscode-extension" / "package.json").read_text("utf-8"))
+    events = set(activation["activationEvents"])
+    assert {f"onLanguage:{i}" for i in ids} <= events, ids
+    # a list of languages elsewhere (two extensions on a line, or a language
+    # selector); a check for one language's own feature is allowed
+    ext = re.compile(r"'\.(py|jsx?|tsx?|go|rs)'")
+    others = [
+        f"{p.name}:{n}"
+        for p in ext_src.glob("*.ts")
+        if p.name != "languages.ts"
+        for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
+        if len(ext.findall(line)) >= 2 or re.search(r"language:\s*'", line)
+    ]
+    assert not others, others

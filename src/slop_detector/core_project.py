@@ -66,7 +66,6 @@ _UNSUPPORTED_SOURCE_EXTENSIONS = {
     ".pl",
     ".r",
     ".rb",
-    ".rs",
     ".scala",
     ".sh",
     ".sol",
@@ -294,6 +293,9 @@ def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]
             suffix = path.suffix.lower()
             reason = item.ignore_reason(ignore_patterns)
             language = _supported_language(suffix)
+            adapter = registry.spec_for_suffix(suffix)
+            if adapter is not None and adapter.extra_ignore and reason is None:
+                reason = item.ignore_reason(list(ignore_patterns) + list(adapter.extra_ignore))
             if language is not None and reason is not None:
                 excluded.append(
                     {

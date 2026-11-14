@@ -136,6 +136,7 @@ class AgentProjectResponse(BaseModel):
     file_results: List[Dict[str, Any]]
     js_file_results: List[Dict[str, Any]]
     go_file_results: List[Dict[str, Any]]
+    rust_file_results: List[Dict[str, Any]] = Field(default_factory=list)
     priority_hotspots: List[Dict[str, Any]]
     suppression_ledger: List[Dict[str, Any]]
     generated_at: str

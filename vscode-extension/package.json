@@ -43,6 +43,9 @@
     "onLanguage:javascript",
     "onLanguage:typescript",
     "onLanguage:go",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:rust",
     "onCommand:slop-detector.exportReport",
     "onCommand:slop-detector.openReport"
   ],

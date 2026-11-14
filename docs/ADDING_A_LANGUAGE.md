@@ -29,7 +29,11 @@ checks its content through the HTML. It also fails when:
 - any code outside `language_registry.py`, `models.py` and `api/models.py`
   reads a language result by its key (`js_file_results`, ...);
 - the VS Code extension names a language result key instead of reading every
-  `*_file_results` list.
+  `*_file_results` list;
+- the VS Code extension's one language list (`src/languages.ts` in the
+  extension) misses a registered extension, its manifest does not activate on
+  one of the listed language ids, or another extension file keeps a language
+  list of its own.
 
 These checks were themselves tested: 16 deliberately broken copies (a
 consumer that knows only JS/TS and Go: reports, gate, summary, history,
@@ -48,12 +52,17 @@ language registered without its fields; a direct key read) were all caught.
    binds the result to the bytes read and addresses the issues by line).
 2. **Registry entry** in `language_registry.LANGUAGES`: name, label, result
    key (`<name>_file_results`), extensions, the analyzer factory, and how the
-   analysis mode is reported.
+   analysis mode is reported. When the language's build tool writes sources
+   into the project (Cargo's `target/`), list them in `extra_ignore`: they
+   are skipped for that language only and listed as excluded in scan
+   coverage.
 3. **Schema fields** the slot test asks for: `ProjectAnalysis`,
    `AgentProjectResponse`, `types.d.ts` (the REST snapshot also keeps a
    language without a declared field, as an extra field); remove the
-   extensions from the unsupported list. `LANGUAGE_ANALYZERS`, the `--init`
-   table and the VS Code extension follow the registry by themselves.
+   extensions from the unsupported list. `LANGUAGE_ANALYZERS` and the
+   `--init` table follow the registry by themselves. The VS Code extension
+   needs the extensions and the VS Code language id in its `languages.ts`
+   and an `onLanguage:` activation event in its manifest.
 4. **Rules, each with:**
    - a **fix text** (`suggestion`), on every parser path: a rule found by a
      fallback parser has the same fix as on the AST path (3.15.1 found a
