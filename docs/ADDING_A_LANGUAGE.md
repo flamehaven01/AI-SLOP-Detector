@@ -74,11 +74,18 @@ language registered without its fields; a direct key read) were all caught.
      shapes it must leave alone);
    - a severity a reviewer can defend: three critical findings fail the CI
      gate.
-5. **Precision before release.** Run the analyzer on public repositories
-   chosen and pinned (commit) before the run, and read the findings: label
-   each true positive, false positive or unsure, and publish the counts
-   with the release. A rule with false positives on legitimate code is
-   narrowed or dropped before release, not after.
+5. **Precision before release (required, internal).** Run the analyzer on
+   public repositories chosen and pinned (commit) before the run, and read
+   the findings: label each true positive, false positive or unsure, and keep
+   the labels bound to each finding's id and file hash, with the record of
+   which files were analyzed, excluded or failed. A rule with false positives
+   on legitimate code is narrowed or dropped before release, not after. This
+   check is required whether or not its results are published.
+   **Publishing the counts is a separate decision.** A release quotes a
+   precision figure only together with an evidence packet that a reader can
+   check and that is bound to the release commit. Without one, the release
+   notes describe what the rules detect, what they leave alone, and what is
+   not measured, and quote no precision figure.
 6. **Mutation.** Break each new rule in a copy and require a test to fail
    (see the mutation runners described in DEVELOPMENT.md).
 
