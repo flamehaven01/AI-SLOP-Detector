@@ -225,7 +225,7 @@ class GoAnalyzer:
                         "go_empty_func",
                         "high",
                         i,
-                        "Empty function body — likely a stub",
+                        "Empty function body - likely a stub",
                         "Implement or mark as // TODO",
                     )
                 )
@@ -274,7 +274,7 @@ class GoAnalyzer:
                         "go_panic",
                         severity,
                         i,
-                        "panic() used — prefer returning errors",
+                        "panic() used - prefer returning errors",
                         "Return an error value instead",
                     )
                 )

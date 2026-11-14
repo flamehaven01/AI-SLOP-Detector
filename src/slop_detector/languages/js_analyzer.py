@@ -75,7 +75,7 @@ except ImportError:  # pragma: no cover
     import logging as _logging
 
     _logging.getLogger(__name__).debug(
-        "tree-sitter unavailable — JavaScript analysis will use regex fallback"
+        "tree-sitter unavailable - JavaScript analysis will use regex fallback"
     )
 
 # ------------------------------------------------------------------
@@ -503,7 +503,7 @@ class JSAnalyzer:
                             "medium",
                             row,
                             col,
-                            "var declaration — use let or const",
+                            "var declaration - use let or const",
                             _JS_FIX["js_var_usage"],
                         )
                     )
@@ -556,7 +556,7 @@ class JSAnalyzer:
                             "medium",
                             row,
                             col,
-                            "Empty arrow function — placeholder not implemented",
+                            "Empty arrow function - placeholder not implemented",
                             _JS_FIX["js_empty_arrow"],
                         )
                     )
@@ -570,7 +570,7 @@ class JSAnalyzer:
                             "medium",
                             row,
                             op.start_point[1],
-                            "Loose equality (==) — use strict === instead",
+                            "Loose equality (==) - use strict === instead",
                             _JS_FIX["js_double_equals"],
                         )
                     )
@@ -625,7 +625,7 @@ class JSAnalyzer:
                     "high",
                     deepest[0],
                     deepest[1],
-                    f"Max nesting depth {max_depth} — callback hell risk",
+                    f"Max nesting depth {max_depth} - callback hell risk",
                     _JS_FIX["js_callback_hell"],
                 )
             )
@@ -695,7 +695,7 @@ class JSAnalyzer:
                         "medium",
                         i,
                         line.index("var"),
-                        "var declaration — use let or const",
+                        "var declaration - use let or const",
                         _JS_FIX["js_var_usage"],
                     )
                 )
@@ -732,7 +732,7 @@ class JSAnalyzer:
                         "medium",
                         i,
                         m3.start(),
-                        "Empty arrow function — placeholder",
+                        "Empty arrow function - placeholder",
                         _JS_FIX["js_empty_arrow"],
                     )
                 )
@@ -756,7 +756,7 @@ class JSAnalyzer:
                     "high",
                     deepest_line,
                     0,
-                    f"Max nesting depth {max_depth} — callback hell risk",
+                    f"Max nesting depth {max_depth} - callback hell risk",
                     _JS_FIX["js_callback_hell"],
                 )
             )
