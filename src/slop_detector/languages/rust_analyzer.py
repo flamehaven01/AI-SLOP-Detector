@@ -7,7 +7,7 @@ Rules (outside test code):
   rust_todo_comment         TODO/FIXME/HACK/XXX comment   low
 
 Two paths read a file into tokens: tree-sitter-rust (the [rust] extra,
-Python 3.9+) and a token scanner (always available). Both read a string,
+Python 3.10+) and a token scanner (always available). Both read a string,
 char or macro_rules! definition as one literal and agree on identifiers and
 comments; they may split punctuation, numbers, labels and lifetimes inside
 macro arguments differently, which no rule reads. One detector then works on

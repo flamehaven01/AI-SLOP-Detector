@@ -28,6 +28,9 @@ checks its content through the HTML. It also fails when:
   (`core_project._UNSUPPORTED_SOURCE_EXTENSIONS`);
 - any code outside `language_registry.py`, `models.py` and `api/models.py`
   reads a language result by its key (`js_file_results`, ...);
+- a file whose analysis raises is not recorded as a failed file of its
+  language (the scan goes on), or the Markdown coverage table has no column
+  for the language;
 - the VS Code extension names a language result key instead of reading every
   `*_file_results` list;
 - the VS Code extension's one language list (`src/languages.ts` in the

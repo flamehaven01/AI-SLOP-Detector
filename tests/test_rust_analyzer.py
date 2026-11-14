@@ -266,6 +266,20 @@ def test_a_mixed_project_reports_rust_everywhere(tmp_path):
     )
 
 
+def test_a_rust_file_that_cannot_be_read_is_a_failed_file(tmp_path):
+    result = _project(
+        tmp_path, {"src/lib.rs": "pub fn f() { todo!() }\n", "src/bad.rs": UNTERMINATED}
+    )
+    failed = result.scan_coverage["failed"]
+    assert failed["by_language"] == {"rust": 1}, failed
+    assert failed["files"] == [
+        {"path": "src/bad.rs", "language": "rust", "error_type": "RustReadError"}
+    ]
+    assert [r.file_path.replace("\\", "/")[-10:] for r in result.rust_file_results] == [
+        "src/lib.rs"
+    ]
+
+
 def test_a_rust_item_holds_when_its_file_changes(tmp_path):
     from slop_detector.ai_report_md import render_ai_report_md
 

@@ -110,7 +110,9 @@ def _bound(result: FileAnalysis, source_sha256: str, origin: str) -> FileAnalysi
 
 
 # Prefix of the per-file error log line, by language (unchanged wording).
-_FAILURE_LABEL = {"python": "", "javascript": "JS/TS file ", "go": "Go file "}
+def _failure_label(language: str) -> str:
+    """How a failed file is named in the log: "" for Python, else "<label> file "."""
+    return "" if language == "python" else f"{registry.spec(language).label} file "
 
 
 # Metrics left out of deficit_score under --patterns-only (advanced.patterns_only).
@@ -401,7 +403,7 @@ class SlopDetector:
             try:
                 results.append(analyze(fp))
             except Exception as exc:
-                logger.error(f"Error analyzing {_FAILURE_LABEL[language]}{fp}: {exc}")
+                logger.error(f"Error analyzing {_failure_label(language)}{fp}: {exc}")
                 if failures is not None:
                     record_analysis_failure(failures, fp, root, language, exc)
                 outcome = "failed"

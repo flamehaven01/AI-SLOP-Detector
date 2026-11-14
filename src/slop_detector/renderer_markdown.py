@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from slop_detector import __version__
+from slop_detector import __version__, language_registry
 from slop_detector.ast_index import walk_nodes
 from slop_detector.core_project import score_is_valid
 from slop_detector.finding_summary import get_finding_summary
@@ -154,15 +154,16 @@ def _md_scan_coverage_section(result) -> list:
     analyzed = coverage["analyzed"]
     excluded = coverage["excluded"]
     unsupported = coverage.get("unsupported", {})
+    adapters = language_registry.languages()
+    header = ["Analyzed", "Python", *(a.label for a in adapters)]
+    header += ["Excluded Supported Source Files", "Unsupported Source Files"]
+    counts = [analyzed["total"], analyzed["python"], *(analyzed.get(a.name, 0) for a in adapters)]
+    counts += [excluded["total"], unsupported.get("total", 0)]
     return [
         "## Scan Coverage",
-        "| Analyzed | Python | JS/TS | Go | Excluded Supported Source Files | Unsupported Source Files |",
-        "| ---: | ---: | ---: | ---: | ---: | ---: |",
-        (
-            f"| {analyzed['total']} | {analyzed['python']} | "
-            f"{analyzed['javascript']} | {analyzed['go']} | {excluded['total']} | "
-            f"{unsupported.get('total', 0)} |"
-        ),
+        "| " + " | ".join(header) + " |",
+        "|" + " ---: |" * len(header),
+        "| " + " | ".join(str(n) for n in counts) + " |",
         "",
         (
             f"Excluded test files: {excluded.get('tests', 0)}; "

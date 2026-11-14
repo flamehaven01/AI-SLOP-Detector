@@ -70,6 +70,8 @@ class ToyAnalyzer:
         from slop_detector.finding_identity import bind_lines, read_source
 
         content, digest = read_source(file_path)
+        if content.startswith("unreadable"):
+            raise ValueError("toy file the analyzer cannot read")
         lines = content.splitlines()
         issues = [
             ToyIssue("toy_stub", "critical", n, "stub left in toy code", "Write the toy code")
@@ -152,6 +154,31 @@ def test_the_toy_language_reaches_every_report(scanned):
     for render in (generate_markdown_report, generate_html_report, generate_text_report):
         assert render(scanned).count("toy_stub") >= 3, render.__module__
     assert "toy_file_results" in scanned.to_dict()
+
+
+def test_the_markdown_coverage_table_counts_the_toy_language(scanned):
+    from slop_detector.renderer_markdown import generate_markdown_report
+
+    lines = generate_markdown_report(scanned).splitlines()
+    head = lines.index("## Scan Coverage") + 1
+    header = [c.strip() for c in lines[head].strip("|").split("|")]
+    row = [c.strip() for c in lines[head + 2].strip("|").split("|")]
+    assert row[header.index("Toy")] == "1", (header, row)
+
+
+def test_a_toy_file_the_analyzer_cannot_read_is_recorded_as_failed(toy, tmp_path):
+    from slop_detector.core import SlopDetector
+
+    (tmp_path / "pyproject.toml").write_text('[project]\nname = "t"\n', encoding="utf-8")
+    (tmp_path / "pkg").mkdir()
+    (tmp_path / "pkg" / "a.toy").write_text(TOY_SOURCE, encoding="utf-8")
+    (tmp_path / "pkg" / "bad.toy").write_text("unreadable\n", encoding="utf-8")
+    result = SlopDetector(read_only=True).analyze_project(str(tmp_path))
+    failed = result.scan_coverage["failed"]
+    assert failed["total"] == 1 and failed["by_language"] == {"toy": 1}, failed
+    assert failed["files"][0]["path"] == "pkg/bad.toy"
+    assert result.scan_coverage["complete"] is False
+    assert result.scan_coverage["analyzed"]["toy"] == 1
 
 
 def test_the_toy_language_reaches_the_ai_report_and_work_order(scanned, tmp_path):
