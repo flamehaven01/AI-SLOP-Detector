@@ -278,9 +278,14 @@ def _canonical_order(project_path: Path, paths: List[Path]) -> List[Path]:
 
 
 def _is_default_exclusion(reason: str) -> bool:
+    """A built-in exclusion: a default ignore pattern, a default-excluded
+    directory or a language adapter's own exclusion (Cargo's target/)."""
     if reason.startswith("directory:"):
         return True
-    return reason[len("pattern:") :] in Config.DEFAULT_CONFIG["ignore"]
+    pattern = reason[len("pattern:") :]
+    return pattern in Config.DEFAULT_CONFIG["ignore"] or any(
+        pattern in adapter.extra_ignore for adapter in registry.languages()
+    )
 
 
 def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]) -> Dict[str, Any]:

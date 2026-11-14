@@ -156,7 +156,7 @@ def _text_project_section(result) -> list:
     if priority_hotspots:
         lines += [
             "Priority Hotspots:",
-            "  Focus order uses deficit + churn + coverage gap",
+            "  Python files: focus order uses deficit + churn + coverage gap",
             f"  Churn Data: {'yes' if getattr(result, 'churn_analysis_available', False) else 'no'}",
             f"  Coverage Data: {'yes' if getattr(result, 'coverage_analysis_available', False) else 'no'}",
         ]

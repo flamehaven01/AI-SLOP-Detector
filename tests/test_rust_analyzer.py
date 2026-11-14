@@ -230,6 +230,9 @@ def test_cargo_target_is_excluded_for_rust_only(tmp_path):
         e["path"].replace("\\", "/"): e["reason"] for e in result.scan_coverage["excluded"]["files"]
     }
     assert excluded == {"target/debug/deps/gen.rs": "pattern:target/**"}, excluded
+    # Cargo's target/ is a built-in exclusion of the Rust adapter, not a user's rule.
+    by_source = result.scan_coverage["excluded"]["by_source"]
+    assert by_source == {"default": 1, "custom": 0}, by_source
     others = result.file_results + result.go_file_results
     for name in ("target/helper.py", "target/tool.go"):
         assert any(r.file_path.replace("\\", "/").endswith(name) for r in others), name

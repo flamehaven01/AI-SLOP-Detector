@@ -130,6 +130,11 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
     head.add_row("Findings", _findings_line(view))
     head.add_row("Hollow", hollow_line(view))
     head.add_row("Promises", claim_line(view))
+    if view.coverage_notes:
+        from rich.text import Text
+
+        # Text, not markup: a note names extras like "ai-slop-detector[js]".
+        head.add_row("Coverage", Text(" ".join(view.coverage_notes)))
     console.print(head)
     root = _root(view)
     _print_items(console, "Findings", view.findings, TERMINAL_LIMITS["findings"], root, False)

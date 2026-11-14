@@ -244,7 +244,9 @@ def _render_rich_project(console, result) -> None:
             console.print()
     priority_hotspots = getattr(result, "priority_hotspots", [])
     if priority_hotspots:
-        hotspot_table = Table(title="Priority Hotspots", box=box.ROUNDED, header_style="bold cyan")
+        hotspot_table = Table(
+            title="Priority Hotspots (Python files)", box=box.ROUNDED, header_style="bold cyan"
+        )
         hotspot_table.add_column("File", style="bold")
         hotspot_table.add_column("Priority", justify="right")
         hotspot_table.add_column("Deficit", justify="right")

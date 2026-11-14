@@ -280,6 +280,26 @@ def _open_findings(result: Any) -> str:
     )
 
 
+def _start_with(result: Any) -> str:
+    """The file with the most severe findings, in any language: ranked by
+    finding counts (finding_summary.review_order), never by comparing the
+    scores of different languages."""
+    from slop_detector.finding_summary import review_order
+    from slop_detector.language_registry import all_file_results
+    from slop_detector.report_view import short_path
+
+    order = review_order(all_file_results(result))
+    if not order:
+        return ""
+    top, counts = order[0]
+    shown = ", ".join(f"{n} {name}" for name, n in counts.items() if n)
+    where = short_path(top.file_path, str(getattr(result, "project_path", "") or ""))
+    return (
+        f"Start with `{where}` ({shown} finding(s)); use `slop-detector review .` "
+        "to scope this to changed code only."
+    )
+
+
 def next_steps(result: Any) -> List[str]:
     """Deterministic, 1-3 actionable next steps based on the metrics.
 
@@ -339,7 +359,10 @@ def next_steps(result: Any) -> List[str]:
                 "then `slop-detector sweep dupes .` for duplicated logic."
             )
 
-    if hotspots:
+    start = _start_with(result)
+    if start:
+        steps.append(start)
+    elif hotspots:
         top = hotspots[0]
         steps.append(
             f"Start with `{Path(top.file_path).name}` (deficit "

@@ -288,6 +288,9 @@ def _md_priority_hotspots_section(result) -> list:
     lines = [
         "## Priority Hotspots",
         "",
+        "_Python files, by deficit, git churn and test coverage. Findings in every"
+        " language are ranked in Next Steps._",
+        "",
         f"- Churn data available: `{getattr(result, 'churn_analysis_available', False)}`",
         f"- Coverage data available: `{getattr(result, 'coverage_analysis_available', False)}`",
         "",

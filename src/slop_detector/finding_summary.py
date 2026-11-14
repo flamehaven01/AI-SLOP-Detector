@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, List, Tuple
 
 _SEVERITIES = ("critical", "high", "medium", "low")
 
@@ -44,3 +44,27 @@ def get_finding_summary(project_result: Any) -> Dict[str, Any]:
     from slop_detector.language_registry import all_file_results
 
     return build_finding_summary(all_file_results(project_result))
+
+
+def severity_counts(file_result: Any) -> Dict[str, int]:
+    """Finding counts of one file (any language) by severity."""
+    counts = {name: 0 for name in _SEVERITIES}
+    issues = getattr(file_result, "pattern_issues", getattr(file_result, "issues", [])) or []
+    for issue in issues:
+        counts[_issue_severity(issue)] += 1
+    return counts
+
+
+def review_order(file_results: Iterable[Any]) -> List[Tuple[Any, Dict[str, int]]]:
+    """Files with findings, the most severe first: by critical, then high,
+    medium and low counts, then path. It compares findings, not scores, so
+    files of different languages (scored differently) are ranked alike."""
+    rows = [(f, severity_counts(f)) for f in file_results]
+    rows = [(f, c) for f, c in rows if any(c.values())]
+    return sorted(
+        rows,
+        key=lambda row: (
+            *(-row[1][name] for name in _SEVERITIES),
+            str(getattr(row[0], "file_path", "")),
+        ),
+    )

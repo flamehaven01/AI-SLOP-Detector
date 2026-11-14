@@ -156,6 +156,13 @@ def test_the_toy_language_reaches_every_report(scanned):
     assert "toy_file_results" in scanned.to_dict()
 
 
+def test_the_next_step_starts_with_the_toy_file(scanned):
+    from slop_detector.renderer_glossary import next_steps
+
+    starts = [step for step in next_steps(scanned) if step.startswith("Start with")]
+    assert starts and starts[0].startswith("Start with `pkg/a.toy` (3 critical"), starts
+
+
 def test_the_markdown_coverage_table_counts_the_toy_language(scanned):
     from slop_detector.renderer_markdown import generate_markdown_report
 

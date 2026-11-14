@@ -149,6 +149,9 @@ class CIGate:
             f"analysis incomplete: {count} files could not be analyzed, "
             f"{partial} files partially measured"
         )
+        if verdict == GateVerdict.PASS:
+            # The thresholds passed, the gate does not: never say "Build PASSED" here.
+            message = "no analyzed file exceeds the quality thresholds"
         if self.mode == GateMode.HARD:
             return GateVerdict.FAIL, True, f"Build FAILED: {note} | {message}"
         if verdict == GateVerdict.PASS:
@@ -176,7 +179,7 @@ class CIGate:
         if self.mode == GateMode.QUARANTINE:
             self._save_quarantine_db()
         pr_comment = self._generate_pr_comment(
-            result, failed_files, warned_files, quarantined_files
+            result, failed_files, warned_files, quarantined_files, verdict=verdict, message=message
         )
         return GateResult(
             verdict=verdict,
@@ -230,7 +233,7 @@ class CIGate:
             else []
         )
         pr_comment = self._generate_pr_comment(
-            result, failed_files, warned_files, quarantined_files
+            result, failed_files, warned_files, quarantined_files, verdict=verdict, message=message
         )
         return GateResult(
             verdict=verdict,
@@ -415,8 +418,11 @@ class CIGate:
         failed_files: List[str],
         warned_files: List[str],
         quarantined_files: List[str],
+        verdict: Optional[GateVerdict] = None,
+        message: str = "",
     ) -> str:
-        """Generate PR comment with quality report."""
+        """Generate PR comment with quality report: the verdict and why, then the
+        files that could not be analyzed apart from those over a threshold."""
         lines = []
 
         # Header
@@ -426,6 +432,8 @@ class CIGate:
         # Mode indicator
         mode_emoji = {"soft": "[INFO]", "hard": "[GATE]", "quarantine": "[TRACK]"}
         lines.append(f"**Mode**: {mode_emoji.get(self.mode.value, '')} {self.mode.value.upper()}")
+        if verdict is not None:
+            lines.append(f"**Verdict**: {verdict.value.upper()} - {message}")
         lines.append("")
 
         # Summary
@@ -443,6 +451,8 @@ class CIGate:
             lines.append("### Summary")
             lines.append(f"- Suppressed Issues: {len(result.suppression_ledger)}")
             lines.append("")
+
+        lines.extend(_not_analyzed_section(getattr(result, "scan_coverage", None) or {}))
 
         # Failed files
         if failed_files:
@@ -488,3 +498,21 @@ class CIGate:
             lines.append("")
 
         return "\n".join(lines)
+
+
+def _not_analyzed_section(coverage: Dict[str, Any]) -> List[str]:
+    """The files whose analysis failed (an incomplete scan), with their
+    language and error: the reason a hard gate fails a scan that is not over
+    any threshold."""
+    failed = coverage.get("failed") or {}
+    total = failed.get("total", 0)
+    if not total:
+        return []
+    lines = [f"### [INCOMPLETE] {total} file(s) could not be analyzed (not scored)"]
+    for item in failed.get("files", [])[:10]:
+        lines.append(f"- `{item['path']}` ({item['language']}): {item['error_type']}")
+    shown = min(len(failed.get("files", [])), 10)
+    if total > shown:
+        lines.append(f"- ... and {total - shown} more (JSON scan_coverage.failed)")
+    lines.append("")
+    return lines
