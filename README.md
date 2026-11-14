@@ -86,12 +86,12 @@ AI-SLOP Detector is an **evidence-based static analyzer** that targets a defect 
 
 General linters flag style and convention. This tool flags structural risk.
 
-- **51 checks across Python, JS/TS and Go** (the [pattern registry](docs/PATTERNS.md)) — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
+- **55 checks across Python, JS/TS, Go and Rust** (the [pattern registry](docs/PATTERNS.md)) — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
 - **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
 - **Keeps local history** — every scan is recorded locally with what measured it (detector version, configuration, project root); `--self-calibrate` reports what the comparable runs of your project suggest for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml`.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
 - **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general; `general` when the evidence is weak) and sets that domain's pattern thresholds, printing every change; weights stay the defaults; override with `--domain`
-- **Python first, JS/TS and Go optional** — install the `[js]` or `[go]` extra to scan those files too
+- **Python first; JS/TS, Go and Rust too** — `.js`/`.ts`, `.go` and `.rs` files are scanned with every project; the `[js]`, `[go]` and `[rust]` extras add tree-sitter parsing (Python 3.10+)
 - **Drops into CI** — soft / hard / quarantine gates, GitHub Actions ready
 - **VS Code extension** — inline warnings as you type, score in the status bar
 
@@ -117,7 +117,7 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 
 - **You want style or formatting enforcement** — use ruff / black / ESLint. This tool ignores style on purpose.
 - **You need a runtime correctness guarantee** — a low score means cleaner structure, not that the code works. Keep your tests.
-- **Your code isn't Python, JS/TS, or Go** — other languages aren't analyzed yet.
+- **Your code isn't Python, JS/TS, Go or Rust** — other languages aren't analyzed yet.
 - **You expect thresholds tuned to your repository** — weights are the defaults or the values in your `.slopconfig.yaml`; nothing tunes them automatically. Treat findings as leads, not verdicts.
 
 ---
@@ -161,9 +161,10 @@ slop-detector --project . --include-tests # include only default-excluded test f
 slop-detector --project . --json --output slop.json   # machine-readable output (Windows-safe)
 slop-detector --project . --ci-mode hard --ci-report  # CI gate
 
-# Optional extras
+# Optional extras: tree-sitter parsing, Python 3.10+ (tree-sitter needs it)
 pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
 pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
+pip install "ai-slop-detector[rust]"     # Rust tree-sitter analysis (installs nothing on 3.8/3.9)
 
 # npm wrapper (delegates to the Python CLI). With no Python backend installed
 # it runs the PyPI release of the same version through uvx or pipx.
@@ -383,8 +384,8 @@ Adoption and observability surfaces are intentionally separate from scoring:
 
 - This repository measures static code and documentation signals. It does not prove runtime correctness.
 - The default scoring path is deterministic; it does not require an LLM or external API.
-- JS/TS and Go support are optional extras with language-specific analyzers and fallbacks.
-- Optional Rust acceleration is available for file discovery and glob matching when a compiled `rust/slop_scan` helper is present; otherwise the Python walker remains the fallback.
+- JS/TS, Go and Rust files are analyzed by language-specific analyzers; the `[js]`, `[go]` and `[rust]` extras add tree-sitter parsing and need Python 3.10+. Without them a fallback reader is used, and `scan_coverage.analysis_modes` lists any check it cannot measure (the JS/TS fallback: god functions, dead code, complexity).
+- Separately from Rust *analysis*, optional Rust acceleration is available for file discovery and glob matching when a compiled `rust/slop_scan` helper is present; otherwise the Python walker remains the fallback.
 - Narrow framework-aware masking is enabled for test boilerplate (pytest no-op hooks, test-harness console/no-op hooks in JS/TS) and never masks `critical` findings.
 - A low deficit score is evidence of cleaner structure, not a guarantee that the code is complete or safe.
 
@@ -596,6 +597,8 @@ pip install "ai-slop-detector[js]"
 slop-detector --project ./src         # now includes .js/.jsx/.ts/.tsx files
 ```
 Activates JSAnalyzer v2.8.0 with tree-sitter AST (regex fallback when not installed).
+The extra needs Python 3.10+ (tree-sitter does); on 3.8/3.9 it does not install
+and the regex fallback is used.
 Results appear under `js_file_results` in `ProjectAnalysis` and JSON output.
 The regex fallback cannot measure god functions, dead code or complexity;
 `scan_coverage.analysis_modes` lists those checks as `not_measured`, and the
@@ -611,6 +614,22 @@ slop-detector --project ./src         # now includes .go files
 Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error handling,
 `fmt.Println/Printf` debug prints, `_ =` ignored errors, TODO/FIXME comments, god functions
 (> 60 lines). Results appear under `go_file_results` in JSON output.
+The extra needs Python 3.10+ (tree-sitter does); without it the regex reader is used.
+
+---
+
+**Rust Analysis** — token scanner, optional tree-sitter-rust path
+```bash
+pip install "ai-slop-detector[rust]"   # tree-sitter on Python 3.10+; installs nothing on 3.8/3.9
+slop-detector --project ./src         # includes .rs files with or without the extra
+```
+Reports, outside test code: `todo!()` and `unimplemented!()` calls (high: they panic when
+reached), `dbg!()` calls (medium) and TODO/FIXME/HACK/XXX comments (low, reported, not
+scored). Calls inside strings, comments and `macro_rules!` bodies are not calls; items under
+`#[cfg(test)]`, `#[test]` or an attribute ending in `::test` are test code. The token scanner
+measures every Rust rule, so results are the same with or without the extra
+(`analysis_modes` says which reader ran). Cargo's `target/` is skipped for Rust files and
+listed as excluded in scan coverage. Results appear under `rust_file_results`.
 
 ---
 
@@ -778,8 +797,8 @@ repos:
 ```bash
 --ci-mode soft        # informational, never fails build
 --ci-mode hard        # fails: deficit_score >= 70, critical_patterns >= 3, inflation >= 1.5, ddc < 0.5
-                      # (every analyzed file: Python, JS/TS and Go; JS/TS and Go have no
-                      #  inflation or DDC metric, so only their score and findings are judged)
+                      # (every analyzed file: Python, JS/TS, Go and Rust; the other languages
+                      #  have no inflation or DDC metric, so only their score and findings are judged)
 --ci-mode quarantine  # escalates repeat offenders after 3 violations
 ```
 

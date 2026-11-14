@@ -25,8 +25,9 @@ Python core:
 
 ```bash
 pip install ai-slop-detector
-pip install "ai-slop-detector[js]"   # optional JS/TS support
-pip install "ai-slop-detector[go]"   # optional Go support
+pip install "ai-slop-detector[js]"   # optional JS/TS tree-sitter parsing (Python 3.10+)
+pip install "ai-slop-detector[go]"   # optional Go tree-sitter parsing (Python 3.10+)
+pip install "ai-slop-detector[rust]" # optional Rust tree-sitter parsing (Python 3.10+; .rs files are scanned without it)
 ```
 
 Optional Node-first wrapper:

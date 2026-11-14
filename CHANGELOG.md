@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+Rust files are analyzed. JS/TS and Go file rows in the HTML and Markdown
+reports show their score.
+
+### Changes you see when upgrading
+
+- A project with `.rs` files gets Rust findings. They count toward the project
+  score and are judged by `--ci-mode` like JS/TS and Go files, so the gate's
+  decision can change for such a project.
+- JSON, REST and the npm types gain `rust_file_results`;
+  `scan_coverage.analyzed` and `scan_coverage.analysis_modes` gain `rust`
+  (additive keys).
+- The Markdown report's Scan Coverage table has one column per analyzed
+  language (a Rust column is added).
+
+### Added
+
+- Rust analysis. Rules, outside test code: `rust_todo_macro` and
+  `rust_unimplemented_macro` (high: the call panics when reached),
+  `rust_dbg_macro` (medium), `rust_todo_comment` (TODO/FIXME/HACK/XXX, low,
+  reported, not scored); each finding carries a fix. Calls inside strings,
+  comments and `macro_rules!` bodies are not calls; items under
+  `#[cfg(test)]`, `#[test]` or an attribute ending in `::test` are test code.
+  A token scanner (any Python) measures every rule; the `[rust]` extra adds
+  tree-sitter-rust on Python 3.10+ and installs nothing on 3.8/3.9. Both
+  readers report the same findings. Cargo's `target/` is skipped for Rust
+  files only and listed as excluded in scan coverage. A `.rs` file neither
+  reader can read is a failed file in scan coverage.
+- VS Code extension: activates on and analyzes `.rs` files.
+
+### Fixed
+
+- `report.html` and `report.md` listed JS/TS and Go files with score `N/A`
+  although their score counts toward the project score; they show it now.
+- VS Code extension: `.jsx` and `.tsx` files were not analyzed in the editor
+  (its file filter knew `.js` and `.ts` only, and it did not activate on the
+  `javascriptreact` / `typescriptreact` language ids), although project scans
+  analyze them. The extension now keeps one language list that a test checks
+  against the backend's languages.
+
+### Documentation
+
+- The `[js]` and `[go]` extras need Python 3.10+ (tree-sitter 0.25 requires
+  it); on 3.8/3.9 they do not install and the fallback readers are used,
+  with the checks they cannot measure listed in
+  `scan_coverage.analysis_modes`. Earlier text said 3.9.
+- `docs/ADDING_A_LANGUAGE.md`: how a language is added and what the tests
+  enforce.
+
+---
+
 ## [3.15.2] - 2026-11-13
 
 The CI gate judges JS/TS and Go files. Findings, scores and the analysis are

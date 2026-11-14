@@ -24,7 +24,7 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
 Every rule the detectors currently report. This table is the current-state contract:
 `tests/test_patterns_doc_consistency.py` checks it against the Python pattern registry,
-the ids the Python patterns emit, the JS/TS and Go analyzers, and the autofix registry.
+the ids the Python patterns emit, the JS/TS, Go and Rust analyzers, and the autofix registry.
 Severity shows the default first; other severities a rule can emit follow it.
 The detailed sections below explain the main rules and may not cover every id.
 
@@ -82,6 +82,10 @@ The detailed sections below explain the main rules and may not cover every id.
 | `go_ignored_error` | Go | High | Go | No | Blank-identifier error suppression (`_ = expr`) |
 | `go_todo_comment` | Go | Low | Go | No | `// TODO` / `FIXME` / `HACK` comment |
 | `go_god_function` | Go | High | Go | No | Function over the line limit |
+| `rust_todo_macro` | Rust | High | Rust | No | `todo!()` call outside test code: panics when reached |
+| `rust_unimplemented_macro` | Rust | High | Rust | No | `unimplemented!()` call outside test code: panics when reached |
+| `rust_dbg_macro` | Rust | Medium | Rust | No | `dbg!()` debug print outside test code |
+| `rust_todo_comment` | Rust | Low | Rust | No | `TODO` / `FIXME` / `HACK` / `XXX` comment outside test code |
 <!-- ACTIVE_PATTERN_REGISTRY:END -->
 
 ---

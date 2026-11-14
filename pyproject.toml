@@ -38,13 +38,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# JS/TS AST analysis (tree-sitter 0.25+ requires Python >=3.9)
+# JS/TS AST analysis (tree-sitter 0.25+ requires Python >=3.10)
 js = [
     "tree-sitter>=0.25.0",
     "tree-sitter-javascript>=0.23.0",
     "tree-sitter-typescript>=0.23.0",
 ]
-# Go AST analysis (tree-sitter-go, optional)
+# Go AST analysis (tree-sitter-go, optional; tree-sitter 0.25+ requires Python >=3.10)
 go = [
     "tree-sitter>=0.25.0",
     "tree-sitter-go>=0.23.0",

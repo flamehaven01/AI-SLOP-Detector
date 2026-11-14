@@ -115,6 +115,28 @@ jobs:
       - name: Run Go analyzer tests
         run: pytest tests/test_go_analyzer.py -v
 
+  test-rust:
+    name: Rust Analyzer (tree-sitter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies with Rust extras
+        run: pip install -e ".[dev,rust]"
+
+      # The matrix runs without extras (token scanner only); here the
+      # tree-sitter reader and the two-reader parity tests must run, not skip.
+      - name: Run Rust analyzer tests (must not skip)
+        run: |
+          set -o pipefail
+          pytest tests/test_rust_analyzer.py -v -rs --no-cov -p no:cacheprovider | tee rust_tests.txt
+          if grep -q SKIPPED rust_tests.txt; then echo "Rust tree-sitter tests were skipped"; exit 1; fi
+
   rust-accelerator:
     name: Rust Accelerator
     runs-on: ubuntu-latest

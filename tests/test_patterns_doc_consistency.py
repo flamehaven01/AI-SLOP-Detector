@@ -9,6 +9,8 @@ Authorities, kept apart per surface:
           directly with Issue(pattern_id=...), and autofix._PATCHERS
   JS/TS   JSIssue(...) calls in languages/js_analyzer.py
   Go      GoIssue(...) calls in languages/go_analyzer.py
+  Rust    the _RULES table and _COMMENT_RULE of languages/rust_analyzer.py
+Every registered language (language_registry) must have an authority here.
 
 A severity cell starts with the default severity; other severities a rule can
 emit are written after it. Where an emit site's severity is a variable, every
@@ -23,6 +25,7 @@ from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
 import slop_detector.patterns as patterns_pkg
+from slop_detector import language_registry
 from slop_detector.autofix.engine import _PATCHERS, FixEngine
 from slop_detector.patterns import get_all_patterns
 
@@ -103,11 +106,29 @@ def _analyzer_rules(module: str, issue_class: str, language: str) -> Dict[str, R
     return rules
 
 
+def _rust_rules() -> Dict[str, Rule]:
+    from slop_detector.languages import rust_analyzer
+
+    table = list(rust_analyzer._RULES.values()) + [rust_analyzer._COMMENT_RULE]
+    return {pid: ("Rust", {severity}, severity) for pid, severity, *_ in table}
+
+
+ADAPTER_AUTHORITIES = {
+    "javascript": lambda: _analyzer_rules("js_analyzer.py", "JSIssue", "JS/TS"),
+    "go": lambda: _analyzer_rules("go_analyzer.py", "GoIssue", "Go"),
+    "rust": _rust_rules,
+}
+
+
 def _authority() -> Dict[str, Rule]:
     rules = _python_rules()
-    rules.update(_analyzer_rules("js_analyzer.py", "JSIssue", "JS/TS"))
-    rules.update(_analyzer_rules("go_analyzer.py", "GoIssue", "Go"))
+    for read in ADAPTER_AUTHORITIES.values():
+        rules.update(read())
     return rules
+
+
+def test_every_registered_language_has_an_authority():
+    assert sorted(ADAPTER_AUTHORITIES) == sorted(a.name for a in language_registry.languages())
 
 
 def test_every_active_id_is_documented_once_and_nothing_stale():
