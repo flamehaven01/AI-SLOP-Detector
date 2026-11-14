@@ -221,13 +221,16 @@ class SlopDetector:
                        nearest project marker is the root (slop_detector.path_facts).
 
         Raises:
-            UnsupportedLanguageError: the file is JS/TS or Go source; parsing it as
-                Python would score a parse error (use analyze_js_file / analyze_go_file).
+            UnsupportedLanguageError: the file is source of a registered language
+                adapter (JS/TS, Go, Rust, ...); parsing it as Python would score a
+                parse error (use analyze_language_file or analyze_project).
         """
-        if registry.spec_for_suffix(Path(file_path).suffix) is not None:
+        adapter = registry.spec_for_suffix(Path(file_path).suffix)
+        if adapter is not None:
             raise UnsupportedLanguageError(
-                f"{file_path} is not Python source; use analyze_js_file, "
-                "analyze_go_file or analyze_project"
+                f"{file_path} is not Python source ({adapter.label}); use "
+                f"analyze_language_file(language_registry.spec({adapter.name!r}), path) "
+                "or analyze_project"
             )
         with project_context_scope(), scan_root_scope(Path(root) if root else None):
             return self._analyze_file(file_path, root)

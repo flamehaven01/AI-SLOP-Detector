@@ -139,7 +139,7 @@ code --install-extension vscode-slop-detector-<version>.vsix
 ```bash
 pip install ai-slop-detector          # core
 pip install "ai-slop-detector[js]"    # + JS/TS tree-sitter patterns (Python 3.10+)
-pip install "ai-slop-detector[go]"    # + Go tree-sitter parsing (Python 3.10+)
+pip install "ai-slop-detector[go]"    # tree-sitter-go (Python 3.10+); Go is read by regex either way
 pip install "ai-slop-detector[rust]"  # + Rust tree-sitter parsing (Python 3.10+)
 pip install "ai-slop-detector[full]"  # JS/TS extra + REST API dependencies (Python 3.10+)
 ```
@@ -224,7 +224,7 @@ over 10), `dead_code`, `deep_nesting`, `empty_except`, `interface_only_class`,
 **Cross-language**: `js_var_usage`, `js_console_log`, `ruby_array_each`,
 `go_print_format`
 
-**Go** (`ai-slop-detector[go]`): `go_empty_func`, `go_panic`, `go_fmt_print`,
+**Go** (`.go`, any install): `go_empty_func`, `go_panic`, `go_fmt_print`,
 `go_ignored_error`, `go_todo_comment`, `go_god_function`
 
 **Rust** (`.rs`, any install; `ai-slop-detector[rust]` adds tree-sitter): `rust_todo_macro`,

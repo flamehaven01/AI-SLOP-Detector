@@ -167,6 +167,29 @@ jobs:
           SLOP_RUST_SCAN_BIN: ${{ github.workspace }}/rust/slop_scan/target/release/slop_scan
         run: pytest tests/test_rust_scan.py -v
 
+  vscode-extension:
+    name: VS Code Extension (type check, bundle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install extension dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Type check
+        working-directory: vscode-extension
+        run: npm run check
+
+      - name: Bundle
+        working-directory: vscode-extension
+        run: npm run bundle
+
   npm-wrapper:
     name: NPM Thin Wrapper
     runs-on: ubuntu-latest

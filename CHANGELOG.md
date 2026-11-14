@@ -51,9 +51,14 @@ reports show their score.
 ### Documentation
 
 - The `[js]` and `[go]` extras need Python 3.10+ (tree-sitter 0.25 requires
-  it); on 3.8/3.9 they do not install and the fallback readers are used,
-  with the checks they cannot measure listed in
-  `scan_coverage.analysis_modes`. Earlier text said 3.9.
+  it); on 3.8/3.9 the install command fails to resolve and installs nothing,
+  and the base package reads those files with its fallback readers (the
+  checks a fallback cannot measure are listed in
+  `scan_coverage.analysis_modes`). Earlier text said 3.9.
+- Go: the analyzer reads every file with its regex reader; `[go]` installs
+  tree-sitter-go, which the analyzer does not use yet. The docs no longer
+  describe Go as tree-sitter analysis. With `[go]` installed, `ast_mode` and
+  `analysis_modes.go.mode` still say tree-sitter (a known labeling defect).
 - `docs/ADDING_A_LANGUAGE.md`: how a language is added and what the tests
   enforce.
 

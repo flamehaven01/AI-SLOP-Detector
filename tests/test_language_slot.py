@@ -271,8 +271,13 @@ def test_a_single_toy_file_is_scanned_as_its_own_language(toy, tmp_path):
     assert result.scan_coverage["analyzed"]["toy"] == 1
     import pytest as _pytest
 
-    with _pytest.raises(Exception, match="not Python source"):
+    with _pytest.raises(Exception, match="not Python source") as raised:
         SlopDetector(read_only=True).analyze_file(str(path))
+    # The advice names the language and an API that analyzes it, not another
+    # language's function.
+    message = str(raised.value)
+    assert "Toy" in message and "analyze_language_file" in message, message
+    assert "analyze_js_file" not in message and "analyze_go_file" not in message, message
 
 
 def test_the_toy_language_reaches_the_rest_response(scanned):

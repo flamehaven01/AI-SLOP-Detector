@@ -91,7 +91,7 @@ General linters flag style and convention. This tool flags structural risk.
 - **Keeps local history** — every scan is recorded locally with what measured it (detector version, configuration, project root); `--self-calibrate` reports what the comparable runs of your project suggest for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml`.
 - **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
 - **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general; `general` when the evidence is weak) and sets that domain's pattern thresholds, printing every change; weights stay the defaults; override with `--domain`
-- **Python first; JS/TS, Go and Rust too** — `.js`/`.ts`, `.go` and `.rs` files are scanned with every project; the `[js]`, `[go]` and `[rust]` extras add tree-sitter parsing (Python 3.10+)
+- **Python first; JS/TS, Go and Rust too** — `.js`/`.ts`, `.go` and `.rs` files are scanned by the base install; the `[js]` and `[rust]` extras add tree-sitter parsing (Python 3.10+), Go is read by its regex reader either way
 - **Drops into CI** — soft / hard / quarantine gates, GitHub Actions ready
 - **VS Code extension** — inline warnings as you type, score in the status bar
 
@@ -161,9 +161,11 @@ slop-detector --project . --include-tests # include only default-excluded test f
 slop-detector --project . --json --output slop.json   # machine-readable output (Windows-safe)
 slop-detector --project . --ci-mode hard --ci-report  # CI gate
 
-# Optional extras: tree-sitter parsing, Python 3.10+ (tree-sitter needs it)
+# Optional extras, Python 3.10+ (tree-sitter needs it). On 3.8/3.9 the [js] and [go]
+# commands fail to resolve and install nothing: install the base package, which
+# reads those files with its fallback readers.
 pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
-pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
+pip install "ai-slop-detector[go]"       # installs tree-sitter-go; the Go analyzer does not use it yet
 pip install "ai-slop-detector[rust]"     # Rust tree-sitter analysis (installs nothing on 3.8/3.9)
 
 # npm wrapper (delegates to the Python CLI). With no Python backend installed
@@ -384,7 +386,7 @@ Adoption and observability surfaces are intentionally separate from scoring:
 
 - This repository measures static code and documentation signals. It does not prove runtime correctness.
 - The default scoring path is deterministic; it does not require an LLM or external API.
-- JS/TS, Go and Rust files are analyzed by language-specific analyzers; the `[js]`, `[go]` and `[rust]` extras add tree-sitter parsing and need Python 3.10+. Without them a fallback reader is used, and `scan_coverage.analysis_modes` lists any check it cannot measure (the JS/TS fallback: god functions, dead code, complexity).
+- JS/TS, Go and Rust files are analyzed by the base install with language-specific analyzers. The `[js]` and `[rust]` extras add tree-sitter parsing and need Python 3.10+; on 3.8/3.9 `[js]` fails to resolve (nothing is installed) and `[rust]` installs nothing, and the base package's fallback readers are used. `scan_coverage.analysis_modes` lists any check a fallback cannot measure (the JS/TS fallback: god functions, dead code, complexity; the Go and Rust readers measure all their rules). The Go analyzer reads every file with its regex reader, also when `[go]` is installed.
 - Separately from Rust *analysis*, optional Rust acceleration is available for file discovery and glob matching when a compiled `rust/slop_scan` helper is present; otherwise the Python walker remains the fallback.
 - Narrow framework-aware masking is enabled for test boilerplate (pytest no-op hooks, test-harness console/no-op hooks in JS/TS) and never masks `critical` findings.
 - A low deficit score is evidence of cleaner structure, not a guarantee that the code is complete or safe.
@@ -597,8 +599,8 @@ pip install "ai-slop-detector[js]"
 slop-detector --project ./src         # now includes .js/.jsx/.ts/.tsx files
 ```
 Activates JSAnalyzer v2.8.0 with tree-sitter AST (regex fallback when not installed).
-The extra needs Python 3.10+ (tree-sitter does); on 3.8/3.9 it does not install
-and the regex fallback is used.
+The extra needs Python 3.10+ (tree-sitter does): on 3.8/3.9 the command fails to
+resolve and installs nothing; the base package then reads JS/TS with the regex fallback.
 Results appear under `js_file_results` in `ProjectAnalysis` and JSON output.
 The regex fallback cannot measure god functions, dead code or complexity;
 `scan_coverage.analysis_modes` lists those checks as `not_measured`, and the
@@ -606,15 +608,18 @@ text, rich and markdown reports say so in one line.
 
 ---
 
-**Go Analysis** — regex-based, optional tree-sitter-go path
+**Go Analysis** — regex-based
 ```bash
-pip install "ai-slop-detector[go]"
-slop-detector --project ./src         # now includes .go files
+slop-detector --project ./src         # includes .go files with the base install
 ```
 Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error handling,
 `fmt.Println/Printf` debug prints, `_ =` ignored errors, TODO/FIXME comments, god functions
 (> 60 lines). Results appear under `go_file_results` in JSON output.
-The extra needs Python 3.10+ (tree-sitter does); without it the regex reader is used.
+Every Go file is read by the regex reader, which measures every Go rule. The `[go]`
+extra (Python 3.10+) installs tree-sitter-go, but the analyzer does not parse with it
+yet: with it installed, results are the same, and `ast_mode` /
+`analysis_modes.go.mode` say tree-sitter although the regex reader ran (a known
+labeling defect).
 
 ---
 
