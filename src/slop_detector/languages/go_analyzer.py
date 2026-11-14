@@ -30,6 +30,7 @@ from typing import Any, Dict, List, Optional
 
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_identity import bind_lines, read_source
+from slop_detector.languages.code_view import code_lines
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +186,10 @@ class GoAnalyzer:
         brace_depth = 0
         func_lines_list: List[int] = []
 
+        # Code rules judge code: string and comment text is blanked (code_view);
+        # comment rules and function boundaries read the line itself.
+        view = code_lines(content, "go")
+
         for i, raw in enumerate(lines, start=1):
             line = raw
 
@@ -254,7 +259,8 @@ class GoAnalyzer:
                     brace_depth = 0
 
             # Pattern checks on code lines
-            if _RE_FMT_PRINT.search(line):
+            text = view[i - 1]
+            if _RE_FMT_PRINT.search(text):
                 fmt_print += 1
                 issues.append(
                     GoIssue(
@@ -266,7 +272,7 @@ class GoAnalyzer:
                     )
                 )
 
-            if _RE_PANIC.search(line):
+            if _RE_PANIC.search(text):
                 panic += 1
                 severity = "critical" if panic >= PANIC_SEVERITY_THRESHOLD else "medium"
                 issues.append(
@@ -279,7 +285,7 @@ class GoAnalyzer:
                     )
                 )
 
-            if _RE_IGNORED_ERR.search(line):
+            if _RE_IGNORED_ERR.search(text):
                 ignored_err += 1
                 issues.append(
                     GoIssue(
