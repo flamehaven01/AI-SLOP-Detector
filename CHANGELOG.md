@@ -86,6 +86,11 @@ reports show their score.
 - The Markdown work order's `target:` was empty for `--project .`.
 - The headline score of a project said only "(score band)"; it says it is
   weighted by lines of code.
+- A long-lived process (MCP server, watch mode) could miss a package
+  installed or uninstalled right after its last look at the environment: a
+  search-path directory was identified by its mtime, which a second change in
+  the same tick keeps. A directory changed in the last two seconds is now also
+  identified by its listing.
 - `SlopDetector.analyze_file` (and the REST and MCP single-file paths) told
   the caller of a JS/TS, Go or Rust file to use `analyze_js_file` or
   `analyze_go_file`; it names the language and
