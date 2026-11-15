@@ -30,7 +30,7 @@ from typing import Any, Dict, List, Optional
 
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_identity import bind_lines, read_source
-from slop_detector.languages.code_view import code_lines
+from slop_detector.languages.code_view import views
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +52,6 @@ PANIC_SEVERITY_THRESHOLD = 3  # panics >= this → critical
 # ---------------------------------------------------------------------------
 
 _RE_BLANK = re.compile(r"^\s*$")
-_RE_COMMENT = re.compile(r"^\s*//")
-_RE_BLOCK_COMMENT_OPEN = re.compile(r"/\*")
-_RE_BLOCK_COMMENT_CLOSE = re.compile(r"\*/")
 _RE_FUNC_START = re.compile(r"^\s*func\s+(\([^)]*\)\s+)?(\w+)\s*\(")
 _RE_EMPTY_FUNC = re.compile(r"^\s*func\s+[^{]+\{\s*\}")
 _RE_FMT_PRINT = re.compile(r"\bfmt\.(Print|Println|Printf|Fprintf|Fprintln)\s*\(")
@@ -181,36 +178,30 @@ class GoAnalyzer:
         empty_func = panic = fmt_print = ignored_err = 0
 
         # Function-boundary tracking
-        in_block_comment = False
         func_start_line: Optional[int] = None
         brace_depth = 0
         func_lines_list: List[int] = []
 
-        # Code rules judge code: string and comment text is blanked (code_view);
-        # comment rules and function boundaries read the line itself.
-        view = code_lines(content, "go")
+        # Lines are read through code_view: the code view (string and comment text
+        # blanked) for code rules, empty functions and function bounds; the comment
+        # view (only comment text) for comment lines and TODO markers. Text in a
+        # string is neither code nor a comment.
+        view, notes, ends_in_comment = views(content, "go")
 
         for i, raw in enumerate(lines, start=1):
             line = raw
-
-            # Block comment tracking
-            if in_block_comment:
-                comment += 1
-                if _RE_BLOCK_COMMENT_CLOSE.search(line):
-                    in_block_comment = False
-                continue
-            if _RE_BLOCK_COMMENT_OPEN.search(line) and not _RE_COMMENT.match(line):
-                in_block_comment = True
-                comment += 1
-                continue
+            text, note = view[i - 1], notes[i - 1]
 
             if _RE_BLANK.match(line):
-                blank += 1
+                if ends_in_comment[i - 1]:  # a blank line inside a block comment
+                    comment += 1
+                else:
+                    blank += 1
                 continue
-            if _RE_COMMENT.match(line):
+            if not text.strip() and note.strip():
                 comment += 1
-                # TODO/FIXME in comment
-                if _RE_TODO.search(line):
+                # TODO/FIXME in a // comment
+                if _RE_TODO.search(note):
                     issues.append(
                         GoIssue(
                             "go_todo_comment",
@@ -223,7 +214,7 @@ class GoAnalyzer:
                 continue
 
             # Single-line empty func: func foo() {}
-            if _RE_EMPTY_FUNC.match(line):
+            if _RE_EMPTY_FUNC.match(text):
                 empty_func += 1
                 issues.append(
                     GoIssue(
@@ -236,12 +227,12 @@ class GoAnalyzer:
                 )
 
             # Function start for multi-line tracking
-            if _RE_FUNC_START.match(line) and "{" in line and not _RE_EMPTY_FUNC.match(line):
+            if _RE_FUNC_START.match(text) and "{" in text and not _RE_EMPTY_FUNC.match(text):
                 func_start_line = i
-                brace_depth = line.count("{") - line.count("}")
+                brace_depth = text.count("{") - text.count("}")
 
             elif func_start_line is not None:
-                brace_depth += line.count("{") - line.count("}")
+                brace_depth += text.count("{") - text.count("}")
                 if brace_depth <= 0:
                     func_len = i - func_start_line + 1
                     func_lines_list.append(func_len)
@@ -259,7 +250,6 @@ class GoAnalyzer:
                     brace_depth = 0
 
             # Pattern checks on code lines
-            text = view[i - 1]
             if _RE_FMT_PRINT.search(text):
                 fmt_print += 1
                 issues.append(

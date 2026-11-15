@@ -146,3 +146,59 @@ def test_the_view_blanks_text_and_keeps_code_and_positions():
     comment = "/* console.log(q) it's */"
     assert view == ["a = 1; " + " " * len(comment) + " b = 2", 'c = " " + y']
     assert [len(v) for v in view] == [len(line) for line in source.splitlines()]
+
+
+# --- Go line structure (DF_S2 2026-11-15: DF-S2-GO-RAW-EMPTY-001 and neighbours) ---
+# Empty functions, function bounds and comment lines were read from the raw line:
+# text in a raw string made a function and a comment, braces in a string ended
+# a function early, and a one-line /* */ after code made every later line a comment.
+
+
+def _go(tmp_path, text):
+    path = tmp_path / "s.go"
+    path.write_text(text, encoding="utf-8")
+    return GoAnalyzer().analyze(str(path))
+
+
+def _rules(result):
+    return [(i.pattern_id, i.line) for i in result.issues]
+
+
+def test_a_go_function_written_in_a_raw_string_is_not_a_function(tmp_path):
+    text = "package p\n\nfunc doc() string {\n    return `x\nfunc emptyRecovery() {}`\n}\n\nfunc real() {}\n"
+    assert _rules(_go(tmp_path, text)) == [("go_empty_func", 8)]
+
+
+def test_a_todo_written_in_a_raw_string_is_not_a_comment(tmp_path):
+    text = "package p\n\n// TODO: a real marker\nfunc doc() string {\n    return `x\n// TODO: text\nend`\n}\n"
+    result = _go(tmp_path, text)
+    assert _rules(result) == [("go_todo_comment", 3)]
+    assert result.comment_lines == 1
+
+
+def test_braces_in_a_string_do_not_end_a_go_function(tmp_path):
+    text = (
+        'package p\n\nfunc f() string {\n    s := "}}}}"\n'
+        + "    x := 1\n" * 70
+        + "    return s\n}\n"
+    )
+    assert _rules(_go(tmp_path, text)) == [("go_god_function", 3)]
+
+
+def test_a_one_line_block_comment_after_code_ends_on_its_line(tmp_path):
+    text = "package p\n\nfunc f() {\n    x := 1 /* note */\n    panic(x)\n}\n\nfunc g() {}\n"
+    result = _go(tmp_path, text)
+    assert _rules(result) == [("go_panic", 5), ("go_empty_func", 8)]
+    assert result.comment_lines == 0
+
+
+def test_a_blank_line_inside_a_go_block_comment_is_a_comment_line(tmp_path):
+    text = "package p\n\n/*\nLicense text\n\nmore text\n*/\nfunc f() int {\n    return 1\n}\n"
+    result = _go(tmp_path, text)
+    assert (result.comment_lines, result.blank_lines) == (5, 1), result
+
+
+def test_a_function_start_in_a_raw_string_does_not_restart_the_function(tmp_path):
+    body = "    x := 1\n" * 30 + "    s := `\nfunc fake() {\n`\n" + "    x := 2\n" * 36
+    text = "package p\n\nfunc f() string {\n" + body + "    return s\n}\n"
+    assert _rules(_go(tmp_path, text)) == [("go_god_function", 3)]

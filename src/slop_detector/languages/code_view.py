@@ -10,12 +10,14 @@ Read as text (not code):
       code), /.../ regular expression literals, // and /* */ comments
   go  "..." strings, `...` raw strings, '...' runes, // and /* */ comments
 
-Rules about comments (TODO markers) read the source itself, not this view.
+`views` also returns the comment view: only the text of comments kept, code
+and string text blanked, for rules and line counts about comments (a TODO
+marker, a comment line) that must not read text inside a string.
 """
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 # Characters str.splitlines() breaks on: kept so the view splits the same way.
 _BREAKS = frozenset("\n\r\x0b\x0c\x1c\x1d\x1e") | {chr(0x85), chr(0x2028), chr(0x2029)}
@@ -42,7 +44,23 @@ _REGEX_KEYWORDS = frozenset(
 
 def code_lines(content: str, dialect: str) -> List[str]:
     """The lines of `content` with string and comment text blanked (see module)."""
-    return _Scanner(content, dialect).run().splitlines()
+    return views(content, dialect)[0]
+
+
+def views(content: str, dialect: str) -> Tuple[List[str], List[str], List[bool]]:
+    """(code view, comment view, in a comment) of `content`, by line: the last
+    says whether the line ends inside a block comment (a blank line within one
+    is part of the comment)."""
+    scanner = _Scanner(content, dialect)
+    code = scanner.run()
+    comments = "".join(
+        c if scanner.in_comment[k] or c in _BREAKS else " " for k, c in enumerate(content)
+    )
+    ends_in_comment, offset = [], 0
+    for line in content.splitlines(keepends=True):
+        offset += len(line)
+        ends_in_comment.append(line[-1:] in _BREAKS and scanner.in_comment[offset - 1])
+    return code.splitlines(), comments.splitlines(), ends_in_comment
 
 
 class _Scanner:
@@ -53,11 +71,17 @@ class _Scanner:
         self.templates: List[int] = []  # open ${ in a JS template: brace depth inside it
         self.prev = ""  # the last code character that is not a space ("a" after a word)
         self.word = ""  # the last word, when prev is "a"
+        self.in_comment = [False] * len(content)  # characters of a comment
 
     def blank(self, start: int, end: int) -> None:
         for k in range(start, min(end, len(self.out))):
             if self.out[k] not in _BREAKS:
                 self.out[k] = " "
+
+    def comment(self, start: int, end: int) -> None:
+        self.blank(start, end)
+        for k in range(start, min(end, len(self.in_comment))):
+            self.in_comment[k] = True
 
     def run(self) -> str:
         i, n = 0, len(self.src)
@@ -70,12 +94,12 @@ class _Scanner:
         if src.startswith("//", i):
             end = src.find("\n", i)
             end = len(src) if end < 0 else end
-            self.blank(i, end)
+            self.comment(i, end)
             return end
         if src.startswith("/*", i):
             end = src.find("*/", i + 2)
             end = len(src) if end < 0 else end + 2
-            self.blank(i, end)
+            self.comment(i, end)
             return end
         if c in "\"'":
             return self.quoted(i, c)
