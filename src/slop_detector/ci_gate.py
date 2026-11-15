@@ -458,7 +458,7 @@ class CIGate:
         if failed_files:
             lines.append("### [CRITICAL] Failed Quality Checks")
             for file_path in failed_files[:10]:  # Limit to 10
-                file_name = Path(file_path).name
+                file_name = _shown_path(file_path, result)
                 lines.append(f"- `{file_name}`: Exceeds critical thresholds")
             if len(failed_files) > 10:
                 lines.append(f"- ... and {len(failed_files) - 10} more")
@@ -468,7 +468,7 @@ class CIGate:
         if quarantined_files:
             lines.append("### [TRACKING] Quarantined Files")
             for file_path in quarantined_files:
-                file_name = Path(file_path).name
+                file_name = _shown_path(file_path, result)
                 if file_path in self.quarantine_records:
                     record = self.quarantine_records[file_path]
                     lines.append(
@@ -483,7 +483,7 @@ class CIGate:
         if warned_files:
             lines.append("### [WARNING] Quality Issues")
             for file_path in warned_files[:5]:  # Limit to 5
-                file_name = Path(file_path).name
+                file_name = _shown_path(file_path, result)
                 lines.append(f"- `{file_name}`: Quality concerns detected")
             if len(warned_files) > 5:
                 lines.append(f"- ... and {len(warned_files) - 5} more")
@@ -516,3 +516,12 @@ def _not_analyzed_section(coverage: Dict[str, Any]) -> List[str]:
         lines.append(f"- ... and {total - shown} more (JSON scan_coverage.failed)")
     lines.append("")
     return lines
+
+
+def _shown_path(file_path: str, result: Any) -> str:
+    """A file in the CI report: its path in the project (two files of one name
+    in different folders stay apart); a single-file scan's file by its name."""
+    from slop_detector.report_view import short_path
+
+    root = getattr(result, "project_path", None)
+    return short_path(file_path, str(root)) if root else Path(file_path).name

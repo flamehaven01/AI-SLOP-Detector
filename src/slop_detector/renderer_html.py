@@ -149,7 +149,12 @@ def _cards(view: ReportView) -> str:
             sem.state, "not applicable (no Python file)"
         )
     cards = [
-        ("Score", score, f"{view.status} (score band, out of 100)"),
+        (
+            "Score",
+            score,
+            f"{view.status} ({'weighted by lines of code, ' if view.is_project else ''}"
+            "score band, out of 100)",
+        ),
         (
             "Findings",
             str(len(view.findings)),

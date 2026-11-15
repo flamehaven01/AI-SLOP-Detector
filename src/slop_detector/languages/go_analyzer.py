@@ -231,7 +231,7 @@ class GoAnalyzer:
                         "high",
                         i,
                         "Empty function body - likely a stub",
-                        "Implement or mark as // TODO",
+                        "Implement the function body, or remove the function if nothing needs it",
                     )
                 )
 

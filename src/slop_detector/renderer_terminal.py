@@ -23,7 +23,8 @@ def _root(view: ReportView) -> str:
 def _score_line(view: ReportView) -> str:
     if view.score is None:
         return "N/A  NOT EVALUATED (nothing was measured)"
-    return f"{view.score:.1f}/100  {view.status} (score band)"
+    basis = "weighted by lines of code, " if view.is_project else ""
+    return f"{view.score:.1f}/100  {view.status} ({basis}score band)"
 
 
 def _findings_line(view: ReportView) -> str:
