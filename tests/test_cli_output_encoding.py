@@ -6,6 +6,11 @@ encoding cannot hold (an em dash in a Go/JS message, Korean text in a user's
 TODO comment) ended the scan with UnicodeEncodeError before --report-dir
 wrote any file. The terminal now shows such a character escaped; the report
 files are UTF-8 and keep it.
+
+The PDF needs a local browser, which CI may not have; it is checked apart
+(tests/test_ai_report.py). Here the browser is pinned to a missing one, so
+every environment gets the same run: the PDF is the only file not written
+and the CLI exits 2 for the incomplete bundle, never on the encoding.
 """
 
 import os
@@ -13,6 +18,8 @@ import subprocess
 import sys
 
 import pytest
+
+from slop_detector.report_pdf import BROWSER_ENV
 
 HANGUL = chr(0xD55C) + chr(0xAE00)  # two Korean syllables, as in a user's comment
 BUNDLE = ("report.md", "report.html", "ai-report.jsonl", "ai-report.md", "scan.json")
@@ -39,6 +46,7 @@ def test_a_redirected_terminal_in_any_encoding_gets_the_full_run(tmp_path, encod
     out = tmp_path / "out"
     env = dict(os.environ, PYTHONIOENCODING=encoding)
     env.pop("PYTHONUTF8", None)
+    env[BROWSER_ENV] = str(tmp_path / "no-browser")
     done = subprocess.run(
         [
             sys.executable,
@@ -56,7 +64,9 @@ def test_a_redirected_terminal_in_any_encoding_gets_the_full_run(tmp_path, encod
     )
     stderr = done.stderr.decode(encoding, errors="replace")
     assert "UnicodeEncodeError" not in stderr and "Traceback" not in stderr, stderr[-2000:]
-    assert done.returncode == 0, stderr[-2000:]
+    assert done.returncode == 2, stderr[-2000:]  # the incomplete bundle, not a crash
+    not_written = [line for line in stderr.splitlines() if "not written:" in line]
+    assert len(not_written) == 1 and "report.pdf" in not_written[0], stderr[-2000:]
     for name in BUNDLE:
         assert (out / name).is_file(), name
     # The files keep the user's text as written.
