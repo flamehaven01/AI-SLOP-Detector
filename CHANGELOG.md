@@ -38,7 +38,11 @@ reports show their score.
   tree-sitter-rust on Python 3.10+ and installs nothing on 3.8/3.9. Both
   readers report the same findings. Cargo's `target/` is skipped for Rust
   files only and listed as excluded in scan coverage. A `.rs` file neither
-  reader can read is a failed file in scan coverage.
+  reader can read is a failed file in scan coverage. File score: a stub call
+  weighs 25 points and a `dbg!()` call 5 per 100 lines, a file shorter than
+  100 lines counting as 100 (one stub call alone is 25 points in any file and
+  does not fail `--ci-mode hard`; three in a short file reach the critical
+  band), plus the logic density penalty.
 - VS Code extension: activates on and analyzes `.rs` files.
 
 ### Fixed

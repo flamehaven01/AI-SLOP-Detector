@@ -50,6 +50,10 @@ REGEX_FALLBACK_NOT_MEASURED: tuple = ()
 # debug call like a debug print; a TODO comment is reported, not scored.
 STUB_WEIGHT = 25.0
 DEBUG_WEIGHT = 5.0
+# The weights are per 100 lines, and a file shorter than this counts as this
+# long: one stub call in a 35-line file is 25 points, not 71 (one todo!()
+# alone never reaches the critical band; three in a short file do).
+MIN_DENSITY_LINES = 100
 
 _RULES = {
     "todo": (
@@ -549,7 +553,7 @@ def _analyze(
     ldr = len(code) / total if total else 0.0
     score = 0.0
     if total:
-        per_100 = 100.0 / total
+        per_100 = 100.0 / max(total, MIN_DENSITY_LINES)
         score += 40.0 if ldr < 0.20 else 20.0 if ldr < 0.40 else 0.0
         score += stubs * STUB_WEIGHT * per_100
         score += debug * DEBUG_WEIGHT * per_100
