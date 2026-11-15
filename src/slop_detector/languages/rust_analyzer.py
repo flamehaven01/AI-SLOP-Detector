@@ -81,7 +81,9 @@ _COMMENT_RULE = (
     "Unresolved marker",
     "Resolve the marker or track it in an issue",
 )
-_MARKER = re.compile(r"(TODO|FIXME|HACK|XXX)\b", re.IGNORECASE)
+# A marker word, not the todo!() macro written as code in a comment ("// todo!()
+# here"): a "!" and an opening delimiter after the word make it a macro call.
+_MARKER = re.compile(r"(TODO|FIXME|HACK|XXX)\b(?!\s*!\s*[(\[{])", re.IGNORECASE)
 _COMMENT_LEAD = re.compile(r"^\s*(?://[/!]?|/\*[*!]?|\*+(?!/))?\s*")
 _IDENT = re.compile(r"^(r#)?[^\W\d]\w*$")
 _OPEN = {"(": ")", "[": "]", "{": "}"}

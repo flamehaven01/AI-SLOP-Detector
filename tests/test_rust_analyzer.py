@@ -291,3 +291,26 @@ def test_a_rust_item_holds_when_its_file_changes(tmp_path):
         "pub fn f() { todo!() }\n// edited\n", encoding="utf-8"
     )
     assert "(VOID:" in render_ai_report_md(result)
+
+
+# DF-S2R (2026-11-15, DF-S2R-RS004-MACRO-COMMENT-001): a comment that writes the
+# todo!() macro as code ("// todo!() dbg!()") was reported as a TODO marker.
+MACRO_IN_COMMENTS = """pub fn code() { /* todo!() dbg!() unimplemented!() */ }
+pub fn more() {
+    // todo!() dbg!() unimplemented!()
+    // call todo![] or todo!{} here
+}
+// TODO: a real marker
+// todo later, lowercase
+// TODO! urgent
+"""
+
+
+@pytest.mark.parametrize("kind", _paths())
+def test_a_macro_written_in_a_comment_is_not_a_todo_marker(kind, tmp_path, monkeypatch):
+    result = _analyze(kind, MACRO_IN_COMMENTS, tmp_path, monkeypatch)
+    assert [(i.pattern_id, i.line) for i in result.issues] == [
+        ("rust_todo_comment", 6),
+        ("rust_todo_comment", 7),
+        ("rust_todo_comment", 8),
+    ]
