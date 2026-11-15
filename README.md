@@ -250,7 +250,7 @@ and never move the score.
 
 ```text
 AI SLOP Detector 3.14.0 - examples\demo_project (3 files, 1.3 s)    measurement: COMPLETE
-Score     13.5/100  CLEAN (score band)
+Score     13.5/100  CLEAN (weighted by lines of code, score band)
 Findings  9  (critical 0 / high 2 / medium 6 / low 1)
 Hollow    4 review candidate(s), not scored  -  7 functions, 2 not decidable
 Promises  2 docstring promise(s): 2 contradicted (1 candidate(s), 1 merged into a finding), 0
@@ -899,7 +899,7 @@ advanced:
 ## Priority Hotspots
 
 Project scans now rank repair order instead of only printing static scores.
-The hotspot layer combines:
+The hotspot layer covers Python files and combines:
 
 - deficit score
 - recent git churn
@@ -909,6 +909,10 @@ When present, the report highlights files that are both sloppy and risky to
 change because they churn often or remain under-tested. If git metadata or
 coverage data is missing, the prioritization layer degrades gracefully instead
 of failing the scan.
+
+The next steps name where to start in any language: the file with the most
+severe findings (by critical, high, medium and low counts), so files of
+different languages are never compared by their scores.
 
 ---
 

@@ -25,6 +25,21 @@ reports show their score.
 - With the `[go]` extra installed, Go results say `ast_mode: false` and
   `scan_coverage.analysis_modes.go` says `mode: regex`, `ast_available: false`
   (they said `true` / `tree_sitter_ast`). Go findings and scores are unchanged.
+- Go files, and JS/TS files read by the regex fallback, no longer report
+  findings for text inside strings or comments (see Fixed): their scores can
+  drop, and a file that failed the gate on such text no longer does.
+- The `--ci-report` body starts with the gate's verdict and its reason, lists
+  the files that could not be analyzed (path, language, error), and names
+  files by their path in the project instead of their base name.
+- The third next step names the file with the most severe findings in any
+  language ("Start with `svc/main.go` (3 critical ... finding(s))"), where it
+  named the top Python hotspot or said "Run `slop-detector review .`".
+- Finding messages of Go and JS/TS use " - " instead of an em dash; the
+  `go_empty_func` fix reads "Implement the function body, or remove the
+  function if nothing needs it". Finding ids are unchanged (they do not
+  include the message).
+- In the Markdown work order a code block is fenced with its file's language
+  (`rust`, `go`, `javascript`, `typescript`, `python`), not always `python`.
 
 ### Added
 
@@ -47,6 +62,34 @@ reports show their score.
 
 ### Fixed
 
+- A scan ended with `UnicodeEncodeError` while printing its terminal summary
+  when stdout was redirected on Windows and a finding message held a
+  character the console encoding cannot (an em dash on cp949, a user's Korean
+  TODO text on cp1252); `--report-dir` then wrote no file. The CLI now prints
+  such a character escaped; report files are UTF-8 and keep it.
+- Text inside strings and comments was read as code: the JS/TS regex
+  fallback reported `console.log(...)` and `: any` written in a string, and
+  the Go reader `fmt.Println(...)`, `panic(...)`, an empty function and a TODO
+  written in a string or raw string. Braces in a Go string ended a function
+  early (a long function was not reported), and a one-line `/* */` after code
+  turned every later line into a comment. Both readers now judge code with
+  strings and comments blanked, and comment rules read only comments.
+- `--ci-report` gave no reason when the hard gate failed only because a file
+  could not be analyzed ("1 clean, 0 with issues"), and its message read
+  "Build FAILED: analysis incomplete ... | Build PASSED: ...".
+- The next steps and the terminal summary passed over files of other
+  languages (the priority hotspots cover Python files only; the hotspots
+  table now says so), and the terminal summary did not say that a file could
+  not be analyzed.
+- Two findings of one rule on one line were two identical rows in report.md,
+  the HTML report, `--details` and the terminal; they show their locator.
+- The Markdown work order's `target:` was empty for `--project .`.
+- The headline score of a project said only "(score band)"; it says it is
+  weighted by lines of code.
+- `SlopDetector.analyze_file` (and the REST and MCP single-file paths) told
+  the caller of a JS/TS, Go or Rust file to use `analyze_js_file` or
+  `analyze_go_file`; it names the language and
+  `analyze_language_file(language_registry.spec(...), path)`.
 - Go: with tree-sitter-go installed, a Go result said `ast_mode: true` and
   scan coverage said the Go files were read with tree-sitter, although the
   analyzer's tree-sitter path only reused the regex result. The analyzer now
