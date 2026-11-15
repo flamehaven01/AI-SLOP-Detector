@@ -8,9 +8,13 @@ import * as path from 'path';
  *  language), in output order. Python's own list is `file_results`. */
 export function languageResults(raw: any): any[] {
     if (!raw || typeof raw !== 'object') { return []; }
+    // A result without its own `language` (Go, Rust) takes its list's name, so
+    // every view knows it is not a Python file and shows no inflation or DDC.
     return Object.keys(raw)
         .filter((key) => key !== 'file_results' && key.endsWith('_file_results') && Array.isArray(raw[key]))
-        .flatMap((key) => raw[key]);
+        .flatMap((key) => raw[key].map((f: any) => ({
+            language: key.slice(0, -'_file_results'.length), ...f,
+        })));
 }
 
 /** A file result of a language other than Python in the field

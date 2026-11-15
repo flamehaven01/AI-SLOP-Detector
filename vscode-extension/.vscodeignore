@@ -7,3 +7,5 @@ node_modules/**
 .eslintrc.json
 tmpclaude-*
 *.vsix
+test/**
+.test-out/**

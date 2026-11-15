@@ -186,6 +186,10 @@ jobs:
         working-directory: vscode-extension
         run: npm run check
 
+      - name: Unit tests (findings, without VS Code)
+        working-directory: vscode-extension
+        run: npm test
+
       - name: Bundle
         working-directory: vscode-extension
         run: npm run bundle
