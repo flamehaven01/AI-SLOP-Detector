@@ -364,6 +364,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if read_only_conflict:
         print(f"[!] {read_only_conflict}", file=sys.stderr)
         return 2
+    from slop_detector.report_chooser import conflicts as interactive_conflicts
+
+    interactive_conflict = interactive_conflicts(args)
+    if interactive_conflict:
+        names = ", ".join(interactive_conflict)
+        print(f"[!] --interactive is incompatible with: {names}", file=sys.stderr)
+        return 2
 
     if getattr(args, "history_trends", False):
         _show_trends()

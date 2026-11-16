@@ -214,6 +214,7 @@ and never move the score.
      or high: review those before accepting this scan.
 
  Full tables: --details   Report file: -o report.md
+ Choose reports to save: --interactive
 ```
 
 **AI work order** (`--format ai-md`, also written as `ai-report.md` by

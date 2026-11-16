@@ -28,6 +28,18 @@ A new default terminal screen.
 - A console that cannot encode box-drawing characters gets the screen drawn
   in ASCII.
 
+### Added
+
+- `--interactive`: after the summary, choose which report files to save
+  (`[1] HTML  [2] Markdown  [3] AI work order  [4] JSON`, Enter to finish).
+  A choice writes the file `--report-dir` writes, under `slop-report/`;
+  nothing is written before a choice. It asks only when the option is given
+  and stdin and stdout are both terminals: without the option no scan waits
+  for input, and with it but no terminal the scan prints a note and returns.
+  Refused (exit 2) with an option that already decides the output
+  (`--json`, `--output`, `--quiet`, `--format ai`, `--report-dir`,
+  `--ci-mode`, `--ci-report`) or with `--read-only`.
+
 ---
 
 ## [3.16.1] - 2026-11-16

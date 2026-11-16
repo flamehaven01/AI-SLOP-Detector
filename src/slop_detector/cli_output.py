@@ -166,6 +166,18 @@ def _report_bundle(args, result) -> None:
         raise SystemExit(2)
 
 
+def _choose_reports(args, result) -> None:
+    """--interactive: ask which report files to save; without a terminal on
+    stdin and stdout say so and return (a scan never waits for input)."""
+    from slop_detector.report_chooser import NEEDS_TERMINAL, choose, should_prompt
+
+    if not should_prompt(args):
+        print(f"[!] {NEEDS_TERMINAL}", file=sys.stderr)
+        return
+    print()
+    choose(result, ai_limit=getattr(args, "ai_limit", None))
+
+
 def _handle_output(args, result) -> None:
     """Route analysis result to the appropriate output format."""
     from slop_detector.cli_renderer import RICH_AVAILABLE
@@ -173,6 +185,8 @@ def _handle_output(args, result) -> None:
     _handle_screen_output(args, result, RICH_AVAILABLE)
     if getattr(args, "report_dir", None):
         _report_bundle(args, result)
+    if getattr(args, "interactive", False):
+        _choose_reports(args, result)
 
 
 def _handle_screen_output(args, result, rich_available: bool) -> None:

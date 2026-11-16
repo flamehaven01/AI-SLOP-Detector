@@ -9,7 +9,7 @@ was written.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Sequence, Tuple
 
 BUNDLE_FILES = (
     "report.md",
@@ -22,9 +22,14 @@ BUNDLE_FILES = (
 
 
 def write_bundle(
-    result: Any, directory: str, ai_limit: Optional[int] = None
+    result: Any,
+    directory: str,
+    ai_limit: Optional[int] = None,
+    only: Optional[Sequence[str]] = None,
 ) -> Tuple[List[str], List[Tuple[str, str]]]:
-    """Write the bundle; return (files written, (file, why) not written)."""
+    """Write the bundle; return (files written, (file, why) not written).
+    `only`: the bundle files to write (`--interactive`); None writes them all.
+    """
     from slop_detector.ai_report import AiReportInvalidError, render_ai_report
     from slop_detector.ai_report_md import render_ai_report_md
     from slop_detector.cli_output import render_json
@@ -34,11 +39,18 @@ def write_bundle(
 
     folder = Path(directory)
     folder.mkdir(parents=True, exist_ok=True)
-    page = generate_html_report(result)
+    pages: List[str] = []
+
+    def html() -> str:
+        # One page for report.html and report.pdf, made when the first of them is.
+        if not pages:
+            pages.append(generate_html_report(result))
+        return pages[0]
+
     producers: List[Tuple[str, Callable[[], Optional[str]]]] = [
         ("report.md", lambda: generate_markdown_report(result)),
-        ("report.html", lambda: page),
-        ("report.pdf", lambda: write_pdf(page, str(folder / "report.pdf"))),
+        ("report.html", html),
+        ("report.pdf", lambda: write_pdf(html(), str(folder / "report.pdf"))),
         ("ai-report.jsonl", lambda: render_ai_report(result, ai_limit)),
         ("ai-report.md", lambda: render_ai_report_md(result, ai_limit, mode="auditor")),
         ("scan.json", lambda: render_json(result)),
@@ -46,6 +58,8 @@ def write_bundle(
     written: List[str] = []
     failed: List[Tuple[str, str]] = []
     for name, make in producers:
+        if only is not None and name not in only:
+            continue
         target = folder / name
         try:
             text = make()

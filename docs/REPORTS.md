@@ -94,6 +94,7 @@ most 5 findings and 3 review candidates, then what to do. Output for
      or high: review those before accepting this scan.
 
  Full tables: --details   Report file: -o report.md
+ Choose reports to save: --interactive
 ```
 
 - The panel: the score, its band, a meter of the score with the band limits
@@ -125,6 +126,16 @@ most 5 findings and 3 review candidates, then what to do. Output for
   it is, never read as formatting.
 - A console that cannot encode the box-drawing characters (cp1252, a
   redirected ASCII stream) gets the same screen drawn with `+ - | # *`.
+- `--interactive` (since 3.17.0): after the summary, a line asks which report
+  files to save: `[1] HTML  [2] Markdown  [3] AI work order  [4] JSON`,
+  several at once (`1 3`), Enter to finish. Each choice writes the file
+  `--report-dir` writes, under `slop-report/` in the current directory;
+  nothing is written before a choice, and Enter, end of input and Ctrl+C
+  write nothing. It asks only when the option is given and stdin and stdout
+  are both terminals: a scan without the option never waits for input, and
+  the option without a terminal prints a note and returns. It is refused
+  (exit 2) together with `--json`, `--output`, `--quiet`, `--format ai`,
+  `--report-dir`, `--ci-mode`, `--ci-report` or `--read-only`.
 - `--details` prints the full tables, then every finding and hollow review
   candidate with its location, rule, evidence and fix (since 3.15.1; before,
   findings were listed only for files in a deficit band, and JS/TS and Go

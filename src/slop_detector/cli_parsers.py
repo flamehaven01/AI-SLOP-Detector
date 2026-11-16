@@ -96,6 +96,15 @@ Examples:
         ),
     )
     parser.add_argument(
+        "--interactive",
+        action="store_true",
+        help=(
+            "After the summary, choose which report files to save under slop-report/ "
+            "(HTML, Markdown, AI work order, JSON). Asks only on a terminal; without this "
+            "option nothing ever waits for input"
+        ),
+    )
+    parser.add_argument(
         "--report-dir",
         metavar="DIR",
         help="Write report.md, report.html, report.pdf, ai-report.jsonl, ai-report.md and scan.json to DIR",

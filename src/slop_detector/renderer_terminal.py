@@ -290,6 +290,7 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
             numbered.add_row(f"  {i}.", Text(step))
         console.print(numbered)
     console.print("\n[bright_black] Full tables: --details   Report file: -o report.md[/]")
+    console.print("[bright_black] Choose reports to save: --interactive[/]")
 
 
 def _print_items(

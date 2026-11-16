@@ -71,6 +71,7 @@ slop-detector scan . --format ai-md -o ai-report.md     # AI work order (auditor
 slop-detector scan . --format ai-md --ai-mode agent -o ai-work.md
 slop-detector scan . --format ai-md --ai-token-budget 32000 -o ai-report.md
 slop-detector scan . --report-dir slop-report           # all of the above at once
+slop-detector --project . --interactive                 # choose which of them to save, on a terminal
 ```
 
 - `--ai-limit N` caps the AI report at N items (the header counts the rest);
@@ -79,6 +80,11 @@ slop-detector scan . --report-dir slop-report           # all of the above at on
 - `--report-dir DIR` writes `report.md`, `report.html`, `report.pdf`,
   `ai-report.jsonl`, `ai-report.md` and `scan.json`, lists any file it could
   not write and exits 2 when incomplete. `--read-only` refuses file output.
+- `--interactive` asks after the summary which report files to save under
+  `slop-report/` (`[1] HTML  [2] Markdown  [3] AI work order  [4] JSON`, Enter
+  to finish). It asks only when the option is given and stdin and stdout are
+  both terminals; a scan without the option never waits for input. Details:
+  [REPORTS.md](REPORTS.md).
 - An AI report that fails its schema or ruleset check writes nothing and
   exits 2.
 
