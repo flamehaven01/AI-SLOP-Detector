@@ -15,7 +15,7 @@ from __future__ import annotations
 import hashlib
 import math
 from dataclasses import dataclass
-from typing import List, Mapping, Optional, Tuple
+from typing import List, Mapping, Optional, Sequence, Tuple
 
 from slop_detector.core_scoring import calculate_pattern_penalty
 
@@ -43,6 +43,10 @@ class SlopGateDecision:
     audit_hash: str  # sha256 of metrics payload
     recommendation: Optional[str] = None
     contract_version: str = "1.0"
+    # Snapshot keys that stand for no measurement (their value is neutral and
+    # was not judged): "di2" and "jsd" when no Python file has those metrics,
+    # every key when nothing was measured.
+    not_measured: Tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.status not in {"PASS", "HALT"}:
@@ -62,14 +66,19 @@ class SlopGateDecision:
             "audit_hash": self.audit_hash,
             "recommendation": self.recommendation,
             "contract_version": self.contract_version,
+            "not_measured": list(self.not_measured),
         }
 
     def is_pass(self) -> bool:
         return self.allowed and self.status == "PASS"
 
 
-def _build_audit_hash(metrics: Mapping[str, float]) -> str:
+def _build_audit_hash(metrics: Mapping[str, float], not_measured: Tuple[str, ...] = ()) -> str:
+    """A decision on measured values hashes as before; an unmeasured key is
+    named in the payload, so its neutral value is not taken for a measured one."""
     payload = "|".join(f"{k}={v:.6f}" for k, v in sorted(metrics.items()))
+    if not_measured:
+        payload += "|not_measured=" + ",".join(sorted(not_measured))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -116,14 +125,20 @@ class SlopGate:
 
     def evaluate(
         self,
-        ldr_score: float,
-        ddc_ratio: float,
-        inflation_score: float,
-        pattern_penalty: float,
+        ldr_score: Optional[float],
+        ddc_ratio: Optional[float],
+        inflation_score: Optional[float],
+        pattern_penalty: Optional[float],
         context: Optional[str] = None,
+        blocking: Sequence[str] = (),
     ) -> SlopGateDecision:
         """
         Evaluate slop metrics and return a gate decision.
+
+        A metric given as None was not measured (DDC and inflation are Python
+        metrics; a project with nothing analyzed has none): it is not judged,
+        its snapshot value is neutral (1.0), and the decision names its key in
+        `not_measured`. A neutral value is never a measurement.
 
         Args:
             ldr_score:       Logic Density Ratio [0.0-1.0]
@@ -131,51 +146,60 @@ class SlopGate:
             inflation_score: BCR/inflation score [0.0+]
             pattern_penalty: Accumulated pattern penalty [0-50]
             context:         Optional file/project label for audit
+            blocking:        Conditions outside the four metrics that fail the
+                             gate (nothing measured, an incomplete scan)
 
         Returns:
             SlopGateDecision with PASS or HALT verdict.
         """
-        sr9 = round(max(0.0, min(1.0, ldr_score)), 6)
-        di2 = round(max(0.0, min(1.0, ddc_ratio)), 6)
-        jsd = _normalize_jsd(inflation_score)
-        ove = _normalize_ove(pattern_penalty)
-
+        given = {"sr9": ldr_score, "di2": ddc_ratio, "jsd": inflation_score, "ove": pattern_penalty}
+        not_measured: Tuple[str, ...] = tuple(key for key, value in given.items() if value is None)
         metrics: Mapping[str, float] = {
-            "sr9": sr9,
-            "di2": di2,
-            "jsd": jsd,
-            "ove": ove,
+            "sr9": 1.0 if ldr_score is None else round(max(0.0, min(1.0, ldr_score)), 6),
+            "di2": 1.0 if ddc_ratio is None else round(max(0.0, min(1.0, ddc_ratio)), 6),
+            "jsd": 1.0 if inflation_score is None else _normalize_jsd(inflation_score),
+            "ove": 1.0 if pattern_penalty is None else _normalize_ove(pattern_penalty),
         }
-        audit_hash = _build_audit_hash(metrics)
+        audit_hash = _build_audit_hash(metrics, not_measured)
 
         failed: List[str] = []
-        if ldr_score < self.ldr_threshold:
+        if ldr_score is not None and ldr_score < self.ldr_threshold:
             failed.append(f"ldr={ldr_score:.3f} < threshold={self.ldr_threshold}")
-        if ddc_ratio < self.ddc_threshold:
+        if ddc_ratio is not None and ddc_ratio < self.ddc_threshold:
             failed.append(f"ddc={ddc_ratio:.3f} < threshold={self.ddc_threshold}")
-        if math.isfinite(inflation_score) and inflation_score > self.inflation_threshold:
+        if (
+            inflation_score is not None
+            and math.isfinite(inflation_score)
+            and inflation_score > self.inflation_threshold
+        ):
             failed.append(f"inflation={inflation_score:.3f} > threshold={self.inflation_threshold}")
-        if pattern_penalty > self.pattern_threshold:
+        if pattern_penalty is not None and pattern_penalty > self.pattern_threshold:
             failed.append(
                 f"pattern_penalty={pattern_penalty:.1f} > threshold={self.pattern_threshold}"
             )
 
-        if failed:
-            halt_reason = f"Gate HALT [{context or 'file'}]: " + "; ".join(failed)
+        if failed or blocking:
+            conditions = tuple(blocking) + tuple(failed)
+            halt_reason = f"Gate HALT [{context or 'file'}]: " + "; ".join(conditions)
             recommendation = (
-                "Reduce empty/placeholder code (LDR), "
-                "remove unused imports (DDC), "
-                "eliminate buzzword inflation (jsd), "
-                "fix structural patterns (ove)."
+                (
+                    "Reduce empty/placeholder code (LDR), "
+                    "remove unused imports (DDC), "
+                    "eliminate buzzword inflation (jsd), "
+                    "fix structural patterns (ove)."
+                )
+                if failed
+                else "Fix what stopped the measurement (see scan coverage), then run the gate again."
             )
             return SlopGateDecision(
                 allowed=False,
                 status="HALT",
                 halt_reason=halt_reason,
-                failed_conditions=tuple(failed),
+                failed_conditions=conditions,
                 metrics_snapshot=metrics,
                 audit_hash=audit_hash,
                 recommendation=recommendation,
+                not_measured=not_measured,
             )
 
         return SlopGateDecision(
@@ -186,6 +210,7 @@ class SlopGate:
             metrics_snapshot=metrics,
             audit_hash=audit_hash,
             recommendation=None,
+            not_measured=not_measured,
         )
 
     def evaluate_from_file_analysis(self, file_analysis) -> SlopGateDecision:

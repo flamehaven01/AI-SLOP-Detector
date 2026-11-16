@@ -646,7 +646,9 @@ class SlopDetector:
             failures,
             progress,
         )
-        logger.info(f"Analyzed {len(results)} {adapter.label} files")
+        # A detail for --verbose: the summary already says how many files it read.
+        unit = "file" if len(results) == 1 else "files"
+        logger.debug(f"Analyzed {len(results)} {adapter.label} {unit}")
         return results
 
     def _analyze_language_files(

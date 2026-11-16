@@ -19,17 +19,46 @@ from slop_detector.cli_init import (
 )
 
 
+def _gate_project_inputs(result) -> tuple:
+    """What the SNP gate judges for a project, and what stops it before any
+    metric: (ldr, ddc, inflation, pattern_penalty, blocking).
+
+    A metric nobody measured is None, never 0.0. Inflation and DDC are averaged
+    over Python files (core_project.python_metric_files); a project whose score
+    measures nothing has no metric at all; a scan that could not analyze every
+    file fails the gate closed, like `--ci-mode hard`."""
+    from slop_detector.core_project import python_metric_files, score_is_valid
+
+    coverage = getattr(result, "scan_coverage", None) or {}
+    if not score_is_valid(result):
+        reason = coverage.get("reason") or "nothing was measured"
+        return None, None, None, None, (f"not evaluated: {reason}; no file was analyzed",)
+    blocking: tuple = ()
+    if not coverage.get("complete", True):
+        failed = coverage.get("failed", {}).get("total", 0)
+        partial = coverage.get("unmeasured", {}).get("total", 0)
+        blocking = (
+            f"analysis incomplete: {failed} file(s) could not be analyzed, "
+            f"{partial} partially measured",
+        )
+    with_inflation, with_ddc = python_metric_files(result.file_results)
+    return (
+        getattr(result, "avg_ldr", 0.0),
+        getattr(result, "avg_ddc", 1.0) if with_ddc else None,
+        getattr(result, "avg_inflation", 0.0) if with_inflation else None,
+        min(result.deficit_files * 5.0, 50.0),
+        blocking,
+    )
+
+
 def _run_gate(result) -> None:
     """Display SNP-compatible gate decision."""
     from slop_detector.gate.slop_gate import SlopGate
 
     gate = SlopGate()
     if hasattr(result, "file_results"):
-        avg_ldr = getattr(result, "avg_ldr", 0.0)
-        avg_inflation = getattr(result, "avg_inflation", 0.0)
-        avg_ddc = getattr(result, "avg_ddc", 1.0)
-        pattern_penalty = min(result.deficit_files * 5.0, 50.0)
-        decision = gate.evaluate(avg_ldr, avg_ddc, avg_inflation, pattern_penalty, "project")
+        ldr, ddc, inflation, penalty, blocking = _gate_project_inputs(result)
+        decision = gate.evaluate(ldr, ddc, inflation, penalty, "project", blocking)
     else:
         decision = gate.evaluate_from_file_analysis(result)
 
@@ -40,7 +69,15 @@ def _run_gate(result) -> None:
     print(f"  Status   : {decision.status}")
     print(f"  Allowed  : {decision.allowed}")
     m = decision.metrics_snapshot
-    print(f"  sr9={m['sr9']:.4f}  di2={m['di2']:.4f}  jsd={m['jsd']:.4f}  ove={m['ove']:.4f}")
+    shown = {
+        key: "n/a" if key in decision.not_measured else f"{m[key]:.4f}"
+        for key in ("sr9", "di2", "jsd", "ove")
+    }
+    print("  " + "  ".join(f"{key}={value}" for key, value in shown.items()))
+    if decision.not_measured:
+        everything = len(decision.not_measured) == len(shown)
+        why = "nothing was measured" if everything else "Python metrics; no Python file has them"
+        print(f"  Not judged: {', '.join(decision.not_measured)} ({why})")
     if decision.halt_reason:
         print(f"  Halt     : {decision.halt_reason}")
     if decision.recommendation:

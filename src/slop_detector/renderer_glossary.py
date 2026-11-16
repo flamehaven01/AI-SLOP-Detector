@@ -16,7 +16,7 @@ from slop_detector.clone_signals import (
     is_clone_pattern,
     is_exact_duplicate_pair,
 )
-from slop_detector.core_project import score_is_valid
+from slop_detector.core_project import python_metric_files, score_is_valid
 from slop_detector.diagnostic_bands import bands_text
 
 # Deficit bands: the canonical bands (diagnostic_bands), rendered once.
@@ -26,6 +26,8 @@ DEFICIT_BANDS = bands_text()
 _MEANS_LDR = "Share of code lines that contain real implementation."
 _MEANS_ICR = "Unjustified jargon compared with average cyclomatic complexity."
 _MEANS_DDC = "Imported libraries that are referenced by runtime code."
+# The value of a Python-only metric in a project where no Python file has it.
+_NOT_MEASURED_PYTHON = "N/A (Python only)"
 
 # Plain-language view of structural coherence. The internal algorithm name
 # (the coherence_level value "vr_structural" / "vr_structural_approx") is kept
@@ -122,6 +124,20 @@ def project_metric_rows(result: Any) -> List[Dict[str, str]]:
     if not score_is_valid(result):
         for row in rows:
             row["value"], row["health"] = "N/A", "n/a"
+        return rows
+    # Inflation and DDC are averages over Python files. With no such file the
+    # stored average is 0.0, which is no measurement: a 0% DDC nobody measured
+    # must not read as the project's top concern.
+    python_files = getattr(result, "file_results", None)
+    if python_files is not None:
+        with_inflation, with_ddc = python_metric_files(python_files)
+        for label, measured in (
+            ("Inflation-to-Code Ratio (ICR)", with_inflation),
+            ("Dependency Usage Ratio (DDC)", with_ddc),
+        ):
+            if not measured:
+                row = next(r for r in rows if r["label"] == label)
+                row["value"], row["health"] = _NOT_MEASURED_PYTHON, "n/a"
     return rows
 
 
@@ -307,6 +323,15 @@ def next_steps(result: Any) -> List[str]:
     cleanup command, then point at where to start. Rule-based, not heuristic
     guessing, so the same result always yields the same advice.
     """
+    if not score_is_valid(result):
+        # Nothing was measured: every metric is N/A, which is not "healthy".
+        reason = (getattr(result, "scan_coverage", None) or {}).get("reason")
+        why = f" ({reason})" if reason else ""
+        return [
+            f"Not evaluated: no file was measured{why}, so the score says nothing about "
+            "this code. Check the path and the ignore rules; `scan_coverage` in the JSON "
+            "output lists what was excluded or could not be analyzed."
+        ]
     rows = project_metric_rows(result)
     bad = [r for r in rows if r["health"] == "bad"]
     warn = [r for r in rows if r["health"] == "warn"]
@@ -317,26 +342,35 @@ def next_steps(result: Any) -> List[str]:
         open_findings = _open_findings(result)
         if open_findings:
             return [open_findings]
+        # A metric that reads N/A was not measured: it is not among the healthy ones.
+        which = "measured metrics" if any(r["health"] == "n/a" for r in rows) else "metrics"
         return [
-            "All metrics are healthy - no action needed. "
+            f"All {which} are healthy - no action needed. "
             "Add `slop-detector --project . --ci-mode hard` to CI to keep it that way."
         ]
 
     steps: List[str] = []
     concern = (bad or warn)[0] if (bad or warn) else None
+    # The sweep commands and the hotspots read Python files: they are advice
+    # only where one was analyzed. A result without a file list (a caller's
+    # stand-in) keeps the advice.
+    python_files = getattr(result, "file_results", None)
+    has_python = python_files is None or bool(python_files)
+    sweep_dead_code = (
+        "Run `slop-detector sweep dead-code .` for placeholder/dead files, "
+        "then `slop-detector sweep dupes .` for duplicated logic."
+    )
 
     if concern is None:
         # Project averages are all healthy, but some individual files are flagged
         # (deficit_files > 0). Point at those files rather than a project metric.
         label = ""
-        steps.append(
-            f"Project averages are healthy, but {deficit_files} file(s) are "
-            "flagged. The hotspots below are pulling specific files down."
-        )
-        steps.append(
-            "Run `slop-detector sweep dead-code .` for placeholder/dead files, "
-            "then `slop-detector sweep dupes .` for duplicated logic."
-        )
+        flagged = f"Project averages are healthy, but {deficit_files} file(s) are flagged."
+        if has_python:
+            steps.append(flagged + " The hotspots below are pulling specific files down.")
+            steps.append(sweep_dead_code)
+        else:
+            steps.append(flagged)
     else:
         label = concern["label"]
         steps.append(
@@ -353,11 +387,8 @@ def next_steps(result: Any) -> List[str]:
                 "High jargon density has no auto-fix: open the top file below and "
                 "replace marketing terms with concrete behavior."
             )
-        else:  # deficit or logic-density concern
-            steps.append(
-                "Run `slop-detector sweep dead-code .` for placeholder/dead files, "
-                "then `slop-detector sweep dupes .` for duplicated logic."
-            )
+        elif has_python:  # deficit or logic-density concern
+            steps.append(sweep_dead_code)
 
     start = _start_with(result)
     if start:

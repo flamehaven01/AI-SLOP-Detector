@@ -445,6 +445,22 @@ def is_parse_error(result: Any) -> bool:
     return "parse_error" in getattr(result, "flags", ())
 
 
+def python_metric_files(python_results: List[Any]) -> tuple[List[Any], List[Any]]:
+    """The Python results the project's inflation and its DDC are averaged
+    over: parsed files with a finite inflation score, and parsed files with
+    executable code. Only Python files have these metrics, so either list can
+    be empty; the metric then has no value (its stored average is 0.0)."""
+    parsed = [result for result in python_results if not is_parse_error(result)]
+    # A result that carries no inflation (a caller's partial stand-in) has none.
+    inflation = [
+        r
+        for r in parsed
+        if math.isfinite(getattr(getattr(r, "inflation", None), "inflation_score", math.nan))
+    ]
+    ddc = [r for r in parsed if "no_executable_code" not in getattr(r, "flags", ())]
+    return inflation, ddc
+
+
 def create_empty_project_analysis(project_path: str) -> ProjectAnalysis:
     """Create the canonical empty project result."""
     return ProjectAnalysis(
@@ -651,21 +667,15 @@ def build_project_analysis(
     average_deficit = sum(result_slop_score(result) for result in all_results) / total_files
     # Metric averages describe parsed code; a parse failure has no metrics.
     measured = [result for result in all_results if not is_parse_error(result)]
-    measured_python = [result for result in python_results if not is_parse_error(result)]
     # A module without executable code has no LDR or DDC to average.
     with_code = [r for r in measured if "no_executable_code" not in getattr(r, "flags", [])]
-    with_code_python = [r for r in measured_python if "no_executable_code" not in r.flags]
     ldr_scores = [result_ldr_score(result) for result in with_code] or [0.0]
     average_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / len(ldr_scores))
-    finite_python_inflation = [
-        result.inflation.inflation_score
-        for result in measured_python
-        if math.isfinite(result.inflation.inflation_score)
-    ]
-    average_inflation = sum(finite_python_inflation) / max(1, len(finite_python_inflation))
-    average_ddc = sum(result.ddc.usage_ratio for result in with_code_python) / max(
-        1, len(with_code_python)
+    with_inflation, with_ddc = python_metric_files(python_results)
+    average_inflation = sum(r.inflation.inflation_score for r in with_inflation) / max(
+        1, len(with_inflation)
     )
+    average_ddc = sum(result.ddc.usage_ratio for result in with_ddc) / max(1, len(with_ddc))
 
     weighted_results = aggregation_weighted_results(
         all_results, use_weighted_analysis, scan_coverage

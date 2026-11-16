@@ -409,6 +409,13 @@ def generate_markdown_report(result) -> str:
     score = result.weighted_deficit_score if is_project else result.deficit_score
     avg_inflation = result.avg_inflation if is_project else result.inflation.inflation_score
     measured = score_is_valid(result)
+    inflation_text = f"{avg_inflation:.2f}" if measured else "N/A"
+    if is_project:
+        # Inflation is a Python metric: a project where no file has it says so
+        # (the same rule as the metric table), not "0.00".
+        icr = next(r for r in project_metric_rows(result) if r["label"].startswith("Inflation"))
+        if icr["health"] == "n/a":
+            inflation_text = icr["value"]
     timestamp = getattr(result, "timestamp", None)
 
     lines = ["# AI Code Quality Audit Report"]
@@ -424,7 +431,7 @@ def generate_markdown_report(result) -> str:
     lines += _md_summary_section(
         score_label,
         f"{score:.2f}" if measured else "N/A",
-        f"{avg_inflation:.2f}" if measured else "N/A",
+        inflation_text,
         status,
     )
 
