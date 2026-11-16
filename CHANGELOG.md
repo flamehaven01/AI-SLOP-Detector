@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+A new default terminal screen.
+
+### Changes you see when upgrading
+
+- The default terminal summary is redrawn: the score, its band and a meter
+  in a panel ("higher = more warning signs", the findings per severity, the
+  files read per language), then `Fix first` (at most 5 findings) and
+  `To review (not scored)` (at most 3 candidates) with one line per item:
+  the location, the rule and the first clause of the message, cut where it
+  does not fit. The `Score` / `Findings` / `Hollow` / `Promises` lines and
+  wrapped messages are gone from this screen; `--details`, `--quiet`, JSON
+  and every report file are unchanged. A script that read the summary's
+  text should read `--quiet` or JSON.
+- Progress on a terminal is a box that names the phase (files found per
+  language, files analyzed, the score) and disappears when the scan ends;
+  it was one updating line. Nothing is drawn when stderr is not a terminal.
+- A console that cannot encode box-drawing characters gets the screen drawn
+  in ASCII.
+
+---
+
 ## [3.16.1] - 2026-11-16
 
 Rust files are analyzed. JS/TS and Go file rows in the HTML and Markdown

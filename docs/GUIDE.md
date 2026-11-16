@@ -184,45 +184,36 @@ and never move the score.
 `--quiet` one line):
 
 ```text
-AI SLOP Detector 3.16.1 - examples\demo_project (3 files, 1.7 s)    measurement: COMPLETE
-Score     13.5/100  CLEAN (weighted by lines of code, score band)
-Findings  9  (critical 0 / high 2 / medium 6 / low 1)
-Hollow    4 review candidate(s), not scored  -  7 functions, 2 not decidable
-Promises  2 docstring promise(s): 2 contradicted (1 candidate(s), 1 merged into a finding), 0
-          undecided, 0 with the structure, 0 delegated, 0 not evaluated
+╭─ AI SLOP Detector 3.16.1 ────────────────────────────────────────────────────────────────────╮
+│                                                                                              │
+│  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
+│  higher = more warning signs              30      50      70                                 │
+│  weighted by lines of code                                                                   │
+│                                                                                              │
+│  ● 0 critical   ● 2 high   ● 6 medium   ● 1 low   4 to review (not scored)                   │
+│  3 files · Python 2 · JS/TS 1 · 0.9 s                                                        │
+│                                                                                              │
+╰────────────────────────────────────────────────────────────────────── examples/demo_project ─╯
 
-Findings  top 5 of 9
-HIGH    orders/pricing.py:1   return_constant_stub     Function 'compute_discount' returns constant
-                                                       0.1 - likely stub; also breaks its
-                                                       docstring: promises "Compute the discount
-                                                       for the order." (computed_result); every
-                                                       return is a literal (0.1)
-HIGH    orders/pricing.py:15  pass_placeholder         Empty function with only pass - placeholder
-                                                       not implemented
-MEDIUM  orders/pricing.py:1   ignored_parameter        Parameter 'order' of 'compute_discount' is
-                                                       never used - it does not affect the result
-MEDIUM  orders/pricing.py:3   todo_comment             TODO comment - incomplete implementation
-MEDIUM  orders/store.py:4     return_none_placeholder  Function only returns None - likely
-                                                       placeholder
+ Fix first  5 of 9
+ HIGH    orders/pricing.py:1   return_constant_stub     Function 'compute_discount' returns con…
+ HIGH    orders/pricing.py:15  pass_placeholder         Empty function with only pass
+ MEDIUM  orders/pricing.py:1   ignored_parameter        Parameter 'order' of 'compute_discount'…
+ MEDIUM  orders/pricing.py:3   todo_comment             TODO comment
+ MEDIUM  orders/store.py:4     return_none_placeholder  Function only returns None
   +4 more (--details or -o report.md)
 
-Hollow review candidates (not scored)  top 3 of 4
-  orders/pricing.py:7  claim_without_mechanism  total_parallel: promises "Sum the order values in
-                                                parallel." (parallel); no call that could run
-                                                concurrently
-  orders/store.py:8    input_never_used         save_record [record]: the value reaches no result
-                                                and no effect, here or in the module functions it
-                                                is passed to
-  orders/store.py:8    success_without_effect   save_record: reports success, and every call it
-                                                makes resolves to module functions with no effect:
-                                                persist
+ To review (not scored)  3 of 4
+   orders/pricing.py:7  claim_without_mechanism  total_parallel: promises "Sum the order values…
+   orders/store.py:8    input_never_used         save_record [record]: the value reaches no res…
+   orders/store.py:8    success_without_effect   save_record: reports success, and every call i…
   +1 more (--details or -o report.md)
 
-Next
-  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical or
-     high: review those before accepting this scan.
+ Next
+  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical
+     or high: review those before accepting this scan.
 
-Full tables: --details   Report file: -o report.md
+ Full tables: --details   Report file: -o report.md
 ```
 
 **AI work order** (`--format ai-md`, also written as `ai-report.md` by

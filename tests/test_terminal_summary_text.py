@@ -48,7 +48,7 @@ def _screen(root: Path, files: dict) -> str:
 def test_plain_text_is_still_shown(tmp_path):
     """Positive control: the screen has its parts and the item it reports."""
     screen = _screen(tmp_path, {"web/page.jsx": JSX})
-    assert "AI SLOP Detector" in screen and "Findings" in screen and "Next" in screen
+    assert "AI SLOP Detector" in screen and "Fix first" in screen and "Next" in screen
     assert "MEDIUM" in screen and "web/page.jsx:1" in screen and "js_var_usage" in screen
 
 
@@ -85,7 +85,7 @@ def test_a_target_with_brackets_is_named(tmp_path):
     view = dataclasses.replace(view, target="work/[proj]/app")
     out = io.StringIO()
     print_summary(view, console=Console(file=out, width=240))
-    assert "work/[proj]/app" in out.getvalue().splitlines()[0], out.getvalue().splitlines()[0]
+    assert "work/[proj]/app" in out.getvalue(), out.getvalue()
 
 
 def test_a_long_next_step_wraps_under_its_own_text(tmp_path):
@@ -152,5 +152,5 @@ def test_a_scan_of_the_current_folder_names_the_folder(tmp_path, monkeypatch):
     assert view.target == "."
     out = io.StringIO()
     print_summary(view, console=Console(file=out, width=240))
-    headline = out.getvalue().splitlines()[0]
-    assert " - shop-api (1 file" in headline, headline
+    named = [line for line in out.getvalue().splitlines() if "shop-api" in line]
+    assert named and "1 file" in out.getvalue(), out.getvalue()

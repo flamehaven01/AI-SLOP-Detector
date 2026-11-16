@@ -59,34 +59,72 @@ full-fidelity record; the view and the AI report are derived from it.
 Before 3.14.0 the terminal printed one `[INFO] Analyzing: <path>` line per
 file, then summary and metric tables, then next steps, and no hollow channel.
 
-The important part fits one terminal screen. Output of the implemented
-summary on a two-function demo module (abridged):
+The important part fits one terminal screen: the verdict in a panel, then at
+most 5 findings and 3 review candidates, then what to do. Output for
+`examples/demo_project` (since 3.17.0):
 
+```text
+╭─ AI SLOP Detector 3.16.1 ────────────────────────────────────────────────────────────────────╮
+│                                                                                              │
+│  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
+│  higher = more warning signs              30      50      70                                 │
+│  weighted by lines of code                                                                   │
+│                                                                                              │
+│  ● 0 critical   ● 2 high   ● 6 medium   ● 1 low   4 to review (not scored)                   │
+│  3 files · Python 2 · JS/TS 1 · 0.9 s                                                        │
+│                                                                                              │
+╰────────────────────────────────────────────────────────────────────── examples/demo_project ─╯
+
+ Fix first  5 of 9
+ HIGH    orders/pricing.py:1   return_constant_stub     Function 'compute_discount' returns con…
+ HIGH    orders/pricing.py:15  pass_placeholder         Empty function with only pass
+ MEDIUM  orders/pricing.py:1   ignored_parameter        Parameter 'order' of 'compute_discount'…
+ MEDIUM  orders/pricing.py:3   todo_comment             TODO comment
+ MEDIUM  orders/store.py:4     return_none_placeholder  Function only returns None
+  +4 more (--details or -o report.md)
+
+ To review (not scored)  3 of 4
+   orders/pricing.py:7  claim_without_mechanism  total_parallel: promises "Sum the order values…
+   orders/store.py:8    input_never_used         save_record [record]: the value reaches no res…
+   orders/store.py:8    success_without_effect   save_record: reports success, and every call i…
+  +1 more (--details or -o report.md)
+
+ Next
+  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical
+     or high: review those before accepting this scan.
+
+ Full tables: --details   Report file: -o report.md
 ```
-AI SLOP Detector 3.14.0 - demo (1 file, 1.5 s)    measurement: COMPLETE
-Score     12.5/100  CLEAN (score band)
-Findings  2  (critical 0 / high 0 / medium 2 / low 0)
-Hollow    3 review candidate(s), not scored  -  4 functions, 2 not decidable
 
-Findings  top 2 of 2
-MEDIUM  pkg/store.py:4   return_none_placeholder  Function only returns None - likely placeholder
-MEDIUM  pkg/store.py:21  empty_except             Empty handler for 'Exception' silently discards ...
-
-Hollow review candidates (not scored)  top 3 of 3
-  pkg/store.py:8   success_without_effect       save_record: reports success, and every call it
-                                                makes resolves to module functions with no effect
-  ...
-
-Next
-  1. 2 lower-severity finding(s) are open for review.
-
-Full tables: --details   Report file: -o report.md
-```
-
-- Progress: one updating line on a TTY (`[37/120] ml/pipeline.py`), nothing
-  when output is not a TTY. Per-file lines only with `--verbose`.
-- Lists are capped at 5 pattern findings and 3 hollow candidates
+- The panel: the score, its band, a meter of the score with the band limits
+  (30 / 50 / 70) under it, "higher = more warning signs", what the score is
+  weighted by, the findings per severity, the review candidates, and the files
+  read per language. A scan that did not measure everything says so there
+  (`measurement: PARTIAL` and what could not be analyzed).
+- One line per item: the location, the rule and the first clause of the
+  message. A message that does not fit is cut, never wrapped; the whole
+  message, the fix and the evidence are in `--details` and every report file.
+- Lists are capped at 5 pattern findings and 3 review candidates
   (`report_view.TERMINAL_LIMITS`), with the remaining count shown.
+- A channel that did not measure is never a count: `review candidates: not
+  measured`, `docstring promises: skipped`. A project without a Python file
+  has no line about these Python channels.
+- Progress: on a TTY, a box that names what is running and goes away when the
+  scan ends; nothing when the output is not a TTY. Per-file lines only with
+  `--verbose`.
+
+```text
+╭─ AI SLOP Detector 3.16.1 ────────────────────────────────────────────────────────────────────╮
+│  ✓  Find files  3 files · Python 2 · JS/TS 1                                                 │
+│  ▸  Analyze     ━━━━━━━━━━━━━━━━────────  2/3  store.py                                      │
+│  ·  Score                                                                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+- Text of the scanned repository (paths, messages, docstrings) is printed as
+  it is, never read as formatting.
+- A console that cannot encode the box-drawing characters (cp1252, a
+  redirected ASCII stream) gets the same screen drawn with `+ - | # *`.
 - `--details` prints the full tables, then every finding and hollow review
   candidate with its location, rule, evidence and fix (since 3.15.1; before,
   findings were listed only for files in a deficit band, and JS/TS and Go

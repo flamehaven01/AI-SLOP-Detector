@@ -44,8 +44,7 @@ def test_the_headline_score_says_it_is_weighted_by_lines(tmp_path):
     print_summary(
         build_report_view(result), console=Console(file=out, width=200, color_system=None)
     )
-    score_line = [line for line in out.getvalue().splitlines() if line.startswith("Score")][0]
-    assert "weighted by lines" in score_line, score_line
+    assert "weighted by lines of code" in out.getvalue(), out.getvalue()
     assert "weighted by lines" in generate_html_report(result)
 
 

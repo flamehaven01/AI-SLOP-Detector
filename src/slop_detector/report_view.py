@@ -110,6 +110,8 @@ class ReportView:
     coverage_notes: List[str] = field(default_factory=list)
     metrics: List[Dict[str, str]] = field(default_factory=list)
     file_rows: List[Tuple[str, Optional[float], str, int]] = field(default_factory=list)
+    # Analyzed files per language, in registry order, languages with none left out.
+    languages: List[Tuple[str, int]] = field(default_factory=list)
 
 
 def build_report_view(result: Any) -> ReportView:
@@ -143,6 +145,7 @@ def build_report_view(result: Any) -> ReportView:
         next_steps=next_steps(result) if is_project else [],
         coverage=_coverage(result, is_project),
         coverage_notes=_coverage_notes(result) if is_project else [],
+        languages=_languages(result) if is_project else [],
         metrics=(
             (project_metric_rows(result) if is_project else file_metric_rows(result))
             if score_is_valid(result)
@@ -184,6 +187,15 @@ def _coverage(result: Any, is_project: bool) -> Dict[str, int]:
         key: int((coverage.get(key) or {}).get("total", 0) or 0)
         for key in ("analyzed", "excluded", "unsupported", "failed", "unmeasured")
     }
+
+
+def _languages(result: Any) -> List[Tuple[str, int]]:
+    """(label, analyzed files) per language that has any (scan_coverage.analyzed)."""
+    from slop_detector import language_registry
+
+    analyzed = (getattr(result, "scan_coverage", None) or {}).get("analyzed") or {}
+    labels = [("python", "Python")] + [(a.name, a.label) for a in language_registry.languages()]
+    return [(label, int(analyzed[name])) for name, label in labels if analyzed.get(name)]
 
 
 def _coverage_notes(result: Any) -> List[str]:

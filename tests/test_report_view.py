@@ -108,10 +108,10 @@ def test_the_terminal_lists_five_findings_and_three_candidates_then_the_rest(tmp
     result = _project(tmp_path, {"many.py": many, "pkg/store.py": HOLLOW * 1})
     view = build_report_view(result)
     screen = _screen(view)
-    assert f"top 5 of {len(view.findings)}" in screen
+    assert f"Fix first  5 of {len(view.findings)}" in screen
     assert f"+{len(view.findings) - 5} more" in screen
     shown = min(3, len(view.candidates))
-    assert f"top {shown} of {len(view.candidates)}" in screen
+    assert f"To review (not scored)  {shown} of {len(view.candidates)}" in screen
 
 
 def test_a_long_path_is_shown_relative_to_the_scanned_root(tmp_path):
@@ -133,7 +133,7 @@ def test_progress_writes_only_to_a_terminal_and_never_ends_a_scan():
 
     tty = Tty()
     Progress(tty)(event)
-    assert "[1/2] a.py" in tty.getvalue()
+    assert "1/2" in tty.getvalue() and "a.py" in tty.getvalue()
 
     class Broken(Tty):
         def write(self, text):

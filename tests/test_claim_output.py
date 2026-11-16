@@ -209,7 +209,9 @@ def test_every_report_states_the_channel_and_never_writes_zero_when_not_measured
     )
     out = io.StringIO()
     print_summary(view, console=Console(file=out, width=240, color_system=None))
-    assert "Promises" in out.getvalue() and "1 docstring promise(s)" in out.getvalue()
+    # The screen counts the contradicted promise among the review candidates and lists it.
+    assert "1 to review (not scored)" in out.getvalue(), out.getvalue()
+    assert "claim_without_mechanism" in out.getvalue(), out.getvalue()
     assert "Docstring promises: 1 docstring promise(s)" in generate_markdown_report(result)
     assert "Docstring promises: 1 docstring promise(s)" in render_view_html(view)
     for state, words in (("UNMEASURED", "not measured"), ("SKIPPED", "skipped")):
