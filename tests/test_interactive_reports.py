@@ -168,3 +168,32 @@ def test_the_cli_without_a_terminal_scans_and_does_not_wait(tmp_path):
     assert not (tmp_path / "slop-report").exists()
     plain = _cli(tmp_path)
     assert plain.returncode == 0 and "--interactive needs a terminal" not in plain.stderr
+
+
+def test_ci_and_write_capable_options_conflict_too():
+    """Inspector INS-317-01/02: a CI option must never reach a prompt, and an
+    option that writes or runs something of its own would act although no
+    report was chosen: every option --read-only refuses is refused here too."""
+    from slop_detector.cli import write_capable_options
+
+    def names(**options):
+        return conflicts(SimpleNamespace(interactive=True, **options))
+
+    assert names(ci_claims_strict=True) == ["--ci-claims-strict"]
+    assert names(fix=True) == ["--fix"]
+
+    class Everything:
+        interactive = True
+
+        def __getattr__(self, name):
+            return True
+
+    table = set(write_capable_options(Everything()))
+    assert len(table) >= 15 and table <= set(conflicts(Everything())), table
+
+
+def test_the_cli_refuses_the_strict_ci_option(tmp_path):
+    (tmp_path / "calc.py").write_text(PY, encoding="utf-8")
+    proc = _cli(tmp_path, "--interactive", "--ci-claims-strict")
+    assert proc.returncode == 2, proc.stderr
+    assert "--interactive is incompatible with: --ci-claims-strict" in proc.stderr

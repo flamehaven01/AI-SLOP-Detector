@@ -5,7 +5,8 @@ details it links to: every command, the report surfaces, the scoring model,
 the per-language analyzers, configuration, CI and the agent interfaces.
 The sections were moved here from the README in 3.16.1; their text is unchanged
 except for link paths, three headings, the install lines (no version pin), the
-pre-commit `rev` (the current release) and the note on the historical VS Code appendix.
+pre-commit `rev` (the current release), the note on the historical VS Code appendix,
+and one passage about a validation command this package does not ship, which was dropped.
 The VS Code extension has its own guide: [the extension guide](../vscode-extension/README.md).
 
 ## What Is AI-SLOP Detector?
@@ -247,7 +248,7 @@ python -m build
 Governance verification is a separate enforcement gate:
 
 ```bash
-slop-detector verify-governance ./.cr-ep
+slop-detector verify-governance <artifact>
 ```
 
 See [docs/GOVERNANCE.md](GOVERNANCE.md) for the artifact contract and
@@ -582,17 +583,6 @@ it reveals which areas are too complex to refactor right now.
 
 History is stored at `~/.slop-detector/history.db` (your home directory, outside all repos).
 It is never committed and accumulates across all projects you scan.
-
----
-
-**Adversarial Validation (SPAR-Code)** — ground-truth regression guard
-```bash
-fhval spar          # 3-layer adversarial check
-fhval spar --layer a   # known-pattern anchors
-fhval spar --layer c   # existence probes
-```
-Verifies each metric is measuring what it claims. Catches calibration drift
-before it reaches production.
 
 ---
 

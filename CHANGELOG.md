@@ -37,8 +37,11 @@ A new default terminal screen.
   and stdin and stdout are both terminals: without the option no scan waits
   for input, and with it but no terminal the scan prints a note and returns.
   Refused (exit 2) with an option that already decides the output
-  (`--json`, `--output`, `--quiet`, `--format ai`, `--report-dir`,
-  `--ci-mode`, `--ci-report`) or with `--read-only`.
+  (`--json`, `--output`, `--quiet`, `--format ai`, `--report-dir`), a CI
+  option (`--ci-mode`, `--ci-report`, `--ci-claims-strict`), `--read-only`,
+  or any option `--read-only` itself refuses (it writes a file, changes
+  state or runs something other than the scan report: `--fix`, `--init`,
+  the history options, ...).
 
 ---
 

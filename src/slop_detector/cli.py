@@ -274,17 +274,11 @@ def _emit_leda_yaml(args, result) -> None:
     print(f"[+] LEDA injection YAML saved to {written}")
 
 
-def _activate_read_only(args) -> Optional[str]:
-    """Apply the read-only contract or return a conflict message.
-
-    Read-only means the run leaves no change in the analyzed project and creates
-    or modifies none of the detector's own state (history, impact, telemetry,
-    analysis cache). Write-capable options are refused.
-    """
-    if not getattr(args, "read_only", False):
-        return None
-
-    incompatible = {
+def write_capable_options(args) -> dict:
+    """The options that write a file, change state or run something other than
+    the scan report, with whether each is set. --read-only refuses them, and so
+    does --interactive (report_chooser): one table for both."""
+    return {
         "--output": bool(getattr(args, "output", None)),
         "--report-dir": bool(getattr(args, "report_dir", None)),
         "--fix": bool(getattr(args, "fix", False)),
@@ -303,6 +297,19 @@ def _activate_read_only(args) -> Optional[str]:
         "--ci-mode": bool(getattr(args, "ci_mode", None)),
         "--ci-report": bool(getattr(args, "ci_report", False)),
     }
+
+
+def _activate_read_only(args) -> Optional[str]:
+    """Apply the read-only contract or return a conflict message.
+
+    Read-only means the run leaves no change in the analyzed project and creates
+    or modifies none of the detector's own state (history, impact, telemetry,
+    analysis cache). Write-capable options are refused.
+    """
+    if not getattr(args, "read_only", False):
+        return None
+
+    incompatible = write_capable_options(args)
     conflicts = sorted(name for name, enabled in incompatible.items() if enabled)
     if conflicts:
         return "--read-only is incompatible with: " + ", ".join(conflicts)

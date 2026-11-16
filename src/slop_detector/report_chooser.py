@@ -29,16 +29,16 @@ PROMPT = (
     + "  [Enter] done > "
 )
 NEEDS_TERMINAL = "--interactive needs a terminal (stdin and stdout); no report was chosen"
-# Options that already decide the output, or forbid writing: not with --interactive.
+# Not with --interactive, beside every write-capable option (cli.write_capable_options:
+# it writes a file, changes state or runs something other than the scan report,
+# so it would act although no report was chosen): an option that decides the
+# screen output, a CI option (a CI run must never reach a prompt), --read-only.
 _CONFLICTS = (
-    ("--ci-mode", "ci_mode"),
-    ("--ci-report", "ci_report"),
+    ("--ci-claims-strict", "ci_claims_strict"),
     ("--format ai", "ai"),
     ("--json", "json"),
-    ("--output", "output"),
     ("--quiet", "quiet"),
     ("--read-only", "read_only"),
-    ("--report-dir", "report_dir"),
 )
 
 
@@ -46,7 +46,11 @@ def conflicts(args: Any) -> List[str]:
     """The given options `--interactive` cannot be combined with (sorted)."""
     if not getattr(args, "interactive", False):
         return []
-    return sorted(name for name, attr in _CONFLICTS if getattr(args, attr, None))
+    from slop_detector.cli import write_capable_options
+
+    names = {name for name, attr in _CONFLICTS if getattr(args, attr, None)}
+    names.update(name for name, enabled in write_capable_options(args).items() if enabled)
+    return sorted(names)
 
 
 def should_prompt(args: Any, stdin: Any = None, stdout: Any = None) -> bool:

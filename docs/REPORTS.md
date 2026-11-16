@@ -134,8 +134,12 @@ most 5 findings and 3 review candidates, then what to do. Output for
   write nothing. It asks only when the option is given and stdin and stdout
   are both terminals: a scan without the option never waits for input, and
   the option without a terminal prints a note and returns. It is refused
-  (exit 2) together with `--json`, `--output`, `--quiet`, `--format ai`,
-  `--report-dir`, `--ci-mode`, `--ci-report` or `--read-only`.
+  (exit 2) together with an option that already decides the output
+  (`--json`, `--output`, `--quiet`, `--format ai`, `--report-dir`), a CI
+  option (`--ci-mode`, `--ci-report`, `--ci-claims-strict`), `--read-only`,
+  or any option `--read-only` itself refuses (it writes a file, changes
+  state or runs something other than the scan report: `--fix`, `--init`,
+  the history options, ...).
 - `--details` prints the full tables, then every finding and hollow review
   candidate with its location, rule, evidence and fix (since 3.15.1; before,
   findings were listed only for files in a deficit band, and JS/TS and Go
