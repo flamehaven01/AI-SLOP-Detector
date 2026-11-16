@@ -229,7 +229,7 @@ else                 -->  CLEAN
 ```
 
 The same bands apply to files, the project (its line-weighted deficit), and
-JS/TS and Go results. They are product semantics, not configuration.
+JS/TS, Go and Rust results. They are product semantics, not configuration.
 
 ### Flags (beside the band, never instead of it)
 

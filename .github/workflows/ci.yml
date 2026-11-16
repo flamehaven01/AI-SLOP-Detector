@@ -99,7 +99,7 @@ jobs:
         run: pytest tests/test_js_analyzer.py -v
 
   test-go:
-    name: Go Analyzer (tree-sitter)
+    name: Go Analyzer
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

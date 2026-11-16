@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [3.16.1] - 2026-11-16
 
 Rust files are analyzed. JS/TS and Go file rows in the HTML and Markdown
-reports show their score.
+reports show their score. There is no 3.16.0 on PyPI or npm: that number was
+used by a VS Code Marketplace build only.
 
 ### Changes you see when upgrading
 
@@ -40,6 +41,25 @@ reports show their score.
   include the message).
 - In the Markdown work order a code block is fenced with its file's language
   (`rust`, `go`, `javascript`, `typescript`, `python`), not always `python`.
+- A project without a Python file: the metric table (and `metric_guide` in
+  JSON) shows inflation and DDC as `N/A (Python only)` where it showed
+  `0.00x` and `0.00%`, and the next steps (`next_steps` in JSON) no longer
+  name DDC as the top concern or advise the `sweep` commands, which read
+  Python files. `avg_inflation` and `avg_ddc` in JSON are unchanged (0.0).
+- `--gate` judges only what was measured. On a project without a Python
+  file it no longer halts on `ddc=0.000 < threshold=0.5`, and it no longer
+  records `jsd=1.0000` for an inflation nobody measured: both read `n/a`,
+  the output says `Not judged: di2, jsd`, and the decision can change from
+  HALT to PASS. A scan that could not analyze every file now halts
+  (`analysis incomplete: N file(s) could not be analyzed`), where it could
+  pass on the files that were read; a project with nothing measured halts as
+  `not evaluated` instead of on `ldr=0.000`. A gate decision gains
+  `not_measured` (additive); the audit hash of a decision on measured values
+  is unchanged.
+- A project where nothing was measured: the next step reads "Not evaluated:
+  no file was measured ..." (it read "All metrics are healthy - no action
+  needed"). A clean project without a Python file reads "All measured
+  metrics are healthy".
 
 ### Added
 
@@ -74,6 +94,27 @@ reports show their score.
   early (a long function was not reported), and a one-line `/* */` after code
   turned every later line into a comment. Both readers now judge code with
   strings and comments blanked, and comment rules read only comments.
+- The terminal summary read text of the scanned repository as formatting
+  tags. A path such as `app/[id]/page.jsx` was shown as `app//page.jsx`, a
+  hollow candidate lost the input it names (`save_record [record]:` read
+  `save_record :`), text in brackets inside a quoted docstring was dropped,
+  and a docstring holding `[/x]` ended the summary with a `MarkupError`
+  traceback. The summary now prints such text as it is (`--details` already
+  did).
+- Terminal summary: a next step that does not fit the line continues under
+  its own text (it continued at the left edge); a scan of `.` is headed by
+  the folder's name, not by `.`; the line `[INFO] Analyzed 1 Rust files`
+  above the summary is printed with `--verbose` only.
+- Advice and a gate decision rested on a metric nobody measured. Inflation
+  and DDC are averages over Python files; with no such file the average of
+  nothing was 0.0. A project of Rust and JS/TS files was told "Top concern:
+  Dependency Usage Ratio (DDC) = 0.00%" and to run `sweep unused-deps`,
+  `--gate` answered HALT on `ddc=0.000`, and the Markdown report's summary
+  said `Inflation (Jargon) 0.00`. A Python project whose only files have no
+  executable code was affected the same way. Such a metric now reads N/A and
+  is neither a concern nor judged. The same rule now holds for the whole
+  result: with nothing measured the advice said "All metrics are healthy",
+  and `--gate` passed a scan in which a file could not be analyzed.
 - `--ci-report` gave no reason when the hard gate failed only because a file
   could not be analyzed ("1 clean, 0 with issues"), and its message read
   "Build FAILED: analysis incomplete ... | Build PASSED: ...".
@@ -106,6 +147,9 @@ reports show their score.
   `javascriptreact` / `typescriptreact` language ids), although project scans
   analyze them. The extension now keeps one language list that a test checks
   against the backend's languages.
+- VS Code extension: a Go or Rust file showed the summary line of a Python
+  file (`LDR ... Inflation: 0.000 DDC: 0.000`); it shows its language and
+  LDR-equivalent, like a JS/TS file.
 
 ### Documentation
 
@@ -119,6 +163,17 @@ reports show their score.
   describe Go as tree-sitter analysis.
 - `docs/ADDING_A_LANGUAGE.md`: how a language is added and what the tests
   enforce.
+- README: rewritten as a short introduction (what it finds, a language
+  table, quick start, how to read the score, where it runs). The sections it
+  no longer holds moved unchanged to `docs/GUIDE.md`, and the release history
+  to `docs/RELEASE_NOTES.md`; the old section anchors lead to their new
+  place. The headline no longer says "AI-generated code": the tool reports
+  signals in the code and does not tell who wrote it.
+- `docs/PATTERNS.md` has a Rust section; the guides that listed the
+  analyzed languages (CI, CLI, architecture, work order, how it works) name
+  Rust.
+- CI: the Go job is named "Go Analyzer" (it was "Go Analyzer
+  (tree-sitter)"; Go files are read by the regex reader).
 
 ---
 

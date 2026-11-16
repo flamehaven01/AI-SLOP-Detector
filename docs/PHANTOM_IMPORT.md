@@ -6,7 +6,7 @@ in v2.9.0; this page describes its current resolution boundary.
 **Pattern ID:** `phantom_import`
 **Severity:** CRITICAL
 **Axis:** QUALITY
-**Language:** Python only — Go/JS/TS have language-specific error patterns (see [PATTERNS.md](PATTERNS.md#go))
+**Language:** Python only — JS/TS, Go and Rust have their own rules (see [PATTERNS.md](PATTERNS.md#javascript--typescript))
 **Module:** `slop_detector.patterns.python_imports`
 
 ---

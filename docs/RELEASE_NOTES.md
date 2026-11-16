@@ -5,6 +5,52 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.16.1 — 2026-11-16
+
+### Summary
+
+Rust files are analyzed, and the regex readers of Go and JS/TS no longer read
+text inside strings and comments as code. The README is now a short
+introduction; its detailed sections moved to [GUIDE.md](GUIDE.md). There is no
+3.16.0 on PyPI or npm (the number was used by a VS Code Marketplace build
+only). Every change is listed in the [Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **A project with `.rs` files gets Rust findings**: `todo!()` and
+  `unimplemented!()` outside test code (high), `dbg!()` (medium), TODO/FIXME/
+  HACK/XXX comments (low, not scored). They count toward the project score
+  and `--ci-mode` judges them like JS/TS and Go files, so **the gate's
+  decision can change for such a project**. One stub call alone is 25 points
+  and does not fail `--ci-mode hard`; three in a short file reach the
+  critical band.
+- **Go and JS/TS (regex reader) scores can drop.** `fmt.Println(...)`,
+  `panic(...)`, `console.log(...)` or `: any` written inside a string or a
+  comment is no longer a finding, and a brace inside a Go string no longer
+  ends a function early. A file that failed the gate on such text no longer
+  does.
+- With the `[go]` extra installed, Go results say `ast_mode: false` and scan
+  coverage says `mode: regex` (they said tree-sitter although the regex
+  reader produced the result). Go findings and scores are unchanged by this.
+- JSON, REST and the npm types gain `rust_file_results` and a `rust` entry in
+  scan coverage (additive keys).
+- The `--ci-report` body starts with the gate's verdict and its reason and
+  lists files that could not be analyzed.
+- The next steps name the file with the most severe findings in any language.
+
+### Verification
+
+- Rust: the token scanner and the tree-sitter reader are held to the same
+  findings by parity tests; the CI job that installs the `[rust]` extra fails
+  if any of them is skipped.
+- A new language reaches every consumer (reports, gate, summary, history,
+  JSON, REST) through one registry; 16 deliberately broken copies of that
+  wiring were caught ([ADDING_A_LANGUAGE.md](ADDING_A_LANGUAGE.md)).
+- The rule counts in the README (Python 37, JS/TS 8, Go 6, Rust 4) are
+  checked against the pattern registry by a test.
+
+---
+
 ## v3.15.2 — 2026-11-13
 
 ### Summary
@@ -191,7 +237,7 @@ agents: the AI report (`--format ai`, JSON Lines) and the AI work order
 from. A new hollow channel lists code that reports work it does not do as
 review candidates, separately from the score. Every change is listed in the
 [Changelog](../CHANGELOG.md). The surfaces are shown in the README under
-[What You Get](../README.md#what-you-get); the work order is described in
+[What You Get](GUIDE.md#what-you-get); the work order is described in
 [AI_WORK_ORDER.md](AI_WORK_ORDER.md).
 
 ### What moves when you upgrade
@@ -1921,3 +1967,74 @@ slop-detector mycode.py --no-history
 ```
 
 Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
+
+
+---
+
+## Release track summaries (moved from the README in 3.16.1)
+
+- `v3.15.2`: `--ci-mode hard` judges JS/TS and Go files with the thresholds of Python files (score band, critical and high findings). Up to 3.15.1 the gate read Python files only, so a Go-only project at score 100 with three critical findings passed it. A project with JS/TS or Go files can now fail a gate it passed before. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.15.1`: every finding reaches every human report with its fix: `report.md` and `--details` list JS/TS and Go findings and the hollow candidates (they did not), and JS/TS and Go findings carry a fix in the default install. Findings and scores are unchanged. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.15.0`: the AI work order groups its items into families that share a rule, fix and evidence shape, binds each file to its scan-time SHA-256 once in a FILES table, and reads itself back before it is written: an item that is missing, doubled or shown with a field that differs from its record makes it refuse. Within a token budget, a short function whose whole body costs less than its excerpt is shown whole. The work order names its format `ai-slop-work-order/2`; the JSON Lines report, findings and scores are unchanged. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.14.2`: two JS/TS or Go findings of one rule on one line (`(a: any, b: any)`) keep two ids, so the AI report, the work order and `--report-dir` no longer refuse such a project; the VS Code extension shows the findings of JS/TS and Go files. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.14.1`: the AI report and the AI work order print on any console (they failed on a cp949 console for characters such as an em dash), a file scanned on its own is located by its name instead of `.`, and the VS Code extension shows docstring promises, copies an item as a work order for an AI agent, exports the work order and marks the lines of a file edited after its analysis. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.14.0`: new report surfaces (one-screen terminal summary, HTML report and A4 PDF, AI report and AI work order for agents, `--report-dir` bundle) and a separate, unscored hollow channel: functions that report success with no effect, inputs that reach nothing, and docstring promises the body cannot keep. Each item is bound to the SHA-256 of the bytes the scan analyzed, and Python item ids do not change when lines move. See [What You Get](GUIDE.md#what-you-get) and [CHANGELOG.md](../CHANGELOG.md).
+- `v3.13.0`: null objects, base-class defaults and framework hooks are no longer reported as placeholders, and logged `NotImplementedError` stubs, constant success reports and discarded results are. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.12.0`: catches code that only looks finished: stubs hidden behind logging (`return_constant_stub`), arguments returned unchanged (`return_input_stub`), catch-all handlers that return the success result (`failure_as_success`) and parameters a function never reads (`ignored_parameter`). See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.11.0`: one scan engine (`ScanService`) behind the CLI, MCP and REST, with progress events, cancellation and typed errors; MCP and REST scans write nothing by default (REST history only with `"save_history": true`), the REST server binds `127.0.0.1`, and agent project responses say whether the score measured anything (`measurement_state`, `score_valid`, `reason`). Findings and scores are unchanged. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.10.1`: function length counts logical lines and `try` / `with` are not nesting levels (far fewer false `god_function` and nesting findings); UTF-8 files with a byte order mark and single JS/TS/Go files are analyzed instead of scored as parse errors; scans of git repositories under non-ASCII folder names and HTML reports of projects no longer crash; a scan that measured nothing shows `NOT EVALUATED` and never passes `--fail-threshold`; an invalid or missing config stops the run before analysis. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.10.0`: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and cold scans are 2.6-3x faster. See [CHANGELOG.md](../CHANGELOG.md).
+- `v3.9.3` is a precision correction: an `elif` no longer counts as a level of nesting, `@overload` signatures are not placeholders, a module with no executable code is not scored as empty logic, a file that fails to analyze is listed and marks the scan incomplete (a hard gate then fails) instead of silently disappearing, `--json --js` prints one JSON document, and the JS/TS analysis mode (tree-sitter or regex fallback) is disclosed. Scores mostly go down; see [docs/RELEASE_NOTES.md](RELEASE_NOTES.md).
+- `v3.9.2` makes one result mean the same thing everywhere and removes double counting: one set of score bands for files, projects, JS and Go; docstrings count like comments (logic density, god_function); a nested function's nesting is charged once; exact duplicates compare function bodies only, with one size floor for the same-file and cross-file reports; import evidence follows the scanned project's root; output is byte-identical across cache, hash seed, Rust helper, and working directory. Self-calibration is now an advisory report that writes nothing, documented configuration keys that nothing read are removed with a warning, and `--init <path>` writes into `<path>`. Scores move; see [docs/RELEASE_NOTES.md](RELEASE_NOTES.md).
+- `v3.9.1` makes claim checks count only real claims and real evidence: jargon in import paths, identifiers, and license notices is not a claim; a claim is supported only by code structure (a library named in a comment no longer counts); evidence that one file cannot show, such as tests that live elsewhere, is reported as unmeasured rather than missing. It also flags names a real package does not define (`phantom_member`) and decides test files and exclusions relative to the project root, so a checkout under a `build/` directory is no longer scanned as 0 files. Scores move; see [docs/RELEASE_NOTES.md](RELEASE_NOTES.md).
+- `v3.9.0` closes a security hole (no model is read from the working directory, nothing is unpickled), makes import evidence follow CPython's resolution rules, and makes `async def` stubs, `--patterns-only`, `--disable`, and the multi-file pre-commit hook work as documented. See [docs/RELEASE_NOTES.md](RELEASE_NOTES.md).
+
+## Release highlights (one line per version)
+
+| Version | Highlights |
+|---|---|
+| **v3.15.2** | gate patch: `--ci-mode hard` (and soft and quarantine) judge JS/TS and Go files by their score band and critical/high findings, like Python files; up to 3.15.1 they were not judged |
+| **v3.15.1** | report patch: `report.md` and `--details` list every finding of every language and the hollow candidates, each with its fix; fix text for the JS/TS regex fallback and two Go rules; CI docs state that the gate judges Python files only |
+| **v3.15.0** | work-order release: items grouped into families, one FILES table of scan-time hashes, a read-back check that refuses a lossy document, short functions drawn whole within a token budget; format `ai-slop-work-order/2` (JSON Lines, findings and scores unchanged); VS Code extension reads the new format |
+| **v3.14.2** | patch: JS/TS and Go findings of one rule on one line told apart by column or order (the AI outputs refused such projects with tree-sitter installed); VS Code extension shows JS/TS and Go findings |
+| **v3.14.1** | patch: AI outputs written to stdout as UTF-8 on any console code page; a file scanned alone located by its name; npm types for the 3.14 file-result fields; VS Code extension with docstring promises, work order copy and export, changed-file marking and channel states |
+| **v3.14.0** | report release: one report view behind a one-screen terminal summary, Markdown, a self-contained HTML report and its A4 PDF, the AI report (`ai-slop-report/1` JSON Lines) and the AI work order (`--format ai-md`, auditor and agent modes, token budget, versioned ruleset); unscored hollow channel (`success_without_effect`, `input_never_used`, `failure_reported_as_success`, `claim_without_mechanism`); item ids bound to the scanned bytes; VS Code highlights, hover and hollow review list; cache `analysis-cache-v53` |
+| **v3.13.0** | precision and detection release: declared defaults (null objects, named bases, registered hooks, declared no-ops) are no longer placeholders; logged `NotImplementedError` stubs, constant success reports and discarded results are; known limits listed in the release notes; npm wrapper with provenance |
+| **v3.12.0** | detection release: stubs behind logging, unchanged-argument stubs, catch-all handlers returning the success result, ignored parameters; balanced parallel test runner for development |
+| **v3.11.0** | one engine release: CLI, MCP and REST run the same `ScanService` (CLI output unchanged over 70 compared cases); MCP and REST are read-only by default, REST history is opt-in, the REST server binds `127.0.0.1`; agent responses carry `measurement_state` / `score_valid` / `reason`; findings and scores unchanged |
+| **v3.10.1** | correctness release: `god_function` counts logical lines and nesting rises only for `if`/`for`/`while`/`except`; BOM files and single JS/TS/Go files analyzed; crashes fixed for git repositories under non-ASCII folders and project HTML reports; `scan_coverage.measurement_state` / `score_valid` / `reason`, `NOT EVALUATED` in human reports, `--fail-threshold` fails when every file failed; strict config validation before the run; working pre-commit hook installer; `--inspector-read-only` alias of `--read-only` |
+| **v3.10.0** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (cold scans 2.6-3x faster); cache `analysis-cache-v30`. See [CHANGELOG.md](../CHANGELOG.md) |
+| **v3.9.3** | precision correction: `elif` is not nesting (`deep_nesting`, `nested_complexity`); `@overload` / `@typing.overload` are not placeholders; `no_executable_code` modules skip LDR/DDC instead of scoring 97.49; failed analyses are counted in `scan_coverage.failed` with `complete: false` and a hard gate fails closed; one JS pass and valid `--json --js` output; `scan_coverage.analysis_modes`; cache `analysis-cache-v25` |
+| **v3.9.2** | consistency and correctness release: one band set (CLEAN <30 / SUSPICIOUS / INFLATED_SIGNAL / CRITICAL_DEFICIT >=70) for files, projects, JS and Go; `dependency_noise` and `parse_error` are flags; docstrings count like comments in LDR and god_function; deep_nesting under nested_complexity charged once; exact duplicates by function body with an 8-node floor, shared by same-file and cross-file; import evidence from the scan root; byte-identical output across cache, hash seed, Rust helper and cwd; advisory-only self-calibration; unread config keys removed with a warning; `--init <path>` honoured; cache `analysis-cache-v24` |
+| **v3.9.1** | claim and path checkpoint: jargon counted only in comments and strings, never in import paths, identifiers, or leading license notices; claim evidence states `structural` / `weak` / `absent` / `unmeasured` with a per-claim `support_level`; justification only by structural library use; test evidence unmeasured outside test files; `--ci-claims-strict` keeps failing unmeasured integration evidence; root-relative path facts (fixes 0-file scans under a `build/` checkout); `phantom_member` pattern |
+| **v3.9.0** | security and evidence release: no model is read from the working directory and nothing is unpickled; JSON ML model contract with one feature extractor for training and scoring; `scan --read-only`; import resolution that follows CPython (src layouts, namespace packages) with `structure_evidence`; `async def` placeholder findings; working `--patterns-only` / `--disable` and multi-file pre-commit hook; unimplemented API routes answer 501 |
+| **v3.8.9** | trust-and-measurement release: finding/severity summaries, coverage and ML capability disclosure, explicit `--include-tests`, root-relative Rust discovery parity checks, strictness-corpus controls, and no aggregate accuracy claim from dogfooding |
+| **v3.8.8** | packaging metadata cleanup plus VS Code workflow tightening: SPDX string license metadata, real workspace re-scan from `Refresh Issues`, stale sidebar results cleared on re-analysis, exact-path issue selection, and Quick Fix writes for `ignore` / `phantom_import_allowlist` with duplicate protection |
+| **v3.8.7** | false-positive reduction pack: default `.claude/**` ignore, runtime-only DDC accounting, quoted vocabulary tables no longer counted as inflation, monorepo + alias-aware phantom import detection, clique+size clone grouping with property-accessor exemption, JS/TS fallback callback-hell no longer confused by JSX/object literals, tiny helper docstrings ignored, and self-dogfood weighted deficit improved from `9.3892` to `6.4186` |
+| **v3.8.6** | strictness stabilization + coherence cleanup: same-file exact duplicates now surface in cleanup output, four-function clone clusters no longer evade detection, dead-code cleanup requires real dead-code evidence, `operations.py` is split into payload/cleanup/architecture helpers, and Claude skill/docs now match the canonical `scan` / `review` / `pulse` / `sweep` surface |
+| **v3.8.5** | dual-audience output: human summaries hide internal algorithm names while JSON / agent / MCP output gains deterministic `next_steps` and `metric_guide`; no breaking JSON key changes |
+| **v3.8.4** | plain-language documentation entry point: benefit-first README, honest “Why Not Just Use a Linter?” / “When NOT to Use This”, acronym glossary in HOW_IT_WORKS, and plain-meaning config guidance without changing code or contracts |
+| **v3.8.3** | human-friendly metric output (value / healthy direction / what it means + deficit bands) and deterministic Next Steps across rich/text/markdown; VS Code webview surfaces (4D breakdown, cleanup plan, pulse, diff-aware review); fixes for dead-code semantics, adaptive-init config preservation, and `unused-deps` stdlib / dev-tool false positives |
+| **v3.8.2** | adaptive `--init` adds bounded repo-signal suggestions and preview/merge flows; npm wrapper adds typed contracts, Node API, and agent workflow docs; local impact tracking and opt-in telemetry become first-class observability surfaces |
+| **v3.8.1** | cleanup-family outputs become confidence-ranked action plans; `unused-deps` grows manifest hygiene for `pyproject.toml` / `package.json`; `boundary-violations` gains opt-in layered architecture review with explicit rule evidence |
+| **v3.7.9** | **Governance gate**: `verify-governance` fail-closed CLI, deterministic governance-record verification, and a formal split between scoring math and enforcement |
+| **v3.7.3** | **Hotfix**: pydantic import wrapped in `try/except ImportError` — package imports cleanly in stripped environments; `test_api_models.py` guard corrected to `fastapi`; CI Docker login `continue-on-error`, quality gate pinned to `>=3.7.3` |
+| **v3.7.2** | **Core schema validation**: `config.py` Pydantic guards catch bad `.slopconfig.yaml` at load time (wrong weight types, `domain_overrides` non-int thresholds); `LDRResult` / `DDCResult` / `InflationResult` `__post_init__` clamps protect GQG `math.log()`; `HistoryEntry` sanitises all LEDA calibration inputs + validates `fired_rules` JSON; **VS Code**: `schema.ts` `ISlopReport` interfaces + `parseSlopReport()` handwritten discriminated-union guard — schema mismatch surfaces exact field path before silent NaN |
+| **v3.7.1** | `LintEscapePattern` docstring FP fix; self-scan avg_deficit 13.85 → 9.80; `global_injector.py` Patch 1 removed; `.slopconfig.yaml` domain_overrides expanded; **Skill**: 3-Phase Pipeline (Triage → Deep-Dive → Action Plan), `/slop-delta` before/after comparison, Confidence Routing by status band, `→ Next:` guidance per command; **VS Code**: P1 monolith → 8 focused modules, P2 `SlopCodeActionProvider` (QuickFix for phantom_import/god_function/lint_escape), P3 TreeView sidebar (3-level hierarchy), P4 `SlopCodeLensProvider` (file summary + per-function hints) |
+| **v3.7.0** | Dogfooding calibration + SKILL.md OSOT repair (10 violations); `cli_renderer.py` split (730 lines → 4 renderer modules); `python_advanced.py` split (1150 lines → 5 modules); BUG-1 `ddc` weight 0.30→0.20; BUG-2 findings filter threshold fix; BUG-3 AST-accurate test counts; BUG-5 block-scoped YAML rewrite in self_calibrator; 314 tests GREEN |
+| **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); CI gate bugfix (`--ci-mode hard` now exits non-zero without `--ci-report`); pre-commit hooks rewritten (`python -m` entry, 3 hook variants); VS Code Extension v3.6.0 VSIX; docs: Purity row, weight normalization note, `[go]` extra; 311 tests GREEN |
+| **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |
+| **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |
+| **v3.4.0** | Per-rule FP rate tracking (LEDA Phase 2A); purity weight ceiling `MAX_PURITY_WEIGHT=0.25` (Phase 2B) |
+| **v3.3.0** | File role classifier (SOURCE/INIT/RE_EXPORT/TEST/MODEL/CORPUS); DDC annotation-only import fix; `# noqa: F401` + `__all__` re-export recognition |
+| **v3.2.1** | Auto-calibration at every 10-scan milestone (no manual cmd); P2 git noise filter; P3 per-class thresholds (5+5); `calibrate()` min_events bugfix; 11/11 e2e GREEN |
+| **v3.2.0** | 4D calibration (purity dimension); `--init` bootstrap; auto-calibration hints; 44/44 self-scan CLEAN |
+| **v3.1.2** | `data_collector` refactor; slopconfig gap fill; 43/43 self-scan CLEAN |
+| **v3.1.1** | Clone Detection in Core Metrics table; table style unification; VS Code UX |
+| **v3.1.0** | 3 new adversarial patterns (`function_clone_cluster`, `placeholder_variable_naming`, `return_constant_stub`); GQG calibrator alignment; fhval SPAR-Code |
+| **v3.0.2** | Phantom import 3-tier classification; `__init__.py` LDR fix; `god_function` LOW demotion |
+| **v3.0.0** | Geometric mean scorer (GQG); `purity` dimension; DCF per-file; structural coherence |
+| **v2.9.3** | Self-calibration engine; weight grid-search from usage history |
+| **v2.9.0** | `phantom_import` CRITICAL detection; history auto-tracking |
+
+[Full Release Notes →](RELEASE_NOTES.md) · [Changelog →](../CHANGELOG.md)

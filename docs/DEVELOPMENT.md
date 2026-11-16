@@ -35,7 +35,7 @@ src/slop_detector/
   ml/                     optional ML scoring and self-calibration
   auth/                   experimental, not wired into the core
   config/                 bundled data (known dependency names)
-  languages/              JS/TS and Go adapters
+  languages/              JS/TS, Go and Rust adapters
   mcp/                    stdio tool surface
   api/                    optional local FastAPI surface
 tests/                    regression and contract tests
