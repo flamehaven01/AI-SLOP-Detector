@@ -5,13 +5,16 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
-## v3.16.1 — 2026-11-16
+## v3.16.1 — 2026-11-17
 
 ### Summary
 
 Rust files are analyzed, and the regex readers of Go and JS/TS no longer read
-text inside strings and comments as code. The README is now a short
-introduction; its detailed sections moved to [GUIDE.md](GUIDE.md). There is no
+text inside strings and comments as code. The README is rewritten: what
+the tool is, a quick start, a picture of the terminal screen, and a short
+section each for VS Code, CI/CD, AI agents, local calibration and security;
+the full reference is in [GUIDE.md](GUIDE.md). A test holds its "no network
+calls" line: a scan with every network connection refused attempts none. There is no
 3.16.0 on PyPI or npm (the number was used by a VS Code Marketplace build
 only). Every change is listed in the [Changelog](../CHANGELOG.md).
 
@@ -1993,6 +1996,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
+| **v3.16.1** | Rust release: `todo!()`, `unimplemented!()`, `dbg!()` and TODO comments in `.rs` files, judged by the CI gate; Go and JS/TS regex readers ignore text in strings and comments; README rewritten |
 | **v3.15.2** | gate patch: `--ci-mode hard` (and soft and quarantine) judge JS/TS and Go files by their score band and critical/high findings, like Python files; up to 3.15.1 they were not judged |
 | **v3.15.1** | report patch: `report.md` and `--details` list every finding of every language and the hollow candidates, each with its fix; fix text for the JS/TS regex fallback and two Go rules; CI docs state that the gate judges Python files only |
 | **v3.15.0** | work-order release: items grouped into families, one FILES table of scan-time hashes, a read-back check that refuses a lossy document, short functions drawn whole within a token budget; format `ai-slop-work-order/2` (JSON Lines, findings and scores unchanged); VS Code extension reads the new format |

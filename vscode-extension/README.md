@@ -87,7 +87,7 @@ its block (location, SHA-256 of the file, evidence, the code) and the
 response form. Paste it into an agent chat. The mode follows
 `slopDetector.workOrderMode` (`auditor` by default). Save the file first:
 the work order is bound to the bytes on disk. More on the format:
-[docs/AI_WORK_ORDER.md](../docs/AI_WORK_ORDER.md).
+[docs/AI_WORK_ORDER.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/AI_WORK_ORDER.md).
 
 The reports need the backend 3.14 or newer; an older backend gets a message
 saying so.
@@ -207,7 +207,7 @@ phantom_import_allowlist:
 
 ## Pattern reference
 
-The maintained catalog is [docs/PATTERNS.md](../docs/PATTERNS.md); this list
+The maintained catalog is [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md); this list
 is an overview. Use the `pattern_id` as the Problems filter.
 
 **Placeholder / stub**: `pass_placeholder`, `ellipsis_placeholder`,
@@ -265,8 +265,8 @@ output channel, which logs every backend call.
 
 ## Changes
 
-See the [CHANGELOG](../CHANGELOG.md).
+See the [CHANGELOG](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md).
 
 ## License
 
-MIT, see [LICENSE](LICENSE)
+MIT, see [LICENSE](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/vscode-extension/LICENSE)

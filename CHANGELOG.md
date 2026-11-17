@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.16.1] - 2026-11-16
+## [3.16.1] - 2026-11-17
 
 Rust files are analyzed. JS/TS and Go file rows in the HTML and Markdown
 reports show their score. There is no 3.16.0 on PyPI or npm: that number was
@@ -163,11 +163,24 @@ used by a VS Code Marketplace build only.
   describe Go as tree-sitter analysis.
 - `docs/ADDING_A_LANGUAGE.md`: how a language is added and what the tests
   enforce.
-- README: rewritten as a short introduction (what it finds, a language
-  table, quick start, how to read the score, where it runs). The sections it
-  no longer holds moved unchanged to `docs/GUIDE.md`, and the release history
-  to `docs/RELEASE_NOTES.md`; the old section anchors lead to their new
-  place. The headline no longer says "AI-generated code": the tool reports
+- README: rewritten. It opens with what the tool is and a quick start,
+  then shows the terminal screen (a picture of the real output,
+  `docs/assets/cli-summary.svg`), the HTML report and the outputs for AI
+  agents, and gives VS Code, CI/CD, AI agents, local calibration and
+  security a short section each. The full reference moved to
+  `docs/GUIDE.md`, the release history to `docs/RELEASE_NOTES.md`; every old
+  section anchor is a section of the README again or leads to its new
+  place. The VS Code badge (the shields.io one was retired) shows the
+  Marketplace version and installs.
+- README: "No API key. No network calls." `tests/test_no_network.py` runs a
+  project scan and writes the Markdown, HTML and AI reports with every
+  network connection refused, and requires that none was attempted.
+- VS Code extension 3.16.2 (Marketplace): built from this release. The
+  3.16.1 build carried the npm wrapper's version 3.15.2, so without an
+  installed CLI it fetched `ai-slop-detector==3.15.2` (no Rust) and with
+  one it warned of a version mismatch; and three links of its Marketplace
+  page (work order, patterns, changelog) led nowhere. Its README links are
+  absolute now. The headline no longer says "AI-generated code": the tool reports
   signals in the code and does not tell who wrote it.
 - `docs/PATTERNS.md` has a Rust section; the guides that listed the
   analyzed languages (CI, CLI, architecture, work order, how it works) name
