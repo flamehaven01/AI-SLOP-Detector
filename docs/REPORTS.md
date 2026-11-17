@@ -114,6 +114,11 @@ most 5 findings and 3 review candidates, then what to do. Output for
 - Progress: on a TTY, a box that names what is running and goes away when the
   scan ends; nothing when the output is not a TTY. Per-file lines only with
   `--verbose`.
+- ASCII: a console that cannot encode the box characters, or a Windows
+  console without VT processing on an East Asian code page (949, 932, 936,
+  950; it draws `●`, `·` and `…` two cells wide), gets the screen and the box
+  in ASCII (`+-|`, `#` meter, `*` dots). The last line, `Choose reports to
+  save: --interactive`, is left out when the run already has `--interactive`.
 
 ```text
 ╭─ AI SLOP Detector 3.16.1 ────────────────────────────────────────────────────────────────────╮

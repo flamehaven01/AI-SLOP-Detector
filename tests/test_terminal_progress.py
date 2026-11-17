@@ -110,3 +110,24 @@ def test_a_console_that_cannot_encode_the_box_still_gets_one():
         stream.flush()
         assert b"Find files" in raw.getvalue(), encoding
         stream.detach()
+
+
+def test_the_languages_line_uses_the_separator_of_this_console():
+    """The text of the files found is made with the glyphs chosen for the
+    console, not the default ones: on a console that gets the ASCII set, a
+    two-cell dot made that line wrap, and every redraw left a line behind."""
+    raw = io.BytesIO()
+
+    class AsciiTty(io.TextIOWrapper):
+        def isatty(self):
+            return True
+
+    stream = AsciiTty(raw, encoding="ascii", errors="strict")
+    ticks = iter(range(100))
+    progress = _feed(stream, _events(), clock=lambda: float(next(ticks)))
+    stream.flush()
+    shown = raw.getvalue().decode("ascii")
+    assert "3 files - Python 2 - JS/TS 1" in shown, shown
+    assert "3/3" in shown  # the drawing went on to the end
+    assert progress.active is False
+    stream.detach()

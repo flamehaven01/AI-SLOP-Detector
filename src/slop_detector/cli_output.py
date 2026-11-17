@@ -82,7 +82,9 @@ def _write_pdf(out: str, page_html: str) -> None:
     print(f"[+] PDF report saved to {out}")
 
 
-def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, elapsed=None) -> None:
+def _route_file_output(
+    out: str, result, rich_ok: bool, details: bool = True, elapsed=None, interactive: bool = False
+) -> None:
     """Write result to file or console based on output extension and flags."""
     from slop_detector.cli_renderer import (
         generate_html_report,
@@ -110,7 +112,7 @@ def _route_file_output(out: str, result, rich_ok: bool, details: bool = True, el
         from slop_detector.renderer_terminal import print_summary
         from slop_detector.report_view import build_report_view
 
-        print_summary(build_report_view(result), elapsed=elapsed)
+        print_summary(build_report_view(result), elapsed=elapsed, interactive=interactive)
         return
     print(generate_text_report(result))
 
@@ -209,4 +211,5 @@ def _handle_screen_output(args, result, rich_available: bool) -> None:
         rich_available and not args.no_color,
         details=bool(getattr(args, "details", False)),
         elapsed=getattr(args, "elapsed", None),
+        interactive=bool(getattr(args, "interactive", False)),
     )

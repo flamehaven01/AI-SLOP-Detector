@@ -28,7 +28,12 @@ A new default terminal screen.
   language, files analyzed, the score) and disappears when the scan ends;
   it was one updating line. Nothing is drawn when stderr is not a terminal.
 - A console that cannot encode box-drawing characters gets the screen drawn
-  in ASCII.
+  in ASCII. So does a Windows console without VT processing whose code page
+  is East Asian (949, and 932 / 936 / 950): it draws `●`, `·` and `…` two
+  cells wide, which made lines wrap and the progress box leave earlier
+  frames on the screen.
+- With `--interactive`, the summary no longer ends with the line that
+  suggests `--interactive`.
 
 ### Added
 

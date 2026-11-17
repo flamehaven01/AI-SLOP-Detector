@@ -171,3 +171,35 @@ def test_the_summary_fits_a_thirty_row_terminal():
     for width in (80, 100, 120):
         lines = _render(_view(DEMO), width=width).rstrip("\n").splitlines()
         assert len(lines) <= 29, (width, len(lines))  # 29 lines and the prompt
+
+
+class _WinConsole:
+    """A console as rich describes it: its encoding and whether it is a legacy
+    Windows console (no VT processing)."""
+
+    encoding = "utf-8"
+
+    def __init__(self, legacy_windows: bool, is_terminal: bool = True):
+        self.legacy_windows = legacy_windows
+        self.is_terminal = is_terminal
+
+
+def test_a_legacy_east_asian_console_gets_glyphs_one_cell_wide():
+    # Measured 2026-11-17 in a new console window (output code page 949, VT off):
+    # U+25CF, U+00B7 and U+2026 each move the cursor two cells, rich counts one,
+    # so lines wrapped and the progress box left earlier frames on the screen.
+    from slop_detector.renderer_terminal import _ASCII_GLYPHS, _GLYPHS, _glyphs
+
+    assert _glyphs(_WinConsole(True), codepage=949) is _ASCII_GLYPHS
+    assert _glyphs(_WinConsole(True), codepage=437) is _GLYPHS
+    assert _glyphs(_WinConsole(False), codepage=949) is _GLYPHS  # a VT terminal: as before
+    assert _glyphs(_WinConsole(True, is_terminal=False), codepage=949) is _GLYPHS  # a file
+
+
+def test_the_chooser_hint_is_left_out_when_the_chooser_runs():
+    view = _view(DEMO)
+    assert "Choose reports to save: --interactive" in _render(view)
+    out = io.StringIO()
+    print_summary(view, console=Console(file=out, width=120, color_system=None), interactive=True)
+    assert "--interactive" not in out.getvalue()
+    assert "Full tables: --details" in out.getvalue()

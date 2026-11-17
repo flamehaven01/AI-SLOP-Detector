@@ -136,13 +136,39 @@ _ASCII_GLYPHS = {"filled": "#", "rest": "-", "dot": "*", "sep": "-"}
 _BOX_AND_CUT = "\u256d\u2570\u2026"
 
 
-def _glyphs(console: Any) -> dict:
-    """The glyph set this console can print (its encoding decides, not the platform)."""
+# Output code pages of a legacy Windows console (no VT) that draw U+25CF, U+00B7
+# and U+2026 two cells wide while rich counts one; the lines then wrap and the
+# progress box leaves earlier frames behind. Measured on 949 (2026-11-17, new
+# console window); 932, 936 and 950 are the other East Asian double-byte code
+# pages, included by the same rule, not measured.
+_WIDE_AMBIGUOUS_CODEPAGES = (932, 936, 949, 950)
+
+
+def _console_codepage() -> Optional[int]:
+    """The output code page of the attached Windows console; None elsewhere."""
+    if sys.platform != "win32":
+        return None
+    try:
+        import ctypes
+
+        return int(ctypes.windll.kernel32.GetConsoleOutputCP()) or None
+    except (AttributeError, OSError):  # no kernel32 entry point: nothing to adapt to
+        return None
+
+
+def _glyphs(console: Any, codepage: Optional[int] = None) -> dict:
+    """The glyph set this console can print: its encoding decides, and on a
+    legacy Windows console its code page (cells per glyph), not the platform."""
     encoding = getattr(console, "encoding", None) or "utf-8"
     try:
         ("".join(_GLYPHS.values()) + _BOX_AND_CUT).encode(encoding)
     except (UnicodeError, LookupError):
         return _ASCII_GLYPHS
+    # rich sets legacy_windows from the process console even for a file; the
+    # cells only matter where it draws on that console.
+    if getattr(console, "legacy_windows", False) and getattr(console, "is_terminal", False):
+        if (codepage or _console_codepage()) in _WIDE_AMBIGUOUS_CODEPAGES:
+            return _ASCII_GLYPHS
     return _GLYPHS
 
 
@@ -238,9 +264,12 @@ def _verdict(view: ReportView, glyphs: dict, elapsed: Optional[float]) -> Any:
     return Group(*parts)
 
 
-def print_summary(view: ReportView, elapsed: Optional[float] = None, console: Any = None) -> None:
+def print_summary(
+    view: ReportView, elapsed: Optional[float] = None, console: Any = None, interactive: bool = False
+) -> None:
     """Print the one-screen summary with rich: the verdict in a panel, then at
     most 5 findings and 3 review candidates (one line each), then what to do.
+    `interactive`: the run has --interactive, so the line that suggests it is left out.
 
     Everything that comes from the scan (paths, messages, docstring text,
     notes) is printed as `Text`, never as rich markup: `[id]` in a path is a
@@ -296,7 +325,8 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
         console.print()
         console.print(step_grid)
     console.print("\n[bright_black] Full tables: --details   Report file: -o report.md[/]")
-    console.print("[bright_black] Choose reports to save: --interactive[/]")
+    if not interactive:
+        console.print("[bright_black] Choose reports to save: --interactive[/]")
 
 
 def _print_items(
@@ -353,7 +383,7 @@ class Progress:
         self._live: Any = None
         self._glyphs: dict = _GLYPHS
         self._phase_glyphs: dict = _PHASE_GLYPHS
-        self._found = ""
+        self._totals: dict = {}
         self._index, self._total, self._name = 0, 0, ""
         self._phase = "find"
         self._drawn_at: Optional[float] = None
@@ -379,14 +409,16 @@ class Progress:
             return
         if kind == "discovered":
             self._total = event.total or 0
-            self._found = self._found_text(event.totals or {})
+            # Kept as numbers: the text is made when drawing, with the glyphs
+            # chosen for this console (_start), not the default ones.
+            self._totals = dict(event.totals or {})
             self._phase = "analyze"
         elif kind == "file_done":
             self._index, self._total = event.index or 0, event.total or self._total
             self._name = Path(event.path or "").name
             if self._phase == "find":
                 # A file scanned on its own sends no "discovered" event.
-                self._phase, self._found = "analyze", self._found_text({})
+                self._phase, self._totals = "analyze", {}
             now = self._clock()
             if self._drawn_at is not None and now - self._drawn_at < _REDRAW_EVERY:
                 return  # the next drawing, or the next phase, shows the count
@@ -449,7 +481,7 @@ class Progress:
         bar.append(self._glyphs["rest"] * (width - filled), style="bright_black")
         bar.append(f"  {self._index}/{self._total}  ")
         bar.append(self._name, style="bright_black")
-        details = [Text(self._found, style="bright_black"), bar, Text("")]
+        details = [Text(self._found_text(self._totals), style="bright_black"), bar, Text("")]
         rows = Table.grid(padding=(0, 2))
         rows.add_column(no_wrap=True)
         rows.add_column(no_wrap=True)

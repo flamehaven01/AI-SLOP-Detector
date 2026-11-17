@@ -197,3 +197,9 @@ def test_the_cli_refuses_the_strict_ci_option(tmp_path):
     proc = _cli(tmp_path, "--interactive", "--ci-claims-strict")
     assert proc.returncode == 2, proc.stderr
     assert "--interactive is incompatible with: --ci-claims-strict" in proc.stderr
+
+
+def test_the_summary_of_an_interactive_run_does_not_suggest_the_flag_again(tmp_path):
+    (tmp_path / "calc.py").write_text(PY, encoding="utf-8")
+    assert "Choose reports to save" in _cli(tmp_path).stdout
+    assert "Choose reports to save" not in _cli(tmp_path, "--interactive").stdout
