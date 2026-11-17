@@ -14,6 +14,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional, Sequence, Tuple
 
+from slop_detector import language_registry as registry
 from slop_detector.config import Config
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_summary import build_finding_summary
@@ -29,14 +30,17 @@ from slop_detector.rust_scan import discover_project_files
 logger = logging.getLogger(__name__)
 
 _COVERAGE_FILE_DETAIL_LIMIT = 200
-_SUPPORTED_SOURCE_EXTENSIONS = {
-    ".py": "python",
-    ".js": "javascript",
-    ".jsx": "javascript",
-    ".ts": "javascript",
-    ".tsx": "javascript",
-    ".go": "go",
-}
+
+
+def _supported_language(suffix: str) -> Optional[str]:
+    """The analyzed language of a file extension (Python or a registered
+    adapter), None when no analyzer reads it."""
+    if suffix == ".py":
+        return "python"
+    adapter = registry.spec_for_suffix(suffix)
+    return adapter.name if adapter else None
+
+
 # Code-bearing files no analyzer reads (other languages, notebooks, proof
 # sources, JS module variants the JS analyzer does not collect).
 _UNSUPPORTED_SOURCE_EXTENSIONS = {
@@ -62,7 +66,6 @@ _UNSUPPORTED_SOURCE_EXTENSIONS = {
     ".pl",
     ".r",
     ".rb",
-    ".rs",
     ".scala",
     ".sh",
     ".sol",
@@ -275,9 +278,14 @@ def _canonical_order(project_path: Path, paths: List[Path]) -> List[Path]:
 
 
 def _is_default_exclusion(reason: str) -> bool:
+    """A built-in exclusion: a default ignore pattern, a default-excluded
+    directory or a language adapter's own exclusion (Cargo's target/)."""
     if reason.startswith("directory:"):
         return True
-    return reason[len("pattern:") :] in Config.DEFAULT_CONFIG["ignore"]
+    pattern = reason[len("pattern:") :]
+    return pattern in Config.DEFAULT_CONFIG["ignore"] or any(
+        pattern in adapter.extra_ignore for adapter in registry.languages()
+    )
 
 
 def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]) -> Dict[str, Any]:
@@ -289,11 +297,15 @@ def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]
             path, relative = item.path, item.relative
             suffix = path.suffix.lower()
             reason = item.ignore_reason(ignore_patterns)
-            if suffix in _SUPPORTED_SOURCE_EXTENSIONS and reason is not None:
+            language = _supported_language(suffix)
+            adapter = registry.spec_for_suffix(suffix)
+            if adapter is not None and adapter.extra_ignore and reason is None:
+                reason = item.ignore_reason(list(ignore_patterns) + list(adapter.extra_ignore))
+            if language is not None and reason is not None:
                 excluded.append(
                     {
                         "path": relative,
-                        "language": _SUPPORTED_SOURCE_EXTENSIONS[suffix],
+                        "language": language,
                         "reason": reason,
                         # Project tests only: a dependency's tests in an excluded
                         # environment or build directory are not this project's.
@@ -301,7 +313,7 @@ def collect_project_scan_coverage(project_path: Path, ignore_patterns: List[str]
                         and bool(path_facts(path, project_path).is_test),
                     }
                 )
-            elif suffix in _UNSUPPORTED_SOURCE_EXTENSIONS and reason is None:
+            elif language is None and suffix in _UNSUPPORTED_SOURCE_EXTENSIONS and reason is None:
                 unsupported.append({"path": relative, "extension": suffix})
     except OSError as exc:
         logger.debug("Could not collect full scan coverage for %s: %s", project_path, exc)
@@ -314,7 +326,11 @@ def scan_coverage(
 ) -> Dict[str, Any]:
     """Scan coverage before analysis counts are set (no entries for a single file)."""
     return {
-        "analyzed": {"total": 0, "python": 0, "javascript": 0, "go": 0},
+        "analyzed": {
+            "total": 0,
+            "python": 0,
+            **{adapter.name: 0 for adapter in registry.languages()},
+        },
         "excluded": _excluded_coverage(excluded),
         "unsupported": _unsupported_coverage(unsupported),
     }
@@ -356,15 +372,17 @@ def _unsupported_coverage(entries: List[Dict[str, str]]) -> Dict[str, Any]:
 def set_analyzed_scan_counts(
     scan_coverage: Dict[str, Any],
     python_results: List[Any],
-    js_results: List[Any],
-    go_results: List[Any],
+    adapter_results: Dict[str, List[Any]],
 ) -> None:
-    """Populate language totals after all project analyzers complete."""
+    """Populate language totals after all project analyzers complete
+    (`adapter_results`: registered language name -> its file results)."""
     analyzed = scan_coverage["analyzed"]
     analyzed["python"] = len(python_results)
-    analyzed["javascript"] = len(js_results)
-    analyzed["go"] = len(go_results)
-    analyzed["total"] = len(python_results) + len(js_results) + len(go_results)
+    for adapter in registry.languages():
+        analyzed[adapter.name] = len(adapter_results.get(adapter.name, []))
+    analyzed["total"] = len(python_results) + sum(
+        len(adapter_results.get(adapter.name, [])) for adapter in registry.languages()
+    )
 
 
 def result_status_value(result: Any) -> str:
@@ -425,6 +443,22 @@ def create_error_analysis(file_path: str, error: str, content: str = "") -> File
 def is_parse_error(result: Any) -> bool:
     """Whether a result stands for a Python file that could not be parsed."""
     return "parse_error" in getattr(result, "flags", ())
+
+
+def python_metric_files(python_results: List[Any]) -> tuple[List[Any], List[Any]]:
+    """The Python results the project's inflation and its DDC are averaged
+    over: parsed files with a finite inflation score, and parsed files with
+    executable code. Only Python files have these metrics, so either list can
+    be empty; the metric then has no value (its stored average is 0.0)."""
+    parsed = [result for result in python_results if not is_parse_error(result)]
+    # A result that carries no inflation (a caller's partial stand-in) has none.
+    inflation = [
+        r
+        for r in parsed
+        if math.isfinite(getattr(getattr(r, "inflation", None), "inflation_score", math.nan))
+    ]
+    ddc = [r for r in parsed if "no_executable_code" not in getattr(r, "flags", ())]
+    return inflation, ddc
 
 
 def create_empty_project_analysis(project_path: str) -> ProjectAnalysis:
@@ -533,30 +567,28 @@ def score_is_valid(result: Any) -> bool:
 
 
 def set_analysis_modes(
-    scan_coverage: Dict[str, Any], js_results: List[Any], go_results: Optional[List[Any]] = None
+    scan_coverage: Dict[str, Any], adapter_results: Dict[str, List[Any]]
 ) -> None:
-    """Say how JS/TS and Go were analyzed and which checks the mode could not run.
+    """Say how each registered language was analyzed and which checks the mode
+    could not run.
 
     The per-file `ast_mode`, summarized. The JS regex fallback finds no god
     functions, dead code or complexity, so two scores of one project are
     comparable only in the same mode; `not_measured` names what is missing.
     """
-    from slop_detector.languages import go_analyzer, js_analyzer
-
     modes: Dict[str, Any] = {}
-    for language, results, analyzer, fallback in (
-        ("javascript", js_results, js_analyzer, "regex_fallback"),
-        ("go", go_results or [], go_analyzer, "regex"),
-    ):
+    for adapter in registry.languages():
+        results = adapter_results.get(adapter.name, [])
         if not results:
             continue
         seen = {bool(getattr(result, "ast_mode", False)) for result in results}
+        fallback = adapter.fallback_mode
         mode = "tree_sitter_ast" if seen == {True} else fallback if seen == {False} else "mixed"
-        modes[language] = {
+        modes[adapter.name] = {
             "mode": mode,
-            "ast_available": bool(analyzer._TS_AVAILABLE),
+            "ast_available": bool(adapter.ast_available()),
             "not_measured": (
-                [] if mode == "tree_sitter_ast" else list(analyzer.REGEX_FALLBACK_NOT_MEASURED)
+                [] if mode == "tree_sitter_ast" else list(adapter.fallback_not_measured())
             ),
         }
     scan_coverage["analysis_modes"] = modes
@@ -601,8 +633,7 @@ def build_project_analysis(
     project_path: str,
     prioritization_path: str,
     python_results: List[FileAnalysis],
-    js_results: List[Any],
-    go_results: List[Any],
+    adapter_results: Dict[str, List[Any]],
     scan_coverage: Dict[str, Any],
     use_weighted_analysis: bool,
     coherence_calculator: Callable[[List[Dict[str, float]]], tuple[float, str]],
@@ -610,17 +641,23 @@ def build_project_analysis(
     ml_scoring: Dict[str, Any],
     analysis_failures: Optional[List[Dict[str, str]]] = None,
 ) -> ProjectAnalysis:
-    """Aggregate analyzed language results into the stable project contract."""
-    all_results = python_results + js_results + go_results
-    set_analyzed_scan_counts(scan_coverage, python_results, js_results, go_results)
+    """Aggregate analyzed language results into the stable project contract.
+
+    `adapter_results`: registered language name -> its file results
+    (language_registry); a language without an entry has none."""
+    adapters = [
+        (adapter, list(adapter_results.get(adapter.name, []))) for adapter in registry.languages()
+    ]
+    all_results = python_results + [entry for _, results in adapters for entry in results]
+    set_analyzed_scan_counts(scan_coverage, python_results, adapter_results)
     set_failed_scan_coverage(scan_coverage, analysis_failures)
     set_unmeasured_scan_coverage(scan_coverage, Path(project_path), python_results)
-    set_analysis_modes(scan_coverage, js_results, go_results)
+    set_analysis_modes(scan_coverage, adapter_results)
     set_measurement_state(scan_coverage, len(all_results))
     if not all_results:
         result = create_empty_project_analysis(project_path)
-        result.js_file_results = js_results
-        result.go_file_results = go_results
+        for adapter, results in adapters:
+            setattr(result, adapter.result_key, results)
         result.scan_coverage = scan_coverage
         result.ml_scoring = ml_scoring
         return result
@@ -630,21 +667,15 @@ def build_project_analysis(
     average_deficit = sum(result_slop_score(result) for result in all_results) / total_files
     # Metric averages describe parsed code; a parse failure has no metrics.
     measured = [result for result in all_results if not is_parse_error(result)]
-    measured_python = [result for result in python_results if not is_parse_error(result)]
     # A module without executable code has no LDR or DDC to average.
     with_code = [r for r in measured if "no_executable_code" not in getattr(r, "flags", [])]
-    with_code_python = [r for r in measured_python if "no_executable_code" not in r.flags]
     ldr_scores = [result_ldr_score(result) for result in with_code] or [0.0]
     average_ldr = 0.6 * min(ldr_scores) + 0.4 * (sum(ldr_scores) / len(ldr_scores))
-    finite_python_inflation = [
-        result.inflation.inflation_score
-        for result in measured_python
-        if math.isfinite(result.inflation.inflation_score)
-    ]
-    average_inflation = sum(finite_python_inflation) / max(1, len(finite_python_inflation))
-    average_ddc = sum(result.ddc.usage_ratio for result in with_code_python) / max(
-        1, len(with_code_python)
+    with_inflation, with_ddc = python_metric_files(python_results)
+    average_inflation = sum(r.inflation.inflation_score for r in with_inflation) / max(
+        1, len(with_inflation)
     )
+    average_ddc = sum(result.ddc.usage_ratio for result in with_ddc) / max(1, len(with_ddc))
 
     weighted_results = aggregation_weighted_results(
         all_results, use_weighted_analysis, scan_coverage
@@ -673,7 +704,7 @@ def build_project_analysis(
     priority_hotspots, churn_available, coverage_available = prioritize_project(
         prioritization_path, python_results
     )
-    return ProjectAnalysis(
+    project = ProjectAnalysis(
         project_path=project_path,
         total_files=total_files,
         deficit_files=deficit_files,
@@ -692,10 +723,11 @@ def build_project_analysis(
         priority_hotspots=priority_hotspots,
         churn_analysis_available=churn_available,
         coverage_analysis_available=coverage_available,
-        js_file_results=js_results,
-        go_file_results=go_results,
         finding_summary=build_finding_summary(all_results),
         scan_coverage=scan_coverage,
         ml_scoring=ml_scoring,
         parse_error_files=sum(1 for result in python_results if is_parse_error(result)),
     )
+    for adapter, results in adapters:
+        setattr(project, adapter.result_key, results)
+    return project

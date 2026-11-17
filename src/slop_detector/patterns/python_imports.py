@@ -15,7 +15,7 @@ from slop_detector.dependency_declarations import (
     declared_requirements,
     root_declaration_files,
 )
-from slop_detector.environment_resolution import environment_state, find_installed_spec
+from slop_detector.environment_resolution import State, environment_state, find_installed_spec
 from slop_detector.external_members import unknown_row
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 from slop_detector.project_context import fingerprint_for_roots, is_importable_directory
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # Module resolution index (one per environment state)
 # ------------------------------------------------------------------
 
-_RESOLVABLE_MODULES_STORE: Dict[Tuple[Tuple[str, int], ...], FrozenSet[str]] = {}
+_RESOLVABLE_MODULES_STORE: Dict[State, FrozenSet[str]] = {}
 
 # ------------------------------------------------------------------
 # Project-local package discovery

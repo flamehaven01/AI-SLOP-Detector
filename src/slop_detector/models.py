@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 # The status vocabulary lives with the bands that define it (diagnostic_bands);
 # re-exported here so `from slop_detector.models import SlopStatus` keeps working.
 from slop_detector.diagnostic_bands import SlopStatus  # noqa: F401
+from slop_detector.language_registry import language_results
 
 _logger = _logging.getLogger(__name__)
 
@@ -360,6 +361,8 @@ class ProjectAnalysis:
     js_file_results: List[Any] = field(default_factory=list)
     # Phase 3c: Go analysis results (GoFileAnalysis objects)
     go_file_results: List[Any] = field(default_factory=list)
+    # Rust analysis results (RustFileAnalysis objects)
+    rust_file_results: List[Any] = field(default_factory=list)
     # v3.0: CQMS structural coherence — max H0 persistence (MST-based) over file DCFs.
     # 1.0 = all files structurally uniform. Low = distinct structural clusters (AI/human mix signal).
     structural_coherence: float = 1.0
@@ -416,10 +419,9 @@ class ProjectAnalysis:
             "next_steps": next_steps(self),
             "metric_guide": project_metric_rows(self),
             "file_results": [r.to_dict() for r in self.file_results],
-            "js_file_results": [
-                r.to_dict() if hasattr(r, "to_dict") else r for r in self.js_file_results
-            ],
-            "go_file_results": [
-                r.to_dict() if hasattr(r, "to_dict") else r for r in self.go_file_results
-            ],
+            # One key per registered language (language_registry), in its order.
+            **{
+                adapter.result_key: [r.to_dict() if hasattr(r, "to_dict") else r for r in results]
+                for adapter, results in language_results(self)
+            },
         }

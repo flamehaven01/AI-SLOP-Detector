@@ -1,7 +1,7 @@
 # AI-SLOP Detector - Pattern Catalog
 
-**Version:** `main` after v3.9.1 (includes unreleased pattern changes)
-**Last Updated:** 2026-10-04
+**Last updated:** 2026-11-15 (for 3.16.1). The Quick Reference table below is checked
+against the analyzers by a test, so it is current for the code it ships with.
 
 Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
@@ -17,6 +17,7 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 6. [Clone Detection (v3.1.0)](#clone-detection)
 7. [JavaScript / TypeScript (v3.4.0)](#javascript--typescript)
 8. [Go (v3.5.0)](#go)
+9. [Rust (v3.16.1)](#rust)
 
 ---
 
@@ -24,7 +25,7 @@ Complete reference of all anti-patterns detected by AI-SLOP Detector.
 
 Every rule the detectors currently report. This table is the current-state contract:
 `tests/test_patterns_doc_consistency.py` checks it against the Python pattern registry,
-the ids the Python patterns emit, the JS/TS and Go analyzers, and the autofix registry.
+the ids the Python patterns emit, the JS/TS, Go and Rust analyzers, and the autofix registry.
 Severity shows the default first; other severities a rule can emit follow it.
 The detailed sections below explain the main rules and may not cover every id.
 
@@ -82,6 +83,10 @@ The detailed sections below explain the main rules and may not cover every id.
 | `go_ignored_error` | Go | High | Go | No | Blank-identifier error suppression (`_ = expr`) |
 | `go_todo_comment` | Go | Low | Go | No | `// TODO` / `FIXME` / `HACK` comment |
 | `go_god_function` | Go | High | Go | No | Function over the line limit |
+| `rust_todo_macro` | Rust | High | Rust | No | `todo!()` call outside test code: panics when reached |
+| `rust_unimplemented_macro` | Rust | High | Rust | No | `unimplemented!()` call outside test code: panics when reached |
+| `rust_dbg_macro` | Rust | Medium | Rust | No | `dbg!()` debug print outside test code |
+| `rust_todo_comment` | Rust | Low | Rust | No | `TODO` / `FIXME` / `HACK` / `XXX` comment outside test code |
 <!-- ACTIVE_PATTERN_REGISTRY:END -->
 
 ---
@@ -1207,6 +1212,45 @@ _ = os.Remove(tmpFile)     // error silently discarded
 // Fix:
 if err := os.Remove(tmpFile); err != nil {
     log.Printf("failed to remove temp file: %v", err)
+}
+```
+
+---
+
+## Rust
+
+*Added: v3.16.1 - `.rs` files. A token scanner reads them on any install and
+measures every rule; the `rust` extra adds tree-sitter-rust on Python 3.10+
+(it installs nothing on 3.8/3.9). Both readers report the same findings, and
+`scan_coverage.analysis_modes` says which one ran.*
+
+| ID | Severity | What it flags |
+|---|---|---|
+| `rust_todo_macro` | HIGH | `todo!()` left in the code: it panics when reached |
+| `rust_unimplemented_macro` | HIGH | `unimplemented!()` left in the code: it panics when reached |
+| `rust_dbg_macro` | MEDIUM | `dbg!()` debug print left in the code |
+| `rust_todo_comment` | LOW | `TODO` / `FIXME` / `HACK` / `XXX` comment (reported, not scored) |
+
+What is not reported:
+
+- a call inside a string, a comment or a `macro_rules!` body (it is not a call);
+- test code: items under `#[cfg(test)]`, `#[test]` or an attribute ending in `::test`;
+- files under Cargo's `target/` (skipped for Rust files, listed as excluded in scan coverage).
+
+File score: a stub call (`todo!()`, `unimplemented!()`) weighs 25 points and a
+`dbg!()` call 5 per 100 lines, a file shorter than 100 lines counting as 100,
+plus the logic density penalty. One stub call alone is 25 points in any file
+and does not fail `--ci-mode hard`; three in a short file reach the critical band.
+
+```rust
+// rust_todo_macro:
+pub fn parse(input: &str) -> Config {
+    todo!()                      // panics when called
+}
+
+// Fix: implement the code path, or return an error the caller can handle
+pub fn parse(input: &str) -> Result<Config, ParseError> {
+    Err(ParseError::Unsupported)
 }
 ```
 

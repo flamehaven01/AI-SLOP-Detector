@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from slop_detector import __version__
+from slop_detector import __version__, language_registry
 from slop_detector.ast_index import walk_nodes
 from slop_detector.core_project import score_is_valid
 from slop_detector.finding_summary import get_finding_summary
@@ -154,15 +154,16 @@ def _md_scan_coverage_section(result) -> list:
     analyzed = coverage["analyzed"]
     excluded = coverage["excluded"]
     unsupported = coverage.get("unsupported", {})
+    adapters = language_registry.languages()
+    header = ["Analyzed", "Python", *(a.label for a in adapters)]
+    header += ["Excluded Supported Source Files", "Unsupported Source Files"]
+    counts = [analyzed["total"], analyzed["python"], *(analyzed.get(a.name, 0) for a in adapters)]
+    counts += [excluded["total"], unsupported.get("total", 0)]
     return [
         "## Scan Coverage",
-        "| Analyzed | Python | JS/TS | Go | Excluded Supported Source Files | Unsupported Source Files |",
-        "| ---: | ---: | ---: | ---: | ---: | ---: |",
-        (
-            f"| {analyzed['total']} | {analyzed['python']} | "
-            f"{analyzed['javascript']} | {analyzed['go']} | {excluded['total']} | "
-            f"{unsupported.get('total', 0)} |"
-        ),
+        "| " + " | ".join(header) + " |",
+        "|" + " ---: |" * len(header),
+        "| " + " | ".join(str(n) for n in counts) + " |",
         "",
         (
             f"Excluded test files: {excluded.get('tests', 0)}; "
@@ -287,6 +288,9 @@ def _md_priority_hotspots_section(result) -> list:
     lines = [
         "## Priority Hotspots",
         "",
+        "_Python files, by deficit, git churn and test coverage. Findings in every"
+        " language are ranked in Next Steps._",
+        "",
         f"- Churn data available: `{getattr(result, 'churn_analysis_available', False)}`",
         f"- Coverage data available: `{getattr(result, 'coverage_analysis_available', False)}`",
         "",
@@ -314,7 +318,7 @@ def _md_findings_section(result, root_dir: str, file_results) -> list:
     """The findings of the report view, the one behind the HTML report too:
     every language, each with its own fix; then the files, then unjustified
     jargon per file (docs/REPORTS.md)."""
-    from slop_detector.report_view import build_report_view, short_path
+    from slop_detector.report_view import build_report_view, short_path, where
 
     view = build_report_view(result)
     lines = [f"## Findings ({len(view.findings)})", ""]
@@ -322,8 +326,7 @@ def _md_findings_section(result, root_dir: str, file_results) -> list:
         lines += ["| Severity | Location | Rule | Finding | Fix |", "|---|---|---|---|---|"]
         for item in view.findings:
             lines.append(
-                f"| {item.severity.upper()} | `{_md_cell(short_path(item.file, root_dir))}:"
-                f"{item.line}` | `{item.rule}` | {_md_cell(item.message)} | "
+                f"| {item.severity.upper()} | `{_md_cell(where(item, root_dir))}` | `{item.rule}` | {_md_cell(item.message)} | "
                 f"{_md_cell(item.suggestion) if item.suggestion else '-'} |"
             )
     else:
@@ -362,7 +365,7 @@ def _md_hollow_section(result, root_dir: str) -> list:
     """Hollow review candidates with what was measured (docs/REPORTS.md 2):
     never scored, and "not measured" is never written as zero."""
     from slop_detector.renderer_terminal import claim_line, hollow_line
-    from slop_detector.report_view import build_report_view, short_path
+    from slop_detector.report_view import build_report_view, where
 
     view = build_report_view(result)
     lines = [
@@ -392,9 +395,7 @@ def _md_hollow_section(result, root_dir: str) -> list:
         lines += ["| Location | Rule | Function: evidence |", "|---|---|---|"]
         for item in view.candidates:
             message = item.message.replace("|", chr(92) + "|")
-            lines.append(
-                f"| `{short_path(item.file, root_dir)}:{item.line}` | `{item.rule}` | {message} |"
-            )
+            lines.append(f"| `{where(item, root_dir)}` | `{item.rule}` | {message} |")
         lines.append("")
     return lines
 
@@ -408,6 +409,13 @@ def generate_markdown_report(result) -> str:
     score = result.weighted_deficit_score if is_project else result.deficit_score
     avg_inflation = result.avg_inflation if is_project else result.inflation.inflation_score
     measured = score_is_valid(result)
+    inflation_text = f"{avg_inflation:.2f}" if measured else "N/A"
+    if is_project:
+        # Inflation is a Python metric: a project where no file has it says so
+        # (the same rule as the metric table), not "0.00".
+        icr = next(r for r in project_metric_rows(result) if r["label"].startswith("Inflation"))
+        if icr["health"] == "n/a":
+            inflation_text = icr["value"]
     timestamp = getattr(result, "timestamp", None)
 
     lines = ["# AI Code Quality Audit Report"]
@@ -423,7 +431,7 @@ def generate_markdown_report(result) -> str:
     lines += _md_summary_section(
         score_label,
         f"{score:.2f}" if measured else "N/A",
-        f"{avg_inflation:.2f}" if measured else "N/A",
+        inflation_text,
         status,
     )
 

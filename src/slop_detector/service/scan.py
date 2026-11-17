@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional, Tuple, Union
 
+from slop_detector import language_registry
 from slop_detector.config import ConfigError
 from slop_detector.core import SlopDetector, UnsupportedLanguageError
 from slop_detector.core_project import score_is_valid
@@ -258,7 +259,8 @@ class ScanService:
             return detector.analyze_project(str(target), observer=notify)
         result: Union[ProjectAnalysis, FileAnalysis]
         if kind == "source_file":
-            language = "javascript" if target.suffix.lower() in detector._JS_EXTENSIONS else "go"
+            adapter = language_registry.spec_for_suffix(target.suffix)
+            language = adapter.name if adapter else "python"
             result = analyze_single_source_file(detector, target)
             failed = (getattr(result, "scan_coverage", None) or {}).get("failed", {})
             outcome = "failed" if failed.get("total") else "analyzed"

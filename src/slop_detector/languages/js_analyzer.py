@@ -44,6 +44,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_identity import bind_lines, read_source
+from slop_detector.languages.code_view import code_lines
 from slop_detector.masking import FrameworkMasker
 from slop_detector.models import MaskedIssue
 
@@ -75,7 +76,7 @@ except ImportError:  # pragma: no cover
     import logging as _logging
 
     _logging.getLogger(__name__).debug(
-        "tree-sitter unavailable — JavaScript analysis will use regex fallback"
+        "tree-sitter unavailable - JavaScript analysis will use regex fallback"
     )
 
 # ------------------------------------------------------------------
@@ -503,7 +504,7 @@ class JSAnalyzer:
                             "medium",
                             row,
                             col,
-                            "var declaration — use let or const",
+                            "var declaration - use let or const",
                             _JS_FIX["js_var_usage"],
                         )
                     )
@@ -556,7 +557,7 @@ class JSAnalyzer:
                             "medium",
                             row,
                             col,
-                            "Empty arrow function — placeholder not implemented",
+                            "Empty arrow function - placeholder not implemented",
                             _JS_FIX["js_empty_arrow"],
                         )
                     )
@@ -570,7 +571,7 @@ class JSAnalyzer:
                             "medium",
                             row,
                             op.start_point[1],
-                            "Loose equality (==) — use strict === instead",
+                            "Loose equality (==) - use strict === instead",
                             _JS_FIX["js_double_equals"],
                         )
                     )
@@ -625,7 +626,7 @@ class JSAnalyzer:
                     "high",
                     deepest[0],
                     deepest[1],
-                    f"Max nesting depth {max_depth} — callback hell risk",
+                    f"Max nesting depth {max_depth} - callback hell risk",
                     _JS_FIX["js_callback_hell"],
                 )
             )
@@ -663,6 +664,8 @@ class JSAnalyzer:
         deepest_line = 1  # the first line at the maximum counted depth
         issues: List[JSIssue] = []
         in_block_comment = False
+        # Rules judge code: string and comment text is blanked (code_view).
+        view = code_lines(content, "js")
 
         for i, line in enumerate(lines, start=1):
             if "/*" in line:
@@ -688,18 +691,20 @@ class JSAnalyzer:
                 deepest_line = i
             max_depth = max(max_depth, depth)
 
-            if _RE_VAR.search(line):
+            text = view[i - 1]
+            mv = _RE_VAR.search(text)
+            if mv:
                 issues.append(
                     JSIssue(
                         "js_var_usage",
                         "medium",
                         i,
-                        line.index("var"),
-                        "var declaration — use let or const",
+                        mv.start(),
+                        "var declaration - use let or const",
                         _JS_FIX["js_var_usage"],
                     )
                 )
-            m = _RE_CONSOLE_LOG.search(line)
+            m = _RE_CONSOLE_LOG.search(text)
             if m:
                 issues.append(
                     JSIssue(
@@ -712,7 +717,7 @@ class JSAnalyzer:
                     )
                 )
             if is_ts:
-                m2 = _RE_ANY_TYPE.search(line)
+                m2 = _RE_ANY_TYPE.search(text)
                 if m2:
                     issues.append(
                         JSIssue(
@@ -724,7 +729,7 @@ class JSAnalyzer:
                             _JS_FIX["js_any_type"],
                         )
                     )
-            m3 = _RE_EMPTY_ARROW.search(line)
+            m3 = _RE_EMPTY_ARROW.search(text)
             if m3:
                 issues.append(
                     JSIssue(
@@ -732,11 +737,11 @@ class JSAnalyzer:
                         "medium",
                         i,
                         m3.start(),
-                        "Empty arrow function — placeholder",
+                        "Empty arrow function - placeholder",
                         _JS_FIX["js_empty_arrow"],
                     )
                 )
-            m4 = _RE_DOUBLE_EQUALS.search(line)
+            m4 = _RE_DOUBLE_EQUALS.search(text)
             if m4:
                 issues.append(
                     JSIssue(
@@ -756,7 +761,7 @@ class JSAnalyzer:
                     "high",
                     deepest_line,
                     0,
-                    f"Max nesting depth {max_depth} — callback hell risk",
+                    f"Max nesting depth {max_depth} - callback hell risk",
                     _JS_FIX["js_callback_hell"],
                 )
             )

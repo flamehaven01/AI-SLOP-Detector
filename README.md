@@ -1,99 +1,151 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/AI%20SLop%20DETECTOR.png" alt="AI-SLOP Detector Logo" width="400"/>
+  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/logo.png" alt="AI-SLOP Detector - Ship Code. Not Slop." width="640"/>
 </p>
 
-<h1 align="center">AI-SLOP Detector</h1>
+<p align="center">
+Find warning signs of unfinished code in Python, JavaScript/TypeScript, Go, and Rust.<br/>
+<b>Runs locally. No API key required.</b>
+</p>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.15.2" alt="PyPI version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.16.1" alt="PyPI version"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="Downloads/month"/></a>
   <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg" alt="npm version"/></a>
-  <a href="https://socket.dev/npm/package/ai-slop-detector"><img src="https://img.shields.io/badge/socket-report-6e56cf" alt="Socket"/></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector"><img src="https://img.shields.io/visual-studio-marketplace/v/Flamehaven.vscode-slop-detector?label=VS%20Code" alt="VS Code Marketplace"/></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"/></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
-  <br/>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black"/></a>
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues"><img src="https://img.shields.io/github/issues/flamehaven01/AI-SLOP-Detector.svg" alt="Issues"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
 </p>
 
-<p align="center"><b>Find AI-generated code that looks finished but isn't.</b></p>
-
+<!-- Hero image: replace with the VS Code Problems screenshot (lib.rs, App.jsx, Panel.tsx) once it is captured. -->
 <p align="center">
-Catches what a normal linter passes over: empty functions with real-looking bodies, imports of things that don't exist, copy-pasted logic, unreachable code, and docs that oversell what the code actually does.<br/>
-<b>Runs fully offline &middot; deterministic core scoring &middot; no API key, no model download, nothing leaves your machine.</b>
+  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/html-report.png" alt="HTML report of examples/demo_project" width="800"/>
 </p>
 
-### How results are checked
+Code can look finished and still hide a stub, a swallowed error, an input
+nothing reads, or a `todo!()` that panics when it is reached. Linters pass it
+because it is well-formed. AI-SLOP Detector reports these spots with the file,
+the line and a fix, and gives each file a score.
 
-| | |
+---
+
+## Quick Start
+
+```bash
+pip install ai-slop-detector
+slop-detector --project .
+```
+
+| Next | Command |
 |---|---|
-| **Deterministic** | The same input gives byte-identical JSON across cache, hash seed, Rust helper and working directory; `--read-only` writes nothing to the project or the home directory. |
-| **Says when it measured nothing** | Every project result carries `measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`) and `score_valid`. When nothing was measured, human reports read `NOT EVALUATED` instead of a clean verdict, and a scan whose files all failed to analyze fails `--fail-threshold`. |
-| **Its own tests are tested** | More than 1,900 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.14.0, 133 of 133 breakages of the item identity, binding, work-order and docstring-promise rules were caught; in v3.15.0, 24 of 24 breakages of the work-order families, file table, read-back check and budget (v3.12.0: 21 of 21). |
-| **Rules state their reasons** | Each rule ships with tests that name the code shape it reports and the shapes it leaves alone; the [CHANGELOG](CHANGELOG.md) records every behavior change. |
+| One file | `slop-detector path/to/file.py` |
+| All reports in one folder (Markdown, HTML, PDF with an installed Chrome or Edge, AI report and work order, JSON) | `slop-detector --project . --report-dir slop-report` |
+| JSON for scripts (UTF-8, safe on Windows PowerShell) | `slop-detector --project . --json --output slop.json` |
+| Fail a CI build | `slop-detector --project . --ci-mode hard --ci-report` |
+| No install | `uvx ai-slop-detector --project .` or `npx ai-slop-detector --project .` |
 
-Linters check form; this checks substance. See [why not just a linter](#why-not-just-use-a-linter).
+Every command and option: [docs/GUIDE.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#all-commands).
 
-**Release track**
-- Stable tag: `v3.15.2`
-- Previous stable tag: `v3.15.1`
-- `v3.15.2`: `--ci-mode hard` judges JS/TS and Go files with the thresholds of Python files (score band, critical and high findings). Up to 3.15.1 the gate read Python files only, so a Go-only project at score 100 with three critical findings passed it. A project with JS/TS or Go files can now fail a gate it passed before. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.15.1`: every finding reaches every human report with its fix: `report.md` and `--details` list JS/TS and Go findings and the hollow candidates (they did not), and JS/TS and Go findings carry a fix in the default install. Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.15.0`: the AI work order groups its items into families that share a rule, fix and evidence shape, binds each file to its scan-time SHA-256 once in a FILES table, and reads itself back before it is written: an item that is missing, doubled or shown with a field that differs from its record makes it refuse. Within a token budget, a short function whose whole body costs less than its excerpt is shown whole. The work order names its format `ai-slop-work-order/2`; the JSON Lines report, findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.14.2`: two JS/TS or Go findings of one rule on one line (`(a: any, b: any)`) keep two ids, so the AI report, the work order and `--report-dir` no longer refuse such a project; the VS Code extension shows the findings of JS/TS and Go files. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.14.1`: the AI report and the AI work order print on any console (they failed on a cp949 console for characters such as an em dash), a file scanned on its own is located by its name instead of `.`, and the VS Code extension shows docstring promises, copies an item as a work order for an AI agent, exports the work order and marks the lines of a file edited after its analysis. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.14.0`: new report surfaces (one-screen terminal summary, HTML report and A4 PDF, AI report and AI work order for agents, `--report-dir` bundle) and a separate, unscored hollow channel: functions that report success with no effect, inputs that reach nothing, and docstring promises the body cannot keep. Each item is bound to the SHA-256 of the bytes the scan analyzed, and Python item ids do not change when lines move. See [What You Get](#what-you-get) and [CHANGELOG.md](CHANGELOG.md).
-- `v3.13.0`: null objects, base-class defaults and framework hooks are no longer reported as placeholders, and logged `NotImplementedError` stubs, constant success reports and discarded results are. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.12.0`: catches code that only looks finished: stubs hidden behind logging (`return_constant_stub`), arguments returned unchanged (`return_input_stub`), catch-all handlers that return the success result (`failure_as_success`) and parameters a function never reads (`ignored_parameter`). See [CHANGELOG.md](CHANGELOG.md).
-- `v3.11.0`: one scan engine (`ScanService`) behind the CLI, MCP and REST, with progress events, cancellation and typed errors; MCP and REST scans write nothing by default (REST history only with `"save_history": true`), the REST server binds `127.0.0.1`, and agent project responses say whether the score measured anything (`measurement_state`, `score_valid`, `reason`). Findings and scores are unchanged. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.10.1`: function length counts logical lines and `try` / `with` are not nesting levels (far fewer false `god_function` and nesting findings); UTF-8 files with a byte order mark and single JS/TS/Go files are analyzed instead of scored as parse errors; scans of git repositories under non-ASCII folder names and HTML reports of projects no longer crash; a scan that measured nothing shows `NOT EVALUATED` and never passes `--fail-threshold`; an invalid or missing config stops the run before analysis. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.10.0`: findings need evidence (declared intent, protocol methods, claim words, mutation evidence), every score discloses what it could not look at, static data modules no longer dilute the project score, and cold scans are 2.6-3x faster. See [CHANGELOG.md](CHANGELOG.md).
-- `v3.9.3` is a precision correction: an `elif` no longer counts as a level of nesting, `@overload` signatures are not placeholders, a module with no executable code is not scored as empty logic, a file that fails to analyze is listed and marks the scan incomplete (a hard gate then fails) instead of silently disappearing, `--json --js` prints one JSON document, and the JS/TS analysis mode (tree-sitter or regex fallback) is disclosed. Scores mostly go down; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
-- `v3.9.2` makes one result mean the same thing everywhere and removes double counting: one set of score bands for files, projects, JS and Go; docstrings count like comments (logic density, god_function); a nested function's nesting is charged once; exact duplicates compare function bodies only, with one size floor for the same-file and cross-file reports; import evidence follows the scanned project's root; output is byte-identical across cache, hash seed, Rust helper, and working directory. Self-calibration is now an advisory report that writes nothing, documented configuration keys that nothing read are removed with a warning, and `--init <path>` writes into `<path>`. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
-- `v3.9.1` makes claim checks count only real claims and real evidence: jargon in import paths, identifiers, and license notices is not a claim; a claim is supported only by code structure (a library named in a comment no longer counts); evidence that one file cannot show, such as tests that live elsewhere, is reported as unmeasured rather than missing. It also flags names a real package does not define (`phantom_member`) and decides test files and exclusions relative to the project root, so a checkout under a `build/` directory is no longer scanned as 0 files. Scores move; see [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
-- `v3.9.0` closes a security hole (no model is read from the working directory, nothing is unpickled), makes import evidence follow CPython's resolution rules, and makes `async def` stubs, `--patterns-only`, `--disable`, and the multi-file pre-commit hook work as documented. See [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
+## Languages
 
----
+| Language | Files | Read by (base install) | Optional extra (Python 3.10+) | Rules |
+|---|---|---|---|---|
+| Python | `.py` | Python AST | - | 37 |
+| JavaScript / TypeScript | `.js` `.jsx` `.ts` `.tsx` | regex reader (god functions, dead code and complexity are not measured) | `[js]`: tree-sitter, measures all 8 | 8 |
+| Go | `.go` | regex reader, measures every Go rule | `[go]` installs tree-sitter-go; the analyzer does not use it yet | 6 |
+| Rust | `.rs` | token scanner, measures every Rust rule | `[rust]`: tree-sitter, same findings | 4 |
 
-**Navigation:**
-[What Is It?](#what-is-ai-slop-detector) •
-[Why Not a Linter?](#why-not-just-use-a-linter) •
-[When Not to Use](#when-not-to-use-this) •
-[Quick Start](#quick-start) •
-[Verification](#verification-path) •
-[Boundaries](#scope-and-boundaries) •
-[How It Works](#how-it-works) •
-[Document Map](#document-map) •
-[What It Detects](#what-it-detects) •
-[Scoring](#scoring-model) •
-[Key Features](#key-features) •
-[Calibration](#local-calibration) •
-[Security](#security-considerations) •
-[CI/CD](#cicd-integration) •
-[Config](#configuration) •
-[VS Code](#vs-code-extension) •
-[Roadmap](ROADMAP.md) •
-[Changelog](CHANGELOG.md) •
-[Release Notes](docs/RELEASE_NOTES.md) •
-[Schema Validation](docs/SCHEMA_VALIDATION.md)
+```bash
+pip install "ai-slop-detector[js]"     # or [rust]; on Python 3.8/3.9 the base install reads these files
+```
 
----
+Rule counts come from the pattern registry in [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md)
+(55 rules), which a test keeps in line with the analyzers. A scan says which
+reader ran for each language (`scan_coverage.analysis_modes`).
 
-## What Is AI-SLOP Detector?
+## What It Detects
 
-AI-SLOP Detector is an **evidence-based static analyzer** that targets a defect class common in AI-assisted code: structurally plausible code that is functionally empty, disconnected, or misleading. It does not tell whether code was written by an AI; it reports static signals in the code itself.
+| Language | Example | Rules (sample) |
+|---|---|---|
+| Python | a function that returns a constant where its docstring promises a computed result; a handler that turns a failure into success; a parameter nothing reads; an import of a package that does not exist | `return_constant_stub`, `failure_as_success`, `ignored_parameter`, `phantom_import` |
+| JavaScript / TypeScript | `any` types, empty arrow functions, `==`, leftover `console.log` | `js_any_type`, `js_empty_arrow`, `js_double_equals`, `js_console_log` |
+| Go | ignored errors, `panic()` as error handling, empty functions | `go_ignored_error`, `go_panic`, `go_empty_func` |
+| Rust | `todo!()` and `unimplemented!()` outside test code, leftover `dbg!()` | `rust_todo_macro`, `rust_unimplemented_macro`, `rust_dbg_macro` |
 
-General linters flag style and convention. This tool flags structural risk.
+Each finding names the file, the line, the rule and a fix. From
+[`examples/demo_project`](https://github.com/flamehaven01/AI-SLOP-Detector/tree/main/examples/demo_project):
 
-- **51 checks across Python, JS/TS and Go** (the [pattern registry](docs/PATTERNS.md)) — empty stubs, imports that don't resolve, unreachable code, copy-paste clones, and buzzword-padded docs
-- **One 0–100 risk score per file** — four measurements are combined so one bad dimension can't be hidden behind good ones (weighted geometric mean of logic density, jargon inflation, dependency use, and critical severity)
-- **Keeps local history** — every scan is recorded locally with what measured it (detector version, configuration, project root); `--self-calibrate` reports what the comparable runs of your project suggest for the weights. The report is advisory: weights change only when you edit `.slopconfig.yaml`.
-- **Tells real changes from noise** — uses your commit history so a score drifting a point or two isn't mistaken for a real regression
-- **Knows your project type** — `--init` detects the domain (web API, data/ML, numerical, CLI, library, bio, finance, or general; `general` when the evidence is weak) and sets that domain's pattern thresholds, printing every change; weights stay the defaults; override with `--domain`
-- **Python first, JS/TS and Go optional** — install the `[js]` or `[go]` extra to scan those files too
-- **Drops into CI** — soft / hard / quarantine gates, GitHub Actions ready
-- **VS Code extension** — inline warnings as you type, score in the status bar
+```text
+HIGH     orders/pricing.py:1  return_constant_stub
+         Function 'compute_discount' returns constant 0.1 - likely stub; also breaks its docstring:
+         promises "Compute the discount for the order." (computed_result); every return is a literal (0.1)
+         fix: Implement meaningful logic or remove the function
+```
+
+Python files also get **hollow review candidates**: functions that report
+success with no effect, inputs that reach nothing, docstring promises the body
+cannot keep. They are listed for review and never change the score.
+
+All 55 rules: [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md).
+
+## Reading The Result
+
+- **Higher score = more warning signs.** Each file gets a deficit score from
+  0 to 100; the project score weights files by their lines of code.
+
+  | Score | Status |
+  |---|---|
+  | < 30 | `CLEAN` |
+  | 30 - 50 | `SUSPICIOUS` |
+  | 50 - 70 | `INFLATED_SIGNAL` |
+  | >= 70 | `CRITICAL_DEFICIT` |
+
+- **`CLEAN` is a score band, not "no findings".** A clean project can still
+  have open findings; its next steps then say how many, and how many are
+  critical or high.
+- **Nothing measured is not clean.** When no file could be analyzed, reports
+  read `NOT EVALUATED`, and `--fail-threshold` fails.
+- **Findings are leads, not verdicts.** The tool reads code statically: it
+  does not run it, and it does not tell whether a person or an AI wrote it.
+
+How the score is computed: [docs/GUIDE.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#scoring-model) and
+[docs/MATH_MODELS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/MATH_MODELS.md).
+
+## How It Works
+
+```mermaid
+flowchart LR
+    A["Project or file"] --> B{"Language<br/>by file extension"}
+    B -->|.py| P["Python<br/>AST, 37 rules<br/>LDR, ICR, DDC, Purity"]
+    B -->|.js .jsx .ts .tsx| J["JavaScript / TypeScript<br/>tree-sitter or regex, 8 rules"]
+    B -->|.go| G["Go<br/>regex reader, 6 rules"]
+    B -->|.rs| R["Rust<br/>tree-sitter or token scanner, 4 rules"]
+    P --> F["File score 0-100<br/>higher = more warning signs"]
+    J --> F
+    G --> F
+    R --> F
+    P --> H["Hollow review candidates<br/>Python only, not scored"]
+    F --> S["Project score<br/>weighted by lines of code"]
+    F --> V["VS Code<br/>line marks, hover, Problems"]
+    S --> O["Reports<br/>terminal, Markdown, HTML/PDF, JSON, AI work order"]
+    H --> O
+    S --> C["CI gate<br/>soft, hard, quarantine"]
+```
+
+The same input gives the same output: scoring is deterministic and needs no
+model or network. Details: [docs/HOW_IT_WORKS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/HOW_IT_WORKS.md).
+
+## Where It Runs
+
+| Where | How |
+|---|---|
+| **VS Code** | Findings on the line, in a hover with the fix, in Problems and a sidebar, for all four languages. [Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector) · [extension guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/vscode-extension/README.md) |
+| **CI** | `--ci-mode soft / hard / quarantine` judges every analyzed file: Python, JS/TS, Go and Rust. pre-commit hooks and GitHub Actions: [CI/CD integration](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#cicd-integration) · [docs/CI_CD.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CI_CD.md) |
+| **AI agents** | An AI work order (`--format ai-md`) that binds every item to the SHA-256 of the scanned file; an MCP server (`slop-detector mcp`); a Claude Code skill. [docs/AI_WORK_ORDER.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/AI_WORK_ORDER.md) · [docs/CLAUDE_CODE_SKILL.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CLAUDE_CODE_SKILL.md) |
+| **Node projects** | `npx ai-slop-detector` runs the same Python backend; typed results at `ai-slop-detector/types`. [docs/GUIDE.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#all-commands) |
+| **REST** | A local FastAPI server (`[api]` extra) that binds `127.0.0.1`. [docs/API.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/API.md) |
+
+<!-- VS Code screenshots (Rust inline view, multi-language Problems, hover with Fix) go here once captured. -->
 
 ---
 
@@ -117,906 +169,71 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 
 - **You want style or formatting enforcement** — use ruff / black / ESLint. This tool ignores style on purpose.
 - **You need a runtime correctness guarantee** — a low score means cleaner structure, not that the code works. Keep your tests.
-- **Your code isn't Python, JS/TS, or Go** — other languages aren't analyzed yet.
+- **Your code isn't Python, JS/TS, Go or Rust** — other languages aren't analyzed yet.
 - **You expect thresholds tuned to your repository** — weights are the defaults or the values in your `.slopconfig.yaml`; nothing tunes them automatically. Treat findings as leads, not verdicts.
 
----
+## How Results Are Checked
 
-## 60-Second First Run
-
-No project-side config needed. Run it against any folder of Python:
-
-```bash
-pip install "ai-slop-detector>=3.12.0"
-slop-detector --project . --json --output slop.json
-python -c "import json; d=json.load(open('slop.json',encoding='utf-8')); print(d['overall_status'], d['weighted_deficit_score'])"
-```
-
-Expected output for a healthy project: `clean 0.0` to `clean 30.0`. `clean`
-describes the weighted deficit band only; inspect `finding_summary`,
-`scan_coverage`, and `ml_scoring` before treating it as a complete project
-assessment. Modules that hold only static data (`literal_data_module`) are
-analyzed but carry no line weight in the weighted score;
-`scan_coverage.aggregation_exclusions` lists them. The `--output`
-form writes UTF-8 (no BOM) directly to disk, so it is safe under Windows
-PowerShell — prefer it to `> slop.json` redirection.
-
-## Quick Start
-
-```bash
-pip install "ai-slop-detector>=3.12.0"
-
-slop-detector scan .                        # canonical analysis entry
-slop-detector review . --json              # canonical changed-code review
-slop-detector pulse . --json               # canonical repo health view
-slop-detector sweep dead-code . --json     # canonical cleanup family
-
-# legacy / compatible surface
-slop-detector --init                       # bootstrap baseline .slopconfig.yaml + .gitignore
-slop-detector --init --adaptive-init --init-preview
-slop-detector --init --adaptive-init --apply-init-suggestions
-slop-detector mycode.py                    # single file
-slop-detector --project ./src             # entire project
-slop-detector --project . --include-tests # include only default-excluded test files
-slop-detector --project . --json --output slop.json   # machine-readable output (Windows-safe)
-slop-detector --project . --ci-mode hard --ci-report  # CI gate
-
-# Optional extras
-pip install "ai-slop-detector[js]"       # JS/TS tree-sitter analysis
-pip install "ai-slop-detector[go]"       # Go tree-sitter analysis
-
-# npm wrapper (delegates to the Python CLI). With no Python backend installed
-# it runs the PyPI release of the same version through uvx or pipx.
-npx ai-slop-detector --project .
-npm install --save-dev ai-slop-detector
-
-npx ai-slop-detector scan .
-npx ai-slop-detector review . --format json
-npx ai-slop-detector pulse . --format json
-npx ai-slop-detector sweep dead-code . --format json
-npx ai-slop-detector mcp
-
-# Typed output contract
-import type { ReviewOutput, ScanOutput } from "ai-slop-detector/types"
-
-# Programmatic Node API
-import { scanProject, reviewChanges, computeHealth, runCleanupFamily } from "ai-slop-detector"
-
-# Local impact story
-slop-detector impact enable .
-slop-detector impact .
-
-# Telemetry controls (default: off)
-slop-detector telemetry status
-slop-detector telemetry inspect --example
-
-# Local wrapper development
-cd npm-wrapper
-node ./bin/ai-slop-detector.js --version
-
-# No install required
-uvx ai-slop-detector mycode.py
-npx ai-slop-detector mycode.py   # same, through the npm wrapper
-```
-
-The npm surface is intentionally thin:
-
-- it does **not** reimplement analysis logic
-- it delegates into the Python CLI/runtime
-- it exists for Node-first teams that want `npx`-style entry without changing
-  product semantics; it is published on npm as `ai-slop-detector` with the
-  same version as the PyPI release
-- it discovers a backend in this order: `AI_SLOP_DETECTOR_EXECUTABLE` ->
-  active `VIRTUAL_ENV` -> PATH executables -> `python -m slop_detector.cli` ->
-  `uvx` / `pipx` running the PyPI release of the wrapper's own version (uv
-  can also fetch Python), so `npx` works without a Python install when uv or
-  pipx is present
-- it ships version-pinned TypeScript interfaces at `ai-slop-detector/types`
-- it exports a small async Node API for `scanProject`, `reviewChanges`,
-  `computeHealth`, and `runCleanupFamily`
-
-> **Windows / PowerShell tip:** PowerShell `>` redirection writes UTF-16 LE
-> or UTF-8 with BOM by default, which breaks `json.load(..., encoding='utf-8')`.
-> Use `--output <path>` instead — it writes UTF-8 bytes (no BOM) directly,
-> skipping the shell.
-
----
-
-## What You Get
-
-One scan gives a person one screen of what matters and an AI agent a work
-order it can verify and act on. Everything below was produced from
-[`examples/demo_project`](examples/demo_project) with:
-
-```bash
-slop-detector --project examples/demo_project --report-dir demo-report
-```
-
-**HTML report** (`-o report.html`; `-o report.pdf` prints the same page to A4
-with an installed Chrome, Edge or Chromium). Pattern findings are scored;
-hollow review candidates (code that reports work it does not do, inputs that
-reach nothing, docstring promises the body cannot keep) are listed separately
-and never move the score.
-
-<p align="center">
-  <img src="docs/assets/html-report.png" alt="HTML report of examples/demo_project" width="800"/>
-</p>
-
-**Terminal** (the default screen; `--details` prints the full metric tables,
-`--quiet` one line):
-
-```text
-AI SLOP Detector 3.14.0 - examples\demo_project (3 files, 1.3 s)    measurement: COMPLETE
-Score     13.5/100  CLEAN (score band)
-Findings  9  (critical 0 / high 2 / medium 6 / low 1)
-Hollow    4 review candidate(s), not scored  -  7 functions, 2 not decidable
-Promises  2 docstring promise(s): 2 contradicted (1 candidate(s), 1 merged into a finding), 0
-          undecided, 0 with the structure, 0 delegated, 0 not evaluated
-
-Findings  top 5 of 9
-HIGH    orders/pricing.py:1   return_constant_stub     Function 'compute_discount' returns constant 0.1
-                                                       - likely stub; also breaks its docstring:
-                                                       promises "Compute the discount for the order."
-                                                       (computed_result); every return is a literal
-                                                       (0.1)
-HIGH    orders/pricing.py:15  pass_placeholder         Empty function with only pass - placeholder not
-                                                       implemented
-MEDIUM  orders/pricing.py:1   ignored_parameter        Parameter 'order' of 'compute_discount' is never
-                                                       used - it does not affect the result
-MEDIUM  orders/pricing.py:3   todo_comment             TODO comment - incomplete implementation
-MEDIUM  orders/store.py:4     return_none_placeholder  Function only returns None - likely placeholder
-  +4 more (--details or -o report.md)
-
-Hollow review candidates (not scored)  top 3 of 4
-  orders/pricing.py:7  claim_without_mechanism  total_parallel: promises "Sum the order values in
-                                                parallel." (parallel); no call that could run
-                                                concurrently
-  orders/store.py:8    input_never_used         save_record : the value reaches no result and no
-                                                effect, here or in the module functions it is passed to
-  orders/store.py:8    success_without_effect   save_record: reports success, and every call it makes
-                                                resolves to module functions with no effect: persist
-  +1 more (--details or -o report.md)
-
-Next
-  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical or high:
-review those before accepting this scan.
-
-Full tables: --details   Report file: -o report.md
-```
-
-**AI work order** (`--format ai-md`, also written as `ai-report.md` by
-`--report-dir`): a Markdown document for an agent with the rules it must
-follow, a VERIFY question per rule, a FILES table that binds each file to the
-SHA-256 of the bytes the scan analyzed, and one block per item, grouped into
-families that share a rule, fix and evidence shape. Before it is written, the
-document is read back: an item that is missing, doubled or shown with a field
-that differs from its record makes it refuse. The auditor mode (default) shows the
-code and grants no right to change it; `--ai-mode agent` copies no code and
-holds until its preconditions (repository readable, hashes match, operator
-approval, a test profile) pass. `--ai-token-budget N` fits it in an estimated
-budget. Details: [docs/AI_WORK_ORDER.md](docs/AI_WORK_ORDER.md).
-
-```
-## FILES [FACT]
-- B01 binding:MATCH sha256:df9a47d1...de64b48a file:orders/pricing.py
-
-### G03 REVIEW_CANDIDATE claim_without_mechanism review | items 1
-fix [DERIVED]: implement the mechanism, or change the docstring to what the function does
-
-#### W03 C56ca6a2c17eb REVIEW_CANDIDATE claim_without_mechanism review
-at [FACT]: orders/pricing.py:7
-bound_to [FACT]: B01 (the file is the content the scan analyzed)
-evidence [FACT]: total_parallel: promises "Sum the order values in parallel." (parallel); no call that could run concurrently
-verify [NORM]: the body needs a concurrent call (pool, thread, process, task) or an await; found: no call that could run concurrently. ACK: implement the mechanism, or change the docstring to what the function does; REJECT: name the mechanism the detector missed (file:line)
-span [FACT]: orders/pricing.py:7-12 `total_parallel`
-```
-
-All report surfaces and their rules: [docs/REPORTS.md](docs/REPORTS.md).
-
----
-
-## Verification Path
-
-Use the same verification surface the repository exposes in CI:
-
-```bash
-pip install -e ".[dev]"
-python -m pytest -q
-ruff check src tests
-python -m build
-```
-
-Governance verification is a separate enforcement gate:
-
-```bash
-slop-detector verify-governance ./.cr-ep
-```
-
-See [docs/GOVERNANCE.md](docs/GOVERNANCE.md) for the artifact contract and
-policy checks.
-
-Operational review commands live on the same CLI entry point:
-
-```bash
-slop-detector review . --json
-slop-detector pulse . --json
-slop-detector sweep dead-code . --json
-slop-detector sweep dupes . --json
-slop-detector sweep unused-deps . --json
-slop-detector sweep boundary-violations . --json
-slop-detector watch . --follow
-slop-detector explain dead-code
-```
-
-Legacy command forms such as `audit`, `health`, and direct cleanup-family names
-remain supported for compatibility, but `scan / review / pulse / sweep` are the
-preferred stable surface.
-
-Cleanup-family semantics are now more operational than a raw candidate list:
-
-- `dead-code`, `dupes`, `unused-deps`, `stale-suppressions`, and
-  `boundary-violations` emit `confidence`, `action_class`, and `evidence`
-- `unused-deps` includes project-manifest findings such as
-  `manifest_unused_dependency` and `undeclared_import`
-- `boundary-violations` stays cycle-only by default and only enables layered
-  boundary review when architecture rules are explicitly configured
-
-Agent tooling can use the same semantics over MCP stdio:
-
-```bash
-slop-detector mcp
-# or
-slop-mcp
-```
-
-Adoption and observability surfaces are intentionally separate from scoring:
-
-- `slop-detector impact` tracks local, gitignored repository progress in
-  `.slop-detector/impact.json`
-- `slop-detector telemetry` stays default-off and only builds anonymized
-  payloads; `AI_SLOP_DETECTOR_TELEMETRY=inspect` prints a real payload without
-  queueing it
-
----
-
-## Scope And Boundaries
-
-- This repository measures static code and documentation signals. It does not prove runtime correctness.
-- The default scoring path is deterministic; it does not require an LLM or external API.
-- JS/TS and Go support are optional extras with language-specific analyzers and fallbacks.
-- Optional Rust acceleration is available for file discovery and glob matching when a compiled `rust/slop_scan` helper is present; otherwise the Python walker remains the fallback.
-- Narrow framework-aware masking is enabled for test boilerplate (pytest no-op hooks, test-harness console/no-op hooks in JS/TS) and never masks `critical` findings.
-- A low deficit score is evidence of cleaner structure, not a guarantee that the code is complete or safe.
-
----
-
-## How It Works
-
-```mermaid
-flowchart LR
-    A[📄 Source File] --> R[FileRole\nClassifier]
-    R --> B[AST Parser]
-    B --> C[34 Pattern Checks]
-    B --> D[LDR · ICR · DDC\n+ Purity Metrics]
-    C --> E[GQG Scorer\nWeighted Geometric Mean]
-    D --> E
-    E --> F{deficit_score}
-    F -->|< 30| G[✅ CLEAN]
-    F -->|30–50| H[⚠️ SUSPICIOUS]
-    F -->|50–70| I[🔶 INFLATED_SIGNAL]
-    F -->|≥ 70| J[🚨 CRITICAL_DEFICIT]
-    E --> H2[history.db]
-    H2 --> K[Self-Calibrator\nadvisory report]
-```
-
-Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 34 pattern checks. Results are combined via a **weighted
-geometric mean** — a near-zero in any single dimension pulls the overall score
-down regardless of other dimensions. Every scan is recorded to local history; `--self-calibrate`
-turns that history into an advisory weight report and never writes weights.
-
-Full specification: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) · [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
-Agent usage: [docs/AGENT_WORKFLOW.md](docs/AGENT_WORKFLOW.md)
+| | |
+|---|---|
+| **Deterministic** | The same input gives byte-identical JSON across cache, hash seed, Rust helper and working directory; `--read-only` writes nothing to the project or the home directory. |
+| **Says when it measured nothing** | Every project result carries `measurement_state` (`COMPLETE`, `PARTIAL`, `NO_MEASUREMENT`) and `score_valid`. When nothing was measured, human reports read `NOT EVALUATED` instead of a clean verdict, and a scan whose files all failed to analyze fails `--fail-threshold`. |
+| **Its own tests are tested** | More than 1,900 tests run in CI on Python 3.8 to 3.12. Behavior changes are checked against deliberately broken copies of the code (mutation testing): in v3.14.0, 133 of 133 breakages of the item identity, binding, work-order and docstring-promise rules were caught; in v3.15.0, 24 of 24 breakages of the work-order families, file table, read-back check and budget (v3.12.0: 21 of 21). |
+| **Rules state their reasons** | Each rule ships with tests that name the code shape it reports and the shapes it leaves alone; the [CHANGELOG](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md) records every behavior change. |
 
 ---
 
 ## Document Map
 
-Use the docs by task, not by chronology:
+The full guide holds everything this page leaves out:
+[docs/GUIDE.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md).
 
-**Core behavior**
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)
-- [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
-- [docs/PATTERNS.md](docs/PATTERNS.md)
-
-**Verification and operations**
-- [docs/CI_CD.md](docs/CI_CD.md)
-- [docs/VALIDATION.md](docs/VALIDATION.md)
-- [docs/SCHEMA_VALIDATION.md](docs/SCHEMA_VALIDATION.md)
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
-- [ROADMAP.md](ROADMAP.md)
-
-**Calibration and history**
-- [docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md)
-- [docs/HISTORY_TRACKING.md](docs/HISTORY_TRACKING.md)
-- [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
-
-**Interfaces**
-- [docs/REPORTS.md](docs/REPORTS.md): terminal, Markdown, HTML / PDF, AI report
-- [docs/AI_WORK_ORDER.md](docs/AI_WORK_ORDER.md): the work order for AI agents
-- [docs/CLI_USAGE.md](docs/CLI_USAGE.md)
-- [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
-- [docs/CONFIG_EXAMPLES.md](docs/CONFIG_EXAMPLES.md)
-- [docs/CLAUDE_CODE_SKILL.md](docs/CLAUDE_CODE_SKILL.md)
-- [docs/API.md](docs/API.md)
-
----
-
-## What It Detects
-
-**Registry and advanced pattern detectors across structural, placeholder, clone,
-dependency, and language-specific signals.** Full catalog:
-[docs/PATTERNS.md](docs/PATTERNS.md)
-
-| Category | Patterns | Signal |
-|---|---|---|
-| **Placeholder** | `empty_except`, `not_implemented`, `pass_placeholder`, `ellipsis_placeholder`, `return_none_placeholder`, `return_constant_stub`, `return_input_stub`, `todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`, `interface_only_class` | Unfinished / scaffolded code |
-| **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement`, `failure_as_success`, `ignored_parameter` | Anti-patterns |
-| **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_println`, `csharp_length`, `php_strlen` | Wrong-language syntax |
-| **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `nested_complexity`, `lint_escape`, `exact_duplicate_pair`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
-| **Phantom** | `phantom_import`, `phantom_member` | Hallucinated packages, and names an installed package does not define |
-
-**Four metric axes per file:**
-
-| Metric | What it measures |
+| Topic | Where |
 |---|---|
-| **LDR** (Logic Density Ratio) | `logic_lines / total_lines` — code vs. whitespace/comments |
-| **ICR** (Inflation Check) | `jargon_density × complexity_modifier` — buzzword weight |
-| **DDC** (Dependency Check) | `used_imports / total_imports` — import utilization |
-| **Purity** | `exp(-0.5 × n_critical_patterns)` — AND-gate on critical pattern severity |
-
----
-
-## Scoring Model
-
-```
-purity        = exp(-0.5 × n_critical_patterns)
-quality (GQG) = exp( Σ wᵢ·ln(max(1e-4, dimᵢ)) / Σ wᵢ )   — weighted geometric mean
-deficit_score = 100 × (1 − quality) + pattern_penalty
-```
-
-`max(1e-4, ...)` prevents `log(0) = -inf` from collapsing the entire score (v3.7.2 `__post_init__` guards enforce upstream range invariants on metric results).
-
-| Score | Status |
-|---|---|
-| ≥ 70 | `CRITICAL_DEFICIT` |
-| ≥ 50 | `INFLATED_SIGNAL` |
-| ≥ 30 | `SUSPICIOUS` |
-| < 30 | `CLEAN` |
-
-Default weights: `ldr=0.40 · inflation=0.30 · ddc=0.20 · purity=0.10` — sum is 1.00; GQG divides by `total_w` so exact normalization is not required (all four appear in the advisory `--self-calibrate` report)
-Project aggregation uses SR9 conservative weighting: `0.6 × min + 0.4 × mean`
-
-Full specification: [docs/MATH_MODELS.md](docs/MATH_MODELS.md)
-
-### Readable, actionable output
-
-Scores are not a black box. The full report (`--details`, Markdown, HTML)
-renders each metric with its **value**, **healthy direction**, and a one-line
-**what it means**, plus a deficit-band legend:
-
-```
-Project Metrics
-  Metric                          Value     Healthy   What It Means
-  Average Deficit Score           6.1/100   Lower     Mean file risk; 0 is clean, 100 is severe.
-  Logic Density Ratio (LDR)       95.36%    Higher    Share of code lines that contain real implementation.
-  Inflation-to-Code Ratio (ICR)   0.00x     Lower     Unjustified jargon vs. average cyclomatic complexity.
-  Dependency Usage Ratio (DDC)    86.00%    Higher    Imported libraries referenced by runtime code.
-  Deficit bands: CLEAN <30 | SUSPICIOUS 30-50 | INFLATED 50-70 | CRITICAL >=70
-```
-
-Each report ends with deterministic **Next Steps** — the top concern, the
-recommended `sweep` command, and the highest-priority file to open — so analysis
-turns directly into action. The same wording is shared by the rich, text, and
-markdown renderers.
-
-### Per-file `deficit_breakdown` (v3.7.6)
-
-Every per-file result in the JSON output also carries a `deficit_breakdown`
-that attributes the score back to its source dimensions. This answers
-"why is my clean-status file not 0.0?" without drilling into raw findings:
-
-| Field | Meaning |
-|---|---|
-| `ldr_penalty` | Points of deficit attributable to low logic density |
-| `inflation_penalty` | Points from unsupported claim words (docstring inflation is reported separately and is not scored) |
-| `ddc_penalty` | Points from low import-usage ratio |
-| `purity_penalty` | Points from critical-severity pattern hits via GQG |
-| `pattern_hits` | Additive pattern penalty (post-cap) |
-| `total` | Equals `deficit_score` (sum of the above when not capped at 100) |
-
-GQG-dimension shares are computed via log-loss attribution — the sum of the
-five penalty fields equals `total` within `0.01` when `deficit_score < 100`.
-
-### Structural Coherence Level
-
-`coherence_level` in project-level JSON output reports how the
-`structural_coherence` value was derived:
-
-| Value | Meaning | When emitted |
-|---|---|---|
-| `vr_structural` | Vietoris-Rips H0 persistence over file DCFs (MST max edge) | At least two parsed Python files with non-empty DCFs |
-| `vr_structural_approx` | Deterministic approximation of the same signal above the exact topology ceiling | At least two parsed Python files, with file count above `advanced.exact_topology_ceiling` |
-| `none` | No coherence computed | Empty project, single file, or all files unparseable |
-
-`mst_persistence` and `not_applicable` are **not** emitted — they were
-proposed in the v3.7.5 audit but never wired in. Verify the actual value
-from the JSON output rather than guessing.
-
----
-
-## Key Features
-
-**Bootstrap** — domain-aware, one command to start
-```bash
-slop-detector --init                   # auto-detect domain, generate .slopconfig.yaml
-slop-detector path/to/repo --init      # same, for another directory (must exist)
-slop-detector --init --domain web/api       # explicit domain override
-slop-detector --init --adaptive-init --init-preview
-slop-detector --init --adaptive-init --apply-init-suggestions
-```
-`--init` detects your project domain from the imports of your own non-test
-Python files (8 built-in profiles: `general`, `scientific/ml`,
-`scientific/numerical`, `web/api`, `library/sdk`, `cli/tool`, `bio`,
-`finance`). Common stacks (numpy, scipy, matplotlib, argparse) do not decide
-the domain, and a tie is `general`. The profile sets pattern thresholds and
-`--init` prints each threshold it changes; every profile keeps the default
-weights. Also secures `.slopconfig.yaml` in `.gitignore` by default.
-
-Adaptive init is now a separate safety layer:
-
-- `--init --adaptive-init --init-preview`
-  - scans the repository
-  - prints evidence-backed config suggestions
-  - writes nothing
-- `--init --adaptive-init --apply-init-suggestions`
-  - opt-in merge path
-  - keeps your file as written (keys and comments) and adds only new ignore
-    lines; a file it cannot extend in place is rewritten with a warning
-  - suggests ignoring only directories that hold code and are not excluded yet
-  - lists complex functions for review; it never writes an override that
-    would exempt them
-
----
-
-**JS/TS Analysis** — optional tree-sitter path
-```bash
-pip install "ai-slop-detector[js]"
-slop-detector --project ./src         # now includes .js/.jsx/.ts/.tsx files
-```
-Activates JSAnalyzer v2.8.0 with tree-sitter AST (regex fallback when not installed).
-Results appear under `js_file_results` in `ProjectAnalysis` and JSON output.
-The regex fallback cannot measure god functions, dead code or complexity;
-`scan_coverage.analysis_modes` lists those checks as `not_measured`, and the
-text, rich and markdown reports say so in one line.
-
----
-
-**Go Analysis** — regex-based, optional tree-sitter-go path
-```bash
-pip install "ai-slop-detector[go]"
-slop-detector --project ./src         # now includes .go files
-```
-Activates GoAnalyzer v1.0.0. Detects: empty function stubs, `panic()` as error handling,
-`fmt.Println/Printf` debug prints, `_ =` ignored errors, TODO/FIXME comments, god functions
-(> 60 lines). Results appear under `go_file_results` in JSON output.
-
----
-
-**Self-Calibration** — advisory weight report (Calibration v2)
-```bash
-slop-detector . --self-calibrate               # advisory: what this project's history suggests
-```
-Learns ldr / inflation / ddc (purity is held) from the comparable runs of the
-scanned project root only: same detector, engine and configuration. An
-improvement needs a changed file whose metric-only score fell from the
-SUSPICIOUS band; a flagged file left unchanged counts once. Pattern penalties
-are never learned as weights. The report is **advisory only**: scans never
-run it, and `--apply-calibration` is disabled (it writes nothing and exits 2).
-History recorded before v3.10 has no measurement provenance and is reported as
-legacy, not evidence (on one real database v1 learned 79% of its
-"improvements" from files that had not changed).
-
-[docs/SELF_CALIBRATION.md →](docs/SELF_CALIBRATION.md) · [Validation boundary →](docs/VALIDATION.md)
-
----
-
-**History Tracking** — longitudinal quality analysis
-```bash
-slop-detector mycode.py --show-history   # per-file trend
-slop-detector --history-trends           # 7-day project aggregate
-slop-detector --export-history data.jsonl
-```
-Every run auto-recorded to `~/.slop-detector/history.db`. The history database is
-the repository-local signal source for operational calibration and trend review.
-[docs/HISTORY_TRACKING.md →](docs/HISTORY_TRACKING.md)
-
----
-
-## Claude Code Integration
-
-```bash
-cp -r claude-skills/slop-detector ~/.claude/skills/
-# restart Claude Code, then use the canonical review surfaces below
-```
-
-Adds a persistent JSON-first review loop inside Claude Code:
-`review → inspect evidence → apply bounded fixes → pulse/sweep → human handoff`.
-
-| Command | What it does |
-|---|---|
-| `slop-detector review . --format json` | Changed-code review with verdict, attribution, targets, actions, and findings |
-| `slop-detector pulse . --format json` | Health summary plus hotspot prioritization |
-| `slop-detector sweep <family> . --format json` | Cleanup planning for dead code, duplication, deps, stale suppressions, or boundaries |
-| `slop-detector scan . --format json` | Full baseline analysis when the agent needs the complete core report |
-| `slop-detector verify-governance <artifact>` | Governance artifact verification kept separate from score output |
-
-Recommended use:
-
-- start with `review` for PR-like work
-- use `pulse` to decide what to fix next
-- use `sweep` only for bounded cleanup families
-- re-run after each patch instead of assuming the first diagnosis still holds
-- escalate to a human with evidence, not just a score
-
-[Skill source →](claude-skills/slop-detector/SKILL.md) · [Full docs →](docs/CLAUDE_CODE_SKILL.md)
-
----
-
-## Local Calibration
-
-AI-SLOP Detector can report how its weights would change from the history of
-one project root. This is a local operational aid: it is not a
-multi-repository data collection channel, a global profile injector, or
-evidence that the score is externally validated.
-
-The report is bounded by comparable evidence (same measurement, same project
-root), per-class minimums, a confidence gap, and the configuration boundary:
-it never writes weights. Review a recommendation before changing
-`.slopconfig.yaml` for a team workflow. See
-[docs/SELF_CALIBRATION.md](docs/SELF_CALIBRATION.md) for the supported flow and
-[docs/VALIDATION.md](docs/VALIDATION.md) for the validation boundary.
-
----
-
-## Security Considerations
-
-### `.slopconfig.yaml` sensitivity
-
-Your `.slopconfig.yaml` contains `domain_overrides` — a precise map of which functions
-are exempt from complexity rules. This is effectively a **codebase weakness surface**:
-it reveals which areas are too complex to refactor right now.
-
-**Best practice:**
-- Run `slop-detector --init` to generate `.slopconfig.yaml` and auto-add it to `.gitignore`
-- To share governance config with your team, explicitly remove `.slopconfig.yaml` from `.gitignore`
-- Open-source repos committing it is fine (transparency over obscurity — see this project's own `.slopconfig.yaml`)
-
-### `history.db`
-
-History is stored at `~/.slop-detector/history.db` (your home directory, outside all repos).
-It is never committed and accumulates across all projects you scan.
-
----
-
-**Adversarial Validation (SPAR-Code)** — ground-truth regression guard
-```bash
-fhval spar          # 3-layer adversarial check
-fhval spar --layer a   # known-pattern anchors
-fhval spar --layer c   # existence probes
-```
-Verifies each metric is measuring what it claims. Catches calibration drift
-before it reaches production.
-
----
-
-**Structural Coherence** — project-level signal
-```python
-project = detector.analyze_project("./src")
-print(project.structural_coherence)  # 0.0 – 1.0
-```
-Experimental. Use for longitudinal comparison within a project, not as an
-absolute gate. Exact MST topology is used up to
-`advanced.exact_topology_ceiling` (default `300` files); above that the engine
-switches to a deterministic approximation and reports
-`coherence_level = "vr_structural_approx"`. [docs/ARCHITECTURE.md →](docs/ARCHITECTURE.md)
-
----
-
-**Source held in memory**
-```python
-from slop_detector.core import SlopDetector
-
-detector = SlopDetector()
-result = detector.analyze_code_string(code)  # no location
-result = detector.analyze_code_string(code, "pkg/mod.py", project_root=".")  # as that file
-```
-Without `project_root` the filename is only a label: no sibling module,
-project root or dependency declaration is read, and an import the installed
-environment cannot resolve (it may be local code) is listed in
-`unverified_imports` instead of being reported. With `project_root` the
-source is analyzed as `analyze_file(project_root/filename, root=project_root)`
-would analyze it.
-
----
-
-## CI/CD Integration
-
-**pre-commit** (runs on every commit):
-```yaml
-# .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.7.3
-    hooks:
-      - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
-      # - id: slop-detector-warn   # soft mode — reports only, never blocks
-      # - id: slop-detector-patterns  # fast per-file pattern scan
-```
-
-**GitHub Actions** (runs on every PR):
-```yaml
-# .github/workflows/quality-gate.yml
-- name: AI-SLOP Gate
-  run: |
-    pip install "ai-slop-detector>=3.7.3"
-    slop-detector --project . --ci-mode hard --ci-report
-```
-
-**Enforcement modes:**
-```bash
---ci-mode soft        # informational, never fails build
---ci-mode hard        # fails: deficit_score >= 70, critical_patterns >= 3, inflation >= 1.5, ddc < 0.5
-                      # (every analyzed file: Python, JS/TS and Go; JS/TS and Go have no
-                      #  inflation or DDC metric, so only their score and findings are judged)
---ci-mode quarantine  # escalates repeat offenders after 3 violations
-```
-
-[Full CI/CD Integration Guide →](docs/CI_CD.md)
-
----
-
-## Configuration
-
-```yaml
-# .slopconfig.yaml
-weights:
-  ldr: 0.40
-  inflation: 0.30
-  ddc: 0.20
-  purity: 0.10
-
-patterns:
-  god_function:
-    domain_overrides:
-      - function_pattern: "check_node"   # AST walker — complex by design
-        complexity_threshold: 30
-        lines_threshold: 200
-
-ignore:
-  - "tests/**"
-  - "**/__init__.py"
-
-advanced:
-  exact_topology_ceiling: 300
-  topology_mode_above_ceiling: deterministic_approximate
-  analysis_cache_enabled: true
-  analysis_cache_db: ""
-  churn_commit_window: 200
-  coverage_data_file: ".coverage"
-  hotspot_limit: 10
-  hotspot_weights:
-    deficit: 0.50
-    churn: 0.30
-    coverage_gap: 0.20
-
-architecture:
-  enabled: true
-  preset: layered
-  layers: []
-```
-
-[Full Configuration Guide →](docs/CONFIGURATION.md) · [Config Examples →](docs/CONFIG_EXAMPLES.md)
-
----
-
-## Inline Suppression
-
-Use inline suppression when a specific local exception is intentional and should
-remain visible in audit output:
-
-```python
-# slop-disable-next-line bare_except
-except:
-    pass
-
-# slop-disable all
-def compatibility_layer():
-    ...
-# slop-enable all
-```
-
-- `# slop-disable-next-line <pattern_id|all>`
-- `# slop-disable <pattern_id|all>`
-- `# slop-enable <pattern_id|all>`
-
-Suppressed findings are removed from scoring, but they are still recorded in the
-suppression ledger so reviewers can see which lines were muted.
-
----
-
-## Repeated-Run Cache
-
-Repeated Python-file analysis can reuse prior results through the SQLite-backed
-metadata cache:
-
-```yaml
-advanced:
-  analysis_cache_enabled: true
-  analysis_cache_db: ""  # empty = default user cache under ~/.slop-detector/
-```
-
-- Cache keys include file path, size, `mtime`, content hash, engine version, and config fingerprint.
-- A changed file or changed config invalidates only the affected entries.
-- Current scope is Python file analysis reuse; project aggregation still recomputes from the live file set.
-
----
-
-## Priority Hotspots
-
-Project scans now rank repair order instead of only printing static scores.
-The hotspot layer combines:
-
-- deficit score
-- recent git churn
-- coverage gap from `.coverage`
-
-When present, the report highlights files that are both sloppy and risky to
-change because they churn often or remain under-tested. If git metadata or
-coverage data is missing, the prioritization layer degrades gracefully instead
-of failing the scan.
-
----
-
-## Agent Surface
-
-The FastAPI server exposes an agent-native contract alongside the existing
-human-oriented `/analyze/*` routes:
-
-- `GET /agent/schema`
-- `POST /agent/file`
-- `POST /agent/project`
-
-These routes return structured snapshots with summary metrics, suppression
-metadata, hotspot ranking, and the raw analysis payload so tools can consume
-the results without scraping text output.
-
----
-
-## VS Code Extension
-
-Real-time inline diagnostics, debounced lint-on-type, ML score and purity signal in status bar. v3.7.1 rebuilt from a single 855-line monolith into eight focused modules.
-
-**What you see:**
-
-| Surface | Detail |
-|---|---|
-| Status bar | `$(error) SLOP 45.2` — severity icon + deficit score, updates on save |
-| Inline diagnostics | Pattern issues with line references — phantom imports, god functions, lint escapes |
-| **TreeView sidebar** | Activity bar panel: files sorted by deficit score, metric rows (LDR/DDC/Purity/Inflation), issue list with click-to-navigate |
-| **CodeLens** | Line 0: file summary (`SLOP 45.2 — 3 CRITICAL`); per-function: top severity icon + pattern IDs |
-| **QuickFix (CodeAction)** | Lightbulb on `phantom_import`/`god_function`/`lint_escape` diagnostics — show output or add to `.slopconfig.yaml` ignore |
-| ML signal | `ML: 73% [slop]` in summary diagnostic when `[ml]` extra is installed |
-
-**Commands (Ctrl+Shift+P > "SLOP"):**
-
-| Command | Description |
-|---|---|
-| Analyze Current File | On-demand single-file scan |
-| Analyze Workspace | Project-wide scan, populates TreeView |
-| Show 4D Breakdown | Webview: penalty attribution — why a file is not 0.0 |
-| Show Cleanup Plan | Webview: confidence-ranked `sweep` family (safe/needs/unsafe) |
-| Show Pulse Dashboard | Webview: project health + priority hotspots |
-| Show Changed-Code Review | Webview: diff-aware review, new-vs-inherited slop |
-| Auto-Fix Detected Issues | Apply (or dry-run preview) auto-fixable patterns |
-| Show Gate Decision (SNP) | PASS/HALT with sr9/di2/jsd/ove metrics |
-| Run Cross-File Analysis | Dependency + clone graph across project |
-| Show File History | Per-file deficit score trend |
-| Show History Trends | 7-day project-wide daily trend table |
-| Export History to JSONL | Dump `history.db` records for external analysis |
-| Bootstrap .slopconfig.yaml | Domain-aware config generation (`--init`) |
-| Run Self-Calibration | Advisory 4D weight report (weights are not applied) |
-
-**Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector)**
-or build locally:
-
-```bash
-cd vscode-extension
-npm install
-npx vsce package          # produces vscode-slop-detector-3.7.3.vsix
-code --install-extension vscode-slop-detector-3.7.3.vsix
-```
-
-**Settings** (`slopDetector.*`): `pythonPath`, `lintOnSave`, `lintOnType`,
-`failThreshold` (default 50), `warnThreshold` (default 30), `recordHistory`, `enableCodeLens` (default true).
-
----
-
-## Release Highlights
-
-| Version | Highlights |
-|---|---|
-| **v3.15.2** | gate patch: `--ci-mode hard` (and soft and quarantine) judge JS/TS and Go files by their score band and critical/high findings, like Python files; up to 3.15.1 they were not judged |
-| **v3.15.1** | report patch: `report.md` and `--details` list every finding of every language and the hollow candidates, each with its fix; fix text for the JS/TS regex fallback and two Go rules; CI docs state that the gate judges Python files only |
-| **v3.15.0** | work-order release: items grouped into families, one FILES table of scan-time hashes, a read-back check that refuses a lossy document, short functions drawn whole within a token budget; format `ai-slop-work-order/2` (JSON Lines, findings and scores unchanged); VS Code extension reads the new format |
-| **v3.14.2** | patch: JS/TS and Go findings of one rule on one line told apart by column or order (the AI outputs refused such projects with tree-sitter installed); VS Code extension shows JS/TS and Go findings |
-| **v3.14.1** | patch: AI outputs written to stdout as UTF-8 on any console code page; a file scanned alone located by its name; npm types for the 3.14 file-result fields; VS Code extension with docstring promises, work order copy and export, changed-file marking and channel states |
-| **v3.14.0** | report release: one report view behind a one-screen terminal summary, Markdown, a self-contained HTML report and its A4 PDF, the AI report (`ai-slop-report/1` JSON Lines) and the AI work order (`--format ai-md`, auditor and agent modes, token budget, versioned ruleset); unscored hollow channel (`success_without_effect`, `input_never_used`, `failure_reported_as_success`, `claim_without_mechanism`); item ids bound to the scanned bytes; VS Code highlights, hover and hollow review list; cache `analysis-cache-v53` |
-| **v3.13.0** | precision and detection release: declared defaults (null objects, named bases, registered hooks, declared no-ops) are no longer placeholders; logged `NotImplementedError` stubs, constant success reports and discarded results are; known limits listed in the release notes; npm wrapper with provenance |
-| **v3.12.0** | detection release: stubs behind logging, unchanged-argument stubs, catch-all handlers returning the success result, ignored parameters; balanced parallel test runner for development |
-| **v3.11.0** | one engine release: CLI, MCP and REST run the same `ScanService` (CLI output unchanged over 70 compared cases); MCP and REST are read-only by default, REST history is opt-in, the REST server binds `127.0.0.1`; agent responses carry `measurement_state` / `score_valid` / `reason`; findings and scores unchanged |
-| **v3.10.1** | correctness release: `god_function` counts logical lines and nesting rises only for `if`/`for`/`while`/`except`; BOM files and single JS/TS/Go files analyzed; crashes fixed for git repositories under non-ASCII folders and project HTML reports; `scan_coverage.measurement_state` / `score_valid` / `reason`, `NOT EVALUATED` in human reports, `--fail-threshold` fails when every file failed; strict config validation before the run; working pre-commit hook installer; `--inspector-read-only` alias of `--read-only` |
-| **v3.10.0** | scan coverage counts unanalyzed code files, custom-rule exclusions, unevaluated tests and partially measured files, and names the checks a fallback analyzer could not run; `--init` keeps default weights, never writes overrides, merges without losing comments, detects the domain from project code only; import evidence reads Poetry, setup.py, setup.cfg, Pipfile, conda and nested declarations plus script-directory packages; Calibration v2 learns only from comparable, provenance-stamped history; placeholder, clone and inflation findings need evidence (declared intent, protocol methods, claim words only); one finding per bare `except: pass`, `mutable_default_arg` CRITICAL only with mutation evidence; static data modules leave the project line weight; `analyze_code_string` reads no implicit file system context; JS callback-hell locations and declarator names; one project walk and one AST walk per module (cold scans 2.6-3x faster); cache `analysis-cache-v30`. See [CHANGELOG.md](CHANGELOG.md) |
-| **v3.9.3** | precision correction: `elif` is not nesting (`deep_nesting`, `nested_complexity`); `@overload` / `@typing.overload` are not placeholders; `no_executable_code` modules skip LDR/DDC instead of scoring 97.49; failed analyses are counted in `scan_coverage.failed` with `complete: false` and a hard gate fails closed; one JS pass and valid `--json --js` output; `scan_coverage.analysis_modes`; cache `analysis-cache-v25` |
-| **v3.9.2** | consistency and correctness release: one band set (CLEAN <30 / SUSPICIOUS / INFLATED_SIGNAL / CRITICAL_DEFICIT >=70) for files, projects, JS and Go; `dependency_noise` and `parse_error` are flags; docstrings count like comments in LDR and god_function; deep_nesting under nested_complexity charged once; exact duplicates by function body with an 8-node floor, shared by same-file and cross-file; import evidence from the scan root; byte-identical output across cache, hash seed, Rust helper and cwd; advisory-only self-calibration; unread config keys removed with a warning; `--init <path>` honoured; cache `analysis-cache-v24` |
-| **v3.9.1** | claim and path checkpoint: jargon counted only in comments and strings, never in import paths, identifiers, or leading license notices; claim evidence states `structural` / `weak` / `absent` / `unmeasured` with a per-claim `support_level`; justification only by structural library use; test evidence unmeasured outside test files; `--ci-claims-strict` keeps failing unmeasured integration evidence; root-relative path facts (fixes 0-file scans under a `build/` checkout); `phantom_member` pattern |
-| **v3.9.0** | security and evidence release: no model is read from the working directory and nothing is unpickled; JSON ML model contract with one feature extractor for training and scoring; `scan --read-only`; import resolution that follows CPython (src layouts, namespace packages) with `structure_evidence`; `async def` placeholder findings; working `--patterns-only` / `--disable` and multi-file pre-commit hook; unimplemented API routes answer 501 |
-| **v3.8.9** | trust-and-measurement release: finding/severity summaries, coverage and ML capability disclosure, explicit `--include-tests`, root-relative Rust discovery parity checks, strictness-corpus controls, and no aggregate accuracy claim from dogfooding |
-| **v3.8.8** | packaging metadata cleanup plus VS Code workflow tightening: SPDX string license metadata, real workspace re-scan from `Refresh Issues`, stale sidebar results cleared on re-analysis, exact-path issue selection, and Quick Fix writes for `ignore` / `phantom_import_allowlist` with duplicate protection |
-| **v3.8.7** | false-positive reduction pack: default `.claude/**` ignore, runtime-only DDC accounting, quoted vocabulary tables no longer counted as inflation, monorepo + alias-aware phantom import detection, clique+size clone grouping with property-accessor exemption, JS/TS fallback callback-hell no longer confused by JSX/object literals, tiny helper docstrings ignored, and self-dogfood weighted deficit improved from `9.3892` to `6.4186` |
-| **v3.8.6** | strictness stabilization + coherence cleanup: same-file exact duplicates now surface in cleanup output, four-function clone clusters no longer evade detection, dead-code cleanup requires real dead-code evidence, `operations.py` is split into payload/cleanup/architecture helpers, and Claude skill/docs now match the canonical `scan` / `review` / `pulse` / `sweep` surface |
-| **v3.8.5** | dual-audience output: human summaries hide internal algorithm names while JSON / agent / MCP output gains deterministic `next_steps` and `metric_guide`; no breaking JSON key changes |
-| **v3.8.4** | plain-language documentation entry point: benefit-first README, honest “Why Not Just Use a Linter?” / “When NOT to Use This”, acronym glossary in HOW_IT_WORKS, and plain-meaning config guidance without changing code or contracts |
-| **v3.8.3** | human-friendly metric output (value / healthy direction / what it means + deficit bands) and deterministic Next Steps across rich/text/markdown; VS Code webview surfaces (4D breakdown, cleanup plan, pulse, diff-aware review); fixes for dead-code semantics, adaptive-init config preservation, and `unused-deps` stdlib / dev-tool false positives |
-| **v3.8.2** | adaptive `--init` adds bounded repo-signal suggestions and preview/merge flows; npm wrapper adds typed contracts, Node API, and agent workflow docs; local impact tracking and opt-in telemetry become first-class observability surfaces |
-| **v3.8.1** | cleanup-family outputs become confidence-ranked action plans; `unused-deps` grows manifest hygiene for `pyproject.toml` / `package.json`; `boundary-violations` gains opt-in layered architecture review with explicit rule evidence |
-| **v3.7.9** | **Governance gate**: `verify-governance` fail-closed CLI, deterministic governance-record verification, and a formal split between scoring math and enforcement |
-| **v3.7.3** | **Hotfix**: pydantic import wrapped in `try/except ImportError` — package imports cleanly in stripped environments; `test_api_models.py` guard corrected to `fastapi`; CI Docker login `continue-on-error`, quality gate pinned to `>=3.7.3` |
-| **v3.7.2** | **Core schema validation**: `config.py` Pydantic guards catch bad `.slopconfig.yaml` at load time (wrong weight types, `domain_overrides` non-int thresholds); `LDRResult` / `DDCResult` / `InflationResult` `__post_init__` clamps protect GQG `math.log()`; `HistoryEntry` sanitises all LEDA calibration inputs + validates `fired_rules` JSON; **VS Code**: `schema.ts` `ISlopReport` interfaces + `parseSlopReport()` handwritten discriminated-union guard — schema mismatch surfaces exact field path before silent NaN |
-| **v3.7.1** | `LintEscapePattern` docstring FP fix; self-scan avg_deficit 13.85 → 9.80; `global_injector.py` Patch 1 removed; `.slopconfig.yaml` domain_overrides expanded; **Skill**: 3-Phase Pipeline (Triage → Deep-Dive → Action Plan), `/slop-delta` before/after comparison, Confidence Routing by status band, `→ Next:` guidance per command; **VS Code**: P1 monolith → 8 focused modules, P2 `SlopCodeActionProvider` (QuickFix for phantom_import/god_function/lint_escape), P3 TreeView sidebar (3-level hierarchy), P4 `SlopCodeLensProvider` (file summary + per-function hints) |
-| **v3.7.0** | Dogfooding calibration + SKILL.md OSOT repair (10 violations); `cli_renderer.py` split (730 lines → 4 renderer modules); `python_advanced.py` split (1150 lines → 5 modules); BUG-1 `ddc` weight 0.30→0.20; BUG-2 findings filter threshold fix; BUG-3 AST-accurate test counts; BUG-5 block-scoped YAML rewrite in self_calibrator; 314 tests GREEN |
-| **v3.6.0** | Claude Code Skill (`/slop`, `/slop-file`, `/slop-gate`, `/slop-spar`); CI gate bugfix (`--ci-mode hard` now exits non-zero without `--ci-report`); pre-commit hooks rewritten (`python -m` entry, 3 hook variants); VS Code Extension v3.6.0 VSIX; docs: Purity row, weight normalization note, `[go]` extra; 311 tests GREEN |
-| **v3.5.0** | Domain-aware `--init` (8 profiles, `--domain` flag); JS/TS analysis via JSAnalyzer v2.8.0 + `[js]`; Go analysis via GoAnalyzer v1.0.0 + `[go]`; self-calibration patches: project-scoped history (`project_id`), re-scan milestone trigger, domain-anchored grid search (±0.15), `CalibrationResult.warnings` (drift > 0.25); 308 tests GREEN |
-| **v3.4.1** | `FileRole.STUB` (Protocol/ABC stubs skip ldr+patterns); auto-discover `.slopconfig.yaml`; Python 3.8 CI compat; mypy `attr-defined` fix |
-| **v3.4.0** | Per-rule FP rate tracking (LEDA Phase 2A); purity weight ceiling `MAX_PURITY_WEIGHT=0.25` (Phase 2B) |
-| **v3.3.0** | File role classifier (SOURCE/INIT/RE_EXPORT/TEST/MODEL/CORPUS); DDC annotation-only import fix; `# noqa: F401` + `__all__` re-export recognition |
-| **v3.2.1** | Auto-calibration at every 10-scan milestone (no manual cmd); P2 git noise filter; P3 per-class thresholds (5+5); `calibrate()` min_events bugfix; 11/11 e2e GREEN |
-| **v3.2.0** | 4D calibration (purity dimension); `--init` bootstrap; auto-calibration hints; 44/44 self-scan CLEAN |
-| **v3.1.2** | `data_collector` refactor; slopconfig gap fill; 43/43 self-scan CLEAN |
-| **v3.1.1** | Clone Detection in Core Metrics table; table style unification; VS Code UX |
-| **v3.1.0** | 3 new adversarial patterns (`function_clone_cluster`, `placeholder_variable_naming`, `return_constant_stub`); GQG calibrator alignment; fhval SPAR-Code |
-| **v3.0.2** | Phantom import 3-tier classification; `__init__.py` LDR fix; `god_function` LOW demotion |
-| **v3.0.0** | Geometric mean scorer (GQG); `purity` dimension; DCF per-file; structural coherence |
-| **v2.9.3** | Self-calibration engine; weight grid-search from usage history |
-| **v2.9.0** | `phantom_import` CRITICAL detection; history auto-tracking |
-
-[Full Release Notes →](docs/RELEASE_NOTES.md) · [Changelog →](CHANGELOG.md)
-
----
-
-## Development
-
-```bash
-git clone https://github.com/flamehaven01/AI-SLOP-Detector.git
-cd AI-SLOP-Detector
-pip install -e ".[dev]"
-pytest tests/ -v --cov
-black src/ tests/
-ruff check src/ tests/
-```
-
-[Development Guide →](docs/DEVELOPMENT.md)
+| Every command, the npm wrapper, first-run checks | [All commands](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#all-commands) · [60-second first run](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#60-second-first-run) · [CLI usage](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CLI_USAGE.md) |
+| Reports: terminal, Markdown, HTML/PDF, AI report and work order | [What you get](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#what-you-get) · [Reports](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/REPORTS.md) · [AI work order](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/AI_WORK_ORDER.md) |
+| Rules and per-language analyzers | [Patterns](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md) · [What it detects](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#what-it-detects) · [Key features](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#key-features) |
+| Scoring and metrics | [Scoring model](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#scoring-model) · [How it works](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/HOW_IT_WORKS.md) · [Math models](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/MATH_MODELS.md) |
+| Limits of what it measures | [Scope and boundaries](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#scope-and-boundaries) · [Validation](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/VALIDATION.md) |
+| CI and pre-commit | [CI/CD integration](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#cicd-integration) · [CI/CD guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CI_CD.md) |
+| Configuration and suppression | [Configuration](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#configuration) · [Inline suppression](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#inline-suppression) · [Configuration guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CONFIGURATION.md) · [Examples](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CONFIG_EXAMPLES.md) |
+| History and calibration | [Local calibration](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#local-calibration) · [Self-calibration](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/SELF_CALIBRATION.md) · [History tracking](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/HISTORY_TRACKING.md) |
+| Agents, MCP and REST | [Claude Code](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#claude-code-integration) · [Agent surface](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#agent-surface) · [API](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/API.md) · [Agent workflow](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/AGENT_WORKFLOW.md) |
+| Security notes | [Security considerations](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#security-considerations) |
+| Cache and hotspots | [Repeated-run cache](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#repeated-run-cache) · [Priority hotspots](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#priority-hotspots) |
+| VS Code extension | [Extension guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/vscode-extension/README.md) |
+| Architecture, governance, development | [Architecture](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/ARCHITECTURE.md) · [Governance](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GOVERNANCE.md) · [Verification path](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#verification-path) · [Development](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#development) · [Adding a language](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/ADDING_A_LANGUAGE.md) |
+| Releases | [Release notes and highlights](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/RELEASE_NOTES.md) · [Changelog](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md) · [Roadmap](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/ROADMAP.md) |
+
+Sections that used to be on this page (old links land here):
+
+- <a id="what-is-ai-slop-detector"></a>What Is AI-SLOP Detector? is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#what-is-ai-slop-detector).
+- <a id="60-second-first-run"></a>60-Second First Run is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#60-second-first-run).
+- <a id="what-you-get"></a>What You Get is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#what-you-get).
+- <a id="verification-path"></a>Verification Path is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#verification-path).
+- <a id="scope-and-boundaries"></a>Scope And Boundaries is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#scope-and-boundaries).
+- <a id="scoring-model"></a>Scoring Model is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#scoring-model).
+- <a id="key-features"></a>Key Features is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#key-features).
+- <a id="claude-code-integration"></a>Claude Code Integration is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#claude-code-integration).
+- <a id="local-calibration"></a>Local Calibration is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#local-calibration).
+- <a id="security-considerations"></a>Security Considerations is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#security-considerations).
+- <a id="cicd-integration"></a>CI/CD Integration is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#cicd-integration).
+- <a id="configuration"></a>Configuration is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#configuration).
+- <a id="inline-suppression"></a>Inline Suppression is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#inline-suppression).
+- <a id="repeated-run-cache"></a>Repeated-Run Cache is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#repeated-run-cache).
+- <a id="priority-hotspots"></a>Priority Hotspots is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#priority-hotspots).
+- <a id="agent-surface"></a>Agent Surface is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#agent-surface).
+- <a id="vs-code-extension"></a>VS Code Extension is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/vscode-extension/README.md).
+- <a id="release-highlights"></a>Release Highlights is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/RELEASE_NOTES.md#release-highlights-one-line-per-version).
+- <a id="development"></a>Development is now [here](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#development).
+
+## Latest Release
+
+**v3.16.1**: Rust files are analyzed (`todo!()`, `unimplemented!()`, `dbg!()`,
+TODO comments) and judged by the CI gate like the other languages; Go and
+JS/TS regex readers no longer report text inside strings or comments; the CI
+report states its verdict and lists files it could not analyze. See
+[CHANGELOG.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/CHANGELOG.md) and [docs/RELEASE_NOTES.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/RELEASE_NOTES.md).
 
 ---
 
@@ -1036,13 +253,13 @@ ruff check src/ tests/
   </a>
 </p>
 
-*Chart updated weekly via [GitHub Actions](.github/workflows/download-chart.yml). Monthly installs: [pypistats.org](https://pypistats.org/packages/ai-slop-detector) (mirrors excluded). Total: [pepy.tech](https://pepy.tech/project/ai-slop-detector) (incl. mirrors)*
+*Chart updated weekly via [GitHub Actions](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/.github/workflows/download-chart.yml). Monthly installs: [pypistats.org](https://pypistats.org/packages/ai-slop-detector) (mirrors excluded). Total: [pepy.tech](https://pepy.tech/project/ai-slop-detector) (incl. mirrors)*
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/LICENSE).
 
 ---
 
@@ -1050,5 +267,5 @@ MIT — see [LICENSE](LICENSE).
   <b>Flamehaven Labs</b> •
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/issues">Issues</a> •
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/discussions">Discussions</a> •
-  <a href="docs/">Docs</a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/tree/main/docs">Docs</a>
 </p>

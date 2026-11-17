@@ -44,8 +44,8 @@ def test_changelog_footer_does_not_restate_version_or_status():
     assert "**Current Version**" not in text and "**Status**" not in text
 
 
-def _readme_pattern_ids() -> set:
-    lines = (REPO / "README.md").read_text(encoding="utf-8").splitlines()
+def _guide_pattern_ids() -> set:
+    lines = (REPO / "docs" / "GUIDE.md").read_text(encoding="utf-8").splitlines()
     start = next(i for i, line in enumerate(lines) if line.startswith("| **Placeholder**"))
     ids: set = set()
     for line in lines[start:]:
@@ -55,19 +55,63 @@ def _readme_pattern_ids() -> set:
     return ids
 
 
-def test_readme_pattern_table_is_the_registry():
-    """Every ID in the README table is a real pattern ID (usable with --disable), and none is missing."""
+def test_guide_pattern_table_is_the_registry():
+    """Every ID in the guide's table is a real pattern ID (usable with --disable), and none is missing."""
     from slop_detector.patterns import get_all_patterns
 
     registry = {p.id for p in get_all_patterns()}
-    table = _readme_pattern_ids()
+    table = _guide_pattern_ids()
     assert table == registry, (sorted(registry - table), sorted(table - registry))
 
 
-def test_readme_pattern_counts_match_the_registry():
+def test_guide_states_the_python_pattern_count_and_the_release_tag():
+    """The guide's Python pipeline names the registry's pattern count, and its
+    pre-commit example pins the release this tree is."""
     from slop_detector.patterns import get_all_patterns
 
+    guide = (REPO / "docs" / "GUIDE.md").read_text(encoding="utf-8")
+    stated = [int(n) for n in re.findall(r"(\d+) [Pp]attern [Cc]hecks", guide)]
     count = len(get_all_patterns())
-    readme = (REPO / "README.md").read_text(encoding="utf-8")
-    stated = [int(n) for n in re.findall(r"(\d+) [Pp]attern [Cc]hecks", readme)]
     assert stated and all(n == count for n in stated), (stated, count)
+    revs = re.findall(r"^\s+rev: (v[\d.]+)$", guide, re.MULTILINE)
+    assert revs == ["v" + _pyproject_version()], revs
+
+
+def _rules_per_language() -> dict:
+    """Rule ids per language in the registry table of docs/PATTERNS.md, which
+    tests/test_patterns_doc_consistency.py keeps equal to what the analyzers report."""
+    text = (REPO / "docs" / "PATTERNS.md").read_text(encoding="utf-8")
+    block = text.split("<!-- ACTIVE_PATTERN_REGISTRY:START -->")[1].split(
+        "<!-- ACTIVE_PATTERN_REGISTRY:END -->"
+    )[0]
+    counts: dict = {}
+    for line in block.splitlines():
+        if line.startswith("| `"):
+            language = line.split("|")[2].strip()
+            counts[language] = counts.get(language, 0) + 1
+    return counts
+
+
+def test_readme_rule_counts_match_the_pattern_registry():
+    """The README's language table and its total state the registry's counts."""
+    counts = _rules_per_language()
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    rows = {
+        "Python": r"^\| Python \|",
+        "JS/TS": r"^\| JavaScript / TypeScript \|",
+        "Go": r"^\| Go \|",
+        "Rust": r"^\| Rust \|",
+    }
+    assert set(counts) == set(rows), counts
+    for language, pattern in rows.items():
+        row = next(line for line in readme.splitlines() if re.match(pattern, line))
+        stated = int(row.rstrip(" |").rsplit("|", 1)[1])
+        assert stated == counts[language], (language, stated, counts[language])
+    names = {"Python": "Python", "JavaScript / TypeScript": "JS/TS", "Go": "Go", "Rust": "Rust"}
+    diagram = re.findall(r'"(Python|JavaScript / TypeScript|Go|Rust)<br/>[^"]*?(\d+) rules', readme)
+    assert {names[n] for n, _ in diagram} == set(rows), diagram
+    for name, stated in diagram:
+        assert int(stated) == counts[names[name]], (name, stated)
+    total = sum(counts.values())
+    stated_totals = [int(a or b) for a, b in re.findall(r"\((\d+) rules\)|All (\d+) rules", readme)]
+    assert stated_totals and all(n == total for n in stated_totals), (stated_totals, total)

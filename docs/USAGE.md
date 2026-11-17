@@ -1,7 +1,6 @@
 # Usage Guide
 
-**Version:** 3.8.9
-**Last reviewed:** 2026-08-22
+**Last reviewed:** 2026-11-15 (for 3.16.1)
 
 This page is the short entry point. The canonical command reference is
 [CLI_USAGE.md](CLI_USAGE.md); it supersedes older examples that mentioned
@@ -56,9 +55,10 @@ pip install ai-slop-detector
 slop-detector --version
 ```
 
-For JavaScript or Go analysis, install the appropriate optional extra described
-in [CLI_USAGE.md](CLI_USAGE.md). For a Node-first transport wrapper, see the
-same guide's npm section.
+JS/TS, Go and Rust files are analyzed by this install. The `[js]` and `[rust]`
+extras add tree-sitter parsing on Python 3.10+ (see the
+[language table](../README.md#languages)). For a Node-first transport wrapper,
+see the npm section of [CLI_USAGE.md](CLI_USAGE.md).
 
 ## Help
 

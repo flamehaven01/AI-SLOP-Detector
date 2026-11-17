@@ -1,7 +1,7 @@
 """
 Go Analyzer (v1.0.0)
 
-Regex-based analysis with optional tree-sitter-go AST mode.
+Regex-based analysis (the [go] extra's tree-sitter-go is not used yet).
 Detects AI slop patterns in .go files.
 
 Metrics:
@@ -30,27 +30,15 @@ from typing import Any, Dict, List, Optional
 
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_identity import bind_lines, read_source
+from slop_detector.languages.code_view import views
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Optional tree-sitter-go (AST mode)
-# ---------------------------------------------------------------------------
-
-_TS_AVAILABLE = False
-
-# The regex path measures every Go check this analyzer reports (the AST
-# path currently reuses it), so a regex result misses nothing.
+# Every Go file is read by the regex reader, which measures every Go check
+# this analyzer reports. There is no tree-sitter path yet: the [go] extra
+# installs tree-sitter-go, which this analyzer does not use, so a result never
+# says ast_mode True.
 REGEX_FALLBACK_NOT_MEASURED: tuple = ()
-
-try:
-    import tree_sitter_go as _tsgo
-    from tree_sitter import Language as _Language
-
-    _GO_LANG = _Language(_tsgo.language())
-    _TS_AVAILABLE = True
-except ImportError:  # pragma: no cover
-    logger.debug("tree-sitter-go unavailable — Go analysis will use regex fallback")
 
 # ---------------------------------------------------------------------------
 # Thresholds
@@ -64,9 +52,6 @@ PANIC_SEVERITY_THRESHOLD = 3  # panics >= this → critical
 # ---------------------------------------------------------------------------
 
 _RE_BLANK = re.compile(r"^\s*$")
-_RE_COMMENT = re.compile(r"^\s*//")
-_RE_BLOCK_COMMENT_OPEN = re.compile(r"/\*")
-_RE_BLOCK_COMMENT_CLOSE = re.compile(r"\*/")
 _RE_FUNC_START = re.compile(r"^\s*func\s+(\([^)]*\)\s+)?(\w+)\s*\(")
 _RE_EMPTY_FUNC = re.compile(r"^\s*func\s+[^{]+\{\s*\}")
 _RE_FMT_PRINT = re.compile(r"\bfmt\.(Print|Println|Printf|Fprintf|Fprintln)\s*\(")
@@ -177,8 +162,6 @@ class GoAnalyzer:
                 ldr_equivalent=0.0,
             )
 
-        if _TS_AVAILABLE:
-            return bind_lines(self._analyze_ast(file_path, content), content, digest)
         return bind_lines(self._analyze_regex(file_path, content), content, digest)
 
     # ------------------------------------------------------------------
@@ -195,32 +178,30 @@ class GoAnalyzer:
         empty_func = panic = fmt_print = ignored_err = 0
 
         # Function-boundary tracking
-        in_block_comment = False
         func_start_line: Optional[int] = None
         brace_depth = 0
         func_lines_list: List[int] = []
 
+        # Lines are read through code_view: the code view (string and comment text
+        # blanked) for code rules, empty functions and function bounds; the comment
+        # view (only comment text) for comment lines and TODO markers. Text in a
+        # string is neither code nor a comment.
+        view, notes, ends_in_comment = views(content, "go")
+
         for i, raw in enumerate(lines, start=1):
             line = raw
-
-            # Block comment tracking
-            if in_block_comment:
-                comment += 1
-                if _RE_BLOCK_COMMENT_CLOSE.search(line):
-                    in_block_comment = False
-                continue
-            if _RE_BLOCK_COMMENT_OPEN.search(line) and not _RE_COMMENT.match(line):
-                in_block_comment = True
-                comment += 1
-                continue
+            text, note = view[i - 1], notes[i - 1]
 
             if _RE_BLANK.match(line):
-                blank += 1
+                if ends_in_comment[i - 1]:  # a blank line inside a block comment
+                    comment += 1
+                else:
+                    blank += 1
                 continue
-            if _RE_COMMENT.match(line):
+            if not text.strip() and note.strip():
                 comment += 1
-                # TODO/FIXME in comment
-                if _RE_TODO.search(line):
+                # TODO/FIXME in a // comment
+                if _RE_TODO.search(note):
                     issues.append(
                         GoIssue(
                             "go_todo_comment",
@@ -233,25 +214,25 @@ class GoAnalyzer:
                 continue
 
             # Single-line empty func: func foo() {}
-            if _RE_EMPTY_FUNC.match(line):
+            if _RE_EMPTY_FUNC.match(text):
                 empty_func += 1
                 issues.append(
                     GoIssue(
                         "go_empty_func",
                         "high",
                         i,
-                        "Empty function body — likely a stub",
-                        "Implement or mark as // TODO",
+                        "Empty function body - likely a stub",
+                        "Implement the function body, or remove the function if nothing needs it",
                     )
                 )
 
             # Function start for multi-line tracking
-            if _RE_FUNC_START.match(line) and "{" in line and not _RE_EMPTY_FUNC.match(line):
+            if _RE_FUNC_START.match(text) and "{" in text and not _RE_EMPTY_FUNC.match(text):
                 func_start_line = i
-                brace_depth = line.count("{") - line.count("}")
+                brace_depth = text.count("{") - text.count("}")
 
             elif func_start_line is not None:
-                brace_depth += line.count("{") - line.count("}")
+                brace_depth += text.count("{") - text.count("}")
                 if brace_depth <= 0:
                     func_len = i - func_start_line + 1
                     func_lines_list.append(func_len)
@@ -269,7 +250,7 @@ class GoAnalyzer:
                     brace_depth = 0
 
             # Pattern checks on code lines
-            if _RE_FMT_PRINT.search(line):
+            if _RE_FMT_PRINT.search(text):
                 fmt_print += 1
                 issues.append(
                     GoIssue(
@@ -281,7 +262,7 @@ class GoAnalyzer:
                     )
                 )
 
-            if _RE_PANIC.search(line):
+            if _RE_PANIC.search(text):
                 panic += 1
                 severity = "critical" if panic >= PANIC_SEVERITY_THRESHOLD else "medium"
                 issues.append(
@@ -289,12 +270,12 @@ class GoAnalyzer:
                         "go_panic",
                         severity,
                         i,
-                        "panic() used — prefer returning errors",
+                        "panic() used - prefer returning errors",
                         "Return an error value instead",
                     )
                 )
 
-            if _RE_IGNORED_ERR.search(line):
+            if _RE_IGNORED_ERR.search(text):
                 ignored_err += 1
                 issues.append(
                     GoIssue(
@@ -334,17 +315,6 @@ class GoAnalyzer:
             slop_score=slop_score,
             status=status,
         )
-
-    # ------------------------------------------------------------------
-    # AST analysis (tree-sitter-go, optional)
-    # ------------------------------------------------------------------
-
-    def _analyze_ast(self, file_path: str, content: str) -> GoFileAnalysis:  # pragma: no cover
-        """AST mode — richer metrics when tree-sitter-go is installed."""
-        # Fall back to regex; AST enrichment is a future enhancement
-        result = self._analyze_regex(file_path, content)
-        result.ast_mode = True
-        return result
 
     # ------------------------------------------------------------------
     # Scoring

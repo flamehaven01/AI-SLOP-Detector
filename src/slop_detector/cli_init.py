@@ -159,15 +159,27 @@ def _relative_posix(path: Path, root: Path) -> str:
         return path.as_posix()
 
 
+def _source_suffixes() -> Dict[str, str]:
+    """Source extensions -> language bucket: the table above, plus every
+    extension of a registered language (language_registry) it does not name."""
+    from slop_detector import language_registry
+
+    extra = {
+        ext: adapter.name
+        for adapter in language_registry.languages()
+        for ext in adapter.extensions
+        if ext not in _SOURCE_SUFFIXES
+    }
+    return {**_SOURCE_SUFFIXES, **extra}
+
+
 def _collect_noise_directories(project_path: Path) -> List[str]:
     """Noise-named directories that hold source code (an ignore rule changes
     nothing for a directory without code), outermost only."""
     dirs, files = _walk_project(project_path)
+    suffixes = _source_suffixes()
     with_source = {
-        parent
-        for path in files
-        if path.suffix.lower() in _SOURCE_SUFFIXES
-        for parent in path.parents
+        parent for path in files if path.suffix.lower() in suffixes for parent in path.parents
     }
     found: List[str] = []
     for path in dirs:
@@ -182,10 +194,11 @@ def _collect_noise_directories(project_path: Path) -> List[str]:
 def _count_repo_languages(project_path: Path) -> Dict[str, int]:
     """Count dominant code file types with a lightweight directory walk."""
     counts = {"python": 0, "javascript": 0, "typescript": 0, "go": 0}
+    suffixes = _source_suffixes()
     for path in _walk_project(project_path)[1]:
-        bucket = _SOURCE_SUFFIXES.get(path.suffix.lower())
+        bucket = suffixes.get(path.suffix.lower())
         if bucket:
-            counts[bucket] += 1
+            counts[bucket] = counts.get(bucket, 0) + 1
     return counts
 
 

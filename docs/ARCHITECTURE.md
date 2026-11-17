@@ -65,7 +65,7 @@ What each surface shows: [REPORTS.md](REPORTS.md).
 
 The project scanner recognizes Python, JavaScript, TypeScript, and Go. It distinguishes analyzed files from intentionally excluded supported files and known unsupported source files. Build products and dependency trees such as `build`, `dist`, `.tox`, `node_modules`, and `.next` are excluded by default.
 
-Language support is not a claim of equivalent analysis depth. Python supplies the core metric and pattern path; JS/TS and Go use language analyzers and are included in the project contract. Inspect `scan_coverage` and language-specific result arrays before treating a project result as complete scope.
+Language support is not a claim of equivalent analysis depth. Python supplies the core metric and pattern path; JS/TS, Go and Rust use language analyzers and are included in the project contract. Inspect `scan_coverage` and language-specific result arrays before treating a project result as complete scope.
 
 ## Deterministic Scoring
 

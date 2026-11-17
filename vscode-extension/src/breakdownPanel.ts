@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as client from './client';
 import type { FileAnalysisOutput } from './client';
 import { escapeHtml as esc, nonce as makeNonce, severityToken } from './webviewUtil';
+import { SUPPORTED_EXTENSIONS, isSupported } from './languages';
 
 interface PenaltyRow {
     label: string;
@@ -102,8 +103,8 @@ export async function showBreakdownPanel(): Promise<void> {
         return;
     }
     const filePath = editor.document.uri.fsPath;
-    if (!['.py', '.js', '.ts', '.go'].some((e) => filePath.endsWith(e))) {
-        vscode.window.showWarningMessage('[!] 4D Breakdown supports .py/.js/.ts/.go files');
+    if (!isSupported(filePath)) {
+        vscode.window.showWarningMessage(`[!] 4D Breakdown supports ${SUPPORTED_EXTENSIONS.join('/')} files`);
         return;
     }
 

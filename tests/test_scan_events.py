@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+from slop_detector import language_registry
 from slop_detector.core import SlopDetector
 
 CODE = "def f(x):\n    return x + 1\n"
@@ -43,7 +44,14 @@ def test_event_sequence_matches_the_scan(project):
     kinds = [e.kind for e in events]
     assert kinds[0] == "discovered" and kinds[-1] == "aggregating"
     assert kinds.count("discovered") == 1 and kinds.count("aggregating") == 1
-    assert events[0].totals == {"python": 3, "javascript": 1, "go": 1}
+    # Every registered language has a total, zero when the project has none.
+    names = {"python"} | {a.name for a in language_registry.languages()}
+    assert set(events[0].totals) == names
+    assert {k: v for k, v in events[0].totals.items() if v} == {
+        "python": 3,
+        "javascript": 1,
+        "go": 1,
+    }
     done = [e for e in events if e.kind == "file_done"]
     assert [e.index for e in done] == [1, 2, 3, 4, 5]
     assert {e.total for e in done} == {5}

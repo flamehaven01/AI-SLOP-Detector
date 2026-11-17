@@ -25,9 +25,15 @@ Python core:
 
 ```bash
 pip install ai-slop-detector
-pip install "ai-slop-detector[js]"   # optional JS/TS support
-pip install "ai-slop-detector[go]"   # optional Go support
+pip install "ai-slop-detector[js]"   # optional JS/TS tree-sitter parsing (Python 3.10+)
+pip install "ai-slop-detector[go]"   # installs tree-sitter-go (Python 3.10+); the Go analyzer does not use it yet
+pip install "ai-slop-detector[rust]" # optional Rust tree-sitter parsing (Python 3.10+; .rs files are scanned without it)
 ```
+
+The CLI analyzes one JS/TS, Go or Rust file directly (`slop-detector scan lib.rs`).
+The single-file MCP tool `slop_analyze_file` analyzes Python source only and
+returns `unsupported_language` for `.js`, `.ts`, `.go` and `.rs` files: over MCP,
+run `slop_analyze_project` on the file's folder.
 
 Optional Node-first wrapper:
 

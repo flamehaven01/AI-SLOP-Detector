@@ -23,15 +23,12 @@ def _issue_count_from_result(result: Any) -> int:
         python_count = sum(
             len(getattr(item, "pattern_issues", []) or []) for item in result.file_results
         )
-        js_count = sum(
-            len(getattr(item, "issues", []) or [])
-            for item in getattr(result, "js_file_results", []) or []
+        from slop_detector.language_registry import adapter_file_results
+
+        adapter_count = sum(
+            len(getattr(item, "issues", []) or []) for item in adapter_file_results(result)
         )
-        go_count = sum(
-            len(getattr(item, "issues", []) or [])
-            for item in getattr(result, "go_file_results", []) or []
-        )
-        return python_count + js_count + go_count
+        return python_count + adapter_count
     return len(getattr(result, "pattern_issues", []) or [])
 
 

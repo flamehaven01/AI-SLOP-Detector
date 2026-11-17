@@ -22,8 +22,9 @@ import { LineHighlighter } from './decorations';
 import { copyItemForAgent, exportReport, openReport } from './report';
 import { Binding, bindingOf } from './binding';
 import { updateStatusBar } from './statusbar';
+import { DOCUMENT_SELECTOR } from './languages';
 
-const LANGUAGES = [{ language: 'python' }, { language: 'javascript' }, { language: 'typescript' }, { language: 'go' }];
+const LANGUAGES = DOCUMENT_SELECTOR;
 
 export function activate(context: vscode.ExtensionContext): void {
     const channel    = vscode.window.createOutputChannel('SLOP Detector');
@@ -58,8 +59,7 @@ export function activate(context: vscode.ExtensionContext): void {
     setCodeLensRefreshCallback(() => codeLensProvider.refresh());
     context.subscriptions.push(
         vscode.languages.registerCodeLensProvider(
-            [{ language: 'python' }, { language: 'javascript' },
-             { language: 'typescript' }, { language: 'go' }],
+            DOCUMENT_SELECTOR,
             codeLensProvider,
         )
     );
@@ -139,8 +139,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // P2: phantom_import / god_function Code Action provider
     context.subscriptions.push(
         vscode.languages.registerCodeActionsProvider(
-            [{ language: 'python' }, { language: 'javascript' },
-             { language: 'typescript' }, { language: 'go' }],
+            DOCUMENT_SELECTOR,
             new SlopCodeActionProvider(),
             { providedCodeActionKinds: SlopCodeActionProvider.providedCodeActionKinds },
         )

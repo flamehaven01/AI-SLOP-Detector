@@ -311,8 +311,19 @@ def _activate_read_only(args) -> Optional[str]:
     return None
 
 
+def _escape_unencodable_output() -> None:
+    """A character the terminal's encoding cannot hold (Korean text in a
+    user's comment on a cp1252 console, an em dash on cp949) is printed
+    escaped, never an error that ends the run; report files are UTF-8."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(errors="backslashreplace")
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """CLI entry point."""
+    _escape_unencodable_output()
     argv_list = list(sys.argv[1:] if argv is None else argv)
 
     if argv_list and argv_list[0] in _OPERATIONS_COMMANDS:

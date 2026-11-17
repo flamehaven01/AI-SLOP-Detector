@@ -7,7 +7,8 @@ the status or the JSON contract (docs/REPORTS.md).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from collections import Counter
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
@@ -48,6 +49,9 @@ class Item:
     locator: Optional[str] = None
     source_sha256: str = ""
     content_origin: str = ""
+    # " (<locator>)" when another item of the same rule is on the same line
+    # (set by build_report_view), so human tables tell the two apart.
+    same_line_tag: str = ""
 
 
 @dataclass(frozen=True)
@@ -120,6 +124,7 @@ def build_report_view(result: Any) -> ReportView:
         (item for f in files for item in _candidate_items(f)),
         key=lambda i: (i.file, i.line, i.rule),
     )
+    findings, candidates = _tell_apart(findings), _tell_apart(candidates)
     severity = {name: sum(1 for i in findings if i.severity == name) for name in _SEVERITIES}
     from slop_detector.renderer_glossary import file_metric_rows, next_steps, project_metric_rows
 
@@ -191,7 +196,12 @@ def _coverage_notes(result: Any) -> List[str]:
 
 
 def _file_row(f: Any) -> Tuple[str, Optional[float], str, int]:
+    """(path, score, status, item count) of one file. The score is the one the
+    project score counts (core_project.result_slop_score): a Python file's
+    deficit_score, an adapter's slop_score; N/A only when it has neither."""
     score = getattr(f, "deficit_score", None)
+    if score is None:
+        score = getattr(f, "slop_score", None)
     return (
         str(getattr(f, "file_path", "")),
         None if score is None else float(score),
@@ -201,10 +211,9 @@ def _file_row(f: Any) -> Tuple[str, Optional[float], str, int]:
 
 
 def _file_results(result: Any) -> List[Any]:
-    out = list(getattr(result, "file_results", []) or [])
-    out += list(getattr(result, "js_file_results", []) or [])
-    out += list(getattr(result, "go_file_results", []) or [])
-    return out
+    from slop_detector.language_registry import all_file_results
+
+    return all_file_results(result)
 
 
 def _value(raw: Any) -> str:
@@ -409,6 +418,27 @@ def _overall(states: Dict[str, int]) -> str:
     if len(states) == 1:
         return next(iter(states))
     return "PARTIAL"
+
+
+def _tell_apart(items: List[Item]) -> List[Item]:
+    """Tag the items that share a file, a line and a rule with their locator
+    (the scan's own address: a column for JS/TS and Rust, an order on the
+    line where a column is not measured)."""
+    shared = Counter((i.file, i.line, i.rule) for i in items)
+    return [
+        (
+            replace(i, same_line_tag=f" ({i.locator})")
+            if i.locator and shared[(i.file, i.line, i.rule)] > 1
+            else i
+        )
+        for i in items
+    ]
+
+
+def where(item: Item, root: str) -> str:
+    """An item's location in a human report: path:line, and its locator when
+    another item of its rule is on the same line."""
+    return f"{short_path(item.file, root)}:{item.line}{item.same_line_tag}"
 
 
 def short_path(path: str, root: str) -> str:

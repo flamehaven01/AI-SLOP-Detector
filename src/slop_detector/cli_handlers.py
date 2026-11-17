@@ -235,7 +235,7 @@ def run_optional_features(args, result) -> None:
         _run_gate(result)
     if getattr(args, "fix", False):
         _run_autofix(result, dry_run=getattr(args, "dry_run", True))
-    # JSON output already carries the project's js_file_results; a text block
+    # JSON output already carries the project's JS/TS results; a text block
     # after it would make stdout invalid JSON.
     if getattr(args, "js", False) and not getattr(args, "json", False):
         _run_js_analysis(args.path, result)

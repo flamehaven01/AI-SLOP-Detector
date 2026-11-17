@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, List, Optional
 
 from slop_detector import __version__
-from slop_detector.report_view import TERMINAL_LIMITS, Item, ReportView, short_path, top
+from slop_detector.report_view import TERMINAL_LIMITS, Item, ReportView, top, where
 
 _SEVERITY_STYLE = {"critical": "bold red", "high": "red", "medium": "yellow", "low": "dim"}
 
@@ -20,10 +20,18 @@ def _root(view: ReportView) -> str:
     return view.target if view.is_project else str(Path(view.target).parent)
 
 
+def _headline_target(view: ReportView) -> str:
+    """The target as the headline names it: a scan of "." is named by its folder."""
+    if view.target in (".", "./", ".\\"):
+        return Path(view.target).resolve().name or view.target
+    return view.target
+
+
 def _score_line(view: ReportView) -> str:
     if view.score is None:
         return "N/A  NOT EVALUATED (nothing was measured)"
-    return f"{view.score:.1f}/100  {view.status} (score band)"
+    basis = "weighted by lines of code, " if view.is_project else ""
+    return f"{view.score:.1f}/100  {view.status} ({basis}score band)"
 
 
 def _findings_line(view: ReportView) -> str:
@@ -94,9 +102,8 @@ def _quiet_hollow(view: ReportView) -> str:
 def _item_rows(items: List[Item], root: str, candidates: bool) -> List[tuple]:
     rows = []
     for item in items:
-        where = f"{short_path(item.file, root)}:{item.line}"
         label = "" if candidates else item.severity.upper()
-        rows.append((label, where, item.rule, item.message))
+        rows.append((label, where(item, root), item.rule, item.message))
     return rows
 
 
@@ -112,24 +119,35 @@ def _steps(view: ReportView) -> List[str]:
 
 
 def print_summary(view: ReportView, elapsed: Optional[float] = None, console: Any = None) -> None:
-    """Print the one-screen summary with rich."""
+    """Print the one-screen summary with rich.
+
+    Everything that comes from the scan (paths, messages, docstring text,
+    notes) is printed as `Text`, never as rich markup: `[id]` in a path is a
+    folder name, and `[/x]` in a docstring is not a closing tag."""
     from rich.console import Console
     from rich.table import Table
+    from rich.text import Text
 
     console = console or Console()
     timing = f", {elapsed:.1f} s" if elapsed is not None else ""
     unit = "files" if view.files != 1 else "file"
     console.print(
-        f"[bold]AI SLOP Detector {__version__}[/bold] - {view.target} ({view.files} {unit}{timing})"
-        f"    [dim]measurement: {view.measurement}[/dim]"
+        Text.assemble(
+            (f"AI SLOP Detector {__version__}", "bold"),
+            f" - {_headline_target(view)} ({view.files} {unit}{timing})    ",
+            (f"measurement: {view.measurement}", "dim"),
+        )
     )
     head = Table.grid(padding=(0, 2))
     head.add_column(style="bold")
     head.add_column()
-    head.add_row("Score", _score_line(view))
-    head.add_row("Findings", _findings_line(view))
-    head.add_row("Hollow", hollow_line(view))
-    head.add_row("Promises", claim_line(view))
+    head.add_row("Score", Text(_score_line(view)))
+    head.add_row("Findings", Text(_findings_line(view)))
+    head.add_row("Hollow", Text(hollow_line(view)))
+    head.add_row("Promises", Text(claim_line(view)))
+    if view.coverage_notes:
+        # A note names extras like "ai-slop-detector[js]".
+        head.add_row("Coverage", Text(" ".join(view.coverage_notes)))
     console.print(head)
     root = _root(view)
     _print_items(console, "Findings", view.findings, TERMINAL_LIMITS["findings"], root, False)
@@ -144,8 +162,13 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
     steps = _steps(view)
     if steps:
         console.print("\n[bold]Next[/bold]")
+        # A grid, so a step that does not fit continues under its own text.
+        numbered = Table.grid(padding=(0, 1))
+        numbered.add_column(no_wrap=True)
+        numbered.add_column(overflow="fold")
         for i, step in enumerate(steps, 1):
-            console.print(f"  {i}. {step}")
+            numbered.add_row(f"  {i}.", Text(step))
+        console.print(numbered)
     console.print("\n[dim]Full tables: --details   Report file: -o report.md[/dim]")
 
 
@@ -153,6 +176,7 @@ def _print_items(
     console: Any, title: str, items: List[Item], limit: int, root: str, candidates: bool
 ) -> None:
     from rich.table import Table
+    from rich.text import Text
 
     if not items:
         return
@@ -161,9 +185,9 @@ def _print_items(
     table = Table.grid(padding=(0, 2))
     for _ in range(4):
         table.add_column(overflow="fold")
-    for label, where, rule, message in _item_rows(shown, root, candidates):
+    for label, at, rule, message in _item_rows(shown, root, candidates):
         style = _SEVERITY_STYLE.get(label.lower(), "")
-        table.add_row(f"[{style}]{label}[/{style}]" if style else label, where, rule, message)
+        table.add_row(Text(label, style=style), Text(at), Text(rule), Text(message))
     console.print(table)
     if rest:
         console.print(f"  [dim]+{rest} more (--details or -o report.md)[/dim]")

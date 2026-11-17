@@ -19,6 +19,7 @@ from slop_detector.report_view import (
     brief_items,
     build_report_view,
     short_path,
+    where,
 )
 
 _CSP = "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:"
@@ -118,12 +119,12 @@ def _root(view: ReportView) -> str:
 def _item(item: Item, root: str) -> str:
     review = item.kind == REVIEW_CANDIDATE
     sev = "review" if review else item.severity
-    where = f"{short_path(item.file, root)}:{item.line}"
+    at = where(item, root)
     fix = f' <span class="fix">- {_e(item.suggestion)}</span>' if item.suggestion else ""
     return (
         f'<div class="item sev-{sev}" data-sev="{sev}"><div class="l1">'
         f'<span class="badge">{"REVIEW" if review else _e(item.severity.upper())}</span>'
-        f'<code class="loc" title="{_e(item.file)}:{item.line}">{_e(_middle(where))}</code>'
+        f'<code class="loc" title="{_e(item.file)}:{item.line}">{_e(_middle(at))}</code>'
         f'<span class="rule">{_e(item.rule)}</span></div>'
         f'<div class="l2">{_e(item.message)}{fix}</div></div>'
     )
@@ -148,7 +149,12 @@ def _cards(view: ReportView) -> str:
             sem.state, "not applicable (no Python file)"
         )
     cards = [
-        ("Score", score, f"{view.status} (score band, out of 100)"),
+        (
+            "Score",
+            score,
+            f"{view.status} ({'weighted by lines of code, ' if view.is_project else ''}"
+            "score band, out of 100)",
+        ),
         (
             "Findings",
             str(len(view.findings)),

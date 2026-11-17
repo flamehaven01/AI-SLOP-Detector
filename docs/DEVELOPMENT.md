@@ -23,6 +23,7 @@ src/slop_detector/
   core_scoring.py         deterministic file-score helpers
   core_topology.py        DCF and structural coherence helpers
   core_project.py         discovery, coverage, aggregation
+  language_registry.py    the analyzed languages other than Python (see ADDING_A_LANGUAGE.md)
   cli*.py                 parsers, routing, analysis, output, history, init
   operations*.py          audit, health, cleanup, architecture helpers
   metrics/                LDR, inflation, dependency and related signals
@@ -34,7 +35,7 @@ src/slop_detector/
   ml/                     optional ML scoring and self-calibration
   auth/                   experimental, not wired into the core
   config/                 bundled data (known dependency names)
-  languages/              JS/TS and Go adapters
+  languages/              JS/TS, Go and Rust adapters
   mcp/                    stdio tool surface
   api/                    optional local FastAPI surface
 tests/                    regression and contract tests

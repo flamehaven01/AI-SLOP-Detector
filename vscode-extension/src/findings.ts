@@ -3,7 +3,21 @@
 
 import * as path from 'path';
 
-/** A JS/TS or Go file result (js_file_results / go_file_results) in the field
+/** The file results of every language other than Python: each
+ *  `<language>_file_results` list of the backend's output (one per registered
+ *  language), in output order. Python's own list is `file_results`. */
+export function languageResults(raw: any): any[] {
+    if (!raw || typeof raw !== 'object') { return []; }
+    // A result without its own `language` (Go, Rust) takes its list's name, so
+    // every view knows it is not a Python file and shows no inflation or DDC.
+    return Object.keys(raw)
+        .filter((key) => key !== 'file_results' && key.endsWith('_file_results') && Array.isArray(raw[key]))
+        .flatMap((key) => raw[key].map((f: any) => ({
+            language: key.slice(0, -'_file_results'.length), ...f,
+        })));
+}
+
+/** A file result of a language other than Python in the field
  *  names of a Python file result, so every view reads one shape. Its path is
  *  made absolute against the scanned root (the backend gives it relative). The
  *  Python metrics it has no counterpart for (inflation, DDC) are left out. */
@@ -22,10 +36,10 @@ export function languageFileResult(f: any, root: string): any {
 
 /** The result of a one-file scan: a Python file's own result, or the single
  *  language result of the project-shaped output a JS/TS or Go file comes back
- *  as (no top-level file_path; the file under js_file_results / go_file_results). */
+ *  as (no top-level file_path; the file under its language's result list). */
 export function asFileResult(raw: any, root: string): any {
     if (!raw || typeof raw !== 'object' || 'file_path' in raw) { return raw; }
-    const lang = [...(raw.js_file_results ?? []), ...(raw.go_file_results ?? [])];
+    const lang = languageResults(raw);
     return lang.length === 1 ? languageFileResult(lang[0], root) : raw;
 }
 
@@ -33,7 +47,7 @@ export function asFileResult(raw: any, root: string): any {
 export function projectFileResults(scan: any, root: string): any[] {
     return [
         ...(scan?.file_results ?? []),
-        ...[...(scan?.js_file_results ?? []), ...(scan?.go_file_results ?? [])].map((f) => languageFileResult(f, root)),
+        ...languageResults(scan).map((f) => languageFileResult(f, root)),
     ];
 }
 

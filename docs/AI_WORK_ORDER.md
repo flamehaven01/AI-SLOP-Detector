@@ -114,9 +114,9 @@ path comes last on a FILES row and an index line, since it may hold spaces.)
 - **locator**: which copy, in this snapshot: the statement path inside the
   symbol (`body[0]/handlers[0]`). A comment is addressed by the statement after
   it (`body[1]~before0`) or before it (`~after<k>`). Two identical blocks in
-  one function get different locators. JS/TS and Go items use the line, so a
+  one function get different locators. JS/TS, Go and Rust items use the line, so a
   line shift moves them; two findings of one rule on one line add the column
-  (JS/TS, `L38C12`) or their order on the line (Go, `L7#2`).
+  (JS/TS and Rust, `L38C12`) or their order on the line (Go, `L7#2`).
 - **cause_key** (in the JSON Lines record): kind, rule, path, symbol and
   subject without the line's text; a reworded TODO keeps it.
 - Two items with the same id are a defect: the report fails closed instead of
@@ -228,7 +228,7 @@ with its line number.
   defect, and never moves the score.
 - An excerpt may not show the whole span; a "not shown" line names the range
   to read.
-- JS/TS and Go locators are lines.
+- JS/TS, Go and Rust locators are lines.
 - The token estimate is characters / 4.
 - The detector does not check the agent's preconditions or its response; the
   response form only makes the answer comparable.

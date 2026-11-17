@@ -7,6 +7,7 @@ import { updateStatusBar } from './statusbar';
 import { bindingOf } from './binding';
 import { parseSlopReport, ISlopReport } from './schema';
 import * as client from './client';
+import { isSupported } from './languages';
 
 /** Extract first JSON object/array from stdout, ignoring leading [INFO] log lines. */
 export function extractJson(stdout: string): any {
@@ -35,8 +36,7 @@ export async function analyzeDocument(document: vscode.TextDocument): Promise<vo
     if (!config.get('enable')) { return; }
 
     const filePath = document.uri.fsPath;
-    const supported = ['.py', '.js', '.ts', '.go'];
-    if (!supported.some(ext => filePath.endsWith(ext))) { return; }
+    if (!isSupported(filePath)) { return; }
 
     outputChannel.appendLine(`[*] Analyzing: ${filePath}`);
     statusBarItem.text = '$(sync~spin) SLOP: Analyzing...';

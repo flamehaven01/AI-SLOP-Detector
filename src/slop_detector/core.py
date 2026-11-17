@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+from slop_detector import language_registry as registry
 from slop_detector import semantic
 from slop_detector.analysis_cache import CACHE_ENGINE_VERSION, FileAnalysisCache, fingerprint_config
 from slop_detector.claim_findings import claim_analysis, fully_measured
@@ -109,7 +110,9 @@ def _bound(result: FileAnalysis, source_sha256: str, origin: str) -> FileAnalysi
 
 
 # Prefix of the per-file error log line, by language (unchanged wording).
-_FAILURE_LABEL = {"python": "", "javascript": "JS/TS file ", "go": "Go file "}
+def _failure_label(language: str) -> str:
+    """How a failed file is named in the log: "" for Python, else "<label> file "."""
+    return "" if language == "python" else f"{registry.spec(language).label} file "
 
 
 # Metrics left out of deficit_score under --patterns-only (advanced.patterns_only).
@@ -170,10 +173,9 @@ class SlopDetector:
         self._ml_scorer, availability = _MLScorer.from_model_with_status(_mp)
         self._ml_scoring = availability.to_dict()
 
-        # Phase 3b: JS/TS analyzer (lazy — only instantiated when needed)
-        self._js_analyzer = None
-        # Phase 3c: Go analyzer (lazy — only instantiated when needed)
-        self._go_analyzer = None
+        # Analyzers of the registered languages (language_registry), created
+        # on first use only.
+        self._language_analyzers: Dict[str, Any] = {}
         self._analysis_cache = (
             FileAnalysisCache(self.config.get_analysis_cache_db())
             if self.config.use_analysis_cache() and not read_only
@@ -181,21 +183,20 @@ class SlopDetector:
         )
         self.project_prioritizer = ProjectPrioritizer(self.config)
 
-    def _get_js_analyzer(self):
-        """Lazy-load JSAnalyzer (avoids import cost when not used)."""
-        if self._js_analyzer is None:
-            from slop_detector.languages.js_analyzer import JSAnalyzer
+    def _get_language_analyzer(self, adapter: registry.LanguageSpec):
+        """The analyzer of a registered language, created on first use (avoids
+        import cost when the project has none of its files)."""
+        if adapter.name not in self._language_analyzers:
+            self._language_analyzers[adapter.name] = adapter.analyzer()
+        return self._language_analyzers[adapter.name]
 
-            self._js_analyzer = JSAnalyzer()
-        return self._js_analyzer
+    def _get_js_analyzer(self):
+        """Backward-compatible facade: the JS/TS analyzer."""
+        return self._get_language_analyzer(registry.spec("javascript"))
 
     def _get_go_analyzer(self):
-        """Lazy-load GoAnalyzer (avoids import cost when not used)."""
-        if self._go_analyzer is None:
-            from slop_detector.languages.go_analyzer import GoAnalyzer
-
-            self._go_analyzer = GoAnalyzer()
-        return self._go_analyzer
+        """Backward-compatible facade: the Go analyzer."""
+        return self._get_language_analyzer(registry.spec("go"))
 
     @staticmethod
     def _compute_dcf(tree: ast.AST) -> Dict[str, float]:
@@ -220,13 +221,16 @@ class SlopDetector:
                        nearest project marker is the root (slop_detector.path_facts).
 
         Raises:
-            UnsupportedLanguageError: the file is JS/TS or Go source; parsing it as
-                Python would score a parse error (use analyze_js_file / analyze_go_file).
+            UnsupportedLanguageError: the file is source of a registered language
+                adapter (JS/TS, Go, Rust, ...); parsing it as Python would score a
+                parse error (use analyze_language_file or analyze_project).
         """
-        if Path(file_path).suffix.lower() in self._JS_EXTENSIONS | self._GO_EXTENSIONS:
+        adapter = registry.spec_for_suffix(Path(file_path).suffix)
+        if adapter is not None:
             raise UnsupportedLanguageError(
-                f"{file_path} is not Python source; use analyze_js_file, "
-                "analyze_go_file or analyze_project"
+                f"{file_path} is not Python source ({adapter.label}); use "
+                f"analyze_language_file(language_registry.spec({adapter.name!r}), path) "
+                "or analyze_project"
             )
         with project_context_scope(), scan_root_scope(Path(root) if root else None):
             return self._analyze_file(file_path, root)
@@ -402,7 +406,7 @@ class SlopDetector:
             try:
                 results.append(analyze(fp))
             except Exception as exc:
-                logger.error(f"Error analyzing {_FAILURE_LABEL[language]}{fp}: {exc}")
+                logger.error(f"Error analyzing {_failure_label(language)}{fp}: {exc}")
                 if failures is not None:
                     record_analysis_failure(failures, fp, root, language, exc)
                 outcome = "failed"
@@ -436,12 +440,15 @@ class SlopDetector:
 
         logger.debug(f"Found {len(python_files)} Python files in {project_path}")
         # Every language is discovered before any file is analyzed, so the
-        # totals are known up front; analysis order stays Python, JS/TS, Go.
-        js_files = self._discover_js_files(project_path_obj, ignore_patterns)
-        go_files = self._discover_go_files(project_path_obj, ignore_patterns)
+        # totals are known up front; analysis order is Python, then the
+        # registered languages in registry order.
+        adapter_files = {
+            adapter.name: self._discover_language_files(adapter, project_path_obj, ignore_patterns)
+            for adapter in registry.languages()
+        }
         progress = ScanProgress(
             observer,
-            {"python": len(python_files), "javascript": len(js_files), "go": len(go_files)},
+            {"python": len(python_files), **{n: len(f) for n, f in adapter_files.items()}},
         )
         progress.discovered()
 
@@ -454,9 +461,13 @@ class SlopDetector:
             failures,
             progress,
         )
-        js_results = self._analyze_js_list(js_files, project_path_obj, failures, progress)
-        go_results = self._analyze_go_list(go_files, project_path_obj, failures, progress)
-        if not results and not js_results and not go_results:
+        adapter_results = {
+            adapter.name: self._analyze_language_list(
+                adapter, adapter_files[adapter.name], project_path_obj, failures, progress
+            )
+            for adapter in registry.languages()
+        }
+        if not results and not any(adapter_results.values()):
             logger.warning("No files analyzed")
 
         progress.aggregating()
@@ -464,8 +475,7 @@ class SlopDetector:
             str(project_path),
             str(project_path_obj),
             results,
-            js_results,
-            go_results,
+            adapter_results,
             scan_coverage,
             self.config.use_weighted_analysis(),
             self._compute_coherence_vr,
@@ -585,7 +595,9 @@ class SlopDetector:
 
         return result
 
-    _JS_EXTENSIONS = frozenset({".js", ".jsx", ".ts", ".tsx"})
+    # Backward-compatible names; the extensions live in language_registry.
+    _JS_EXTENSIONS = registry.spec("javascript").extensions
+    _GO_EXTENSIONS = registry.spec("go").extensions
 
     def _discover_supported_files(
         self,
@@ -603,93 +615,95 @@ class SlopDetector:
             rust_discoverer=discover_project_files,
         )
 
-    def _discover_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List[Path]:
+    def _discover_language_files(
+        self, adapter: registry.LanguageSpec, project_path_obj: Path, ignore_patterns: List[str]
+    ) -> List[Path]:
+        """The files of one registered language below the project root."""
         return self._discover_supported_files(
             project_path_obj,
-            [f"**/*{ext}" for ext in self._JS_EXTENSIONS],
-            self._JS_EXTENSIONS,
-            ignore_patterns,
+            [f"**/*{ext}" for ext in adapter.extensions],
+            adapter.extensions,
+            list(ignore_patterns) + list(adapter.extra_ignore),
         )
 
-    def _analyze_js_list(
+    def _analyze_language_list(
         self,
-        js_files: List[Path],
+        adapter: registry.LanguageSpec,
+        files: List[Path],
         project_path_obj: Path,
         failures: Optional[List[Dict[str, str]]],
         progress: Optional[ScanProgress] = None,
     ) -> List:
-        if not js_files:
+        """Analyze discovered files of one registered language."""
+        if not files:
             return []
-        analyzer = self._get_js_analyzer()
+        analyzer = self._get_language_analyzer(adapter)
         results = self._analyze_each(
-            js_files,
+            files,
             lambda fp: analyzer.analyze(str(fp)),
-            "javascript",
+            adapter.name,
             project_path_obj,
             failures,
             progress,
         )
-        logger.info(f"Analyzed {len(results)} JS/TS files")
+        # A detail for --verbose: the summary already says how many files it read.
+        unit = "file" if len(results) == 1 else "files"
+        logger.debug(f"Analyzed {len(results)} {adapter.label} {unit}")
         return results
 
-    def _analyze_js_files(
+    def _analyze_language_files(
         self,
+        adapter: registry.LanguageSpec,
         project_path_obj: Path,
         ignore_patterns: List[str],
         failures: Optional[List[Dict[str, str]]] = None,
     ) -> List:
-        """Scan and analyze JS/TS files in project_path_obj (Phase 3b)."""
-        js_files = self._discover_js_files(project_path_obj, ignore_patterns)
-        return self._analyze_js_list(js_files, project_path_obj, failures)
+        """Discover and analyze the files of one registered language."""
+        files = self._discover_language_files(adapter, project_path_obj, ignore_patterns)
+        return self._analyze_language_list(adapter, files, project_path_obj, failures)
+
+    def analyze_language_file(self, adapter: registry.LanguageSpec, file_path: str):
+        """Analyze one file of a registered language."""
+        return self._get_language_analyzer(adapter).analyze(file_path)
+
+    # Backward-compatible facades for JS/TS and Go.
+    def _discover_js_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List[Path]:
+        return self._discover_language_files(
+            registry.spec("javascript"), project_path_obj, ignore_patterns
+        )
+
+    def _discover_go_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List[Path]:
+        return self._discover_language_files(registry.spec("go"), project_path_obj, ignore_patterns)
+
+    def _analyze_js_list(self, js_files, project_path_obj, failures, progress=None) -> List:
+        return self._analyze_language_list(
+            registry.spec("javascript"), js_files, project_path_obj, failures, progress
+        )
+
+    def _analyze_go_list(self, go_files, project_path_obj, failures, progress=None) -> List:
+        return self._analyze_language_list(
+            registry.spec("go"), go_files, project_path_obj, failures, progress
+        )
+
+    def _analyze_js_files(self, project_path_obj, ignore_patterns, failures=None) -> List:
+        """Scan and analyze JS/TS files in project_path_obj."""
+        return self._analyze_language_files(
+            registry.spec("javascript"), project_path_obj, ignore_patterns, failures
+        )
+
+    def _analyze_go_files(self, project_path_obj, ignore_patterns, failures=None) -> List:
+        """Scan and analyze Go files in project_path_obj."""
+        return self._analyze_language_files(
+            registry.spec("go"), project_path_obj, ignore_patterns, failures
+        )
 
     def analyze_js_file(self, file_path: str):
         """Analyze a single JS/TS file and return JSFileAnalysis."""
-        return self._get_js_analyzer().analyze(file_path)
-
-    _GO_EXTENSIONS = frozenset({".go"})
-
-    def _discover_go_files(self, project_path_obj: Path, ignore_patterns: List[str]) -> List[Path]:
-        return self._discover_supported_files(
-            project_path_obj,
-            [f"**/*{ext}" for ext in self._GO_EXTENSIONS],
-            self._GO_EXTENSIONS,
-            ignore_patterns,
-        )
-
-    def _analyze_go_list(
-        self,
-        go_files: List[Path],
-        project_path_obj: Path,
-        failures: Optional[List[Dict[str, str]]],
-        progress: Optional[ScanProgress] = None,
-    ) -> List:
-        if not go_files:
-            return []
-        analyzer = self._get_go_analyzer()
-        results = self._analyze_each(
-            go_files,
-            lambda fp: analyzer.analyze(str(fp)),
-            "go",
-            project_path_obj,
-            failures,
-            progress,
-        )
-        logger.info(f"Analyzed {len(results)} Go files")
-        return results
-
-    def _analyze_go_files(
-        self,
-        project_path_obj: Path,
-        ignore_patterns: List[str],
-        failures: Optional[List[Dict[str, str]]] = None,
-    ) -> List:
-        """Scan and analyze Go files in project_path_obj (Phase 3c)."""
-        go_files = self._discover_go_files(project_path_obj, ignore_patterns)
-        return self._analyze_go_list(go_files, project_path_obj, failures)
+        return self.analyze_language_file(registry.spec("javascript"), file_path)
 
     def analyze_go_file(self, file_path: str):
         """Analyze a single .go file and return GoFileAnalysis."""
-        return self._get_go_analyzer().analyze(file_path)
+        return self.analyze_language_file(registry.spec("go"), file_path)
 
     def _run_patterns(
         self,
@@ -871,10 +885,9 @@ class SlopDetector:
     def _set_analyzed_scan_counts(
         scan_coverage: Dict[str, Any],
         python_results: List[Any],
-        js_results: List[Any],
-        go_results: List[Any],
+        adapter_results: Dict[str, List[Any]],
     ) -> None:
-        set_analyzed_scan_counts(scan_coverage, python_results, js_results, go_results)
+        set_analyzed_scan_counts(scan_coverage, python_results, adapter_results)
 
     def _create_error_analysis(self, file_path: str, error: str) -> FileAnalysis:
         """Backward-compatible facade for parse-error results."""

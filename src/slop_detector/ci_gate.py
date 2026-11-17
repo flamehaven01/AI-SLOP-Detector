@@ -57,11 +57,9 @@ class CIGate:
     def _all_file_results(result: ProjectAnalysis) -> List[Any]:
         """Every analyzed file: Python, JS/TS and Go (all of them count toward
         the project score, so all of them are judged)."""
-        return (
-            list(result.file_results)
-            + list(getattr(result, "js_file_results", []) or [])
-            + list(getattr(result, "go_file_results", []) or [])
-        )
+        from slop_detector.language_registry import all_file_results
+
+        return all_file_results(result)
 
     def _classify_files(self, result: ProjectAnalysis) -> tuple[List[str], List[str], List[str]]:
         """Classify file results into (failed, warned, quarantined) lists."""
@@ -151,6 +149,9 @@ class CIGate:
             f"analysis incomplete: {count} files could not be analyzed, "
             f"{partial} files partially measured"
         )
+        if verdict == GateVerdict.PASS:
+            # The thresholds passed, the gate does not: never say "Build PASSED" here.
+            message = "no analyzed file exceeds the quality thresholds"
         if self.mode == GateMode.HARD:
             return GateVerdict.FAIL, True, f"Build FAILED: {note} | {message}"
         if verdict == GateVerdict.PASS:
@@ -178,7 +179,7 @@ class CIGate:
         if self.mode == GateMode.QUARANTINE:
             self._save_quarantine_db()
         pr_comment = self._generate_pr_comment(
-            result, failed_files, warned_files, quarantined_files
+            result, failed_files, warned_files, quarantined_files, verdict=verdict, message=message
         )
         return GateResult(
             verdict=verdict,
@@ -232,7 +233,7 @@ class CIGate:
             else []
         )
         pr_comment = self._generate_pr_comment(
-            result, failed_files, warned_files, quarantined_files
+            result, failed_files, warned_files, quarantined_files, verdict=verdict, message=message
         )
         return GateResult(
             verdict=verdict,
@@ -417,8 +418,11 @@ class CIGate:
         failed_files: List[str],
         warned_files: List[str],
         quarantined_files: List[str],
+        verdict: Optional[GateVerdict] = None,
+        message: str = "",
     ) -> str:
-        """Generate PR comment with quality report."""
+        """Generate PR comment with quality report: the verdict and why, then the
+        files that could not be analyzed apart from those over a threshold."""
         lines = []
 
         # Header
@@ -428,6 +432,8 @@ class CIGate:
         # Mode indicator
         mode_emoji = {"soft": "[INFO]", "hard": "[GATE]", "quarantine": "[TRACK]"}
         lines.append(f"**Mode**: {mode_emoji.get(self.mode.value, '')} {self.mode.value.upper()}")
+        if verdict is not None:
+            lines.append(f"**Verdict**: {verdict.value.upper()} - {message}")
         lines.append("")
 
         # Summary
@@ -446,11 +452,13 @@ class CIGate:
             lines.append(f"- Suppressed Issues: {len(result.suppression_ledger)}")
             lines.append("")
 
+        lines.extend(_not_analyzed_section(getattr(result, "scan_coverage", None) or {}))
+
         # Failed files
         if failed_files:
             lines.append("### [CRITICAL] Failed Quality Checks")
             for file_path in failed_files[:10]:  # Limit to 10
-                file_name = Path(file_path).name
+                file_name = _shown_path(file_path, result)
                 lines.append(f"- `{file_name}`: Exceeds critical thresholds")
             if len(failed_files) > 10:
                 lines.append(f"- ... and {len(failed_files) - 10} more")
@@ -460,7 +468,7 @@ class CIGate:
         if quarantined_files:
             lines.append("### [TRACKING] Quarantined Files")
             for file_path in quarantined_files:
-                file_name = Path(file_path).name
+                file_name = _shown_path(file_path, result)
                 if file_path in self.quarantine_records:
                     record = self.quarantine_records[file_path]
                     lines.append(
@@ -475,7 +483,7 @@ class CIGate:
         if warned_files:
             lines.append("### [WARNING] Quality Issues")
             for file_path in warned_files[:5]:  # Limit to 5
-                file_name = Path(file_path).name
+                file_name = _shown_path(file_path, result)
                 lines.append(f"- `{file_name}`: Quality concerns detected")
             if len(warned_files) > 5:
                 lines.append(f"- ... and {len(warned_files) - 5} more")
@@ -490,3 +498,30 @@ class CIGate:
             lines.append("")
 
         return "\n".join(lines)
+
+
+def _not_analyzed_section(coverage: Dict[str, Any]) -> List[str]:
+    """The files whose analysis failed (an incomplete scan), with their
+    language and error: the reason a hard gate fails a scan that is not over
+    any threshold."""
+    failed = coverage.get("failed") or {}
+    total = failed.get("total", 0)
+    if not total:
+        return []
+    lines = [f"### [INCOMPLETE] {total} file(s) could not be analyzed (not scored)"]
+    for item in failed.get("files", [])[:10]:
+        lines.append(f"- `{item['path']}` ({item['language']}): {item['error_type']}")
+    shown = min(len(failed.get("files", [])), 10)
+    if total > shown:
+        lines.append(f"- ... and {total - shown} more (JSON scan_coverage.failed)")
+    lines.append("")
+    return lines
+
+
+def _shown_path(file_path: str, result: Any) -> str:
+    """A file in the CI report: its path in the project (two files of one name
+    in different folders stay apart); a single-file scan's file by its name."""
+    from slop_detector.report_view import short_path
+
+    root = getattr(result, "project_path", None)
+    return short_path(file_path, str(root)) if root else Path(file_path).name

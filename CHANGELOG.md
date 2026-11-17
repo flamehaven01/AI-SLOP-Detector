@@ -7,6 +7,176 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.16.1] - 2026-11-16
+
+Rust files are analyzed. JS/TS and Go file rows in the HTML and Markdown
+reports show their score. There is no 3.16.0 on PyPI or npm: that number was
+used by a VS Code Marketplace build only.
+
+### Changes you see when upgrading
+
+- A project with `.rs` files gets Rust findings. They count toward the project
+  score and are judged by `--ci-mode` like JS/TS and Go files, so the gate's
+  decision can change for such a project.
+- JSON, REST and the npm types gain `rust_file_results`;
+  `scan_coverage.analyzed` and `scan_coverage.analysis_modes` gain `rust`
+  (additive keys).
+- The Markdown report's Scan Coverage table has one column per analyzed
+  language (a Rust column is added).
+- With the `[go]` extra installed, Go results say `ast_mode: false` and
+  `scan_coverage.analysis_modes.go` says `mode: regex`, `ast_available: false`
+  (they said `true` / `tree_sitter_ast`). Go findings and scores are unchanged.
+- Go files, and JS/TS files read by the regex fallback, no longer report
+  findings for text inside strings or comments (see Fixed): their scores can
+  drop, and a file that failed the gate on such text no longer does.
+- The `--ci-report` body starts with the gate's verdict and its reason, lists
+  the files that could not be analyzed (path, language, error), and names
+  files by their path in the project instead of their base name.
+- The third next step names the file with the most severe findings in any
+  language ("Start with `svc/main.go` (3 critical ... finding(s))"), where it
+  named the top Python hotspot or said "Run `slop-detector review .`".
+- Finding messages of Go and JS/TS use " - " instead of an em dash; the
+  `go_empty_func` fix reads "Implement the function body, or remove the
+  function if nothing needs it". Finding ids are unchanged (they do not
+  include the message).
+- In the Markdown work order a code block is fenced with its file's language
+  (`rust`, `go`, `javascript`, `typescript`, `python`), not always `python`.
+- A project without a Python file: the metric table (and `metric_guide` in
+  JSON) shows inflation and DDC as `N/A (Python only)` where it showed
+  `0.00x` and `0.00%`, and the next steps (`next_steps` in JSON) no longer
+  name DDC as the top concern or advise the `sweep` commands, which read
+  Python files. `avg_inflation` and `avg_ddc` in JSON are unchanged (0.0).
+- `--gate` judges only what was measured. On a project without a Python
+  file it no longer halts on `ddc=0.000 < threshold=0.5`, and it no longer
+  records `jsd=1.0000` for an inflation nobody measured: both read `n/a`,
+  the output says `Not judged: di2, jsd`, and the decision can change from
+  HALT to PASS. A scan that could not analyze every file now halts
+  (`analysis incomplete: N file(s) could not be analyzed`), where it could
+  pass on the files that were read; a project with nothing measured halts as
+  `not evaluated` instead of on `ldr=0.000`. A gate decision gains
+  `not_measured` (additive); the audit hash of a decision on measured values
+  is unchanged.
+- A project where nothing was measured: the next step reads "Not evaluated:
+  no file was measured ..." (it read "All metrics are healthy - no action
+  needed"). A clean project without a Python file reads "All measured
+  metrics are healthy".
+
+### Added
+
+- Rust analysis. Rules, outside test code: `rust_todo_macro` and
+  `rust_unimplemented_macro` (high: the call panics when reached),
+  `rust_dbg_macro` (medium), `rust_todo_comment` (TODO/FIXME/HACK/XXX, low,
+  reported, not scored); each finding carries a fix. Calls inside strings,
+  comments and `macro_rules!` bodies are not calls; items under
+  `#[cfg(test)]`, `#[test]` or an attribute ending in `::test` are test code.
+  A token scanner (any Python) measures every rule; the `[rust]` extra adds
+  tree-sitter-rust on Python 3.10+ and installs nothing on 3.8/3.9. Both
+  readers report the same findings. Cargo's `target/` is skipped for Rust
+  files only and listed as excluded in scan coverage. A `.rs` file neither
+  reader can read is a failed file in scan coverage. File score: a stub call
+  weighs 25 points and a `dbg!()` call 5 per 100 lines, a file shorter than
+  100 lines counting as 100 (one stub call alone is 25 points in any file and
+  does not fail `--ci-mode hard`; three in a short file reach the critical
+  band), plus the logic density penalty.
+- VS Code extension: activates on and analyzes `.rs` files.
+
+### Fixed
+
+- A scan ended with `UnicodeEncodeError` while printing its terminal summary
+  when stdout was redirected on Windows and a finding message held a
+  character the console encoding cannot (an em dash on cp949, a user's Korean
+  TODO text on cp1252); `--report-dir` then wrote no file. The CLI now prints
+  such a character escaped; report files are UTF-8 and keep it.
+- Text inside strings and comments was read as code: the JS/TS regex
+  fallback reported `console.log(...)` and `: any` written in a string, and
+  the Go reader `fmt.Println(...)`, `panic(...)`, an empty function and a TODO
+  written in a string or raw string. Braces in a Go string ended a function
+  early (a long function was not reported), and a one-line `/* */` after code
+  turned every later line into a comment. Both readers now judge code with
+  strings and comments blanked, and comment rules read only comments.
+- The terminal summary read text of the scanned repository as formatting
+  tags. A path such as `app/[id]/page.jsx` was shown as `app//page.jsx`, a
+  hollow candidate lost the input it names (`save_record [record]:` read
+  `save_record :`), text in brackets inside a quoted docstring was dropped,
+  and a docstring holding `[/x]` ended the summary with a `MarkupError`
+  traceback. The summary now prints such text as it is (`--details` already
+  did).
+- Terminal summary: a next step that does not fit the line continues under
+  its own text (it continued at the left edge); a scan of `.` is headed by
+  the folder's name, not by `.`; the line `[INFO] Analyzed 1 Rust files`
+  above the summary is printed with `--verbose` only.
+- Advice and a gate decision rested on a metric nobody measured. Inflation
+  and DDC are averages over Python files; with no such file the average of
+  nothing was 0.0. A project of Rust and JS/TS files was told "Top concern:
+  Dependency Usage Ratio (DDC) = 0.00%" and to run `sweep unused-deps`,
+  `--gate` answered HALT on `ddc=0.000`, and the Markdown report's summary
+  said `Inflation (Jargon) 0.00`. A Python project whose only files have no
+  executable code was affected the same way. Such a metric now reads N/A and
+  is neither a concern nor judged. The same rule now holds for the whole
+  result: with nothing measured the advice said "All metrics are healthy",
+  and `--gate` passed a scan in which a file could not be analyzed.
+- `--ci-report` gave no reason when the hard gate failed only because a file
+  could not be analyzed ("1 clean, 0 with issues"), and its message read
+  "Build FAILED: analysis incomplete ... | Build PASSED: ...".
+- The next steps and the terminal summary passed over files of other
+  languages (the priority hotspots cover Python files only; the hotspots
+  table now says so), and the terminal summary did not say that a file could
+  not be analyzed.
+- Two findings of one rule on one line were two identical rows in report.md,
+  the HTML report, `--details` and the terminal; they show their locator.
+- The Markdown work order's `target:` was empty for `--project .`.
+- The headline score of a project said only "(score band)"; it says it is
+  weighted by lines of code.
+- A long-lived process (MCP server, watch mode) could miss a package
+  installed or uninstalled right after its last look at the environment: a
+  search-path directory was identified by its mtime, which a second change in
+  the same tick keeps. A directory changed in the last two seconds is now also
+  identified by its listing.
+- `SlopDetector.analyze_file` (and the REST and MCP single-file paths) told
+  the caller of a JS/TS, Go or Rust file to use `analyze_js_file` or
+  `analyze_go_file`; it names the language and
+  `analyze_language_file(language_registry.spec(...), path)`.
+- Go: with tree-sitter-go installed, a Go result said `ast_mode: true` and
+  scan coverage said the Go files were read with tree-sitter, although the
+  analyzer's tree-sitter path only reused the regex result. The analyzer now
+  has the one (regex) path, and its results and scan coverage say so.
+- `report.html` and `report.md` listed JS/TS and Go files with score `N/A`
+  although their score counts toward the project score; they show it now.
+- VS Code extension: `.jsx` and `.tsx` files were not analyzed in the editor
+  (its file filter knew `.js` and `.ts` only, and it did not activate on the
+  `javascriptreact` / `typescriptreact` language ids), although project scans
+  analyze them. The extension now keeps one language list that a test checks
+  against the backend's languages.
+- VS Code extension: a Go or Rust file showed the summary line of a Python
+  file (`LDR ... Inflation: 0.000 DDC: 0.000`); it shows its language and
+  LDR-equivalent, like a JS/TS file.
+
+### Documentation
+
+- The `[js]` and `[go]` extras need Python 3.10+ (tree-sitter 0.25 requires
+  it); on 3.8/3.9 the install command fails to resolve and installs nothing,
+  and the base package reads those files with its fallback readers (the
+  checks a fallback cannot measure are listed in
+  `scan_coverage.analysis_modes`). Earlier text said 3.9.
+- Go: the analyzer reads every file with its regex reader; `[go]` installs
+  tree-sitter-go, which the analyzer does not use yet. The docs no longer
+  describe Go as tree-sitter analysis.
+- `docs/ADDING_A_LANGUAGE.md`: how a language is added and what the tests
+  enforce.
+- README: rewritten as a short introduction (what it finds, a language
+  table, quick start, how to read the score, where it runs). The sections it
+  no longer holds moved unchanged to `docs/GUIDE.md`, and the release history
+  to `docs/RELEASE_NOTES.md`; the old section anchors lead to their new
+  place. The headline no longer says "AI-generated code": the tool reports
+  signals in the code and does not tell who wrote it.
+- `docs/PATTERNS.md` has a Rust section; the guides that listed the
+  analyzed languages (CI, CLI, architecture, work order, how it works) name
+  Rust.
+- CI: the Go job is named "Go Analyzer" (it was "Go Analyzer
+  (tree-sitter)"; Go files are read by the regex reader).
+
+---
+
 ## [3.15.2] - 2026-11-13
 
 The CI gate judges JS/TS and Go files. Findings, scores and the analysis are

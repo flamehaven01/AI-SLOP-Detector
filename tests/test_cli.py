@@ -228,7 +228,7 @@ def test_project_coverage_bounds_excluded_details_and_reports_unsupported_files(
     tests_dir.mkdir()
     for index in range(201):
         (tests_dir / f"test_{index}.py").write_text("pass\n", encoding="utf-8")
-    (tmp_path / "native.rs").write_text("fn main() {}\n", encoding="utf-8")
+    (tmp_path / "native.rb").write_text("puts 1\n", encoding="utf-8")
 
     coverage = SlopDetector().analyze_project(str(tmp_path)).to_dict()["scan_coverage"]
 
@@ -238,9 +238,9 @@ def test_project_coverage_bounds_excluded_details_and_reports_unsupported_files(
     assert coverage["excluded"]["by_reason"] == {"pattern:tests/**": 201}
     assert coverage["unsupported"] == {
         "total": 1,
-        "files": [{"path": "native.rs", "extension": ".rs"}],
+        "files": [{"path": "native.rb", "extension": ".rb"}],
         "omitted_file_details": 0,
-        "by_extension": {".rs": 1},
+        "by_extension": {".rb": 1},
     }
 
 

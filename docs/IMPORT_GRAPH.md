@@ -271,7 +271,7 @@ the same cycle as the single `import_cycle` issue.
   and the layouts above are considered.
 - Conditions: an import inside `if sys.platform == ...` counts as a statement whether or not
   it would run.
-- Other languages. The graph covers `.py` files only; JS/TS and Go files are not part of it.
+- Other languages. The graph covers `.py` files only; JS/TS, Go and Rust files are not part of it.
 - Whether a dependency structure is good. The measures do not judge design.
 
 ## When upgrading

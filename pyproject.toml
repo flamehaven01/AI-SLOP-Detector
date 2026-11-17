@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-slop-detector"
-version = "3.15.2"
+version = "3.16.1"
 description = "Evidence-based static analyzer for detecting AI-generated code quality issues with context-aware validation"
 authors = [
     {name = "Flamehaven Labs", email = "info@flamehaven.space"}
@@ -38,16 +38,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# JS/TS AST analysis (tree-sitter 0.25+ requires Python >=3.9)
+# JS/TS AST analysis (tree-sitter 0.25+ requires Python >=3.10)
 js = [
     "tree-sitter>=0.25.0",
     "tree-sitter-javascript>=0.23.0",
     "tree-sitter-typescript>=0.23.0",
 ]
-# Go AST analysis (tree-sitter-go, optional)
+# Go AST analysis (tree-sitter-go, optional; tree-sitter 0.25+ requires Python >=3.10)
 go = [
     "tree-sitter>=0.25.0",
     "tree-sitter-go>=0.23.0",
+]
+# Rust AST analysis (tree-sitter-rust, optional). tree-sitter needs Python 3.10+;
+# on 3.8/3.9 the extra installs nothing and the token scanner, which measures
+# every Rust rule, is used.
+rust = [
+    "tree-sitter>=0.25.0; python_version >= '3.10'",
+    "tree-sitter-rust>=0.23.0; python_version >= '3.10'",
 ]
 # ML dependencies removed in v3.7.0 (Now uses pure-Python ThresholdClassifier)
 api = [

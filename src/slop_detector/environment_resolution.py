@@ -20,6 +20,7 @@ import hashlib
 import importlib.machinery
 import os
 import sys
+import time
 from functools import lru_cache
 from importlib.machinery import ModuleSpec
 from pathlib import Path
@@ -65,23 +66,42 @@ def find_installed_spec(name: str, excluded: Iterable[Path] = ()) -> Optional[Mo
     return None
 
 
-def environment_state() -> Tuple[Tuple[str, int], ...]:
-    """(entry, directory mtime) for each search-path entry.
+# A directory changed this recently may change again within the same mtime tick
+# (on Windows an uninstall right after the last look left the mtime unchanged in
+# 182 of 300 tries): its mtime alone does not identify its contents, so it is
+# identified by its listing as well. 2 s covers coarse timestamp file systems
+# (FAT, 2 s); after that a change gives a later mtime.
+RACY_NS = 2_000_000_000
+
+State = Tuple[Tuple[object, ...], ...]
+
+
+def environment_state() -> State:
+    """(entry, directory mtime[, listing]) for each search-path entry.
 
     An install, uninstall or upgrade adds or removes a top-level entry in a
     search-path directory, which changes that directory's mtime; caches keyed
-    by this state follow the environment inside one long-lived process.
+    by this state follow the environment inside one long-lived process. A
+    directory modified within RACY_NS of now is also identified by its
+    listing, since a second change in the same tick keeps the mtime. Not
+    covered: a tool that sets a directory's mtime back to an older value.
     """
-    state = []
+    now = time.time_ns()
+    state: List[Tuple[object, ...]] = []
     for entry in search_path():
         try:
-            state.append((entry, os.stat(entry).st_mtime_ns))
+            mtime = os.stat(entry).st_mtime_ns
         except OSError:  # a zip, a missing directory: the entry string still counts
             state.append((entry, -1))
+            continue
+        if mtime >= now - RACY_NS:
+            state.append((entry, mtime, _top_level_names(entry)))
+        else:
+            state.append((entry, mtime))
     return tuple(state)
 
 
-_FINGERPRINTS: Dict[Tuple[Tuple[str, int], ...], str] = {}
+_FINGERPRINTS: Dict[State, str] = {}
 
 
 def environment_fingerprint() -> str:
@@ -95,7 +115,7 @@ def environment_fingerprint() -> str:
     """
     state = environment_state()
     if state not in _FINGERPRINTS:
-        listing = [(entry, _top_level_names(entry)) for entry, _mtime in state]
+        listing = [(item[0], _top_level_names(str(item[0]))) for item in state]
         payload = repr((sys.version, sys.implementation.cache_tag, listing))
         _FINGERPRINTS.clear()
         _FINGERPRINTS[state] = hashlib.sha256(payload.encode("utf-8")).hexdigest()

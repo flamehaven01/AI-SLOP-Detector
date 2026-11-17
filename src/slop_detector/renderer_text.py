@@ -156,7 +156,7 @@ def _text_project_section(result) -> list:
     if priority_hotspots:
         lines += [
             "Priority Hotspots:",
-            "  Focus order uses deficit + churn + coverage gap",
+            "  Python files: focus order uses deficit + churn + coverage gap",
             f"  Churn Data: {'yes' if getattr(result, 'churn_analysis_available', False) else 'no'}",
             f"  Coverage Data: {'yes' if getattr(result, 'coverage_analysis_available', False) else 'no'}",
         ]
@@ -212,7 +212,7 @@ def _text_items_section(result, root: str) -> list:
     the items the summary counts), each with its fix. Files below a deficit
     band still list their findings here (3.15.1)."""
     from slop_detector.renderer_terminal import hollow_line
-    from slop_detector.report_view import build_report_view, short_path
+    from slop_detector.report_view import build_report_view, where
 
     view = build_report_view(result)
     lines = [f"Findings ({len(view.findings)}):"]
@@ -221,8 +221,7 @@ def _text_items_section(result, root: str) -> list:
             lines += ["", f"Hollow review candidates: {hollow_line(view)}"]
         for item in items:
             lines.append(
-                f"  {(item.severity or 'review').upper():<8} "
-                f"{short_path(item.file, root)}:{item.line}  {item.rule}"
+                f"  {(item.severity or 'review').upper():<8} " f"{where(item, root)}  {item.rule}"
             )
             lines.append(f"           {item.message}")
             if item.suggestion:

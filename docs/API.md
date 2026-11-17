@@ -1,7 +1,6 @@
 # REST API Reference
 
-**Version:** 3.9.0
-**Last reviewed:** 2026-10-02
+**Last reviewed:** 2026-11-15 (for 3.16.1; routes checked against `api/server.py`)
 
 The optional FastAPI surface is a local integration layer over the Python core.
 It is useful when a trusted local service needs structured file or project
@@ -66,12 +65,14 @@ Scans are read-only: no route writes the analysis cache, and only the
 `"save_history": true` (the default is `false`). The MCP tools are read-only
 as well.
 
-The file endpoints analyze Python source. A `.js`, `.jsx`, `.ts`, `.tsx` or
-`.go` file gets `400` with a message (analyze its folder with the project
+The file endpoints analyze Python source. A `.js`, `.jsx`, `.ts`, `.tsx`, `.go`
+or `.rs` file gets `400` with a message (analyze its folder with the project
 endpoints instead); a path that does not exist gets `404`. In Python,
 `SlopDetector.analyze_file` raises `UnsupportedLanguageError` (a `ValueError`)
-for those files, and the MCP `slop_analyze_file` tool returns the error
-`unsupported_language`.
+for those files, naming the language and the call that analyzes one such file:
+`SlopDetector.analyze_language_file(language_registry.spec("rust"), path)`
+(`"javascript"`, `"go"`, `"rust"`). The MCP `slop_analyze_file` tool returns
+the error `unsupported_language`; use `slop_analyze_project` on the file's folder.
 
 ## Request Examples
 

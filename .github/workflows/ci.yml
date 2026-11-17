@@ -99,7 +99,7 @@ jobs:
         run: pytest tests/test_js_analyzer.py -v
 
   test-go:
-    name: Go Analyzer (tree-sitter)
+    name: Go Analyzer
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -114,6 +114,28 @@ jobs:
 
       - name: Run Go analyzer tests
         run: pytest tests/test_go_analyzer.py -v
+
+  test-rust:
+    name: Rust Analyzer (tree-sitter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies with Rust extras
+        run: pip install -e ".[dev,rust]"
+
+      # The matrix runs without extras (token scanner only); here the
+      # tree-sitter reader and the two-reader parity tests must run, not skip.
+      - name: Run Rust analyzer tests (must not skip)
+        run: |
+          set -o pipefail
+          pytest tests/test_rust_analyzer.py -v -rs --no-cov -p no:cacheprovider | tee rust_tests.txt
+          if grep -q SKIPPED rust_tests.txt; then echo "Rust tree-sitter tests were skipped"; exit 1; fi
 
   rust-accelerator:
     name: Rust Accelerator
@@ -144,6 +166,33 @@ jobs:
         env:
           SLOP_RUST_SCAN_BIN: ${{ github.workspace }}/rust/slop_scan/target/release/slop_scan
         run: pytest tests/test_rust_scan.py -v
+
+  vscode-extension:
+    name: VS Code Extension (type check, bundle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install extension dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Type check
+        working-directory: vscode-extension
+        run: npm run check
+
+      - name: Unit tests (findings, without VS Code)
+        working-directory: vscode-extension
+        run: npm test
+
+      - name: Bundle
+        working-directory: vscode-extension
+        run: npm run bundle
 
   npm-wrapper:
     name: NPM Thin Wrapper

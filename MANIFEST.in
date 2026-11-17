@@ -9,6 +9,5 @@ prune scripts
 prune .github
 prune docs
 prune tests
-prune dashboard
 prune remotion
 prune tools
