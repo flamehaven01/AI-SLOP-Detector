@@ -77,6 +77,40 @@ def test_guide_states_the_python_pattern_count_and_the_release_tag():
     assert revs == ["v" + _pyproject_version()], revs
 
 
+def test_guide_rule_totals_are_the_registry_table():
+    """Next to the 34 pattern checks, the guide states the Python rule total and
+    the total over all languages; both are the registry table's counts."""
+    counts = _rules_per_language()
+    guide = (REPO / "docs" / "GUIDE.md").read_text(encoding="utf-8")
+    python = [int(n) for n in re.findall(r"(\d+) Python rules", guide)]
+    total = [int(n) for n in re.findall(r"(\d+) rules in all languages", guide)]
+    assert python and all(n == counts["Python"] for n in python), (python, counts)
+    assert total and all(n == sum(counts.values()) for n in total), (total, counts)
+
+
+# Commands a reader may run that are not this package's own (pyproject scripts).
+_KNOWN_TOOLS = {"pip", "python", "npx", "npm", "node", "uvx", "cd", "cp", "git", "pytest",
+                "black", "ruff", "code"}
+
+
+def test_every_guide_command_is_one_a_reader_can_run():
+    """A shell line in the guide starts with this package's own command or a
+    common tool; a command the package does not install is not documented."""
+    text = (REPO / "pyproject.toml").read_text(encoding="utf-8")
+    scripts = set(re.findall(r"^([\w-]+) = \"slop_detector[.\w]*:\w+\"$", text, re.MULTILINE))
+    assert "slop-detector" in scripts, scripts
+    guide = (REPO / "docs" / "GUIDE.md").read_text(encoding="utf-8")
+    unknown = []
+    for block in re.findall(r"```(?:bash|sh|shell)\n(.*?)```", guide, re.DOTALL):
+        for line in block.splitlines():
+            line = line.strip()
+            if not line or line.startswith(("#", "-", "import ")):
+                continue  # comment, continued option, line of a python -c string
+            if line.split()[0] not in scripts | _KNOWN_TOOLS:
+                unknown.append(line)
+    assert not unknown, unknown
+
+
 def _rules_per_language() -> dict:
     """Rule ids per language in the registry table of docs/PATTERNS.md, which
     tests/test_patterns_doc_consistency.py keeps equal to what the analyzers report."""

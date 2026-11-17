@@ -45,7 +45,8 @@ flowchart LR
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 34 pattern checks. Results are combined via a **weighted
+Purity) **and** 37 Python rules: 34 pattern checks plus 3 dependency-declaration
+checks (55 rules in all languages, [PATTERNS.md](PATTERNS.md)). Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to local history; `--self-calibrate`
 turns that history into an advisory weight report and never writes weights.
@@ -590,17 +591,6 @@ it reveals which areas are too complex to refactor right now.
 
 History is stored at `~/.slop-detector/history.db` (your home directory, outside all repos).
 It is never committed and accumulates across all projects you scan.
-
----
-
-**Adversarial Validation (SPAR-Code)** — ground-truth regression guard
-```bash
-fhval spar          # 3-layer adversarial check
-fhval spar --layer a   # known-pattern anchors
-fhval spar --layer c   # existence probes
-```
-Verifies each metric is measuring what it claims. Catches calibration drift
-before it reaches production.
 
 ---
 

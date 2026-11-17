@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Documentation
+
+- `docs/GUIDE.md` says how its counts relate: 37 Python rules are 34 pattern
+  checks plus 3 dependency-declaration checks, 55 rules in all languages. A
+  test holds both totals to the registry table in `docs/PATTERNS.md`.
+- `docs/GUIDE.md` no longer documents an adversarial-validation command this
+  package does not install. A test requires every shell line of the guide to
+  start with this package's own command or a common tool.
+
 ## [3.16.1] - 2026-11-17
 
 Rust files are analyzed. JS/TS and Go file rows in the HTML and Markdown
