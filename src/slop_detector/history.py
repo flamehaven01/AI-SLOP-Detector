@@ -286,7 +286,7 @@ class HistoryTracker:
         provenance: what measured the result (v6). Without it the row is
         recorded as legacy and is never calibration evidence.
         """
-        file_path = str(getattr(file_analysis, "file_path", ""))
+        file_path = _absolute(str(getattr(file_analysis, "file_path", "")))
         measured = _measurement(file_analysis)
         pattern_count, n_critical_patterns, fired_rules_json = _pattern_summary(
             measured["issues"]
@@ -662,6 +662,15 @@ def _sequence(conn: sqlite3.Connection) -> Optional[int]:
 def _copy_rows(conn: sqlite3.Connection, columns: List[str]) -> None:
     names = ", ".join(columns)
     conn.execute(f"INSERT INTO history_v7 ({names}) SELECT {names} FROM history")
+
+
+def _absolute(file_path: str) -> str:
+    """The key history stores a file under: its absolute path. An adapter
+    result carries the path as the scan was given it (relative to the working
+    directory); an absolute path (every Python result) is kept as it is."""
+    if not file_path or Path(file_path).is_absolute():
+        return file_path
+    return str(Path(file_path).resolve())
 
 
 def _rounded(value: Optional[float], digits: int) -> Optional[float]:

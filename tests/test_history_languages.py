@@ -287,3 +287,15 @@ def test_the_api_project_route_records_every_language(project, history_db):
         "python",
         "rust",
     ]
+
+
+def test_a_scan_of_a_relative_path_records_absolute_file_paths(project, history_db, monkeypatch):
+    """Adapter results carry the path as the scan was given it: history keys a
+    file by its absolute path, whatever directory the scan ran from."""
+    monkeypatch.chdir(project.parent)
+    _scan_and_record(Path(project.name))
+
+    recorded = {Path(r["file_path"]).name: r["file_path"] for r in _rows(history_db)}
+    assert recorded == {name: str((project / name).resolve()) for name in SOURCES}
+    rust_file = str((project / "d.rs").resolve())
+    assert HistoryTracker().get_file_history(rust_file)
