@@ -249,6 +249,10 @@ link that copies a work order for an AI agent, the Problems panel, a sidebar
 of files by score, and the file score in the status bar. It runs the same
 local backend; nothing is sent anywhere.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/vscode-rust.png" alt="A Rust file in VS Code: severity bars and messages on the todo!(), dbg!() and TODO lines, the file score above the code, and the findings in the Problems panel" width="820"/>
+</p>
+
 [Install from the Marketplace](https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector) ·
 [extension guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/vscode-extension/README.md)
 
