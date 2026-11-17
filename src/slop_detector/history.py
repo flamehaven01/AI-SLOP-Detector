@@ -100,6 +100,9 @@ class HistoryEntry:
     base_deficit: Optional[float] = None
     pattern_penalty: Optional[float] = None
     provenance_state: Optional[str] = None
+    # 3.16.2: what the scan held back per rule (suppressed with the user's kind of
+    # judgment, unmeasured, masked, ignored); JSON, None on older rows.
+    withheld_evidence: Optional[str] = None
 
     def __post_init__(self) -> None:
         # Clamp scores so malformed data never corrupts the LEDA calibration grid search.
@@ -152,6 +155,13 @@ def measurement_provenance(config, project_root: Path) -> MeasurementProvenance:
     )
 
 
+def _withheld_json(file_analysis) -> Optional[str]:
+    """withheld_evidence of one file result as JSON (calibration_evidence)."""
+    from slop_detector.ml.calibration_evidence import withheld_evidence
+
+    return json.dumps(withheld_evidence(file_analysis), sort_keys=True)
+
+
 def history_project_root(path: str, is_project: bool) -> Path:
     """Canonical project root of a scan: the scanned directory for a project
     scan, the nearest project marker (else the parent) for a single file."""
@@ -197,6 +207,7 @@ class HistoryTracker:
             "project_id": "ALTER TABLE history ADD COLUMN project_id TEXT DEFAULT NULL",
             "git_commit": "ALTER TABLE history ADD COLUMN git_commit TEXT DEFAULT NULL",
             "git_branch": "ALTER TABLE history ADD COLUMN git_branch TEXT DEFAULT NULL",
+            "withheld_evidence": "ALTER TABLE history ADD COLUMN withheld_evidence TEXT DEFAULT NULL",
         }
         for col in _V6_COLUMNS:
             migrations[col] = (
@@ -271,6 +282,7 @@ class HistoryTracker:
             git_commit=git_commit,
             git_branch=git_branch,
             project_id=project_id,
+            withheld_evidence=_withheld_json(file_analysis),
         )
         if provenance is not None:
             _apply_provenance(entry, provenance, file_analysis)
@@ -283,8 +295,8 @@ class HistoryTracker:
              inflation_score, ddc_usage_ratio, pattern_count, n_critical_patterns,
              fired_rules, grade, git_commit, git_branch, project_id,
              detector_version, measurement_fingerprint, weights_vector, project_root,
-             file_rel_path, base_deficit, pattern_penalty, provenance_state)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             file_rel_path, base_deficit, pattern_penalty, provenance_state, withheld_evidence)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._managed_conn() as conn:
             conn.execute(
@@ -312,6 +324,7 @@ class HistoryTracker:
                     e.base_deficit,
                     e.pattern_penalty,
                     e.provenance_state,
+                    e.withheld_evidence,
                 ),
             )
             conn.commit()

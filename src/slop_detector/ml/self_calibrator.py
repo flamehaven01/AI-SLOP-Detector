@@ -36,6 +36,7 @@ from typing import Dict, List, Mapping, Optional, Tuple
 from slop_detector.core_scoring import compute_gqg
 from slop_detector.diagnostic_bands import SUSPICIOUS_AT
 from slop_detector.history import PROVENANCE_V6, HistoryTracker
+from slop_detector.ml.calibration_evidence import classify_pair as classify_evidence
 
 # ------------------------------------------------------------------
 # Constants
@@ -125,6 +126,14 @@ class CalibrationResult:
     fp_rate_after: float = 0.0
     top_candidates: List[WeightCandidate] = field(default_factory=list)
     per_rule_fp_rates: Dict[str, float] = field(default_factory=dict)
+    # The same numbers under the name of what they count: the share of a rule's
+    # labeled events where it kept firing on unchanged bytes. Not a false-positive rate.
+    unchanged_warning_rate: Dict[str, float] = field(default_factory=dict)
+    # 3.16.2 evidence states per rule ({rule: {state: count}}) and the user's
+    # false-positive declarations, bound to file, line, bytes and measurement.
+    # Reported only: no state is a learning label.
+    evidence_states: Dict[str, Dict[str, int]] = field(default_factory=dict)
+    declared_false_positives: List[Dict[str, object]] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     message: str = ""
 
@@ -226,6 +235,7 @@ class SelfCalibrator:
             "purity": winner.w_purity,
         }
         result.per_rule_fp_rates = self._calc_per_rule_fp_rates(improvements, stable_flags)
+        result.unchanged_warning_rate = dict(result.per_rule_fp_rates)
         if result.confidence_gap < CONFIDENCE_GAP:
             result.message = (
                 f"Confidence gap {result.confidence_gap:.4f} < {CONFIDENCE_GAP}: "
@@ -280,13 +290,27 @@ class SelfCalibrator:
         result.unique_files = len({rel for rel, _ in groups})
         events: List[CalibrationEvent] = []
         stable_seen: set = set()
-        for (rel, _fingerprint), runs in groups.items():
+        for (rel, fingerprint), runs in groups.items():
             for now, nxt in zip(runs, runs[1:]):
                 result.comparable_pairs += 1
+                self._record_evidence(result, rel, fingerprint, now, nxt)
                 event = self._classify_pair(rel, now, nxt, stable_seen)
                 if event is not None:
                     events.append(event)
         return events
+
+    @staticmethod
+    def _record_evidence(
+        result: CalibrationResult, rel: str, fingerprint: str, now: dict, nxt: dict
+    ) -> None:
+        """Count the evidence states of one comparable pair (reported, never learned)."""
+        for record in classify_evidence(now, nxt):
+            states = result.evidence_states.setdefault(record["rule"], {})
+            states[record["state"]] = states.get(record["state"], 0) + 1
+            if "reason_sha256" in record:
+                result.declared_false_positives.append(
+                    dict(record, file=rel, measurement_fingerprint=fingerprint)
+                )
 
     @staticmethod
     def _classify_pair(
@@ -423,7 +447,8 @@ class SelfCalibrator:
         HistoryTracker(db_path=self.db_path)
         sql = """
         SELECT file_rel_path, measurement_fingerprint, file_hash, ldr_score,
-               inflation_score, ddc_usage_ratio, fired_rules, weights_vector
+               inflation_score, ddc_usage_ratio, fired_rules, weights_vector,
+               withheld_evidence
         FROM history
         WHERE provenance_state = ? AND project_root = ? AND file_rel_path IS NOT NULL
         ORDER BY file_rel_path, measurement_fingerprint, timestamp, id
@@ -443,6 +468,7 @@ class SelfCalibrator:
                 "ddc": r[5],
                 "fired_rules": r[6],
                 "weights": json.loads(r[7]),
+                "withheld": r[8],
             }
             for r in rows
         ], int(legacy)

@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Calibration evidence
+
+- `# slop-disable-next-line <rule> fp: <reason>` declares a finding a false
+  positive. It suppresses what the plain directive suppresses and changes no
+  score; the ledger entry gains `declaration` and `reason_sha256` (only for a
+  declaration; other entries are unchanged). Valid for one rule, a non-empty
+  reason and the next-line form; otherwise a plain suppression.
+- Fix: the words after `fp:` were read as rule ids, so a reason containing
+  `all` or a rule id suppressed those rules too. Only the rules before `fp:`
+  are rules now. A directive with `fp:` and no rule suppresses nothing, as
+  before.
+- History rows gain `withheld_evidence` (nullable; older rows are kept as
+  they are): per rule what the scan suppressed (plain or declared), could not
+  measure, masked or ignored. The reason of a declaration is stored only as
+  its SHA-256.
+- The calibration result (`SelfCalibrator.calibrate`; the `--self-calibrate`
+  screen does not show it yet) reports per rule how often each
+  evidence state occurred between comparable runs (`verified_fix`,
+  `unchanged_warning`, `user_suppressed_unverified`,
+  `user_declared_false_positive`) and the declarations bound to file, line,
+  file hash and measurement fingerprint. `unchanged_warning_rate` names what
+  `per_rule_fp_rates` counts. The weights it recommends are unchanged: no
+  evidence state is a learning label.
+
 ### Documentation
 
 - `docs/GUIDE.md` says how its counts relate: 37 Python rules are 34 pattern

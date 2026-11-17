@@ -727,6 +727,29 @@ def compatibility_layer():
 Suppressed findings are removed from scoring, but they are still recorded in the
 suppression ledger so reviewers can see which lines were muted.
 
+**Declaring a false positive.** A plain suppression does not say why: you may
+think the finding is wrong, or accept the risk. To say the finding is wrong,
+add `fp:` and a reason after exactly one rule of a next-line directive:
+
+```python
+# slop-disable-next-line bare_except fp: the callback contract requires a catch-all
+except:
+    recover()
+```
+
+- It suppresses exactly what `# slop-disable-next-line bare_except` suppresses
+  and changes no score, severity or gate decision.
+- The ledger entry gains `"declaration": "user_declared_false_positive"` and
+  the SHA-256 of the reason; the reason itself is not written to any report,
+  JSON or the history database.
+- It needs one rule and a non-empty reason; `all fp:`, several rules, an empty
+  reason, or the block form (`# slop-disable`) is a plain suppression of the
+  rules before `fp:`. The words of the reason are never read as rule ids.
+- The history records it, and the calibration result
+  (`SelfCalibrator.calibrate`) lists it as the user's judgment, bound to the
+  file, the line, the hash of the file and the measurement. It is not a
+  verified false positive and does not change the weights it recommends.
+
 ---
 
 ## Repeated-Run Cache
