@@ -224,7 +224,7 @@ def _verdict(view: ReportView, glyphs: dict, elapsed: Optional[float]) -> Any:
     review = _review_line(view)
     if review:
         counts.append(review, style="magenta")
-    parts += [Text(""), counts]
+    parts.append(counts)
     unit = "files" if view.files != 1 else "file"
     read = [f"{view.files} {unit}"] + [f"{label} {n}" for label, n in view.languages]
     if elapsed is not None:
@@ -262,7 +262,7 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
             subtitle_align="right",
             box=box.ROUNDED if glyphs is _GLYPHS else box.ASCII,
             border_style="bright_black",
-            padding=(1, 2),
+            padding=(0, 2),
         )
     )
     root = _root(view)
@@ -281,14 +281,20 @@ def print_summary(view: ReportView, elapsed: Optional[float] = None, console: An
     )
     steps = _steps(view)
     if steps:
-        console.print("\n[bold] Next[/bold]")
+        # One step on the screen, so the verdict stays in a 30-row window: the
+        # one that says where to start, or the first. The others are data
+        # (JSON, --details and the report files keep every step).
+        shown = next((step for step in steps if step.startswith("Start with")), steps[0])
+        text = Text(shown)
+        if len(steps) > 1:
+            text.append(f" (+{len(steps) - 1} more in --details)", style="bright_black")
         # A grid, so a step that does not fit continues under its own text.
-        numbered = Table.grid(padding=(0, 1))
-        numbered.add_column(no_wrap=True)
-        numbered.add_column(overflow="fold")
-        for i, step in enumerate(steps, 1):
-            numbered.add_row(f"  {i}.", Text(step))
-        console.print(numbered)
+        step_grid = Table.grid(padding=(0, 2))
+        step_grid.add_column(no_wrap=True)
+        step_grid.add_column(overflow="fold")
+        step_grid.add_row(Text(" Next", style="bold"), text)
+        console.print()
+        console.print(step_grid)
     console.print("\n[bright_black] Full tables: --details   Report file: -o report.md[/]")
     console.print("[bright_black] Choose reports to save: --interactive[/]")
 

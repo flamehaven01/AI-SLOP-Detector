@@ -186,14 +186,11 @@ and never move the score.
 
 ```text
 ╭─ AI SLOP Detector 3.16.1 ────────────────────────────────────────────────────────────────────╮
-│                                                                                              │
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
-│                                                                                              │
 │  ● 0 critical   ● 2 high   ● 6 medium   ● 1 low   4 to review (not scored)                   │
 │  3 files · Python 2 · JS/TS 1 · 0.9 s                                                        │
-│                                                                                              │
 ╰────────────────────────────────────────────────────────────────────── examples/demo_project ─╯
 
  Fix first  5 of 9
@@ -210,9 +207,8 @@ and never move the score.
    orders/store.py:8    success_without_effect   save_record: reports success, and every call i…
   +1 more (--details or -o report.md)
 
- Next
-  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical
-     or high: review those before accepting this scan.
+ Next  The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical
+       or high: review those before accepting this scan.
 
  Full tables: --details   Report file: -o report.md
  Choose reports to save: --interactive

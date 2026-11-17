@@ -18,7 +18,9 @@ A new default terminal screen.
   files read per language), then `Fix first` (at most 5 findings) and
   `To review (not scored)` (at most 3 candidates) with one line per item:
   the location, the rule and the first clause of the message, cut where it
-  does not fit. The `Score` / `Findings` / `Hollow` / `Promises` lines and
+  does not fit. `Next` shows one step (the one that says where to start,
+  or the first) and counts the others; JSON, `--details` and the report
+  files keep every step. The `Score` / `Findings` / `Hollow` / `Promises` lines and
   wrapped messages are gone from this screen; `--details`, `--quiet`, JSON
   and every report file are unchanged. A script that read the summary's
   text should read `--quiet` or JSON.

@@ -143,3 +143,31 @@ def test_docstring_promises_that_were_not_measured_are_said_so():
     for state, words in (("UNMEASURED", "not measured"), ("SKIPPED", "skipped")):
         screen = _render(replace(view, claims=ClaimState(state)))
         assert f"docstring promises: {words}" in screen, screen
+
+
+def test_the_screen_shows_one_next_step_and_counts_the_others():
+    """The verdict must stay on the screen: with three steps the summary was up
+    to 34 lines on an 80-column terminal, more than a 30-row window. The steps
+    are data (JSON, --details, the reports keep them all); the screen shows the
+    one that says where to start, or the first."""
+    from dataclasses import replace
+
+    view = _view(DEMO)
+    steps = [
+        "Project averages are healthy, but 2 file(s) are flagged.",
+        "Run a cleanup command for placeholder files.",
+        "Start with `orders/pricing.py` (2 high finding(s)).",
+    ]
+    screen = _render(replace(view, next_steps=steps))
+    assert steps[2] in screen and steps[0] not in screen and steps[1] not in screen, screen
+    assert "+2 more in --details" in screen, screen
+    no_start = _render(replace(view, next_steps=steps[:2]))
+    assert steps[0] in no_start and steps[1] not in no_start and "+1 more in --details" in no_start
+    one = _render(replace(view, next_steps=steps[:1]))
+    assert steps[0] in one and "more in --details" not in one
+
+
+def test_the_summary_fits_a_thirty_row_terminal():
+    for width in (80, 100, 120):
+        lines = _render(_view(DEMO), width=width).rstrip("\n").splitlines()
+        assert len(lines) <= 29, (width, len(lines))  # 29 lines and the prompt

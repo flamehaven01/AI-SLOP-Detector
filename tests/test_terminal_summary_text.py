@@ -99,10 +99,10 @@ def test_a_long_next_step_wraps_under_its_own_text(tmp_path):
     out = io.StringIO()
     print_summary(view, console=Console(file=out, width=60))
     lines = out.getvalue().splitlines()
-    start = next(i for i, line in enumerate(lines) if line.startswith("  1. word"))
+    start = next(i for i, line in enumerate(lines) if line.startswith(" Next  word"))
     wrapped = [line for line in lines[start + 1 :] if "word" in line]
     assert wrapped, lines
-    assert all(line.startswith("     word") for line in wrapped), wrapped
+    assert all(line.startswith("       word") for line in wrapped), wrapped
 
 
 def test_a_next_step_names_a_path_with_brackets(tmp_path):

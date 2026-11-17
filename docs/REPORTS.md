@@ -65,14 +65,11 @@ most 5 findings and 3 review candidates, then what to do. Output for
 
 ```text
 ╭─ AI SLOP Detector 3.16.1 ────────────────────────────────────────────────────────────────────╮
-│                                                                                              │
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
-│                                                                                              │
 │  ● 0 critical   ● 2 high   ● 6 medium   ● 1 low   4 to review (not scored)                   │
 │  3 files · Python 2 · JS/TS 1 · 0.9 s                                                        │
-│                                                                                              │
 ╰────────────────────────────────────────────────────────────────────── examples/demo_project ─╯
 
  Fix first  5 of 9
@@ -89,9 +86,8 @@ most 5 findings and 3 review candidates, then what to do. Output for
    orders/store.py:8    success_without_effect   save_record: reports success, and every call i…
   +1 more (--details or -o report.md)
 
- Next
-  1. The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical
-     or high: review those before accepting this scan.
+ Next  The score is below every threshold, but 9 pattern finding(s) are open, 2 of them critical
+       or high: review those before accepting this scan.
 
  Full tables: --details   Report file: -o report.md
  Choose reports to save: --interactive
@@ -107,6 +103,11 @@ most 5 findings and 3 review candidates, then what to do. Output for
   message, the fix and the evidence are in `--details` and every report file.
 - Lists are capped at 5 pattern findings and 3 review candidates
   (`report_view.TERMINAL_LIMITS`), with the remaining count shown.
+- `Next` shows one step: the one that says where to start, or the first, and
+  counts the others (`+2 more in --details`). JSON, `--details` and the report
+  files keep every step. The summary of `examples/demo_project` is at most 29
+  lines at 80 to 120 columns (a test holds it there), so the panel stays on
+  screen in a 30-row terminal.
 - A channel that did not measure is never a count: `review candidates: not
   measured`, `docstring promises: skipped`. A project without a Python file
   has no line about these Python channels.
