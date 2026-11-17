@@ -24,14 +24,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   they are): per rule what the scan suppressed (plain or declared), could not
   measure, masked or ignored. The reason of a declaration is stored only as
   its SHA-256.
-- The calibration result (`SelfCalibrator.calibrate`; the `--self-calibrate`
-  screen does not show it yet) reports per rule how often each
+- The calibration result (`SelfCalibrator.calibrate`, shown by
+  `--self-calibrate`) reports per rule how often each
   evidence state occurred between comparable runs (`verified_fix`,
   `unchanged_warning`, `user_suppressed_unverified`,
   `user_declared_false_positive`) and the declarations bound to file, line,
   file hash and measurement fingerprint. `unchanged_warning_rate` names what
   `per_rule_fp_rates` counts. The weights it recommends are unchanged: no
   evidence state is a learning label.
+
+### History of all four languages
+
+- History records every analyzed file, Python, JS/TS, Go and Rust (the CLI
+  and the API project route recorded Python files only). Each row (schema
+  v7, `provenance_state = "v7"`) records `language`, `parser_mode` and
+  `unmeasured_metrics`.
+- LDR, inflation and DDC hold a value only when measured and counted, else
+  NULL with the reason: `not_supported` (JS/TS, Go, Rust), `skipped` (file
+  role, `--patterns-only`, no executable code), `parse_error`. Fix: a Python
+  file that did not parse stored placeholder values (LDR 0.0, inflation 999,
+  DDC 0.0) as measurements, and a skipped metric stored its unused value.
+- A database made before 3.16.2 is rebuilt once, in one transaction, so the
+  three metric columns accept NULL: every row, id, value and the id sequence
+  are kept; a failed rebuild leaves the table as it was. A release older
+  than 3.16.2 ignores v7 rows for calibration, but its `--show-history` and
+  `--history-trends` may fail on a NULL metric.
+- Rules nobody looked at are unmeasured evidence: every rule when no pattern
+  ran (a parse error, a role that skips patterns), and the rules a language's
+  fallback reader does not measure. None of them can be a `verified_fix`.
+
+### Self-calibration preview
+
+- Reading history for calibration writes nothing: the database is opened
+  read-only, and an older schema is read as it is (it was migrated before).
+- Runs read by different parsers are not compared; scanning the same bytes
+  again adds no evidence; a pair with an unmeasured metric gives no
+  weights-search event (`unmeasured_metric_pairs` counts them).
+- `--self-calibrate` shows the evidence states per rule. The per-rule rate is
+  shown as an unchanged-warning rate: the screen no longer calls it a
+  false-positive rate or proposes excluding a rule because of it.
+- `--self-calibrate --json` prints the report as data with
+  `"applied": false`, and the same exit code as the screen. It writes
+  nothing. `--apply-calibration` stays refused (exit 2).
+- `tests/calibration_oracle.py`: synthetic history with a known answer, held
+  out and scored for false positives and false negatives apart. Over 20
+  seeds of 300 files, the learner's best candidate was the true weights in
+  20 of 20 runs when every flagged real problem was fixed and in 0 of 20 when
+  nine in ten were left unfixed; its held-out false-negative rate then
+  averaged 0.192 against 0.079 for the current weights. The confidence gate
+  withheld 19 of those 20.
 
 ### Documentation
 

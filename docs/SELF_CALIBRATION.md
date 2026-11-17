@@ -4,7 +4,8 @@
 > ldr / inflation / ddc weights the comparable history of one project suggests.
 > Nothing writes weights: scans do not calibrate, and `--apply-calibration`
 > writes nothing and exits 2. To change weights, edit the `weights:` block of
-> `.slopconfig.yaml` yourself.
+> `.slopconfig.yaml` yourself. Since 3.16.2 the report also shows where each
+> rule's evidence comes from, and `--json` prints it as a preview.
 
 ## Why v2
 
@@ -66,8 +67,14 @@ It does **not**:
 
 ## What Counts as Evidence
 
-Every scan writes history schema v6 rows (`~/.slop-detector/history.db`,
-migrated in place; old rows are never rewritten). A v6 row records:
+Every scan writes one history row per analyzed file, Python, JS/TS, Go and
+Rust (`~/.slop-detector/history.db`; old rows are never rewritten). Since
+3.16.2 a row (schema v7) also records its `language`, its `parser_mode`
+(`python_ast`; `tree_sitter_ast` or the language's fallback reader) and
+`unmeasured_metrics`: LDR, inflation and DDC are Python measurements, so a
+JS/TS, Go or Rust row stores NULL for them (`not_supported`), and so does a
+Python row whose metric was skipped (its role, `--patterns-only`, no
+executable code) or that did not parse (`parse_error`). A row records:
 
 | Field | Meaning |
 |---|---|
@@ -78,14 +85,19 @@ migrated in place; old rows are never rewritten). A v6 row records:
 | relative path | the file's path under that root |
 | base deficit, pattern penalty | the two parts of the stored score |
 
-The calibrator reads only v6 rows of the project root it is asked about.
-Older rows are counted as `legacy` and are never evidence.
+The calibrator reads only v6 and v7 rows of the project root it is asked
+about, and it opens the database read-only: reading history for a report
+writes nothing, not even a migration of an older database. Older rows are
+counted as `legacy` and are never evidence.
 
 ## How It Works
 
-1. **Comparable runs.** Rows are grouped per file and per measurement
-   fingerprint, so only runs measured the same way are compared. A change of
-   detector, engine or configuration starts a new group.
+1. **Comparable runs.** Rows are grouped per file, per measurement
+   fingerprint and per parser mode, so only runs measured the same way are
+   compared. A change of detector, engine, configuration or parser (a JS
+   file read by the regex fallback, then by tree-sitter) starts a new group.
+   A pair in which a metric was not measured gives no label; its rule
+   evidence (step 5) is still counted.
 2. **Labels.** Each pair of consecutive comparable runs gives at most one
    label, judged by the *metric-only deficit*: the canonical quality gate
    (`compute_gqg`) of ldr, inflation and ddc with purity fixed at 1.0, so a
@@ -106,8 +118,24 @@ Older rows are counted as `legacy` and are never evidence.
    best candidate within 0.02 of the current weights' combined error is
    `no_change`.
 5. **Per-rule diagnostics.** Patterns that fired on labelled files (at least
-   3 times) get a noisy-alert rate (share of stable flags). Rates of 50% or
-   more are listed. They inform review; they never change weights.
+   3 times) get an *unchanged-warning rate*: the share of their labelled
+   events that were stable flags. It is not a false-positive rate (a warning
+   nobody acted on may be real), and it changes no rule. Rates of 50% or more
+   are listed. Beside it, each rule's **evidence states** between comparable
+   runs are counted, once per file, rule and bytes (scanning the same bytes
+   again adds nothing):
+   - `verified_fix`: the file changed and the rule stopped firing while it
+     was measured (its pattern ran, with a parser that measures it), not
+     suppressed, masked or ignored. The warning was resolved; that does not
+     prove the code works;
+   - `unchanged_warning`: it fired again on the same bytes;
+   - `user_suppressed_unverified`: a plain `# slop-disable` hides it;
+   - `user_declared_false_positive`: an `fp:` declaration hides it
+     ([GUIDE](GUIDE.md#inline-suppression)); listed with file, line, file hash
+     and measurement fingerprint.
+
+   No evidence state is a learning label: they are reported, the grid search
+   learns only from step 2.
 6. **Drift warning.** An optimal weight more than `DOMAIN_DRIFT_LIMIT = 0.25`
    from the current weight is reported as a warning.
 
@@ -118,6 +146,7 @@ Older rows are counted as `legacy` and are never evidence.
 ```bash
 slop-detector . --self-calibrate                 # report for this project root
 slop-detector . --self-calibrate --min-history 8 # need 8 events per class
+slop-detector . --self-calibrate --json          # the same report as data (a preview)
 ```
 
 The report shows:
@@ -127,14 +156,22 @@ The report shows:
 | Project root | the root whose history was read |
 | Files with comparable runs | files with at least two runs under one fingerprint |
 | Comparable run pairs | consecutive pairs examined |
+| Pairs with an unmeasured metric (not learned) | pairs that give rule evidence but no label |
 | Legacy rows (not evidence) | pre-v6 rows of this root |
 | Improvements | flagged files that changed and whose metric score fell |
 | Stable flags | flagged files left unchanged |
 | Confidence gap | distance between the best two candidates |
 
 and a current / optimal / delta table for ldr, inflation, ddc and purity, the
-combined error before and after (status `ok` only), drift warnings, and the
-per-rule rates.
+combined error before and after (status `ok` only), drift warnings, the
+evidence states per rule and the unchanged-warning rates.
+
+`--json` prints the same result as one JSON object with `"applied": false`
+(current and recommended weights, evidence counts, evidence states,
+declarations, unchanged-warning rates) and exits as the screen does (0 for
+`ok` / `no_change`, 1 otherwise). It writes nothing. `--apply-calibration`
+stays refused (exit 2) in every environment, CI included, and `--read-only`
+refuses `--self-calibrate`.
 
 ## Status Codes
 
@@ -160,7 +197,17 @@ fresh project, or a project right after an upgrade, reports
   most in those fixes deserve more weight.
 - **A high fp_rate** means files flagged on metrics stayed unchanged: either
   the team accepts them (a weight is too strong for this codebase) or the
-  review has not happened yet. The report cannot tell these apart.
+  review has not happened yet. The report cannot tell these apart, and the
+  grid search counts both as the false-positive side. On synthetic history
+  with a known answer (`tests/calibration_oracle.py`, 20 seeds of 300 files,
+  a held-out third scored) the learner's best candidate was the true weights
+  in 20 of 20 runs when every flagged real problem was fixed, and in 0 of 20
+  when nine in ten were left as they were; there its held-out false-negative
+  rate averaged 0.192 against 0.079 for the current weights. The confidence
+  gate withheld 19 of those 20 runs; the one it passed had fewer false
+  positives and more false negatives. Read a recommendation together with
+  the evidence states: many `unchanged_warning` and few `verified_fix` mean
+  the labels are mostly warnings nobody acted on.
 - **Large shifts** (drift warnings) deserve a look at the labelled files before
   any manual change; a few files can dominate a small history.
 
@@ -184,17 +231,21 @@ src/slop_detector/ml/self_calibrator.py
     metric_only_deficit(ldr, inflation, ddc, weights)   canonical GQG, purity = 1.0
     SelfCalibrator(db_path=None)                        default ~/.slop-detector/history.db
     └── calibrate(current_weights, min_events, project_root, domain_anchor) -> CalibrationResult
-        ├── _extract_events(project_root)   v6 rows, grouped by (file, measurement fingerprint)
+        ├── _extract_events(project_root)   v6/v7 rows (read-only), grouped by
+        │   │                               (file, measurement fingerprint, parser mode)
+        │   ├── _record_evidence(...)       evidence states (calibration_evidence)
         │   └── _classify_pair(...)         improvement | stable_flag_candidate | none
         ├── _grid_search(...)               ldr / inflation / ddc on a 0.05 grid, purity held
         ├── _score_weights(...)             (fn_rate, fp_rate, tiebreak)
-        └── _calc_per_rule_fp_rates(...)    per-pattern noisy-alert rates
+        └── _calc_per_rule_fp_rates(...)    per-pattern unchanged-warning rates
 
     CalibrationResult
-        status, project_root, unique_files, comparable_pairs, legacy_rows_ignored,
-        improvement_events, stable_flag_candidates, current_weights, optimal_weights,
-        confidence_gap, fn/fp rates before and after, top_candidates,
-        per_rule_fp_rates, warnings, message
+        status, project_root, unique_files, comparable_pairs, unmeasured_metric_pairs,
+        legacy_rows_ignored, improvement_events, stable_flag_candidates,
+        current_weights, optimal_weights, confidence_gap, fn/fp rates before and
+        after, top_candidates, per_rule_fp_rates (= unchanged_warning_rate),
+        unchanged_warning_rate, evidence_states, declared_false_positives,
+        warnings, message
 
 src/slop_detector/history.py
     MeasurementProvenance, measurement_provenance(config, project_root)

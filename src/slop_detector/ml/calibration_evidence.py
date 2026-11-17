@@ -4,7 +4,8 @@ Between two comparable runs of one file (same project root, same measurement
 fingerprint), a rule that fired in the first run gets at most one state:
 
 - VERIFIED_FIX: the file changed and the rule stopped firing while it was
-  measured (no pattern error), not suppressed, not masked and not ignored.
+  measured (its pattern ran, with a parser that measures it), not
+  suppressed, not masked and not ignored.
   The warning was resolved under the same measurement; that does not prove
   the code works.
 - UNCHANGED_WARNING: it fires again on the same bytes. Nobody acted on it;
@@ -25,6 +26,7 @@ ASCII-only (cp949 safety).
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
 from slop_detector.models import DECLARED_FALSE_POSITIVE
@@ -38,8 +40,12 @@ STATES = (VERIFIED_FIX, UNCHANGED_WARNING, USER_SUPPRESSED_UNVERIFIED, USER_DECL
 
 def withheld_evidence(file_analysis: Any) -> Dict[str, list]:
     """What a scan of one file held back from its findings, rule by rule:
-    suppressed (with the user's kind of judgment), unmeasured (the pattern
-    raised), masked (framework masking) and ignored (`@slop.ignore`)."""
+    suppressed (with the user's kind of judgment), unmeasured, masked
+    (framework masking) and ignored (`@slop.ignore`).
+
+    Unmeasured: the patterns that raised; every rule ("all") when no pattern
+    ran (the file did not parse, or its role skips patterns); for a language
+    read without its AST parser, the rules that parser alone measures."""
     suppressed = []
     for entry in getattr(file_analysis, "suppression_ledger", None) or []:
         item: Dict[str, Any] = {
@@ -59,10 +65,23 @@ def withheld_evidence(file_analysis: Any) -> Dict[str, list]:
     ignored = getattr(file_analysis, "ignored_functions", None) or []
     return {
         "suppressed": suppressed,
-        "unmeasured": sorted({str(e.get("pattern_id")) for e in errors}),
+        "unmeasured": _unmeasured(file_analysis, {str(e.get("pattern_id")) for e in errors}),
         "masked": sorted({m.pattern_id for m in masked}),
         "ignored": sorted({rule for f in ignored for rule in (f.rules or ["all"])}),
     }
+
+
+def _unmeasured(file_analysis: Any, raised: set) -> List[str]:
+    from slop_detector.language_registry import spec_for_suffix
+
+    flags = getattr(file_analysis, "flags", None) or ()
+    skipped = getattr(file_analysis, "skipped_metrics", None) or ()
+    if "parse_error" in flags or "patterns" in skipped:
+        return ["all"]
+    adapter = spec_for_suffix(Path(str(getattr(file_analysis, "file_path", ""))).suffix)
+    if adapter is not None and not getattr(file_analysis, "ast_mode", False):
+        raised = raised | set(adapter.fallback_not_measured())
+    return sorted(raised)
 
 
 def _load(value: Any) -> Any:
@@ -122,7 +141,8 @@ def _state(
 
 
 def _was_looked_at(rule: str, withheld: Mapping[str, list]) -> bool:
-    if rule in withheld.get("unmeasured", []) or rule in withheld.get("masked", []):
+    unmeasured = withheld.get("unmeasured", [])
+    if rule in unmeasured or "all" in unmeasured or rule in withheld.get("masked", []):
         return False
     ignored = withheld.get("ignored", [])
     return rule not in ignored and "all" not in ignored

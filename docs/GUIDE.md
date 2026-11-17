@@ -501,6 +501,7 @@ listed as excluded in scan coverage. Results appear under `rust_file_results`.
 **Self-Calibration** — advisory weight report (Calibration v2)
 ```bash
 slop-detector . --self-calibrate               # advisory: what this project's history suggests
+slop-detector . --self-calibrate --json        # the same report as data; writes nothing
 ```
 Learns ldr / inflation / ddc (purity is held) from the comparable runs of the
 scanned project root only: same detector, engine and configuration. An
@@ -510,7 +511,11 @@ are never learned as weights. The report is **advisory only**: scans never
 run it, and `--apply-calibration` is disabled (it writes nothing and exits 2).
 History recorded before v3.10 has no measurement provenance and is reported as
 legacy, not evidence (on one real database v1 learned 79% of its
-"improvements" from files that had not changed).
+"improvements" from files that had not changed). Since 3.16.2 every language
+is recorded (a JS/TS, Go or Rust row stores no LDR, inflation or DDC), runs
+read by different parsers are not compared, and the report shows each rule's
+evidence: verified fixes, unchanged warnings, plain suppressions and `fp:`
+declarations.
 
 [docs/SELF_CALIBRATION.md →](SELF_CALIBRATION.md) · [Validation boundary →](VALIDATION.md)
 
@@ -745,10 +750,10 @@ except:
 - It needs one rule and a non-empty reason; `all fp:`, several rules, an empty
   reason, or the block form (`# slop-disable`) is a plain suppression of the
   rules before `fp:`. The words of the reason are never read as rule ids.
-- The history records it, and the calibration result
-  (`SelfCalibrator.calibrate`) lists it as the user's judgment, bound to the
-  file, the line, the hash of the file and the measurement. It is not a
-  verified false positive and does not change the weights it recommends.
+- The history records it, and `--self-calibrate` (screen and `--json`) lists
+  it as the user's judgment, bound to the file, the line, the hash of the
+  file and the measurement. It is not a verified false positive and does not
+  change the weights it recommends.
 
 ---
 

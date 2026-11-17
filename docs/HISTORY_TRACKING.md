@@ -33,7 +33,17 @@ projects scanned from one directory together.
 The schema migrates in place when columns are added; existing rows are never
 rewritten (pre-v6 rows keep `provenance_state = NULL` and count as legacy).
 
-### Schema (v6 — v3.10)
+Since 3.16.2 (schema v7) every analyzed file is recorded, Python, JS/TS, Go
+and Rust, and a metric column holds a value only when the metric was
+measured: LDR, inflation and DDC are NULL for the other languages and for a
+Python file whose metric was skipped or that did not parse, and
+`unmeasured_metrics` says why. A database made before v7 is rebuilt once,
+in one transaction, so those three columns accept NULL; every row, id and
+value is kept, and a failed rebuild leaves the table as it was. A release
+older than 3.16.2 reading the same database ignores v7 rows for calibration;
+its `--show-history` and `--history-trends` may fail on a NULL metric.
+
+### Schema (v7 — 3.16.2)
 
 | Column | Type | Added | Description |
 |---|---|---|---|
@@ -41,9 +51,9 @@ rewritten (pre-v6 rows keep `provenance_state = NULL` and count as legacy).
 | `file_path` | TEXT | v2.9.0 | Absolute path of the analyzed file |
 | `file_hash` | TEXT | v2.9.0 | SHA256 prefix of file content (change detection) |
 | `deficit_score` | REAL | v2.9.0 | Primary slop score (0–100, lower is better) |
-| `ldr_score` | REAL | v2.9.0 | Logic Density Ratio (0–1, higher is better) |
-| `inflation_score` | REAL | v2.9.0 | Jargon inflation score (0–10, lower is better) |
-| `ddc_usage_ratio` | REAL | v2.9.0 | Dependency usage ratio (0–1, higher is better) |
+| `ldr_score` | REAL | v2.9.0 | Logic Density Ratio (0–1, higher is better); NULL when not measured (3.16.2) |
+| `inflation_score` | REAL | v2.9.0 | Jargon inflation score (0–10, lower is better); NULL when not measured |
+| `ddc_usage_ratio` | REAL | v2.9.0 | Dependency usage ratio (0–1, higher is better); NULL when not measured |
 | `pattern_count` | INTEGER | v2.9.0 | Number of pattern issues detected |
 | `grade` | TEXT | v2.9.0 | Status label (clean / suspicious / inflated_signal / critical_deficit) |
 | `git_commit` | TEXT | v3.2.1 | Current HEAD commit SHA (when available; NULL for non-git projects) |
@@ -58,7 +68,11 @@ rewritten (pre-v6 rows keep `provenance_state = NULL` and count as legacy).
 | `file_rel_path` | TEXT | **v3.10** | File path under `project_root` |
 | `base_deficit` | REAL | **v3.10** | Score before the pattern penalty |
 | `pattern_penalty` | REAL | **v3.10** | Additive pattern penalty |
-| `provenance_state` | TEXT | **v3.10** | `v6` on rows written with provenance; NULL on legacy rows |
+| `provenance_state` | TEXT | **v3.10** | `v6` on rows written with provenance, `v7` since 3.16.2; NULL on legacy rows |
+| `withheld_evidence` | TEXT | **3.16.2** | JSON: per rule what the scan suppressed (plain or `fp:`), could not measure, masked or ignored |
+| `language` | TEXT | **3.16.2** | `python`, `javascript`, `go` or `rust` |
+| `parser_mode` | TEXT | **3.16.2** | `python_ast`, `tree_sitter_ast`, or the language's fallback reader (`regex_fallback`, `regex`, `token_scanner`) |
+| `unmeasured_metrics` | TEXT | **3.16.2** | JSON `{metric: not_supported \| skipped \| parse_error \| not_reported}` |
 
 ---
 
@@ -181,8 +195,9 @@ Repository-local signal for calibration only
 
 `--self-calibrate` reads this history to report weights that would reduce missed
 improvement signals and unnecessary alerts. The report is advisory: nothing writes
-the weights, and scans never run it. It uses only v6 rows of one project root,
-compares only runs with the same measurement fingerprint, and counts an
+the weights, and scans never run it. It reads the database read-only, uses
+only v6 and v7 rows of one project root, compares only runs with the same
+measurement fingerprint and parser mode, and counts an
 improvement only when the file itself changed. Even so it describes local review
 behaviour; it does not establish false-positive rates.
 

@@ -106,7 +106,7 @@ def test_scans_record_provenance_for_the_scanned_root(project, history_db, capsy
             "SELECT provenance_state, project_root, file_rel_path, measurement_fingerprint"
             " FROM history"
         ).fetchall()
-    assert {row[0] for row in rows} == {"v6"}
+    assert {row[0] for row in rows} == {"v7"}
     assert {row[1] for row in rows} == {str(project.resolve())}
     assert sorted(row[2] for row in rows) == sorted(f"mod_{i}.py" for i in range(10))
     assert len({row[3] for row in rows}) == 1

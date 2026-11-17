@@ -64,8 +64,11 @@ def _record_history(result, config=None, path=None, is_project=False) -> None:
             if config is not None and path is not None
             else None
         )
+        from slop_detector.language_registry import all_file_results
+
         tracker = HistoryTracker()
-        results = result.file_results if hasattr(result, "file_results") else [result]
+        # Every analyzed language; each row says which metrics it measured.
+        results = all_file_results(result) if hasattr(result, "file_results") else [result]
         for file_analysis in results:
             tracker.record(
                 file_analysis,
@@ -101,8 +104,9 @@ def _show_file_history(file_path: str) -> None:
     print("-" * 70)
     for item in history:
         timestamp = item["timestamp"][:19]
+        ldr = "-" if item["ldr_score"] is None else f"{item['ldr_score']:.3f}"  # not measured
         print(
-            f"  {timestamp:<24} {item['deficit_score']:>7.1f} {item['ldr_score']:>6.3f}"
+            f"  {timestamp:<24} {item['deficit_score']:>7.1f} {ldr:>6}"
             f" {item['pattern_count']:>8}  {item['grade']}"
         )
 
@@ -133,8 +137,9 @@ def _show_trends() -> None:
     print(f"  {'Date':<12} {'Avg Deficit':>11} {'Avg LDR':>8} {'Patterns':>9} {'Files':>6}")
     print("-" * 65)
     for item in trends["daily_trends"]:
+        ldr = "-" if item["avg_ldr"] is None else f"{item['avg_ldr']:.3f}"
         print(
-            f"  {item['date']:<12} {item['avg_deficit']:>11.1f} {item['avg_ldr']:>8.3f}"
+            f"  {item['date']:<12} {item['avg_deficit']:>11.1f} {ldr:>8}"
             f" {item['total_patterns']:>9} {item['files_analyzed']:>6}"
         )
 
@@ -194,6 +199,13 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
     result = calibrator.calibrate(
         current_weights=current_weights, min_events=min_events, project_root=str(project_root)
     )
+    exit_code = 0 if result.status in ("ok", "no_change") else 1
+
+    if getattr(args, "json", False):
+        import json
+
+        print(json.dumps(calibration_preview(result), indent=2, sort_keys=True))
+        return exit_code
 
     if rich_enabled and console:
         from rich.panel import Panel
@@ -211,6 +223,9 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         table.add_row("Project root", result.project_root)
         table.add_row("Files with comparable runs", str(result.unique_files))
         table.add_row("Comparable run pairs", str(result.comparable_pairs))
+        table.add_row(
+            "Pairs with an unmeasured metric (not learned)", str(result.unmeasured_metric_pairs)
+        )
         table.add_row("Legacy rows (not evidence)", str(result.legacy_rows_ignored))
         table.add_row(
             "Improvements (flagged file changed, score fell)", str(result.improvement_events)
@@ -249,30 +264,7 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
                 f"  FP {result.fp_rate_before:.4f}->{result.fp_rate_after:.4f})"
             )
 
-        high_fp = {
-            rule_id: rate
-            for rule_id, rate in sorted(result.per_rule_fp_rates.items(), key=lambda item: -item[1])
-            if rate >= 0.5
-        }
-        if high_fp:
-            rule_table = Table(
-                box=box.ROUNDED,
-                show_header=True,
-                header_style="bold cyan",
-                title="Per-Rule Noisy-Alert Rates (>= 50%)",
-            )
-            rule_table.add_column("Rule ID", style="cyan")
-            rule_table.add_column("FP Rate", justify="right")
-            rule_table.add_column("Signal", justify="right")
-            for rule_id, rate in high_fp.items():
-                signal = "[red]HIGH NOISE[/red]" if rate >= 0.7 else "[yellow]MOD NOISE[/yellow]"
-                rule_table.add_row(rule_id, f"{rate:.0%}", signal)
-            console.print(rule_table)
-            console.print(
-                "[dim]Rules with HIGH NOISE (>=70%) are candidates for suppression"
-                " via .slopconfig.yaml exclude_rules[/dim]"
-            )
-
+        _print_rule_tables(console, result)
         if result.warnings:
             for warning in result.warnings:
                 console.print(f"[yellow][!] {warning}[/yellow]")
@@ -280,7 +272,74 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
     else:
         _print_calibration_plain(result, current_weights)
 
-    return 0 if result.status in ("ok", "no_change") else 1
+    return exit_code
+
+
+# How the screen names each evidence state (calibration_evidence.STATES order).
+EVIDENCE_LABELS = (
+    ("verified_fix", "Verified fix"),
+    ("unchanged_warning", "Unchanged warning"),
+    ("user_suppressed_unverified", "Suppressed (unverified)"),
+    ("user_declared_false_positive", "Declared false positive"),
+)
+UNCHANGED_RATE_NOTE = (
+    "Unchanged-warning rate: the share of a rule's labeled events where the flagged file "
+    "was left unchanged. It is not a false-positive rate, and it changes no rule."
+)
+
+
+def calibration_preview(result) -> dict:
+    """The --self-calibrate --json preview: the calibration result as data,
+    `applied: false` (nothing is written). per_rule_fp_rates is left out: the
+    same numbers are in unchanged_warning_rate under the name of what they count."""
+    from dataclasses import asdict
+
+    preview = asdict(result)
+    preview.pop("per_rule_fp_rates", None)
+    preview["applied"] = False
+    return preview
+
+
+def _high_unchanged_rates(result) -> dict:
+    return {
+        rule_id: rate
+        for rule_id, rate in sorted(result.unchanged_warning_rate.items(), key=lambda i: -i[1])
+        if rate >= 0.5
+    }
+
+
+def _print_rule_tables(console, result) -> None:
+    """Per-rule evidence states and unchanged-warning rates; both are reported,
+    neither is a learning label."""
+    from rich import box
+    from rich.table import Table
+
+    if result.evidence_states:
+        evidence = Table(
+            box=box.ROUNDED,
+            header_style="bold cyan",
+            title="Evidence per rule (reported, not learned)",
+        )
+        evidence.add_column("Rule ID", style="cyan")
+        for _, label in EVIDENCE_LABELS:
+            evidence.add_column(label, justify="right")
+        for rule_id in sorted(result.evidence_states):
+            states = result.evidence_states[rule_id]
+            evidence.add_row(rule_id, *(str(states.get(key, 0)) for key, _ in EVIDENCE_LABELS))
+        console.print(evidence)
+    rates = _high_unchanged_rates(result)
+    if rates:
+        rate_table = Table(
+            box=box.ROUNDED,
+            header_style="bold cyan",
+            title="Unchanged-warning rate per rule (>= 50%)",
+        )
+        rate_table.add_column("Rule ID", style="cyan")
+        rate_table.add_column("Unchanged-warning rate", justify="right")
+        for rule_id, rate in rates.items():
+            rate_table.add_row(rule_id, f"{rate:.0%}")
+        console.print(rate_table)
+        console.print(f"[dim]{UNCHANGED_RATE_NOTE}[/dim]")
 
 
 def _print_calibration_plain(result, current_weights) -> None:
@@ -289,22 +348,21 @@ def _print_calibration_plain(result, current_weights) -> None:
     print(f"  project_root={result.project_root}")
     print(f"  unique_files={result.unique_files}")
     print(f"  comparable_pairs={result.comparable_pairs}")
+    print(f"  unmeasured_metric_pairs={result.unmeasured_metric_pairs}")
     print(f"  legacy_rows_ignored={result.legacy_rows_ignored}")
     print(f"  improvement_events={result.improvement_events}")
     print(f"  stable_flag_candidates={result.stable_flag_candidates}")
     print(f"  confidence_gap={result.confidence_gap:.4f}")
     print(f"  current_weights={current_weights}")
     print(f"  optimal_weights={result.optimal_weights}")
-    if result.per_rule_fp_rates:
-        high_fp_plain = {
-            rule_id: rate
-            for rule_id, rate in sorted(result.per_rule_fp_rates.items(), key=lambda item: -item[1])
-            if rate >= 0.5
-        }
-        if high_fp_plain:
-            print("  per_rule_noisy_alert_rates (>=50%):")
-            for rule_id, rate in high_fp_plain.items():
-                print(f"    {rule_id}: {rate:.0%}")
+    for rule_id in sorted(result.evidence_states):
+        states = result.evidence_states[rule_id]
+        counts = " ".join(f"{key}={states[key]}" for key, _ in EVIDENCE_LABELS if key in states)
+        print(f"  evidence {rule_id}: {counts}")
+    for rule_id, rate in _high_unchanged_rates(result).items():
+        print(f"  unchanged_warning_rate {rule_id}: {rate:.0%}")
+    if result.unchanged_warning_rate:
+        print(f"  {UNCHANGED_RATE_NOTE}")
     for warning in result.warnings:
         print(f"  [!] {warning}")
     print(f"  {result.message}")

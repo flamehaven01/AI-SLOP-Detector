@@ -3,9 +3,10 @@ Self-Calibration Engine v2 — advisory weight tuning from comparable history.
 
 Evidence (history schema v6 only; legacy rows are counted and ignored):
 
-1. Rows of one project root (the canonical scan root), grouped per file and
-   per measurement fingerprint (detector version + engine + configuration):
-   only runs measured the same way are compared.
+1. Rows of one project root (the canonical scan root), grouped per file,
+   per measurement fingerprint (detector version + engine + configuration)
+   and per parser mode: only runs measured the same way are compared. A pair
+   with a Python metric that was not measured (NULL) gives no event.
 2. Consecutive comparable runs of a file give at most one label:
    - improvement: the file changed (file hash differs) and its metric-only
      deficit dropped by FIX_DELTA from at least SUSPICIOUS_AT;
@@ -21,13 +22,15 @@ Evidence (history schema v6 only; legacy rows are counted and ignored):
    result asks for more evidence.
 
 The result is a report. Nothing writes calibrated weights (applying them is
-a separate, later decision).
+a separate, later decision), and reading history writes nothing either: the
+database is opened read-only, an older schema is read as it is.
 """
 
 from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
@@ -35,7 +38,7 @@ from typing import Dict, List, Mapping, Optional, Tuple
 
 from slop_detector.core_scoring import compute_gqg
 from slop_detector.diagnostic_bands import SUSPICIOUS_AT
-from slop_detector.history import PROVENANCE_V6, HistoryTracker
+from slop_detector.history import EVIDENCE_PROVENANCE
 from slop_detector.ml.calibration_evidence import classify_pair as classify_evidence
 
 # ------------------------------------------------------------------
@@ -114,6 +117,9 @@ class CalibrationResult:
     project_root: str = ""
     unique_files: int = 0
     comparable_pairs: int = 0
+    # Comparable pairs with a Python metric not measured in either run: their
+    # rule evidence is reported, they give no weights-search event.
+    unmeasured_metric_pairs: int = 0
     legacy_rows_ignored: int = 0
     improvement_events: int = 0
     stable_flag_candidates: int = 0
@@ -282,18 +288,21 @@ class SelfCalibrator:
     ) -> List[CalibrationEvent]:
         rows, legacy = self._load_history(project_root)
         result.legacy_rows_ignored = legacy
-        groups: Dict[Tuple[str, str], List[dict]] = {}
+        groups: Dict[Tuple[str, str, Optional[str]], List[dict]] = {}
         for row in rows:
-            groups.setdefault((row["file_rel_path"], row["measurement_fingerprint"]), []).append(
-                row
-            )
-        result.unique_files = len({rel for rel, _ in groups})
+            key = (row["file_rel_path"], row["measurement_fingerprint"], row["parser_mode"])
+            groups.setdefault(key, []).append(row)
+        result.unique_files = len({rel for rel, _, _ in groups})
         events: List[CalibrationEvent] = []
         stable_seen: set = set()
-        for (rel, fingerprint), runs in groups.items():
+        evidence_seen: set = set()
+        for (rel, fingerprint, _), runs in groups.items():
             for now, nxt in zip(runs, runs[1:]):
                 result.comparable_pairs += 1
-                self._record_evidence(result, rel, fingerprint, now, nxt)
+                self._record_evidence(result, rel, fingerprint, now, nxt, evidence_seen)
+                if not (_measured(now) and _measured(nxt)):
+                    result.unmeasured_metric_pairs += 1
+                    continue
                 event = self._classify_pair(rel, now, nxt, stable_seen)
                 if event is not None:
                     events.append(event)
@@ -301,10 +310,21 @@ class SelfCalibrator:
 
     @staticmethod
     def _record_evidence(
-        result: CalibrationResult, rel: str, fingerprint: str, now: dict, nxt: dict
+        result: CalibrationResult,
+        rel: str,
+        fingerprint: str,
+        now: dict,
+        nxt: dict,
+        seen: set,
     ) -> None:
-        """Count the evidence states of one comparable pair (reported, never learned)."""
+        """Count the evidence states of one comparable pair (reported, never
+        learned); a state already counted for this file, rule and bytes (the
+        same bytes scanned again) is not counted twice."""
         for record in classify_evidence(now, nxt):
+            key = (rel, fingerprint, record["rule"], record["state"], record["file_hash"])
+            if key in seen:
+                continue
+            seen.add(key)
             states = result.evidence_states.setdefault(record["rule"], {})
             states[record["state"]] = states.get(record["state"], 0) + 1
             if "reason_sha256" in record:
@@ -441,34 +461,50 @@ class SelfCalibrator:
     # ------------------------------------------------------------------
 
     def _load_history(self, project_root: str) -> Tuple[List[dict], int]:
-        """v6 rows of one project root in run order, and the count of legacy rows."""
-        # A database last written by an older release has no v6 columns yet:
-        # the tracker's migration adds them (it never rewrites rows).
-        HistoryTracker(db_path=self.db_path)
-        sql = """
-        SELECT file_rel_path, measurement_fingerprint, file_hash, ldr_score,
-               inflation_score, ddc_usage_ratio, fired_rules, weights_vector,
-               withheld_evidence
-        FROM history
-        WHERE provenance_state = ? AND project_root = ? AND file_rel_path IS NOT NULL
-        ORDER BY file_rel_path, measurement_fingerprint, timestamp, id
-        """
-        with sqlite3.connect(self.db_path) as conn:
-            rows = conn.execute(sql, (PROVENANCE_V6, project_root)).fetchall()
+        """v6/v7 rows of one project root in run order, and the count of legacy
+        rows. The database is opened read-only; a column an older release did
+        not write reads as NULL (a database without provenance is all legacy)."""
+        uri = self.db_path.resolve().as_uri() + "?mode=ro"
+        with closing(sqlite3.connect(uri, uri=True)) as conn:
+            columns = {row[1] for row in conn.execute("PRAGMA table_info(history)")}
+            if "provenance_state" not in columns:
+                legacy = conn.execute("SELECT COUNT(*) FROM history").fetchone() if columns else (0,)
+                return [], int(legacy[0])
+            select = ", ".join(
+                name if name in columns else f"NULL AS {name}" for name, _ in _ROW_COLUMNS
+            )
+            marks = ", ".join("?" for _ in EVIDENCE_PROVENANCE)
+            rows = conn.execute(
+                f"SELECT {select} FROM history"
+                f" WHERE provenance_state IN ({marks}) AND project_root = ?"
+                " AND file_rel_path IS NOT NULL"
+                " ORDER BY file_rel_path, measurement_fingerprint, timestamp, id",
+                (*EVIDENCE_PROVENANCE, project_root),
+            ).fetchall()
             legacy = conn.execute(
                 "SELECT COUNT(*) FROM history WHERE provenance_state IS NULL"
             ).fetchone()[0]
-        return [
-            {
-                "file_rel_path": r[0],
-                "measurement_fingerprint": r[1],
-                "file_hash": r[2],
-                "ldr": r[3],
-                "inflation": r[4],
-                "ddc": r[5],
-                "fired_rules": r[6],
-                "weights": json.loads(r[7]),
-                "withheld": r[8],
-            }
-            for r in rows
-        ], int(legacy)
+        loaded = [{key: value for (_, key), value in zip(_ROW_COLUMNS, row)} for row in rows]
+        for row in loaded:
+            row["weights"] = json.loads(row["weights"])
+        return loaded, int(legacy)
+
+
+# (history column, row key) of the rows calibration reads.
+_ROW_COLUMNS = (
+    ("file_rel_path", "file_rel_path"),
+    ("measurement_fingerprint", "measurement_fingerprint"),
+    ("parser_mode", "parser_mode"),
+    ("file_hash", "file_hash"),
+    ("ldr_score", "ldr"),
+    ("inflation_score", "inflation"),
+    ("ddc_usage_ratio", "ddc"),
+    ("fired_rules", "fired_rules"),
+    ("weights_vector", "weights"),
+    ("withheld_evidence", "withheld"),
+)
+
+
+def _measured(row: Mapping[str, object]) -> bool:
+    """Whether a run measured all three learned metrics (none is NULL)."""
+    return all(row[key] is not None for key in LEARNED)

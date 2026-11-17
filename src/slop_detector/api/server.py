@@ -17,6 +17,7 @@ except ImportError:
 
 from .. import __version__
 from ..history import HistoryTracker, history_project_root, measurement_provenance
+from ..language_registry import all_file_results
 from ..service.scan import ScanFailedError, ScanRequest, ScanService, WritePolicy
 from .models import (
     AgentFileResponse,
@@ -184,7 +185,7 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
             if request.save_history:
                 background_tasks.add_task(
                     _save_project_history,
-                    results.file_results,
+                    all_file_results(results),
                     project_path,
                     request.metadata,
                     measurement_provenance(outcome.config, project_path),
