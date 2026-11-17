@@ -18,13 +18,13 @@ Find warning signs of unfinished code in Python, JavaScript/TypeScript, Go, and 
   <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/pyversions/ai-slop-detector.svg" alt="Python versions"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md"><img src="https://img.shields.io/badge/languages-Python%20%7C%20JS%2FTS%20%7C%20Go%20%7C%20Rust-informational" alt="Languages: Python, JS/TS, Go, Rust"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"/></a>
+  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
 </p>
 <p align="center">
-  <a href="https://github.com/flamehaven01/AI-SLOP-Detector/actions"><img src="https://github.com/flamehaven01/AI-SLOP-Detector/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector"><img src="https://vsmarketplacebadges.dev/installs-short/Flamehaven.vscode-slop-detector.svg?label=VS%20Code%20installs" alt="VS Code installs"/></a>
+  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/dm/ai-slop-detector.svg?label=npm%20downloads" alt="npm downloads per month"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector/month" alt="PyPI downloads per month"/></a>
   <a href="https://pepy.tech/project/ai-slop-detector"><img src="https://static.pepy.tech/badge/ai-slop-detector" alt="PyPI downloads total"/></a>
-  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/dm/ai-slop-detector.svg?label=npm%20downloads" alt="npm downloads per month"/></a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector"><img src="https://vsmarketplacebadges.dev/installs-short/Flamehaven.vscode-slop-detector.svg" alt="VS Code installs"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/stargazers"><img src="https://img.shields.io/github/stars/flamehaven01/AI-SLOP-Detector?style=flat" alt="GitHub stars"/></a>
 </p>
 
@@ -104,6 +104,60 @@ the score.
 | `--format ai-md` (AI work order) | Markdown for an agent: the rules it must follow, a VERIFY question per rule, every file bound to the SHA-256 of the bytes scanned, one block per item. It is read back before it is written and refuses when an item is missing or doubled. |
 | `--format ai` (AI report) | One JSON object per line: each finding with its location, rule, fix and evidence. |
 | `--json` | The full result, including `scan_coverage` (what was measured and how) and `next_steps`. |
+
+**Why the AI work order is different.** A list of warnings invites an agent
+to make each one disappear. The work order is a contract instead:
+
+- **Bound to the bytes.** Every item names the SHA-256 of the file the scan
+  read. If the file changed since, the item is void: the agent must hold it
+  and re-scan, not repair from a stale document.
+- **Fixes that only hide a finding are forbidden.** No suppression comment,
+  no threshold or weight change, no deleting or renaming the function to
+  make the item vanish.
+- **One question per rule, and REJECT is a valid answer.** The agent checks
+  the code against the rule's VERIFY question, then answers ACK and fixes,
+  or REJECT with the evidence the detector could not see. That is the
+  false-alarm channel.
+- **Proved by a re-scan.** An item counts as fixed only when a re-scan with
+  the same configuration no longer finds it, no new item appears and the
+  project's tests pass.
+- **One response line per item**, so a reviewer can check every claim.
+
+An excerpt of the real work order for `examples/demo_project`
+(`slop-detector --project examples/demo_project --format ai-md`; `...`
+marks lines left out):
+
+````text
+# AI-SLOP WORK ORDER
+target: demo_project | files 3 | score 13.5 CLEAN (pattern channel only)
+items: 13 | work order 13 | backlog 0
+...
+## HARD-STOP [NORM]
+HS-01 the file's SHA-256 differs from source_sha256 -> HOLD the item
+HS-03 the fix needs a FORBID change -> stop, REPORT HOLD
+HS-04 the fix changes a public signature, a return type or code outside the item's span -> stop, needs a decision (D-*)
+...
+## FORBID [NORM]
+- a suppression comment or a noqa / pragma marker
+- a threshold, weight or config change
+- deleting or renaming the function to make the item vanish
+...
+#### W01 F7843b06ebed5 FINDING return_constant_stub high
+at [FACT]: orders/pricing.py:1
+bound_to [FACT]: B01 (the file is the content the scan analyzed)
+evidence [FACT]: Function 'compute_discount' returns constant 0.1 - likely stub; also breaks its docstring: promises "Compute the discount for the order." (computed_result); every return is a literal (0.1)
+verify [NORM]: the body needs a value computed from the inputs, or an open call that could compute it; found: every return is a literal. ACK: implement the mechanism, or change the docstring to what the function does; REJECT: name the mechanism the detector missed (file:line)
+span [FACT]: orders/pricing.py:1-4 `compute_discount`
+```python
+1| def compute_discount(order):
+2|     """Compute the discount for the order."""
+3|     # TODO: use the customer's tier
+4|     return 0.1
+```
+...
+## RESPONSE-FORM [FORMAT]
+`<id> ACK|REJECT|HOLD verify=PASS|FAIL fix=<one line|NOT-APPLICABLE: why> prove=PASS|FAIL|NOT-MEASURED evidence=<file:line or test name>`
+````
 
 Details: [docs/REPORTS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/REPORTS.md) ·
 [docs/AI_WORK_ORDER.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/AI_WORK_ORDER.md) ·
@@ -228,6 +282,26 @@ more: [CI/CD in the guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob
 | **AI work order** | `--format ai-md`, bound to the SHA-256 of each scanned file (see [What You Get](#what-you-get)) |
 | **REST** | A local FastAPI server (`[api]` extra) that binds `127.0.0.1` |
 | **Node** | `npx ai-slop-detector` runs the same Python backend; typed results at `ai-slop-detector/types` |
+
+**With Claude Code**, the skill turns the scanner into a review loop the
+agent follows instead of a list it reacts to:
+
+```text
+generate/edit -> review -> inspect evidence -> apply bounded fixes -> pulse/sweep -> human handoff
+```
+
+`review` judges changed code (what the change introduced versus what was
+already there, and whether the build should fail), `pulse` summarizes the
+project's health and the order to repair in, and `sweep <family>` plans one
+cleanup (dead code, duplicates, unused dependencies, stale suppressions,
+boundary violations). The skill tells the agent which fixes are safe to make
+on its own and when to stop and hand over to a person, so the scanner's
+output is not read as permission for blind edits.
+
+```bash
+cp -r claude-skills/slop-detector ~/.claude/skills/
+pip install ai-slop-detector
+```
 
 Details: [Claude Code integration](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#claude-code-integration) ·
 [docs/CLAUDE_CODE_SKILL.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CLAUDE_CODE_SKILL.md) ·
