@@ -39,7 +39,9 @@ jobs:
 
   test:
     name: Tests (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    # Python 3.8 and 3.9 cannot be installed on ubuntu-latest (Ubuntu 26.04) by
+    # actions/setup-python; 3.8-3.12 were all tested on ubuntu-24.04 until 2026-11-17.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
