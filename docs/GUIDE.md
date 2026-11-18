@@ -46,7 +46,8 @@ flowchart LR
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 34 pattern checks. Results are combined via a **weighted
+Purity) **and** 37 Python rules: 34 pattern checks plus 3 dependency-declaration
+checks (55 rules in all languages, [PATTERNS.md](PATTERNS.md)). Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to local history; `--self-calibrate`
 turns that history into an advisory weight report and never writes weights.
@@ -489,6 +490,7 @@ listed as excluded in scan coverage. Results appear under `rust_file_results`.
 **Self-Calibration** — advisory weight report (Calibration v2)
 ```bash
 slop-detector . --self-calibrate               # advisory: what this project's history suggests
+slop-detector . --self-calibrate --json        # the same report as data; writes nothing
 ```
 Learns ldr / inflation / ddc (purity is held) from the comparable runs of the
 scanned project root only: same detector, engine and configuration. An
@@ -498,7 +500,13 @@ are never learned as weights. The report is **advisory only**: scans never
 run it, and `--apply-calibration` is disabled (it writes nothing and exits 2).
 History recorded before v3.10 has no measurement provenance and is reported as
 legacy, not evidence (on one real database v1 learned 79% of its
-"improvements" from files that had not changed).
+"improvements" from files that had not changed). Since 3.16.2 every language
+is recorded (a JS/TS, Go or Rust row stores no LDR, inflation or DDC), runs
+read by different parsers are not compared, and the report shows each rule's
+evidence: warnings resolved (the code's correctness is not verified),
+unchanged warnings, plain suppressions and `fp:` declarations. An `ok` status
+means the best candidate passed the gap test on this history's own labels;
+detection accuracy is not validated (`externally_validated: not_tested`).
 
 [docs/SELF_CALIBRATION.md →](SELF_CALIBRATION.md) · [Validation boundary →](VALIDATION.md)
 
@@ -619,7 +627,7 @@ would analyze it.
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.16.1
+    rev: v3.16.2
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks
@@ -714,6 +722,29 @@ def compatibility_layer():
 
 Suppressed findings are removed from scoring, but they are still recorded in the
 suppression ledger so reviewers can see which lines were muted.
+
+**Declaring a false positive.** A plain suppression does not say why: you may
+think the finding is wrong, or accept the risk. To say the finding is wrong,
+add `fp:` and a reason after exactly one rule of a next-line directive:
+
+```python
+# slop-disable-next-line bare_except fp: the callback contract requires a catch-all
+except:
+    recover()
+```
+
+- It suppresses exactly what `# slop-disable-next-line bare_except` suppresses
+  and changes no score, severity or gate decision.
+- The ledger entry gains `"declaration": "user_declared_false_positive"` and
+  the SHA-256 of the reason; the reason itself is not written to any report,
+  JSON or the history database.
+- It needs one rule and a non-empty reason; `all fp:`, several rules, an empty
+  reason, or the block form (`# slop-disable`) is a plain suppression of the
+  rules before `fp:`. The words of the reason are never read as rule ids.
+- The history records it, and `--self-calibrate` (screen and `--json`) lists
+  it as the user's judgment, bound to the file, the line, the hash of the
+  file and the measurement. It is not a verified false positive and does not
+  change the weights it recommends.
 
 ---
 

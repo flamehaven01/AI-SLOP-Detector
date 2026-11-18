@@ -1,6 +1,6 @@
 # CLI Usage
 
-**Current contract:** v3.15.2. Run `slop-detector --help` in the installed environment for the authoritative option list.
+**Current contract:** v3.16.2. Run `slop-detector --help` in the installed environment for the authoritative option list.
 
 ## Canonical Commands
 
@@ -135,9 +135,12 @@ slop-detector scan . --no-history
 
 # Advisory weight report from local history (never writes weights).
 slop-detector . --self-calibrate
+
+# The same report as one JSON object ("applied": false); writes nothing.
+slop-detector . --self-calibrate --json
 ```
 
-History is local, and scans never run calibration. The report (Calibration v2) uses only rows of the scanned project root that were measured the same way (detector, engine and configuration); rows written before v3.10 are not evidence. `--apply-calibration` is disabled: it writes nothing and exits 2. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
+History is local, and scans never run calibration. Every analyzed language is recorded; LDR, inflation and DDC are stored only when measured. The report (Calibration v2) uses only rows of the scanned project root that were measured the same way (detector, engine, configuration and parser); rows written before v3.10 are not evidence. It reads history without writing it, shows each rule's evidence (warnings resolved, unchanged warnings, plain suppressions, `fp:` declarations), and an `ok` status means the best candidate passed the gap test on this history's own labels, not that detection accuracy was validated (`externally_validated: not_tested`). `--apply-calibration` is disabled: it writes nothing and exits 2. The first 3.16.2 run on an older history database keeps a copy (`history.pre-v7.db`) before upgrading it; see [HISTORY_TRACKING.md](HISTORY_TRACKING.md) and [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 
 ## CI And Governance
 

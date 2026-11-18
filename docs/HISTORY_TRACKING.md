@@ -33,7 +33,66 @@ projects scanned from one directory together.
 The schema migrates in place when columns are added; existing rows are never
 rewritten (pre-v6 rows keep `provenance_state = NULL` and count as legacy).
 
-### Schema (v6 — v3.10)
+Since 3.16.2 (schema v7) every analyzed file is recorded, Python, JS/TS, Go
+and Rust, and a metric column holds a value only when the metric was
+measured: LDR, inflation and DDC are NULL for the other languages and for a
+Python file whose metric was skipped or that did not parse, and
+`unmeasured_metrics` says why. A database made before v7 is rebuilt once,
+in one transaction, so those three columns accept NULL; every row, id and
+value is kept, and a failed rebuild leaves the table as it was.
+
+**Going back to an older release.** A release older than 3.16.2 ignores v7
+rows for calibration, but its `--show-history` fails on a row with a NULL
+metric and its `--history-trends` fails on a day where no row has an LDR
+value (only JS/TS, Go or Rust files, or Python files that did not parse);
+both were run with 3.16.1. It still records new scans. So
+before the rebuild, the database is kept as it was, once:
+
+- `~/.slop-detector/history.pre-v7.db`, next to `history.db` (if that name is
+  taken, `history.pre-v7-<timestamp>.db`: a copy is never overwritten);
+- made with SQLite's backup API inside one read transaction, then checked
+  (`integrity_check` and the same schema, rows, ids and sequence as the
+  database); it gets the database's permission bits;
+- if the copy fails (an error, a full disk) or does not match, the upgrade
+  stops, `history.db` is left as it was and no partial copy is kept. A scan
+  still runs (same output, same exit code) and prints one line on stderr:
+  `Warning: History was not recorded because the pre-upgrade backup failed.
+  The original database is unchanged. See debug logs for details.`
+  `--show-history`, `--history-trends` and `--export-history` print the
+  same with `Error: History could not be opened ...` and exit 1, as does
+  any other step that needs history. The next run tries again; `--verbose`
+  shows the error;
+- the upgrade takes its write lock only after the copy is made; before it
+  changes anything it checks that the database is still the one the copy
+  was taken from (schema, rows, ids, sequence). If another process wrote in
+  between, the copy would miss those rows, so the upgrade stops the same
+  way (the cause in the debug log is `CONCURRENT_WRITE_DETECTED`, a failed
+  copy is `BACKUP_FAILED`): the written rows and any earlier copy are kept,
+  this attempt's copy is removed, and the next run makes a new copy. The
+  same holds when there was nothing to copy (no database, or no table yet)
+  and an older release created its table before the lock: it is not
+  upgraded without a copy, and the next run copies it first. If another
+  3.16.2 process finished the upgrade first, nothing is reported;
+- only the run that rebuilds makes a copy, and it prints one line on stderr
+  (the copy's file name, never an absolute path): `Notice: History database
+  upgraded to v7. Some history commands of releases before 3.16.2 fail on
+  it; a pre-upgrade backup (history.pre-v7.db) was saved next to it.`
+
+To go back: close every running `slop-detector` (and the VS Code extension),
+then replace `history.db` with the copy:
+
+```bash
+mv ~/.slop-detector/history.pre-v7.db ~/.slop-detector/history.db
+```
+
+Every row recorded after the upgrade (all languages) is gone from the
+restored database; the copy is the history as it was before 3.16.2. This is
+a way back, not compatibility: an older release still fails on a v7
+database. A history started with 3.16.2 has no copy (there was nothing
+before it): to use an older release, move `history.db` aside and it starts
+a new one.
+
+### Schema (v7 — 3.16.2)
 
 | Column | Type | Added | Description |
 |---|---|---|---|
@@ -41,9 +100,9 @@ rewritten (pre-v6 rows keep `provenance_state = NULL` and count as legacy).
 | `file_path` | TEXT | v2.9.0 | Absolute path of the analyzed file |
 | `file_hash` | TEXT | v2.9.0 | SHA256 prefix of file content (change detection) |
 | `deficit_score` | REAL | v2.9.0 | Primary slop score (0–100, lower is better) |
-| `ldr_score` | REAL | v2.9.0 | Logic Density Ratio (0–1, higher is better) |
-| `inflation_score` | REAL | v2.9.0 | Jargon inflation score (0–10, lower is better) |
-| `ddc_usage_ratio` | REAL | v2.9.0 | Dependency usage ratio (0–1, higher is better) |
+| `ldr_score` | REAL | v2.9.0 | Logic Density Ratio (0–1, higher is better); NULL when not measured (3.16.2) |
+| `inflation_score` | REAL | v2.9.0 | Jargon inflation score (0–10, lower is better); NULL when not measured |
+| `ddc_usage_ratio` | REAL | v2.9.0 | Dependency usage ratio (0–1, higher is better); NULL when not measured |
 | `pattern_count` | INTEGER | v2.9.0 | Number of pattern issues detected |
 | `grade` | TEXT | v2.9.0 | Status label (clean / suspicious / inflated_signal / critical_deficit) |
 | `git_commit` | TEXT | v3.2.1 | Current HEAD commit SHA (when available; NULL for non-git projects) |
@@ -58,7 +117,11 @@ rewritten (pre-v6 rows keep `provenance_state = NULL` and count as legacy).
 | `file_rel_path` | TEXT | **v3.10** | File path under `project_root` |
 | `base_deficit` | REAL | **v3.10** | Score before the pattern penalty |
 | `pattern_penalty` | REAL | **v3.10** | Additive pattern penalty |
-| `provenance_state` | TEXT | **v3.10** | `v6` on rows written with provenance; NULL on legacy rows |
+| `provenance_state` | TEXT | **v3.10** | `v6` on rows written with provenance, `v7` since 3.16.2; NULL on legacy rows |
+| `withheld_evidence` | TEXT | **3.16.2** | JSON: per rule what the scan suppressed (plain or `fp:`), could not measure, masked or ignored |
+| `language` | TEXT | **3.16.2** | `python`, `javascript`, `go` or `rust` |
+| `parser_mode` | TEXT | **3.16.2** | `python_ast`, `tree_sitter_ast`, or the language's fallback reader (`regex_fallback`, `regex`, `token_scanner`) |
+| `unmeasured_metrics` | TEXT | **3.16.2** | JSON `{metric: not_supported \| skipped \| parse_error \| not_reported}` |
 
 ---
 
@@ -110,25 +173,22 @@ slop-detector myfile.py --no-history
 `--read-only` also records nothing (it writes no history, cache, impact, or
 telemetry state, and refuses options that would).
 
-### Export for ML training
+### Export
 
 ```bash
-slop-detector --export-history training_data.jsonl
+slop-detector --export-history history.jsonl
 ```
 
-The exported JSONL is directly compatible with `DatasetLoader.load_jsonl()`:
+One JSON object per history row, newest first: `timestamp`, `file_path`,
+`file_hash`, `deficit_score`, `ldr_score`, `inflation_score`,
+`ddc_usage_ratio` (null when not measured), `pattern_count`, `grade`,
+`git_commit`, `git_branch`, `language`, `parser_mode` and
+`unmeasured_metrics`.
 
-```python
-from slop_detector.ml.pipeline import MLPipeline
-
-pipeline = MLPipeline(output_dir="models")
-report = pipeline.run_on_real_data(
-    dataset="jsonl",
-    jsonl_path="training_data.jsonl",
-    max_samples=10_000,
-)
-print(report.summary())
-```
+It is a record of measurements, not a training set: it holds no source code
+and no label. `DatasetLoader.load_jsonl()` (the ML pipeline's custom JSONL
+input) reads lines with `code` and optionally `label`, so it skips every line
+of this export.
 
 ---
 
@@ -181,8 +241,9 @@ Repository-local signal for calibration only
 
 `--self-calibrate` reads this history to report weights that would reduce missed
 improvement signals and unnecessary alerts. The report is advisory: nothing writes
-the weights, and scans never run it. It uses only v6 rows of one project root,
-compares only runs with the same measurement fingerprint, and counts an
+the weights, and scans never run it. It reads the database read-only, uses
+only v6 and v7 rows of one project root, compares only runs with the same
+measurement fingerprint and parser mode, and counts an
 improvement only when the file itself changed. Even so it describes local review
 behaviour; it does not establish false-positive rates.
 

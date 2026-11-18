@@ -133,15 +133,28 @@ class SuppressionDirective:
     lineno: int
     rules: List[str] = field(default_factory=list)
     source: str = "comment"
+    # `fp: <reason>` after exactly one rule of a next-line directive: the user
+    # declares the finding a false positive. Only the reason's hash is kept.
+    declared_false_positive: bool = False
+    reason_sha256: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result: Dict[str, Any] = {
             "scope": self.scope,
             "action": self.action,
             "lineno": self.lineno,
             "rules": self.rules,
             "source": self.source,
         }
+        if self.declared_false_positive:
+            result["declaration"] = DECLARED_FALSE_POSITIVE
+            result["reason_sha256"] = self.reason_sha256
+        return result
+
+
+# A suppression whose directive says the user judged the finding a false positive
+# (USER_DECLARED_FALSE_POSITIVE): a user's judgment, not a verified one.
+DECLARED_FALSE_POSITIVE = "user_declared_false_positive"
 
 
 @dataclass
@@ -155,9 +168,11 @@ class SuppressionLedgerEntry:
     scope: str
     matched_rule: str
     source: str = "comment"
+    declared_false_positive: bool = False
+    reason_sha256: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result: Dict[str, Any] = {
             "file_path": self.file_path,
             "directive_line": self.directive_line,
             "suppressed_line": self.suppressed_line,
@@ -166,6 +181,10 @@ class SuppressionLedgerEntry:
             "matched_rule": self.matched_rule,
             "source": self.source,
         }
+        if self.declared_false_positive:
+            result["declaration"] = DECLARED_FALSE_POSITIVE
+            result["reason_sha256"] = self.reason_sha256
+        return result
 
 
 @dataclass

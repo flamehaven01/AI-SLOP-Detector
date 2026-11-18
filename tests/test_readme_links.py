@@ -83,10 +83,14 @@ def test_readme_page_anchors_exist():
 
 
 def test_each_moved_section_leads_to_its_new_place():
-    """The line that carries a moved section's old anchor links to where it is now."""
+    """An old anchor is a section of this page again, or the line that carries
+    it links to where the section is now."""
     lines = [line for line in README.splitlines() if '<a id="' in line]
     by_anchor = {re.search(r'<a id="([^"]+)"', line).group(1): line for line in lines}
-    assert set(by_anchor) == MOVED, sorted(set(by_anchor) ^ MOVED)
+    headings = _anchors(re.sub(r'<a id="[^"]+"></a>', "", README))
+    assert set(by_anchor) <= MOVED, sorted(set(by_anchor) - MOVED)
+    assert not set(by_anchor) & headings, sorted(set(by_anchor) & headings)  # one place each
+    assert MOVED <= set(by_anchor) | headings, sorted(MOVED - set(by_anchor) - headings)
     for anchor, line in by_anchor.items():
         assert len(re.findall(r'<a id="', line)) == 1, line
         assert re.search(r"\]\(https://github\.com/[^)]+\)", line), (anchor, line)

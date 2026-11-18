@@ -329,7 +329,21 @@ def _escape_unencodable_output() -> None:
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    """CLI entry point."""
+    """CLI entry point. When a step needs the history database and its
+    pre-upgrade copy failed, that step's command ends with one line on stderr
+    and exit 1, not a traceback; a scan's own recording and the history
+    commands handle the failure before it reaches here."""
+    from slop_detector.history import HISTORY_NOT_OPENED, HistoryBackupError
+
+    try:
+        return _main(argv)
+    except HistoryBackupError as exc:
+        logging.debug("history not opened: %s", exc)
+        print(HISTORY_NOT_OPENED, file=sys.stderr)
+        return 1
+
+
+def _main(argv: Optional[Sequence[str]] = None) -> int:
     _escape_unencodable_output()
     argv_list = list(sys.argv[1:] if argv is None else argv)
 
@@ -379,15 +393,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"[!] --interactive is incompatible with: {names}", file=sys.stderr)
         return 2
 
+    # Each returns 1 when history could not be opened (cli_history._open_history).
     if getattr(args, "history_trends", False):
-        _show_trends()
-        return 0
+        return _show_trends()
     if getattr(args, "export_history", None):
-        _export_history(args.export_history)
-        return 0
+        return _export_history(args.export_history)
     if getattr(args, "show_history", False):
-        _show_file_history(args.path)
-        return 0
+        return _show_file_history(args.path)
     if getattr(args, "init", False):
         return _run_init(args)
     if getattr(args, "self_calibrate", False):

@@ -52,7 +52,136 @@ A new default terminal screen.
 
 ---
 
-## [3.16.1] - 2026-11-16
+## [3.16.2] - 2026-11-18
+
+Self-calibration says where its evidence comes from and how far it can be
+trusted; history records every analyzed language. How scores are computed
+and the scan JSON format are unchanged. One case changes results: a
+suppression comment with words after `fp:` now suppresses only the rules
+before `fp:`, so such a line can show findings again, and its file's score
+and the gate's decision can change with them.
+
+### Changes you see when upgrading
+
+- The first scan upgrades `~/.slop-detector/history.db` once, keeping the
+  database as it was in `history.pre-v7.db`, and prints one notice. Some
+  history commands of older releases fail on the upgraded database; restore
+  the copy to go back (`docs/HISTORY_TRACKING.md`).
+- A directive with `fp:` followed by words suppresses only the rules before
+  `fp:` (a reason containing `all` or a rule id suppressed those too), so such
+  a line can show findings again.
+- `--self-calibrate` shows evidence per rule and calls the per-rule number an
+  unchanged-warning rate (no false-positive label or exclusion advice).
+
+### Calibration evidence
+
+- `# slop-disable-next-line <rule> fp: <reason>` declares a finding a false
+  positive. It suppresses what the plain directive suppresses and changes no
+  score; the ledger entry gains `declaration` and `reason_sha256` (only for a
+  declaration; other entries are unchanged). Valid for one rule, a non-empty
+  reason and the next-line form; otherwise a plain suppression.
+- Fix: the words after `fp:` were read as rule ids, so a reason containing
+  `all` or a rule id suppressed those rules too. Only the rules before `fp:`
+  are rules now. A directive with `fp:` and no rule suppresses nothing, as
+  before.
+- History rows gain `withheld_evidence` (nullable; older rows are kept as
+  they are): per rule what the scan suppressed (plain or declared), could not
+  measure, masked or ignored. The reason of a declaration is stored only as
+  its SHA-256.
+- The calibration result (`SelfCalibrator.calibrate`, shown by
+  `--self-calibrate`) reports per rule how often each
+  evidence state occurred between comparable runs (`verified_fix`,
+  `unchanged_warning`, `user_suppressed_unverified`,
+  `user_declared_false_positive`) and the declarations bound to file, line,
+  file hash and measurement fingerprint. `unchanged_warning_rate` names what
+  `per_rule_fp_rates` counts. The weights it recommends are unchanged: no
+  evidence state is a learning label.
+
+### History of all four languages
+
+- History records every analyzed file, Python, JS/TS, Go and Rust (the CLI
+  and the API project route recorded Python files only). Each row (schema
+  v7, `provenance_state = "v7"`) records `language`, `parser_mode` and
+  `unmeasured_metrics`.
+- LDR, inflation and DDC hold a value only when measured and counted, else
+  NULL with the reason: `not_supported` (JS/TS, Go, Rust), `skipped` (file
+  role, `--patterns-only`, no executable code), `parse_error`. Fix: a Python
+  file that did not parse stored placeholder values (LDR 0.0, inflation 999,
+  DDC 0.0) as measurements, and a skipped metric stored its unused value.
+- A database made before 3.16.2 is rebuilt once, in one transaction, so the
+  three metric columns accept NULL: every row, id, value and the id sequence
+  are kept; a failed rebuild leaves the table as it was.
+- Before that rebuild the database is kept as it was, once, in
+  `~/.slop-detector/history.pre-v7.db` (an existing copy is never
+  overwritten): a SQLite backup checked for integrity and for the same
+  schema, rows, ids and sequence, with the database's permission bits. A
+  copy that fails or does not match stops the upgrade and leaves
+  `history.db` as it was: a scan still runs with the same output and exit
+  code and says in one stderr line that history was not recorded; a command
+  that reads history says it could not be opened and exits 1 (no
+  traceback); the error is in the debug log. A write by another process
+  between the copy and the upgrade's write lock stops the upgrade the same
+  way (the copy would miss it; debug cause `CONCURRENT_WRITE_DETECTED`); the
+  next run makes a new copy. So does an older table that another process
+  created after the check found nothing to copy: it is never upgraded
+  without a copy. The upgrade prints one notice
+  naming the copy's file, never an absolute path. Going back to 3.16.1
+  needs that copy: 3.16.1's `--show-history` fails on a row with a NULL
+  metric and its `--history-trends` on a day without an LDR value (both
+  run with 3.16.1); the way back is in `docs/HISTORY_TRACKING.md`.
+- Rules nobody looked at are unmeasured evidence: every rule when no pattern
+  ran (a parse error, a role that skips patterns), and the rules a language's
+  fallback reader does not measure. None of them can be a `verified_fix`.
+- Fix: JS/TS, Go and Rust rows stored the path as the scan was given it
+  (relative to the working directory), so `--show-history` did not find
+  them and one file had a different key per working directory. Every row
+  now stores the absolute path.
+
+### Self-calibration preview
+
+- Reading history for calibration writes nothing: the database is opened
+  read-only, and an older schema is read as it is (it was migrated before).
+- Runs read by different parsers are not compared; scanning the same bytes
+  again adds no evidence; a pair with an unmeasured metric gives no
+  weights-search event (`unmeasured_metric_pairs` counts them).
+- `--self-calibrate` shows the evidence states per rule. The per-rule rate is
+  shown as an unchanged-warning rate: the screen no longer calls it a
+  false-positive rate or proposes excluding a rule because of it.
+- `--self-calibrate --json` prints the report as data with
+  `"applied": false`, and the same exit code as the screen. It writes
+  nothing. `--apply-calibration` stays refused (exit 2).
+- `tests/calibration_oracle.py`: synthetic history with a known answer, held
+  out and scored for false positives and false negatives apart. Over 20
+  seeds of 300 files, the learner's best candidate was the true weights in
+  20 of 20 runs when every flagged real problem was fixed and in 0 of 20 when
+  nine in ten were left unfixed; its held-out false-negative rate then
+  averaged 0.192 against 0.079 for the current weights. The confidence gate
+  withheld 19 of those 20; the one it passed had fewer false positives and
+  more false negatives.
+- The result says what `ok` rests on: `candidate_gap_passed` (the best
+  candidate is at least 0.10 ahead of the second on this history's own
+  labels) and `externally_validated: "not_tested"` (no data with a known
+  answer was scored). The screen prints this under the status; `ok` and the
+  exit codes are unchanged.
+- The screen shows the `verified_fix` state as "Warning resolved - code
+  correctness not verified"; the JSON key is unchanged.
+
+### Documentation
+
+- `docs/HISTORY_TRACKING.md` no longer says the `--export-history` JSONL
+  feeds the ML pipeline's JSONL loader: the loader reads `code` and `label`
+  lines, which the export does not have.
+
+- `docs/GUIDE.md` says how its counts relate: 37 Python rules are 34 pattern
+  checks plus 3 dependency-declaration checks, 55 rules in all languages. A
+  test holds both totals to the registry table in `docs/PATTERNS.md`.
+- `docs/GUIDE.md` no longer documents an adversarial-validation command this
+  package does not install. A test requires every shell line of the guide to
+  start with this package's own command or a common tool.
+
+---
+
+## [3.16.1] - 2026-11-17
 
 Rust files are analyzed. JS/TS and Go file rows in the HTML and Markdown
 reports show their score. There is no 3.16.0 on PyPI or npm: that number was
@@ -208,11 +337,24 @@ used by a VS Code Marketplace build only.
   describe Go as tree-sitter analysis.
 - `docs/ADDING_A_LANGUAGE.md`: how a language is added and what the tests
   enforce.
-- README: rewritten as a short introduction (what it finds, a language
-  table, quick start, how to read the score, where it runs). The sections it
-  no longer holds moved unchanged to `docs/GUIDE.md`, and the release history
-  to `docs/RELEASE_NOTES.md`; the old section anchors lead to their new
-  place. The headline no longer says "AI-generated code": the tool reports
+- README: rewritten. It opens with what the tool is and a quick start,
+  then shows the terminal screen (a picture of the real output,
+  `docs/assets/cli-summary.svg`), the HTML report and the outputs for AI
+  agents, and gives VS Code, CI/CD, AI agents, local calibration and
+  security a short section each. The full reference moved to
+  `docs/GUIDE.md`, the release history to `docs/RELEASE_NOTES.md`; every old
+  section anchor is a section of the README again or leads to its new
+  place. The VS Code badge (the shields.io one was retired) shows the
+  Marketplace version and installs.
+- README: "No API key. No network calls." `tests/test_no_network.py` runs a
+  project scan and writes the Markdown, HTML and AI reports with every
+  network connection refused, and requires that none was attempted.
+- VS Code extension 3.16.2 (Marketplace): built from this release. The
+  3.16.1 build carried the npm wrapper's version 3.15.2, so without an
+  installed CLI it fetched `ai-slop-detector==3.15.2` (no Rust) and with
+  one it warned of a version mismatch; and three links of its Marketplace
+  page (work order, patterns, changelog) led nowhere. Its README links are
+  absolute now. The headline no longer says "AI-generated code": the tool reports
   signals in the code and does not tell who wrote it.
 - `docs/PATTERNS.md` has a Rust section; the guides that listed the
   analyzed languages (CI, CLI, architecture, work order, how it works) name

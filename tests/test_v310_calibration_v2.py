@@ -13,7 +13,8 @@ Measured on a read-only copy of a real history database (31,065 rows, 2026-10-10
 Contract (C9, writing weights, stays out of scope):
 - C1 history schema v6: detector_version, measurement_fingerprint,
   weights_vector, project_root, file_rel_path, base_deficit, pattern_penalty,
-  provenance_state ("v6"); older databases gain the columns, old rows are kept
+  provenance_state ("v6"; rows written since 3.16.2 are "v7", see
+  test_history_languages); older databases gain the columns, old rows are kept
   and never rewritten;
 - C2 rows without v6 provenance are never calibration evidence;
 - C3 two runs are comparable only with the same measurement fingerprint,
@@ -116,7 +117,7 @@ def test_record_writes_v6_provenance(tmp_path):
         conn.row_factory = sqlite3.Row
         row = dict(conn.execute("SELECT * FROM history").fetchone())
     assert row["detector_version"] == __version__
-    assert row["provenance_state"] == "v6"
+    assert row["provenance_state"] == "v7"
     assert row["project_root"] == str(source.parent.resolve())
     assert row["file_rel_path"] == "mod.py"
     assert json.loads(row["weights_vector"]) == detector.config.get_weights()
@@ -380,10 +381,10 @@ def test_api_history_rows_carry_provenance(tmp_path, monkeypatch):
         rows = conn.execute(
             "SELECT provenance_state, project_root, file_rel_path FROM history"
         ).fetchall()
-    assert rows == [("v6", str(project.resolve()), "mod.py")] * 2
+    assert rows == [("v7", str(project.resolve()), "mod.py")] * 2
 
 
-def test_calibrating_a_pre_v6_database_migrates_it_instead_of_failing(tmp_path):
+def test_calibrating_a_pre_v6_database_reads_it_instead_of_failing(tmp_path):
     db = tmp_path / "history.db"
     with sqlite3.connect(db) as conn:
         conn.execute(
