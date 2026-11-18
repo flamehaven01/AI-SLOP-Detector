@@ -216,6 +216,8 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
         )
         header = Text(f"Self-Calibration — {result.status.upper()}", style=f"bold {status_color}")
         console.print(Panel(header, box=box.ROUNDED))
+        if result.candidate_gap_passed:
+            console.print(f"[yellow]{gap_note(result)}[/yellow]")
 
         table = Table(box=box.ROUNDED, show_header=True, header_style="bold cyan")
         table.add_column("Metric", style="cyan")
@@ -259,7 +261,8 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
             error_before = result.fn_rate_before + result.fp_rate_before
             error_after = result.fn_rate_after + result.fp_rate_after
             console.print(
-                f"\nCombined error: [yellow]{error_before:.4f}[/yellow] -> [green]{error_after:.4f}[/green]"
+                f"\nCombined error on this history's labels: [yellow]{error_before:.4f}[/yellow]"
+                f" -> [green]{error_after:.4f}[/green]"
                 f"  (FN {result.fn_rate_before:.4f}->{result.fn_rate_after:.4f},"
                 f"  FP {result.fp_rate_before:.4f}->{result.fp_rate_after:.4f})"
             )
@@ -276,8 +279,9 @@ def _run_self_calibration(args: argparse.Namespace) -> int:
 
 
 # How the screen names each evidence state (calibration_evidence.STATES order).
+# The key `verified_fix` stays (JSON contract); the label says what it shows.
 EVIDENCE_LABELS = (
-    ("verified_fix", "Verified fix"),
+    ("verified_fix", "Warning resolved - code correctness not verified"),
     ("unchanged_warning", "Unchanged warning"),
     ("user_suppressed_unverified", "Suppressed (unverified)"),
     ("user_declared_false_positive", "Declared false positive"),
@@ -286,6 +290,14 @@ UNCHANGED_RATE_NOTE = (
     "Unchanged-warning rate: the share of a rule's labeled events where the flagged file "
     "was left unchanged. It is not a false-positive rate, and it changes no rule."
 )
+
+
+def gap_note(result) -> str:
+    """What an ok (or no_change) status rests on, said where the status is shown."""
+    return (
+        "candidate gap passed; detection accuracy not validated"
+        f" ({result.externally_validated})"
+    )
 
 
 def calibration_preview(result) -> dict:
@@ -353,12 +365,18 @@ def _print_calibration_plain(result, current_weights) -> None:
     print(f"  improvement_events={result.improvement_events}")
     print(f"  stable_flag_candidates={result.stable_flag_candidates}")
     print(f"  confidence_gap={result.confidence_gap:.4f}")
+    print(
+        f"  candidate_gap_passed={result.candidate_gap_passed}"
+        f" externally_validated={result.externally_validated}"
+    )
     print(f"  current_weights={current_weights}")
     print(f"  optimal_weights={result.optimal_weights}")
     for rule_id in sorted(result.evidence_states):
         states = result.evidence_states[rule_id]
         counts = " ".join(f"{key}={states[key]}" for key, _ in EVIDENCE_LABELS if key in states)
         print(f"  evidence {rule_id}: {counts}")
+    if result.evidence_states:
+        print(f"  verified_fix = {EVIDENCE_LABELS[0][1]}")
     for rule_id, rate in _high_unchanged_rates(result).items():
         print(f"  unchanged_warning_rate {rule_id}: {rate:.0%}")
     if result.unchanged_warning_rate:

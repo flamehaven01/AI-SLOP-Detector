@@ -180,3 +180,24 @@ def test_the_oracle_catches_a_recommendation_that_trades_misses_for_quiet(tmp_pa
     assert run.after_recommended["fp_rate"] < run.before["fp_rate"]
     assert run.after_recommended["fn_rate"] > run.before["fn_rate"]
     assert sum(run.after_recommended.values()) < sum(run.before.values())
+
+
+def test_ok_means_the_candidate_gap_passed_and_nothing_was_validated(tmp_path):
+    """INS-CAL-P1-01: status ok and its exit code stay; the result says what
+    passed (the gap between the two best candidates) and that no detection
+    accuracy was tested. The run below passes the gap and misses more held-out
+    real problems than the current weights."""
+    passed = run_oracle(tmp_path / "a.db", seed=6, files=300, fix_rate=0.1, declare_rate=0.3)
+    result = SelfCalibrator(db_path=tmp_path / "a.db").calibrate(
+        current_weights=dict(WEIGHTS), project_root="/oracle"
+    )
+    assert result.status == "ok" and result.candidate_gap_passed
+    assert result.externally_validated == "not_tested"
+    assert passed.after_recommended["fn_rate"] > passed.before["fn_rate"]
+
+    run_oracle(tmp_path / "b.db", seed=1, files=300, fix_rate=0.1, declare_rate=0.3)
+    withheld = SelfCalibrator(db_path=tmp_path / "b.db").calibrate(
+        current_weights=dict(WEIGHTS), project_root="/oracle"
+    )
+    assert withheld.status != "ok" and not withheld.candidate_gap_passed
+    assert withheld.externally_validated == "not_tested"

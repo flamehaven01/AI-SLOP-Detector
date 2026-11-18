@@ -39,9 +39,38 @@ measured: LDR, inflation and DDC are NULL for the other languages and for a
 Python file whose metric was skipped or that did not parse, and
 `unmeasured_metrics` says why. A database made before v7 is rebuilt once,
 in one transaction, so those three columns accept NULL; every row, id and
-value is kept, and a failed rebuild leaves the table as it was. A release
-older than 3.16.2 reading the same database ignores v7 rows for calibration;
-its `--show-history` and `--history-trends` may fail on a NULL metric.
+value is kept, and a failed rebuild leaves the table as it was.
+
+**Going back to an older release.** A release older than 3.16.2 ignores v7
+rows for calibration, but its `--show-history` fails on a row with a NULL
+metric and its `--history-trends` fails on a day where no row has an LDR
+value (only JS/TS, Go or Rust files, or Python files that did not parse);
+both were run with 3.16.1. It still records new scans. So
+before the rebuild, the database is kept as it was, once:
+
+- `~/.slop-detector/history.pre-v7.db`, next to `history.db` (if that name is
+  taken, `history.pre-v7-<timestamp>.db`: a copy is never overwritten);
+- made with SQLite's backup API inside one read transaction, then checked
+  (`integrity_check` and the same schema, rows, ids and sequence as the
+  database); it gets the database's permission bits;
+- if the copy fails (an error, a full disk) or does not match, the upgrade
+  stops, `history.db` is left as it was and no partial copy is kept: the
+  scan runs without recording history, and the next run tries again;
+- only the run that rebuilds makes a copy; the scan prints its path once.
+
+To go back: close every running `slop-detector` (and the VS Code extension),
+then replace `history.db` with the copy:
+
+```bash
+mv ~/.slop-detector/history.pre-v7.db ~/.slop-detector/history.db
+```
+
+Every row recorded after the upgrade (all languages) is gone from the
+restored database; the copy is the history as it was before 3.16.2. This is
+a way back, not compatibility: an older release still fails on a v7
+database. A history started with 3.16.2 has no copy (there was nothing
+before it): to use an older release, move `history.db` aside and it starts
+a new one.
 
 ### Schema (v7 — 3.16.2)
 
@@ -124,25 +153,22 @@ slop-detector myfile.py --no-history
 `--read-only` also records nothing (it writes no history, cache, impact, or
 telemetry state, and refuses options that would).
 
-### Export for ML training
+### Export
 
 ```bash
-slop-detector --export-history training_data.jsonl
+slop-detector --export-history history.jsonl
 ```
 
-The exported JSONL is directly compatible with `DatasetLoader.load_jsonl()`:
+One JSON object per history row, newest first: `timestamp`, `file_path`,
+`file_hash`, `deficit_score`, `ldr_score`, `inflation_score`,
+`ddc_usage_ratio` (null when not measured), `pattern_count`, `grade`,
+`git_commit`, `git_branch`, `language`, `parser_mode` and
+`unmeasured_metrics`.
 
-```python
-from slop_detector.ml.pipeline import MLPipeline
-
-pipeline = MLPipeline(output_dir="models")
-report = pipeline.run_on_real_data(
-    dataset="jsonl",
-    jsonl_path="training_data.jsonl",
-    max_samples=10_000,
-)
-print(report.summary())
-```
+It is a record of measurements, not a training set: it holds no source code
+and no label. `DatasetLoader.load_jsonl()` (the ML pipeline's custom JSONL
+input) reads lines with `code` and optionally `label`, so it skips every line
+of this export.
 
 ---
 

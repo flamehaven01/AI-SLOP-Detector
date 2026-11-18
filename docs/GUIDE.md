@@ -514,8 +514,10 @@ legacy, not evidence (on one real database v1 learned 79% of its
 "improvements" from files that had not changed). Since 3.16.2 every language
 is recorded (a JS/TS, Go or Rust row stores no LDR, inflation or DDC), runs
 read by different parsers are not compared, and the report shows each rule's
-evidence: verified fixes, unchanged warnings, plain suppressions and `fp:`
-declarations.
+evidence: warnings resolved (the code's correctness is not verified),
+unchanged warnings, plain suppressions and `fp:` declarations. An `ok` status
+means the best candidate passed the gap test on this history's own labels;
+detection accuracy is not validated (`externally_validated: not_tested`).
 
 [docs/SELF_CALIBRATION.md →](SELF_CALIBRATION.md) · [Validation boundary →](VALIDATION.md)
 

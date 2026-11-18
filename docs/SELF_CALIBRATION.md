@@ -124,10 +124,12 @@ counted as `legacy` and are never evidence.
    are listed. Beside it, each rule's **evidence states** between comparable
    runs are counted, once per file, rule and bytes (scanning the same bytes
    again adds nothing):
-   - `verified_fix`: the file changed and the rule stopped firing while it
-     was measured (its pattern ran, with a parser that measures it), not
-     suppressed, masked or ignored. The warning was resolved; that does not
-     prove the code works;
+   - `verified_fix` (shown as "Warning resolved - code correctness not
+     verified"): the file changed and the rule stopped firing while it was
+     measured (its pattern ran, with a parser that measures it), not
+     suppressed, masked or ignored. What was verified is that the warning
+     went away under the same measurement; it does not show that the code
+     works or that a defect was fixed;
    - `unchanged_warning`: it fired again on the same bytes;
    - `user_suppressed_unverified`: a plain `# slop-disable` hides it;
    - `user_declared_false_positive`: an `fp:` declaration hides it
@@ -163,12 +165,15 @@ The report shows:
 | Confidence gap | distance between the best two candidates |
 
 and a current / optimal / delta table for ldr, inflation, ddc and purity, the
-combined error before and after (status `ok` only), drift warnings, the
-evidence states per rule and the unchanged-warning rates.
+combined error on this history's labels before and after (status `ok`
+only), drift warnings, the evidence states per rule and the
+unchanged-warning rates. When the gap test passed, a line under the status
+says so and that detection accuracy was not validated.
 
 `--json` prints the same result as one JSON object with `"applied": false`
 (current and recommended weights, evidence counts, evidence states,
-declarations, unchanged-warning rates) and exits as the screen does (0 for
+declarations, unchanged-warning rates, `candidate_gap_passed`,
+`externally_validated: "not_tested"`) and exits as the screen does (0 for
 `ok` / `no_change`, 1 otherwise). It writes nothing. `--apply-calibration`
 stays refused (exit 2) in every environment, CI included, and `--read-only`
 refuses `--self-calibrate`.
@@ -177,7 +182,7 @@ refuses `--self-calibrate`.
 
 | Status | Meaning |
 |---|---|
-| `ok` | A confident recommendation. Advisory only: nothing writes it. |
+| `ok` | The best candidate is at least 0.10 ahead of the second on this history's own labels (`candidate_gap_passed: true`). That is not a validated detection improvement: `externally_validated` is `not_tested` (nothing with a known answer was scored). Advisory only: nothing writes it. |
 | `no_change` | The current weights are within 0.02 of the best combined error, or no candidate was valid. |
 | `insufficient_data` | No project root, no history database, fewer than the required events, or a confidence gap below 0.10. |
 

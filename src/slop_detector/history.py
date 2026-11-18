@@ -38,10 +38,17 @@ Schema v7 (3.16.2):
     ids and values are kept.
   - new rows are provenance_state "v7"; v6 and v7 rows are calibration
     evidence. A release that reads only v6 rows never meets a NULL metric.
+  - before that rebuild the database is kept as it was in history.pre-v7.db
+    (a checked SQLite snapshot; an existing copy is never overwritten). A
+    copy that fails or does not match stops the upgrade. Restoring it is a
+    user action (docs/HISTORY_TRACKING.md); it is a recovery path, not
+    compatibility of older releases with a v7 database.
 """
 
 import hashlib
 import json
+import logging
+import shutil
 import sqlite3
 from contextlib import closing
 from dataclasses import dataclass
@@ -49,9 +56,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+logger = logging.getLogger(__name__)
+
 PROVENANCE_V6 = "v6"
 PROVENANCE_V7 = "v7"
 EVIDENCE_PROVENANCE = (PROVENANCE_V6, PROVENANCE_V7)
+PRE_V7_BACKUP = "history.pre-v7.db"  # next to the database it was taken from
+
+
+class HistoryBackupError(RuntimeError):
+    """The copy kept before the v7 rebuild could not be made or checked; the
+    database was not changed."""
 
 # The Python metrics: (name, FileAnalysis attribute, its field, history column).
 PYTHON_METRICS = (
@@ -223,20 +238,36 @@ class HistoryTracker:
 
     def _init_database(self) -> None:
         """Create or migrate the table in one transaction: a migration that
-        fails leaves the database as it was."""
-        with self._managed_conn() as conn:
-            conn.isolation_level = None  # the transaction below is explicit
-            conn.execute("BEGIN IMMEDIATE")
-            try:
-                conn.execute(_TABLE)
-                self._migrate(conn)
-                _rebuild_with_nullable_metrics(conn)
-                for ddl in _INDEXES:
-                    conn.execute(ddl)
-                conn.execute("COMMIT")
-            except BaseException:
-                conn.execute("ROLLBACK")
-                raise
+        fails leaves the database as it was. A database that needs the v7
+        rebuild is first kept in a checked copy; a copy that no rebuild used
+        (it failed, or another process rebuilt first) is removed again."""
+        backup = _keep_pre_v7_copy(self.db_path)
+        rebuilt = False
+        try:
+            with self._managed_conn() as conn:
+                conn.isolation_level = None  # the transaction below is explicit
+                conn.execute("BEGIN IMMEDIATE")
+                try:
+                    conn.execute(_TABLE)
+                    self._migrate(conn)
+                    rebuilding = _rebuild_with_nullable_metrics(conn)
+                    for ddl in _INDEXES:
+                        conn.execute(ddl)
+                    conn.execute("COMMIT")
+                    rebuilt = rebuilding  # only a committed rebuild used the copy
+                except BaseException:
+                    conn.execute("ROLLBACK")
+                    raise
+        finally:
+            if backup is not None and not rebuilt:
+                _discard(backup)
+        if backup is not None and rebuilt:
+            logger.warning(
+                "%s upgraded to history schema v7; the database as it was is kept in %s"
+                " (restoring it: docs/HISTORY_TRACKING.md)",
+                self.db_path,
+                backup,
+            )
 
     def _migrate(self, conn: sqlite3.Connection) -> None:
         """Add columns introduced after initial schema if missing."""
@@ -621,13 +652,102 @@ def _measurement(file_analysis: Any) -> Dict[str, Any]:
     }
 
 
-def _rebuild_with_nullable_metrics(conn: sqlite3.Connection) -> None:
+def _metrics_not_null(conn: sqlite3.Connection) -> bool:
+    """Whether the history table is pre-v7: a metric column is NOT NULL."""
+    info = conn.execute("PRAGMA table_info(history)").fetchall()
+    return any(row[1] in _METRIC_COLUMNS and row[3] for row in info)
+
+
+def _needs_v7_rebuild(conn: sqlite3.Connection) -> bool:
+    """Whether opening this database will rebuild its table: a metric column
+    is NOT NULL, or missing (the migration adds it NOT NULL, then rebuilds)."""
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(history)")}
+    if not columns:
+        return False  # no table yet: it is created on v7
+    return _metrics_not_null(conn) or not set(_METRIC_COLUMNS) <= columns
+
+
+def _keep_pre_v7_copy(db_path: Path) -> Optional[Path]:
+    """Before a v7 rebuild, keep the database as it is: a SQLite backup made
+    and checked inside one read transaction (one snapshot), then given the
+    original's permission bits. None when no rebuild is needed. On any
+    failure the copy is removed and HistoryBackupError stops the upgrade."""
+    if not db_path.exists():
+        return None
+    with closing(sqlite3.connect(db_path)) as source:
+        if not _needs_v7_rebuild(source):
+            return None
+        target_path = _free_backup_path(db_path)
+        source.isolation_level = None
+        source.execute("BEGIN")
+        try:
+            expected = _snapshot_digest(source)
+            with closing(sqlite3.connect(target_path)) as target:
+                _backup_copy(source, target)
+                _check_copy(target, expected)
+            _restrict_like(db_path, target_path)
+        except (sqlite3.Error, OSError, HistoryBackupError) as exc:
+            _discard(target_path)
+            raise HistoryBackupError(
+                f"history upgrade stopped, {db_path} was not changed: the copy to keep"
+                f" before the v7 rebuild failed ({exc})"
+            ) from exc
+        finally:
+            source.execute("ROLLBACK")
+    return target_path
+
+
+def _free_backup_path(db_path: Path) -> Path:
+    """history.pre-v7.db, or a new name beside it: a copy is never overwritten."""
+    path = db_path.with_name(PRE_V7_BACKUP)
+    if path.exists():
+        path = db_path.with_name(f"history.pre-v7-{datetime.now():%Y%m%dT%H%M%S%f}.db")
+    return path
+
+
+def _backup_copy(source: sqlite3.Connection, target: sqlite3.Connection) -> None:
+    source.backup(target)
+
+
+def _snapshot_digest(conn: sqlite3.Connection) -> str:
+    """SHA-256 of the history table as it is: its schema, every row by id and
+    its AUTOINCREMENT sequence."""
+    digest = hashlib.sha256()
+    for row in conn.execute(
+        "SELECT type, name, sql FROM sqlite_master WHERE tbl_name = 'history' ORDER BY name"
+    ):
+        digest.update(repr(row).encode("utf-8"))
+    for row in conn.execute("SELECT * FROM history ORDER BY id"):
+        digest.update(repr(row).encode("utf-8"))
+    digest.update(repr(_sequence(conn)).encode("utf-8"))
+    return digest.hexdigest()
+
+
+def _check_copy(target: sqlite3.Connection, expected: str) -> None:
+    integrity = target.execute("PRAGMA integrity_check").fetchone()[0]
+    if integrity != "ok":
+        raise HistoryBackupError(f"the copy fails integrity_check: {integrity}")
+    if _snapshot_digest(target) != expected:
+        raise HistoryBackupError("the copy does not match the database")
+
+
+def _restrict_like(original: Path, copy: Path) -> None:
+    """The copy gets the original's permission bits (on Windows, read-only or
+    not; the ACL is inherited from the folder both are in)."""
+    shutil.copymode(original, copy)
+
+
+def _discard(path: Path) -> None:
+    path.unlink(missing_ok=True)  # a copy that failed early may not exist
+
+
+def _rebuild_with_nullable_metrics(conn: sqlite3.Connection) -> bool:
     """Rebuild a pre-v7 table whose metric columns are NOT NULL, inside the
     caller's transaction: same columns (the metric ones now nullable), every
-    row and id, and the AUTOINCREMENT sequence."""
+    row and id, and the AUTOINCREMENT sequence. True when it rebuilt."""
+    if not _metrics_not_null(conn):
+        return False
     info = conn.execute("PRAGMA table_info(history)").fetchall()
-    if not any(row[1] in _METRIC_COLUMNS and row[3] for row in info):
-        return
     definitions = []
     for _, name, kind, notnull, default, pk in info:
         if pk:
@@ -646,6 +766,7 @@ def _rebuild_with_nullable_metrics(conn: sqlite3.Connection) -> None:
     if sequence is not None and (_sequence(conn) or 0) < sequence:
         conn.execute("DELETE FROM sqlite_sequence WHERE name = 'history'")
         conn.execute("INSERT INTO sqlite_sequence (name, seq) VALUES ('history', ?)", (sequence,))
+    return True
 
 
 def _sequence(conn: sqlite3.Connection) -> Optional[int]:

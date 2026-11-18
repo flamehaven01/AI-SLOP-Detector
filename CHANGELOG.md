@@ -46,12 +46,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   DDC 0.0) as measurements, and a skipped metric stored its unused value.
 - A database made before 3.16.2 is rebuilt once, in one transaction, so the
   three metric columns accept NULL: every row, id, value and the id sequence
-  are kept; a failed rebuild leaves the table as it was. A release older
-  than 3.16.2 ignores v7 rows for calibration, but its `--show-history` and
-  `--history-trends` may fail on a NULL metric.
+  are kept; a failed rebuild leaves the table as it was.
+- Before that rebuild the database is kept as it was, once, in
+  `~/.slop-detector/history.pre-v7.db` (an existing copy is never
+  overwritten): a SQLite backup checked for integrity and for the same
+  schema, rows, ids and sequence, with the database's permission bits. A
+  copy that fails or does not match stops the upgrade and leaves
+  `history.db` as it was. Going back to 3.16.1 needs that copy: 3.16.1's
+  `--show-history` fails on a row with a NULL metric and its
+  `--history-trends` on a day without an LDR value (both run with 3.16.1);
+  the way back is in `docs/HISTORY_TRACKING.md`.
 - Rules nobody looked at are unmeasured evidence: every rule when no pattern
   ran (a parse error, a role that skips patterns), and the rules a language's
   fallback reader does not measure. None of them can be a `verified_fix`.
+- Fix: JS/TS, Go and Rust rows stored the path as the scan was given it
+  (relative to the working directory), so `--show-history` did not find
+  them and one file had a different key per working directory. Every row
+  now stores the absolute path.
 
 ### Self-calibration preview
 
@@ -72,9 +83,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   20 of 20 runs when every flagged real problem was fixed and in 0 of 20 when
   nine in ten were left unfixed; its held-out false-negative rate then
   averaged 0.192 against 0.079 for the current weights. The confidence gate
-  withheld 19 of those 20.
+  withheld 19 of those 20; the one it passed had fewer false positives and
+  more false negatives.
+- The result says what `ok` rests on: `candidate_gap_passed` (the best
+  candidate is at least 0.10 ahead of the second on this history's own
+  labels) and `externally_validated: "not_tested"` (no data with a known
+  answer was scored). The screen prints this under the status; `ok` and the
+  exit codes are unchanged.
+- The screen shows the `verified_fix` state as "Warning resolved - code
+  correctness not verified"; the JSON key is unchanged.
 
 ### Documentation
+
+- `docs/HISTORY_TRACKING.md` no longer says the `--export-history` JSONL
+  feeds the ML pipeline's JSONL loader: the loader reads `code` and `label`
+  lines, which the export does not have.
 
 - `docs/GUIDE.md` says how its counts relate: 37 Python rules are 34 pattern
   checks plus 3 dependency-declaration checks, 55 rules in all languages. A

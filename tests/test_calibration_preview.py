@@ -216,6 +216,8 @@ def test_the_json_preview_says_it_applied_nothing_and_writes_nothing(project, hi
                 "declared_false_positives", "comparable_pairs", "unmeasured_metric_pairs"):
         assert key in preview
     assert "per_rule_fp_rates" not in preview  # the misnamed alias stays out of new output
+    assert preview["candidate_gap_passed"] is False
+    assert preview["externally_validated"] == "not_tested"
     assert _tree(project) == tree and _digest(history_db) == db
 
 
@@ -256,7 +258,21 @@ def _reported() -> CalibrationResult:
     )
 
 
-FORBIDDEN = ("FP Rate", "HIGH NOISE", "MOD NOISE", "candidates for suppression", "Noisy")
+def _recommended() -> CalibrationResult:
+    """A result the gap test passed: status ok, nothing validated it."""
+    result = _reported()
+    result.status = "ok"
+    result.candidate_gap_passed = True
+    result.confidence_gap = 0.15
+    result.optimal_weights = {"ldr": 0.2, "inflation": 0.6, "ddc": 0.1, "purity": 0.1}
+    return result
+
+
+# "Verified fix" read as a proven repair: the screen says what the state is.
+FORBIDDEN = ("FP Rate", "HIGH NOISE", "MOD NOISE", "candidates for suppression", "Noisy",
+             "Verified fix")
+RESOLVED = "Warning resolved - code correctness not verified"
+NOT_VALIDATED = "candidate gap passed; detection accuracy not validated (not_tested)"
 
 
 def test_the_screen_shows_the_evidence_states_and_no_false_positive_claim(
@@ -266,12 +282,23 @@ def test_the_screen_shows_the_evidence_states_and_no_false_positive_claim(
     main(["--self-calibrate", "--no-color", str(project)])
     out = " ".join(capsys.readouterr().out.split())
 
-    for label in ("Verified fix", "Unchanged warning", "Suppressed (unverified)",
+    for label in (RESOLVED, "Unchanged warning", "Suppressed (unverified)",
                   "Declared false positive", "Unchanged-warning rate"):
         assert label in out, label
     assert "bare_except" in out and "mutable_default_arg" in out
+    assert NOT_VALIDATED not in out  # the gap test did not pass here
     for word in FORBIDDEN:
         assert word not in out, word
+
+
+def test_an_ok_screen_says_the_gap_passed_not_that_detection_improved(
+    project, history_db, capsys, monkeypatch
+):
+    monkeypatch.setattr(SelfCalibrator, "calibrate", lambda self, *a, **k: _recommended())
+    assert main(["--self-calibrate", "--no-color", str(project)]) == 0  # the exit is unchanged
+    out = " ".join(capsys.readouterr().out.split())
+
+    assert NOT_VALIDATED in out
 
 
 def test_the_plain_report_shows_the_same(capsys):
@@ -282,5 +309,7 @@ def test_the_plain_report_shows_the_same(capsys):
 
     assert "evidence bare_except: unchanged_warning=4 user_declared_false_positive=1" in out
     assert "unchanged_warning_rate bare_except: 80%" in out
+    assert f"verified_fix = {RESOLVED}" in out
+    assert "candidate_gap_passed=False externally_validated=not_tested" in out
     for word in FORBIDDEN:
         assert word.lower() not in out.lower(), word

@@ -56,6 +56,7 @@ MIN_RULE_OCCURRENCES: int = 3  # min times a rule must fire to appear in per_rul
 DOMAIN_TOLERANCE: float = 0.15  # max per-dimension deviation from a domain anchor
 DOMAIN_DRIFT_LIMIT: float = 0.25  # warn when optimal weight drifts this far
 LEARNED = ("ldr", "inflation", "ddc")
+NOT_TESTED = "not_tested"  # externally_validated: no held-out data with a known answer
 
 
 def _default_weights() -> Dict[str, float]:
@@ -140,6 +141,12 @@ class CalibrationResult:
     # Reported only: no state is a learning label.
     evidence_states: Dict[str, Dict[str, int]] = field(default_factory=dict)
     declared_false_positives: List[Dict[str, object]] = field(default_factory=list)
+    # What "ok" rests on: the gap between the best two candidates reached
+    # CONFIDENCE_GAP, measured on this history's own labels. Whether the
+    # recommendation detects better was not tested (no data with a known
+    # answer): "not_tested", which is neither a pass nor a fail.
+    candidate_gap_passed: bool = False
+    externally_validated: str = NOT_TESTED
     warnings: List[str] = field(default_factory=list)
     message: str = ""
 
@@ -232,6 +239,7 @@ class SelfCalibrator:
         winner = candidates[0]
         result.top_candidates = candidates[:3]
         result.confidence_gap = self._confidence_gap(candidates)
+        result.candidate_gap_passed = result.confidence_gap >= CONFIDENCE_GAP
         result.fn_rate_after = winner.fn_rate
         result.fp_rate_after = winner.fp_rate
         result.optimal_weights = {
