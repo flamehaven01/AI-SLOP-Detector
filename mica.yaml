@@ -37,6 +37,7 @@ di_policy:
   # the test file or procedure that holds it (tests/test_mica_package.py
   # checks that they exist).
   critical_binding_required: true
-  # Warn when the archive was not reviewed for 90 days. Age only: a source
-  # change that outdates an entry is caught by the drift test, not by this.
+  # Freshness measures archive age only.
+  # Drift tests detect broken references and selected structural changes.
+  # Semantic source changes still require source and test review.
   max_archive_age_days: 90
