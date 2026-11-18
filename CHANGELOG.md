@@ -61,9 +61,8 @@ A new default terminal screen.
   cache, so every scan after the first one lost it: a single-file scan
   ended with "Analysis failed" (exit 1), and a project scan left the file
   out of its results with an error on stderr. The cache now reads the
-  declaration back as it was written; entries already in the cache are
-  read without a rebuild. `--read-only` scans were not affected (they do
-  not use the cache).
+  declaration back as it was written (also fixed in 3.16.3). `--read-only`
+  scans were not affected (they do not use the cache).
 
 ---
 
