@@ -246,3 +246,90 @@ def test_removing_a_copy_ignores_only_a_missing_file(tmp_path):
         history_module._discard(busy)
     assert not isinstance(raised.value, FileNotFoundError)
     assert busy.exists()
+
+
+# --- INS-CAL-BKP-05: a write between the copy and the upgrade's write lock ---
+
+
+def _write_between(monkeypatch, write):
+    """Run `write` (once) after the copy is made and before the upgrade takes
+    its write lock: another process writing in that window."""
+    real = history_module._keep_pre_v7_copy
+    done = []
+
+    def copy_then_write(db_path):
+        made = real(db_path)
+        if not done:
+            done.append(1)
+            write(db_path)
+        return made
+
+    monkeypatch.setattr(history_module, "_keep_pre_v7_copy", copy_then_write)
+
+
+def _insert_from_another_connection(db_path):
+    with closing(sqlite3.connect(db_path)) as other, other:
+        other.execute(
+            "INSERT INTO history (timestamp, file_path, file_hash, deficit_score, provenance_state)"
+            " VALUES ('2026-11-18T00:00:00', '/p/late.py', 'late', 5.0, 'v6')"
+        )
+
+
+def test_a_write_after_the_copy_stops_the_upgrade(tmp_path, monkeypatch):
+    db = tmp_path / "history.db"
+    _old_database(db)
+    earlier = tmp_path / BACKUP
+    earlier.write_bytes(b"an earlier copy")  # a copy from before: kept
+    _write_between(monkeypatch, _insert_from_another_connection)
+
+    with pytest.raises(HistoryBackupError) as raised:
+        HistoryTracker(db_path=db)
+
+    assert raised.value.cause == history_module.CONCURRENT_WRITE_DETECTED
+    state = _state(db)
+    assert state["notnull"] == [1, 1, 1]  # not upgraded
+    assert state["rows"][-1][2] == "/p/late.py"  # the concurrent row is kept
+    assert _copies(tmp_path) == [BACKUP] and earlier.read_bytes() == b"an earlier copy"
+
+
+def test_the_next_run_upgrades_with_a_copy_that_has_the_late_row(tmp_path, monkeypatch):
+    db = tmp_path / "history.db"
+    _old_database(db)
+    _write_between(monkeypatch, _insert_from_another_connection)
+    with pytest.raises(HistoryBackupError):
+        HistoryTracker(db_path=db)
+    before_retry = _state(db)
+
+    HistoryTracker(db_path=db)  # nothing writes in between this time
+
+    assert _copies(tmp_path) == [BACKUP]
+    assert _state(tmp_path / BACKUP) == before_retry  # the copy has the late row
+    assert _state(db)["notnull"] == [0, 0, 0]
+
+
+def test_a_copy_that_fails_says_backup_failed(tmp_path, monkeypatch):
+    db = tmp_path / "history.db"
+    _old_database(db)
+
+    def full_disk(source, target):
+        raise sqlite3.OperationalError("database or disk is full")
+
+    monkeypatch.setattr(history_module, "_backup_copy", full_disk)
+    with pytest.raises(HistoryBackupError) as raised:
+        HistoryTracker(db_path=db)
+    assert raised.value.cause == history_module.BACKUP_FAILED
+
+
+def test_another_process_that_upgraded_first_is_not_an_error(tmp_path, monkeypatch):
+    """Two 3.16.2 processes: the other one upgrades between this run's copy
+    and its lock. This run finds v7, keeps no copy of its own and goes on."""
+    db = tmp_path / "history.db"
+    _old_database(db)
+    before = _state(db)
+    _write_between(monkeypatch, lambda path: HistoryTracker(db_path=path))
+
+    HistoryTracker(db_path=db)
+
+    (copy,) = _copies(tmp_path)  # the other process's copy only (this run's name was taken)
+    assert _state(tmp_path / copy) == before
+    assert _state(db)["notnull"] == [0, 0, 0]

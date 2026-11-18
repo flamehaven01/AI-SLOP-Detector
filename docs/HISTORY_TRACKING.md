@@ -62,6 +62,14 @@ before the rebuild, the database is kept as it was, once:
   same with `Error: History could not be opened ...` and exit 1, as does
   any other step that needs history. The next run tries again; `--verbose`
   shows the error;
+- the upgrade takes its write lock only after the copy is made; before it
+  changes anything it checks that the database is still the one the copy
+  was taken from (schema, rows, ids, sequence). If another process wrote in
+  between, the copy would miss those rows, so the upgrade stops the same
+  way (the cause in the debug log is `CONCURRENT_WRITE_DETECTED`, a failed
+  copy is `BACKUP_FAILED`): the written rows and any earlier copy are kept,
+  this attempt's copy is removed, and the next run makes a new copy. If
+  another 3.16.2 process finished the upgrade first, nothing is reported;
 - only the run that rebuilds makes a copy, and it prints one line on stderr
   (the copy's file name, never an absolute path): `Notice: History database
   upgraded to v7. Some history commands of releases before 3.16.2 fail on

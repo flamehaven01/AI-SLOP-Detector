@@ -55,7 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `history.db` as it was: a scan still runs with the same output and exit
   code and says in one stderr line that history was not recorded; a command
   that reads history says it could not be opened and exits 1 (no
-  traceback); the error is in the debug log. The upgrade prints one notice
+  traceback); the error is in the debug log. A write by another process
+  between the copy and the upgrade's write lock stops the upgrade the same
+  way (the copy would miss it; debug cause `CONCURRENT_WRITE_DETECTED`); the
+  next run makes a new copy. The upgrade prints one notice
   naming the copy's file, never an absolute path. Going back to 3.16.1
   needs that copy: 3.16.1's `--show-history` fails on a row with a NULL
   metric and its `--history-trends` on a day without an LDR value (both

@@ -54,7 +54,7 @@ from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, NamedTuple, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +79,24 @@ HISTORY_NOT_OPENED = (
 )
 
 
+BACKUP_FAILED = "BACKUP_FAILED"  # the copy could not be made or does not match
+# Another process wrote between the copy and the upgrade's write lock: the
+# copy is not the database as it was right before the upgrade.
+CONCURRENT_WRITE_DETECTED = "CONCURRENT_WRITE_DETECTED"
+
+
 class HistoryBackupError(RuntimeError):
-    """The copy kept before the v7 rebuild could not be made or checked; the
-    database was not changed."""
+    """The copy kept before the v7 rebuild could not be made, checked or
+    trusted (`cause`); the database was not changed."""
+
+    def __init__(self, message: str, cause: str = BACKUP_FAILED) -> None:
+        super().__init__(f"{cause}: {message}")
+        self.cause = cause
+
+
+class _PreV7Copy(NamedTuple):
+    path: Path
+    digest: str  # _snapshot_digest of the database the copy was taken from
 
 # The Python metrics: (name, FileAnalysis attribute, its field, history column).
 PYTHON_METRICS = (
@@ -255,7 +270,12 @@ class HistoryTracker:
         """Create or migrate the table in one transaction: a migration that
         fails leaves the database as it was. A database that needs the v7
         rebuild is first kept in a checked copy; a copy that no rebuild used
-        (it failed, or another process rebuilt first) is removed again."""
+        (it failed, or another process rebuilt first) is removed again.
+
+        Once the write lock is held and before any schema change, the database
+        must still be the one the copy was taken from: a write by another
+        process in between stops the upgrade (CONCURRENT_WRITE_DETECTED); the
+        next run makes a new copy."""
         backup = _keep_pre_v7_copy(self.db_path)
         rebuilt = False
         try:
@@ -263,6 +283,7 @@ class HistoryTracker:
                 conn.isolation_level = None  # the transaction below is explicit
                 conn.execute("BEGIN IMMEDIATE")
                 try:
+                    _check_still_copied(conn, backup)
                     conn.execute(_TABLE)
                     self._migrate(conn)
                     rebuilding = _rebuild_with_nullable_metrics(conn)
@@ -275,10 +296,12 @@ class HistoryTracker:
                     raise
         finally:
             if backup is not None and not rebuilt:
-                _discard(backup)
+                _discard(backup.path)  # this attempt's copy only
         if backup is not None and rebuilt:
-            logger.warning(UPGRADE_NOTICE.format(name=backup.name))
-            logger.debug("history upgrade: %s rebuilt; pre-upgrade copy %s", self.db_path, backup)
+            logger.warning(UPGRADE_NOTICE.format(name=backup.path.name))
+            logger.debug(
+                "history upgrade: %s rebuilt; pre-upgrade copy %s", self.db_path, backup.path
+            )
 
     def _migrate(self, conn: sqlite3.Connection) -> None:
         """Add columns introduced after initial schema if missing."""
@@ -678,11 +701,12 @@ def _needs_v7_rebuild(conn: sqlite3.Connection) -> bool:
     return _metrics_not_null(conn) or not set(_METRIC_COLUMNS) <= columns
 
 
-def _keep_pre_v7_copy(db_path: Path) -> Optional[Path]:
+def _keep_pre_v7_copy(db_path: Path) -> Optional[_PreV7Copy]:
     """Before a v7 rebuild, keep the database as it is: a SQLite backup made
     and checked inside one read transaction (one snapshot), then given the
-    original's permission bits. None when no rebuild is needed. On any
-    failure the copy is removed and HistoryBackupError stops the upgrade."""
+    original's permission bits; returned with the snapshot's digest. None
+    when no rebuild is needed. On any failure the copy is removed and
+    HistoryBackupError (BACKUP_FAILED) stops the upgrade."""
     if not db_path.exists():
         return None
     with closing(sqlite3.connect(db_path)) as source:
@@ -705,7 +729,22 @@ def _keep_pre_v7_copy(db_path: Path) -> Optional[Path]:
             ) from exc
         finally:
             source.execute("ROLLBACK")
-    return target_path
+    return _PreV7Copy(target_path, expected)
+
+
+def _check_still_copied(conn: sqlite3.Connection, backup: Optional[_PreV7Copy]) -> None:
+    """Inside the upgrade's write transaction, before any schema change: the
+    database must be the one the copy was taken from. Another process that
+    already upgraded it is not an error (nothing is rebuilt, the copy is
+    removed); a write since the copy is (CONCURRENT_WRITE_DETECTED)."""
+    if backup is None or not _needs_v7_rebuild(conn):
+        return
+    if _snapshot_digest(conn) != backup.digest:
+        raise HistoryBackupError(
+            "the database changed after the pre-upgrade copy was taken; upgrade stopped,"
+            " the next run makes a new copy",
+            cause=CONCURRENT_WRITE_DETECTED,
+        )
 
 
 def _free_backup_path(db_path: Path) -> Path:
