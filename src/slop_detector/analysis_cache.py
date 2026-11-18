@@ -22,6 +22,7 @@ from slop_detector.metrics.hallucination_deps import (
     HallucinationDepsResult,
 )
 from slop_detector.models import (
+    DECLARED_FALSE_POSITIVE,
     DDCResult,
     FileAnalysis,
     IgnoredFunction,
@@ -175,10 +176,12 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
         context_jargon=_restore_context_jargon(data.get("context_jargon")),
         ignored_functions=[IgnoredFunction(**item) for item in data.get("ignored_functions", [])],
         suppression_directives=[
-            SuppressionDirective(**item) for item in data.get("suppression_directives", [])
+            _restore_declared(SuppressionDirective, item)
+            for item in data.get("suppression_directives", [])
         ],
         suppression_ledger=[
-            SuppressionLedgerEntry(**item) for item in data.get("suppression_ledger", [])
+            _restore_declared(SuppressionLedgerEntry, item)
+            for item in data.get("suppression_ledger", [])
         ],
         masked_issues=[MaskedIssue(**item) for item in data.get("masked_issues", [])],
         ml_score=_restore_ml_score(data.get("ml_score")),
@@ -199,6 +202,16 @@ def deserialize_file_analysis(payload: str) -> FileAnalysis:
         source_sha256=data.get("source_sha256", ""),
         content_origin=data.get("content_origin", ""),
     )
+
+
+def _restore_declared(cls: Any, item: Dict[str, Any]) -> Any:
+    """to_dict() writes an fp: declaration as "declaration"; the field is
+    declared_false_positive. Map it back, or a cached declared file fails to load."""
+    fields = dict(item)
+    declaration = fields.pop("declaration", None)
+    if declaration is not None:
+        fields["declared_false_positive"] = declaration == DECLARED_FALSE_POSITIVE
+    return cls(**fields)
 
 
 def _restore_issue(item: Dict[str, Any]) -> Issue:
