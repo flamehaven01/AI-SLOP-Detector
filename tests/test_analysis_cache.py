@@ -175,3 +175,51 @@ def test_analyze_project_reuses_cached_results_for_unchanged_files(tmp_path, mon
     detector.analyze_project(str(tmp_path))
 
     assert calls["count"] == 1
+
+
+DECLARED = (
+    "def handler(event):\n"
+    "    try:\n"
+    '        return event["id"]\n'
+    "    # slop-disable-next-line empty_except fp: the caller retries and logs it\n"
+    "    except Exception:\n"
+    "        pass\n"
+)
+
+
+def test_a_cached_fp_declaration_reads_back_as_it_was_written(tmp_path, monkeypatch):
+    detector = SlopDetector()
+    detector._analysis_cache = FileAnalysisCache(tmp_path / "analysis_cache.db")
+    file_path = tmp_path / "declared.py"
+    file_path.write_text(DECLARED, encoding="utf-8")
+
+    first = detector.analyze_file(str(file_path))
+    assert any(d.declared_false_positive for d in first.suppression_directives)
+    assert any(e.declared_false_positive for e in first.suppression_ledger)
+
+    def explode(*args, **kwargs):
+        raise AssertionError("cache hit should skip recalculation")
+
+    monkeypatch.setattr(detector.ldr_calc, "calculate", explode)
+    second = detector.analyze_file(str(file_path))
+
+    assert second.suppression_directives == first.suppression_directives
+    assert second.suppression_ledger == first.suppression_ledger
+    assert serialize_file_analysis(second) == serialize_file_analysis(first)
+
+
+def test_a_project_scan_keeps_a_declared_file_on_the_second_run(tmp_path):
+    detector = SlopDetector()
+    detector._analysis_cache = FileAnalysisCache(tmp_path / "cache" / "analysis_cache.db")
+    detector.config.config["ignore"] = ["cache/*"]
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "declared.py").write_text(DECLARED, encoding="utf-8")
+    (project / "plain.py").write_text("def b():\n    return 2\n", encoding="utf-8")
+
+    first = detector.analyze_project(str(project))
+    second = detector.analyze_project(str(project))
+
+    assert first.total_files == 2
+    assert second.total_files == first.total_files
+    assert [r.to_dict() for r in second.file_results] == [r.to_dict() for r in first.file_results]

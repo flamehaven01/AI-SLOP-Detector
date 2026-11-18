@@ -55,6 +55,16 @@ A new default terminal screen.
   state or runs something other than the scan report: `--fix`, `--init`,
   the history options, ...).
 
+### Fixed
+
+- A file with an `fp:` declaration (3.16.2) failed to load from the analysis
+  cache, so every scan after the first one lost it: a single-file scan
+  ended with "Analysis failed" (exit 1), and a project scan left the file
+  out of its results with an error on stderr. The cache now reads the
+  declaration back as it was written; entries already in the cache are
+  read without a rebuild. `--read-only` scans were not affected (they do
+  not use the cache).
+
 ---
 
 ## [3.16.2] - 2026-11-18
