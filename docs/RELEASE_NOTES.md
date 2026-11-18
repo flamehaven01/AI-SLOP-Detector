@@ -5,6 +5,34 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.16.3 — 2026-11-18
+
+### Summary
+
+A fix for files with an `fp:` declaration (added in 3.16.2). From the second
+scan on, such a file failed to load from the analysis cache: a single-file
+scan failed with exit 1, and a project scan finished with exit 0 but left the
+file out of its results. 3.16.3 reads the declaration back from the cache as
+it was written. Scoring, the scan JSON format and the gate are unchanged.
+
+### What moves when you upgrade
+
+- **A declared file stays in every scan.** A project scan reports the same
+  files on the first and on later runs; before, the declared file was missing
+  from later runs and from the file count.
+- **The first scan after upgrading analyzes each file once more**, as after
+  any upgrade: the cache key includes the installed packages. Later scans use
+  the cache. The cache format and version are unchanged.
+- **Not affected:** `--read-only` scans, and MCP and REST scans (read-only by
+  default); none of them uses the cache.
+- **The VS Code extension** runs the Python package of its configured
+  interpreter, so upgrading the package (`pip install -U ai-slop-detector`)
+  fixes the extension's scans; the extension version stays 3.16.2.
+- Before upgrading, turn the cache off in `.slopconfig.yaml` to avoid the
+  problem: `advanced: {analysis_cache_enabled: false}`.
+
+---
+
 ## v3.16.2 — 2026-11-18
 
 ### Summary
@@ -2040,6 +2068,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
+| **v3.16.3** | cache patch: a file with an `fp:` declaration loads from the analysis cache, so it stays in every scan after the first (it failed with exit 1, or was left out of a project scan); scoring and the scan JSON format unchanged |
 | **v3.16.2** | calibration evidence: history of all four languages with unmeasured metrics stored as NULL (a checked copy kept before the one-time upgrade); `fp:` false-positive declarations; `--self-calibrate` shows each rule's evidence, reads history without writing it, and prints JSON with `--json`; scoring unchanged (a suppression comment with words after `fp:` can show findings again) |
 | **v3.16.1** | Rust release: `todo!()`, `unimplemented!()`, `dbg!()` and TODO comments in `.rs` files, judged by the CI gate; Go and JS/TS regex readers ignore text in strings and comments; README rewritten |
 | **v3.15.2** | gate patch: `--ci-mode hard` (and soft and quarantine) judge JS/TS and Go files by their score band and critical/high findings, like Python files; up to 3.15.1 they were not judged |
