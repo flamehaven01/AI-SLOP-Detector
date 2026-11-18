@@ -265,7 +265,10 @@ def _verdict(view: ReportView, glyphs: dict, elapsed: Optional[float]) -> Any:
 
 
 def print_summary(
-    view: ReportView, elapsed: Optional[float] = None, console: Any = None, interactive: bool = False
+    view: ReportView,
+    elapsed: Optional[float] = None,
+    console: Any = None,
+    interactive: bool = False,
 ) -> None:
     """Print the one-screen summary with rich: the verdict in a panel, then at
     most 5 findings and 3 review candidates (one line each), then what to do.

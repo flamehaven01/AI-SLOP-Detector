@@ -11,7 +11,9 @@ import importlib.util
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-_spec = importlib.util.spec_from_file_location("exe_launcher", REPO / "scripts" / "exe" / "launcher.py")
+_spec = importlib.util.spec_from_file_location(
+    "exe_launcher", REPO / "scripts" / "exe" / "launcher.py"
+)
 launcher = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(launcher)
 
