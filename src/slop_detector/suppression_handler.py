@@ -46,7 +46,9 @@ class SuppressionHandler:
                     rules=rules,
                     declared_false_positive=declared,
                     reason_sha256=(
-                        hashlib.sha256(reason.encode("utf-8")).hexdigest() if declared else None
+                        hashlib.sha256(reason.encode("utf-8")).hexdigest()
+                        if declared and reason
+                        else None
                     ),
                 )
             )

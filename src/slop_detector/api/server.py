@@ -25,8 +25,6 @@ from ..history import (
     measurement_provenance,
 )
 from ..language_registry import all_file_results
-
-logger = logging.getLogger(__name__)
 from ..service.scan import ScanFailedError, ScanRequest, ScanService, WritePolicy
 from .models import (
     AgentFileResponse,
@@ -37,6 +35,8 @@ from .models import (
     TrendResponse,
     WebhookPayload,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _project_id_for_path(path: Path) -> str:
