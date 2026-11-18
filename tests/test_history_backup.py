@@ -45,8 +45,16 @@ def _old_database(db: Path) -> None:
                 "INSERT INTO history (timestamp, file_path, file_hash, deficit_score,"
                 " ldr_score, inflation_score, ddc_usage_ratio, provenance_state)"
                 " VALUES (?,?,?,?,?,?,?,?)",
-                (f"2026-11-0{i + 1}T00:00:00", f"/p/m{i}.py", f"h{i}", 10.0 * i,
-                 0.1 * i, 0.2 * i, 0.3 * i, "v6"),
+                (
+                    f"2026-11-0{i + 1}T00:00:00",
+                    f"/p/m{i}.py",
+                    f"h{i}",
+                    10.0 * i,
+                    0.1 * i,
+                    0.2 * i,
+                    0.3 * i,
+                    "v6",
+                ),
             )
         conn.execute("DELETE FROM history WHERE id = 3")
 
@@ -55,9 +63,7 @@ def _state(db: Path):
     """Rows, schema and the metric columns' NOT NULL flags of a database."""
     with closing(sqlite3.connect(db)) as conn:  # closed: Windows cannot replace an open file
         rows = conn.execute("SELECT * FROM history ORDER BY id").fetchall()
-        schema = conn.execute(
-            "SELECT sql FROM sqlite_master WHERE name = 'history'"
-        ).fetchone()[0]
+        schema = conn.execute("SELECT sql FROM sqlite_master WHERE name = 'history'").fetchone()[0]
         notnull = [r[3] for r in conn.execute("PRAGMA table_info(history)") if r[1] in METRICS]
         sequence = conn.execute("SELECT seq FROM sqlite_sequence WHERE name = 'history'").fetchone()
     return {"rows": rows, "schema": schema, "notnull": notnull, "sequence": sequence}
@@ -187,8 +193,13 @@ def test_restoring_the_copy_gives_back_the_old_database(tmp_path):
     before = _state(db)
     tracker = HistoryTracker(db_path=db)
     entry = history_module.HistoryEntry(
-        timestamp="2026-11-18T00:00:00", file_path="/p/x.rs", file_hash="h",
-        deficit_score=1.0, ldr_score=None, inflation_score=None, ddc_usage_ratio=None,
+        timestamp="2026-11-18T00:00:00",
+        file_path="/p/x.rs",
+        file_hash="h",
+        deficit_score=1.0,
+        ldr_score=None,
+        inflation_score=None,
+        ddc_usage_ratio=None,
         pattern_count=0,
     )
     tracker._insert(entry)  # a v7 row the old release could not read

@@ -41,7 +41,7 @@ SOURCES = {
     # three panics: the Go rule's severity is the string "critical"
     "c.go": (
         "package main\n\nfunc f() {\n\t// TODO: implement\n"
-        "\tpanic(\"a\")\n\tpanic(\"b\")\n\tpanic(\"c\")\n}\n"
+        '\tpanic("a")\n\tpanic("b")\n\tpanic("c")\n}\n'
     ),
     "d.rs": "fn f() -> i32 {\n    todo!()\n}\n",
 }
@@ -209,8 +209,19 @@ def _old_database(db: Path):
                 "INSERT INTO history (timestamp, file_path, file_hash, deficit_score,"
                 " ldr_score, inflation_score, ddc_usage_ratio, pattern_count, grade,"
                 " provenance_state, withheld_evidence) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                (f"2026-11-0{i + 1}T00:00:00", f"/p/m{i}.py", f"h{i}", 10.0 * i,
-                 0.1 * i, 0.2 * i, 0.3 * i, i, "clean", "v6" if i else None, None),
+                (
+                    f"2026-11-0{i + 1}T00:00:00",
+                    f"/p/m{i}.py",
+                    f"h{i}",
+                    10.0 * i,
+                    0.1 * i,
+                    0.2 * i,
+                    0.3 * i,
+                    i,
+                    "clean",
+                    "v6" if i else None,
+                    None,
+                ),
             )
         conn.execute("DELETE FROM history WHERE id = 3")  # its id is never handed out again
 
@@ -233,8 +244,13 @@ def test_an_older_database_is_rebuilt_once_and_keeps_every_row(tmp_path):
     assert [r["id"] for r in after] == [1, 2]
     assert [_notnull(db)[m] for m in METRICS] == [0, 0, 0]
     entry = history_module.HistoryEntry(
-        timestamp="2026-11-17T00:00:00", file_path="/p/x.rs", file_hash="h",
-        deficit_score=1.0, ldr_score=None, inflation_score=None, ddc_usage_ratio=None,
+        timestamp="2026-11-17T00:00:00",
+        file_path="/p/x.rs",
+        file_hash="h",
+        deficit_score=1.0,
+        ldr_score=None,
+        inflation_score=None,
+        ddc_usage_ratio=None,
         pattern_count=0,
     )
     tracker._insert(entry)

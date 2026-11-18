@@ -476,7 +476,9 @@ class SelfCalibrator:
         with closing(sqlite3.connect(uri, uri=True)) as conn:
             columns = {row[1] for row in conn.execute("PRAGMA table_info(history)")}
             if "provenance_state" not in columns:
-                legacy = conn.execute("SELECT COUNT(*) FROM history").fetchone() if columns else (0,)
+                legacy = (
+                    conn.execute("SELECT COUNT(*) FROM history").fetchone() if columns else (0,)
+                )
                 return [], int(legacy[0])
             select = ", ".join(
                 name if name in columns else f"NULL AS {name}" for name, _ in _ROW_COLUMNS

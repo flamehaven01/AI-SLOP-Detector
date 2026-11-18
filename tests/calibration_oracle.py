@@ -70,8 +70,11 @@ def _flagged(metrics: Tuple[float, float, float], weights: Dict[str, float]) -> 
 
 def _population(rng: random.Random, files: int) -> List[Tuple[float, float, float]]:
     return [
-        (round(rng.uniform(0.25, 1.0), 3), round(rng.uniform(0.0, 1.6), 3),
-         round(rng.uniform(0.35, 1.0), 3))
+        (
+            round(rng.uniform(0.25, 1.0), 3),
+            round(rng.uniform(0.0, 1.6), 3),
+            round(rng.uniform(0.35, 1.0), 3),
+        )
         for _ in range(files)
     ]
 

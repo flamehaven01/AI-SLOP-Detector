@@ -61,8 +61,19 @@ def project(tmp_path, monkeypatch):
     return root
 
 
-def _row(tracker, rel, ts, file_hash, *, fired=None, metrics=FLAGGED, parser="python_ast",
-         language="python", withheld=None, fingerprint="m1"):
+def _row(
+    tracker,
+    rel,
+    ts,
+    file_hash,
+    *,
+    fired=None,
+    metrics=FLAGGED,
+    parser="python_ast",
+    language="python",
+    withheld=None,
+    fingerprint="m1",
+):
     entry = HistoryEntry(
         timestamp=ts,
         file_path=f"{ROOT}/{rel}",
@@ -141,10 +152,25 @@ def test_calibration_reads_a_current_database_without_changing_it(tmp_path):
 
 def test_runs_read_by_different_parsers_are_not_paired(tmp_path):
     tracker = HistoryTracker(db_path=tmp_path / "history.db")
-    _row(tracker, "b.js", "2026-11-01", "h1", fired={"js_todo": 1}, metrics=None,
-         language="javascript", parser="regex_fallback")
-    _row(tracker, "b.js", "2026-11-02", "h2", metrics=None,
-         language="javascript", parser="tree_sitter_ast")
+    _row(
+        tracker,
+        "b.js",
+        "2026-11-01",
+        "h1",
+        fired={"js_todo": 1},
+        metrics=None,
+        language="javascript",
+        parser="regex_fallback",
+    )
+    _row(
+        tracker,
+        "b.js",
+        "2026-11-02",
+        "h2",
+        metrics=None,
+        language="javascript",
+        parser="tree_sitter_ast",
+    )
 
     result = _calibrate(tmp_path / "history.db")
 
@@ -154,10 +180,19 @@ def test_runs_read_by_different_parsers_are_not_paired(tmp_path):
 
 def test_scanning_the_same_bytes_again_adds_no_evidence(tmp_path):
     tracker = HistoryTracker(db_path=tmp_path / "history.db")
-    declared = {"suppressed": [{"rule": "bare_except", "line": 4,
-                                "state": ev.USER_DECLARED_FALSE_POSITIVE,
-                                "reason_sha256": "0" * 64}],
-                "unmeasured": [], "masked": [], "ignored": []}
+    declared = {
+        "suppressed": [
+            {
+                "rule": "bare_except",
+                "line": 4,
+                "state": ev.USER_DECLARED_FALSE_POSITIVE,
+                "reason_sha256": "0" * 64,
+            }
+        ],
+        "unmeasured": [],
+        "masked": [],
+        "ignored": [],
+    }
     for i in range(6):
         _row(tracker, "a.py", f"2026-11-0{i + 1}", "h1", fired={"mutable_default_arg": 1})
     _row(tracker, "b.py", "2026-11-01", "g1", fired={"bare_except": 1})
@@ -176,13 +211,34 @@ def test_a_pair_with_an_unmeasured_metric_is_never_learned(tmp_path):
     tracker = HistoryTracker(db_path=tmp_path / "history.db")
     for i in range(6):
         rel = f"m{i}.py"
-        _row(tracker, rel, "2026-11-01", "h1", fired={"bare_except": 1},
-             metrics=dict(FLAGGED, ldr=None))
+        _row(
+            tracker,
+            rel,
+            "2026-11-01",
+            "h1",
+            fired={"bare_except": 1},
+            metrics=dict(FLAGGED, ldr=None),
+        )
         _row(tracker, rel, "2026-11-02", "h1", fired={"bare_except": 1})
-        _row(tracker, f"r{i}.rs", "2026-11-01", "k1", fired={"rust_todo": 1}, metrics=None,
-             language="rust", parser="token_scanner")
-        _row(tracker, f"r{i}.rs", "2026-11-02", "k2", metrics=None,
-             language="rust", parser="token_scanner")
+        _row(
+            tracker,
+            f"r{i}.rs",
+            "2026-11-01",
+            "k1",
+            fired={"rust_todo": 1},
+            metrics=None,
+            language="rust",
+            parser="token_scanner",
+        )
+        _row(
+            tracker,
+            f"r{i}.rs",
+            "2026-11-02",
+            "k2",
+            metrics=None,
+            language="rust",
+            parser="token_scanner",
+        )
 
     result = _calibrate(tmp_path / "history.db")
 
@@ -212,8 +268,14 @@ def test_the_json_preview_says_it_applied_nothing_and_writes_nothing(project, hi
     assert preview["applied"] is False
     assert preview["status"] == "insufficient_data"
     assert preview["evidence_states"]["mutable_default_arg"] == {ev.UNCHANGED_WARNING: 3}
-    for key in ("current_weights", "optimal_weights", "unchanged_warning_rate",
-                "declared_false_positives", "comparable_pairs", "unmeasured_metric_pairs"):
+    for key in (
+        "current_weights",
+        "optimal_weights",
+        "unchanged_warning_rate",
+        "declared_false_positives",
+        "comparable_pairs",
+        "unmeasured_metric_pairs",
+    ):
         assert key in preview
     assert "per_rule_fp_rates" not in preview  # the misnamed alias stays out of new output
     assert preview["candidate_gap_passed"] is False
@@ -251,9 +313,17 @@ def _reported() -> CalibrationResult:
             "bare_except": {ev.UNCHANGED_WARNING: 4, ev.USER_DECLARED_FALSE_POSITIVE: 1},
             "mutable_default_arg": {ev.VERIFIED_FIX: 2, ev.USER_SUPPRESSED_UNVERIFIED: 1},
         },
-        declared_false_positives=[{"rule": "bare_except", "file": "a.py", "line": 4,
-                                   "file_hash": "h", "state": ev.USER_DECLARED_FALSE_POSITIVE,
-                                   "reason_sha256": "0" * 64, "measurement_fingerprint": "m"}],
+        declared_false_positives=[
+            {
+                "rule": "bare_except",
+                "file": "a.py",
+                "line": 4,
+                "file_hash": "h",
+                "state": ev.USER_DECLARED_FALSE_POSITIVE,
+                "reason_sha256": "0" * 64,
+                "measurement_fingerprint": "m",
+            }
+        ],
         message="Need more evidence.",
     )
 
@@ -269,8 +339,14 @@ def _recommended() -> CalibrationResult:
 
 
 # "Verified fix" read as a proven repair: the screen says what the state is.
-FORBIDDEN = ("FP Rate", "HIGH NOISE", "MOD NOISE", "candidates for suppression", "Noisy",
-             "Verified fix")
+FORBIDDEN = (
+    "FP Rate",
+    "HIGH NOISE",
+    "MOD NOISE",
+    "candidates for suppression",
+    "Noisy",
+    "Verified fix",
+)
 RESOLVED = "Warning resolved - code correctness not verified"
 NOT_VALIDATED = "candidate gap passed; detection accuracy not validated (not_tested)"
 
@@ -282,8 +358,13 @@ def test_the_screen_shows_the_evidence_states_and_no_false_positive_claim(
     main(["--self-calibrate", "--no-color", str(project)])
     out = " ".join(capsys.readouterr().out.split())
 
-    for label in (RESOLVED, "Unchanged warning", "Suppressed (unverified)",
-                  "Declared false positive", "Unchanged-warning rate"):
+    for label in (
+        RESOLVED,
+        "Unchanged warning",
+        "Suppressed (unverified)",
+        "Declared false positive",
+        "Unchanged-warning rate",
+    ):
         assert label in out, label
     assert "bare_except" in out and "mutable_default_arg" in out
     assert NOT_VALIDATED not in out  # the gap test did not pass here

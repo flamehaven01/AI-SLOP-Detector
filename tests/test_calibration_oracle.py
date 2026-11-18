@@ -46,8 +46,17 @@ def _sup(rule, state, line=4):
     return item
 
 
-def _row(tracker, rel, ts, file_hash, metrics, fired=None, withheld=NOTHING,
-         fingerprint="m1", parser="python_ast"):
+def _row(
+    tracker,
+    rel,
+    ts,
+    file_hash,
+    metrics,
+    fired=None,
+    withheld=NOTHING,
+    fingerprint="m1",
+    parser="python_ast",
+):
     entry = HistoryEntry(
         timestamp=ts,
         file_path=f"{ROOT}/{rel}",
@@ -94,8 +103,14 @@ def _counterexamples(tracker):
     _row(tracker, "parser.js", t2, "b", (None,) * 3, parser="tree_sitter_ast")
     # the same bytes scanned five times
     for day in range(1, 6):
-        _row(tracker, "repeated.py", f"2026-11-0{day}T00:00:00", "a", FLAGGED,
-             {"ignored_parameter": 1})
+        _row(
+            tracker,
+            "repeated.py",
+            f"2026-11-0{day}T00:00:00",
+            "a",
+            FLAGGED,
+            {"ignored_parameter": 1},
+        )
     # gutted to a stub: no pattern ran, no LDR, so nothing stopped firing
     _row(tracker, "gutted.py", t1, "a", FLAGGED, {"nested_complexity": 1})
     _row(tracker, "gutted.py", t2, "b", (None, 0.0, 1.0), withheld=_withheld(unmeasured=["all"]))
@@ -133,8 +148,9 @@ def test_each_counterexample_gives_exactly_its_known_events_and_states(tmp_path)
 
 
 def _oracle(tmp_path, fix_rate, seed=7):
-    return run_oracle(tmp_path / "history.db", seed=seed, files=300, fix_rate=fix_rate,
-                      declare_rate=0.3)
+    return run_oracle(
+        tmp_path / "history.db", seed=seed, files=300, fix_rate=fix_rate, declare_rate=0.3
+    )
 
 
 def test_the_oracle_is_deterministic(tmp_path):

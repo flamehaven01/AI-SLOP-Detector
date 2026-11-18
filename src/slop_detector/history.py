@@ -98,6 +98,7 @@ class _PreV7Copy(NamedTuple):
     path: Path
     digest: str  # _snapshot_digest of the database the copy was taken from
 
+
 # The Python metrics: (name, FileAnalysis attribute, its field, history column).
 PYTHON_METRICS = (
     ("ldr", "ldr", "ldr_score", "ldr_score"),
@@ -353,9 +354,7 @@ class HistoryTracker:
         """
         file_path = _absolute(str(getattr(file_analysis, "file_path", "")))
         measured = _measurement(file_analysis)
-        pattern_count, n_critical_patterns, fired_rules_json = _pattern_summary(
-            measured["issues"]
-        )
+        pattern_count, n_critical_patterns, fired_rules_json = _pattern_summary(measured["issues"])
 
         status = getattr(file_analysis, "status", None)
         grade = status.value if status and hasattr(status, "value") else str(status or "")

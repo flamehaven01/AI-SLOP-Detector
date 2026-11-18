@@ -89,8 +89,21 @@ def test_guide_rule_totals_are_the_registry_table():
 
 
 # Commands a reader may run that are not this package's own (pyproject scripts).
-_KNOWN_TOOLS = {"pip", "python", "npx", "npm", "node", "uvx", "cd", "cp", "git", "pytest",
-                "black", "ruff", "code"}
+_KNOWN_TOOLS = {
+    "pip",
+    "python",
+    "npx",
+    "npm",
+    "node",
+    "uvx",
+    "cd",
+    "cp",
+    "git",
+    "pytest",
+    "black",
+    "ruff",
+    "code",
+}
 
 
 def test_every_guide_command_is_one_a_reader_can_run():

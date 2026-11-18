@@ -322,8 +322,7 @@ UNCHANGED_RATE_NOTE = (
 def gap_note(result) -> str:
     """What an ok (or no_change) status rests on, said where the status is shown."""
     return (
-        "candidate gap passed; detection accuracy not validated"
-        f" ({result.externally_validated})"
+        "candidate gap passed; detection accuracy not validated" f" ({result.externally_validated})"
     )
 
 

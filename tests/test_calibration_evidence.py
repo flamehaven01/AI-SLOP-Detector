@@ -102,10 +102,13 @@ def test_a_row_without_a_withheld_record_shows_no_fix():
 
 
 def test_a_declaration_on_the_rule_is_its_state_beside_a_plain_suppression():
-    both = _row("h2", suppressed=[
-        _sup("bare_except", line=4),
-        _sup("bare_except", ev.USER_DECLARED_FALSE_POSITIVE, line=9),
-    ])
+    both = _row(
+        "h2",
+        suppressed=[
+            _sup("bare_except", line=4),
+            _sup("bare_except", ev.USER_DECLARED_FALSE_POSITIVE, line=9),
+        ],
+    )
     assert _states(_row("h1", {"bare_except": 2}), both) == {
         "bare_except": ev.USER_DECLARED_FALSE_POSITIVE
     }
@@ -143,8 +146,10 @@ def test_a_scan_records_what_it_withheld_and_never_the_reason(tmp_path):
     _scan_and_record(tmp_path, db, DECLARED)
     _scan_and_record(tmp_path, db, PLAIN)
     with sqlite3.connect(db) as conn:
-        rows = [json.loads(r[0]) for r in conn.execute(
-            "SELECT withheld_evidence FROM history ORDER BY id")]
+        rows = [
+            json.loads(r[0])
+            for r in conn.execute("SELECT withheld_evidence FROM history ORDER BY id")
+        ]
     assert [s["state"] for s in rows[0]["suppressed"]] == [ev.USER_DECLARED_FALSE_POSITIVE]
     assert [s["state"] for s in rows[1]["suppressed"]] == [ev.USER_SUPPRESSED_UNVERIFIED]
     assert rows[0]["suppressed"][0]["rule"] == "bare_except"
@@ -165,7 +170,8 @@ def test_an_older_database_gains_the_column_and_keeps_its_rows(tmp_path):
     HistoryTracker(db_path=db)
     with sqlite3.connect(db) as conn:
         row = conn.execute(
-            "SELECT file_hash, deficit_score, withheld_evidence FROM history").fetchone()
+            "SELECT file_hash, deficit_score, withheld_evidence FROM history"
+        ).fetchone()
     assert row == ("h0", 42.0, None)
 
 
@@ -197,7 +203,6 @@ def test_suppressions_change_no_learning_label(tmp_path):
         db = tmp_path / f"h{len(counts)}.db"
         _scan_and_record(tmp_path, db, directive)
         _scan_and_record(tmp_path, db, directive)
-        r = SelfCalibrator(db_path=db).calibrate(
-            project_root=str((tmp_path / "proj").resolve()))
+        r = SelfCalibrator(db_path=db).calibrate(project_root=str((tmp_path / "proj").resolve()))
         counts.append((r.improvement_events, r.stable_flag_candidates, r.comparable_pairs))
     assert counts[0] == counts[1] == counts[2]

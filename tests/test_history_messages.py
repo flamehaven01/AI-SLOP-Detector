@@ -159,8 +159,11 @@ def test_without_a_failure_neither_line_appears_and_the_notice_shows_once(
 ):
     db, project = setup
     notices = []
-    for args in ([str(project), "--json"], [str(project), "--json"],
-                 ["--self-calibrate", "--json", str(project)]):
+    for args in (
+        [str(project), "--json"],
+        [str(project), "--json"],
+        ["--self-calibrate", "--json", str(project)],
+    ):
         caplog.clear()
         with caplog.at_level(logging.WARNING):
             main(args)
