@@ -38,12 +38,29 @@ def render_payload_text(payload: Dict[str, Any]) -> str:
     lines = [f"{payload.get('command', 'command').upper()}"]
     verdict = payload.get("verdict")
     if verdict:
-        lines.append(f"Verdict: {str(verdict).upper()}")
+        lines.append(f"Verdict: {str(verdict).upper()}{_verdict_basis(payload)}")
     summary = payload.get("summary", {})
     lines.extend(_render_summary_lines(summary))
     lines.extend(_render_target_lines(payload.get("targets", [])))
     lines.extend(_render_issue_lines(payload.get("issues", [])))
     return "\n".join(lines)
+
+
+def _verdict_basis(payload: Dict[str, Any]) -> str:
+    """The gate judges each file; overall_status is the project's score band.
+    Say so next to the verdict, or WARN beside "clean" reads as a contradiction."""
+    gate = payload.get("gate")
+    if not isinstance(gate, dict):
+        return ""
+    total = (payload.get("summary") or {}).get("total_files")
+    counts = (
+        f"{len(gate.get('failed_files') or [])} failed, "
+        f"{len(gate.get('warned_files') or [])} warned"
+    )
+    quarantined = len(gate.get("quarantined_files") or [])
+    if quarantined:
+        counts += f", {quarantined} quarantined"
+    return f" - per file: {counts}" + (f" of {total} files" if total is not None else "")
 
 
 def _render_summary_lines(summary: Any) -> List[str]:
@@ -77,7 +94,10 @@ def render_payload_markdown(payload: Dict[str, Any]) -> str:
     """Render a compact markdown view for command payloads."""
     lines = [f"# {payload.get('command', 'command').title()} Report", ""]
     if payload.get("verdict"):
-        lines += [f"**Verdict**: `{str(payload['verdict']).upper()}`", ""]
+        lines += [
+            f"**Verdict**: `{str(payload['verdict']).upper()}`{_verdict_basis(payload)}",
+            "",
+        ]
     summary = payload.get("summary", {})
     lines.extend(_render_markdown_summary(summary))
     lines.extend(_render_markdown_targets(payload.get("targets", [])))

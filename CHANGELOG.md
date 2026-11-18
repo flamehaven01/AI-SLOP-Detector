@@ -34,6 +34,11 @@ A new default terminal screen.
   frames on the screen.
 - With `--interactive`, the summary no longer ends with the line that
   suggests `--interactive`.
+- `review` (`audit`) text says what its verdict judged:
+  `Verdict: WARN - per file: 0 failed, 2 warned of 129 files`. The verdict
+  is the CI gate's, which judges each file; `overall_status` is the score
+  band of the whole project, so a WARN next to `clean` was correct but read
+  as a contradiction. The JSON is unchanged.
 
 ### Added
 
