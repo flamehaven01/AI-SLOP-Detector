@@ -5,6 +5,48 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.16.2 — 2026-11-18
+
+### Summary
+
+Self-calibration says where its evidence comes from and how far it can be
+trusted. History records every analyzed language and stores a metric only
+when it was measured. `--self-calibrate` reads history without writing it,
+shows each rule's evidence, and can print its report as JSON. Scores and the
+scan JSON are unchanged. Every change is listed in the
+[Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **The first scan upgrades `~/.slop-detector/history.db` once** (schema v7)
+  and first keeps the database as it was in `history.pre-v7.db`, next to it.
+  It prints one line: `Notice: History database upgraded to v7. ...`. Some
+  history commands of older releases fail on the upgraded database
+  (`--show-history` on a row without a metric, `--history-trends` on a day
+  without an LDR value); to go back, restore the copy
+  ([HISTORY_TRACKING.md](HISTORY_TRACKING.md)). The copy is a way back, not
+  compatibility. If the copy cannot be made, history is not recorded for that
+  run (one warning line) and the database is left as it was.
+- **JS/TS, Go and Rust files are recorded in history** (only Python files
+  were); their rows hold no LDR, inflation or DDC.
+- **`fp:` declares a false positive**:
+  `# slop-disable-next-line <rule> fp: <reason>` suppresses what the plain
+  directive suppresses and records the user's judgment. A directive that
+  already had `fp:` followed by words now suppresses only the rules before
+  `fp:` (the words after it were read as rule ids, so a reason containing
+  `all` suppressed every rule), so such a line can show findings again.
+- **`--self-calibrate` changes its screen**: a table of evidence per rule
+  (warning resolved, unchanged warning, plain suppression, `fp:`
+  declaration); the per-rule number is an unchanged-warning rate (it was
+  labeled a false-positive rate, with advice to exclude rules); an `ok`
+  status says the gap test passed and detection accuracy was not validated.
+  `--self-calibrate --json` prints the report as data with `"applied": false`.
+  Weights are still never written.
+- Scores, findings, gate decisions and the scan JSON are unchanged (the
+  version string aside).
+
+---
+
 ## v3.16.1 — 2026-11-17
 
 ### Summary
@@ -1996,6 +2038,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
+| **v3.16.2** | calibration evidence: history of all four languages with unmeasured metrics stored as NULL (a checked copy kept before the one-time upgrade); `fp:` false-positive declarations; `--self-calibrate` shows each rule's evidence, reads history without writing it, and prints JSON with `--json`; scores unchanged |
 | **v3.16.1** | Rust release: `todo!()`, `unimplemented!()`, `dbg!()` and TODO comments in `.rs` files, judged by the CI gate; Go and JS/TS regex readers ignore text in strings and comments; README rewritten |
 | **v3.15.2** | gate patch: `--ci-mode hard` (and soft and quarantine) judge JS/TS and Go files by their score band and critical/high findings, like Python files; up to 3.15.1 they were not judged |
 | **v3.15.1** | report patch: `report.md` and `--details` list every finding of every language and the hollow candidates, each with its fix; fix text for the JS/TS regex fallback and two Go rules; CI docs state that the gate judges Python files only |

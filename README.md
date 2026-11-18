@@ -12,8 +12,8 @@ Find warning signs of unfinished code in Python, JavaScript/TypeScript, Go, and 
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.16.1" alt="PyPI version"/></a>
-  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.16.1" alt="npm version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.16.2" alt="PyPI version"/></a>
+  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.16.2" alt="npm version"/></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector"><img src="https://vsmarketplacebadges.dev/version-short/Flamehaven.vscode-slop-detector.svg" alt="VS Code Marketplace version"/></a>
   <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/pyversions/ai-slop-detector.svg" alt="Python versions"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md"><img src="https://img.shields.io/badge/languages-Python%20%7C%20JS%2FTS%20%7C%20Go%20%7C%20Rust-informational" alt="Languages: Python, JS/TS, Go, Rust"/></a>
@@ -314,9 +314,19 @@ Details: [Claude Code integration](https://github.com/flamehaven01/AI-SLOP-Detec
 ## Local Calibration
 
 Every scan is recorded locally (`~/.slop-detector/history.db`) with what
-measured it. `slop-detector . --self-calibrate` reports how the weights would
-change from the comparable runs of one project. It is advisory: it never
-writes weights; you change them in `.slopconfig.yaml` if you agree.
+measured it, for all four languages. `slop-detector . --self-calibrate`
+reports how the weights would change from the comparable runs of one
+project. It is advisory: it never writes weights; you change them in
+`.slopconfig.yaml` if you agree.
+
+The report shows what its evidence is worth, rule by rule: a warning that
+went away on changed code (its correctness is not checked), a warning left
+unchanged, a plain suppression, and a false positive you declared with
+`# slop-disable-next-line <rule> fp: <reason>`. None of these is taken as
+proof. An `ok` recommendation means the best candidate was at least 0.10
+ahead of the next one on this project's own history; it is not a validated
+accuracy gain.
+`--self-calibrate --json` prints the same report as data and writes nothing.
 `slop-detector --init` detects the project's domain and sets that domain's
 pattern thresholds, printing every change.
 [Local calibration in the guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#local-calibration) ·
@@ -376,6 +386,10 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 
 ## Release Highlights
 
+**v3.16.2**: self-calibration shows each rule's evidence (a resolved
+warning, an unchanged warning, a suppression, a declared false positive with
+`fp:`), history covers all four languages and stores only measured values,
+and `--self-calibrate --json` prints the report; scores are unchanged.
 **v3.16.1**: Rust files are analyzed (`todo!()`, `unimplemented!()`, `dbg!()`,
 TODO comments) and judged by the CI gate like the other languages; Go and
 JS/TS regex readers no longer report text inside strings or comments; the CI

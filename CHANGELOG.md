@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [3.16.2] - 2026-11-18
+
+Self-calibration says where its evidence comes from and how far it can be
+trusted; history records every analyzed language. Scores, findings, gate
+decisions and the scan JSON are unchanged.
+
+### Changes you see when upgrading
+
+- The first scan upgrades `~/.slop-detector/history.db` once, keeping the
+  database as it was in `history.pre-v7.db`, and prints one notice. Some
+  history commands of older releases fail on the upgraded database; restore
+  the copy to go back (`docs/HISTORY_TRACKING.md`).
+- A directive with `fp:` followed by words suppresses only the rules before
+  `fp:` (a reason containing `all` or a rule id suppressed those too), so such
+  a line can show findings again.
+- `--self-calibrate` shows evidence per rule and calls the per-rule number an
+  unchanged-warning rate (no false-positive label or exclusion advice).
 
 ### Calibration evidence
 

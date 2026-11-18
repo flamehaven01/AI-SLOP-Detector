@@ -1,6 +1,6 @@
 # Architecture
 
-**Current contract:** v3.16.1. This page describes the current implementation, not a product roadmap or a performance benchmark.
+**Current contract:** v3.16.2. This page describes the current implementation, not a product roadmap or a performance benchmark.
 
 ## Purpose And Boundary
 
@@ -101,7 +101,7 @@ Cleanup confidence is prioritization evidence, not permission for blind deletion
 
 ## History, Calibration, And Telemetry
 
-Normal scans record local history unless `--no-history` is used; they never run calibration. `--self-calibrate` reads it and prints an advisory weight report; it never writes weights, and `--apply-calibration` is disabled (writes nothing, exits 2). Since v3.10 (Calibration v2) every row records its measurement provenance (detector version, measurement fingerprint, weights, canonical project root) and the report compares only runs of one project root measured the same way; rows written before v3.10 are legacy and not evidence. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
+Normal scans record local history unless `--no-history` is used; they never run calibration. `--self-calibrate` reads it and prints an advisory weight report; it never writes weights, and `--apply-calibration` is disabled (writes nothing, exits 2). Since v3.10 (Calibration v2) every row records its measurement provenance (detector version, measurement fingerprint, weights, canonical project root) and the report compares only runs of one project root measured the same way; rows written before v3.10 are legacy and not evidence. Since 3.16.2 (history schema v7) every analyzed language is recorded with its language and parser mode, a metric that was not measured is NULL, the report reads history read-only and shows each rule's evidence states, and the one-time upgrade of an older database first keeps a checked copy. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md) and [HISTORY_TRACKING.md](HISTORY_TRACKING.md).
 
 This adaptation is repository-scoped and is not an external validation loop. It does not export history as a validation channel. Local impact tracking is opt-in, and telemetry is off by default; inspect its payload before enabling it. See [SELF_CALIBRATION.md](SELF_CALIBRATION.md) and [HISTORY_TRACKING.md](HISTORY_TRACKING.md).
 
