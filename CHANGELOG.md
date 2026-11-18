@@ -39,6 +39,12 @@ A new default terminal screen.
   is the CI gate's, which judges each file; `overall_status` is the score
   band of the whole project, so a WARN next to `clean` was correct but read
   as a contradiction. The JSON is unchanged.
+- `--gate`: a HALT recommends fixing only the conditions that failed
+  (`Recommend: Reduce empty/placeholder code (LDR).`); it listed all four
+  metrics whatever stopped the gate, including DDC for a project where DDC
+  was not measured. When all four fail, the sentence is the one it was. The
+  `recommendation` value in the gate's JSON changes the same way; the
+  decision, its conditions and the audit hash do not.
 
 ### Added
 

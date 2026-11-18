@@ -162,33 +162,36 @@ class SlopGate:
         }
         audit_hash = _build_audit_hash(metrics, not_measured)
 
+        # Each failed condition with the advice for it: a HALT recommends fixing
+        # only what failed (an unmeasured metric cannot fail, so it is never advised).
         failed: List[str] = []
+        advice: List[str] = []
         if ldr_score is not None and ldr_score < self.ldr_threshold:
             failed.append(f"ldr={ldr_score:.3f} < threshold={self.ldr_threshold}")
+            advice.append("reduce empty/placeholder code (LDR)")
         if ddc_ratio is not None and ddc_ratio < self.ddc_threshold:
             failed.append(f"ddc={ddc_ratio:.3f} < threshold={self.ddc_threshold}")
+            advice.append("remove unused imports (DDC)")
         if (
             inflation_score is not None
             and math.isfinite(inflation_score)
             and inflation_score > self.inflation_threshold
         ):
             failed.append(f"inflation={inflation_score:.3f} > threshold={self.inflation_threshold}")
+            advice.append("eliminate buzzword inflation (jsd)")
         if pattern_penalty is not None and pattern_penalty > self.pattern_threshold:
             failed.append(
                 f"pattern_penalty={pattern_penalty:.1f} > threshold={self.pattern_threshold}"
             )
+            advice.append("fix structural patterns (ove)")
 
         if failed or blocking:
             conditions = tuple(blocking) + tuple(failed)
             halt_reason = f"Gate HALT [{context or 'file'}]: " + "; ".join(conditions)
+            joined = ", ".join(advice)
             recommendation = (
-                (
-                    "Reduce empty/placeholder code (LDR), "
-                    "remove unused imports (DDC), "
-                    "eliminate buzzword inflation (jsd), "
-                    "fix structural patterns (ove)."
-                )
-                if failed
+                joined[:1].upper() + joined[1:] + "."
+                if advice
                 else "Fix what stopped the measurement (see scan coverage), then run the gate again."
             )
             return SlopGateDecision(
