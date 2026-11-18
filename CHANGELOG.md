@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.16.3] - 2026-11-18
+
+A fix for files with an `fp:` declaration. Scoring, the scan JSON format and
+the gate are unchanged.
+
+### Fixed
+
+- A file with an `fp:` declaration failed to load from the analysis cache,
+  so every scan after the first one lost it: a single-file scan ended with
+  "Analysis failed" (exit 1), and a project scan left the file out of its
+  results and its file count, with an error on stderr. The cache now reads
+  the declaration back as it was written. The first scan after upgrading
+  analyzes each file once more, as after any upgrade (the cache key includes
+  the installed packages); later scans use the cache. `--read-only` scans,
+  MCP and REST (read-only by default) were not affected because they do not
+  use the cache.
+- Before upgrading, the cache can be turned off in `.slopconfig.yaml`:
+  `advanced: {analysis_cache_enabled: false}`.
+
+---
+
 ## [3.16.2] - 2026-11-18
 
 Self-calibration says where its evidence comes from and how far it can be
