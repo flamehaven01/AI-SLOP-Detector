@@ -333,3 +333,57 @@ def test_another_process_that_upgraded_first_is_not_an_error(tmp_path, monkeypat
     (copy,) = _copies(tmp_path)  # the other process's copy only (this run's name was taken)
     assert _state(tmp_path / copy) == before
     assert _state(db)["notnull"] == [0, 0, 0]
+
+
+# --- INS-CAL-BKP-06: an older table created after the check found nothing to copy ---
+
+
+def _created_by_an_older_release(db_path):
+    """Another process (an older release) creates its table and writes a row."""
+    with closing(sqlite3.connect(db_path)) as other, other:
+        other.executescript(OLD_TABLE)
+        other.execute(
+            "INSERT INTO history (timestamp, file_path, file_hash, deficit_score)"
+            " VALUES ('2026-11-18T00:00:00', '/p/b.py', 'h', 10.0)"
+        )
+
+
+@pytest.mark.parametrize("start", ["no file", "empty file"])
+def test_an_older_table_created_after_the_check_is_not_upgraded_without_a_copy(
+    tmp_path, monkeypatch, start
+):
+    db = tmp_path / "history.db"
+    if start == "empty file":
+        db.write_bytes(b"")
+    _write_between(monkeypatch, _created_by_an_older_release)
+
+    with pytest.raises(HistoryBackupError) as raised:
+        HistoryTracker(db_path=db)
+
+    assert raised.value.cause == history_module.CONCURRENT_WRITE_DETECTED
+    state = _state(db)
+    assert state["notnull"] == [1, 1, 1]  # the older table, untouched
+    assert len(state["rows"]) == 1
+    assert _copies(tmp_path) == []
+
+    before_retry = _state(db)
+    monkeypatch.undo()
+    HistoryTracker(db_path=db)  # the next run copies it first, then upgrades
+
+    assert _copies(tmp_path) == [BACKUP]
+    assert _state(tmp_path / BACKUP) == before_retry
+    assert _state(db)["notnull"] == [0, 0, 0]
+
+
+@pytest.mark.parametrize("start", ["no file", "empty file", "v7 database"])
+def test_without_another_process_a_database_opens_as_before(tmp_path, start):
+    db = tmp_path / "history.db"
+    if start == "empty file":
+        db.write_bytes(b"")
+    if start == "v7 database":
+        HistoryTracker(db_path=db)
+
+    HistoryTracker(db_path=db)
+
+    assert _state(db)["notnull"] == [0, 0, 0]
+    assert _copies(tmp_path) == []

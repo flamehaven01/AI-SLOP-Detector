@@ -68,8 +68,11 @@ before the rebuild, the database is kept as it was, once:
   between, the copy would miss those rows, so the upgrade stops the same
   way (the cause in the debug log is `CONCURRENT_WRITE_DETECTED`, a failed
   copy is `BACKUP_FAILED`): the written rows and any earlier copy are kept,
-  this attempt's copy is removed, and the next run makes a new copy. If
-  another 3.16.2 process finished the upgrade first, nothing is reported;
+  this attempt's copy is removed, and the next run makes a new copy. The
+  same holds when there was nothing to copy (no database, or no table yet)
+  and an older release created its table before the lock: it is not
+  upgraded without a copy, and the next run copies it first. If another
+  3.16.2 process finished the upgrade first, nothing is reported;
 - only the run that rebuilds makes a copy, and it prints one line on stderr
   (the copy's file name, never an absolute path): `Notice: History database
   upgraded to v7. Some history commands of releases before 3.16.2 fail on

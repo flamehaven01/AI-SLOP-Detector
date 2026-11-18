@@ -389,7 +389,8 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 **v3.16.2**: self-calibration shows each rule's evidence (a resolved
 warning, an unchanged warning, a suppression, a declared false positive with
 `fp:`), history covers all four languages and stores only measured values,
-and `--self-calibrate --json` prints the report; scores are unchanged.
+and `--self-calibrate --json` prints the report; scoring is unchanged (a
+suppression comment with words after `fp:` can show findings again).
 **v3.16.1**: Rust files are analyzed (`todo!()`, `unimplemented!()`, `dbg!()`,
 TODO comments) and judged by the CI gate like the other languages; Go and
 JS/TS regex readers no longer report text inside strings or comments; the CI

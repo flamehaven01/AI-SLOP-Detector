@@ -12,8 +12,9 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 Self-calibration says where its evidence comes from and how far it can be
 trusted. History records every analyzed language and stores a metric only
 when it was measured. `--self-calibrate` reads history without writing it,
-shows each rule's evidence, and can print its report as JSON. Scores and the
-scan JSON are unchanged. Every change is listed in the
+shows each rule's evidence, and can print its report as JSON. How scores are
+computed and the scan JSON format are unchanged; a suppression comment with
+words after `fp:` can show findings again (below). Every change is listed in the
 [Changelog](../CHANGELOG.md).
 
 ### What moves when you upgrade
@@ -42,8 +43,9 @@ scan JSON are unchanged. Every change is listed in the
   status says the gap test passed and detection accuracy was not validated.
   `--self-calibrate --json` prints the report as data with `"applied": false`.
   Weights are still never written.
-- Scores, findings, gate decisions and the scan JSON are unchanged (the
-  version string aside).
+- How scores are computed and the scan JSON format are unchanged. Apart from
+  the `fp:` case above, a scan gives the same findings, scores and gate
+  decisions as 3.16.1 (three sample scans give byte-identical JSON).
 
 ---
 
@@ -2038,7 +2040,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
-| **v3.16.2** | calibration evidence: history of all four languages with unmeasured metrics stored as NULL (a checked copy kept before the one-time upgrade); `fp:` false-positive declarations; `--self-calibrate` shows each rule's evidence, reads history without writing it, and prints JSON with `--json`; scores unchanged |
+| **v3.16.2** | calibration evidence: history of all four languages with unmeasured metrics stored as NULL (a checked copy kept before the one-time upgrade); `fp:` false-positive declarations; `--self-calibrate` shows each rule's evidence, reads history without writing it, and prints JSON with `--json`; scoring unchanged (a suppression comment with words after `fp:` can show findings again) |
 | **v3.16.1** | Rust release: `todo!()`, `unimplemented!()`, `dbg!()` and TODO comments in `.rs` files, judged by the CI gate; Go and JS/TS regex readers ignore text in strings and comments; README rewritten |
 | **v3.15.2** | gate patch: `--ci-mode hard` (and soft and quarantine) judge JS/TS and Go files by their score band and critical/high findings, like Python files; up to 3.15.1 they were not judged |
 | **v3.15.1** | report patch: `report.md` and `--details` list every finding of every language and the hollow candidates, each with its fix; fix text for the JS/TS regex fallback and two Go rules; CI docs state that the gate judges Python files only |

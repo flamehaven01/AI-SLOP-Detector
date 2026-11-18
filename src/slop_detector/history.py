@@ -736,9 +736,17 @@ def _check_still_copied(conn: sqlite3.Connection, backup: Optional[_PreV7Copy]) 
     """Inside the upgrade's write transaction, before any schema change: the
     database must be the one the copy was taken from. Another process that
     already upgraded it is not an error (nothing is rebuilt, the copy is
-    removed); a write since the copy is (CONCURRENT_WRITE_DETECTED)."""
-    if backup is None or not _needs_v7_rebuild(conn):
+    removed); a write since the copy is (CONCURRENT_WRITE_DETECTED), and so is
+    an older table that appeared after the check found nothing to copy (no
+    file, or no table yet): it is not rebuilt without a copy."""
+    if not _needs_v7_rebuild(conn):
         return
+    if backup is None:
+        raise HistoryBackupError(
+            "an older history table appeared after the check found nothing to copy;"
+            " upgrade stopped, the next run copies it first",
+            cause=CONCURRENT_WRITE_DETECTED,
+        )
     if _snapshot_digest(conn) != backup.digest:
         raise HistoryBackupError(
             "the database changed after the pre-upgrade copy was taken; upgrade stopped,"

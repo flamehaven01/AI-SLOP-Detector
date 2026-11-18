@@ -10,8 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.16.2] - 2026-11-18
 
 Self-calibration says where its evidence comes from and how far it can be
-trusted; history records every analyzed language. Scores, findings, gate
-decisions and the scan JSON are unchanged.
+trusted; history records every analyzed language. How scores are computed
+and the scan JSON format are unchanged. One case changes results: a
+suppression comment with words after `fp:` now suppresses only the rules
+before `fp:`, so such a line can show findings again, and its file's score
+and the gate's decision can change with them.
 
 ### Changes you see when upgrading
 
@@ -74,7 +77,9 @@ decisions and the scan JSON are unchanged.
   traceback); the error is in the debug log. A write by another process
   between the copy and the upgrade's write lock stops the upgrade the same
   way (the copy would miss it; debug cause `CONCURRENT_WRITE_DETECTED`); the
-  next run makes a new copy. The upgrade prints one notice
+  next run makes a new copy. So does an older table that another process
+  created after the check found nothing to copy: it is never upgraded
+  without a copy. The upgrade prints one notice
   naming the copy's file, never an absolute path. Going back to 3.16.1
   needs that copy: 3.16.1's `--show-history` fails on a row with a NULL
   metric and its `--history-trends` on a day without an LDR value (both
