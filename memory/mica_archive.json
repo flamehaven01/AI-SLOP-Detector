@@ -1,0 +1,220 @@
+{
+  "mica_spec": "0.2.9",
+  "mica_schema_version": "0.2.9",
+  "project": {
+    "name": "ai-slop-detector",
+    "version": "3.16.2",
+    "version_note": "the latest release; an invariant with an 'unreleased' status applies only to the development line after it",
+    "status": "active",
+    "summary": "Static analyzer for warning signs of unfinished code in Python, JS/TS, Go and Rust. Runs locally; reports for people (terminal, HTML, Markdown) and for AI agents (work order, JSON Lines, JSON, MCP)."
+  },
+  "how_to_read": "Each design invariant is a decision a change must not undo. held_by names the tests meant to fail when it is undone; an invariant with no test says which procedure holds it. tests/test_mica_package.py checks that every named test and file exists, not that it is sufficient. A critical invariant names the release or incident it came from. If code or tests now disagree with an entry, report the conflict; do not follow either silently.",
+  "design_invariants": [
+    {
+      "id": "DI-001",
+      "label": "scores-and-json-contract",
+      "statement": "A release does not change how scores are computed or the shape of the scan JSON unless its CHANGELOG says so under 'Changes you see when upgrading'. New JSON keys are additive; existing keys keep their meaning. No single test holds this: before a release, the scan JSON of the same targets is compared byte for byte with the previous release (playbook, 'Release').",
+      "severity": "critical",
+      "held_by": [],
+      "binding": {
+        "origin_episode": "v3.16.2 (2026-11-18): three targets (demo project, a four-language sample, a suppressed file) gave byte-identical JSON before and after the calibration work; the release notes first claimed 'findings unchanged' although an fp: comment can change findings, and were corrected to state the one case apart",
+        "lesson_ref": "memory/mica_playbook.md"
+      }
+    },
+    {
+      "id": "DI-002",
+      "label": "read-only-writes-nothing",
+      "statement": "--read-only leaves no change in the project or in the detector's own state (history, analysis cache, impact, telemetry) and refuses options that would write.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_read_only.py::test_read_only_scan_creates_nothing_in_a_fresh_home",
+        "tests/test_cli.py::test_read_only_rejects_write_or_stateful_options"
+      ],
+      "binding": {
+        "origin_episode": "v3.9.0 (2026-10-03): scan --read-only added; writes before it were not contained",
+        "lesson_ref": "tests/test_read_only.py"
+      }
+    },
+    {
+      "id": "DI-003",
+      "label": "no-network",
+      "statement": "A scan and its reports make no network call. The README states this; a test refuses every socket and requires that none was attempted.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_no_network.py::test_a_project_scan_and_its_reports_make_no_network_call",
+        "tests/test_no_network.py::test_the_refusal_is_real"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.1 (2026-11-17): the README line 'No network calls' was given a test that holds it",
+        "lesson_ref": "tests/test_no_network.py"
+      }
+    },
+    {
+      "id": "DI-004",
+      "label": "same-input-same-output",
+      "statement": "The same input gives the same output whatever the hash seed or the working directory. Sets and dict iteration never decide an order that reaches a report.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_import_cycle_determinism.py::test_import_cycles_are_identical_under_every_hash_seed",
+        "tests/test_runtime_context_determinism.py::test_cwd_change_does_not_change_the_result"
+      ],
+      "binding": {
+        "origin_episode": "v3.9.0 (2026-10-03): the import cycle reported could change with PYTHONHASHSEED",
+        "lesson_ref": "tests/test_import_cycle_determinism.py"
+      }
+    },
+    {
+      "id": "DI-005",
+      "label": "interfaces-read-only-by-default",
+      "statement": "MCP and REST scans write nothing by default; REST history is recorded only when a request sets save_history.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_interface_write_policy.py::test_mcp_scans_write_nothing",
+        "tests/test_interface_write_policy.py::test_rest_scans_write_nothing_by_default"
+      ],
+      "binding": {
+        "origin_episode": "v3.11.0: one scan engine (ScanService) behind the CLI, MCP and REST; MCP and REST became read-only by default",
+        "lesson_ref": "tests/test_interface_write_policy.py"
+      }
+    },
+    {
+      "id": "DI-006",
+      "label": "one-language-registry",
+      "statement": "language_registry is the one list of analyzed languages other than Python. Every consumer (discovery, scores, reports, the CI gate, history, JSON, the npm types, the VS Code extension) reads language results through it, so a language added there reaches all of them. Do not read a language result key directly.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_language_slot.py::test_the_toy_language_reaches_every_report",
+        "tests/test_language_slot.py::test_every_registered_language_has_its_schema_fields"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.1 (2026-11-17): Rust was added through the registry; a test registers a toy language and fails when a consumer reads a language directly",
+        "lesson_ref": "tests/test_language_slot.py"
+      }
+    },
+    {
+      "id": "DI-007",
+      "label": "calibration-never-writes-weights",
+      "statement": "--self-calibrate is advisory: it reads history read-only, never writes weights, and --apply-calibration writes nothing and exits 2. Status ok means the best candidate is at least 0.10 ahead of the next on that history's own labels (candidate_gap_passed); detection accuracy is not validated (externally_validated: not_tested).",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_calibration_containment.py::test_apply_calibration_writes_nothing_and_fails",
+        "tests/test_calibration_preview.py::test_calibration_reads_an_older_database_without_changing_it",
+        "tests/test_calibration_oracle.py::test_ok_means_the_candidate_gap_passed_and_nothing_was_validated"
+      ],
+      "binding": {
+        "origin_episode": "v3.9.2 (2026-10-09): automatic calibration removed after 79% of its 'improvement' events came from files that had not changed; v3.16.2 (2026-11-18): a synthetic held-out oracle showed a recommendation that passed the gap test with fewer false positives and more false negatives",
+        "lesson_ref": "tests/test_calibration_containment.py"
+      }
+    },
+    {
+      "id": "DI-008",
+      "label": "unmeasured-is-null",
+      "statement": "History stores a metric only when it was measured and counted. LDR, inflation and DDC are Python metrics: a JS/TS, Go or Rust row stores NULL for them, and so does a Python row whose metric was skipped or that did not parse; unmeasured_metrics says why. Never store a default as if it were measured.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_history_languages.py::test_a_language_without_python_metrics_stores_none_of_them",
+        "tests/test_history_languages.py::test_a_python_file_that_did_not_parse_stores_no_placeholder"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.2 (2026-11-18): a Python file that did not parse was recorded with LDR 0.0, inflation 999 and DDC 0.0, and calibration learned from those placeholders",
+        "lesson_ref": "tests/test_history_languages.py"
+      }
+    },
+    {
+      "id": "DI-009",
+      "label": "history-upgrade-keeps-a-checked-copy",
+      "statement": "A schema change that rebuilds history first keeps a checked copy (SQLite backup, integrity and content compared) and never upgrades a table it did not copy. A copy that fails or no longer matches the database stops the upgrade and leaves the database as it was. The copy is a way back for older releases, not compatibility with them.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_history_backup.py::test_the_rebuild_first_keeps_a_verified_copy_of_the_old_database",
+        "tests/test_history_backup.py::test_a_write_after_the_copy_stops_the_upgrade",
+        "tests/test_history_backup.py::test_an_older_table_created_after_the_check_is_not_upgraded_without_a_copy"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.2 (2026-11-18): review found two races, a write between the copy and the write lock, and an older table created after the check found nothing to copy; both were reproduced before they were fixed",
+        "lesson_ref": "tests/test_history_backup.py"
+      }
+    },
+    {
+      "id": "DI-010",
+      "label": "fp-is-a-declaration",
+      "statement": "'# slop-disable-next-line <rule> fp: <reason>' records the user's judgment that a finding is a false positive. It needs one rule and a non-empty reason, suppresses exactly what the plain directive suppresses, changes no score, keeps only the SHA-256 of the reason, and is not a learning label. Words after fp: are never rule ids.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_fp_declaration.py::test_words_of_the_reason_are_never_rules",
+        "tests/test_fp_declaration.py::test_a_declaration_suppresses_like_a_plain_suppression_and_moves_no_score"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.2 (2026-11-18): the words after fp: were read as rule ids, so a reason containing 'all' suppressed every rule",
+        "lesson_ref": "tests/test_fp_declaration.py"
+      }
+    },
+    {
+      "id": "DI-011",
+      "label": "one-version",
+      "statement": "pyproject.toml holds the version. The package, the Dockerfile label and the npm wrapper carry the same one; the publish workflow requires tag = pyproject = __version__ = npm version, and the tagged commit on main.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_release_metadata.py::test_package_and_image_carry_the_pyproject_version"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.1 (2026-11-17): there is no 3.16.0 on PyPI or npm because a VS Code Marketplace build had already used that number",
+        "lesson_ref": "tests/test_release_metadata.py"
+      }
+    },
+    {
+      "id": "DI-012",
+      "label": "readme-links-absolute",
+      "statement": "README links are absolute: PyPI renders the README of the tagged commit and a relative link breaks there. The README of a release cannot be changed on PyPI afterwards.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_readme_links.py::test_readme_has_no_repository_relative_link",
+        "tests/test_readme_links.py::test_readme_links_into_the_repository_exist"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.1 (2026-11-17): the README was rewritten with every link absolute and a test that holds it",
+        "lesson_ref": "tests/test_readme_links.py"
+      }
+    },
+    {
+      "id": "DI-013",
+      "label": "lint-gates-pass-before-a-push",
+      "statement": "CI's lint job runs black 24.8.0, then ruff, then mypy, and stops at the first failure, so a black failure hides ruff and mypy errors. All three pass locally before any push. The test holds the workflow's order and pin; running the three locally is the playbook's verification step 2.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_ci_workflow.py::test_lint_runs_black_24_8_then_ruff_then_mypy"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.2 (2026-11-18): main went red on black for 11 files; two ruff errors and one mypy error were hidden behind it",
+        "lesson_ref": "tests/test_ci_workflow.py"
+      }
+    },
+    {
+      "id": "DI-014",
+      "label": "test-matrix-on-ubuntu-24.04",
+      "statement": "The Python 3.8-3.12 test matrix runs on ubuntu-24.04. On ubuntu-latest (Ubuntu 26.04) actions/setup-python cannot install Python 3.8 or 3.9. Python 3.8 stays supported (requires-python >= 3.8).",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_ci_workflow.py::test_the_python_matrix_runs_on_ubuntu_24_04_from_python_3_8"
+      ],
+      "binding": {
+        "origin_episode": "2026-11-18: ubuntu-latest moved to Ubuntu 26.04 and the 3.9 job failed at setup, not in a test",
+        "lesson_ref": "tests/test_ci_workflow.py"
+      }
+    },
+    {
+      "id": "DI-015",
+      "label": "interactive-never-surprises",
+      "status": "unreleased: 3.17 development line only, not part of 3.16.2; stays below critical until it is released",
+      "statement": "--interactive asks only when given and when stdin and stdout are terminals; without it no scan waits for input. It is refused (exit 2) with an option that already decides the output, a CI option, --read-only, or an option --read-only refuses.",
+      "severity": "high",
+      "held_by": [
+        "tests/test_interactive_reports.py::test_without_the_flag_nothing_ever_prompts",
+        "tests/test_interactive_reports.py::test_the_cli_refuses_a_conflicting_option"
+      ]
+    }
+  ],
+  "operation_meta": {
+    "last_updated": "2026-11-18"
+  }
+}

@@ -1,0 +1,42 @@
+# MICA manifest: what an AI session working on this repository loads first.
+# README.md invokes this file; it is the only authority for the memory paths.
+# Format: https://github.com/flamehaven01/Flamehaven-MICA (mica_spec 0.2.9).
+mica_spec: "0.2.9"
+name: ai-slop-detector
+mode: memory_injection
+description: "Memory for AI-SLOP Detector: the decisions a change must not undo, and how work is verified and released."
+
+layers:
+  - name: archive
+    path: memory/mica_archive.json
+    format: json
+    loading_hint: always
+  - name: playbook
+    path: memory/mica_playbook.md
+    format: markdown
+    loading_hint: always
+
+invocation_protocol:
+  primary_pattern: readme_protocol
+  agent_context_surfaces:
+    - archive
+    - playbook
+  profiles:
+    default:
+      description: Any change to this repository. Both surfaces, whole files.
+      surfaces: [archive, playbook]
+
+# Declared moments to review the memory; declaring them runs nothing.
+update_triggers:
+  - on_explicit_save
+  - on_maintenance_complete
+  - on_version_bump
+
+di_policy:
+  # Every critical invariant names the incident or release it came from and
+  # the test file or procedure that holds it (tests/test_mica_package.py
+  # checks that they exist).
+  critical_binding_required: true
+  # Warn when the archive was not reviewed for 90 days. Age only: a source
+  # change that outdates an entry is caught by the drift test, not by this.
+  max_archive_age_days: 90

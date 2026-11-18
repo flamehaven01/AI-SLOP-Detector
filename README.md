@@ -1,3 +1,4 @@
+<!-- MICA:INVOKE manifest="mica.yaml" -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/logo.png" alt="AI-SLOP Detector - Ship Code. Not Slop." width="560"/>
 </p>
@@ -306,6 +307,14 @@ output is not read as permission for blind edits.
 cp -r claude-skills/slop-detector ~/.claude/skills/
 pip install ai-slop-detector
 ```
+
+**An agent working on this repository** starts from its memory:
+[`mica.yaml`](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/mica.yaml)
+selects the decisions a change must not undo, each with the test or the
+explicit verification procedure that holds it, and the procedure for
+verifying and releasing. Load it with the context
+emitter of [MICA](https://github.com/flamehaven01/Flamehaven-MICA)
+(`python <MICA_ROOT>/tools/mica_runtime.py . --format context`).
 
 Details: [Claude Code integration](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#claude-code-integration) ·
 [docs/CLAUDE_CODE_SKILL.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/CLAUDE_CODE_SKILL.md) ·
