@@ -3,6 +3,7 @@
 Requires the [api] extras: pip install ai-slop-detector[api]
 """
 
+import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -16,8 +17,16 @@ except ImportError:
     )
 
 from .. import __version__
-from ..history import HistoryTracker, history_project_root, measurement_provenance
+from ..history import (
+    HISTORY_NOT_RECORDED,
+    HistoryBackupError,
+    HistoryTracker,
+    history_project_root,
+    measurement_provenance,
+)
 from ..language_registry import all_file_results
+
+logger = logging.getLogger(__name__)
 from ..service.scan import ScanFailedError, ScanRequest, ScanService, WritePolicy
 from .models import (
     AgentFileResponse,
@@ -137,15 +146,20 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
 
             # Save to history if asked; opening the tracker creates its database.
             if request.save_history:
-                get_history().record(
-                    result,
-                    git_commit=request.metadata.get("commit"),
-                    git_branch=request.metadata.get("branch"),
-                    project_id=_project_id_for_path(file_path.parent),
-                    provenance=measurement_provenance(
-                        outcome.config, history_project_root(str(file_path), False)
-                    ),
-                )
+                try:
+                    tracker = get_history()
+                except HistoryBackupError as exc:
+                    _history_not_recorded(exc)
+                else:
+                    tracker.record(
+                        result,
+                        git_commit=request.metadata.get("commit"),
+                        git_branch=request.metadata.get("branch"),
+                        project_id=_project_id_for_path(file_path.parent),
+                        provenance=measurement_provenance(
+                            outcome.config, history_project_root(str(file_path), False)
+                        ),
+                    )
 
             return AnalysisResponse.from_result(result)
 
@@ -245,11 +259,21 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
     return app
 
 
+def _history_not_recorded(exc: Exception) -> None:
+    """The analysis is answered; history is not recorded (the pre-upgrade copy failed)."""
+    logger.warning(HISTORY_NOT_RECORDED)
+    logger.debug("history not recorded: %s", exc)
+
+
 async def _save_project_history(
     results: List[Any], project_path: Path, metadata: Dict[str, Any], provenance=None
 ):
     """Background task to save project analysis"""
-    history = HistoryTracker()
+    try:
+        history = HistoryTracker()
+    except HistoryBackupError as exc:
+        _history_not_recorded(exc)
+        return
     project_id = _project_id_for_path(project_path)
     for result in results:
         history.record(

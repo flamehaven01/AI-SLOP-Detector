@@ -52,10 +52,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overwritten): a SQLite backup checked for integrity and for the same
   schema, rows, ids and sequence, with the database's permission bits. A
   copy that fails or does not match stops the upgrade and leaves
-  `history.db` as it was. Going back to 3.16.1 needs that copy: 3.16.1's
-  `--show-history` fails on a row with a NULL metric and its
-  `--history-trends` on a day without an LDR value (both run with 3.16.1);
-  the way back is in `docs/HISTORY_TRACKING.md`.
+  `history.db` as it was: a scan still runs with the same output and exit
+  code and says in one stderr line that history was not recorded; a command
+  that reads history says it could not be opened and exits 1 (no
+  traceback); the error is in the debug log. The upgrade prints one notice
+  naming the copy's file, never an absolute path. Going back to 3.16.1
+  needs that copy: 3.16.1's `--show-history` fails on a row with a NULL
+  metric and its `--history-trends` on a day without an LDR value (both
+  run with 3.16.1); the way back is in `docs/HISTORY_TRACKING.md`.
 - Rules nobody looked at are unmeasured evidence: every rule when no pattern
   ran (a parse error, a role that skips patterns), and the rules a language's
   fallback reader does not measure. None of them can be a `verified_fix`.

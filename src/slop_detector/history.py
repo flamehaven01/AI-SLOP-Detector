@@ -63,6 +63,21 @@ PROVENANCE_V7 = "v7"
 EVIDENCE_PROVENANCE = (PROVENANCE_V6, PROVENANCE_V7)
 PRE_V7_BACKUP = "history.pre-v7.db"  # next to the database it was taken from
 
+# What a user is told; no absolute path (CI logs are often public). The
+# detail (paths, the error) goes to the debug log.
+UPGRADE_NOTICE = (
+    "Notice: History database upgraded to v7. Some history commands of releases"
+    " before 3.16.2 fail on it; a pre-upgrade backup ({name}) was saved next to it."
+)
+HISTORY_NOT_RECORDED = (
+    "Warning: History was not recorded because the pre-upgrade backup failed."
+    " The original database is unchanged. See debug logs for details."
+)
+HISTORY_NOT_OPENED = (
+    "Error: History could not be opened because the pre-upgrade backup failed."
+    " The original database is unchanged. See debug logs for details."
+)
+
 
 class HistoryBackupError(RuntimeError):
     """The copy kept before the v7 rebuild could not be made or checked; the
@@ -262,12 +277,8 @@ class HistoryTracker:
             if backup is not None and not rebuilt:
                 _discard(backup)
         if backup is not None and rebuilt:
-            logger.warning(
-                "%s upgraded to history schema v7; the database as it was is kept in %s"
-                " (restoring it: docs/HISTORY_TRACKING.md)",
-                self.db_path,
-                backup,
-            )
+            logger.warning(UPGRADE_NOTICE.format(name=backup.name))
+            logger.debug("history upgrade: %s rebuilt; pre-upgrade copy %s", self.db_path, backup)
 
     def _migrate(self, conn: sqlite3.Connection) -> None:
         """Add columns introduced after initial schema if missing."""

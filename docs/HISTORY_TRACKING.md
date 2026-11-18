@@ -54,9 +54,18 @@ before the rebuild, the database is kept as it was, once:
   (`integrity_check` and the same schema, rows, ids and sequence as the
   database); it gets the database's permission bits;
 - if the copy fails (an error, a full disk) or does not match, the upgrade
-  stops, `history.db` is left as it was and no partial copy is kept: the
-  scan runs without recording history, and the next run tries again;
-- only the run that rebuilds makes a copy; the scan prints its path once.
+  stops, `history.db` is left as it was and no partial copy is kept. A scan
+  still runs (same output, same exit code) and prints one line on stderr:
+  `Warning: History was not recorded because the pre-upgrade backup failed.
+  The original database is unchanged. See debug logs for details.`
+  `--show-history`, `--history-trends` and `--export-history` print the
+  same with `Error: History could not be opened ...` and exit 1, as does
+  any other step that needs history. The next run tries again; `--verbose`
+  shows the error;
+- only the run that rebuilds makes a copy, and it prints one line on stderr
+  (the copy's file name, never an absolute path): `Notice: History database
+  upgraded to v7. Some history commands of releases before 3.16.2 fail on
+  it; a pre-upgrade backup (history.pre-v7.db) was saved next to it.`
 
 To go back: close every running `slop-detector` (and the VS Code extension),
 then replace `history.db` with the copy:

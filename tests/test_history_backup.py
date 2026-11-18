@@ -72,7 +72,7 @@ def test_the_rebuild_first_keeps_a_verified_copy_of_the_old_database(tmp_path, c
     _old_database(db)
     before = _state(db)
 
-    with caplog.at_level(logging.WARNING, logger="slop_detector.history"):
+    with caplog.at_level(logging.DEBUG, logger="slop_detector.history"):
         HistoryTracker(db_path=db)
 
     copy = tmp_path / BACKUP
@@ -81,7 +81,15 @@ def test_the_rebuild_first_keeps_a_verified_copy_of_the_old_database(tmp_path, c
     with sqlite3.connect(copy) as conn:
         assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     assert _state(db)["notnull"] == [0, 0, 0]
-    assert str(copy) in caplog.text
+    # The notice names the copy, not where it is: CI logs are often public.
+    (notice,) = [r.getMessage() for r in caplog.records if r.levelno >= logging.WARNING]
+    assert notice == (
+        "Notice: History database upgraded to v7. Some history commands of releases"
+        " before 3.16.2 fail on it; a pre-upgrade backup (history.pre-v7.db) was saved"
+        " next to it."
+    )
+    assert str(tmp_path) not in notice
+    assert any(str(copy) in r.getMessage() for r in caplog.records if r.levelno == logging.DEBUG)
 
 
 def test_only_the_rebuild_makes_a_copy(tmp_path, monkeypatch):
@@ -224,3 +232,17 @@ def test_a_database_older_than_the_metric_columns_is_kept_too(tmp_path):
 
     with sqlite3.connect(tmp_path / BACKUP) as conn:
         assert conn.execute("SELECT * FROM history").fetchall() == before
+
+
+def test_removing_a_copy_ignores_only_a_missing_file(tmp_path):
+    """A copy that is already gone is fine; any other I/O error is raised, not
+    hidden (here a directory: PermissionError on Windows, IsADirectoryError or
+    PermissionError elsewhere)."""
+    history_module._discard(tmp_path / "absent.db")
+
+    busy = tmp_path / "busy.db"
+    busy.mkdir()
+    with pytest.raises(OSError) as raised:
+        history_module._discard(busy)
+    assert not isinstance(raised.value, FileNotFoundError)
+    assert busy.exists()

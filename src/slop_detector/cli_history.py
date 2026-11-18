@@ -51,11 +51,7 @@ def _record_history(result, config=None, path=None, is_project=False) -> None:
     measurement provenance (calibration evidence); without them they are legacy.
     """
     try:
-        from slop_detector.history import (
-            HistoryTracker,
-            history_project_root,
-            measurement_provenance,
-        )
+        from slop_detector.history import history_project_root, measurement_provenance
 
         git_commit, git_branch = _get_git_context()
         project_id = _compute_project_id()
@@ -66,7 +62,9 @@ def _record_history(result, config=None, path=None, is_project=False) -> None:
         )
         from slop_detector.language_registry import all_file_results
 
-        tracker = HistoryTracker()
+        tracker = _open_history(HISTORY_NOT_RECORDED_KEY)
+        if tracker is None:
+            return
         # Every analyzed language; each row says which metrics it measured.
         results = all_file_results(result) if hasattr(result, "file_results") else [result]
         for file_analysis in results:
@@ -83,11 +81,37 @@ def _record_history(result, config=None, path=None, is_project=False) -> None:
         _logging.getLogger(__name__).debug("history record skipped: %s", exc)
 
 
-def _show_file_history(file_path: str) -> None:
-    """Print trend history for a single file."""
-    from slop_detector.history import HistoryTracker
+HISTORY_NOT_RECORDED_KEY = "not_recorded"
+HISTORY_NOT_OPENED_KEY = "not_opened"
 
-    tracker = HistoryTracker()
+
+def _open_history(failure: str):
+    """The history tracker, or None when the pre-upgrade copy failed: then one
+    line on stderr (HISTORY_NOT_RECORDED for a scan, HISTORY_NOT_OPENED for a
+    command that reads history) and the detail in the debug log."""
+    import logging
+    import sys
+
+    from slop_detector import history
+
+    try:
+        return history.HistoryTracker()
+    except history.HistoryBackupError as exc:
+        logging.getLogger(__name__).debug("history not opened: %s", exc)
+        line = (
+            history.HISTORY_NOT_RECORDED
+            if failure == HISTORY_NOT_RECORDED_KEY
+            else history.HISTORY_NOT_OPENED
+        )
+        print(line, file=sys.stderr)
+        return None
+
+
+def _show_file_history(file_path: str) -> int:
+    """Print trend history for a single file."""
+    tracker = _open_history(HISTORY_NOT_OPENED_KEY)
+    if tracker is None:
+        return 1
     resolved = str(Path(file_path).resolve())
     history = tracker.get_file_history(resolved, limit=20)
     file_path = resolved
@@ -95,7 +119,7 @@ def _show_file_history(file_path: str) -> None:
     if not history:
         print(f"No history found for: {file_path}")
         print(f"  DB: {tracker.db_path}")
-        return
+        return 0
 
     print(f"History: {file_path}")
     print(f"  DB: {tracker.db_path}")
@@ -117,19 +141,20 @@ def _show_file_history(file_path: str) -> None:
         direction = "improved" if delta < 0 else "degraded" if delta > 0 else "stable"
         print("-" * 70)
         print(f"  Trend ({len(history)} runs): {direction}  delta={delta:+.1f}")
+    return 0
 
 
-def _show_trends() -> None:
+def _show_trends() -> int:
     """Print project-wide daily trend table."""
-    from slop_detector.history import HistoryTracker
-
-    tracker = HistoryTracker()
+    tracker = _open_history(HISTORY_NOT_OPENED_KEY)
+    if tracker is None:
+        return 1
     trends = tracker.get_project_trends(days=7)
 
     if not trends["data_points"]:
         print("No history found.")
         print(f"  DB: {tracker.db_path}")
-        return
+        return 0
 
     print("Project Trends (last 7 days)")
     print(f"  DB: {tracker.db_path}")
@@ -142,15 +167,17 @@ def _show_trends() -> None:
             f"  {item['date']:<12} {item['avg_deficit']:>11.1f} {ldr:>8}"
             f" {item['total_patterns']:>9} {item['files_analyzed']:>6}"
         )
+    return 0
 
 
-def _export_history(output_path: str) -> None:
+def _export_history(output_path: str) -> int:
     """Export history to JSONL."""
-    from slop_detector.history import HistoryTracker
-
-    tracker = HistoryTracker()
+    tracker = _open_history(HISTORY_NOT_OPENED_KEY)
+    if tracker is None:
+        return 1
     count = tracker.export_jsonl(output_path)
     print(f"[+] Exported {count} records to {output_path}")
+    return 0
 
 
 LEGACY_CALIBRATION_WARNING = (
