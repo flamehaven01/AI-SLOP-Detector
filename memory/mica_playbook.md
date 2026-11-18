@@ -62,7 +62,10 @@ https://github.com/flamehaven01/Flamehaven-MICA.
    `slop-detector --project examples/demo_project --json --no-history`, and
    compare the raw bytes. Treat both sides the same: a normalization applied
    to one side only (line endings, a version string) produces a false
-   difference.
+   difference. Give each side its own empty `HOME`: the analysis cache and
+   git's global settings live there, and either can change a result. Run
+   each side twice and compare the second run too (DI-016): a cache hit must
+   give the same bytes and the same file count as the first run.
 5. For a behavior change, break the code on purpose (a mutation) and confirm
    a test fails. Confirm the mutation was actually applied to the code under
    test: a mutation that no longer matches the source tests nothing.

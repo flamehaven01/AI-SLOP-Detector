@@ -3,7 +3,7 @@
   "mica_schema_version": "0.2.9",
   "project": {
     "name": "ai-slop-detector",
-    "version": "3.16.2",
+    "version": "3.16.3",
     "version_note": "the latest release; an invariant with an 'unreleased' status applies only to the development line after it",
     "status": "active",
     "summary": "Static analyzer for warning signs of unfinished code in Python, JS/TS, Go and Rust. Runs locally; reports for people (terminal, HTML, Markdown) and for AI agents (work order, JSON Lines, JSON, MCP)."
@@ -205,13 +205,27 @@
     {
       "id": "DI-015",
       "label": "interactive-never-surprises",
-      "status": "unreleased: 3.17 development line only, not part of 3.16.2; stays below critical until it is released",
+      "status": "unreleased: 3.17 development line only, not part of 3.16.3; stays below critical until it is released",
       "statement": "--interactive asks only when given and when stdin and stdout are terminals; without it no scan waits for input. It is refused (exit 2) with an option that already decides the output, a CI option, --read-only, or an option --read-only refuses.",
       "severity": "high",
       "held_by": [
         "tests/test_interactive_reports.py::test_without_the_flag_nothing_ever_prompts",
         "tests/test_interactive_reports.py::test_the_cli_refuses_a_conflicting_option"
       ]
+    },
+    {
+      "id": "DI-016",
+      "label": "a-cache-hit-equals-the-fresh-analysis",
+      "statement": "A file read from the analysis cache gives the same result as analyzing it again, and a project scan reports the same files on every run. Anything a result's to_dict() writes must be restored by analysis_cache.deserialize_file_analysis; a key it cannot restore drops the file from later scans. Checking the exit code alone does not catch this: compare the file count and the bytes of a second run with the first.",
+      "severity": "critical",
+      "held_by": [
+        "tests/test_analysis_cache.py::test_a_cached_fp_declaration_reads_back_as_it_was_written",
+        "tests/test_analysis_cache.py::test_a_project_scan_keeps_a_declared_file_on_the_second_run"
+      ],
+      "binding": {
+        "origin_episode": "v3.16.3 (2026-11-18): in 3.16.2 a file with an fp: declaration failed to load from the cache; from the second scan on a single-file scan exited 1 and a project scan exited 0 without the file",
+        "lesson_ref": "tests/test_analysis_cache.py"
+      }
     }
   ],
   "operation_meta": {
