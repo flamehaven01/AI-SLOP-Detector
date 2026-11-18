@@ -107,6 +107,8 @@ This adaptation is repository-scoped and is not an external validation loop. It 
 
 ## Integration Boundaries
 
+The optional `try_bridge_snp` adapter has not been integration-tested against `supreme_nexus_pipeline`. Its current conversion omits `not_measured`; do not assume that information survives conversion until the external `GateDecision` contract is available and tested.
+
 The npm package is a transport layer over the Python CLI, not a second analyzer. The MCP server provides structured tools over the same core; its scans are read-only (no analysis cache, no history).
 
 The optional FastAPI service is a local integration surface. It binds `127.0.0.1` by default, scans read-only, and records history only when a request sets `save_history`. It has no built-in authentication or request authorization and permits all origins by default. Do not expose it directly to an untrusted network. Its webhook and project-status stubs are not supported deployment features; see [API.md](API.md).

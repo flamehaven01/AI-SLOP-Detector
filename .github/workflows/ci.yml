@@ -98,7 +98,9 @@ jobs:
         run: pip install -e ".[dev,js]"
 
       - name: Run JS/TS analyzer tests
-        run: pytest tests/test_js_analyzer.py -v
+        # test_readme_cli_svg.py: the demo screen with the [js] extra (the base
+        # install screen is compared in the test job)
+        run: pytest tests/test_js_analyzer.py tests/test_readme_cli_svg.py -v
 
   test-go:
     name: Go Analyzer

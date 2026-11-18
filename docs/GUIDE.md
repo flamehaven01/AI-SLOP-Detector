@@ -186,7 +186,7 @@ and never move the score.
 `--quiet` one line):
 
 ```text
-╭─ AI SLOP Detector 3.16.1 ────────────────────────────────────────────────────────────────────╮
+╭─ AI SLOP Detector 3.16.3 ────────────────────────────────────────────────────────────────────╮
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
