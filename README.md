@@ -327,6 +327,7 @@ proof. An `ok` recommendation means the best candidate was at least 0.10
 ahead of the next one on this project's own history; it is not a validated
 accuracy gain.
 `--self-calibrate --json` prints the same report as data and writes nothing.
+
 `slop-detector --init` detects the project's domain and sets that domain's
 pattern thresholds, printing every change.
 [Local calibration in the guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/GUIDE.md#local-calibration) ·
@@ -391,6 +392,7 @@ warning, an unchanged warning, a suppression, a declared false positive with
 `fp:`), history covers all four languages and stores only measured values,
 and `--self-calibrate --json` prints the report; scoring is unchanged (a
 suppression comment with words after `fp:` can show findings again).
+
 **v3.16.1**: Rust files are analyzed (`todo!()`, `unimplemented!()`, `dbg!()`,
 TODO comments) and judged by the CI gate like the other languages; Go and
 JS/TS regex readers no longer report text inside strings or comments; the CI
