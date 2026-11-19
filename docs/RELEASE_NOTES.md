@@ -48,6 +48,9 @@ Every change is listed in the [Changelog](../CHANGELOG.md).
   newline-delimited JSON, so a client that follows the specification gets no
   reply. Use the CLI JSON or the Claude Code skill; a server on the official
   MCP SDK is planned for 3.18.
+- **The VS Code extension is 3.17.0**: it bundles the 3.17.0 npm wrapper and
+  runs the Python package of its configured interpreter; its own behavior is
+  unchanged.
 
 ---
 

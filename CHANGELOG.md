@@ -72,6 +72,8 @@ change (below).
   newline-delimited JSON, so a client that follows the specification gets no
   reply. The server itself is unchanged; a test holds the docs to what it
   does.
+- The VS Code extension is 3.17.0: it bundles the 3.17.0 npm wrapper; the
+  extension's own behavior is unchanged.
 
 ### Added
 
