@@ -114,7 +114,6 @@ npx ai-slop-detector scan .
 npx ai-slop-detector review . --format json
 npx ai-slop-detector pulse . --format json
 npx ai-slop-detector sweep dead-code . --format json
-npx ai-slop-detector mcp
 
 # Typed output contract
 import type { ReviewOutput, ScanOutput } from "ai-slop-detector/types"
@@ -277,13 +276,10 @@ Cleanup-family semantics are now more operational than a raw candidate list:
 - `boundary-violations` stays cycle-only by default and only enables layered
   boundary review when architecture rules are explicitly configured
 
-Agent tooling can use the same semantics over MCP stdio:
-
-```bash
-slop-detector mcp
-# or
-slop-mcp
-```
+`slop-detector mcp` frames each message with a `Content-Length` header; the MCP
+specification's stdio transport is newline-delimited JSON, so a client that
+follows the specification gets no reply. A server on the official MCP SDK is
+planned for 3.18; until then use the CLI with `--format json`.
 
 Adoption and observability surfaces are intentionally separate from scoring:
 

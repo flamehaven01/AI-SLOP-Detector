@@ -47,9 +47,6 @@ pip install "ai-slop-detector[rust]" # optional Rust tree-sitter parsing (Python
 ```
 
 The CLI analyzes one JS/TS, Go or Rust file directly (`slop-detector scan lib.rs`).
-The single-file MCP tool `slop_analyze_file` analyzes Python source only and
-returns `unsupported_language` for `.js`, `.ts`, `.go` and `.rs` files: over MCP,
-run `slop_analyze_project` on the file's folder.
 
 Optional Node-first wrapper (`ai-slop-detector` on npm, same version as the PyPI release):
 
@@ -77,7 +74,6 @@ slop-detector pulse <target>
 slop-detector sweep <family> <target>
 slop-detector explain <identifier>
 slop-detector verify-governance <target>
-slop-detector mcp
 ```
 
 Legacy forms such as `--project`, `audit`, `health`, or historical `/slop*`
@@ -202,7 +198,7 @@ exclusions remain in force.
 
 ---
 
-## Node / MCP Surfaces
+## Node Surfaces
 
 Node wrapper (installed from the repository's `npm-wrapper/`, see above):
 
@@ -210,7 +206,6 @@ Node wrapper (installed from the repository's `npm-wrapper/`, see above):
 npx ai-slop-detector review . --format json
 npx ai-slop-detector pulse . --format json
 npx ai-slop-detector sweep dead-code . --format json
-npx ai-slop-detector mcp
 ```
 
 Programmatic Node API:
@@ -235,14 +230,10 @@ import type {
 } from "ai-slop-detector/types";
 ```
 
-MCP:
-
-```bash
-slop-detector mcp
-```
-
-Use MCP when the host tool already expects a stdio tool surface and should not
-shell out manually.
+MCP: `slop-detector mcp` frames each message with a `Content-Length` header; the MCP
+specification's stdio transport is newline-delimited JSON, so a client that
+follows the specification gets no reply. A server on the official MCP SDK is
+planned for 3.18; until then use the CLI with `--format json`.
 
 ---
 
@@ -276,7 +267,6 @@ aliases. The modern recommendation is simpler:
 - `sweep` for cleanup planning
 - `scan` for full baseline analysis
 - `verify-governance` for enforcement artifacts
-- `mcp` for structured agent integration
 
 If you still expose custom slash commands in a host tool, map them to those
 canonical commands rather than documenting a separate behavior model.

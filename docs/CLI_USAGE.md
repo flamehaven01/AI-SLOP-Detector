@@ -152,17 +152,16 @@ slop-detector verify-governance ./.cr-ep
 
 `--ci-mode` keeps the normal scan report (text, `--json`, or `--output`) and adds the gate's exit code. `--ci-report` replaces the scan report with the gate report, written to `--output` when given and otherwise printed to stdout; it does not publish a pull-request comment. Governance verification checks a generated artifact record; it is not a general compliance certification. See [CI_CD.md](CI_CD.md) and [GOVERNANCE.md](GOVERNANCE.md).
 
-## Node, MCP, And Local Observability
+## Node And Local Observability
 
 ```bash
 npm install --save-dev ai-slop-detector     # or run it with npx, no install
 npx ai-slop-detector review . --format json
 
-slop-detector mcp
 slop-detector impact enable
 slop-detector telemetry inspect --example
 ```
 
-The npm wrapper (`ai-slop-detector` on npm) has the same version as the PyPI release. It delegates to an installed Python CLI, or, when none is installed, runs that PyPI release through uvx or pipx. It does not implement a second analyzer. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
+The npm wrapper (`ai-slop-detector` on npm) has the same version as the PyPI release. It delegates to an installed Python CLI, or, when none is installed, runs that PyPI release through uvx or pipx. It does not implement a second analyzer. `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. A server on the official MCP SDK is planned for 3.18; until then use the CLI with `--format json`. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
 
 For agent-specific guidance, see [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) and [CLAUDE_CODE_SKILL.md](CLAUDE_CODE_SKILL.md).

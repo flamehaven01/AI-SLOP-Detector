@@ -55,7 +55,7 @@ tell whether a person or an AI wrote the code; it reports what is in the code.
 - **55 rules** across Python (37), JavaScript/TypeScript (8), Go (6) and Rust (4)
 - **Deterministic**: the same input gives byte-identical JSON
 - **Local only**: no API key, no model download, no network call during a scan
-- **Everywhere you work**: terminal, VS Code, CI gates, pre-commit, AI agents (MCP)
+- **Everywhere you work**: terminal, VS Code, CI gates, pre-commit, AI agents (CLI JSON and a Claude Code skill)
 
 ## Quick Start
 
@@ -282,9 +282,9 @@ more: [CI/CD in the guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob
 
 | Surface | How |
 |---|---|
-| **MCP server** | `slop-detector mcp` (or `npx ai-slop-detector mcp`) for Claude Code and other MCP clients |
 | **Claude Code skill** | `cp -r claude-skills/slop-detector ~/.claude/skills/`: a review loop of `review`, `pulse`, `sweep` with JSON output |
 | **AI work order** | `--format ai-md`, bound to the SHA-256 of each scanned file (see [What You Get](#what-you-get)) |
+| **MCP server** | `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. Use the CLI JSON or the skill; a server on the official MCP SDK is planned for 3.18 |
 | **REST** | A local FastAPI server (`[api]` extra) that binds `127.0.0.1` |
 | **Node** | `npx ai-slop-detector` runs the same Python backend; typed results at `ai-slop-detector/types` |
 

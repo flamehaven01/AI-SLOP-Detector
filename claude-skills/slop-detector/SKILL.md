@@ -1,6 +1,6 @@
 ---
 name: slop-detector
-description: Structural review skill for AI-SLOP Detector. Use when asked to review AI-assisted code, inspect changed-code risk, prioritize structural hotspots, plan cleanup, verify governance, or run MCP/JSON-first workflows. Prefer the canonical CLI surfaces: scan, review, pulse, sweep, explain, verify-governance, and mcp. Treat review/pulse/sweep as the primary agent-facing surfaces; use scan for full baseline analysis.
+description: Structural review skill for AI-SLOP Detector. Use when asked to review AI-assisted code, inspect changed-code risk, prioritize structural hotspots, plan cleanup, verify governance, or run JSON-first workflows. Prefer the canonical CLI surfaces: scan, review, pulse, sweep, explain and verify-governance. Treat review/pulse/sweep as the primary agent-facing surfaces; use scan for full baseline analysis.
 ---
 
 # AI-SLOP Detector Skill
@@ -31,9 +31,6 @@ pip install "ai-slop-detector[rust]" # optional Rust tree-sitter parsing (Python
 ```
 
 The CLI analyzes one JS/TS, Go or Rust file directly (`slop-detector scan lib.rs`).
-The single-file MCP tool `slop_analyze_file` analyzes Python source only and
-returns `unsupported_language` for `.js`, `.ts`, `.go` and `.rs` files: over MCP,
-run `slop_analyze_project` on the file's folder.
 
 Optional Node-first wrapper:
 
@@ -137,14 +134,12 @@ slop-detector verify-governance ./.cr-ep
 
 Use when governance artifacts, not score output, are the enforcement boundary.
 
-### `mcp`
+### `mcp` (do not use)
 
-```bash
-slop-detector mcp
-```
-
-Use when the host tool already speaks MCP and wants the structured tool surface
-directly.
+`slop-detector mcp` frames each message with a `Content-Length` header; the MCP
+specification's stdio transport is newline-delimited JSON, so a client that
+follows the specification gets no reply. Use the CLI commands above with
+`--format json` instead. A server on the official MCP SDK is planned for 3.18.
 
 ---
 
@@ -244,7 +239,6 @@ product surfaces:
 - `sweep`
 - `explain`
 - `verify-governance`
-- `mcp`
 
 If a host environment adds slash aliases, they should delegate to those canonical
 commands rather than documenting a separate behavior model.
