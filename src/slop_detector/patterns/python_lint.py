@@ -62,9 +62,9 @@ class LintEscapePattern(BasePattern):
                         column=raw.find("#"),
                         message="Bare '# noqa' suppresses ALL linter warnings on this line",
                         suggestion=(
-                            "Fix the underlying lint error instead of suppressing it. "
-                            "If suppression is truly necessary, specify the rule: "
-                            "# noqa: E501"
+                            "Fix the underlying lint error and remove the suppression. A "
+                            "rule-specific '# noqa: <code>' is still reported as a "
+                            "suppression to review."
                         ),
                         severity_override=Severity.HIGH,
                     )
@@ -79,8 +79,8 @@ class LintEscapePattern(BasePattern):
                         column=raw.find("#"),
                         message=f"Lint suppression: # noqa: {code}",
                         suggestion=(
-                            "Verify this suppression is intentional and document why "
-                            "the underlying issue cannot be fixed."
+                            "Fix the underlying issue and remove the suppression. While it "
+                            "stays it is reported; if it must stay, say why in the review."
                         ),
                         severity_override=Severity.LOW,
                     )

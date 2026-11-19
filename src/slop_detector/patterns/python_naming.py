@@ -90,7 +90,9 @@ class PlaceholderVariableNamingPattern(BasePattern):
                     ),
                     suggestion=(
                         "Use semantic parameter names that describe the data they represent. "
-                        "For math/science code, suppress with domain_overrides in .slopconfig.yaml."
+                        "Where single letters are the notation of the domain (math, science), "
+                        "the project can turn the rule off with patterns.disabled in "
+                        ".slopconfig.yaml (a configuration decision, not a code fix)."
                     ),
                 )
             )

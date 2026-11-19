@@ -442,7 +442,9 @@ class TodoCommentPattern(RegexPattern):
             column,
             code,
             message or self.message,
-            suggestion or "Complete the TODO or create a ticket",
+            suggestion
+            or "Complete the TODO. If the work is tracked elsewhere, replace the TODO with the "
+            "reference: a TODO with a ticket number is still a TODO.",
         )
 
 
@@ -622,8 +624,9 @@ class EmptyExceptPattern(ASTPattern):
                     else "Empty optional dependency guard; verify this is intentional"
                 ),
                 suggestion=(
-                    "Add a comment explaining which optional package is guarded "
-                    "and what fallback behaviour is active."
+                    "Bind the fallback in the handler (for example `yaml = None`) so the code "
+                    "can test for the optional package. A comment alone does not resolve "
+                    "this finding."
                 ),
                 severity_override=Severity.LOW,
             )
@@ -639,8 +642,9 @@ class EmptyExceptPattern(ASTPattern):
                 else "Empty handler silently discards the exception"
             ),
             suggestion=(
-                "Add logging (logger.debug/warning) or a comment explaining "
-                "why silence is correct here."
+                "Log the failure (logger.warning or logger.exception), re-raise it, or "
+                "return a value the caller can tell is a failure. A comment alone does "
+                "not resolve this finding; if the silence is correct, say why in the review."
             ),
             severity_override=Severity.MEDIUM,
         )
@@ -670,7 +674,13 @@ class ReturnNonePlaceholderPattern(_IntentAwarePattern):
                 isinstance(ret.value, ast.Constant) and ret.value.value is None
             ):
                 return self.create_issue_from_node(
-                    node, file, suggestion="Implement the function or clarify intent"
+                    node,
+                    file,
+                    suggestion=(
+                        "Implement the function, or remove it with its callers. A docstring "
+                        "or comment alone does not resolve this finding; if the no-op is "
+                        "intended, say why in the review."
+                    ),
                 )
         return None
 

@@ -45,6 +45,29 @@ A new default terminal screen.
   was not measured. When all four fail, the sentence is the one it was. The
   `recommendation` value in the gate's JSON changes the same way; the
   decision, its conditions and the audit hash do not.
+- Six fix texts recommended a change the detector does not accept, so
+  following them gave the same finding back. They now name only changes that
+  resolve the finding and say what does not: `empty_except` (log, re-raise or
+  return a failure; a comment alone does not resolve it), the optional import
+  guard (bind the fallback in the handler), `return_none_placeholder`
+  (implement it or remove it with its callers; a docstring does not resolve
+  it), `todo_comment` (a TODO with a ticket number is still a TODO), the two
+  `lint_escape` suppressions (a rule-specific `# noqa` is still reported),
+  and `placeholder_variable_naming` (`patterns.disabled`; the
+  `domain_overrides` it named exists only for `god_function` and
+  `nested_complexity`). Only the `suggestion` / `fix` text changes: findings,
+  scores and the rest of the JSON are byte-identical. The analysis cache is
+  `analysis-cache-v54`, so the first scan after upgrading analyzes each file
+  again.
+- The AI work order shows each item's `cause_key` next to its `semantic_key`;
+  PROVE compares both, and a block showed only one. The backlog says that its
+  keys are in the JSON Lines.
+- The MCP server (`slop-detector mcp`) is no longer recommended in the README,
+  the guides or the Claude Code skill: it frames each message with a
+  `Content-Length` header, while the MCP specification's stdio transport is
+  newline-delimited JSON, so a client that follows the specification gets no
+  reply. The server itself is unchanged; a test holds the docs to what it
+  does.
 
 ### Added
 

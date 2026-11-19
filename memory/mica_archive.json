@@ -226,9 +226,41 @@
         "origin_episode": "v3.16.3 (2026-11-18): in 3.16.2 a file with an fp: declaration failed to load from the cache; from the second scan on a single-file scan exited 1 and a project scan exited 0 without the file",
         "lesson_ref": "tests/test_analysis_cache.py"
       }
+    },
+    {
+      "id": "DI-017",
+      "label": "fix-texts-name-changes-that-resolve",
+      "status": "unreleased: 3.17 development line only, not part of 3.16.3; stays below critical until it is released",
+      "statement": "A rule's fix text recommends only changes that resolve its finding, and says which changes do not (a comment, a docstring, a ticket number, a narrower suppression). The detector is not changed to accept an explanation in place of a fix: a warning that vanishes because of a comment is not a fix.",
+      "severity": "high",
+      "held_by": [
+        "tests/test_fix_texts_resolve.py::test_the_recommended_change_resolves_and_an_explanation_does_not",
+        "tests/test_fix_texts_resolve.py::test_the_naming_fix_text_names_a_setting_that_exists_and_works"
+      ]
+    },
+    {
+      "id": "DI-018",
+      "label": "work-order-shows-what-prove-compares",
+      "status": "unreleased: 3.17 development line only, not part of 3.16.3; stays below critical until it is released",
+      "statement": "Every work-order item block shows the semantic_key and the cause_key of its JSON Lines record, because PROVE decides FIXED_CANDIDATE on both; the backlog says where its keys are.",
+      "severity": "high",
+      "held_by": [
+        "tests/test_ai_report_md.py::test_every_block_shows_both_keys_prove_compares",
+        "tests/test_ai_report_md.py::test_the_backlog_says_where_its_keys_are"
+      ]
+    },
+    {
+      "id": "DI-019",
+      "label": "docs-say-what-the-mcp-server-does",
+      "status": "unreleased: 3.17 development line only, not part of 3.16.3; stays below critical until it is released",
+      "statement": "The docs describe the MCP server by what it answers on the specification's newline-delimited stdio framing, measured by starting the real server: while it gives no reply, no doc recommends it; when a server answers, the warning goes.",
+      "severity": "high",
+      "held_by": [
+        "tests/test_mcp_docs_match_framing.py::test_the_docs_match_the_server_on_newline_framing"
+      ]
     }
   ],
   "operation_meta": {
-    "last_updated": "2026-11-18"
+    "last_updated": "2026-11-19"
   }
 }
