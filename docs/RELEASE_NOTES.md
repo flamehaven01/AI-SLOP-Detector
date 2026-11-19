@@ -5,6 +5,52 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.17.0 — 2026-11-19
+
+### Summary
+
+The default terminal screen is redrawn to fit one window, `--interactive`
+lets you choose which report files to save, six fix texts now name only
+changes that resolve their finding, and the AI work order shows both keys its
+PROVE step compares. How scores are computed and the findings are unchanged.
+Every change is listed in the [Changelog](../CHANGELOG.md).
+
+### What moves when you upgrade
+
+- **The terminal summary is a panel**: the score, its band and a meter,
+  findings per severity and files per language, then `Fix first` (at most 5)
+  and `To review (not scored)` (at most 3), one line per item, and one `Next`
+  step. `--details`, `--quiet`, JSON and the report files are unchanged; a
+  script that read the summary's text should read `--quiet` or JSON.
+- **Progress is a box** that names the phase and disappears when the scan
+  ends; nothing is drawn when stderr is not a terminal. A console that cannot
+  draw the box characters, or a Windows console without VT processing on an
+  East Asian code page, gets it in ASCII.
+- **`--interactive`** asks, after the summary, which reports to save
+  (`[1] HTML  [2] Markdown  [3] AI work order  [4] JSON`); it never asks
+  without the option or without a terminal, and refuses options that already
+  decide the output, CI options and `--read-only`.
+- **Six fix texts changed** (`empty_except`, the optional import guard,
+  `return_none_placeholder`, `todo_comment`, the two `lint_escape`
+  suppressions, `placeholder_variable_naming`): each offered a change the
+  detector does not accept (a comment, a docstring, a ticket number, a
+  narrower `# noqa`, a setting that does not exist for the rule). Only the
+  `suggestion` / `fix` text changes; findings, scores and the rest of the
+  JSON are byte-identical. The analysis cache is `analysis-cache-v54`: the
+  first scan after upgrading analyzes each file again.
+- **The AI work order** shows each item's `cause_key` next to its
+  `semantic_key`.
+- **`review` and `--gate`** say what their verdict judged (`per file: 0
+  failed, 2 warned of 129 files`; a HALT recommends only the conditions that
+  failed). The `--gate` JSON's `recommendation` changes the same way.
+- **The MCP server is no longer recommended**: it frames messages with a
+  `Content-Length` header, while the MCP specification's stdio transport is
+  newline-delimited JSON, so a client that follows the specification gets no
+  reply. Use the CLI JSON or the Claude Code skill; a server on the official
+  MCP SDK is planned for 3.18.
+
+---
+
 ## v3.16.3 — 2026-11-18
 
 ### Summary
@@ -2068,6 +2114,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
+| **v3.17.0** | screen release: the terminal summary in one panel with a meter, `Fix first` and one `Next` step; progress in a box (ASCII where the console needs it); `--interactive` report choice; six fix texts name only changes that resolve the finding; the work order shows `cause_key`; the MCP server is no longer recommended (non-standard framing); scoring unchanged |
 | **v3.16.3** | cache patch: a file with an `fp:` declaration loads from the analysis cache, so it stays in every scan after the first (it failed with exit 1, or was left out of a project scan); scoring and the scan JSON format unchanged |
 | **v3.16.2** | calibration evidence: history of all four languages with unmeasured metrics stored as NULL (a checked copy kept before the one-time upgrade); `fp:` false-positive declarations; `--self-calibrate` shows each rule's evidence, reads history without writing it, and prints JSON with `--json`; scoring unchanged (a suppression comment with words after `fp:` can show findings again) |
 | **v3.16.1** | Rust release: `todo!()`, `unimplemented!()`, `dbg!()` and TODO comments in `.rs` files, judged by the CI gate; Go and JS/TS regex readers ignore text in strings and comments; README rewritten |

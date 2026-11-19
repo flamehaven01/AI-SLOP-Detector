@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [3.17.0] - 2026-11-19
 
-A new default terminal screen.
+A new default terminal screen, `--interactive` report choice, fix texts that
+name only changes the detector accepts, and a work order whose PROVE step can
+be followed. How scores are computed and the findings are unchanged; the
+`suggestion` / `fix` texts of six rules and the `--gate` recommendation
+change (below).
 
 ### Changes you see when upgrading
 

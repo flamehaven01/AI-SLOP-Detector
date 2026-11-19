@@ -185,7 +185,7 @@ and never move the score.
 `--quiet` one line):
 
 ```text
-╭─ AI SLOP Detector 3.16.3 ────────────────────────────────────────────────────────────────────╮
+╭─ AI SLOP Detector 3.17.0 ────────────────────────────────────────────────────────────────────╮
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
@@ -623,7 +623,7 @@ would analyze it.
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.16.3
+    rev: v3.17.0
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks

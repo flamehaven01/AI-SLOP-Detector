@@ -1,6 +1,6 @@
 # CLI Usage
 
-**Current contract:** v3.16.2. Run `slop-detector --help` in the installed environment for the authoritative option list.
+**Current contract:** v3.17.0. Run `slop-detector --help` in the installed environment for the authoritative option list.
 
 ## Canonical Commands
 

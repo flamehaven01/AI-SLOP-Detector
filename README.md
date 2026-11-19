@@ -13,8 +13,8 @@ Find warning signs of unfinished code in Python, JavaScript/TypeScript, Go, and 
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.16.3" alt="PyPI version"/></a>
-  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.16.3" alt="npm version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.17.0" alt="PyPI version"/></a>
+  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.17.0" alt="npm version"/></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector"><img src="https://vsmarketplacebadges.dev/version-short/Flamehaven.vscode-slop-detector.svg" alt="VS Code Marketplace version"/></a>
   <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/pyversions/ai-slop-detector.svg" alt="Python versions"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md"><img src="https://img.shields.io/badge/languages-Python%20%7C%20JS%2FTS%20%7C%20Go%20%7C%20Rust-informational" alt="Languages: Python, JS/TS, Go, Rust"/></a>
@@ -395,6 +395,11 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 ---
 
 ## Release Highlights
+
+**v3.17.0**: the terminal summary fits one window (score, band and meter,
+`Fix first`, one `Next` step), progress shows in a box, `--interactive` lets
+you pick the reports to save, and six fix texts now recommend only changes
+that resolve their finding. Scoring is unchanged.
 
 **v3.16.3**: a file with an `fp:` declaration stays in every scan; from the
 second scan on it failed to load from the analysis cache (a single-file scan
