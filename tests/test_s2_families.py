@@ -120,8 +120,9 @@ def parse(doc):
                     path, _, n = text.rpartition(":")
                     member["file"], member["line"] = path, int(n)
                 elif key == "locator":
-                    loc, _, sem = text.partition(" semantic_key=")
-                    member["locator"], member["semantic_key"] = loc, sem
+                    loc, _, keys = text.partition(" semantic_key=")
+                    sem, _, cause = keys.partition(" cause_key=")
+                    member["locator"], member["semantic_key"], member["cause_key"] = loc, sem, cause
                 elif key == "bound_to":
                     member["bound"] = text.split(" ", 1)[0]
                 elif key == "evidence":
@@ -150,6 +151,7 @@ def _check_lossless(doc, records):
         assert (
             item["locator"] == (r["locator"] or "(the symbol itself)")
             and item["semantic_key"] == r["semantic_key"]
+            and item["cause_key"] == r["cause_key"]
         )
         assert item["evidence"] == r["evidence"]
         assert (
@@ -422,8 +424,10 @@ def _altered(lines, record, field):
             ln = " ".join(head)
         elif ln.startswith("locator [FACT]: ") and field == "locator":
             ln = ln.replace("locator [FACT]: ", "locator [FACT]: body[9]", 1)
-        elif ln.startswith("locator [FACT]: ") and field == "semantic_key":
-            ln = ln[:-1] + ("0" if ln[-1] != "0" else "1")
+        elif ln.startswith("locator [FACT]: ") and field in ("semantic_key", "cause_key"):
+            head, _, rest = ln.partition(f" {field}=")
+            value, sep, tail = rest.partition(" ")
+            ln = f"{head} {field}={value[:-1] + ('0' if value[-1] != '0' else '1')}{sep}{tail}"
         elif ln.startswith("promise [FACT]: ") and field == "promise":
             ln = ln.replace("Compute the total", "Compute the sum")
         out.append(ln)
@@ -431,7 +435,7 @@ def _altered(lines, record, field):
 
 
 @pytest.mark.parametrize(
-    "field", ["severity", "kind", "rule", "locator", "semantic_key", "promise"]
+    "field", ["severity", "kind", "rule", "locator", "semantic_key", "cause_key", "promise"]
 )
 def test_the_gate_checks_every_field_an_item_block_shows(tmp_path, monkeypatch, field):
     # FH-S2-01: each shown field of an item, changed alone, is refused

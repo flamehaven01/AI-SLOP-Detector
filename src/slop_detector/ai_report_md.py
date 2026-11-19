@@ -312,7 +312,11 @@ def _family(gid: str, record: Dict[str, Any], count: int) -> List[str]:
 
 
 def _locator_text(record: Dict[str, Any]) -> str:
-    return f"{record['locator'] or '(the symbol itself)'} semantic_key={record['semantic_key']}"
+    # PROVE compares both keys across a re-scan (ai_report.prove_state)
+    return (
+        f"{record['locator'] or '(the symbol itself)'} semantic_key={record['semantic_key']} "
+        f"cause_key={record['cause_key']}"
+    )
 
 
 def _promise_text(promise: Dict[str, Any]) -> str:
@@ -613,7 +617,11 @@ def _document(fixed, items: List[Dict[str, Any]], tiers: List[str], budget: Opti
             out += _member_block(
                 n, record, root, rules[0], mode, tier, sources, refs[record["file"]]
             )
-    out += ["## BACKLOG", "same contract; open the file and work the item as a WORK-ORDER block"]
+    out += [
+        "## BACKLOG",
+        "same contract; open the file and work the item as a WORK-ORDER block; "
+        "its semantic_key and cause_key are in the JSON Lines (--format ai)",
+    ]
     if listed:
         out += [_index_line(r, budget is not None, refs[r["file"]]) for r in listed]
     else:

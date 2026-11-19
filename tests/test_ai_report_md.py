@@ -130,3 +130,26 @@ def test_the_cli_and_the_bundle_write_the_work_order(tmp_path, capsys):
     main([str(tmp_path), "--project", "--format", "ai-md", "--ai-limit", "1"])
     out = capsys.readouterr().out
     assert out.startswith("# AI-SLOP WORK ORDER") and "work order 1 |" in out
+
+
+def test_every_block_shows_both_keys_prove_compares(tmp_path):
+    """PROVE decides FIXED_CANDIDATE on the semantic_key and the cause_key of
+    an item; a block that showed only one left the rule impossible to follow
+    from this document. Both come from the item's JSON Lines record."""
+    result = _project(tmp_path)
+    records = {r["id"]: r for r in build_records(build_report_view(result))[1:]}
+    for mode in ("auditor", "agent"):
+        text = render_ai_report_md(result, mode=mode)
+        assert "semantic_key and its cause_key" in text  # the rule the keys serve
+        blocks = re.findall(r"^#### W\d+ (\S+) .*?\nlocator \[FACT\]: ([^\n]+)", text, re.M | re.S)
+        assert len(blocks) == len(records)
+        for item_id, locator in blocks:
+            record = records[item_id]
+            assert f"semantic_key={record['semantic_key']}" in locator, (mode, item_id)
+            assert f"cause_key={record['cause_key']}" in locator, (mode, item_id)
+
+
+def test_the_backlog_says_where_its_keys_are(tmp_path):
+    limited = render_ai_report_md(_project(tmp_path), limit=1)
+    backlog = limited.split("## BACKLOG")[1].split("\n## ")[0]
+    assert "semantic_key and cause_key are in the JSON Lines (--format ai)" in backlog
