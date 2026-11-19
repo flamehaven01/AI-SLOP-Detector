@@ -6,6 +6,7 @@ earlier releases stay available with `--details`.
 
 from __future__ import annotations
 
+import logging
 import sys
 import time
 from pathlib import Path
@@ -390,6 +391,7 @@ class Progress:
         self._index, self._total, self._name = 0, 0, ""
         self._phase = "find"
         self._drawn_at: Optional[float] = None
+        self._lent: List[Any] = []  # log handlers writing through the box while it is up
 
     @property
     def active(self) -> bool:
@@ -455,14 +457,30 @@ class Progress:
             self._phase_glyphs = _ASCII_PHASE_GLYPHS
         self._live = Live(console=console, transient=True, auto_refresh=False)
         self._live.start()
+        self._lend_log_handlers(console)
+
+    def _lend_log_handlers(self, console: Any) -> None:
+        """A log handler writing to the box's stream writes past the box (it holds
+        the stream, not Live's redirect), which moves the cursor so that clearing
+        the box leaves part of it on the screen. While the box is up, such a
+        handler writes through the box's console, which prints above the box."""
+        from rich.file_proxy import FileProxy
+
+        for handler in logging.getLogger().handlers:
+            if isinstance(handler, logging.StreamHandler) and handler.stream is self._stream:
+                handler.setStream(FileProxy(console, self._stream))
+                self._lent.append(handler)
 
     def _stop(self) -> None:
         live, self._live = self._live, None
+        lent, self._lent = self._lent, []
         if live is not None:
             try:
                 live.stop()
             except Exception:  # noqa: BLE001 - the stream is gone; nothing to restore
                 pass
+        for handler in lent:
+            handler.setStream(self._stream)
 
     def _draw(self) -> None:
         if self._live is None:

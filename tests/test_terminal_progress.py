@@ -11,6 +11,7 @@ goes away when the scan ends.
 from __future__ import annotations
 
 import io
+import logging
 
 from slop_detector.renderer_terminal import Progress
 from slop_detector.service.events import ScanEvent
@@ -86,6 +87,44 @@ def test_the_box_is_gone_when_the_scan_ends():
         tty = Tty()
         progress = _feed(tty, list(_events())[:-1] + [ScanEvent(last)])
         assert progress.active is False, last
+
+
+def test_a_log_line_written_while_the_box_is_up_goes_through_the_box():
+    """A record logged to the box's own stream while the box is drawn is printed
+    by the box's console, above the box. Written past the box, it moved the
+    cursor, and clearing the box left two of its lines on the screen (an empty
+    project logs 'No files analyzed' at that moment)."""
+    for last in ("completed", "failed", "cancelled"):
+        tty = Tty()
+        handler = logging.StreamHandler(tty)
+        root = logging.getLogger()
+        root.addHandler(handler)
+        try:
+            progress = Progress(tty)
+            progress(ScanEvent("discovered", totals={}, total=0))
+            assert progress.active
+            assert handler.stream is not tty, "the log handler writes past the box"
+            logging.getLogger("slop_detector.core").warning("No files analyzed")
+            progress(ScanEvent(last))
+            assert progress.active is False
+            assert handler.stream is tty, "the log handler is not given back its stream"
+        finally:
+            root.removeHandler(handler)
+        assert tty.getvalue().count("No files analyzed") == 1, last
+
+
+def test_a_handler_on_another_stream_is_left_alone():
+    tty, other = Tty(), io.StringIO()
+    handler = logging.StreamHandler(other)
+    logging.getLogger().addHandler(handler)
+    try:
+        progress = Progress(tty)
+        progress(ScanEvent("discovered", totals={}, total=0))
+        assert handler.stream is other
+        progress(ScanEvent("completed"))
+        assert handler.stream is other
+    finally:
+        logging.getLogger().removeHandler(handler)
 
 
 def test_a_broken_stream_stops_the_drawing_and_not_the_scan():
