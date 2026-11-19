@@ -141,45 +141,6 @@ jobs:
           pytest tests/test_rust_analyzer.py -v -rs --no-cov -p no:cacheprovider | tee rust_tests.txt
           if grep -q SKIPPED rust_tests.txt; then echo "Rust tree-sitter tests were skipped"; exit 1; fi
 
-  windows-exe:
-    name: Windows single executable
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install the package with its extras and PyInstaller
-        run: pip install ".[js,rust]" pyinstaller==6.22.3
-
-      - name: Build
-        run: python scripts/exe/build_exe.py dist
-
-      # The executable must answer like the pip install of the same commit:
-      # same version line, both tree-sitter readers inside, byte-identical JSON.
-      # The demo is copied outside the checkout and each run gets an empty HOME,
-      # so no git setting or analysis cache can make the two differ.
-      - name: Compare with the pip install
-        run: |
-          set -euo pipefail
-          exe="$PWD/dist/slop-detector.exe"
-          work="$RUNNER_TEMP/exe-check"
-          mkdir -p "$work"
-          cp -r examples/demo_project "$work/demo"
-          test "$("$exe" --version)" = "$(python -m slop_detector.cli --version)"
-          run() { local h; h="$(mktemp -d)"; HOME="$h" USERPROFILE="$h" "$@"; }
-          run "$exe" --project "$work/demo" --json --no-history > "$work/exe.json"
-          run python -m slop_detector.cli --project "$work/demo" --json --no-history > "$work/pip.json"
-          cmp "$work/exe.json" "$work/pip.json"
-          python -c "import json,sys; m=json.load(open(sys.argv[1]))['scan_coverage']['analysis_modes']; assert m['javascript']['mode']=='tree_sitter_ast', m" "$work/exe.json"
-          sha256sum "$exe"
-
   rust-accelerator:
     name: Rust Accelerator
     runs-on: ubuntu-latest

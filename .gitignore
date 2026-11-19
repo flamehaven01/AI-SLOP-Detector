@@ -160,3 +160,6 @@ sovereign_upgrade/
 
 # Per-file test timings written by scripts/dev/parallel_tests.py
 /.pytest_durations.json
+
+# Windows single-file executable prototype: kept locally, out of the product (2026-11-19)
+EXE_SINGLE_FILE_PROJECT/
