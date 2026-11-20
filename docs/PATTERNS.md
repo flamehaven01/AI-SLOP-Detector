@@ -61,7 +61,7 @@ The detailed sections below explain the main rules and may not cover every id.
 | `deep_nesting` | Python | High | Complexity | No | Control-flow depth over the limit |
 | `nested_complexity` | Python | Critical | Complexity | No | Control-flow depth and cyclomatic complexity both over their limits |
 | `lint_escape` | Python | High (bare `# noqa`); Medium or Low for narrower suppressions | Lint | No | `# noqa`, `# type: ignore`, `# pylint: disable` |
-| `phantom_import` | Python | Critical | Imports | No | No installed distribution, declaration or known provider supplies the import (observed; not proof that no package exists) |
+| `phantom_import` | Python | High | Imports | No | No installed distribution, declaration or known provider supplies the import (observed; not proof that no package exists) |
 | `undeclared_optional_dependency` | Python | Medium | Imports | No | ImportError-guarded import not listed in optional dependencies |
 | `runtime_unavailable_dependency` | Python | Medium | Imports | No | Declared dependency unavailable in the analyzer runtime (environment evidence) |
 | `declared_outside_primary_metadata` | Python | Low | Imports | No | Dependency declared outside pyproject.toml project metadata |
@@ -918,9 +918,9 @@ entries are recognised after stripping PEP-508 extras specifiers (`psycopg[binar
 → `psycopg`), so guarded imports for properly declared optional packages are not flagged.
 
 ```python
-# CRITICAL:
-import tensorflow_magic        # does not exist
-from requests_async_v2 import get  # does not exist
+# HIGH (no provider known, not declared):
+import tensorflow_magic
+from requests_async_v2 import get
 
 # OK:
 import numpy                   # installed

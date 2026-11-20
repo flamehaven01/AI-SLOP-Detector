@@ -4,8 +4,9 @@ One source for the declaration evidence that phantom_import reads and for the
 project-context fingerprint that keys its caches. Supported formats:
 
 - pyproject.toml: PEP 621 dependencies and optional-dependencies, PEP 735
-  dependency-groups, Poetry
-  dependencies, dev-dependencies and group dependencies;
+  dependency-groups, [tool.uv] dev-dependencies, Poetry dependencies,
+  dev-dependencies and group dependencies (and, for setup.py only,
+  [build-system] requires: build_requirements);
 - setup.py: install_requires and extras_require given as literals or as names
   bound to module-level literals (read with ast, never executed);
 - setup.cfg: [options] install_requires and [options.extras_require];
@@ -86,6 +87,22 @@ def declared_requirements(path: Path) -> List[str]:
         return []
 
 
+def build_requirements(path: Path) -> List[str]:
+    """`[build-system] requires` of a pyproject.toml ([] when unreadable or absent).
+
+    Build-time dependencies: evidence for the build script next to that pyproject.toml
+    (setup.py), never for the package's own modules.
+    """
+    from slop_detector.project_resolution import load_toml
+
+    try:
+        build = load_toml(path).get("build-system", {})
+    except (OSError, ValueError) as exc:
+        logger.debug("Cannot read build requirements from %s: %s", path, exc)
+        return []
+    return _strings(build.get("requires", [])) if isinstance(build, dict) else []
+
+
 def _strings(value: Any) -> List[str]:
     if isinstance(value, str):
         return [value]
@@ -117,6 +134,11 @@ def _pyproject_requirements(data: Dict[str, Any]) -> List[str]:
         for items in groups_735.values():
             found.extend(_strings(items))
     tool = data.get("tool", {})
+    # uv's development list before PEP 735 ([tool.uv] dev-dependencies; uv reads it beside
+    # dependency-groups.dev). Declared, not evidence of what is installed where the code runs.
+    uv = tool.get("uv", {}) if isinstance(tool, dict) else {}
+    if isinstance(uv, dict):
+        found.extend(_strings(uv.get("dev-dependencies", [])))
     poetry = tool.get("poetry", {}) if isinstance(tool, dict) else {}
     if isinstance(poetry, dict):
         found.extend(_table_keys(poetry.get("dependencies")))

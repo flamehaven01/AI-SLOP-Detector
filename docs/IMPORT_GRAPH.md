@@ -10,7 +10,7 @@ project file when it can. That graph feeds:
 
 - **import cycles** and **layer-boundary findings** (`sweep boundary-violations`),
 - **`phantom_import`**, so a module that really exists in your project is not reported as
-  a package that does not exist,
+  an import nothing provides,
 - **structure measures**: circular groups, most-imported files, and how far a change reaches.
 
 Everything is reported in one block, `structure_evidence`. It does **not** change any slop

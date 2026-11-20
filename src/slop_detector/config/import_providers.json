@@ -2,38 +2,270 @@
   "_meta": {
     "purpose": "Distribution -> import names it provides, for providers that are not installed where the analyzer runs. Keys are PEP 503 normalized distribution names; values are import names exactly as imported (case-sensitive), dotted for a namespace portion (the shortest name the distribution owns). Rank 4 evidence in docs/IMPORT_PROVIDER_RESOLUTION.md: mapping knowledge, never presence.",
     "source": "hand-curated from each project's documented import name",
-    "audit": "pending: not yet checked against wheel file lists",
+    "audit": "bounded local audit 2026-11-20: an entry is ARTIFACT_VERIFIED when a local artifact (uv cache or installed environment; nothing downloaded) has a RECORD listing the files of its import names and every such file matched its RECORD sha256; AUDIT_PENDING when no local artifact was found. A pending entry is mapping knowledge, not confirmed provider evidence; each finding that uses an entry carries its status (evidence.mapping_audit).",
     "since": "3.18.0"
   },
   "providers": {
-    "absl-py": ["absl"],
-    "beautifulsoup4": ["bs4"],
-    "biopython": ["Bio"],
-    "dm-haiku": ["haiku"],
-    "faiss-cpu": ["faiss"],
-    "faiss-gpu": ["faiss"],
-    "gitpython": ["git"],
-    "google-cloud-storage": ["google.cloud.storage"],
-    "google-generativeai": ["google.generativeai"],
-    "grpcio": ["grpc"],
-    "jwt": ["jwt"],
-    "msgpack-python": ["msgpack"],
-    "opencv-contrib-python": ["cv2"],
-    "opencv-python": ["cv2"],
-    "opencv-python-headless": ["cv2"],
-    "pillow": ["PIL"],
-    "protobuf": ["google.protobuf"],
-    "py-cpuinfo": ["cpuinfo"],
-    "pyjwt": ["jwt"],
-    "pymupdf": ["fitz", "pymupdf"],
-    "pyopengl": ["OpenGL"],
-    "pypdf2": ["PyPDF2"],
-    "python-dateutil": ["dateutil"],
-    "python-dotenv": ["dotenv"],
-    "pywin32": ["win32api", "win32con", "win32gui", "win32process", "win32file", "win32event", "win32com", "win32clipboard", "win32print", "win32service", "win32serviceutil", "win32pipe", "win32security", "win32ui", "winerror", "pywintypes", "pythoncom"],
-    "pyyaml": ["yaml"],
-    "scikit-image": ["skimage"],
-    "scikit-learn": ["sklearn"],
-    "websocket-client": ["websocket"]
+    "absl-py": [
+      "absl"
+    ],
+    "beautifulsoup4": [
+      "bs4"
+    ],
+    "biopython": [
+      "Bio"
+    ],
+    "dm-haiku": [
+      "haiku"
+    ],
+    "faiss-cpu": [
+      "faiss"
+    ],
+    "faiss-gpu": [
+      "faiss"
+    ],
+    "gitpython": [
+      "git"
+    ],
+    "google-cloud-storage": [
+      "google.cloud.storage"
+    ],
+    "google-generativeai": [
+      "google.generativeai"
+    ],
+    "grpcio": [
+      "grpc"
+    ],
+    "jwt": [
+      "jwt"
+    ],
+    "msgpack-python": [
+      "msgpack"
+    ],
+    "opencv-contrib-python": [
+      "cv2"
+    ],
+    "opencv-python": [
+      "cv2"
+    ],
+    "opencv-python-headless": [
+      "cv2"
+    ],
+    "pillow": [
+      "PIL"
+    ],
+    "protobuf": [
+      "google.protobuf"
+    ],
+    "py-cpuinfo": [
+      "cpuinfo"
+    ],
+    "pyjwt": [
+      "jwt"
+    ],
+    "pymupdf": [
+      "fitz",
+      "pymupdf"
+    ],
+    "pyopengl": [
+      "OpenGL"
+    ],
+    "pypdf2": [
+      "PyPDF2"
+    ],
+    "pytest": [
+      "pytest",
+      "_pytest",
+      "py"
+    ],
+    "python-dateutil": [
+      "dateutil"
+    ],
+    "python-dotenv": [
+      "dotenv"
+    ],
+    "pywin32": [
+      "win32api",
+      "win32con",
+      "win32gui",
+      "win32process",
+      "win32file",
+      "win32event",
+      "win32com",
+      "win32clipboard",
+      "win32print",
+      "win32service",
+      "win32serviceutil",
+      "win32pipe",
+      "win32security",
+      "win32ui",
+      "winerror",
+      "pywintypes",
+      "pythoncom"
+    ],
+    "pyyaml": [
+      "yaml"
+    ],
+    "scikit-image": [
+      "skimage"
+    ],
+    "scikit-learn": [
+      "sklearn"
+    ],
+    "websocket-client": [
+      "websocket"
+    ]
+  },
+  "audit": {
+    "absl-py": {
+      "status": "AUDIT_PENDING"
+    },
+    "beautifulsoup4": {
+      "status": "AUDIT_PENDING"
+    },
+    "biopython": {
+      "status": "AUDIT_PENDING"
+    },
+    "dm-haiku": {
+      "status": "AUDIT_PENDING"
+    },
+    "faiss-cpu": {
+      "status": "AUDIT_PENDING"
+    },
+    "faiss-gpu": {
+      "status": "AUDIT_PENDING"
+    },
+    "gitpython": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "3.1.45",
+      "wheel_tag": [
+        "py3-none-any"
+      ],
+      "record_sha256": "87442bda2e11ace676e62ef9b1d8d0cca51d953ba6d302a1172ab2f4e4692151",
+      "table_names_in_artifact": true
+    },
+    "google-cloud-storage": {
+      "status": "AUDIT_PENDING"
+    },
+    "google-generativeai": {
+      "status": "AUDIT_PENDING"
+    },
+    "grpcio": {
+      "status": "AUDIT_PENDING"
+    },
+    "jwt": {
+      "status": "AUDIT_PENDING"
+    },
+    "msgpack-python": {
+      "status": "AUDIT_PENDING"
+    },
+    "opencv-contrib-python": {
+      "status": "AUDIT_PENDING"
+    },
+    "opencv-python": {
+      "status": "AUDIT_PENDING"
+    },
+    "opencv-python-headless": {
+      "status": "AUDIT_PENDING"
+    },
+    "pillow": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "13.0.0",
+      "wheel_tag": [
+        "cp312-cp312-win_amd64"
+      ],
+      "record_sha256": "8de8a68f4121ae55a3ca459a3305dd8aca90bb311a4d56deceb8edd804924640",
+      "table_names_in_artifact": true
+    },
+    "protobuf": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "6.33.1",
+      "wheel_tag": [
+        "cp310-abi3-win_amd64"
+      ],
+      "record_sha256": "c1daffe39324543b37ccc64b65b9afbdcf73bc48fc491817bf48b4cace8112ab",
+      "table_names_in_artifact": true
+    },
+    "py-cpuinfo": {
+      "status": "AUDIT_PENDING"
+    },
+    "pyjwt": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "2.15.1",
+      "wheel_tag": [
+        "py3-none-any"
+      ],
+      "record_sha256": "b40a03882675414725e9a67d130050f894e6f41dbb82c2b2a0552b5cf9ad0b22",
+      "table_names_in_artifact": true
+    },
+    "pymupdf": {
+      "status": "AUDIT_PENDING"
+    },
+    "pyopengl": {
+      "status": "AUDIT_PENDING"
+    },
+    "pypdf2": {
+      "status": "AUDIT_PENDING"
+    },
+    "pytest": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "9.2.0",
+      "wheel_tag": [
+        "py3-none-any"
+      ],
+      "record_sha256": "910ed15346cba1486685188cbf177120402c57653395fc1fa1511f0e5715a3d0",
+      "table_names_in_artifact": true
+    },
+    "python-dateutil": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "4.0.0",
+      "wheel_tag": [
+        "py3-none-any"
+      ],
+      "record_sha256": "1cb4e73e50c98b0c16750072f800aaa28287499ca00fa48b3cd7b9a895bfc87c",
+      "table_names_in_artifact": true
+    },
+    "python-dotenv": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "1.2.4",
+      "wheel_tag": [
+        "py3-none-any"
+      ],
+      "record_sha256": "18484783f2fe18fb4316b6f920c74e60d6a2e295ead668a6a30338cfa27bc158",
+      "table_names_in_artifact": true
+    },
+    "pywin32": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "311",
+      "wheel_tag": [
+        "cp313-cp313-win_amd64"
+      ],
+      "record_sha256": "28a8261425aee09756bf612fa1098b71c3a8ee9ff616057ba257f1466968bc44",
+      "table_names_in_artifact": true
+    },
+    "pyyaml": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "6.0.3",
+      "wheel_tag": [
+        "cp312-cp312-win_amd64"
+      ],
+      "record_sha256": "b2f465edb1f8cb6912ec928de8b16f83579032a3e5b26b8aed790618197b3740",
+      "table_names_in_artifact": true
+    },
+    "scikit-image": {
+      "status": "AUDIT_PENDING"
+    },
+    "scikit-learn": {
+      "status": "ARTIFACT_VERIFIED",
+      "version": "1.9.1",
+      "wheel_tag": [
+        "cp314-cp314-win_amd64"
+      ],
+      "record_sha256": "64b1a39bff12f5436270e6652cfcf8834a35ab6e17a4fbc8b7455e7a7095e8f9",
+      "table_names_in_artifact": true
+    },
+    "websocket-client": {
+      "status": "AUDIT_PENDING"
+    }
   }
 }

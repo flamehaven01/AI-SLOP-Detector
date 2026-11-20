@@ -1,6 +1,6 @@
 {
   "schema": "ai-slop-work-order-rules/2",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "precedence": "HARD-STOP > INVARIANTS > ALLOWED > WORK-ORDER > BACKLOG",
   "tags": "[FACT] measured by the detector at the locator | [DERIVED] the detector's fix direction, advisory | [NORM] rule for the agent | [NULL] measured as nothing",
   "empty_values": "NOT-MEASURED | NOT-APPLICABLE: <why> | MISSING",
@@ -90,10 +90,12 @@
         "runtime_unavailable_dependency",
         "undeclared_optional_dependency",
         "declared_outside_primary_metadata",
+        "undeclared_dependency",
+        "provider_conflict",
         "phantom_import",
         "phantom_member"
       ],
-      "question": "Does a clean install provide this import at runtime? ACK: declare it or guard it with the documented fallback; REJECT: name the declaration or guard that provides it (file:line)."
+      "question": "Does a clean install provide this import at runtime? ACK: confirm which distribution provides the name (the finding's evidence), then declare it or guard it with the documented fallback; never install or declare a package on the finding alone; REJECT: name the declaration or guard that provides it (file:line)."
     },
     "clone": {
       "rules": [

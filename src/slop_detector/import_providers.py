@@ -386,6 +386,108 @@ def platform_guard_lines(
 
 
 # ---------------------------------------------------------------------------
+# Imports a static verdict cannot settle: they do not run (TYPE_CHECKING), or the file has
+# changed the search path before they run (sys.path)
+# ---------------------------------------------------------------------------
+
+TYPE_CHECKING_ONLY = "type_checking_only"
+SYS_PATH_MODIFIED = "sys_path_modified"
+_SYS_PATH_METHODS = {"insert", "append", "extend", "__setitem__"}
+
+
+def _is_type_checking(test: ast.AST) -> bool:
+    return (isinstance(test, ast.Name) and test.id == "TYPE_CHECKING") or (
+        isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING"
+    )
+
+
+def _is_sys_path(node: ast.AST) -> bool:
+    return _attr(node, "sys", "path")
+
+
+def _changes_sys_path(stmt: ast.stmt) -> bool:
+    """`sys.path.insert/append/extend(...)`, `sys.path += ...`, `sys.path = ...`,
+    `sys.path[...] = ...`, `site.addsitedir(...)` as a statement."""
+    if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
+        func = stmt.value.func
+        if isinstance(func, ast.Attribute):
+            if func.attr in _SYS_PATH_METHODS and _is_sys_path(func.value):
+                return True
+            if func.attr == "addsitedir" and _attr(func, "site", "addsitedir"):
+                return True
+    if isinstance(stmt, ast.AugAssign) and _is_sys_path(stmt.target):
+        return True
+    if isinstance(stmt, ast.Assign):
+        for target in stmt.targets:
+            if _is_sys_path(target) or (
+                isinstance(target, ast.Subscript) and _is_sys_path(target.value)
+            ):
+                return True
+    return False
+
+
+def _contains_sys_path_change(stmt: ast.stmt) -> bool:
+    """A change anywhere in the statement, not inside a nested function or class (which run
+    later, if ever)."""
+    if _changes_sys_path(stmt):
+        return True
+    for child in ast.iter_child_nodes(stmt):
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+            continue
+        if isinstance(child, ast.stmt) and _contains_sys_path_change(child):
+            return True
+        if isinstance(child, ast.ExceptHandler) and any(
+            _contains_sys_path_change(s) for s in child.body
+        ):
+            return True
+    return False
+
+
+def deferred_import_lines(tree: ast.AST) -> Dict[int, str]:
+    """Import lines whose verdict is deferred, with the reason:
+
+    - `type_checking_only`: under `if TYPE_CHECKING:` (or `typing.TYPE_CHECKING`); the `else`
+      branch runs and is not deferred;
+    - `sys_path_modified`: runs after a sys.path change earlier in its own scope or in an
+      enclosing scope (a function defined after a module-level change is called after it). An
+      import before the change, or in a scope the change does not precede, is not deferred.
+    """
+    out: Dict[int, str] = {}
+
+    def mark(nodes: Sequence[ast.AST], reason: str) -> None:
+        for node in nodes:
+            for n in ast.walk(node):
+                if isinstance(n, (ast.Import, ast.ImportFrom)):
+                    out.setdefault(n.lineno, reason)
+
+    def block(stmts: Sequence[ast.stmt], changed: bool) -> None:
+        for stmt in stmts:
+            if isinstance(stmt, ast.If) and _is_type_checking(stmt.test):
+                mark(stmt.body, TYPE_CHECKING_ONLY)
+                block(stmt.orelse, changed)
+                continue
+            if isinstance(stmt, (ast.Import, ast.ImportFrom)):
+                if changed:
+                    out.setdefault(stmt.lineno, SYS_PATH_MODIFIED)
+                continue
+            if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                block(stmt.body, changed)
+                continue
+            if _changes_sys_path(stmt):
+                changed = True
+                continue
+            for field in ("body", "orelse", "finalbody"):
+                block(getattr(stmt, field, None) or [], changed)
+            for handler in getattr(stmt, "handlers", None) or []:
+                block(handler.body, changed)
+            if _contains_sys_path_change(stmt):
+                changed = True
+
+    block(getattr(tree, "body", []), False)
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Provider knowledge
 # ---------------------------------------------------------------------------
 
@@ -395,6 +497,16 @@ def shipped_table() -> Dict[str, FrozenSet[str]]:
     """config/import_providers.json: normalized distribution -> import names."""
     data = json.loads(_TABLE_PATH.read_text(encoding="utf-8"))
     return {normalize(k): frozenset(v) for k, v in data["providers"].items()}
+
+
+@lru_cache(maxsize=1)
+def shipped_audit() -> Dict[str, str]:
+    """Audit state of each shipped mapping entry (ARTIFACT_VERIFIED / AUDIT_PENDING)."""
+    data = json.loads(_TABLE_PATH.read_text(encoding="utf-8"))
+    return {
+        normalize(k): str(v.get("status", "AUDIT_PENDING"))
+        for k, v in data.get("audit", {}).items()
+    }
 
 
 _ANALYZER: Dict[State, Tuple[Dict[str, FrozenSet[str]], Dict[str, str]]] = {}
@@ -672,6 +784,7 @@ class ProviderView:
     names: FrozenSet[str]
     state: str
     display: str
+    mapping_audit: Optional[str] = None  # set when the names come from the shipped mapping
 
 
 class ProviderKnowledge:
@@ -691,7 +804,8 @@ class ProviderKnowledge:
             return ProviderView(self._analyzer[key], MAPPING_SUPPORTED, req.written)
         table = shipped_table()
         if key in table:
-            return ProviderView(table[key], MAPPING_SUPPORTED, req.written)
+            audit = shipped_audit().get(key, "AUDIT_PENDING")
+            return ProviderView(table[key], MAPPING_SUPPORTED, req.written, audit)
         return ProviderView(candidate_names(req.written), NAME_CANDIDATE, req.written)
 
     def known_providers(self, module: str, members: Sequence[str] = ()) -> List[Tuple[str, str]]:
@@ -708,6 +822,18 @@ class ProviderKnowledge:
             if key not in found and provides(names, module, members):
                 found[key] = (key, MAPPING_SUPPORTED)
         return [found[k] for k in sorted(found)]
+
+    def mapping_audit_of(self, provider: Optional[str]) -> Optional[str]:
+        """Audit state when `provider` is known from the shipped mapping only (not the target
+        environment, not the analyzer's installed metadata); None otherwise."""
+        if provider is None:
+            return None
+        key = normalize(provider)
+        if self.target is not None and key in self.target.provides:
+            return None
+        if key in self._analyzer or key not in shipped_table():
+            return None
+        return shipped_audit().get(key, "AUDIT_PENDING")
 
     def installed_provider(self, top: str) -> List[str]:
         """Normalized distributions that supply the importable `top` where the code is checked:

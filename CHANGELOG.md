@@ -26,7 +26,10 @@ analyzer happens to have installed. Design and limits:
 - Import names are compared exactly: with `PyPDF2` declared, `import PyPDF2`
   is declared and `import pypdf2` (which fails at runtime) is no longer
   excused as declared.
-- PEP 735 `[dependency-groups]` in `pyproject.toml` are read as declarations.
+- PEP 735 `[dependency-groups]` and `[tool.uv] dev-dependencies` in
+  `pyproject.toml` are read as declarations. `[build-system] requires` declares
+  for the `setup.py` next to that `pyproject.toml` only, not for the package's
+  modules.
 - New `undeclared_dependency`: an import whose provider is known but not
   declared on the file's path. MEDIUM; HIGH only when the project's own
   virtual environment identifies the one provider. With several known
@@ -35,6 +38,20 @@ analyzer happens to have installed. Design and limits:
   provider supplies the name. Its message states that, and its suggestion no
   longer says "Verify it exists on PyPI and add it to dependencies": it asks
   which package was meant before anything is installed or declared.
+- `phantom_import` is HIGH, at most; it was CRITICAL. On labeled projects not
+  used to build the resolver, most imports it reports were real packages
+  missing from the declarations, and an invented name could not be told apart
+  from a real but unmapped one. Everything that reads CRITICAL changes with it:
+  the CI gate no longer counts a `phantom_import` toward
+  `critical_patterns_fail` (fail at 3 CRITICAL findings), and purity,
+  `has_critical`, history and governance no longer count it as CRITICAL.
+  Scores drop by the HIGH/CRITICAL weight difference per finding; that is a
+  weaker claim, not fewer defects.
+- An import under `if TYPE_CHECKING:` (it does not run) is listed in
+  `unverified_imports` (`type_checking_only`, no score); the `else` branch is
+  judged as before. An import that runs after the file changes `sys.path` in
+  its scope or an enclosing one is listed too (`sys_path_modified`, no score);
+  imports before the change are judged as before.
 - New `provider_conflict` (MEDIUM): `phantom_member` no longer checks a module's
   names against an installed distribution other than the declared one (a
   declared `jwt` with `PyJWT` installed).
@@ -48,7 +65,12 @@ analyzer happens to have installed. Design and limits:
 - Every import-evidence finding carries `evidence` in the JSON
   (`import_name`, `provider`, `provider_state`, `environment`,
   `target_platform`, and `marker_evaluation` / `candidates` where they
-  apply). Findings of other rules serialize as before.
+  apply). Findings of other rules serialize as before. A finding whose provider
+  comes from the shipped mapping also carries `mapping_audit`
+  (`ARTIFACT_VERIFIED` or `AUDIT_PENDING`, below).
+- Work order ruleset `2.1.0`: `undeclared_dependency` and `provider_conflict`
+  are in the dependency group, whose question asks which distribution provides
+  the name before anything is declared or installed.
 - Score contract `3.18`: an analyzer-only `provider_conflict` adds nothing,
   and `undeclared_dependency` adds once per (file, provider). Other weights are
   unchanged; scores change where these findings occur.
@@ -59,10 +81,17 @@ analyzer happens to have installed. Design and limits:
 ### Known limits
 
 - The distribution-to-import mapping shipped in
-  `config/import_providers.json` is hand-curated and not yet audited against
-  wheel file lists.
-- Whether `phantom_import` stays CRITICAL has not been decided on labeled
-  projects that were not used to build the resolver.
+  `config/import_providers.json` is hand-curated. It was audited only against
+  artifacts already on the audit machine, with nothing downloaded: 10 of 30
+  entries are `ARTIFACT_VERIFIED` (the files of their import names matched the
+  RECORD hashes of a local wheel or installation), 20 are `AUDIT_PENDING`.
+- PDM, Rye and Hatch development-dependency tables are not read.
+- A `sys.path` change withholds the imports after it; a statically known path
+  is not followed to resolve them, so a missing real dependency imported after
+  `sys.path.append("../")` is listed in `unverified_imports`, not reported.
+- `phantom_import` is never CRITICAL in 3.18; CRITICAL would need evidence
+  that the import fails where the code runs, which a static scan does not
+  have.
 - An environment outside the project root, or an explicit target platform,
   cannot be configured yet.
 

@@ -6,7 +6,7 @@ provider of an import is found, and why, is in
 [IMPORT_PROVIDER_RESOLUTION.md](IMPORT_PROVIDER_RESOLUTION.md).
 
 **Pattern ID:** `phantom_import`
-**Severity:** CRITICAL
+**Severity:** HIGH (at most; 3.18)
 **Axis:** QUALITY
 **Language:** Python only — JS/TS, Go and Rust have their own rules (see [PATTERNS.md](PATTERNS.md#javascript--typescript))
 **Module:** `slop_detector.patterns.python_imports`
@@ -41,10 +41,10 @@ package exists, and it never suggests installing or declaring the name.
 ### What is flagged
 
 ```python
-import tensorflow_magic          # CRITICAL: no provider known, not declared
-from requests_async_v2 import get  # CRITICAL: no provider known, not declared
-import numpy_extended            # CRITICAL: no provider known, not declared
-import fake_llm_sdk              # CRITICAL: no provider known, not declared
+import tensorflow_magic          # HIGH: no provider known, not declared
+from requests_async_v2 import get  # HIGH: no provider known, not declared
+import numpy_extended            # HIGH: no provider known, not declared
+import fake_llm_sdk              # HIGH: no provider known, not declared
 ```
 
 ### What is not flagged
@@ -76,7 +76,9 @@ imports are absolute (v3.10).
 
 "Declared" means named by a dependency declaration of the file's project
 (v3.10): PEP 621 and Poetry `pyproject.toml` (dependencies, dev and groups),
-PEP 735 `[dependency-groups]` (3.18),
+PEP 735 `[dependency-groups]` and `[tool.uv] dev-dependencies` (3.18), and, for a
+`setup.py` only, `[build-system] requires` of the `pyproject.toml` beside it (build-time
+dependencies; they never excuse an import in the package's modules),
 `setup.py` `install_requires` / `extras_require` (literals or module-level
 names, read with `ast`, never executed), `setup.cfg`, `Pipfile`,
 `requirements*.txt` / `.in`, and conda `environment*.yml` with its pip list,
@@ -92,11 +94,13 @@ name (provider resolution, below), not a declaration with the same spelling:
 | Situation | Reported as | Severity |
 |---|---|---|
 | Under a platform test (`if sys.platform == ...`) that the target environment does not decide | listed in `unverified_imports` (reason `platform_guard_undecided`), no score effect | - |
-| Declared only outside `pyproject.toml` project metadata (e.g. `requirements.txt`) while a `pyproject.toml` exists | `declared_outside_primary_metadata` | LOW |
+| Under `if TYPE_CHECKING:` (does not run) | listed in `unverified_imports` (reason `type_checking_only`), no score effect | - |
+| Runs after the file changes `sys.path` earlier in its scope or an enclosing scope (the static search path is not the one it uses) | listed in `unverified_imports` (reason `sys_path_modified`), no score effect; imports before the change, or in scopes it does not precede, are judged as usual | - |
+| Declared only outside `pyproject.toml` project metadata (e.g. `requirements.txt`) while the file's nearest resolution root has a `pyproject.toml` | `declared_outside_primary_metadata` | LOW |
 | Declared as a dependency but not installed in the target environment (or where the analyzer runs, when there is none) | `runtime_unavailable_dependency` | MEDIUM |
 | Inside `try/except ImportError` and not declared | `undeclared_optional_dependency` | MEDIUM |
 | Not declared, and a provider is known | `undeclared_dependency` | MEDIUM; HIGH only when the target environment's own files identify the one provider |
-| Not declared, and no provider is known | `phantom_import` | CRITICAL |
+| Not declared, and no provider is known | `phantom_import` | HIGH |
 
 An import under a platform test that is false in the target environment does
 not run there and is not reported.
@@ -113,7 +117,10 @@ strongest first, and recorded in each finding's `evidence`
    never executed (`ARTIFACT_VERIFIED`; `METADATA_DECLARED` for PEP 794
    `Import-Name`);
 2. mapping knowledge: the analyzer environment's installed metadata and the
-   shipped table `config/import_providers.json` (`MAPPING_SUPPORTED`);
+   shipped table `config/import_providers.json` (`MAPPING_SUPPORTED`; each
+   finding that uses a table entry also carries the entry's audit state,
+   `mapping_audit`: `ARTIFACT_VERIFIED` when a local artifact's files matched
+   their RECORD hashes, else `AUDIT_PENDING`);
 3. the declared name itself (`NAME_CANDIDATE`), never the basis of a CRITICAL
    or HIGH verdict.
 
@@ -228,7 +235,7 @@ is known** where the code runs.
 |---|---|---|
 | Question | "Is this import used?" | "Does any installed distribution, declaration or known provider supply this import?" |
 | Signal | Noise / dead imports | Unresolved, undeclared, provider unknown (what an invented package name looks like; not proof of one) |
-| Severity | LOW–MEDIUM | CRITICAL |
+| Severity | LOW–MEDIUM | HIGH (at most) |
 | Scope | Usage analysis | Resolution and declaration evidence |
 
 A file can have low DDC (imports present but unused) AND phantom imports
@@ -239,7 +246,7 @@ simultaneously. Both contribute to the deficit score.
 ## Example Output
 
 ```
-[CRITICAL] phantom_import — src/pipeline.py:4
+[HIGH] phantom_import — src/pipeline.py:4
   Phantom import: no installed distribution, dependency declaration or known
   provider supplies 'tensorflow_magic'
   Suggestion: Confirm which package 'tensorflow_magic' was meant to come from

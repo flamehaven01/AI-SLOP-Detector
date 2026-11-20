@@ -12,6 +12,7 @@ from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple
 
 from slop_detector.ast_index import walk_nodes
 from slop_detector.dependency_declarations import (
+    build_requirements,
     declaration_files,
     declared_requirements,
     root_declaration_files,
@@ -25,6 +26,7 @@ from slop_detector.import_providers import (
     ProviderKnowledge,
     Requirement,
     candidate_names,
+    deferred_import_lines,
     evidence,
     find_target_environment,
     marker_active,
@@ -162,6 +164,19 @@ def file_requirements(file: Path, roots: Sequence[Path]) -> Tuple[Requirement, .
     found = [req for root in roots for req in _root_requirements(root)]
     if roots:
         found.extend(_path_requirements(file, roots[0]))
+        # A build script is evidenced by the build requirements of the pyproject.toml beside
+        # it; the package's modules are not (build-time, not run-time, dependencies).
+        pyproject = file.parent / "pyproject.toml"
+        if file.name == "setup.py" and pyproject.is_file():
+            label = (
+                pyproject.relative_to(roots[0]).as_posix()
+                if roots[0] in pyproject.parents
+                else "pyproject.toml"
+            )
+            for dependency in build_requirements(pyproject):
+                req = parse_requirement(_EXTRAS_RE.sub("", dependency), label)
+                if req is not None:
+                    found.append(req)
     return tuple(found)
 
 
@@ -284,7 +299,9 @@ class PhantomImportPattern(BasePattern):
     """
 
     id = "phantom_import"
-    severity = Severity.CRITICAL
+    # 3.18: at most HIGH. "No provider known" is not proof that no package exists; CRITICAL
+    # would need execution evidence the static analysis does not have.
+    severity = Severity.HIGH
     axis = Axis.QUALITY
     message = "Import references a package that cannot be resolved in this environment"
 
@@ -313,6 +330,7 @@ class PhantomImportPattern(BasePattern):
             guarded=_collect_import_guard_lines(tree),
             inactive=inactive,
             undecided=undecided,
+            deferred=deferred_import_lines(tree),
             knowledge=ProviderKnowledge(target),
             requirements=file_requirements(file, roots),
             has_pyproject=bool(roots and (roots[0] / "pyproject.toml").exists()),
@@ -347,6 +365,15 @@ class PhantomImportPattern(BasePattern):
                             None,
                             "platform_guard_undecided",
                             basis="target_platform",
+                        )
+                    )
+                    continue
+                if lineno in ctx.deferred:
+                    # does not run (TYPE_CHECKING), or runs after the file changed sys.path:
+                    # the static search path is not the one it uses, so it is no finding
+                    unknowns.append(
+                        unknown_row(
+                            lineno, module, None, ctx.deferred[lineno], basis="static_import"
                         )
                     )
                     continue
@@ -385,6 +412,8 @@ class PhantomImportPattern(BasePattern):
             req, view = (active or matching)[0]
             sources = frozenset(r.label for r, _ in matching)
             ev = evidence(module, req.written, view.state, knowledge.environment)
+            if view.mapping_audit is not None:
+                ev["mapping_audit"] = view.mapping_audit
             if req.marker:
                 state_of_req = states[matching.index((req, view))]
                 ev["marker_evaluation"] = {True: "ACTIVE", False: "INACTIVE", None: "UNKNOWN"}[
@@ -403,6 +432,9 @@ class PhantomImportPattern(BasePattern):
             # name; several candidates and nothing that selects one: named nowhere.
             provider, state = known[0] if len(known) == 1 else (None, PROVIDER_UNKNOWN)
             ev = evidence(module, provider, state, knowledge.environment)
+            audit = knowledge.mapping_audit_of(provider)
+            if audit is not None:
+                ev["mapping_audit"] = audit
             if len(known) > 1:
                 ev["candidates"] = [name for name, _ in known]
             if line in ctx.guarded:
@@ -525,7 +557,7 @@ class PhantomImportPattern(BasePattern):
                 "that it is the intended package. AI models sometimes generate plausible-looking "
                 "package names."
             ),
-            severity_override=Severity.CRITICAL,
+            severity_override=Severity.HIGH,
         )
 
     @staticmethod
@@ -571,6 +603,7 @@ class _FileContext:
     guarded: FrozenSet[int]
     inactive: FrozenSet[int]  # under a platform test that is false in the target environment
     undecided: FrozenSet[int]  # under a platform test the target environment does not decide
+    deferred: Dict[int, str]  # TYPE_CHECKING-only, or after a sys.path change: reason
     knowledge: ProviderKnowledge
     requirements: Tuple[Requirement, ...]
     has_pyproject: bool

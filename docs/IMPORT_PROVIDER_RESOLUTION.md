@@ -21,7 +21,7 @@ next to them (`runtime_unavailable_dependency`, `undeclared_optional_dependency`
 
 ## 1. Summary
 
-`phantom_import` is reported as CRITICAL because of what it is meant to catch:
+Through v3.17, `phantom_import` is reported as CRITICAL because of what it is meant to catch:
 an import of a package that an AI model invented. That claim is strong. What the
 rule checks today is weaker: "this import does not resolve in the analyzer's
 own environment, and no declaration of the project has the same name". Between
@@ -315,7 +315,8 @@ For an import the project does not provide itself:
 | Provider declared; not installed in the target (or the analyzer, if no target) | `runtime_unavailable_dependency` (existing; `declared_outside_primary_metadata` LOW when declared only outside `pyproject.toml`) | MEDIUM | No: environment action |
 | Provider known, **not declared**, one provider identified from the target environment's own files | `undeclared_dependency` naming the provider | HIGH | No: a person confirms the provider's identity |
 | Provider known only from mapping knowledge (shipped table, analyzer metadata), or several providers known | `undeclared_dependency`; several: no provider named, `candidates` listed | MEDIUM (review candidate) | No |
-| Provider unknown to every source, not declared, not resolvable | `phantom_import` | CRITICAL (see below) | No: the author removes, replaces or confirms the import |
+| Provider unknown to every source, not declared, not resolvable | `phantom_import` | HIGH (at most, 3.18; see below) | No: the author removes, replaces or confirms the import |
+| Under `if TYPE_CHECKING:`, or after a `sys.path` change in its scope | `unverified_imports` entry (`type_checking_only` / `sys_path_modified`) | no score | No |
 | Inside `try/except ImportError` | `undeclared_optional_dependency` (existing) | MEDIUM | No |
 
 `phantom_import` becomes narrower: it is reported only for the last observable
@@ -329,9 +330,12 @@ cannot establish "no legitimate package exists". So:
   declaration and no mapping entry provides the name), never "does not exist";
 - the suggestion stops saying "add it to dependencies" and says: confirm which
   package was meant before installing or declaring anything;
-- whether this state keeps CRITICAL is a separate severity contract (section
-  11), decided on labeled cases of both kinds (invented names and real but
-  unmapped packages), not by this design.
+- its severity is HIGH, at most (3.18). On labeled projects not used to build the
+  resolver, most imports in this state were real, undeclared dependencies, and
+  invented names and real but unmapped packages were indistinguishable. CRITICAL
+  would need evidence the static analysis does not have (the import failing in
+  the target environment, with its consequence); that is left to a future
+  design, not inferred.
 
 For `phantom_member`:
 
@@ -352,8 +356,18 @@ pattern penalty; every finding is still reported:
   declaration is one cause, however many lines import it. Every location stays
   in the finding list.
 
+- `phantom_import` is HIGH, at most (it was CRITICAL through 3.17). This is a
+  change of the finding's severity, not of a weight, so every consumer of
+  CRITICAL changes with it: the CI gate's `critical_patterns_fail`, purity,
+  `has_critical`, history and governance no longer see a `phantom_import` as
+  CRITICAL. The score changes by the HIGH/CRITICAL weight difference per
+  finding. That lower score reflects a weaker claim (no provider known), not
+  fewer defects, and is not reported as an improvement.
+
 Scores therefore differ from 3.17 where these findings occur; a finding that
-did not change keeps its weight.
+did not change keeps its weight. The contract version stays `3.18` while 3.18.0
+is unreleased; the `phantom_import` severity was changed under it before
+release.
 
 **Compatibility.** Existing pattern IDs keep their meaning; new situations get
 new IDs (`undeclared_dependency`, `provider_conflict`). Every import-evidence
@@ -408,6 +422,12 @@ projects, with results compared per finding before any verdict changes.
 | R14. Target environment without the module, analyzer environment with it | not checked against the analyzer's copy; declared but unavailable in the target |
 | R15. `import cv2` / `import faiss` undeclared (several known providers) | no provider named, `candidates` listed, MEDIUM |
 | R16. Score contract | an analyzer-only `provider_conflict` adds 0; `undeclared_dependency` adds once per (file, provider) |
+| R17. `[tool.uv] dev-dependencies` (same name, another name) | declared: `runtime_unavailable_dependency` |
+| R18. `[build-system] requires` | declares for the `setup.py` beside the `pyproject.toml`, not for the package's modules |
+| R19. A name no source knows | `phantom_import` HIGH |
+| R20. Imports under `if TYPE_CHECKING:` / `typing.TYPE_CHECKING` | unverified `type_checking_only`; the `else` branch is judged |
+| R21. A `sys.path` change | only the imports after it in its scope are unverified (`sys_path_modified`) |
+| R22. A provider from the shipped mapping | evidence carries the entry's `mapping_audit` |
 
 ### Experiments on the frozen set
 
@@ -426,19 +446,25 @@ verdicts, run time, cache agreement, and agreement between two environments
 
 ## 11. Open decisions
 
-Decided for 3.18.0: the severity of an undeclared known provider and the score
-rules (section 8), and the source of the target platform (section 7). Open:
+Decided for 3.18.0: the severity of an undeclared known provider and of
+`phantom_import` (at most HIGH), the score rules (section 8), the source of the
+target platform (section 7), and the scope of "a pyproject.toml exists" for
+`declared_outside_primary_metadata`: the file's nearest primary resolution root,
+not any ancestor directory. Open:
 
-- **Severity of `phantom_import`** ("provider unknown to every source"):
-  whether it stays CRITICAL, measured on labeled invented names, real but
-  unmapped packages, local or private providers and deliberately invented test
-  names in projects not used to build the resolver.
 - **Explicit target.** Only a virtual environment directly inside a project root
   is discovered; a configuration key for an explicit environment path or
   platform (including "the analyzer is the target") does not exist yet.
-- **Shipped mapping table.** It is hand-curated and not yet audited against
-  wheel file lists; size, refresh cadence and the recording of its generation
-  are open.
+- **Shipped mapping table.** Hand-curated; a bounded audit against artifacts
+  already on the audit machine (no download) marks each entry
+  `ARTIFACT_VERIFIED` (files matched their RECORD hashes) or `AUDIT_PENDING`,
+  and findings carry that state. Auditing the pending entries, size and refresh
+  cadence are open.
+- **Other declaration formats.** PDM `[tool.pdm.dev-dependencies]`, Rye
+  `[tool.rye] dev-dependencies` and Hatch environment dependencies are not read.
+- **Static `sys.path` targets.** A `sys.path` change withholds the imports after
+  it; following a statically known path (e.g. relative to `__file__`) to resolve
+  them is not done.
 
 ## 12. Corrections this implies for the current documentation
 

@@ -598,3 +598,137 @@ def test_r16_score_contract_for_provider_findings():
     )
     assert calculate_pattern_penalty([a1, a2]) == 2.0
     assert calculate_pattern_penalty([a1, a2, b]) == 4.0
+
+
+# ---------------------------------------------------------------------------
+# R17-R21 (3.18 holdout follow-up): declaration formats found missing on projects not used to
+# build the resolver (F8, F9); phantom_import capped at HIGH; imports that do not run, or whose
+# search path the file itself changes, are unverified (no score)
+# ---------------------------------------------------------------------------
+
+
+def _write_pyproject(project: Path, body: str) -> None:
+    _write(
+        project,
+        "pyproject.toml",
+        '[project]\nname = "proj"\nversion = "0"\ndependencies = []\n' + body,
+    )
+
+
+def _issues_of(project: Path, rel: str, source: str) -> List[dict]:
+    path = _write(project, rel, source)
+    importlib.invalidate_caches()
+    result = SlopDetector(read_only=True).analyze_file(str(path))
+    return [i.to_dict() for i in result.pattern_issues if i.pattern_id in IMPORT_EVIDENCE_IDS]
+
+
+def _unverified_of(project: Path, rel: str, source: str) -> List[dict]:
+    path = _write(project, rel, source)
+    importlib.invalidate_caches()
+    return SlopDetector(read_only=True).analyze_file(str(path)).to_dict()["unverified_imports"]
+
+
+def test_r17_uv_dev_dependencies_are_declarations(project):
+    """R17 (F8). `[tool.uv] dev-dependencies` (uv's development list before PEP 735) declares.
+    Today: phantom_import for both imports."""
+    _require_absent("PIL")
+    _write_pyproject(project, '\n[tool.uv]\ndev-dependencies = ["zz-uvdev>=1", "Pillow"]\n')
+    issues = _issues_of(project, "m.py", "import zz_uvdev\nimport PIL\n")
+    assert _ids(issues) == ["runtime_unavailable_dependency"] * 2, issues
+
+
+def test_r18_build_requires_declare_for_setup_py_only(project):
+    """R18 (F9). `[build-system] requires` declares for the build script (setup.py next to the
+    pyproject.toml), not for the package's modules. Today: phantom_import in setup.py."""
+    _write(
+        project,
+        "pyproject.toml",
+        '[build-system]\nrequires = ["zz-buildtool>=1"]\n\n[project]\nname = "proj"\nversion = "0"\n'
+        "dependencies = []\n",
+    )
+    in_setup = _issues_of(project, "setup.py", "import zz_buildtool\n")
+    assert _ids(in_setup) == ["runtime_unavailable_dependency"], in_setup
+    in_module = _issues_of(project, "pkg/mod.py", "import zz_buildtool\n")
+    assert _ids(in_module) == ["phantom_import"], in_module
+
+
+def test_r19_phantom_import_is_at_most_high(project):
+    """R19. 3.18: phantom_import is HIGH (no provider known is not proof that none exists).
+    Today: CRITICAL."""
+    _write_pyproject(project, "")
+    issues = _issues_of(project, "m.py", "import zz_invented_llm_sdk_q7\n")
+    assert _ids(issues) == ["phantom_import"] and issues[0]["severity"] == "high", issues
+
+
+TYPE_CHECKING_SRC = (
+    "from typing import TYPE_CHECKING\n"
+    "import typing\n"
+    "\n"
+    "if TYPE_CHECKING:\n"
+    "    import zz_typing_only_a\n"
+    "if typing.TYPE_CHECKING:\n"
+    "    import zz_typing_only_b\n"
+    "else:\n"
+    "    import zz_runtime_c\n"
+)
+
+
+def test_r20_type_checking_imports_are_unverified_not_findings(project):
+    """R20. Imports under `if TYPE_CHECKING:` do not run: unverified (`type_checking_only`, no
+    score); the else branch runs and is judged. Today: phantom_import for all three."""
+    _write_pyproject(project, "")
+    issues = _issues_of(project, "m.py", TYPE_CHECKING_SRC)
+    assert [(i["pattern_id"], i["line"]) for i in issues] == [("phantom_import", 9)], issues
+    rows = _unverified_of(project, "m.py", TYPE_CHECKING_SRC)
+    assert sorted((r["requested_module"], r["reason"]) for r in rows) == [
+        ("zz_typing_only_a", "type_checking_only"),
+        ("zz_typing_only_b", "type_checking_only"),
+    ], rows
+
+
+SYS_PATH_SRC = (
+    "import sys\n"
+    "import zz_before_insert\n"
+    "\n"
+    "\n"
+    "def other():\n"
+    "    import zz_other_scope\n"
+    "\n"
+    "\n"
+    "def run(d):\n"
+    "    sys.path.insert(0, d)\n"
+    "    import zz_after_insert\n"
+    "    return zz_after_insert\n"
+)
+
+
+def test_r21_sys_path_change_withholds_only_the_imports_it_reaches(project):
+    """R21. A sys.path change withholds only imports that run after it in its scope: those are
+    unverified (`sys_path_modified`, no score). An import before it, or in another function, is
+    still judged. Today: phantom_import for all three."""
+    _write_pyproject(project, "")
+    issues = _issues_of(project, "m.py", SYS_PATH_SRC)
+    assert sorted((i["pattern_id"], i["line"]) for i in issues) == [
+        ("phantom_import", 2),
+        ("phantom_import", 6),
+    ], issues
+    rows = _unverified_of(project, "m.py", SYS_PATH_SRC)
+    assert [(r["requested_module"], r["reason"]) for r in rows] == [
+        ("zz_after_insert", "sys_path_modified")
+    ], rows
+
+
+@pytest.mark.parametrize(
+    "dist,module,audit",
+    [("Pillow", "PIL", "ARTIFACT_VERIFIED"), ("absl-py", "absl", "AUDIT_PENDING")],
+)
+def test_r22_mapping_evidence_carries_its_audit_state(project, dist, module, audit):
+    """R22. A provider known from the shipped mapping says how far that mapping entry was audited
+    (ARTIFACT_VERIFIED only when a local artifact's files matched their RECORD hashes; else
+    AUDIT_PENDING), so an unaudited entry is not read as confirmed. Today: no audit field."""
+    _require_absent(module)
+    _pyproject(project, [dist])
+    issues = _issues(project, f"import {module}\n")
+    assert _ids(issues) == ["runtime_unavailable_dependency"], issues
+    ev = _evidence(issues[0])
+    assert ev["provider_state"] == "MAPPING_SUPPORTED" and ev.get("mapping_audit") == audit, ev
