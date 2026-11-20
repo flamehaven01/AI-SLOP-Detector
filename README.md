@@ -53,6 +53,9 @@ and gives every file a 0-100 score (higher = more warning signs). It does not
 tell whether a person or an AI wrote the code; it reports what is in the code.
 
 - **57 rules** across Python (39), JavaScript/TypeScript (8), Go (6) and Rust (4)
+  on this branch. The released 3.17.0 has 55 (Python 37); the two Python rules
+  `undeclared_dependency` and `provider_conflict` arrive with 3.18.0, which is
+  not released yet.
 - **Deterministic**: the same input gives byte-identical JSON
 - **Local only**: no API key, no model download, no network call during a scan
 - **Everywhere you work**: terminal, VS Code, CI gates, pre-commit, AI agents (CLI JSON and a Claude Code skill)
@@ -178,8 +181,10 @@ pip install "ai-slop-detector[js]"     # or [rust]; on Python 3.8/3.9 the base i
 ```
 
 Rule counts come from the pattern registry in [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md)
-(57 rules), which a test keeps in line with the analyzers. A scan says which
-reader ran for each language (`scan_coverage.analysis_modes`).
+(57 rules), which a test keeps in line with the analyzers. They describe this
+branch (3.18.0, unreleased); `pip install ai-slop-detector` gives 3.17.0 with
+55 rules. A scan says which reader ran for each language
+(`scan_coverage.analysis_modes`).
 
 ## What It Detects
 
