@@ -6,8 +6,9 @@ import ast
 import logging
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
+from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple
 
 from slop_detector.ast_index import walk_nodes
 from slop_detector.dependency_declarations import (
@@ -17,6 +18,22 @@ from slop_detector.dependency_declarations import (
 )
 from slop_detector.environment_resolution import State, environment_state, find_installed_spec
 from slop_detector.external_members import unknown_row
+from slop_detector.import_providers import (
+    ARTIFACT_VERIFIED,
+    METADATA_DECLARED,
+    PROVIDER_UNKNOWN,
+    ProviderKnowledge,
+    Requirement,
+    candidate_names,
+    evidence,
+    find_target_environment,
+    marker_active,
+    marker_environment,
+    parse_requirement,
+    platform_guard_lines,
+    provides,
+    shipped_table,
+)
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
 from slop_detector.project_context import fingerprint_for_roots, is_importable_directory
 from slop_detector.project_resolution import (
@@ -43,7 +60,7 @@ _RESOLVABLE_MODULES_STORE: Dict[State, FrozenSet[str]] = {}
 # context is a new key, so a long-running process never reuses a stale answer.
 _SIBLING_MODULES_CACHE: Dict[Tuple[str, str], FrozenSet[str]] = {}
 
-_DECLARED_DEPENDENCY_SOURCES_CACHE: Dict[Tuple[str, str], Mapping[str, FrozenSet[str]]] = {}
+_ROOT_REQUIREMENTS_CACHE: Dict[Tuple[str, str], Tuple[Requirement, ...]] = {}
 
 
 def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None) -> FrozenSet[str]:
@@ -79,27 +96,14 @@ _IMPORT_GUARD_EXC_NAMES: FrozenSet[str] = frozenset(
 
 _EXTRAS_RE = re.compile(r"\[.*?\]")
 
-_PACKAGE_IMPORT_ALIASES: Dict[str, FrozenSet[str]] = {
-    "grpcio": frozenset({"grpc"}),
-    "pyyaml": frozenset({"yaml"}),
-}
-
 
 def _dependency_import_names(dependency: str) -> FrozenSet[str]:
-    """Return likely import names for a dependency declaration."""
-    dependency = dependency.split("#", 1)[0].strip()
-    if not dependency or dependency.startswith(("-", "git+", "http://", "https://")):
+    """Likely import names for one declaration: the shipped table when it knows the
+    distribution, else names derived from the declared name (rank 5 candidates)."""
+    req = parse_requirement(_EXTRAS_RE.sub("", dependency), "")
+    if req is None:
         return frozenset()
-    name = re.split(r"[>=<!~;\s]", _EXTRAS_RE.sub("", dependency).strip())[0].strip()
-    if not name:
-        return frozenset()
-    canon = name.replace("-", "_").lower()
-    names = {canon}
-    names.update(_PACKAGE_IMPORT_ALIASES.get(canon, frozenset()))
-    for prefix in ("flamehaven_", "flame_", "py", "python_"):
-        if canon.startswith(prefix) and len(canon) > len(prefix) + 1:
-            names.add(canon[len(prefix) :])
-    return frozenset(names)
+    return shipped_table().get(req.dist) or candidate_names(req.written)
 
 
 def _add_dep_names(dep_list: List[str], packages: set) -> None:
@@ -112,34 +116,33 @@ def _add_dep_names(dep_list: List[str], packages: set) -> None:
         packages.update(_dependency_import_names(dep))
 
 
-def _declaration_sources(files: Sequence[Path], label_root: Path) -> Dict[str, set[str]]:
-    """Map import names to the declaration files (labelled from `label_root`)."""
-    sources: Dict[str, set[str]] = {}
+def _requirements(files: Sequence[Path], label_root: Path) -> Tuple[Requirement, ...]:
+    """Declared distributions of the files, each labelled with its file (from `label_root`)."""
+    found: List[Requirement] = []
     for path in files:
         label = path.relative_to(label_root).as_posix()
         for dependency in declared_requirements(path):
-            for import_name in _dependency_import_names(dependency):
-                sources.setdefault(import_name, set()).add(label)
-    return sources
+            req = parse_requirement(_EXTRAS_RE.sub("", dependency), label)
+            if req is not None:
+                found.append(req)
+    return tuple(found)
 
 
-def _discover_declared_dependency_sources(
+def _root_requirements(
     project_root: Path, fingerprint: Optional[str] = None
-) -> Mapping[str, FrozenSet[str]]:
-    """Map import names to the root's declaration files that justify them."""
+) -> Tuple[Requirement, ...]:
+    """The root's declared distributions (cached per project-context fingerprint)."""
     if fingerprint is None:
         fingerprint = fingerprint_for_roots(project_root / "_", (project_root,))
     root_key = (str(project_root), fingerprint)
-    cached = _DECLARED_DEPENDENCY_SOURCES_CACHE.get(root_key)
-    if cached is not None:
-        return cached
-    sources = _declaration_sources(root_declaration_files(project_root), project_root)
-    result = {name: frozenset(locations) for name, locations in sources.items()}
-    _DECLARED_DEPENDENCY_SOURCES_CACHE[root_key] = result
-    return result
+    cached = _ROOT_REQUIREMENTS_CACHE.get(root_key)
+    if cached is None:
+        cached = _requirements(root_declaration_files(project_root), project_root)
+        _ROOT_REQUIREMENTS_CACHE[root_key] = cached
+    return cached
 
 
-def _path_declarations(file: Path, nearest_root: Path) -> Mapping[str, FrozenSet[str]]:
+def _path_requirements(file: Path, nearest_root: Path) -> Tuple[Requirement, ...]:
     """Declarations in the directories between the file and its nearest root.
 
     Only files on the file's own path count: a declaration in another subtree
@@ -151,8 +154,15 @@ def _path_declarations(file: Path, nearest_root: Path) -> Mapping[str, FrozenSet
         directories.append(current)
         current = current.parent
     files = [path for directory in directories for path in declaration_files(directory)]
-    sources = _declaration_sources(files, nearest_root)
-    return {name: frozenset(locations) for name, locations in sources.items()}
+    return _requirements(files, nearest_root)
+
+
+def file_requirements(file: Path, roots: Sequence[Path]) -> Tuple[Requirement, ...]:
+    """Every declaration that is evidence for `file`: each resolution root's and the ones on its path."""
+    found = [req for root in roots for req in _root_requirements(root)]
+    if roots:
+        found.extend(_path_requirements(file, roots[0]))
+    return tuple(found)
 
 
 def _resolves_in_project(
@@ -213,15 +223,6 @@ def environment_exclusions(indexes: Sequence[ProjectModuleIndex]) -> Tuple[Path,
         for index in indexes
         for path in (index.project_root, *(root.path for root in index.roots))
     )
-
-
-def _merged_declarations(roots: Sequence[Path]) -> Mapping[str, FrozenSet[str]]:
-    """Declaration sources of every resolution root, merged per import name."""
-    merged: Dict[str, FrozenSet[str]] = {}
-    for root in roots:
-        for name, sources in _discover_declared_dependency_sources(root).items():
-            merged[name] = merged.get(name, frozenset()) | sources
-    return merged
 
 
 def project_skip_context(
@@ -303,154 +304,226 @@ class PhantomImportPattern(BasePattern):
         located = has_location()
 
         roots = resolution_roots(file)
-        declared_sources = dict(_merged_declarations(roots))
-        if roots:
-            for name, sources in _path_declarations(file, roots[0]).items():
-                declared_sources[name] = declared_sources.get(name, frozenset()) | sources
-        has_pyproject = bool(roots and (roots[0] / "pyproject.toml").exists())
         skip_names, indexes = project_skip_context(file, self._allowlist)
-        excluded = environment_exclusions(indexes)
-        guarded_lines = _collect_import_guard_lines(tree)
+        target = find_target_environment(roots) if located else None
+        env = marker_environment(target)
+        inactive, undecided = platform_guard_lines(tree, env)
+        ctx = _FileContext(
+            excluded=environment_exclusions(indexes),
+            guarded=_collect_import_guard_lines(tree),
+            inactive=inactive,
+            undecided=undecided,
+            knowledge=ProviderKnowledge(target),
+            requirements=file_requirements(file, roots),
+            has_pyproject=bool(roots and (roots[0] / "pyproject.toml").exists()),
+            marker_env=env,
+        )
 
         for node in walk_nodes(tree):
+            requests: List[Tuple[str, List[str]]] = []
             if isinstance(node, ast.Import):
-                for alias in node.names:
-                    top = alias.name.split(".")[0]
-                    if top in skip_names or _resolves_in_project(indexes, alias.name):
-                        continue
-                    lineno = getattr(node, "lineno", 0)
-                    sources = declared_sources.get(top, frozenset())
-                    if _module_exists(top, excluded):
-                        continue
-                    if not located:
-                        unknowns.append(_no_context_row(lineno, alias.name))
-                        continue
-                    if self._is_requirements_only_metadata_gap(sources, has_pyproject):
-                        issues.append(
-                            self._make_metadata_gap_issue(
-                                file, lineno, getattr(node, "col_offset", 0), alias.name, sources
-                            )
-                        )
-                    else:
-                        issues.append(
-                            self._make_issue(
-                                file,
-                                lineno,
-                                getattr(node, "col_offset", 0),
-                                alias.name,
-                                lineno in guarded_lines,
-                                sources,
-                            )
-                        )
-
-            elif isinstance(node, ast.ImportFrom):
-                if node.level and node.level > 0:
-                    continue
-                if not node.module:
-                    continue
-                top = node.module.split(".")[0]
-                names = [alias.name for alias in node.names]
-                if top in skip_names or _resolves_in_project(indexes, node.module, names):
+                requests = [(alias.name, []) for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+                requests = [(node.module, [alias.name for alias in node.names])]
+            for module, members in requests:
+                top = module.split(".")[0]
+                if top in skip_names or _resolves_in_project(indexes, module, members):
                     continue
                 lineno = getattr(node, "lineno", 0)
-                sources = declared_sources.get(top, frozenset())
-                if _module_exists(top, excluded):
+                if lineno in ctx.inactive:
+                    continue  # does not run on the target platform
+                if self._resolved(top, ctx):
                     continue
                 if not located:
-                    unknowns.append(_no_context_row(lineno, node.module))
+                    unknowns.append(_no_context_row(lineno, module))
                     continue
-                if self._is_requirements_only_metadata_gap(sources, has_pyproject):
-                    issues.append(
-                        self._make_metadata_gap_issue(
-                            file, lineno, getattr(node, "col_offset", 0), node.module, sources
-                        )
-                    )
-                else:
-                    issues.append(
-                        self._make_issue(
-                            file,
+                if lineno in ctx.undecided:
+                    # under a platform test the target environment does not decide: whether
+                    # this import runs where the code runs is not known, so it is no finding
+                    unknowns.append(
+                        unknown_row(
                             lineno,
-                            getattr(node, "col_offset", 0),
-                            node.module,
-                            lineno in guarded_lines,
-                            sources,
+                            module,
+                            None,
+                            "platform_guard_undecided",
+                            basis="target_platform",
                         )
                     )
+                    continue
+                issues.append(self._verdict(file, node, module, members, ctx))
 
         self._unknowns[str(file)] = tuple(unknowns)
         return issues
 
-    def _make_issue(
-        self,
-        file: Path,
-        line: int,
-        column: int,
-        module_name: str,
-        is_guarded: bool,
-        declared_sources: FrozenSet[str],
+    @staticmethod
+    def _resolved(top: str, ctx: "_FileContext") -> bool:
+        """Resolvable where the code runs: the target environment when there is one, else the
+        analyzer's. With a target, only its site-packages and the standard library are
+        searched (find_installed_spec with target_sites), on every Python version: the
+        analyzer's installed packages are not evidence about the target."""
+        target = ctx.knowledge.target
+        if target is None:
+            return _module_exists(top, ctx.excluded)
+        if top in getattr(sys, "stdlib_module_names", ()) or target.has_module(top):
+            return True
+        sites = tuple(str(site) for site in target.sites)
+        return find_installed_spec(top, ctx.excluded, target_sites=sites) is not None
+
+    def _verdict(
+        self, file: Path, node: ast.AST, module: str, members: List[str], ctx: "_FileContext"
     ) -> Issue:
-        issue = self._import_issue(file, line, column, module_name, is_guarded, declared_sources)
-        issue.subject = module_name  # one import line can name several modules
+        line, column = getattr(node, "lineno", 0), getattr(node, "col_offset", 0)
+        knowledge = ctx.knowledge
+        matching = []
+        for req in ctx.requirements:
+            view = knowledge.view(req)
+            if provides(view.names, module, members):
+                matching.append((req, view))
+        if matching:
+            states = [marker_active(m[0].marker, ctx.marker_env) for m in matching]
+            active = [m for m, s in zip(matching, states) if s is not False]
+            req, view = (active or matching)[0]
+            sources = frozenset(r.label for r, _ in matching)
+            ev = evidence(module, req.written, view.state, knowledge.environment)
+            if req.marker:
+                state_of_req = states[matching.index((req, view))]
+                ev["marker_evaluation"] = {True: "ACTIVE", False: "INACTIVE", None: "UNKNOWN"}[
+                    state_of_req
+                ]
+            if self._is_requirements_only_metadata_gap(sources, ctx.has_pyproject):
+                issue = self._make_metadata_gap_issue(file, line, column, module, sources)
+            else:
+                inactive_marker = None if active else req.marker
+                issue = self._declared_unavailable(
+                    file, line, column, module, sources, req, knowledge, inactive_marker
+                )
+        else:
+            known = knowledge.known_providers(module, members)
+            # A provider is named only when exactly one distribution is known to supply the
+            # name; several candidates and nothing that selects one: named nowhere.
+            provider, state = known[0] if len(known) == 1 else (None, PROVIDER_UNKNOWN)
+            ev = evidence(module, provider, state, knowledge.environment)
+            if len(known) > 1:
+                ev["candidates"] = [name for name, _ in known]
+            if line in ctx.guarded:
+                issue = self._undeclared_optional(file, line, column, module)
+            elif known:
+                issue = self._undeclared_known(file, line, column, module, provider, state, known)
+            else:
+                issue = self._unknown_provider(file, line, column, module)
+        issue.subject = module  # one import line can name several modules
+        ev["target_platform"] = knowledge.target.platform if knowledge.target is not None else None
+        issue.evidence = ev
         return issue
 
-    def _import_issue(
+    def _declared_unavailable(
         self,
         file: Path,
         line: int,
         column: int,
-        module_name: str,
-        is_guarded: bool,
-        declared_sources: FrozenSet[str],
+        module: str,
+        sources: FrozenSet[str],
+        req: Requirement,
+        knowledge: ProviderKnowledge,
+        inactive_marker: Optional[str],
     ) -> Issue:
-        if declared_sources:
-            locations = ", ".join(sorted(declared_sources))
-            return Issue(
-                pattern_id="runtime_unavailable_dependency",
-                severity=Severity.MEDIUM,
-                axis=self.axis,
-                file=file,
-                line=line,
-                column=column,
-                message=(
-                    f"Declared dependency '{module_name}' is unavailable in the analyzer runtime "
-                    f"(declared in {locations})."
-                ),
-                suggestion=(
-                    "Install the declared dependency in the analysis environment, then rerun. "
-                    "This is environment evidence, not proof of a phantom package."
-                ),
-            )
-        if is_guarded:
-            return Issue(
-                pattern_id="undeclared_optional_dependency",
-                severity=Severity.MEDIUM,
-                axis=self.axis,
-                file=file,
-                line=line,
-                column=column,
-                message=(
-                    f"Undeclared optional dependency: '{module_name}' is guarded with "
-                    f"ImportError but not listed in [project.optional-dependencies]"
-                ),
-                suggestion=(
-                    f"Add '{module_name}' to the appropriate "
-                    f"[project.optional-dependencies.<group>] in pyproject.toml so "
-                    f"users know this feature requires an extra install."
-                ),
-            )
+        locations = ", ".join(sorted(sources))
+        if knowledge.target is not None:
+            where = f"the target environment ({knowledge.target.path.name})"
+        else:
+            where = "the analyzer runtime"
+        same_name = req.written.replace("-", "_").lower() == module.split(".")[0].lower()
+        provider = "" if same_name else f" (provided by '{req.written}')"
+        note = ""
+        if inactive_marker:
+            note = f"; that declaration applies only where {inactive_marker}, and this import runs here"
+        return Issue(
+            pattern_id="runtime_unavailable_dependency",
+            severity=Severity.MEDIUM,
+            axis=self.axis,
+            file=file,
+            line=line,
+            column=column,
+            message=(
+                f"Declared dependency '{module}'{provider} is unavailable in {where} "
+                f"(declared in {locations}){note}."
+            ),
+            suggestion=(
+                "Install the declared dependency in the analysis environment, then rerun. "
+                "This is environment evidence, not proof of a phantom package."
+            ),
+        )
+
+    def _undeclared_optional(self, file: Path, line: int, column: int, module: str) -> Issue:
+        return Issue(
+            pattern_id="undeclared_optional_dependency",
+            severity=Severity.MEDIUM,
+            axis=self.axis,
+            file=file,
+            line=line,
+            column=column,
+            message=(
+                f"Undeclared optional dependency: '{module}' is guarded with "
+                f"ImportError but not listed in [project.optional-dependencies]"
+            ),
+            suggestion=(
+                f"Add '{module}' to the appropriate "
+                f"[project.optional-dependencies.<group>] in pyproject.toml so "
+                f"users know this feature requires an extra install."
+            ),
+        )
+
+    def _undeclared_known(
+        self,
+        file: Path,
+        line: int,
+        column: int,
+        module: str,
+        provider: Optional[str],
+        state: str,
+        known: List[Tuple[str, str]],
+    ) -> Issue:
+        """HIGH only when one provider is identified from the target environment's own files
+        or metadata; a provider known from mapping knowledge (the shipped table, the analyzer's
+        installs) or several candidates are review candidates: MEDIUM."""
+        identified = provider is not None and state in (ARTIFACT_VERIFIED, METADATA_DECLARED)
+        if provider is not None:
+            whom = f"the distribution '{provider}'"
+            confirm = f"Confirm that '{provider}' is the package this code means, then declare it. "
+        else:
+            whom = "one of " + ", ".join(f"'{name}'" for name, _ in known)
+            confirm = "Several distributions provide this name; confirm which one is meant. "
+        return Issue(
+            pattern_id="undeclared_dependency",
+            severity=Severity.HIGH if identified else Severity.MEDIUM,
+            axis=self.axis,
+            file=file,
+            line=line,
+            column=column,
+            message=(
+                f"Undeclared dependency: '{module}' is provided by {whom}, "
+                "which no dependency declaration on this file's path names"
+            ),
+            suggestion=(
+                confirm
+                + "Do not install or declare a package on the strength of this finding alone."
+            ),
+        )
+
+    def _unknown_provider(self, file: Path, line: int, column: int, module: str) -> Issue:
         return self.create_issue(
             file=file,
             line=line,
             column=column,
             message=(
-                f"Phantom import: '{module_name}' cannot be resolved "
-                f"(not in stdlib, built-ins, or installed packages)"
+                f"Phantom import: no installed distribution, dependency declaration or known "
+                f"provider supplies '{module}'"
             ),
             suggestion=(
-                f"Verify '{module_name}' exists on PyPI and add it to "
-                f"[project.dependencies] in pyproject.toml. "
-                f"AI models sometimes generate plausible-looking but non-existent "
-                f"package names."
+                f"Confirm which package '{module}' was meant to come from before installing or "
+                "declaring anything: a name that can be found on a package index is not proof "
+                "that it is the intended package. AI models sometimes generate plausible-looking "
+                "package names."
             ),
             severity_override=Severity.CRITICAL,
         )
@@ -488,3 +561,17 @@ class PhantomImportPattern(BasePattern):
             subject=module_name,
         )
         return issue
+
+
+@dataclass(frozen=True)
+class _FileContext:
+    """What one file's import verdicts read."""
+
+    excluded: Tuple[Path, ...]
+    guarded: FrozenSet[int]
+    inactive: FrozenSet[int]  # under a platform test that is false in the target environment
+    undecided: FrozenSet[int]  # under a platform test the target environment does not decide
+    knowledge: ProviderKnowledge
+    requirements: Tuple[Requirement, ...]
+    has_pyproject: bool
+    marker_env: Dict[str, str]  # marker variables the target environment establishes

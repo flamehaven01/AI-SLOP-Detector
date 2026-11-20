@@ -52,7 +52,7 @@ running it, reports each spot with the **file, the line, the rule and a fix**,
 and gives every file a 0-100 score (higher = more warning signs). It does not
 tell whether a person or an AI wrote the code; it reports what is in the code.
 
-- **55 rules** across Python (37), JavaScript/TypeScript (8), Go (6) and Rust (4)
+- **57 rules** across Python (39), JavaScript/TypeScript (8), Go (6) and Rust (4)
 - **Deterministic**: the same input gives byte-identical JSON
 - **Local only**: no API key, no model download, no network call during a scan
 - **Everywhere you work**: terminal, VS Code, CI gates, pre-commit, AI agents (CLI JSON and a Claude Code skill)
@@ -168,7 +168,7 @@ Details: [docs/REPORTS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob
 
 | Language | Files | Read by (base install) | Optional extra (Python 3.10+) | Rules |
 |---|---|---|---|---|
-| Python | `.py` | Python AST | - | 37 |
+| Python | `.py` | Python AST | - | 39 |
 | JavaScript / TypeScript | `.js` `.jsx` `.ts` `.tsx` | regex reader (god functions, dead code and complexity are not measured) | `[js]`: tree-sitter, measures all 8 | 8 |
 | Go | `.go` | regex reader, measures every Go rule | `[go]` installs tree-sitter-go; the analyzer does not use it yet | 6 |
 | Rust | `.rs` | token scanner, measures every Rust rule | `[rust]`: tree-sitter, same findings | 4 |
@@ -178,7 +178,7 @@ pip install "ai-slop-detector[js]"     # or [rust]; on Python 3.8/3.9 the base i
 ```
 
 Rule counts come from the pattern registry in [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md)
-(55 rules), which a test keeps in line with the analyzers. A scan says which
+(57 rules), which a test keeps in line with the analyzers. A scan says which
 reader ran for each language (`scan_coverage.analysis_modes`).
 
 ## What It Detects
@@ -194,14 +194,14 @@ Python files also get **hollow review candidates**: functions that report
 success with no effect, inputs that reach nothing, docstring promises the body
 cannot keep. They are listed for review and never change the score.
 
-All 55 rules: [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md).
+All 57 rules: [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md).
 
 ## How It Works
 
 ```mermaid
 flowchart TD
     A["Project or file"] --> B{"Language by file extension"}
-    B -->|.py| P["Python<br/>AST, 37 rules<br/>LDR, ICR, DDC, Purity"]
+    B -->|.py| P["Python<br/>AST, 39 rules<br/>LDR, ICR, DDC, Purity"]
     B -->|.js .jsx .ts .tsx| J["JavaScript / TypeScript<br/>tree-sitter or regex, 8 rules"]
     B -->|.go| G["Go<br/>regex reader, 6 rules"]
     B -->|.rs| R["Rust<br/>tree-sitter or token scanner, 4 rules"]

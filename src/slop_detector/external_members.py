@@ -85,24 +85,28 @@ def _source_of(spec) -> Optional[Path]:
     return None
 
 
-_TOP_LEVEL: Dict[Tuple[str, Tuple[str, ...]], Optional[_Module]] = {}
+_TOP_LEVEL: Dict[Tuple[str, Tuple[str, ...], Tuple[str, ...]], Optional[_Module]] = {}
 
 
-def top_level(name: str, excluded: Sequence[Path] = ()) -> Optional[_Module]:
+def top_level(
+    name: str, excluded: Sequence[Path] = (), target_sites: Sequence[str] = ()
+) -> Optional[_Module]:
     """The installed top-level module `name`, or None; cached per search path.
 
     Looked up in the analyzer's environment, never in its cwd or the `excluded`
     project roots (slop_detector.environment_resolution).
     """
-    key = (name, search_path(excluded))
+    key = (name, search_path(excluded), tuple(target_sites))
     if key not in _TOP_LEVEL:
-        _TOP_LEVEL[key] = _find_top_level(name, excluded)
+        _TOP_LEVEL[key] = _find_top_level(name, excluded, target_sites)
     return _TOP_LEVEL[key]
 
 
-def _find_top_level(name: str, excluded: Sequence[Path]) -> Optional[_Module]:
+def _find_top_level(
+    name: str, excluded: Sequence[Path], target_sites: Sequence[str] = ()
+) -> Optional[_Module]:
     try:
-        spec = find_installed_spec(name, excluded)
+        spec = find_installed_spec(name, excluded, target_sites)
     except (ImportError, ValueError, AttributeError):
         return _Module(name, "opaque", reason="no_python_source")
     if spec is None:
@@ -329,10 +333,12 @@ def _virtual_or_absent(parent: _Module, name: str) -> Tuple[Optional[_Module], O
     return None, Outcome(ABSENT)
 
 
-def resolve_module(dotted: str, excluded: Sequence[Path] = ()) -> Tuple[Optional[_Module], Outcome]:
+def resolve_module(
+    dotted: str, excluded: Sequence[Path] = (), target_sites: Sequence[str] = ()
+) -> Tuple[Optional[_Module], Outcome]:
     """Walk `a.b.c` from the installed top level; never imports anything."""
     parts = dotted.split(".")
-    module = top_level(parts[0], excluded)
+    module = top_level(parts[0], excluded, target_sites)
     if module is None:
         return None, Outcome(UNKNOWN, "not_installed")
     for name in parts[1:]:
@@ -399,10 +405,13 @@ def _requests(node: ast.AST) -> Iterator[Tuple[str, Optional[str]]]:
 
 
 def _check(
-    module_name: str, name: Optional[str], excluded: Sequence[Path]
+    module_name: str,
+    name: Optional[str],
+    excluded: Sequence[Path],
+    target_sites: Sequence[str] = (),
 ) -> Tuple[Outcome, Optional[str]]:
     """Outcome, and the missing name (None when the module itself is the subject)."""
-    module, outcome = resolve_module(module_name, excluded)
+    module, outcome = resolve_module(module_name, excluded, target_sites)
     if module is None or name is None:
         return outcome, None
     return member(module, name), name
@@ -414,8 +423,12 @@ def verify_imports(
     guarded_lines: FrozenSet[int],
     skip_module: Callable[[str, List[str]], bool] = lambda dotted, names: False,
     excluded: Sequence[Path] = (),
+    target_sites: Sequence[str] = (),
 ) -> FileVerification:
-    """Verify every absolute import of an installed, non-project top-level package."""
+    """Verify every absolute import of an installed, non-project top-level package.
+
+    `target_sites`: a target environment's site-packages. When given, installed modules are
+    looked up there and in the standard library only, never in the analyzer's environment."""
     findings: List[Finding] = []
     unknowns: List[Dict[str, object]] = []
     for node, type_only, _deferred in _iter_imports(tree.body, False, False):
@@ -426,9 +439,9 @@ def verify_imports(
             top = module_name.split(".")[0]
             if top in skip_top or skip_module(module_name, [name] if name else []):
                 continue
-            if top_level(top, excluded) is None:
+            if top_level(top, excluded, target_sites) is None:
                 continue  # not installed: phantom_import's case
-            outcome, subject = _check(module_name, name, excluded)
+            outcome, subject = _check(module_name, name, excluded, target_sites)
             if outcome.state == ABSENT and type_only:
                 outcome = Outcome(UNKNOWN, "type_checking_only")
             _record(outcome, node, module_name, name, subject, findings, unknowns)

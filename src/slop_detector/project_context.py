@@ -102,6 +102,13 @@ def build_project_context_snapshot(root: Path) -> ProjectContextSnapshot:
         digest.update(_read_bytes(path))
     for kind, rel in topology:
         digest.update(f"{kind}\0{rel}\0".encode("utf-8"))
+    # The project's own environment is import evidence too (slop_detector.import_providers):
+    # installing or removing a distribution there is a new context.
+    from slop_detector.import_providers import find_target_environment
+
+    target = find_target_environment((root,))
+    if target is not None:
+        digest.update(b"T\0" + target.fingerprint.encode("utf-8"))
     return ProjectContextSnapshot(root, digest.hexdigest())
 
 

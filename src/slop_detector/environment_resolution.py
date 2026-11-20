@@ -20,11 +20,12 @@ import hashlib
 import importlib.machinery
 import os
 import sys
+import sysconfig
 import time
 from functools import lru_cache
 from importlib.machinery import ModuleSpec
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 
 @lru_cache(maxsize=4096)
@@ -48,12 +49,33 @@ def search_path(excluded: Iterable[Path] = ()) -> Tuple[str, ...]:
     return _SEARCH_PATHS[memo]
 
 
-def find_installed_spec(name: str, excluded: Iterable[Path] = ()) -> Optional[ModuleSpec]:
+def stdlib_paths() -> Tuple[str, ...]:
+    """The analyzer interpreter's standard-library directories (no site-packages)."""
+    paths = sysconfig.get_paths()
+    found = [paths.get("stdlib"), paths.get("platstdlib")]
+    dynload = os.path.join(sys.base_prefix, "DLLs") if os.name == "nt" else None
+    if paths.get("platstdlib"):
+        found.append(os.path.join(paths["platstdlib"], "lib-dynload"))
+    found.append(dynload)
+    return tuple(dict.fromkeys(p for p in found if p and os.path.isdir(p)))
+
+
+def find_installed_spec(
+    name: str, excluded: Iterable[Path] = (), target_sites: Sequence[str] = ()
+) -> Optional[ModuleSpec]:
     """importlib.util.find_spec for a top-level name over the environment search path.
 
-    sys.modules is not consulted: what this process happened to import is not
-    evidence about the analyzed code. Nothing is imported or executed.
+    `target_sites`: a target environment's site-packages. When given, the module is looked
+    up there and in the standard library only: the analyzer's installed packages are not
+    evidence about the target. sys.modules is not consulted: what this process happened to
+    import is not evidence about the analyzed code. Nothing is imported or executed.
     """
+    if target_sites:
+        if name in sys.builtin_module_names:
+            return importlib.machinery.BuiltinImporter.find_spec(name)
+        return importlib.machinery.PathFinder.find_spec(
+            name, list(target_sites) + list(stdlib_paths())
+        )
     path: List[str] = list(search_path(excluded))
     for finder in sys.meta_path:
         if finder is importlib.machinery.PathFinder:

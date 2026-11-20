@@ -61,10 +61,12 @@ The detailed sections below explain the main rules and may not cover every id.
 | `deep_nesting` | Python | High | Complexity | No | Control-flow depth over the limit |
 | `nested_complexity` | Python | Critical | Complexity | No | Control-flow depth and cyclomatic complexity both over their limits |
 | `lint_escape` | Python | High (bare `# noqa`); Medium or Low for narrower suppressions | Lint | No | `# noqa`, `# type: ignore`, `# pylint: disable` |
-| `phantom_import` | Python | Critical | Imports | No | Import targets a package or module that does not exist |
+| `phantom_import` | Python | Critical | Imports | No | No installed distribution, declaration or known provider supplies the import (observed; not proof that no package exists) |
 | `undeclared_optional_dependency` | Python | Medium | Imports | No | ImportError-guarded import not listed in optional dependencies |
 | `runtime_unavailable_dependency` | Python | Medium | Imports | No | Declared dependency unavailable in the analyzer runtime (environment evidence) |
 | `declared_outside_primary_metadata` | Python | Low | Imports | No | Dependency declared outside pyproject.toml project metadata |
+| `undeclared_dependency` | Python | Medium; High when the target environment's own files identify the one provider | Imports | No | Import whose provider is known (target environment, installed metadata or the shipped mapping) but not declared on the file's path |
+| `provider_conflict` | Python | Medium | Imports | No | The installed module comes from a different distribution than the one declared; its names are not checked (environment evidence) |
 | `phantom_member` | Python | High | Imports | No | Imported name that the installed package does not define |
 | `placeholder_variable_naming` | Python | High | Naming | No | Variables named `x`, `tmp`, `dummy`, `foo` in production code |
 | `exact_duplicate_pair` | Python | High (Critical for 4 or more functions) | Clones | No | Same-file functions with identical bodies after normalizing local names |

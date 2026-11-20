@@ -50,6 +50,11 @@ def _doc_rows() -> List[List[str]]:
 
 
 def _severity_name(node: ast.AST) -> str:
+    if isinstance(node, ast.IfExp):  # Severity.HIGH if ... else Severity.MEDIUM
+        # A conditional severity escalates; its default is the least severe value (as for
+        # the adapters' variable severities).
+        names = [_severity_name(node.body), _severity_name(node.orelse)]
+        return max((n for n in names if n in SEVERITIES), key=SEVERITIES.index, default="")
     if isinstance(node, ast.Attribute):  # Severity.HIGH
         return node.attr.lower()
     if isinstance(node, ast.Constant) and isinstance(node.value, str):

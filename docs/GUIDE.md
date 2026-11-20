@@ -46,8 +46,8 @@ flowchart LR
 ```
 
 Every file goes through **four** independent measurement axes (LDR, ICR, DDC,
-Purity) **and** 37 Python rules: 34 pattern checks plus 3 dependency-declaration
-checks (55 rules in all languages, [PATTERNS.md](PATTERNS.md)). Results are combined via a **weighted
+Purity) **and** 39 Python rules: 34 pattern checks plus 5 dependency-declaration and provider
+checks (57 rules in all languages, [PATTERNS.md](PATTERNS.md)). Results are combined via a **weighted
 geometric mean** — a near-zero in any single dimension pulls the overall score
 down regardless of other dimensions. Every scan is recorded to local history; `--self-calibrate`
 turns that history into an advisory weight report and never writes weights.

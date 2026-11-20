@@ -1,7 +1,9 @@
 # Phantom Import Detection
 
-**Current contract:** v3.9.3. The original pattern was introduced
-in v2.9.0; this page describes its current resolution boundary.
+**Current contract:** v3.18.0 (unreleased). The original pattern was introduced
+in v2.9.0; this page describes its current resolution boundary. How the
+provider of an import is found, and why, is in
+[IMPORT_PROVIDER_RESOLUTION.md](IMPORT_PROVIDER_RESOLUTION.md).
 
 **Pattern ID:** `phantom_import`
 **Severity:** CRITICAL
@@ -25,6 +27,13 @@ These phantom imports pass syntax checking and appear legitimate until runtime,
 when they raise `ModuleNotFoundError`. In large codebases with conditional imports
 or lazy loading, they may go undetected for months.
 
+What the analyzer can observe is narrower than "the package does not exist":
+no installed distribution, no dependency declaration and no known provider
+supplies the name. That is what an invented name looks like, and also what a
+real package looks like that is new, rare, private or missing from the shipped
+mapping. The finding states what was observed; it is never proof that no
+package exists, and it never suggests installing or declaring the name.
+
 ---
 
 ## Detection
@@ -32,10 +41,10 @@ or lazy loading, they may go undetected for months.
 ### What is flagged
 
 ```python
-import tensorflow_magic          # CRITICAL — does not exist
-from requests_async_v2 import get  # CRITICAL — does not exist
-import numpy_extended            # CRITICAL — does not exist
-import fake_llm_sdk              # CRITICAL — does not exist
+import tensorflow_magic          # CRITICAL: no provider known, not declared
+from requests_async_v2 import get  # CRITICAL: no provider known, not declared
+import numpy_extended            # CRITICAL: no provider known, not declared
+import fake_llm_sdk              # CRITICAL: no provider known, not declared
 ```
 
 ### What is not flagged
@@ -67,6 +76,7 @@ imports are absolute (v3.10).
 
 "Declared" means named by a dependency declaration of the file's project
 (v3.10): PEP 621 and Poetry `pyproject.toml` (dependencies, dev and groups),
+PEP 735 `[dependency-groups]` (3.18),
 `setup.py` `install_requires` / `extras_require` (literals or module-level
 names, read with `ast`, never executed), `setup.cfg`, `Pipfile`,
 `requirements*.txt` / `.in`, and conda `environment*.yml` with its pip list,
@@ -76,14 +86,49 @@ declaration in another subtree says nothing about the file.
 ### Unresolved does not always mean phantom
 
 An import that none of the sources resolves is reported by the first row that
-applies:
+applies. "Declared" means a declaration whose distribution provides the import
+name (provider resolution, below), not a declaration with the same spelling:
 
 | Situation | Reported as | Severity |
 |---|---|---|
+| Under a platform test (`if sys.platform == ...`) that the target environment does not decide | listed in `unverified_imports` (reason `platform_guard_undecided`), no score effect | - |
 | Declared only outside `pyproject.toml` project metadata (e.g. `requirements.txt`) while a `pyproject.toml` exists | `declared_outside_primary_metadata` | LOW |
-| Declared as a dependency but not installed where the analyzer runs | `runtime_unavailable_dependency` | MEDIUM |
+| Declared as a dependency but not installed in the target environment (or where the analyzer runs, when there is none) | `runtime_unavailable_dependency` | MEDIUM |
 | Inside `try/except ImportError` and not declared | `undeclared_optional_dependency` | MEDIUM |
-| Not declared anywhere | `phantom_import` | CRITICAL |
+| Not declared, and a provider is known | `undeclared_dependency` | MEDIUM; HIGH only when the target environment's own files identify the one provider |
+| Not declared, and no provider is known | `phantom_import` | CRITICAL |
+
+An import under a platform test that is false in the target environment does
+not run there and is not reported.
+
+### Provider resolution (3.18)
+
+Which distribution provides an import name is established from evidence,
+strongest first, and recorded in each finding's `evidence`
+(`import_name`, `provider`, `provider_state`, `environment`,
+`target_platform`, and `marker_evaluation` when the declaration has a marker):
+
+1. the target environment's installed files: a virtual environment directly
+   inside the project root (a directory with `pyvenv.cfg`), read as files and
+   never executed (`ARTIFACT_VERIFIED`; `METADATA_DECLARED` for PEP 794
+   `Import-Name`);
+2. mapping knowledge: the analyzer environment's installed metadata and the
+   shipped table `config/import_providers.json` (`MAPPING_SUPPORTED`);
+3. the declared name itself (`NAME_CANDIDATE`), never the basis of a CRITICAL
+   or HIGH verdict.
+
+Distribution names compare after PEP 503 normalization; import names compare
+exactly (case-sensitive). When several distributions are known to provide a
+name and nothing selects one, no provider is named (`candidates` lists them).
+With a target environment, presence is decided there only: the analyzer's own
+installs are not evidence about the project. The target platform and Python
+version (for environment markers and platform tests) come from the target
+environment too; without one they are unknown.
+
+`phantom_member` checks names against the installed provider only when it is the
+declared one; when another distribution supplies the module, it reports
+`provider_conflict` (MEDIUM; no score effect when seen only in the analyzer's
+environment).
 
 The pattern builds a resolution index once per process from four sources:
 
@@ -156,10 +201,12 @@ With `project_root`, the source is analyzed as the file
 | Relative imports | Excluded (`node.level > 0`) |
 | Editable installs | Finder fallback |
 | Namespace packages | Finder fallback |
-| `PIL` (installed as `Pillow`) | `packages_distributions()` maps import names |
-| `sklearn` (installed as `scikit-learn`) | `packages_distributions()` maps import names |
-| Resolution errors | Returns True (assume resolvable) |
-| Python 3.8/3.9 (no `stdlib_module_names`) | Finder fallback covers stdlib |
+| `PIL` declared as `Pillow`, `sklearn` as `scikit-learn` (installed or not) | provider resolution links the declaration to the import name (installed metadata, then the shipped mapping) |
+| `PyPDF2` (case) | distribution names are normalized, import names are compared as written |
+| A distribution in `[dependency-groups]` (PEP 735) | read as a declaration (3.18) |
+| An installed module from a different distribution than the declared one | `phantom_member` reports `provider_conflict` instead of checking that distribution's names |
+| Resolution errors | the pattern is unmeasured for the file (see Error policy), never "assume resolvable" |
+| Python 3.8/3.9 (no `stdlib_module_names`) | Finder fallback covers stdlib; installed providers are read from dist-info files |
 
 ---
 
@@ -174,17 +221,18 @@ The finder lookup is called only as a last resort, never for modules already in 
 ## Relationship to DDC (Dependency Density Check)
 
 DDC measures the **ratio of imported packages that are actually used** in the file.
-`phantom_import` is orthogonal — it measures whether the import target **exists at all**.
+`phantom_import` is orthogonal — it observes whether **any provider of the import
+is known** where the code runs.
 
 | | DDC | PhantomImport |
 |---|---|---|
-| Question | "Is this import used?" | "Does this import exist?" |
-| Signal | Noise / dead imports | Hallucination |
+| Question | "Is this import used?" | "Does any installed distribution, declaration or known provider supply this import?" |
+| Signal | Noise / dead imports | Unresolved, undeclared, provider unknown (what an invented package name looks like; not proof of one) |
 | Severity | LOW–MEDIUM | CRITICAL |
-| Scope | Usage analysis | Existence analysis |
+| Scope | Usage analysis | Resolution and declaration evidence |
 
-A file can have low DDC (imports present but unused) AND phantom imports (imports
-that don't exist) simultaneously. Both contribute to the deficit score.
+A file can have low DDC (imports present but unused) AND phantom imports
+simultaneously. Both contribute to the deficit score.
 
 ---
 
@@ -192,11 +240,12 @@ that don't exist) simultaneously. Both contribute to the deficit score.
 
 ```
 [CRITICAL] phantom_import — src/pipeline.py:4
-  Phantom import: 'tensorflow_magic' cannot be resolved
-  (not in stdlib, built-ins, or installed packages)
-  Suggestion: Verify 'tensorflow_magic' exists on PyPI and add it to
-  [project.dependencies] in pyproject.toml. AI models sometimes generate
-  plausible-looking but non-existent package names.
+  Phantom import: no installed distribution, dependency declaration or known
+  provider supplies 'tensorflow_magic'
+  Suggestion: Confirm which package 'tensorflow_magic' was meant to come from
+  before installing or declaring anything: a name that can be found on a
+  package index is not proof that it is the intended package. AI models
+  sometimes generate plausible-looking package names.
 ```
 
 ---

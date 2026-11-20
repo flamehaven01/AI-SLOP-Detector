@@ -51,9 +51,19 @@ class Issue:
     symbol: Optional[str] = None
     fingerprint: Optional[str] = None
     locator: Optional[str] = None
+    # Import-evidence findings: which import name, which provider, how strong the evidence
+    # is and in which environment (slop_detector.import_providers). Omitted when None, so
+    # every other finding serializes exactly as before.
+    evidence: Optional[dict] = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
+        out = self._base_dict()
+        if self.evidence is not None:
+            out["evidence"] = dict(self.evidence)
+        return out
+
+    def _base_dict(self) -> dict:
         return {
             "pattern_id": self.pattern_id,
             "severity": self.severity.value,

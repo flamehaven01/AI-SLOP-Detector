@@ -1,8 +1,10 @@
 # Import Provider Resolution
 
-**Status: Design for v3.18.0. Not implemented.** Nothing on this page describes
-current behavior unless it says "today". The current contract is in
-[PHANTOM_IMPORT.md](PHANTOM_IMPORT.md).
+**Status: implemented for v3.18.0 (unreleased).** Sections 1-7 are the design
+as written before the code; where a paragraph says "today" it describes v3.17.
+Sections 8 and 10-12 describe what v3.18.0 implements. The finding contract is
+also in [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md). Not yet done: an evaluation on
+labeled projects that played no part in building it (section 11).
 
 **Release boundary.** v3.18.0 ships the provider resolver, its verdict contract
 (finding IDs, severities, messages, suggestions, JSON fields) and the tests
@@ -12,7 +14,8 @@ behavior.
 
 **Scope:** `phantom_import`, `phantom_member` and the import-evidence findings
 next to them (`runtime_unavailable_dependency`, `undeclared_optional_dependency`,
-`declared_outside_primary_metadata`). Python only.
+`declared_outside_primary_metadata`, and the new `undeclared_dependency` and
+`provider_conflict`). Python only.
 
 ---
 
@@ -178,6 +181,22 @@ line, across every file. The fix is one line in one declaration file. Counting
 each import as a separate CRITICAL inflates the score and the work order with
 a single cause.
 
+### F7. A declaration format the analyzer does not read
+
+```toml
+[dependency-groups]
+scripts = ["scikit-learn>=1.7.2"]
+```
+
+PEP 735 dependency groups are a standard place to declare dependencies (uv
+writes development dependencies there). Today `pyproject.toml` is read for PEP
+621 dependencies and optional dependencies and for Poetry tables, not for
+`[dependency-groups]`, so an import of a dependency declared only in a group is
+reported as declared nowhere (`phantom_import` CRITICAL), even when the
+distribution and import names are equal. This class was found by comparing
+the analyzer with an independent reading of the declaration files, not by
+reading the analyzer's code.
+
 ## 4. Two fixes that do not work
 
 **Grow the alias table.** It helps F1 and does nothing for F3, F4 or F5. A
@@ -228,7 +247,7 @@ Each source is read without importing or executing anything.
 | 2 | PEP 794 metadata: `Import-Name` / `Import-Namespace` (core metadata 2.5) of an installed distribution, and the project's own `[project] import-names` / `import-namespaces` | The distribution states that it provides the name | `METADATA_DECLARED` |
 | 3 | A wheel the user supplies, or a wheel already in a local cache, bound to name, version and hash | That artifact provides the name | `ARTIFACT_VERIFIED` (for that artifact) |
 | 4 | Installed metadata of the analyzer environment (`importlib.metadata.packages_distributions()`), and a mapping table shipped with the tool, generated offline from wheel contents | The distribution is known to provide the name (mapping knowledge only, see principle 2) | `MAPPING_SUPPORTED` |
-| 5 | Name similarity, prefixes (`python-`, `py`), `-` to `_` | A candidate to look up; never the basis of CRITICAL or HIGH | none |
+| 5 | Name similarity, prefixes (`python-`, `py`), `-` to `_` | A candidate to look up; never the basis of CRITICAL or HIGH | `NAME_CANDIDATE` |
 
 When two sources disagree (rank 1 says the installed `jwt` comes from `PyJWT`,
 the declaration names `jwt`), the state is `PROVIDER_CONFLICT`. When none
@@ -272,8 +291,18 @@ separate questions.
   inactive on Linux, so its absence there is expected and is not a finding. An
   optional dependency is not assumed to be installed.
 
-Today all declarations are merged into one list (`dependency_declarations.py`),
-which is right for the first question and says nothing about the second.
+Implemented (3.18.0): the target platform and Python version come only from
+the target environment's files. A `Lib/site-packages` layout establishes
+Windows; a `lib/pythonX.Y/site-packages` layout establishes POSIX (so "not
+Windows", while which POSIX platform stays unknown); `pyvenv.cfg` gives the
+Python version. With no target environment they are unknown: the analyzer's
+own platform is not evidence about where the analyzed code runs. A marker that
+cannot be decided is `UNKNOWN` (the declaration still counts as declared). An
+import under a platform test the target does not decide is listed in
+`unverified_imports` (reason `platform_guard_undecided`, no score effect), not
+reported. `environment` (where provider evidence came from) and
+`target_platform` / `marker_evaluation` (what the markers were evaluated for)
+are separate fields.
 
 ## 8. Verdicts
 
@@ -282,9 +311,11 @@ For an import the project does not provide itself:
 | Situation | Finding | Severity | Auto-fix allowed |
 |---|---|---|---|
 | Resolves in the target environment, provider matches the declaration | none | | |
-| Provider known (rank 1-4) and declared; not installed in the target (or the analyzer, if no target) | `runtime_unavailable_dependency` (existing) | MEDIUM | No: environment action |
-| Provider known (rank 1-4), **not declared** | provider-level "undeclared dependency" finding, naming the provider and every importing location | HIGH (proposed) | No: a person confirms the provider's identity |
-| Provider unknown to every source, not declared, not resolvable | `phantom_import` | see below | No: the author removes, replaces or confirms the import |
+| Under a platform test the target environment does not decide | `unverified_imports` entry `platform_guard_undecided` | no score | No |
+| Provider declared; not installed in the target (or the analyzer, if no target) | `runtime_unavailable_dependency` (existing; `declared_outside_primary_metadata` LOW when declared only outside `pyproject.toml`) | MEDIUM | No: environment action |
+| Provider known, **not declared**, one provider identified from the target environment's own files | `undeclared_dependency` naming the provider | HIGH | No: a person confirms the provider's identity |
+| Provider known only from mapping knowledge (shipped table, analyzer metadata), or several providers known | `undeclared_dependency`; several: no provider named, `candidates` listed | MEDIUM (review candidate) | No |
+| Provider unknown to every source, not declared, not resolvable | `phantom_import` | CRITICAL (see below) | No: the author removes, replaces or confirms the import |
 | Inside `try/except ImportError` | `undeclared_optional_dependency` (existing) | MEDIUM | No |
 
 `phantom_import` becomes narrower: it is reported only for the last observable
@@ -307,17 +338,29 @@ For `phantom_member`:
 | Provider state of the module | Finding |
 |---|---|
 | Installed provider is the declared provider (or nothing is declared and the provider is known) | `phantom_member` HIGH, as today |
-| `PROVIDER_CONFLICT`: installed provider differs from the declared one | no HIGH; a provider-conflict finding naming both distributions, reported as environment evidence |
+| `PROVIDER_CONFLICT`: installed provider differs from the declared one | no HIGH; `provider_conflict` MEDIUM naming both distributions, reported as environment evidence |
 | `PROVIDER_UNKNOWN` | listed in `unverified_imports` (existing channel, no score effect) |
 
-**Grouping.** Dependency findings are grouped per (project, provider): one item
-with N locations in the work order. Whether the score counts the group once or
-per location is a scoring-contract decision (section 11).
+**Score contract (`SCORE_CONTRACT_VERSION = "3.18"`, `core_scoring.py`).**
+Severity weights are unchanged. Two rules decide which findings add to the
+pattern penalty; every finding is still reported:
+
+- `provider_conflict` seen only in the analyzer's environment adds nothing: an
+  analysis environment that differs from the project's is not a defect of the
+  code;
+- `undeclared_dependency` counts once per (file, provider): one missing
+  declaration is one cause, however many lines import it. Every location stays
+  in the finding list.
+
+Scores therefore differ from 3.17 where these findings occur; a finding that
+did not change keeps its weight.
 
 **Compatibility.** Existing pattern IDs keep their meaning; new situations get
-new IDs. The internal provider states are recorded next to each import finding
-in the JSON, so a reader (or an agent) can see why a verdict was or was not
-reached. The exact keys are fixed by contract tests before implementation.
+new IDs (`undeclared_dependency`, `provider_conflict`). Every import-evidence
+finding carries `evidence` in the JSON (`import_name`, `provider`,
+`provider_state`, `environment`, `target_platform`, and `marker_evaluation` or
+`candidates` where they apply); a finding of any other rule serializes exactly
+as before. The keys are fixed by `tests/test_import_provider_resolution.py`.
 
 ## 9. Agent loop rules (policy for v3.19.0)
 
@@ -355,10 +398,16 @@ projects, with results compared per finding before any verdict changes.
 | R6. Same as R5, the declared `jwt` installed in a target environment that lacks a name | `phantom_member` HIGH remains |
 | R7. A name no source knows, undeclared | `phantom_import` remains (its severity is the section 11 contract) |
 | R8. A known provider, undeclared | undeclared-dependency finding naming the provider; not CRITICAL |
-| R9a. `pywin32; sys_platform == "win32"` declared, `import win32api` inside `if sys.platform == "win32":`, non-Windows target | no finding: the dependency is inactive and the import does not run there |
-| R9b. Same declaration, `import win32api` at module level, non-Windows target | reported: the import runs on a platform where its only provider is inactive (an inactive dependency is not a reason to excuse an import that always executes) |
+| R9a. `pywin32; sys_platform == "win32"` declared, `import win32api` inside `if sys.platform == "win32":` | POSIX target: no finding; Windows target: `runtime_unavailable_dependency` (marker ACTIVE); no target: no finding, an `unverified_imports` entry `platform_guard_undecided` |
+| R9b. Same declaration, `import win32api` at module level | POSIX target: reported (the import runs where its only provider is inactive; marker INACTIVE); no target: marker UNKNOWN, reported as declared but unavailable |
+| R9c. `zz-backport; python_version < "3.8"` | marker evaluated for the target's Python from `pyvenv.cfg` (3.11: INACTIVE, 3.7: ACTIVE); no target: UNKNOWN |
 | R10. A project with every dependency installed | every field the current JSON has keeps its value and every finding keeps its ID, severity and location; new provider-state fields are checked separately for correctness (not a byte comparison of the whole output) |
+| R12. A dependency declared only in `[dependency-groups]`, same name and another name (`scikit-learn` -> `sklearn`) | `runtime_unavailable_dependency` naming the provider, not `phantom_import` |
 | R11. Byte-identical project scanned in two environments (the F5 cases) | the provider state names which environment it came from, and with a target environment configured the verdict is the same in both |
+| R13. A target environment's METADATA edited in place (same dist-info directory and version) | a new context: the cache is keyed by the content of the files read, not the directory listing |
+| R14. Target environment without the module, analyzer environment with it | not checked against the analyzer's copy; declared but unavailable in the target |
+| R15. `import cv2` / `import faiss` undeclared (several known providers) | no provider named, `candidates` listed, MEDIUM |
+| R16. Score contract | an analyzer-only `provider_conflict` adds 0; `undeclared_dependency` adds once per (file, provider) |
 
 ### Experiments on the frozen set
 
@@ -377,24 +426,24 @@ verdicts, run time, cache agreement, and agreement between two environments
 
 ## 11. Open decisions
 
-- **Severity of an undeclared known provider** (proposed HIGH above).
+Decided for 3.18.0: the severity of an undeclared known provider and the score
+rules (section 8), and the source of the target platform (section 7). Open:
+
 - **Severity of `phantom_import`** ("provider unknown to every source"):
-  whether it stays CRITICAL, measured on labeled invented names and labeled
-  real-but-unmapped packages.
-- **Scoring.** Whether findings that depend on the environment stay in the
-  deterministic score, move to a separate part of it, or count once per
-  provider group. This changes the score contract and needs a version policy.
-- **Target environment discovery.** Which locations are searched by default
-  (only `pyvenv.cfg` directories inside the project root is the conservative
-  choice) and the name of the configuration key for an explicit path.
-- **Shipped mapping table.** Size, refresh cadence, and how its generation is
-  recorded.
+  whether it stays CRITICAL, measured on labeled invented names, real but
+  unmapped packages, local or private providers and deliberately invented test
+  names in projects not used to build the resolver.
+- **Explicit target.** Only a virtual environment directly inside a project root
+  is discovered; a configuration key for an explicit environment path or
+  platform (including "the analyzer is the target") does not exist yet.
+- **Shipped mapping table.** It is hand-curated and not yet audited against
+  wheel file lists; size, refresh cadence and the recording of its generation
+  are open.
 
 ## 12. Corrections this implies for the current documentation
 
-[PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) describes the v3.9.3 contract and needs
-these corrections when 3.18.0 ships (they are listed here so they are not
-lost):
+These corrections to [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) (written for the
+v3.9.3 contract) are made in 3.18.0:
 
 - "False Positive Avoidance" lists `PIL` and `sklearn` as handled by
   `packages_distributions()`. That holds only when the package is installed in

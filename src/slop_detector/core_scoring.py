@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from math import exp, log
 from typing import Any, Dict, List, Mapping, Optional
 
@@ -68,13 +69,52 @@ def build_metric_warnings(
     return warnings
 
 
-def calculate_pattern_penalty(issues: List[Issue]) -> float:
-    """Return the capped additive penalty for pattern severities.
+# Version of the rules below that decide which findings add to the pattern penalty.
+# 3.18: provider findings (docs/IMPORT_PROVIDER_RESOLUTION.md) as described in
+# calculate_pattern_penalty; every finding outside those rules weighs as before.
+SCORE_CONTRACT_VERSION = "3.18"
 
-    A deep_nesting finding at the location of a nested_complexity finding (the
-    same function) adds nothing: nested_complexity is that deep nesting plus a
-    complexity condition. Both findings, their severities and the purity
-    dimension are unchanged.
+
+def _scored(issues: List[Issue]) -> List[Issue]:
+    """The findings that add to the penalty; every finding is still reported.
+
+    - deep_nesting at the location of a nested_complexity finding (the same function) adds
+      nothing: nested_complexity is that deep nesting plus a complexity condition;
+    - provider_conflict seen only in the analyzer's environment is diagnostic: an analysis
+      environment that differs from the project's is not a defect of the code;
+    - undeclared_dependency counts once per (file, provider): one missing declaration is one
+      cause, however many lines import it (provider None: per imported name).
+    """
+    composite = {
+        (issue.file, issue.line, issue.column)
+        for issue in issues
+        if issue.pattern_id == "nested_complexity"
+    }
+    seen_providers = set()
+    scored = []
+    for issue in issues:
+        evidence = issue.evidence or {}
+        if (
+            issue.pattern_id == "deep_nesting"
+            and (issue.file, issue.line, issue.column) in composite
+        ):
+            continue
+        if issue.pattern_id == "provider_conflict" and evidence.get("environment") == "analyzer":
+            continue
+        if issue.pattern_id == "undeclared_dependency":
+            who = evidence.get("provider") or evidence.get("import_name") or issue.subject
+            key = (str(issue.file), re.sub(r"[-_.]+", "-", str(who)).lower())
+            if key in seen_providers:
+                continue
+            seen_providers.add(key)
+        scored.append(issue)
+    return scored
+
+
+def calculate_pattern_penalty(issues: List[Issue]) -> float:
+    """Return the capped additive penalty for pattern severities (see _scored for the
+    findings that do not add). The findings, their severities and the purity dimension
+    are unchanged.
     """
     severity_weights = {
         "critical": 10.0,
@@ -82,21 +122,8 @@ def calculate_pattern_penalty(issues: List[Issue]) -> float:
         "medium": 2.0,
         "low": 1.0,
     }
-    composite = {
-        (issue.file, issue.line, issue.column)
-        for issue in issues
-        if issue.pattern_id == "nested_complexity"
-    }
     return min(
-        sum(
-            severity_weights.get(issue.severity.value, 1.0)
-            for issue in issues
-            if not (
-                issue.pattern_id == "deep_nesting"
-                and (issue.file, issue.line, issue.column) in composite
-            )
-        ),
-        50.0,
+        sum(severity_weights.get(issue.severity.value, 1.0) for issue in _scored(issues)), 50.0
     )
 
 

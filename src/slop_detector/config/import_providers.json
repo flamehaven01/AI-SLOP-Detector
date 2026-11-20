@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "purpose": "Distribution -> import names it provides, for providers that are not installed where the analyzer runs. Keys are PEP 503 normalized distribution names; values are import names exactly as imported (case-sensitive), dotted for a namespace portion (the shortest name the distribution owns). Rank 4 evidence in docs/IMPORT_PROVIDER_RESOLUTION.md: mapping knowledge, never presence.",
+    "source": "hand-curated from each project's documented import name",
+    "audit": "pending: not yet checked against wheel file lists",
+    "since": "3.18.0"
+  },
+  "providers": {
+    "absl-py": ["absl"],
+    "beautifulsoup4": ["bs4"],
+    "biopython": ["Bio"],
+    "dm-haiku": ["haiku"],
+    "faiss-cpu": ["faiss"],
+    "faiss-gpu": ["faiss"],
+    "gitpython": ["git"],
+    "google-cloud-storage": ["google.cloud.storage"],
+    "google-generativeai": ["google.generativeai"],
+    "grpcio": ["grpc"],
+    "jwt": ["jwt"],
+    "msgpack-python": ["msgpack"],
+    "opencv-contrib-python": ["cv2"],
+    "opencv-python": ["cv2"],
+    "opencv-python-headless": ["cv2"],
+    "pillow": ["PIL"],
+    "protobuf": ["google.protobuf"],
+    "py-cpuinfo": ["cpuinfo"],
+    "pyjwt": ["jwt"],
+    "pymupdf": ["fitz", "pymupdf"],
+    "pyopengl": ["OpenGL"],
+    "pypdf2": ["PyPDF2"],
+    "python-dateutil": ["dateutil"],
+    "python-dotenv": ["dotenv"],
+    "pywin32": ["win32api", "win32con", "win32gui", "win32process", "win32file", "win32event", "win32com", "win32clipboard", "win32print", "win32service", "win32serviceutil", "win32pipe", "win32security", "win32ui", "winerror", "pywintypes", "pythoncom"],
+    "pyyaml": ["yaml"],
+    "scikit-image": ["skimage"],
+    "scikit-learn": ["sklearn"],
+    "websocket-client": ["websocket"]
+  }
+}

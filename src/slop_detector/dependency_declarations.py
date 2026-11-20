@@ -3,7 +3,8 @@
 One source for the declaration evidence that phantom_import reads and for the
 project-context fingerprint that keys its caches. Supported formats:
 
-- pyproject.toml: PEP 621 dependencies and optional-dependencies, Poetry
+- pyproject.toml: PEP 621 dependencies and optional-dependencies, PEP 735
+  dependency-groups, Poetry
   dependencies, dev-dependencies and group dependencies;
 - setup.py: install_requires and extras_require given as literals or as names
   bound to module-level literals (read with ast, never executed);
@@ -108,6 +109,12 @@ def _pyproject_requirements(data: Dict[str, Any]) -> List[str]:
     optional = project.get("optional-dependencies", {})
     if isinstance(optional, dict):
         for items in optional.values():
+            found.extend(_strings(items))
+    # PEP 735 dependency groups: lists of requirement strings; an {include-group = ...}
+    # table names another group, not a requirement, and is skipped (_strings keeps strings only).
+    groups_735 = data.get("dependency-groups", {})
+    if isinstance(groups_735, dict):
+        for items in groups_735.values():
             found.extend(_strings(items))
     tool = data.get("tool", {})
     poetry = tool.get("poetry", {}) if isinstance(tool, dict) else {}

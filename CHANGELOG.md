@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - 3.18.0
+
+Python import findings are judged by which distribution provides the import
+and where that evidence comes from, instead of by spelling and by what the
+analyzer happens to have installed. Design and limits:
+[docs/IMPORT_PROVIDER_RESOLUTION.md](docs/IMPORT_PROVIDER_RESOLUTION.md).
+
+### Changes you see when upgrading
+
+- Imports of a declared dependency whose import name differs from its
+  distribution name (`Pillow` -> `PIL`, `scikit-learn` -> `sklearn`,
+  `absl-py` -> `absl`, ...) are no longer reported as `phantom_import`
+  (CRITICAL) where the dependency is not installed: they are
+  `runtime_unavailable_dependency` (MEDIUM), or
+  `declared_outside_primary_metadata` (LOW) when declared only outside
+  `pyproject.toml`.
+- Import names are compared exactly: with `PyPDF2` declared, `import PyPDF2`
+  is declared and `import pypdf2` (which fails at runtime) is no longer
+  excused as declared.
+- PEP 735 `[dependency-groups]` in `pyproject.toml` are read as declarations.
+- New `undeclared_dependency`: an import whose provider is known but not
+  declared on the file's path. MEDIUM; HIGH only when the project's own
+  virtual environment identifies the one provider. With several known
+  providers (`cv2`, `faiss`) none is named and the candidates are listed.
+- `phantom_import` now means no installed distribution, declaration or known
+  provider supplies the name. Its message states that, and its suggestion no
+  longer says "Verify it exists on PyPI and add it to dependencies": it asks
+  which package was meant before anything is installed or declared.
+- New `provider_conflict` (MEDIUM): `phantom_member` no longer checks a module's
+  names against an installed distribution other than the declared one (a
+  declared `jwt` with `PyJWT` installed).
+- A virtual environment directly inside the project root (a directory with
+  `pyvenv.cfg`) is read as the project's environment, as files only, never
+  executed. When present, whether a module is installed is decided there, not
+  in the analyzer's environment, and environment markers and platform tests are
+  evaluated for its platform and Python version. Without one they are unknown:
+  an import under `if sys.platform == ...` is listed in `unverified_imports`
+  (`platform_guard_undecided`, no score) instead of reported.
+- Every import-evidence finding carries `evidence` in the JSON
+  (`import_name`, `provider`, `provider_state`, `environment`,
+  `target_platform`, and `marker_evaluation` / `candidates` where they
+  apply). Findings of other rules serialize as before.
+- Score contract `3.18`: an analyzer-only `provider_conflict` adds nothing,
+  and `undeclared_dependency` adds once per (file, provider). Other weights are
+  unchanged; scores change where these findings occur.
+- Analysis cache `analysis-cache-v55`: the first scan after upgrading analyzes
+  each file again. The project's own environment is part of the cache key, by
+  the content of the metadata files read.
+
+### Known limits
+
+- The distribution-to-import mapping shipped in
+  `config/import_providers.json` is hand-curated and not yet audited against
+  wheel file lists.
+- Whether `phantom_import` stays CRITICAL has not been decided on labeled
+  projects that were not used to build the resolver.
+- An environment outside the project root, or an explicit target platform,
+  cannot be configured yet.
+
 ## [3.17.0] - 2026-11-19
 
 A new default terminal screen, `--interactive` report choice, fix texts that
