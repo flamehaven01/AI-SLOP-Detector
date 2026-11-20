@@ -47,19 +47,51 @@ def is_declaration_file(name: str) -> bool:
 
 
 def declaration_files(directory: Path) -> List[Path]:
-    """Declaration files directly in `directory`, in name order."""
+    """Declaration files directly in `directory`, in name order; a file that is a link out of
+    the scan area (path_boundary) is not read."""
+    from slop_detector.path_boundary import leaves, walk_boundary
+
+    boundary = walk_boundary(directory)
     try:
-        return sorted(p for p in directory.iterdir() if p.is_file() and is_declaration_file(p.name))
+        return sorted(
+            p
+            for p in directory.iterdir()
+            if is_declaration_file(p.name) and not leaves(p, boundary) and p.is_file()
+        )
     except OSError:
         return []
 
 
+def unread_declaration_links(directory: Path, with_requirements_dir: bool) -> List[Path]:
+    """Declaration files in `directory` (and its requirements/ directory) that are links out of
+    the scan area, so they are not read: the declarations they hold are not known."""
+    from slop_detector.path_boundary import leaves, walk_boundary
+
+    boundary = walk_boundary(directory)
+    try:
+        found = [
+            p for p in directory.iterdir() if is_declaration_file(p.name) and leaves(p, boundary)
+        ]
+    except OSError:
+        found = []
+    requirements = directory / "requirements"
+    if with_requirements_dir:
+        if leaves(requirements, boundary):
+            found.append(requirements)
+        elif requirements.is_dir():
+            found.extend(p for p in requirements.glob("*.txt") if leaves(p, boundary))
+    return sorted(found)
+
+
 def root_declaration_files(root: Path) -> List[Path]:
     """A project root's declaration files, including the requirements/ directory."""
+    from slop_detector.path_boundary import leaves, walk_boundary
+
+    boundary = walk_boundary(root)
     files = declaration_files(root)
     requirements = root / "requirements"
-    if requirements.is_dir():
-        files.extend(sorted(requirements.glob("*.txt")))
+    if not leaves(requirements, boundary) and requirements.is_dir():
+        files.extend(p for p in sorted(requirements.glob("*.txt")) if not leaves(p, boundary))
     return files
 
 

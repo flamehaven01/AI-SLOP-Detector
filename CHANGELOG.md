@@ -49,9 +49,27 @@ analyzer happens to have installed. Design and limits:
   weaker claim, not fewer defects.
 - An import under `if TYPE_CHECKING:` (it does not run) is listed in
   `unverified_imports` (`type_checking_only`, no score); the `else` branch is
-  judged as before. An import that runs after the file changes `sys.path` in
-  its scope or an enclosing one is listed too (`sys_path_modified`, no score);
-  imports before the change are judged as before.
+  judged as before. After the file adds a directory to `sys.path` (in the
+  import's scope or an enclosing one): a directory built from `__file__` that
+  holds the module provides it (no finding); a directory not known statically
+  (`"../"` and `os.getcwd()` depend on the working directory) withholds the
+  import only when the project has a module of that name, listed in
+  `unverified_imports` (`sys_path_modified`, no score) with `local_candidates`
+  (project-relative POSIX paths). Every other import is judged as before; a
+  finding after a directory not known statically carries
+  `evidence.sys_path_unresolved: true` (the search path was not fully seen; the
+  verdict stands).
+- Import resolution reads the project only inside the scan root (for a single
+  file, its project root), by real path: a symlink or Windows junction that
+  leads out is not followed, listed or read (module index, fingerprint,
+  sibling modules, `sys.path` directories, declaration files, the project's
+  `.venv`, and the scan's file collection, which collected files behind a
+  junction that leads out), and a link cycle is not walked again (an alias
+  inside the project keeps its own path). An import only such a link could
+  supply, or a verdict resting on a declaration file or environment behind
+  one, is listed in `unverified_imports` (`out_of_boundary`, with
+  `blocked_paths`) instead of reported. A link's target is part of the
+  project fingerprint.
 - New `provider_conflict` (MEDIUM): `phantom_member` no longer checks a module's
   names against an installed distribution other than the declared one (a
   declared `jwt` with `PyJWT` installed).
@@ -86,9 +104,10 @@ analyzer happens to have installed. Design and limits:
   entries are `ARTIFACT_VERIFIED` (the files of their import names matched the
   RECORD hashes of a local wheel or installation), 20 are `AUDIT_PENDING`.
 - PDM, Rye and Hatch development-dependency tables are not read.
-- A `sys.path` change withholds the imports after it; a statically known path
-  is not followed to resolve them, so a missing real dependency imported after
-  `sys.path.append("../")` is listed in `unverified_imports`, not reported.
+- Of `sys.path` targets, only a directory written inline from `__file__` is
+  evaluated.
+- An environment behind a link out of the scan root is recognised only under
+  a conventional name (`.venv`, `venv`, `env`, `.env`, `virtualenv`).
 - `phantom_import` is never CRITICAL in 3.18; CRITICAL would need evidence
   that the import fails where the code runs, which a static scan does not
   have.

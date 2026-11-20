@@ -316,7 +316,9 @@ For an import the project does not provide itself:
 | Provider known, **not declared**, one provider identified from the target environment's own files | `undeclared_dependency` naming the provider | HIGH | No: a person confirms the provider's identity |
 | Provider known only from mapping knowledge (shipped table, analyzer metadata), or several providers known | `undeclared_dependency`; several: no provider named, `candidates` listed | MEDIUM (review candidate) | No |
 | Provider unknown to every source, not declared, not resolvable | `phantom_import` | HIGH (at most, 3.18; see below) | No: the author removes, replaces or confirms the import |
-| Under `if TYPE_CHECKING:`, or after a `sys.path` change in its scope | `unverified_imports` entry (`type_checking_only` / `sys_path_modified`) | no score | No |
+| Under `if TYPE_CHECKING:` | `unverified_imports` entry (`type_checking_only`) | no score | No |
+| After a `sys.path` change in its scope that adds a directory not known statically, and the project has a module of that name | `unverified_imports` entry (`sys_path_modified`, `local_candidates`) | no score | No |
+| After a `sys.path` change that adds a `__file__`-based directory holding the module | none (provided there) | - | - |
 | Inside `try/except ImportError` | `undeclared_optional_dependency` (existing) | MEDIUM | No |
 
 `phantom_import` becomes narrower: it is reported only for the last observable
@@ -427,6 +429,24 @@ projects, with results compared per finding before any verdict changes.
 | R19. A name no source knows | `phantom_import` HIGH |
 | R20. Imports under `if TYPE_CHECKING:` / `typing.TYPE_CHECKING` | unverified `type_checking_only`; the `else` branch is judged |
 | R21. A `sys.path` change | only the imports after it in its scope are unverified (`sys_path_modified`) |
+| R23a. `sys.path.append("../")`, then a name no project file has | judged as before (the working directory is never assumed) |
+| R23b. A `__file__`-based directory holding `foo` | `foo` provided there; other imports judged as before |
+| R23c. A `__file__`-based directory without the module | judged as before |
+| R23d. An import before the change | judged as before |
+| R23e. A change inside a function | imports of the enclosing scope judged as before |
+| R23f. A directory not known statically, a name the project has | unverified, `local_candidates` lists the project files; kept after a cache round trip |
+| R23g. A `__file__`-based path out of the scan boundary | not opened or listed; unverified (`out_of_boundary`) for a name present there or not |
+| R23h. A directory, or its entry for the module, that is a link out of the scan boundary | not read through; unverified (`out_of_boundary`) |
+| S1a. A link in the project to a package outside | not in the module index or the fingerprint; the import is unverified (`out_of_boundary`) |
+| S1b. A link that stays inside | followed; the package resolves as before |
+| S1c. A deeper link out inside a namespace package | not walked; unverified |
+| S1d. A link cycle | each real directory walked once |
+| S1e. A link pointed elsewhere | a new fingerprint |
+| S1f. Direct lookups (probe_module, `__init__.py`, the top-level name test) | refuse a link out |
+| S1g. A script's sibling that is a link out | not a sibling module; unverified |
+| S1h. A declaration file or `requirements/` that is a link out | not read; the file's declaration-based verdicts are unverified |
+| S1i. The project's `.venv` as a link out | not read; verdicts that rest on presence are unverified |
+| R23i. `sys_path_unresolved` | only on findings after a directory not known statically; not after a resolved one, before a change, or in another scope; kept after a cache round trip |
 | R22. A provider from the shipped mapping | evidence carries the entry's `mapping_audit` |
 
 ### Experiments on the frozen set
@@ -462,9 +482,23 @@ not any ancestor directory. Open:
   cadence are open.
 - **Other declaration formats.** PDM `[tool.pdm.dev-dependencies]`, Rye
   `[tool.rye] dev-dependencies` and Hatch environment dependencies are not read.
-- **Static `sys.path` targets.** A `sys.path` change withholds the imports after
-  it; following a statically known path (e.g. relative to `__file__`) to resolve
-  them is not done.
+- **`sys.path` targets.** Only a directory written inline from `__file__`
+  (`Path(__file__).parent`, `os.path.dirname(__file__)`, joined with string
+  constants) is evaluated; a variable, a relative string (`"../"`, resolved
+  against the working directory, which the source does not fix) or
+  `os.getcwd()` is not. Under such a directory an import is withheld only when
+  a module of that name exists in the project; otherwise the finding carries
+  `evidence.sys_path_unresolved: true`, a bounded static verdict, not proof
+  that no provider exists outside the project.
+- **Scan boundary.** Import resolution reads only inside the scan root (for a
+  single file, its project root), by real path (PHANTOM_IMPORT.md, "What is
+  read"). An environment behind a link out is recognised only under a
+  conventional name (`.venv`, `venv`, `env`, `.env`, `virtualenv`): one under
+  another name is not known to be an environment, so presence falls back to
+  the analyzer's. A file symlink needs privileges Windows accounts usually
+  lack, so that case is tested only where it can be created. The scan's file
+  collection stops at a link out too; other walks (the JavaScript analyzer,
+  connection resolution, `init`, the operations manifest) are not yet bound.
 
 ## 12. Corrections this implies for the current documentation
 

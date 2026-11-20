@@ -95,7 +95,10 @@ name (provider resolution, below), not a declaration with the same spelling:
 |---|---|---|
 | Under a platform test (`if sys.platform == ...`) that the target environment does not decide | listed in `unverified_imports` (reason `platform_guard_undecided`), no score effect | - |
 | Under `if TYPE_CHECKING:` (does not run) | listed in `unverified_imports` (reason `type_checking_only`), no score effect | - |
-| Runs after the file changes `sys.path` earlier in its scope or an enclosing scope (the static search path is not the one it uses) | listed in `unverified_imports` (reason `sys_path_modified`), no score effect; imports before the change, or in scopes it does not precede, are judged as usual | - |
+| Runs after the file adds a directory to `sys.path` (earlier in its scope or an enclosing scope), and that directory is built from `__file__`, lies inside the scanned project and holds the module | no finding: the module is provided there | - |
+| Runs after the file adds a directory whose real location (links resolved) is outside the scan boundary, or one in which the module's entry leads out | listed in `unverified_imports` (reason `out_of_boundary`, with `blocked_paths`), no score effect: that directory is not read | - |
+| Runs after the file adds a directory that is not known statically (a relative string such as `"../"` or `os.getcwd()` depends on the working directory; a variable), and the project has a module or package of that name somewhere | listed in `unverified_imports` (reason `sys_path_modified`, with `local_candidates`), no score effect | - |
+| Any other import after a `sys.path` change, and every import before the change or in a scope it does not precede | judged as usual; when a directory added before it is not known statically, the finding's `evidence.sys_path_unresolved` is `true` | as below |
 | Declared only outside `pyproject.toml` project metadata (e.g. `requirements.txt`) while the file's nearest resolution root has a `pyproject.toml` | `declared_outside_primary_metadata` | LOW |
 | Declared as a dependency but not installed in the target environment (or where the analyzer runs, when there is none) | `runtime_unavailable_dependency` | MEDIUM |
 | Inside `try/except ImportError` and not declared | `undeclared_optional_dependency` | MEDIUM |
@@ -104,6 +107,57 @@ name (provider resolution, below), not a declaration with the same spelling:
 
 An import under a platform test that is false in the target environment does
 not run there and is not reported.
+
+Two fields carry what a `sys.path` change leaves open:
+
+- `evidence.sys_path_unresolved` (`true`, present only then): a directory the
+  file adds before the import could not be seen. The verdict and severity
+  stand; the field says the search path they rest on was not fully known. It
+  is not evidence that no provider exists outside the project (a plugin
+  directory from an environment variable, a separate checkout next to it).
+- `local_candidates` on a `sys_path_modified` row in `unverified_imports`: an
+  optional `list[str]` of sorted, unique POSIX paths relative to the root the
+  project's module index was built from (the outermost resolution root: the
+  scan root when it is a project root containing the file's own, otherwise
+  the file's project root). A module is listed by its `.py` file
+  (`tools/plugins/name.py`), a package or namespace directory by its
+  directory (`tools/plugins/name`); a path whose real location is outside the
+  project is left out. These are files and directories the project's layout
+  could supply the import from, not modules shown to be the ones imported.
+
+### What is read: the scan boundary (3.18)
+
+Import resolution reads the project only inside one boundary: the scan root
+you pass (`slop-detector --project <root>`), or for a single file its project
+root. Paths are compared by their real location, links resolved. A directory
+or file link (a symlink, or on Windows a junction) is followed only when it
+leads to a place inside the boundary. An alias keeps its own path (two links
+to one package both resolve, and so does the original); a link back up its
+own path (a cycle) is not walked again. One directory is walked through at
+most 8 links besides its own path, which is always walked; this guard keeps
+chains of aliases finite, and the aliases it stops are recorded in the
+project snapshot rather than dropped. A link that leads out is not opened,
+listed or tested: the module index, the project fingerprint, sibling modules,
+`sys.path` directories, declaration files, the project's virtual environment
+and the scan's file collection all stop there.
+
+Not looking is not evidence that something is missing. An import that only
+such a link could supply is listed in `unverified_imports` with reason
+`out_of_boundary` and `blocked_paths` (the links, as POSIX paths relative to
+the boundary; `../x` outside it), no score effect. The same holds for every
+declaration-based verdict of a file when a declaration file on its path
+(`requirements.txt`, `requirements/`, `pyproject.toml`, ...) is a link out, and
+when the project's environment is: a link out named `.venv`, `venv`, `env`,
+`.env` or `virtualenv` directly in the project root, with no environment
+inside it. A link's target is part of the project fingerprint, so pointing it
+elsewhere is a new cache context.
+
+Link detection uses one check on Python 3.8 to 3.14: `S_ISLNK` for symlinks,
+and on Windows the reparse-point attribute, which also covers junctions
+(`os.path.islink` does not report a junction; `os.path.isjunction` exists only
+from 3.12). Resolving where a link points reads the link's own metadata
+(`lstat`, `realpath`); nothing behind a link that leads out is listed or
+opened.
 
 ### Provider resolution (3.18)
 

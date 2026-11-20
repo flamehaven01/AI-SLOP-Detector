@@ -28,11 +28,18 @@ import hashlib
 import os
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Tuple
 
 from slop_detector.dependency_declarations import is_declaration_file
+from slop_detector.path_boundary import (
+    LinkEntry,
+    bounded_walk,
+    is_inside,
+    relative_label,
+    walk_boundary,
+)
 
 _SKIP_DIRS = frozenset({"__pycache__"})
 # Environments next to a script are not packages it imports.
@@ -43,6 +50,16 @@ _ENVIRONMENT_DIRS = frozenset({"venv", "env", "site-packages", "node_modules", "
 class ProjectContextSnapshot:
     root: Path
     fingerprint: str
+    # Every name a .py file or a directory leading to one could be imported as, from anywhere
+    # below the root (environment directories excluded) -> those files and directories, relative
+    # POSIX paths. Derived from the same walk as the fingerprint.
+    module_paths: Dict[str, Tuple[str, ...]] = field(default_factory=dict, compare=False)
+    # Names of links below the root whose real path leaves the boundary (not followed: what is
+    # behind them is not known) -> those links, relative POSIX paths.
+    blocked_paths: Dict[str, Tuple[str, ...]] = field(default_factory=dict, compare=False)
+    # Aliases (links inside the boundary) the walk did not enter because their real directory
+    # was already walked through MAX_ALIASES_PER_DIRECTORY links; relative POSIX paths.
+    truncated_paths: Tuple[str, ...] = field(default=(), compare=False)
 
 
 _SCOPE: ContextVar[Optional[Dict[Tuple[str, str], ProjectContextSnapshot]]] = ContextVar(
@@ -96,7 +113,7 @@ def _scoped(key: Tuple[str, str], build) -> ProjectContextSnapshot:
 
 def build_project_context_snapshot(root: Path) -> ProjectContextSnapshot:
     digest = hashlib.sha256()
-    topology, declarations = _walk(root)
+    topology, declarations, links, truncated = _walk(root)
     for rel, path in declarations:
         digest.update(b"D\0" + rel.encode("utf-8") + b"\0")
         digest.update(_read_bytes(path))
@@ -109,24 +126,61 @@ def build_project_context_snapshot(root: Path) -> ProjectContextSnapshot:
     target = find_target_environment((root,))
     if target is not None:
         digest.update(b"T\0" + target.fingerprint.encode("utf-8"))
-    return ProjectContextSnapshot(root, digest.hexdigest())
+    return ProjectContextSnapshot(
+        root,
+        digest.hexdigest(),
+        _module_paths(topology),
+        _blocked_paths(root, links),
+        tuple(sorted(path.relative_to(root).as_posix() for path in truncated)),
+    )
 
 
-def is_importable_directory(path: Path) -> bool:
-    """A directory `import <name>` loads from a sys.path entry: a regular
-    package or a namespace package (a .py file somewhere below it)."""
+def _blocked_paths(root: Path, links: Sequence[LinkEntry]) -> Dict[str, Tuple[str, ...]]:
+    found: Dict[str, set] = {}
+    for link in links:
+        if link.target is None:
+            name = link.path.name[: -len(".py")] if link.path.suffix == ".py" else link.path.name
+            found.setdefault(name, set()).add(link.path.relative_to(root).as_posix())
+    return {name: tuple(sorted(paths)) for name, paths in found.items()}
+
+
+def _module_paths(topology: Sequence[Tuple[str, str]]) -> Dict[str, Tuple[str, ...]]:
+    found: Dict[str, set] = {}
+    for kind, rel in topology:
+        parts = rel.split("/")
+        if kind != "f" or any(p in _ENVIRONMENT_DIRS for p in parts):
+            continue
+        stem = parts[-1][: -len(".py")]
+        if stem.isidentifier() and stem != "__init__":
+            found.setdefault(stem, set()).add(rel)
+        for depth, part in enumerate(parts[:-1]):
+            if part.isidentifier():
+                found.setdefault(part, set()).add("/".join(parts[: depth + 1]))
+    return {name: tuple(sorted(paths)) for name, paths in found.items()}
+
+
+def importable_state(path: Path, boundary: Path) -> Optional[bool]:
+    """Whether `import <name>` loads this directory from a sys.path entry (a regular package, or
+    a namespace package: a .py file somewhere below it). None when the answer lies behind a link
+    out of the boundary, which is not followed: not known, not "no"."""
     name = path.name
     if name.startswith(".") or name in _ENVIRONMENT_DIRS or not name.isidentifier():
         return False
+    if os.path.lexists(str(path)) and not is_inside(path, boundary):
+        return None
     if not path.is_dir():
         return False
-    if (path / "__init__.py").is_file():
-        return True
-    for _current, dirs, files in os.walk(path):
+    links: List[LinkEntry] = []
+    for _current, dirs, files in bounded_walk(path, boundary, links):
         if any(item.endswith(".py") for item in files):
             return True
         dirs[:] = [d for d in dirs if not d.startswith(".") and d not in _ENVIRONMENT_DIRS]
-    return False
+    return None if any(link.target is None for link in links) else False
+
+
+def is_importable_directory(path: Path, boundary: Optional[Path] = None) -> bool:
+    """importable_state is True (boundary: the scan root, else `path` itself)."""
+    return importable_state(path, boundary or walk_boundary(path)) is True
 
 
 def _read_bytes(path: Path) -> bytes:
@@ -136,11 +190,19 @@ def _read_bytes(path: Path) -> bytes:
         return b""
 
 
-def _walk(root: Path) -> Tuple[List[Tuple[str, str]], List[Tuple[str, Path]]]:
-    """Module topology and declaration files below the root, in one walk."""
+def _walk(
+    root: Path,
+) -> Tuple[List[Tuple[str, str]], List[Tuple[str, Path]], List[LinkEntry], List[Path]]:
+    """Module topology, declaration files, links and truncated aliases below the root, in one
+    walk inside the boundary. Each link is part of the topology with its target (or OUT), so
+    pointing a link elsewhere is a new context even when the names behind it are the same; which
+    aliases are truncated follows from the links and the tree, so it needs no entry of its own."""
     entries: List[Tuple[str, str]] = []
     declarations: List[Tuple[str, Path]] = []
-    for current, dirs, files in os.walk(root):
+    links: List[LinkEntry] = []
+    truncated: List[Path] = []
+    boundary = walk_boundary(root)
+    for current, dirs, files in bounded_walk(root, boundary, links, truncated):
         dirs[:] = sorted(d for d in dirs if not d.startswith(".") and d not in _SKIP_DIRS)
         base = Path(current).relative_to(root)
         entries.extend(("d", (base / d).as_posix()) for d in dirs)
@@ -149,15 +211,20 @@ def _walk(root: Path) -> Tuple[List[Tuple[str, str]], List[Tuple[str, Path]]]:
         for name in files:
             if is_declaration_file(name) or (in_requirements_dir and name.endswith(".txt")):
                 declarations.append(((base / name).as_posix(), Path(current) / name))
-    return sorted(entries), sorted(declarations)
+    for link in links:
+        target = "OUT" if link.target is None else relative_label(link.target, boundary)
+        entries.append(("l", link.path.relative_to(root).as_posix() + "\0" + target))
+    return sorted(entries), sorted(declarations), links, truncated
 
 
 def _directory_snapshot(directory: Path) -> ProjectContextSnapshot:
+    boundary = walk_boundary(directory)
     try:
         names = sorted(
             p.name
             for p in directory.iterdir()
-            if p.suffix == ".py" or (p.is_dir() and is_importable_directory(p))
+            if (p.suffix == ".py" and is_inside(p, boundary))
+            or (p.is_dir() and is_importable_directory(p, boundary))
         )
     except OSError:
         names = []

@@ -19,6 +19,7 @@ from slop_detector.config import Config
 from slop_detector.diagnostic_bands import classify_deficit
 from slop_detector.finding_summary import build_finding_summary
 from slop_detector.models import FileAnalysis, ProjectAnalysis, SlopStatus
+from slop_detector.path_boundary import entry_is_link, is_inside, walk_boundary
 from slop_detector.path_facts import (
     DEFAULT_EXCLUDE_PARTS,
     default_exclusion_reason,
@@ -139,6 +140,9 @@ def walk_project(project_path: Path) -> List[WalkedFile]:
     # Depth-first, entries in name order (files of a directory before its
     # subdirectories); symlinked directories are not followed, and the
     # directory entry's own type answers is_dir/is_file without another stat.
+    # A link (symlink or junction) whose real path leaves the scan root is
+    # neither walked nor collected (path_boundary); links inside keep the rule above.
+    boundary = walk_boundary(project_path)
     stack: List[Tuple[Tuple[str, ...], Path]] = [((), project_path)]
     while stack:
         dir_parts, directory = stack.pop()
@@ -150,6 +154,8 @@ def walk_project(project_path: Path) -> List[WalkedFile]:
         dir_reason = default_exclusion_reason(dir_parts)
         subdirectories = []
         for entry in entries:
+            if entry_is_link(entry) and not is_inside(Path(entry.path), boundary):
+                continue
             if entry.is_dir(follow_symlinks=False):
                 subdirectories.append((dir_parts + (entry.name,), directory / entry.name))
             elif entry.is_file():

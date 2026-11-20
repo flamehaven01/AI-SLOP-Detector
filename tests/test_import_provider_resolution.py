@@ -29,6 +29,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -36,6 +37,7 @@ from typing import Dict, Iterable, List, Optional, Sequence
 
 import pytest
 
+from slop_detector.analysis_cache import deserialize_file_analysis, serialize_file_analysis
 from slop_detector.core import SlopDetector
 
 IMPORT_EVIDENCE_IDS = {
@@ -705,8 +707,11 @@ SYS_PATH_SRC = (
 def test_r21_sys_path_change_withholds_only_the_imports_it_reaches(project):
     """R21. A sys.path change withholds only imports that run after it in its scope: those are
     unverified (`sys_path_modified`, no score). An import before it, or in another function, is
-    still judged. Today: phantom_import for all three."""
+    still judged. Today: phantom_import for all three. (Every name here exists in the project
+    outside the search path, so the unresolved path could supply it: R23f.)"""
     _write_pyproject(project, "")
+    for name in ("zz_before_insert", "zz_other_scope", "zz_after_insert"):
+        _write(project, f"tools/plugins/{name}.py", "")
     issues = _issues_of(project, "m.py", SYS_PATH_SRC)
     assert sorted((i["pattern_id"], i["line"]) for i in issues) == [
         ("phantom_import", 2),
@@ -716,6 +721,276 @@ def test_r21_sys_path_change_withholds_only_the_imports_it_reaches(project):
     assert [(r["requested_module"], r["reason"]) for r in rows] == [
         ("zz_after_insert", "sys_path_modified")
     ], rows
+
+
+# ---------------------------------------------------------------------------
+# R23 (3.18 r6 follow-up): a sys.path change withholds an import only when the added path could
+# supply it. A path tied to the file's own location is evaluated; a relative string ("../") or
+# os.getcwd() depends on the working directory and is never pinned to a directory: under it,
+# only a name that exists as a module or package somewhere in the project is withheld.
+# ---------------------------------------------------------------------------
+
+
+def test_r23a_unresolved_path_does_not_withhold_a_name_the_project_lacks(project):
+    """R23a. After `sys.path.append("../")` an import no file of the project could supply is
+    judged as before. Today (r6): unverified `sys_path_modified`."""
+    _write_pyproject(project, "")
+    src = 'import sys\nsys.path.append("../")\nimport zz_unrelated_r23a\n'
+    assert _ids(_issues_of(project, "scripts/run.py", src)) == ["phantom_import"]
+    assert _unverified_of(project, "scripts/run.py", src) == []
+
+
+R23B_SRC = (
+    "import sys\n"
+    "from pathlib import Path\n"
+    'sys.path.insert(0, str(Path(__file__).resolve().parent / "vendor_r23"))\n'
+    "import zz_vendored_r23b\n"
+    "import zz_not_vendored_r23b\n"
+)
+
+
+def test_r23b_file_anchored_path_supplies_only_what_it_contains(project):
+    """R23b. A path built from `__file__` is evaluated: the module it contains is provided there
+    (no finding, nothing withheld); another import is judged as before. Today (r6): both
+    unverified."""
+    _write_pyproject(project, "")
+    _write(project, "app/vendor_r23/zz_vendored_r23b.py", "")
+    issues = _issues_of(project, "app/main.py", R23B_SRC)
+    assert [(i["pattern_id"], i["line"]) for i in issues] == [("phantom_import", 5)], issues
+    assert _unverified_of(project, "app/main.py", R23B_SRC) == []
+
+
+def test_r23c_file_anchored_path_without_the_module_keeps_the_verdict(project):
+    """R23c. A file-anchored path that does not hold the module (here: a directory that is not
+    in the project at all) leaves the verdict as it was. Today (r6): unverified."""
+    _write_pyproject(project, "")
+    src = (
+        "import os\nimport sys\n"
+        'sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "LEANN_r23", "src"))\n'
+        "import zz_absent_r23c\n"
+    )
+    assert _ids(_issues_of(project, "eval/lib.py", src)) == ["phantom_import"]
+    assert _unverified_of(project, "eval/lib.py", src) == []
+
+
+def test_r23d_import_before_the_change_keeps_its_verdict(project):
+    """R23d. An import that runs before the sys.path change is judged as before, even when the
+    project has a module of that name. Holds today; kept as a control."""
+    _write_pyproject(project, "")
+    _write(project, "tools/plugins/zz_local_r23d.py", "")
+    src = 'import sys\nimport zz_local_r23d\nsys.path.append("../")\n'
+    assert _ids(_issues_of(project, "scripts/run.py", src)) == ["phantom_import"]
+    assert _unverified_of(project, "scripts/run.py", src) == []
+
+
+def test_r23e_change_inside_a_function_does_not_reach_outer_imports(project):
+    """R23e. A sys.path change inside a function does not withhold imports of the enclosing
+    scope, before or after the function. Holds today; kept as a control."""
+    _write_pyproject(project, "")
+    _write(project, "tools/plugins/zz_local_r23e.py", "")
+    src = (
+        "import sys\n\n\ndef setup():\n" '    sys.path.append("../")\n\n\n' "import zz_local_r23e\n"
+    )
+    assert _ids(_issues_of(project, "scripts/run.py", src)) == ["phantom_import"]
+    assert _unverified_of(project, "scripts/run.py", src) == []
+
+
+def test_r23f_unresolved_path_withholds_a_project_name_with_its_candidates(project):
+    """R23f. Under a path that cannot be resolved statically, an import of a name that exists in
+    the project is not resolved by guessing: it is unverified (`sys_path_modified`) and the row
+    names the project files that could provide it. Today (r6): unverified, no candidates."""
+    _write_pyproject(project, "")
+    _write(project, "tools/plugins/zz_plugin_r23f.py", "")
+    src = (
+        'import os\nimport sys\nsys.path.append(os.environ["PLUGIN_DIR"])\nimport zz_plugin_r23f\n'
+    )
+    assert _issues_of(project, "scripts/run.py", src) == []
+    rows = _unverified_of(project, "scripts/run.py", src)
+    assert [(r["requested_module"], r["reason"], r.get("local_candidates")) for r in rows] == [
+        ("zz_plugin_r23f", "sys_path_modified", ["tools/plugins/zz_plugin_r23f.py"])
+    ], rows
+
+
+# R23g-i (3.18 r7 review): a directory the file adds is read only inside the scanned project
+# (its real path, links resolved); outside it the directory counts as not known statically, which
+# is not evidence that the module is missing. A finding after such a directory says so.
+
+_FS_EVENTS = ("open", "os.listdir", "os.scandir")
+_FS_WATCH: Dict[str, object] = {"root": None, "seen": []}
+
+
+def _fs_hook(event: str, args: tuple) -> None:
+    try:
+        root = _FS_WATCH["root"]
+        if root is None or event not in _FS_EVENTS or not args:
+            return
+        target = args[0]
+        if isinstance(target, (str, bytes, os.PathLike)):
+            path = os.path.normcase(os.path.abspath(os.fsdecode(target)))
+            if path == root or path.startswith(root + os.sep):
+                _FS_WATCH["seen"].append((event, path))  # type: ignore[union-attr]
+    except Exception:  # an audit hook must never break the audited call
+        return
+
+
+sys.addaudithook(_fs_hook)
+
+
+@pytest.fixture
+def outside(tmp_path):
+    """A directory next to the project (outside it)."""
+    root = tmp_path / "outside"
+    root.mkdir()
+    yield root
+    _FS_WATCH["root"] = None
+
+
+def _watch(root: Path) -> None:
+    """From now on, record every open or listing of a path written under `root`. A path reached
+    through a link inside the project is written under the project, so it is not seen here."""
+    _FS_WATCH["root"] = os.path.normcase(os.path.abspath(str(root)))
+    _FS_WATCH["seen"] = []
+
+
+def _link_dir(link: Path, target: Path) -> None:
+    link.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.symlink(str(target), str(link), target_is_directory=True)
+        return
+    except (OSError, NotImplementedError):
+        pass
+    try:
+        import _winapi  # type: ignore[import-not-found]
+
+        _winapi.CreateJunction(str(target), str(link))  # no privilege needed on Windows
+    except (ImportError, OSError, AttributeError):
+        pytest.skip("cannot create a directory link here")
+
+
+def _flagged(issues: List[dict]) -> List[str]:
+    return sorted(
+        i["evidence"]["import_name"]
+        for i in issues
+        if (i.get("evidence") or {}).get("sys_path_unresolved") is True
+    )
+
+
+def test_r23g_path_leaving_the_project_is_not_read(project, outside):
+    """R23g. A `__file__`-based path that leads out of the project is not read: no file or
+    directory listing there is opened. Not looking is not evidence of absence, so both imports,
+    the one present outside and the one not, are unverified (`out_of_boundary`), not findings
+    (S1 condition 4). Today (r8): findings flagged `sys_path_unresolved`."""
+    _write_pyproject(project, "")
+    _write(outside, "zz_outside_r23g/mod.py", "")  # a namespace package: found only by walking
+    src = (
+        "import sys\nfrom pathlib import Path\n"
+        'sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "outside"))\n'
+        "import zz_outside_r23g\n"
+        "import zz_missing_r23g\n"
+    )
+    _write(project, "m.py", src)
+    _watch(outside)  # armed after the fixtures are written: only the analysis is watched
+    issues = _issues_of(project, "m.py", src)
+    assert issues == [], issues
+    assert _FS_WATCH["seen"] == [], _FS_WATCH["seen"]
+    rows = _unverified_of(project, "m.py", src)
+    assert sorted((r["requested_module"], r["reason"]) for r in rows) == [
+        ("zz_missing_r23g", "out_of_boundary"),
+        ("zz_outside_r23g", "out_of_boundary"),
+    ], rows
+
+
+def test_r23h_link_out_of_the_project_is_not_followed(project, outside):
+    """R23h. A directory inside the project that is a link (a symlink, or a junction on Windows)
+    to a directory outside it is not read through: the import is unverified (`out_of_boundary`),
+    and a module behind it is no local candidate. Today (r8): a finding flagged
+    `sys_path_unresolved`. The shared walks are covered in tests/test_project_walk_boundary.py."""
+    _write_pyproject(project, "")
+    _write(outside, "zz_linked_r23h.py", "")
+    _link_dir(project / "app" / "link_r23h", outside)
+    src = (
+        "import sys\nfrom pathlib import Path\n"
+        'sys.path.insert(0, str(Path(__file__).parent / "link_r23h"))\n'
+        "import zz_linked_r23h\n"
+    )
+    assert _issues_of(project, "app/main.py", src) == []
+    rows = _unverified_of(project, "app/main.py", src)
+    assert [(r["requested_module"], r["reason"]) for r in rows] == [
+        ("zz_linked_r23h", "out_of_boundary")
+    ], rows
+
+
+def test_r23h_package_link_inside_a_project_directory_is_not_followed(project, outside):
+    """R23h, entry: the added directory is the project's own, but its entry for the module is a
+    link to a package outside: not read through, unverified (`out_of_boundary`). Today (r8): a
+    flagged finding."""
+    _write_pyproject(project, "")
+    _write(outside, "pkg/mod.py", "")
+    (project / "app" / "vendor").mkdir(parents=True)
+    _link_dir(project / "app" / "vendor" / "zz_pkg_r23h", outside / "pkg")
+    src = (
+        "import sys\nfrom pathlib import Path\n"
+        'sys.path.insert(0, str(Path(__file__).parent / "vendor"))\n'
+        "import zz_pkg_r23h\n"
+    )
+    assert _issues_of(project, "app/main.py", src) == []
+    rows = _unverified_of(project, "app/main.py", src)
+    assert [(r["requested_module"], r["reason"]) for r in rows] == [
+        ("zz_pkg_r23h", "out_of_boundary")
+    ], rows
+
+
+R23I_SRC = (
+    "import os\n"
+    "import sys\n"
+    "from pathlib import Path\n"
+    "import zz_before_r23i\n"
+    'sys.path.insert(0, str(Path(__file__).parent / "vendor_r23i"))\n'
+    "import zz_after_resolved_r23i\n"
+    "\n"
+    "\n"
+    "def helper():\n"
+    '    sys.path.append(os.environ["PLUGIN_DIR"])\n'
+    "    import zz_in_helper_r23i\n"
+    "\n"
+    "\n"
+    "import zz_outer_r23i\n"
+    'sys.path.append("../")\n'
+    "import zz_after_unresolved_r23i\n"
+)
+
+
+def test_r23i_only_findings_after_an_unresolved_directory_are_flagged(project):
+    """R23i. `evidence.sys_path_unresolved` is true only on a finding that runs after a directory
+    not known statically: not after a resolved directory, not before a change, not in a scope the
+    change does not reach. It means the search path was not fully known, not that no provider
+    exists outside the project; the verdict is unchanged. It survives the analysis cache.
+    Today (r7): no such field."""
+    _write_pyproject(project, "")
+    (project / "vendor_r23i").mkdir()
+    path = _write(project, "m.py", R23I_SRC)
+    importlib.invalidate_caches()
+    result = SlopDetector(read_only=True).analyze_file(str(path))
+    issues = [i.to_dict() for i in result.pattern_issues if i.pattern_id in IMPORT_EVIDENCE_IDS]
+    assert _ids(issues) == ["phantom_import"] * 5, issues
+    expected = ["zz_after_unresolved_r23i", "zz_in_helper_r23i"]
+    assert _flagged(issues) == expected, issues
+    restored = deserialize_file_analysis(serialize_file_analysis(result))
+    assert _flagged([i.to_dict() for i in restored.pattern_issues]) == expected
+
+
+def test_r23f_candidates_survive_the_analysis_cache(project):
+    """R23f, cache: the unverified row keeps `local_candidates` after a cache round trip."""
+    _write_pyproject(project, "")
+    _write(project, "tools/plugins/zz_plugin_r23f.py", "")
+    src = 'import sys\nsys.path.append("../")\nimport zz_plugin_r23f\n'
+    path = _write(project, "scripts/run.py", src)
+    importlib.invalidate_caches()
+    result = SlopDetector(read_only=True).analyze_file(str(path))
+    restored = deserialize_file_analysis(serialize_file_analysis(result)).to_dict()
+    assert [r.get("local_candidates") for r in restored["unverified_imports"]] == [
+        ["tools/plugins/zz_plugin_r23f.py"]
+    ]
 
 
 @pytest.mark.parametrize(

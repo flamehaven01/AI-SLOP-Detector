@@ -16,13 +16,19 @@ under a particular runtime sys.path, so callers must treat them as conditional.
 from __future__ import annotations
 
 import logging
-import os
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, Iterator, List, Optional, Sequence, Tuple
 
+from slop_detector.path_boundary import (
+    authorized_root_scope,
+    bounded_walk,
+    is_inside,
+    leaves,
+    walk_boundary,
+)
 from slop_detector.project_context import project_context
 
 logger = logging.getLogger(__name__)
@@ -64,7 +70,7 @@ PROJECT_MARKERS: Tuple[str, ...] = (
 HARD_AUTHORITIES: FrozenSet[str] = frozenset({"E1", "E2", "E3"})
 
 # Keyed by (root, project-context fingerprint): a changed layout is a new key.
-_PROJECT_PACKAGES_CACHE: Dict[Tuple[str, str, bool], FrozenSet[str]] = {}
+_PROJECT_PACKAGES_CACHE: Dict[Tuple[str, str, bool, str], FrozenSet[str]] = {}
 
 
 @dataclass(frozen=True)
@@ -101,7 +107,8 @@ def scan_root_scope(root: Optional[Path]) -> Iterator[None]:
     """The explicit root of the scan in progress (None for a single-file analysis)."""
     token = _SCAN_ROOT.set(root.resolve() if root is not None else None)
     try:
-        yield
+        with authorized_root_scope(root):  # the area its walks may read (path_boundary)
+            yield
     finally:
         _SCAN_ROOT.reset(token)
 
@@ -197,86 +204,104 @@ def _is_layout_candidate(path: Path) -> bool:
     return path.is_dir() and path.name not in SKIP_LAYOUT_DIRS and not path.name.startswith(".")
 
 
-def is_regular_package(path: Path) -> bool:
-    return _is_layout_candidate(path) and (path / "__init__.py").is_file()
+# Every lookup below takes the boundary (path_boundary): a directory, package __init__.py or
+# module file that is a link out of it is neither found nor walked.
 
 
-def _holds_python_sources(directory: Path) -> bool:
-    """True if a .py file exists anywhere below `directory` (no depth limit).
+def is_regular_package(path: Path, boundary: Path) -> bool:
+    init = path / "__init__.py"
+    # the boundary first: nothing is stat-ed through a link out
+    return (
+        not leaves(path, boundary)
+        and _is_layout_candidate(path)
+        and not leaves(init, boundary)
+        and init.is_file()
+    )
 
-    Skip and hidden directories are pruned; the walk stops at the first .py file.
-    """
-    for _current, dirs, files in os.walk(directory):
+
+def _holds_python_sources(directory: Path, boundary: Path) -> bool:
+    """True if a .py file exists anywhere below `directory` (no depth limit), inside the
+    boundary. Skip and hidden directories are pruned; the walk stops at the first .py file."""
+    for _current, dirs, files in bounded_walk(directory, boundary):
         if any(name.endswith(".py") for name in files):
             return True
         dirs[:] = [d for d in dirs if d not in SKIP_LAYOUT_DIRS and not d.startswith(".")]
     return False
 
 
-def is_namespace_package(path: Path) -> bool:
+def is_namespace_package(path: Path, boundary: Path) -> bool:
     """PEP 420: a directory without __init__.py that contains Python sources."""
     return (
-        _is_layout_candidate(path)
+        not leaves(path, boundary)
+        and _is_layout_candidate(path)
         and path.name.isidentifier()
         and not (path / "__init__.py").exists()
-        and _holds_python_sources(path)
+        and _holds_python_sources(path, boundary)
     )
 
 
-def _subdirs(path: Path) -> List[Path]:
+def _subdirs(path: Path, boundary: Path) -> List[Path]:
     try:
-        return sorted(p for p in path.iterdir() if p.is_dir())
+        return sorted(p for p in path.iterdir() if not leaves(p, boundary) and p.is_dir())
     except OSError:
         return []
 
 
-def _conventional_src(project_root: Path) -> Optional[Path]:
+def _conventional_src(project_root: Path, boundary: Path) -> Optional[Path]:
     """<project>/src counts as E2 only without src/__init__.py (else `src` is a package)."""
     src = project_root / "src"
-    if src.is_dir() and not (src / "__init__.py").exists() and _holds_python_sources(src):
+    if (
+        not leaves(src, boundary)
+        and src.is_dir()
+        and not (src / "__init__.py").exists()
+        and _holds_python_sources(src, boundary)
+    ):
         return src
     return None
 
 
-def _conditional_children(project_root: Path) -> List[Path]:
+def _conditional_children(project_root: Path, boundary: Path) -> List[Path]:
     """First-level directories that hold a regular package (monorepo `backend/app`)."""
     return [
         child
-        for child in _subdirs(project_root)
-        if _is_layout_candidate(child) and any(is_regular_package(c) for c in _subdirs(child))
+        for child in _subdirs(project_root, boundary)
+        if _is_layout_candidate(child)
+        and any(is_regular_package(c, boundary) for c in _subdirs(child, boundary))
     ]
 
 
 def discover_module_roots(project_root: Path) -> Tuple[ModuleRoot, ...]:
-    """Return module roots in resolution order, each tagged with its authority."""
+    """Return module roots in resolution order, each tagged with its authority. A root whose
+    real path is outside the boundary (a declared `where` or `src` that links out) is none."""
     roots: List[ModuleRoot] = []
     seen: set = set()
+    boundary = walk_boundary(project_root)
 
     def add(path: Path, authority: str) -> None:
         resolved = path.resolve()
-        if resolved not in seen and resolved.is_dir():
+        if resolved not in seen and resolved.is_dir() and is_inside(resolved, boundary):
             seen.add(resolved)
             roots.append(ModuleRoot(resolved, authority))
 
     for declared in declared_package_roots(project_root):
         add(declared, "E1")
-    src = _conventional_src(project_root)
+    src = _conventional_src(project_root, boundary)
     if src is not None:
         add(src, "E2")
     if not roots:
         add(project_root, "E3")
-    for child in _conditional_children(project_root):
+    for child in _conditional_children(project_root, boundary):
         add(child, "E4")
     add(project_root, "E4")
     return tuple(roots)
 
 
-def _top_level_packages(root: ModuleRoot) -> List[str]:
+def _top_level_packages(root: ModuleRoot, boundary: Path) -> List[str]:
     names = []
-    for child in _subdirs(root.path):
-        if is_regular_package(child):
+    for child in _subdirs(root.path, boundary):
+        if is_regular_package(child, boundary):
             names.append(child.name)
-        elif root.authority in HARD_AUTHORITIES and is_namespace_package(child):
+        elif root.authority in HARD_AUTHORITIES and is_namespace_package(child, boundary):
             names.append(child.name)
     return names
 
@@ -294,14 +319,15 @@ def discover_project_packages(
     """
     if fingerprint is None:
         fingerprint = project_context(project_root).fingerprint
-    root_key = (str(project_root), fingerprint, hard_only)
+    boundary = walk_boundary(project_root)
+    root_key = (str(project_root), fingerprint, hard_only, str(boundary))
     if root_key in _PROJECT_PACKAGES_CACHE:
         return _PROJECT_PACKAGES_CACHE[root_key]
     names: set = set()
     for root in discover_module_roots(project_root):
         if hard_only and root.authority not in HARD_AUTHORITIES:
             continue
-        names.update(_top_level_packages(root))
+        names.update(_top_level_packages(root, boundary))
     result = frozenset(names)
     _PROJECT_PACKAGES_CACHE[root_key] = result
     if result:
@@ -309,34 +335,48 @@ def discover_project_packages(
     return result
 
 
-def _find_spec(name: str, search: Sequence[Path]) -> Optional[Tuple[str, List[Path]]]:
+def _find_spec(
+    name: str, search: Sequence[Path], boundary: Path, blocked: List[Path]
+) -> Optional[Tuple[str, List[Path]]]:
     """One module name over a search path, in CPython PathFinder order.
 
     Per directory a regular package wins over a module file. Namespace portions
     are collected across the whole search path and used only when no directory
     provides a module or package. Any directory is a portion; no content
     or depth heuristic applies.
+
+    A candidate that is a link out of the boundary is not read: it is added to `blocked` and the
+    name is not resolved (what that directory would provide is not known).
     """
     portions: List[Path] = []
     for directory in search:
         candidate = directory / name
+        module = directory / f"{name}.py"
+        out = [entry for entry in (candidate, module) if leaves(entry, boundary)]
+        if not out and leaves(candidate / "__init__.py", boundary):
+            out = [candidate / "__init__.py"]
+        if out:
+            blocked.extend(out)
+            return None
         if (candidate / "__init__.py").is_file():
             return "package", [candidate / "__init__.py"]
-        if (directory / f"{name}.py").is_file():
-            return "module", [directory / f"{name}.py"]
+        if module.is_file():
+            return "module", [module]
         if name.isidentifier() and _is_layout_candidate(candidate):
             portions.append(candidate)
     return ("namespace_package", portions) if portions else None
 
 
-def _resolve_chain(parts: Sequence[str], search: Sequence[Path]):
+def _resolve_chain(
+    parts: Sequence[str], search: Sequence[Path], boundary: Path, blocked: List[Path]
+):
     """Import `a.b.c` one segment at a time; every parent must be a package.
 
     Returns (kind, paths) for the last segment, or None.
     """
     found: Optional[Tuple[str, List[Path]]] = None
     for part in parts:
-        found = _find_spec(part, search)
+        found = _find_spec(part, search, boundary, blocked)
         if found is None:
             return None
         kind, paths = found
@@ -349,13 +389,19 @@ def _resolve_chain(parts: Sequence[str], search: Sequence[Path]):
     return found
 
 
-def probe_module(base: Path, parts: List[str]) -> Optional[Tuple[Path, str]]:
-    """Locate a dotted module below one directory. Returns (path, kind) or None."""
+def probe_module(
+    base: Path, parts: List[str], boundary: Optional[Path] = None
+) -> Optional[Tuple[Path, str]]:
+    """Locate a dotted module below one directory. Returns (path, kind) or None (also when
+    the way to it is a link out of the boundary: the scan root, else `base`)."""
+    boundary = boundary or walk_boundary(base)
+    if not is_inside(base, boundary):
+        return None
     if not parts:
-        if (base / "__init__.py").is_file():
+        if not leaves(base / "__init__.py", boundary) and (base / "__init__.py").is_file():
             return base / "__init__.py", "package"
         return (base, "namespace_package") if base.is_dir() else None
-    found = _resolve_chain(parts, [base])
+    found = _resolve_chain(parts, [base], boundary, [])
     if found is None:
         return None
     kind, paths = found
@@ -368,8 +414,10 @@ class ProjectModuleIndex:
     def __init__(self, project_root: Path, fingerprint: Optional[str] = None) -> None:
         self.project_root = project_root.resolve()
         self.fingerprint = fingerprint or project_context(project_root).fingerprint
+        self.boundary = walk_boundary(self.project_root)
         self.roots = discover_module_roots(self.project_root)
         self._cache: Dict[str, Tuple[ModuleLocation, ...]] = {}
+        self._blocked: Dict[str, Tuple[Path, ...]] = {}
 
     def locate(self, dotted: str) -> Tuple[ModuleLocation, ...]:
         """Locations providing `dotted`.
@@ -382,18 +430,30 @@ class ProjectModuleIndex:
             return self._cache[dotted]
         parts = [p for p in dotted.split(".") if p]
         hard = [root for root in self.roots if root.authority in HARD_AUTHORITIES]
-        found = self._chain_locations(parts, hard) if parts else []
+        blocked: List[Path] = []
+        found = self._chain_locations(parts, hard, blocked) if parts else []
         if parts and not found:
             for root in self.roots:
-                if root.authority == "E4" and is_regular_package(root.path / parts[0]):
-                    found.extend(self._chain_locations(parts, [root]))
+                if root.authority != "E4":
+                    continue
+                if is_regular_package(root.path / parts[0], self.boundary):
+                    found.extend(self._chain_locations(parts, [root], blocked))
+                elif leaves(root.path / parts[0], self.boundary):
+                    blocked.append(root.path / parts[0])
         result = tuple(found)
         self._cache[dotted] = result
+        self._blocked[dotted] = () if result else tuple(dict.fromkeys(blocked))
         return result
 
-    @staticmethod
-    def _chain_locations(parts: Sequence[str], roots: Sequence[ModuleRoot]) -> List[ModuleLocation]:
-        found = _resolve_chain(parts, [root.path for root in roots])
+    def blocked_paths(self, dotted: str) -> Tuple[Path, ...]:
+        """Links out of the boundary that kept `dotted` from resolving."""
+        self.locate(dotted)
+        return self._blocked.get(dotted, ())
+
+    def _chain_locations(
+        self, parts: Sequence[str], roots: Sequence[ModuleRoot], blocked: List[Path]
+    ) -> List[ModuleLocation]:
+        found = _resolve_chain(parts, [root.path for root in roots], self.boundary, blocked)
         if found is None:
             return []
         kind, paths = found
@@ -404,7 +464,8 @@ class ProjectModuleIndex:
 
     def is_internal_top_level(self, name: str) -> bool:
         return name in discover_project_packages(self.project_root, self.fingerprint) or any(
-            (root.path / f"{name}.py").is_file()
+            not leaves(root.path / f"{name}.py", self.boundary)
+            and (root.path / f"{name}.py").is_file()
             for root in self.roots
             if root.authority in HARD_AUTHORITIES
         )
@@ -432,14 +493,14 @@ class ProjectModuleIndex:
         return any(self.locate(f"{dotted}.{name}") for name in names if name != "*")
 
 
-_INDEX_CACHE: Dict[Tuple[str, str], ProjectModuleIndex] = {}
+_INDEX_CACHE: Dict[Tuple[str, str, str], ProjectModuleIndex] = {}
 
 
 def get_module_index(project_root: Path, fingerprint: Optional[str] = None) -> ProjectModuleIndex:
     """Per-process cached index, keyed by (root, project-context fingerprint)."""
     if fingerprint is None:
         fingerprint = project_context(project_root).fingerprint
-    key = (str(project_root), fingerprint)
+    key = (str(project_root), fingerprint, str(walk_boundary(project_root)))
     if key not in _INDEX_CACHE:
         _INDEX_CACHE[key] = ProjectModuleIndex(project_root, fingerprint)
     return _INDEX_CACHE[key]

@@ -16,17 +16,22 @@ from slop_detector.dependency_declarations import (
     declaration_files,
     declared_requirements,
     root_declaration_files,
+    unread_declaration_links,
 )
 from slop_detector.environment_resolution import State, environment_state, find_installed_spec
 from slop_detector.external_members import unknown_row
 from slop_detector.import_providers import (
     ARTIFACT_VERIFIED,
     METADATA_DECLARED,
+    OUT_OF_BOUNDARY,
     PROVIDER_UNKNOWN,
+    SYS_PATH_MODIFIED,
+    TYPE_CHECKING_ONLY,
+    DeferredImports,
     ProviderKnowledge,
     Requirement,
     candidate_names,
-    deferred_import_lines,
+    deferred_imports,
     evidence,
     find_target_environment,
     marker_active,
@@ -35,9 +40,22 @@ from slop_detector.import_providers import (
     platform_guard_lines,
     provides,
     shipped_table,
+    unread_environment_links,
+)
+from slop_detector.path_boundary import (
+    is_inside,
+    leaves,
+    real_path,
+    relative_label,
+    walk_boundary,
 )
 from slop_detector.patterns.base import Axis, BasePattern, Issue, Severity
-from slop_detector.project_context import fingerprint_for_roots, is_importable_directory
+from slop_detector.project_context import (
+    fingerprint_for_roots,
+    importable_state,
+    is_importable_directory,
+    project_context,
+)
 from slop_detector.project_resolution import (
     ProjectModuleIndex,
     discover_project_packages,
@@ -60,7 +78,7 @@ _RESOLVABLE_MODULES_STORE: Dict[State, FrozenSet[str]] = {}
 
 # Both keyed by (directory or root, project-context fingerprint): a changed
 # context is a new key, so a long-running process never reuses a stale answer.
-_SIBLING_MODULES_CACHE: Dict[Tuple[str, str], FrozenSet[str]] = {}
+_SIBLING_MODULES_CACHE: Dict[Tuple[str, str, str], FrozenSet[str]] = {}
 
 _ROOT_REQUIREMENTS_CACHE: Dict[Tuple[str, str], Tuple[Requirement, ...]] = {}
 
@@ -72,9 +90,11 @@ def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None
 
     Inside a regular package `import name` is absolute, so a subpackage next
     to the module is not what it loads."""
+    roots = resolution_roots(file_path)
     if fingerprint is None:
-        fingerprint = fingerprint_for_roots(file_path, resolution_roots(file_path))
-    key = (str(file_path.parent), fingerprint)
+        fingerprint = fingerprint_for_roots(file_path, roots)
+    boundary = walk_boundary(roots[-1] if roots else file_path.parent)
+    key = (str(file_path.parent), fingerprint, str(boundary))
     if key in _SIBLING_MODULES_CACHE:
         return _SIBLING_MODULES_CACHE[key]
     script_directory = not (file_path.parent / "__init__.py").is_file()
@@ -82,8 +102,11 @@ def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None
         result: FrozenSet[str] = frozenset(
             p.stem if p.is_file() else p.name
             for p in file_path.parent.iterdir()
-            if (p.suffix == ".py" and p.stem != "__init__" and p.is_file())
-            or (script_directory and is_importable_directory(p))
+            if not leaves(p, boundary)
+            and (
+                (p.suffix == ".py" and p.stem != "__init__" and p.is_file())
+                or (script_directory and is_importable_directory(p, boundary))
+            )
         )
     except OSError:
         result = frozenset()
@@ -157,6 +180,19 @@ def _path_requirements(file: Path, nearest_root: Path) -> Tuple[Requirement, ...
         current = current.parent
     files = [path for directory in directories for path in declaration_files(directory)]
     return _requirements(files, nearest_root)
+
+
+def unread_declarations(file: Path, roots: Sequence[Path]) -> Tuple[Path, ...]:
+    """Declaration files on the file's evidence path (its roots, and the directories between it
+    and its nearest root) that are links out of the scan area: not read, so its declarations
+    are not fully known."""
+    found = [p for root in roots for p in unread_declaration_links(root, True)]
+    if roots:
+        current = file.parent
+        while current != roots[0] and roots[0] in current.parents:
+            found.extend(unread_declaration_links(current, False))
+            current = current.parent
+    return tuple(dict.fromkeys(found))
 
 
 def file_requirements(file: Path, roots: Sequence[Path]) -> Tuple[Requirement, ...]:
@@ -259,6 +295,44 @@ def project_skip_context(
     return frozenset(skip_names), tuple(get_module_index(root) for root in roots)
 
 
+def _directory_supplies(directory: str, top: str, boundary: Path) -> Optional[bool]:
+    """Whether a directory the file adds to sys.path holds a module or package `top`.
+
+    Read only inside the boundary (path_boundary): when the directory, its entry for `top`, or
+    a link deeper in a namespace package leads out of it, that part is not opened, listed or
+    tested, and the answer is None: not known, never "missing".
+    """
+    if not is_inside(Path(directory), boundary):
+        return None
+    base = real_path(Path(directory))
+    module, package = base / f"{top}.py", base / top
+    if leaves(module, boundary) or leaves(package, boundary):
+        return None
+    if module.is_file():
+        return True
+    return importable_state(package, boundary)
+
+
+def _blocked_sibling(file: Path, top: str, boundary: Path) -> Tuple[Path, ...]:
+    """A sibling `top.py` or `top/` of the file (its directory is on sys.path when it runs as
+    a script) that is, or holds only behind, a link out of the boundary."""
+    parent = file.parent
+    out = tuple(p for p in (parent / f"{top}.py", parent / top) if leaves(p, boundary))
+    if out:
+        return out
+    if not (parent / "__init__.py").is_file() and importable_state(parent / top, boundary) is None:
+        return (parent / top,)
+    return ()
+
+
+def _out_of_boundary_row(
+    lineno: int, module: str, paths: Sequence[Path], boundary: Path
+) -> Dict[str, object]:
+    row = unknown_row(lineno, module, None, OUT_OF_BOUNDARY, basis="static_import")
+    row["blocked_paths"] = sorted({relative_label(p, boundary) for p in paths})
+    return row
+
+
 def _handler_is_import_guard(handler: ast.ExceptHandler) -> bool:
     """Return True if this except handler would catch an ImportError."""
     if handler.type is None:
@@ -330,9 +404,13 @@ class PhantomImportPattern(BasePattern):
             guarded=_collect_import_guard_lines(tree),
             inactive=inactive,
             undecided=undecided,
-            deferred=deferred_import_lines(tree),
+            deferred=deferred_imports(tree, file),
+            local_paths=project_context(roots[-1]).module_paths if roots else {},
+            boundary=walk_boundary(roots[-1] if roots else file.parent),
             knowledge=ProviderKnowledge(target),
             requirements=file_requirements(file, roots),
+            unread=unread_declarations(file, roots)
+            + (unread_environment_links(roots) if located and target is None else ()),
             has_pyproject=bool(roots and (roots[0] / "pyproject.toml").exists()),
             marker_env=env,
         )
@@ -348,6 +426,13 @@ class PhantomImportPattern(BasePattern):
                 if top in skip_names or _resolves_in_project(indexes, module, members):
                     continue
                 lineno = getattr(node, "lineno", 0)
+                blocked = [p for index in indexes for p in index.blocked_paths(module)]
+                if located and not blocked:
+                    blocked = list(_blocked_sibling(file, top, ctx.boundary))
+                if blocked:
+                    # only a link out of the boundary could supply it: not read, so not known
+                    unknowns.append(_out_of_boundary_row(lineno, module, blocked, ctx.boundary))
+                    continue
                 if lineno in ctx.inactive:
                     continue  # does not run on the target platform
                 if self._resolved(top, ctx):
@@ -368,16 +453,44 @@ class PhantomImportPattern(BasePattern):
                         )
                     )
                     continue
-                if lineno in ctx.deferred:
-                    # does not run (TYPE_CHECKING), or runs after the file changed sys.path:
-                    # the static search path is not the one it uses, so it is no finding
+                if lineno in ctx.deferred.type_checking:
+                    # does not run, so whether it would resolve is no finding
                     unknowns.append(
-                        unknown_row(
-                            lineno, module, None, ctx.deferred[lineno], basis="static_import"
-                        )
+                        unknown_row(lineno, module, None, TYPE_CHECKING_ONLY, basis="static_import")
                     )
                     continue
-                issues.append(self._verdict(file, node, module, members, ctx))
+                added = ctx.deferred.added_paths.get(lineno, ())
+                states = [(d, _directory_supplies(d, top, ctx.boundary)) for d in added if d]
+                if any(state is True for _, state in states):
+                    continue  # provided by a directory the file itself puts on sys.path
+                outside = [Path(d) for d, state in states if state is None]
+                if outside:
+                    unknowns.append(_out_of_boundary_row(lineno, module, outside, ctx.boundary))
+                    continue
+                unresolved = None in added
+                # the project walk never enters a link out of the boundary, so every candidate
+                # is inside it
+                candidates = list(ctx.local_paths.get(top, ())) if unresolved else []
+                if candidates:
+                    # a directory not known statically comes first, and the project has a module
+                    # of this name it could be: unverified, with those files as the evidence
+                    row = unknown_row(
+                        lineno, module, None, SYS_PATH_MODIFIED, basis="static_import"
+                    )
+                    row["local_candidates"] = candidates
+                    unknowns.append(row)
+                    continue
+                if ctx.unread:
+                    # every verdict from here on rests on declarations a link out of the scan
+                    # area holds unread: not known, so no finding
+                    unknowns.append(_out_of_boundary_row(lineno, module, ctx.unread, ctx.boundary))
+                    continue
+                issue = self._verdict(file, node, module, members, ctx)
+                if unresolved:
+                    # a directory added before this import is not known (or not readable): the
+                    # verdict stands, but the search path it rests on was not fully seen
+                    issue.evidence = {**(issue.evidence or {}), "sys_path_unresolved": True}
+                issues.append(issue)
 
         self._unknowns[str(file)] = tuple(unknowns)
         return issues
@@ -603,8 +716,11 @@ class _FileContext:
     guarded: FrozenSet[int]
     inactive: FrozenSet[int]  # under a platform test that is false in the target environment
     undecided: FrozenSet[int]  # under a platform test the target environment does not decide
-    deferred: Dict[int, str]  # TYPE_CHECKING-only, or after a sys.path change: reason
+    deferred: DeferredImports  # TYPE_CHECKING-only lines; directories added to sys.path
+    local_paths: Dict[str, Tuple[str, ...]]  # module names anywhere in the project -> paths
+    boundary: Path  # path_boundary: links out of it are not followed or read
     knowledge: ProviderKnowledge
     requirements: Tuple[Requirement, ...]
+    unread: Tuple[Path, ...]  # declarations / an environment behind a link out of the scan area
     has_pyproject: bool
     marker_env: Dict[str, str]  # marker variables the target environment establishes

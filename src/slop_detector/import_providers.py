@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Tuple
 
 from slop_detector.environment_resolution import RACY_NS, State, environment_state
+from slop_detector.path_boundary import leaves, walk_boundary
 
 ARTIFACT_VERIFIED = "ARTIFACT_VERIFIED"
 METADATA_DECLARED = "METADATA_DECLARED"
@@ -392,7 +393,14 @@ def platform_guard_lines(
 
 TYPE_CHECKING_ONLY = "type_checking_only"
 SYS_PATH_MODIFIED = "sys_path_modified"
-_SYS_PATH_METHODS = {"insert", "append", "extend", "__setitem__"}
+OUT_OF_BOUNDARY = "out_of_boundary"  # only a link out of the scan area could supply it
+# A directory a sys.path change adds: its absolute path when the expression is tied to the
+# file's own location, None when it is not known statically (a relative string such as "../"
+# or os.getcwd() names a directory of the working directory, which the source does not fix).
+AddedPath = Optional[str]
+
+# Calls that return their one argument's path unchanged (as str or Path).
+_SAME_PATH_CALLS = {"str", "fspath", "Path", "PurePath", "abspath", "realpath", "normpath"}
 
 
 def _is_type_checking(test: ast.AST) -> bool:
@@ -405,86 +413,139 @@ def _is_sys_path(node: ast.AST) -> bool:
     return _attr(node, "sys", "path")
 
 
-def _changes_sys_path(stmt: ast.stmt) -> bool:
-    """`sys.path.insert/append/extend(...)`, `sys.path += ...`, `sys.path = ...`,
-    `sys.path[...] = ...`, `site.addsitedir(...)` as a statement."""
+def _path_part(node: ast.AST) -> Optional[str]:
+    return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
+
+
+def _joined(base: Optional[str], parts: Sequence[ast.AST]) -> Optional[str]:
+    names = [_path_part(p) for p in parts]
+    if base is None or any(n is None for n in names):
+        return None
+    return str(Path(base).joinpath(*[n for n in names if n is not None]))
+
+
+def _anchored_path(node: ast.AST, file: Path) -> Optional[str]:
+    """The path an expression names when it is built from `__file__` (Path(__file__).parent,
+    os.path.dirname(__file__), joined with string constants); None for anything else."""
+    if isinstance(node, ast.Name):
+        return str(file) if node.id == "__file__" else None
+    if isinstance(node, ast.Attribute) and node.attr == "parent":
+        base = _anchored_path(node.value, file)
+        return str(Path(base).parent) if base is not None else None
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        return _joined(_anchored_path(node.left, file), [node.right])
+    if not isinstance(node, ast.Call) or node.keywords:
+        return None
+    func, args = node.func, node.args
+    name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
+    if isinstance(func, ast.Attribute) and name in ("resolve", "absolute") and not args:
+        return _anchored_path(func.value, file)
+    if isinstance(func, ast.Attribute) and name == "joinpath":
+        return _joined(_anchored_path(func.value, file), args)
+    if name == "join" and args:
+        return _joined(_anchored_path(args[0], file), args[1:])
+    if name in _SAME_PATH_CALLS | {"dirname"} and len(args) == 1:
+        base = _anchored_path(args[0], file)
+        return str(Path(base).parent) if name == "dirname" and base is not None else base
+    return None
+
+
+def _listed(node: ast.AST, file: Path) -> Tuple[AddedPath, ...]:
+    if isinstance(node, (ast.List, ast.Tuple)):
+        return tuple(_anchored_path(e, file) for e in node.elts)
+    return (None,)
+
+
+def _added_paths(stmt: ast.stmt, file: Path) -> Optional[Tuple[AddedPath, ...]]:
+    """The directories a statement adds to sys.path; None when it does not change sys.path.
+    `sys.path.insert/append/extend(...)`, `sys.path += [...]`; replacing sys.path or an entry
+    and `site.addsitedir(...)` (its .pth files can add more) add what is not known."""
     if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
-        func = stmt.value.func
-        if isinstance(func, ast.Attribute):
-            if func.attr in _SYS_PATH_METHODS and _is_sys_path(func.value):
-                return True
-            if func.attr == "addsitedir" and _attr(func, "site", "addsitedir"):
-                return True
+        call = stmt.value
+        func = call.func
+        if isinstance(func, ast.Attribute) and _is_sys_path(func.value):
+            if func.attr == "insert" and len(call.args) == 2:
+                return (_anchored_path(call.args[1], file),)
+            if func.attr == "append" and len(call.args) == 1:
+                return (_anchored_path(call.args[0], file),)
+            if func.attr == "extend" and len(call.args) == 1:
+                return _listed(call.args[0], file)
+            if func.attr in ("insert", "append", "extend", "__setitem__"):
+                return (None,)
+        if isinstance(func, ast.Attribute) and _attr(func, "site", "addsitedir"):
+            return (None,)
     if isinstance(stmt, ast.AugAssign) and _is_sys_path(stmt.target):
-        return True
-    if isinstance(stmt, ast.Assign):
-        for target in stmt.targets:
-            if _is_sys_path(target) or (
-                isinstance(target, ast.Subscript) and _is_sys_path(target.value)
-            ):
-                return True
-    return False
+        return _listed(stmt.value, file)
+    if isinstance(stmt, ast.Assign) and any(
+        _is_sys_path(t) or (isinstance(t, ast.Subscript) and _is_sys_path(t.value))
+        for t in stmt.targets
+    ):
+        return (None,)
+    return None
 
 
-def _contains_sys_path_change(stmt: ast.stmt) -> bool:
-    """A change anywhere in the statement, not inside a nested function or class (which run
-    later, if ever)."""
-    if _changes_sys_path(stmt):
-        return True
+def _contained_paths(stmt: ast.stmt, file: Path) -> Tuple[AddedPath, ...]:
+    """What every sys.path change anywhere in the statement adds, not inside a nested function
+    or class (which run later, if ever)."""
+    own = _added_paths(stmt, file)
+    if own is not None:
+        return own
+    found: Tuple[AddedPath, ...] = ()
     for child in ast.iter_child_nodes(stmt):
         if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
             continue
-        if isinstance(child, ast.stmt) and _contains_sys_path_change(child):
-            return True
-        if isinstance(child, ast.ExceptHandler) and any(
-            _contains_sys_path_change(s) for s in child.body
-        ):
-            return True
-    return False
+        if isinstance(child, ast.stmt):
+            found += _contained_paths(child, file)
+        elif isinstance(child, ast.ExceptHandler):
+            for s in child.body:
+                found += _contained_paths(s, file)
+    return found
 
 
-def deferred_import_lines(tree: ast.AST) -> Dict[int, str]:
-    """Import lines whose verdict is deferred, with the reason:
+@dataclass(frozen=True)
+class DeferredImports:
+    """Import lines a static verdict cannot settle as they are.
 
-    - `type_checking_only`: under `if TYPE_CHECKING:` (or `typing.TYPE_CHECKING`); the `else`
-      branch runs and is not deferred;
-    - `sys_path_modified`: runs after a sys.path change earlier in its own scope or in an
-      enclosing scope (a function defined after a module-level change is called after it). An
-      import before the change, or in a scope the change does not precede, is not deferred.
+    type_checking: under `if TYPE_CHECKING:` (or `typing.TYPE_CHECKING`); the `else` branch
+      runs and is not listed.
+    added_paths: imports that run after a sys.path change earlier in their own scope or an
+      enclosing one (a function defined after a module-level change is called after it), with
+      the directories added before them. Whether that withholds the import depends on what the
+      directories could supply (patterns/python_imports.py).
     """
-    out: Dict[int, str] = {}
 
-    def mark(nodes: Sequence[ast.AST], reason: str) -> None:
-        for node in nodes:
-            for n in ast.walk(node):
-                if isinstance(n, (ast.Import, ast.ImportFrom)):
-                    out.setdefault(n.lineno, reason)
+    type_checking: FrozenSet[int]
+    added_paths: Dict[int, Tuple[AddedPath, ...]]
 
-    def block(stmts: Sequence[ast.stmt], changed: bool) -> None:
+
+def deferred_imports(tree: ast.AST, file: Path) -> DeferredImports:
+    typing_only: set = set()
+    added: Dict[int, Tuple[AddedPath, ...]] = {}
+
+    def block(stmts: Sequence[ast.stmt], paths: Tuple[AddedPath, ...]) -> None:
         for stmt in stmts:
             if isinstance(stmt, ast.If) and _is_type_checking(stmt.test):
-                mark(stmt.body, TYPE_CHECKING_ONLY)
-                block(stmt.orelse, changed)
-                continue
-            if isinstance(stmt, (ast.Import, ast.ImportFrom)):
-                if changed:
-                    out.setdefault(stmt.lineno, SYS_PATH_MODIFIED)
-                continue
-            if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                block(stmt.body, changed)
-                continue
-            if _changes_sys_path(stmt):
-                changed = True
-                continue
-            for field in ("body", "orelse", "finalbody"):
-                block(getattr(stmt, field, None) or [], changed)
-            for handler in getattr(stmt, "handlers", None) or []:
-                block(handler.body, changed)
-            if _contains_sys_path_change(stmt):
-                changed = True
+                typing_only.update(
+                    n.lineno
+                    for s in stmt.body
+                    for n in ast.walk(s)
+                    if isinstance(n, (ast.Import, ast.ImportFrom))
+                )
+                block(stmt.orelse, paths)
+            elif isinstance(stmt, (ast.Import, ast.ImportFrom)):
+                if paths:
+                    added.setdefault(stmt.lineno, paths)
+            elif isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                block(stmt.body, paths)
+            else:
+                for field in ("body", "orelse", "finalbody"):
+                    block(getattr(stmt, field, None) or [], paths)
+                for handler in getattr(stmt, "handlers", None) or []:
+                    block(handler.body, paths)
+                paths = paths + _contained_paths(stmt, file)
 
-    block(getattr(tree, "body", []), False)
-    return out
+    block(getattr(tree, "body", []), ())
+    return DeferredImports(frozenset(typing_only), added)
 
 
 # ---------------------------------------------------------------------------
@@ -731,12 +792,32 @@ def _stat_signature(
 _TARGET_CACHE: Dict[Tuple[str, Tuple[Tuple[str, int, int], ...]], TargetEnvironment] = {}
 
 
+# Directory names a project environment conventionally has. A link out of the scan area is not
+# read, so whether it holds pyvenv.cfg is not known; under one of these names it is taken to be the
+# project's environment, left unread (patterns/python_imports.py: no verdict rests on presence).
+_ENVIRONMENT_NAMES = frozenset({".venv", "venv", "env", ".env", "virtualenv"})
+
+
+def unread_environment_links(roots: Iterable[Path]) -> Tuple[Path, ...]:
+    """Links out of the scan area, named like a virtual environment, directly in the roots."""
+    found: List[Path] = []
+    for root in roots:
+        boundary = walk_boundary(root)
+        found.extend(
+            root / name for name in sorted(_ENVIRONMENT_NAMES) if leaves(root / name, boundary)
+        )
+    return tuple(found)
+
+
 def find_target_environment(roots: Iterable[Path]) -> Optional[TargetEnvironment]:
     """The first virtual environment directly inside one of the roots, or None."""
     for root in roots:
         try:
+            boundary = walk_boundary(root)
             children = sorted(
-                p for p in root.iterdir() if p.is_dir() and (p / "pyvenv.cfg").is_file()
+                p
+                for p in root.iterdir()
+                if not leaves(p, boundary) and p.is_dir() and (p / "pyvenv.cfg").is_file()
             )
         except OSError:
             continue
