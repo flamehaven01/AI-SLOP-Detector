@@ -23,6 +23,7 @@ from slop_detector.environment_resolution import State, environment_state, find_
 from slop_detector.external_members import unknown_row
 from slop_detector.import_providers import (
     ARTIFACT_VERIFIED,
+    DEPENDS_ON_RUN_MODE,
     METADATA_DECLARED,
     NAME_CANDIDATE,
     OUT_OF_BOUNDARY,
@@ -86,12 +87,13 @@ _ROOT_REQUIREMENTS_CACHE: Dict[Tuple[str, str], Tuple[Requirement, ...]] = {}
 
 
 def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None) -> FrozenSet[str]:
-    """Names importable from the file's directory: sibling .py files and, for a
-    script outside a regular package, sibling package directories (regular or
-    namespace), since a script's directory is on sys.path when it runs.
+    """Names importable from the file's directory, for a script outside a regular package:
+    sibling .py files and package directories (regular or namespace), since a script's
+    directory is on sys.path when it runs.
 
-    Inside a regular package `import name` is absolute, so a subpackage next
-    to the module is not what it loads."""
+    Inside a regular package `import name` is absolute, so neither a module nor a subpackage
+    next to the file is what it loads (only `from . import name` is): no sibling names there.
+    A package module that also runs as a script is handled by `_run_mode_sibling`."""
     roots = resolution_roots(file_path)
     if fingerprint is None:
         fingerprint = fingerprint_for_roots(file_path, roots)
@@ -104,10 +106,11 @@ def _discover_sibling_modules(file_path: Path, fingerprint: Optional[str] = None
         result: FrozenSet[str] = frozenset(
             p.stem if p.is_file() else p.name
             for p in file_path.parent.iterdir()
-            if not leaves(p, boundary)
+            if script_directory
+            and not leaves(p, boundary)
             and (
-                (p.suffix == ".py" and p.stem != "__init__" and p.is_file())
-                or (script_directory and is_importable_directory(p, boundary))
+                (p.suffix == ".py" and p.is_file())  # a script directory has no __init__.py
+                or is_importable_directory(p, boundary)
             )
         )
     except OSError:
@@ -402,6 +405,39 @@ def _directory_supplies(directory: str, top: str, boundary: Path) -> Optional[bo
     return importable_state(package, boundary)
 
 
+def _runs_as_script(tree: ast.AST) -> bool:
+    """A top-level `if __name__ == "__main__":` block: the module is also meant to run directly."""
+    for node in getattr(tree, "body", []):
+        test = node.test if isinstance(node, ast.If) else None
+        if (
+            isinstance(test, ast.Compare)
+            and isinstance(test.left, ast.Name)
+            and test.left.id == "__name__"
+            and len(test.comparators) == 1
+            and isinstance(test.comparators[0], ast.Constant)
+            and test.comparators[0].value == "__main__"
+        ):
+            return True
+    return False
+
+
+def _run_mode_sibling(file: Path, top: str, boundary: Path) -> Optional[Path]:
+    """For a module of a regular package: the sibling module or package named `top`, which an
+    absolute `import top` loads only when the file runs as a script (its directory is then
+    sys.path[0]), not when it is imported as part of the package."""
+    parent = file.parent
+    if not (parent / "__init__.py").is_file():
+        return None
+    for candidate in (parent / f"{top}.py", parent / top):
+        if leaves(candidate, boundary):
+            continue
+        if candidate.suffix == ".py" and candidate.is_file():
+            return candidate
+        if candidate.suffix != ".py" and importable_state(candidate, boundary):
+            return candidate
+    return None
+
+
 def _blocked_sibling(file: Path, top: str, boundary: Path) -> Tuple[Path, ...]:
     """A sibling `top.py` or `top/` of the file (its directory is on sys.path when it runs as
     a script) that is, or holds only behind, a link out of the boundary."""
@@ -434,6 +470,37 @@ def _handler_is_import_guard(handler: ast.ExceptHandler) -> bool:
             if isinstance(elt, ast.Name):
                 exc_names.add(elt.id)
     return bool(exc_names & _IMPORT_GUARD_EXC_NAMES)
+
+
+def _relative_fallbacks(tree: ast.AST) -> FrozenSet[Tuple[int, str]]:
+    """(line, name) of absolute imports in an `except ImportError` handler whose try body imports
+    the same name relatively (`try: from .x import f / except ImportError: from x import f`): the
+    fallback runs only when the file runs directly, where a sibling x is what it loads."""
+    found: set = set()
+    for node in walk_nodes(tree):
+        if not isinstance(node, ast.Try):
+            continue
+        relative = set()
+        for stmt in node.body:
+            if isinstance(stmt, ast.ImportFrom) and stmt.level:
+                if stmt.module:
+                    relative.add(stmt.module.split(".")[0])
+                else:
+                    relative.update(alias.name for alias in stmt.names)
+        if not relative:
+            continue
+        for handler in node.handlers:
+            if not _handler_is_import_guard(handler):
+                continue
+            for stmt in handler.body:
+                if isinstance(stmt, ast.Import):
+                    tops = [alias.name.split(".")[0] for alias in stmt.names]
+                elif isinstance(stmt, ast.ImportFrom) and stmt.module and not stmt.level:
+                    tops = [stmt.module.split(".")[0]]
+                else:
+                    continue
+                found.update((stmt.lineno, top) for top in tops if top in relative)
+    return frozenset(found)
 
 
 def _collect_import_guard_lines(tree: ast.AST) -> FrozenSet[int]:
@@ -500,6 +567,8 @@ class PhantomImportPattern(BasePattern):
             requirements=file_requirements(file, roots),
             declaration_root=roots[-1] if roots else None,
             own_declarations=own_declaration_paths(file, roots),
+            runs_as_script=_runs_as_script(tree),
+            relative_fallbacks=_relative_fallbacks(tree),
             unread=unread_declarations(file, roots)
             + (unread_environment_links(roots) if located and target is None else ()),
             has_pyproject=bool(roots and (roots[0] / "pyproject.toml").exists()),
@@ -549,6 +618,24 @@ class PhantomImportPattern(BasePattern):
                     unknowns.append(
                         unknown_row(lineno, module, None, TYPE_CHECKING_ONLY, basis="static_import")
                     )
+                    continue
+                two_modes = ctx.runs_as_script or (lineno, top) in ctx.relative_fallbacks
+                sibling = _run_mode_sibling(file, top, ctx.boundary) if two_modes else None
+                if sibling is not None:
+                    # imported, the package module loads the distribution; run as a script, the
+                    # sibling: which one is not known statically
+                    row = unknown_row(
+                        lineno, module, None, DEPENDS_ON_RUN_MODE, basis="static_import"
+                    )
+                    base = ctx.declaration_root or file.parent
+                    row["local_candidates"] = [
+                        (
+                            sibling.relative_to(base).as_posix()
+                            if base in sibling.parents
+                            else sibling.name
+                        )
+                    ]
+                    unknowns.append(row)
                     continue
                 added = ctx.deferred.added_paths.get(lineno, ())
                 states = [(d, _directory_supplies(d, top, ctx.boundary)) for d in added if d]
@@ -818,6 +905,8 @@ class _FileContext:
     requirements: Tuple[Requirement, ...]
     declaration_root: Optional[Path]  # the root `related_declarations` paths are relative to
     own_declarations: FrozenSet[str]  # the declaration files on this file's path
+    runs_as_script: bool  # a top-level `if __name__ == "__main__":` block
+    relative_fallbacks: FrozenSet[Tuple[int, str]]  # absolute fallbacks of relative imports
     unread: Tuple[Path, ...]  # declarations / an environment behind a link out of the scan area
     has_pyproject: bool
     marker_env: Dict[str, str]  # marker variables the target environment establishes

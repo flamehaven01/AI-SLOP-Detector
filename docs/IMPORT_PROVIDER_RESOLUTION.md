@@ -453,6 +453,13 @@ projects, with results compared per finding before any verdict changes.
 | R24e. With and without the other declaration | identical finding and score |
 | R24f. The other declaration edited | the next analysis lists the new one |
 | R24g/h/i. Behind a link out, build-only, inside an environment directory | not listed |
+| R25a/f. A sibling module or subpackage of the same name inside a regular package | no evidence: the absolute import is judged as external |
+| R25b/c. `from . import name`; a sibling in a script directory | not judged / local, as before |
+| R25d. The same under `TYPE_CHECKING` | unverified `type_checking_only` |
+| R25e. A package module with a `__main__` block | unverified `depends_on_run_mode`, the sibling as candidate |
+| R25g. A package module without one | absolute import (package membership is the default reading, not proof of how it runs) |
+| R25h. `try: from .x import f / except ImportError: from x import f` | the fallback is unverified `depends_on_run_mode` when x is a sibling; judged otherwise |
+| R25i. Python itself (synthetic package, run both ways) | runs directly: the sibling loads; `python -m`: it does not |
 | R22. A provider from the shipped mapping | evidence carries the entry's `mapping_audit` |
 
 ### Experiments on the frozen set

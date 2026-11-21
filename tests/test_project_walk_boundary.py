@@ -394,3 +394,19 @@ def test_r24g_declarations_behind_a_link_out_are_not_context(layout):
     assert [i["pattern_id"] for i in issues] == ["phantom_import"], issues
     assert "related_declarations" not in (issues[0].get("evidence") or {}), issues[0]
     assert _WATCH["seen"] == [], _WATCH["seen"]
+
+
+def test_s1l_truncated_alias_on_a_module_root_resolves_by_direct_lookup(layout):
+    """S1l, direct lookup: the alias guard limits walks, not lookups. A truncated alias at the
+    project root is found by the module index itself (`_find_spec`), so the import is the
+    project's own: no finding and no unverified row, and the walk's truncation record is the
+    only trace. Kept apart from the walk-based local candidates of the test above."""
+    proj, _ = layout
+    _write(proj, "libs/pkg/__init__.py", "")
+    for i in range(9):
+        _link_dir(proj / f"a{i}", proj / "libs" / "pkg")
+    assert build_project_context_snapshot(proj).truncated_paths == ("a8",)
+    assert ProjectModuleIndex(proj).resolves("a8")
+    main = _write(proj, "main.py", "import a8\n")
+    issues, unverified = _analyze(main)
+    assert issues == [] and unverified == [], (issues, unverified)

@@ -65,12 +65,14 @@ import mypackage.core            # project module — resolved in the project
 ### Project modules are never checked as packages
 
 Before the four sources below, an import is skipped when it belongs to the
-project: a top-level name of the project's internal packages, a sibling `.py`
-file (flat-module projects), a name in `phantom_import_allowlist`, or a module
-the project's module index resolves to an actual file (`src/` layouts and
-namespace packages included). A package directory next to a script (regular
-or namespace) is local too, unless the file is inside a regular package, where
-imports are absolute (v3.10).
+project: a top-level name of the project's internal packages, a name in
+`phantom_import_allowlist`, a module the project's module index resolves to an
+actual file (`src/` layouts and namespace packages included), or, for a script
+outside a regular package, a sibling `.py` file or package directory (the
+script's directory is `sys.path[0]` when it runs). Inside a regular package
+`import name` is absolute: a module or subpackage of that name next to the file
+is not what it loads (only `from . import name` is), so it does not make the
+import local (3.18; sibling directories since v3.10).
 
 ### Declarations
 
@@ -95,6 +97,7 @@ name (provider resolution, below), not a declaration with the same spelling:
 |---|---|---|
 | Under a platform test (`if sys.platform == ...`) that the target environment does not decide | listed in `unverified_imports` (reason `platform_guard_undecided`), no score effect | - |
 | Under `if TYPE_CHECKING:` (does not run) | listed in `unverified_imports` (reason `type_checking_only`), no score effect | - |
+| In a module of a regular package that also runs as a script (a top-level `if __name__ == "__main__":`, or an absolute fallback `except ImportError: from x import ...` after `from .x import ...`), naming a sibling module or package | listed in `unverified_imports` (reason `depends_on_run_mode`, the sibling in `local_candidates`): imported, the module loads the distribution; run directly, the sibling | - |
 | Runs after the file adds a directory to `sys.path` (earlier in its scope or an enclosing scope), and that directory is built from `__file__`, lies inside the scanned project and holds the module | no finding: the module is provided there | - |
 | Runs after the file adds a directory whose real location (links resolved) is outside the scan boundary, or one in which the module's entry leads out | listed in `unverified_imports` (reason `out_of_boundary`, with `blocked_paths`), no score effect: that directory is not read | - |
 | Runs after the file adds a directory that is not known statically (a relative string such as `"../"` or `os.getcwd()` depends on the working directory; a variable), and the project has a module or package of that name somewhere | listed in `unverified_imports` (reason `sys_path_modified`, with `local_candidates`), no score effect | - |

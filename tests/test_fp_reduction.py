@@ -382,22 +382,30 @@ def test_declared_unavailable_dependency_is_not_phantom(tmp_path):
 
 
 def test_discover_sibling_modules_returns_stems(tmp_path):
-    """_discover_sibling_modules returns stem names of sibling .py files."""
+    """_discover_sibling_modules returns stem names of sibling .py files of a script directory;
+    inside a regular package (an __init__.py next to the file) it returns none, since an absolute
+    `import name` there does not load the sibling (3.18, R25)."""
     from slop_detector.patterns.python_imports import _discover_sibling_modules
 
-    (tmp_path / "alpha.py").write_text("x = 1", encoding="utf-8")
-    (tmp_path / "beta.py").write_text("y = 2", encoding="utf-8")
-    (tmp_path / "__init__.py").write_text("", encoding="utf-8")
-    (tmp_path / "readme.md").write_text("hi", encoding="utf-8")
-
-    target = tmp_path / "main.py"
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    (scripts / "alpha.py").write_text("x = 1", encoding="utf-8")
+    (scripts / "beta.py").write_text("y = 2", encoding="utf-8")
+    (scripts / "readme.md").write_text("hi", encoding="utf-8")
+    target = scripts / "main.py"
     target.write_text("", encoding="utf-8")
     siblings = _discover_sibling_modules(target)
-
     assert "alpha" in siblings
     assert "beta" in siblings
-    assert "__init__" not in siblings, "__init__ should be excluded"
     assert "readme" not in siblings, "non-.py files must not appear"
+
+    package = tmp_path / "pkg"
+    package.mkdir()
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "alpha.py").write_text("x = 1", encoding="utf-8")
+    inside = package / "main.py"
+    inside.write_text("", encoding="utf-8")
+    assert _discover_sibling_modules(inside) == frozenset()
 
 
 def test_protocol_stub_is_clean(detector):

@@ -1142,3 +1142,171 @@ def test_r24i_declarations_inside_environments_are_not_context(project):
     _write(project, "venv/lib/site-packages/dep/requirements.txt", "zz-rel-i\n")
     issues = _issues_of(project, "m.py", "import zz_rel_i\n")
     assert _ids(issues) == ["phantom_import"] and _related(issues[0]) == [], issues
+
+
+# ---------------------------------------------------------------------------
+# R25 (3.18, holdout 2 HOLD2-F1): inside a regular package, `import name` is absolute. A module
+# `name.py` next to the file is not what it loads (only `from . import name` is), so the sibling
+# is no evidence that the import is the project's own. In a script directory (no __init__.py) the
+# script's directory is sys.path[0] and the sibling is what it loads.
+# ---------------------------------------------------------------------------
+
+
+def test_r25a_sibling_in_a_regular_package_does_not_hide_an_absolute_import(project):
+    """R25a. pkg/ is a regular package with zz_r25a.py; pkg/zz_r25a.py and pkg/other.py both
+    `import zz_r25a` (absolute): judged as an external import (phantom_import). Today: neither
+    a finding nor an unverified row (the sibling counted as the project's module)."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_r25a.py", "import zz_r25a\n")
+    for rel in ("pkg/zz_r25a.py", "pkg/other.py"):
+        issues = _issues_of(project, rel, "import zz_r25a\n")
+        assert _ids(issues) == ["phantom_import"], (rel, issues)
+
+
+def test_r25b_explicit_relative_import_of_a_sibling_is_not_judged(project):
+    """R25b. `from . import zz_r25b` names the sibling module itself: no finding. Holds today;
+    kept as a control."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_r25b.py", "")
+    assert _issues_of(project, "pkg/other.py", "from . import zz_r25b\n") == []
+    assert _unverified_of(project, "pkg/other.py", "from . import zz_r25b\n") == []
+
+
+def test_r25c_sibling_in_a_script_directory_is_what_it_loads(project):
+    """R25c. tools/ has no __init__.py: run as a script, its directory is sys.path[0], so the
+    sibling zz_r25c.py is the import's provider: no finding. Holds today; kept as a control."""
+    _write_pyproject(project, "")
+    _write(project, "tools/zz_r25c.py", "")
+    assert _issues_of(project, "tools/run.py", "import zz_r25c\n") == []
+    assert _unverified_of(project, "tools/run.py", "import zz_r25c\n") == []
+
+
+def test_r25d_type_checking_import_in_a_package_is_unverified_not_hidden(project):
+    """R25d. The holdout 2 shape (an ops module importing the distribution of its own name, under
+    TYPE_CHECKING): unverified `type_checking_only`, not hidden by the sibling. Today: no row."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    src = "import typing\n\nif typing.TYPE_CHECKING:\n    import zz_r25d\n"
+    _write(project, "pkg/zz_r25d.py", src)
+    assert _issues_of(project, "pkg/zz_r25d.py", src) == []
+    rows = _unverified_of(project, "pkg/zz_r25d.py", src)
+    assert [(r["requested_module"], r["reason"]) for r in rows] == [
+        ("zz_r25d", "type_checking_only")
+    ]
+
+
+def test_r25e_package_module_that_runs_as_a_script_depends_on_how_it_runs(project):
+    """R25e. A module of a regular package with a `__main__` block also runs as a script
+    (`python pkg/runner.py`), and then the sibling is what `import zz_r25e` loads; imported as
+    part of the package, it is not. Not known statically: unverified (`depends_on_run_mode`, with
+    the sibling as candidate), not a finding and not hidden. Today: hidden."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_r25e.py", "")
+    src = 'import zz_r25e\n\nif __name__ == "__main__":\n    print(zz_r25e)\n'
+    assert _issues_of(project, "pkg/runner.py", src) == []
+    rows = _unverified_of(project, "pkg/runner.py", src)
+    assert [(r["requested_module"], r["reason"], r.get("local_candidates")) for r in rows] == [
+        ("zz_r25e", "depends_on_run_mode", ["pkg/zz_r25e.py"])
+    ], rows
+
+
+def test_r25f_subpackage_next_to_a_package_module_is_not_its_provider(project):
+    """R25f. A subpackage directory next to the module (lib/pkg/zz_r25f/) is not what an absolute
+    `import zz_r25f` loads either: phantom_import. Holds today (directories already needed a
+    script directory); kept as a control. Under lib/ so that only sibling discovery is tested: a
+    first-level regular package holding subpackages is itself a conditional module root (E4),
+    which resolves the subpackage by another rule."""
+    _write_pyproject(project, "")
+    _write(project, "lib/pkg/__init__.py", "")
+    _write(project, "lib/pkg/zz_r25f/__init__.py", "")
+    assert _ids(_issues_of(project, "lib/pkg/other.py", "import zz_r25f\n")) == ["phantom_import"]
+
+
+R25H_SRC = (
+    "try:\n"
+    "    from .zz_helper_r25h import f\n"
+    "except ImportError:\n"
+    "    from zz_helper_r25h import f\n"
+)
+
+
+def test_r25h_relative_import_with_absolute_fallback_is_run_mode_dependent(project):
+    """R25h. `try: from .x import f / except ImportError: from x import f` is written for both
+    ways of running: the fallback runs only when the relative import fails (the file runs
+    directly), and then the sibling x.py is what it loads. Unverified (`depends_on_run_mode`, the
+    sibling as candidate), not a finding. Today (R13): phantom_import HIGH (corpus: PageIndex
+    retrieve.py, holdout 1: cognee cognee_client.py)."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_helper_r25h.py", "def f():\n    return 1\n")
+    assert _issues_of(project, "pkg/mod.py", R25H_SRC) == []
+    rows = _unverified_of(project, "pkg/mod.py", R25H_SRC)
+    assert [(r["requested_module"], r["reason"], r.get("local_candidates")) for r in rows] == [
+        ("zz_helper_r25h", "depends_on_run_mode", ["pkg/zz_helper_r25h.py"])
+    ], rows
+
+
+def test_r25h_fallback_without_a_sibling_is_still_judged(project):
+    """R25h, control: the same fallback with no sibling module: nothing local could supply it in
+    either way of running, so it is judged (inside the except handler: phantom_import)."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    issues = _issues_of(project, "pkg/mod.py", R25H_SRC)
+    assert [(i["pattern_id"], i["line"]) for i in issues] == [("phantom_import", 4)], issues
+
+
+def test_r25g_package_module_without_main_block_is_an_absolute_import(project):
+    """R25g. No `__main__` block and no fallback: package membership sets the default reading
+    (absolute import), so a same-named sibling does not make it local: phantom_import. Holds after
+    R13; kept as a control (Inspector: the default is not proof of how it runs)."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_helper_r25g.py", "")
+    issues = _issues_of(project, "pkg/worker.py", "import zz_helper_r25g\n")
+    assert _ids(issues) == ["phantom_import"], issues
+
+
+def test_r25i_python_semantics_the_contract_rests_on(tmp_path):
+    """R25i (ground truth, synthetic package only; never the analyzed code): `import helper` in
+    pkg/worker.py with pkg/helper.py beside it loads the sibling when the file runs directly
+    (its directory is sys.path[0]) and fails as `python -m pkg.worker`."""
+    import subprocess
+
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "__init__.py").write_text("", encoding="utf-8")
+    (pkg / "zz_helper_r25i.py").write_text("VALUE = 7\n", encoding="utf-8")
+    (pkg / "worker.py").write_text(
+        "import zz_helper_r25i\nprint(zz_helper_r25i.VALUE)\n", encoding="utf-8"
+    )
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    direct = subprocess.run(
+        [sys.executable, str(pkg / "worker.py")],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    as_module = subprocess.run(
+        [sys.executable, "-m", "pkg.worker"], cwd=tmp_path, capture_output=True, text=True, env=env
+    )
+    assert direct.returncode == 0 and direct.stdout.strip() == "7", direct.stderr
+    assert as_module.returncode != 0 and "No module named 'zz_helper_r25i'" in as_module.stderr
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="HOLD2-F2 (open, not fixed in 3.18 R14): a first-level regular package holding "
+    "subpackages is taken as a conditional module root (E4), so pkg/zz_r26/ answers an absolute "
+    "`import zz_r26` that Python does not resolve (pkg/ is not on sys.path)",
+)
+def test_hold2_f2_e4_root_does_not_answer_an_absolute_import(project):
+    """HOLD2-F2 reproduction, kept apart from HOLD2-F1 (R25f tests sibling discovery only). An
+    expected failure while open: when E4 is fixed this test passes and strict xfail flags it."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_r26/__init__.py", "")
+    assert _ids(_issues_of(project, "pkg/other.py", "import zz_r26\n")) == ["phantom_import"]

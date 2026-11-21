@@ -394,6 +394,7 @@ def platform_guard_lines(
 TYPE_CHECKING_ONLY = "type_checking_only"
 SYS_PATH_MODIFIED = "sys_path_modified"
 OUT_OF_BOUNDARY = "out_of_boundary"  # only a link out of the scan area could supply it
+DEPENDS_ON_RUN_MODE = "depends_on_run_mode"  # a package module that also runs as a script
 # A directory a sys.path change adds: its absolute path when the expression is tied to the
 # file's own location, None when it is not known statically (a relative string such as "../"
 # or os.getcwd() names a directory of the working directory, which the source does not fix).

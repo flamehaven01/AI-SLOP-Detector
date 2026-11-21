@@ -94,6 +94,14 @@ analyzer happens to have installed. Design and limits:
   by known provider, marker, and the file's SHA-256. It is context
   (`CONTEXT_ONLY`), not the file's provider: findings, severities and scores
   do not change.
+- Inside a regular package, a sibling `name.py` no longer makes `import name`
+  local: the import is absolute and loads the distribution, so an undeclared
+  package is reported instead of hidden (a module that imports the package of
+  its own name, `pkg/redis.py` importing `redis`). A package module that also
+  runs as a script (`if __name__ == "__main__":`), or that falls back to
+  `from x import ...` after `from .x import ...` fails, gets an unverified
+  `depends_on_run_mode` row instead: which one it loads depends on how it runs.
+  Siblings of a script outside a package are local, as before.
 - Work order ruleset `2.1.0`: `undeclared_dependency` and `provider_conflict`
   are in the dependency group, whose question asks which distribution provides
   the name before anything is declared or installed.
