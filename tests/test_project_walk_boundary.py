@@ -363,3 +363,34 @@ def test_s1k_alias_guard_never_cuts_a_directory_own_path(layout):
     assert "libs/pkg/mod.py" in paths, paths
     assert len(paths) == 9, paths  # the package's own path and eight aliases
     assert snapshot.truncated_paths == ("a8",), snapshot.truncated_paths
+
+
+def test_s1l_truncated_alias_stays_a_local_candidate(layout):
+    """S1l. An alias the guard did not walk is still a name the project has: an import of it after
+    a sys.path change not known statically stays unverified (`sys_path_modified`, the alias in
+    `local_candidates`), not a finding. Today (e9295bf): the truncated alias is missing from the
+    project's module names, so the import is reported as a phantom (flagged)."""
+    proj, _ = layout
+    _write(proj, "libs/pkg/__init__.py", "")
+    for i in range(9):
+        _link_dir(proj / "tools" / f"a{i}", proj / "libs" / "pkg")
+    assert build_project_context_snapshot(proj).truncated_paths == ("tools/a8",)
+    run = _write(proj, "scripts/run.py", 'import sys\nsys.path.append("../tools")\nimport a8\n')
+    issues, unverified = _analyze(run)
+    assert issues == [], issues
+    rows = [(r["requested_module"], r["reason"], r.get("local_candidates")) for r in unverified]
+    assert rows == [("a8", "sys_path_modified", ["tools/a8"])], rows
+
+
+def test_r24g_declarations_behind_a_link_out_are_not_context(layout):
+    """R24g (P1). Another subtree's requirements behind a junction out of the project are not
+    read and not listed as related declarations."""
+    proj, outside = layout
+    _write(outside, "reqs/requirements.txt", "zz-rel-g\n")
+    _link_dir(proj / "tools" / "ext", outside / "reqs")
+    main = _write(proj, "main.py", "import zz_rel_g\n")
+    _watch(outside)
+    issues, _ = _analyze(main)
+    assert [i["pattern_id"] for i in issues] == ["phantom_import"], issues
+    assert "related_declarations" not in (issues[0].get("evidence") or {}), issues[0]
+    assert _WATCH["seen"] == [], _WATCH["seen"]

@@ -86,6 +86,14 @@ analyzer happens to have installed. Design and limits:
   apply). Findings of other rules serialize as before. A finding whose provider
   comes from the shipped mapping also carries `mapping_audit`
   (`ARTIFACT_VERIFIED` or `AUDIT_PENDING`, below).
+- A finding that means "not declared on this file's path" (`phantom_import`,
+  `undeclared_dependency`, `undeclared_optional_dependency`) lists, in
+  `evidence.related_declarations`, declaration files in other subtrees of the
+  project that declare a distribution which could provide the import: path,
+  line (only when unambiguous), distribution, whether it matches by name or
+  by known provider, marker, and the file's SHA-256. It is context
+  (`CONTEXT_ONLY`), not the file's provider: findings, severities and scores
+  do not change.
 - Work order ruleset `2.1.0`: `undeclared_dependency` and `provider_conflict`
   are in the dependency group, whose question asks which distribution provides
   the name before anything is declared or installed.

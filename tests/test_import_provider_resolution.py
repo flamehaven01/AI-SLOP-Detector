@@ -1007,3 +1007,138 @@ def test_r22_mapping_evidence_carries_its_audit_state(project, dist, module, aud
     assert _ids(issues) == ["runtime_unavailable_dependency"], issues
     ev = _evidence(issues[0])
     assert ev["provider_state"] == "MAPPING_SUPPORTED" and ev.get("mapping_audit") == audit, ev
+
+
+# ---------------------------------------------------------------------------
+# R24 (3.18 P1): a declaration of the import in another subtree of the project is attached to the
+# finding as context (`evidence.related_declarations`), never as the file's provider: the finding,
+# its severity and the score stay what they were. A line is given only when the declaration file
+# holds the name on exactly one line.
+# ---------------------------------------------------------------------------
+
+
+def _related(issue: dict) -> List[dict]:
+    return (issue.get("evidence") or {}).get("related_declarations") or []
+
+
+def _sha(path: Path) -> str:
+    return __import__("hashlib").sha256(path.read_bytes()).hexdigest()
+
+
+def test_r24a_same_named_declaration_elsewhere_is_context(project):
+    """R24a. tools/requirements.txt declares `zz-rel-a`; m.py at the root imports zz_rel_a: still
+    phantom_import HIGH, with the declaration as context (same name, not a known provider).
+    Today: no related_declarations."""
+    _write_pyproject(project, "")
+    req = _write(project, "tools/requirements.txt", "# tools\nzz-rel-a>=1\n")
+    issues = _issues_of(project, "m.py", "import zz_rel_a\n")
+    assert _ids(issues) == ["phantom_import"] and issues[0]["severity"] == "high", issues
+    assert _related(issues[0]) == [
+        {
+            "source_path": "tools/requirements.txt",
+            "line": 2,
+            "declared_distribution": "zz-rel-a",
+            "match_basis": "SAME_NAME",
+            "provider_state": "NAME_CANDIDATE",
+            "relationship": "OTHER_SUBTREE",
+            "verification_state": "CONTEXT_ONLY",
+            "source_sha256": _sha(req),
+        }
+    ], issues[0]
+
+
+def test_r24b_known_provider_declared_elsewhere_is_context(project):
+    """R24b. Another subtree declares Pillow; m.py imports PIL (not installed): the finding is
+    what it was (undeclared_dependency), and the declaration is context with the provider's
+    evidence state. Today: no related_declarations."""
+    _require_absent("PIL")
+    _write_pyproject(project, "")
+    _write(project, "svc/requirements.txt", "Pillow\n")
+    issues = _issues_of(project, "m.py", "import PIL\n")
+    assert _ids(issues) == ["undeclared_dependency"], issues
+    rel = _related(issues[0])
+    assert [
+        (r["source_path"], r["declared_distribution"], r["match_basis"], r["provider_state"])
+        for r in rel
+    ] == [("svc/requirements.txt", "Pillow", "KNOWN_PROVIDER", "MAPPING_SUPPORTED")]
+
+
+def test_r24c_declared_on_the_path_gets_no_context(project):
+    """R24c. A declaration on the file's own path (the root pyproject.toml) makes it declared
+    (runtime_unavailable): no related_declarations, even though another subtree of the same root
+    declares it too. (A requirements.txt in sub/ would make sub/ its own project root, so
+    tools/ would not be searched at all and the check would be vacuous.)"""
+    _pyproject(project, ["zz-rel-c"])
+    _write(project, "tools/requirements.txt", "zz-rel-c\n")
+    issues = _issues_of(project, "sub/m.py", "import zz_rel_c\n")
+    assert _ids(issues) == ["runtime_unavailable_dependency"], issues
+    assert _related(issues[0]) == [], issues[0]
+
+
+def test_r24d_markers_duplicates_and_ambiguous_lines(project):
+    """R24d. Two subtrees declare it: each is listed (sorted by path), a marker is kept as
+    written, and a file that holds the name on more than one line gives no line."""
+    _write_pyproject(project, "")
+    _write(project, "a/requirements.txt", "zz-rel-d; sys_platform == 'linux'\n")
+    _write(
+        project,
+        "b/pyproject.toml",
+        '[project]\nname = "b"\nversion = "0"\ndependencies = ["zz-rel-d"]\n# zz-rel-d is pinned\n',
+    )
+    issues = _issues_of(project, "m.py", "import zz_rel_d\n")
+    rel = _related(issues[0])
+    assert [r["source_path"] for r in rel] == ["a/requirements.txt", "b/pyproject.toml"], rel
+    assert rel[0]["line"] == 1 and rel[0]["marker"] == "sys_platform == 'linux'", rel[0]
+    assert "line" not in rel[1] and "marker" not in rel[1], rel[1]
+
+
+def test_r24e_finding_and_score_do_not_change(project, tmp_path):
+    """R24e. The same project with and without the other subtree's declaration: identical finding
+    (pattern, severity, message, suggestion, every other evidence key) and identical score."""
+    twin = tmp_path / "twin"
+    for root in (project, twin):
+        root.mkdir(exist_ok=True)
+        _write_pyproject(root, "")
+    _write(project, "tools/requirements.txt", "zz-rel-e\n")
+    results = []
+    for root in (project, twin):
+        path = _write(root, "m.py", "import zz_rel_e\n")
+        importlib.invalidate_caches()
+        results.append(SlopDetector(read_only=True).analyze_file(str(path)))
+    with_rel, without = ([i.to_dict() for i in r.pattern_issues] for r in results)
+    assert len(with_rel) == len(without) == 1
+    for d in (with_rel[0], without[0]):
+        d.pop("file", None)
+        (d.get("evidence") or {}).pop("related_declarations", None)
+    assert with_rel == without
+    assert results[0].deficit_score == results[1].deficit_score
+
+
+def test_r24f_changed_declaration_is_seen(project):
+    """R24f. Editing the other subtree's declaration is a new project context: the next analysis
+    in the same process reports the new declaration, not a cached one."""
+    _write_pyproject(project, "")
+    _write(project, "tools/requirements.txt", "zz-rel-f\n")
+    first = _issues_of(project, "m.py", "import zz_rel_f\n")
+    _write(project, "tools/requirements.txt", "# moved\n\nzz-rel-f==2\n")
+    second = _issues_of(project, "m.py", "import zz_rel_f\n")
+    assert [r["line"] for r in _related(first[0])] == [1]
+    assert [r["line"] for r in _related(second[0])] == [3]
+
+
+def test_r24h_build_only_requirements_are_not_context(project):
+    """R24h. A build requirement ([build-system] requires) of another subtree is not a runtime
+    declaration: not listed."""
+    _write_pyproject(project, "")
+    _write(project, "b/pyproject.toml", '[build-system]\nrequires = ["zz-rel-h"]\n')
+    issues = _issues_of(project, "m.py", "import zz_rel_h\n")
+    assert _ids(issues) == ["phantom_import"] and _related(issues[0]) == [], issues
+
+
+def test_r24i_declarations_inside_environments_are_not_context(project):
+    """R24i. A requirements file inside an environment directory (venv/, site-packages/) belongs
+    to an installed package, not to the project: not listed."""
+    _write_pyproject(project, "")
+    _write(project, "venv/lib/site-packages/dep/requirements.txt", "zz-rel-i\n")
+    issues = _issues_of(project, "m.py", "import zz_rel_i\n")
+    assert _ids(issues) == ["phantom_import"] and _related(issues[0]) == [], issues

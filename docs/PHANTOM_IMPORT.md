@@ -125,6 +125,30 @@ Two fields carry what a `sys.path` change leaves open:
   project is left out. These are files and directories the project's layout
   could supply the import from, not modules shown to be the ones imported.
 
+`evidence.related_declarations` (3.18) points whoever fixes a finding to
+where else the project already declares the package. It appears on
+`phantom_import`, `undeclared_dependency` and `undeclared_optional_dependency`
+when a declaration file in another subtree of the project (not on the file's
+own path, not inside an environment directory, not behind a link out of the
+scan boundary) declares a distribution that could provide the import. Each
+entry:
+
+| Key | Meaning |
+|---|---|
+| `source_path` | The declaration file, POSIX path relative to the outermost resolution root |
+| `line` | Present only when the file holds the name on exactly one line; otherwise not known and left out |
+| `declared_distribution` | The name as written there |
+| `match_basis` | `SAME_NAME` (the distribution's own name matches the import; not evidence that it provides it) or `KNOWN_PROVIDER` (installed metadata or the shipped mapping says it provides the import) |
+| `provider_state` | The evidence state of that match (`NAME_CANDIDATE`, `MAPPING_SUPPORTED`, ...) |
+| `marker` | The environment marker as written, when there is one |
+| `relationship` | `OTHER_SUBTREE` |
+| `verification_state` | `CONTEXT_ONLY`: a declaration for another part of the project is not this file's provider |
+| `source_sha256` | SHA-256 of the declaration file's bytes |
+
+The finding itself (pattern, severity, message, suggestion, score, identity)
+is unchanged by it. Build requirements (`[build-system] requires`) are not
+runtime declarations and are not listed.
+
 ### What is read: the scan boundary (3.18)
 
 Import resolution reads the project only inside one boundary: the scan root

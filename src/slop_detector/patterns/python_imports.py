@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import logging
 import re
 import sys
@@ -23,6 +24,7 @@ from slop_detector.external_members import unknown_row
 from slop_detector.import_providers import (
     ARTIFACT_VERIFIED,
     METADATA_DECLARED,
+    NAME_CANDIDATE,
     OUT_OF_BOUNDARY,
     PROVIDER_UNKNOWN,
     SYS_PATH_MODIFIED,
@@ -180,6 +182,93 @@ def _path_requirements(file: Path, nearest_root: Path) -> Tuple[Requirement, ...
         current = current.parent
     files = [path for directory in directories for path in declaration_files(directory)]
     return _requirements(files, nearest_root)
+
+
+# (root, project-context fingerprint) -> every declaration in the project: (relative path,
+# requirement, line or None, sha256 of the file). The fingerprint hashes declaration contents,
+# so an edited or moved declaration is a new key.
+_PROJECT_DECLARATIONS_CACHE: Dict[
+    Tuple[str, str], Tuple[Tuple[str, Requirement, Optional[int], str], ...]
+] = {}
+
+# Pattern IDs that mean "not declared on this file's path": the ones a declaration elsewhere can
+# inform.
+_UNDECLARED_IDS = frozenset(
+    {"phantom_import", "undeclared_dependency", "undeclared_optional_dependency"}
+)
+
+
+def _declaration_line(text: str, written: str) -> Optional[int]:
+    """The line holding the name as written, when exactly one line does (else not known)."""
+    name = re.compile(r"(?<![A-Za-z0-9_.-])" + re.escape(written) + r"(?![A-Za-z0-9_-])")
+    hits = [n for n, line in enumerate(text.splitlines(), 1) if name.search(line)]
+    return hits[0] if len(hits) == 1 else None
+
+
+def _project_declarations(root: Path) -> Tuple[Tuple[str, Requirement, Optional[int], str], ...]:
+    snapshot = project_context(root)
+    key = (str(root), snapshot.fingerprint)
+    cached = _PROJECT_DECLARATIONS_CACHE.get(key)
+    if cached is not None:
+        return cached
+    found: List[Tuple[str, Requirement, Optional[int], str]] = []
+    for rel in snapshot.declaration_files:
+        path = root / rel
+        try:
+            data = path.read_bytes()
+        except OSError:
+            continue
+        sha = hashlib.sha256(data).hexdigest()
+        text = data.decode("utf-8", errors="replace")
+        for dependency in declared_requirements(path):
+            req = parse_requirement(_EXTRAS_RE.sub("", dependency), rel)
+            if req is not None:
+                found.append((rel, req, _declaration_line(text, req.written), sha))
+    _PROJECT_DECLARATIONS_CACHE[key] = tuple(found)
+    return _PROJECT_DECLARATIONS_CACHE[key]
+
+
+def own_declaration_paths(file: Path, roots: Sequence[Path]) -> FrozenSet[str]:
+    """The declaration files `file_requirements` reads for the file, relative to the outermost
+    root: everything else in the project is another subtree."""
+    if not roots:
+        return frozenset()
+    files = [p for root in roots for p in root_declaration_files(root)]
+    current = file.parent
+    while current != roots[0] and roots[0] in current.parents:
+        files.extend(declaration_files(current))
+        current = current.parent
+    base = roots[-1]
+    return frozenset(p.relative_to(base).as_posix() for p in files if base in p.parents)
+
+
+def related_declarations(
+    ctx: "_FileContext", module: str, members: Sequence[str]
+) -> List[Dict[str, object]]:
+    """Declarations in other subtrees of the project whose distribution could provide `module`:
+    context for whoever fixes the finding, never this file's provider (CONTEXT_ONLY)."""
+    if ctx.declaration_root is None:
+        return []
+    entries: Dict[Tuple[str, str], Dict[str, object]] = {}
+    for rel, req, line, sha in _project_declarations(ctx.declaration_root):
+        if rel in ctx.own_declarations or (rel, req.dist) in entries:
+            continue
+        view = ctx.knowledge.view(req)
+        if not provides(view.names, module, list(members)):
+            continue
+        entry: Dict[str, object] = {"source_path": rel}
+        if line is not None:
+            entry["line"] = line
+        entry["declared_distribution"] = req.written
+        entry["match_basis"] = "SAME_NAME" if view.state == NAME_CANDIDATE else "KNOWN_PROVIDER"
+        entry["provider_state"] = view.state
+        if req.marker:
+            entry["marker"] = req.marker
+        entry["relationship"] = "OTHER_SUBTREE"
+        entry["verification_state"] = "CONTEXT_ONLY"
+        entry["source_sha256"] = sha
+        entries[(rel, req.dist)] = entry
+    return [entries[key] for key in sorted(entries)]
 
 
 def unread_declarations(file: Path, roots: Sequence[Path]) -> Tuple[Path, ...]:
@@ -409,6 +498,8 @@ class PhantomImportPattern(BasePattern):
             boundary=walk_boundary(roots[-1] if roots else file.parent),
             knowledge=ProviderKnowledge(target),
             requirements=file_requirements(file, roots),
+            declaration_root=roots[-1] if roots else None,
+            own_declarations=own_declaration_paths(file, roots),
             unread=unread_declarations(file, roots)
             + (unread_environment_links(roots) if located and target is None else ()),
             has_pyproject=bool(roots and (roots[0] / "pyproject.toml").exists()),
@@ -490,6 +581,10 @@ class PhantomImportPattern(BasePattern):
                     # a directory added before this import is not known (or not readable): the
                     # verdict stands, but the search path it rests on was not fully seen
                     issue.evidence = {**(issue.evidence or {}), "sys_path_unresolved": True}
+                if issue.pattern_id in _UNDECLARED_IDS:
+                    related = related_declarations(ctx, module, members)
+                    if related:
+                        issue.evidence = {**(issue.evidence or {}), "related_declarations": related}
                 issues.append(issue)
 
         self._unknowns[str(file)] = tuple(unknowns)
@@ -721,6 +816,8 @@ class _FileContext:
     boundary: Path  # path_boundary: links out of it are not followed or read
     knowledge: ProviderKnowledge
     requirements: Tuple[Requirement, ...]
+    declaration_root: Optional[Path]  # the root `related_declarations` paths are relative to
+    own_declarations: FrozenSet[str]  # the declaration files on this file's path
     unread: Tuple[Path, ...]  # declarations / an environment behind a link out of the scan area
     has_pyproject: bool
     marker_env: Dict[str, str]  # marker variables the target environment establishes

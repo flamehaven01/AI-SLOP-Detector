@@ -60,6 +60,8 @@ class ProjectContextSnapshot:
     # Aliases (links inside the boundary) the walk did not enter because their real directory
     # was already walked through MAX_ALIASES_PER_DIRECTORY links; relative POSIX paths.
     truncated_paths: Tuple[str, ...] = field(default=(), compare=False)
+    # Declaration files the walk found (environment directories excluded), relative POSIX paths.
+    declaration_files: Tuple[str, ...] = field(default=(), compare=False)
 
 
 _SCOPE: ContextVar[Optional[Dict[Tuple[str, str], ProjectContextSnapshot]]] = ContextVar(
@@ -114,6 +116,7 @@ def _scoped(key: Tuple[str, str], build) -> ProjectContextSnapshot:
 def build_project_context_snapshot(root: Path) -> ProjectContextSnapshot:
     digest = hashlib.sha256()
     topology, declarations, links, truncated = _walk(root)
+    truncated_rels = tuple(sorted(path.relative_to(root).as_posix() for path in truncated))
     for rel, path in declarations:
         digest.update(b"D\0" + rel.encode("utf-8") + b"\0")
         digest.update(_read_bytes(path))
@@ -129,9 +132,14 @@ def build_project_context_snapshot(root: Path) -> ProjectContextSnapshot:
     return ProjectContextSnapshot(
         root,
         digest.hexdigest(),
-        _module_paths(topology),
+        _module_paths(topology, truncated_rels),
         _blocked_paths(root, links),
-        tuple(sorted(path.relative_to(root).as_posix() for path in truncated)),
+        truncated_rels,
+        tuple(
+            rel
+            for rel, _ in declarations
+            if not any(part in _ENVIRONMENT_DIRS for part in rel.split("/"))
+        ),
     )
 
 
@@ -144,8 +152,15 @@ def _blocked_paths(root: Path, links: Sequence[LinkEntry]) -> Dict[str, Tuple[st
     return {name: tuple(sorted(paths)) for name, paths in found.items()}
 
 
-def _module_paths(topology: Sequence[Tuple[str, str]]) -> Dict[str, Tuple[str, ...]]:
+def _module_paths(
+    topology: Sequence[Tuple[str, str]], truncated: Sequence[str] = ()
+) -> Dict[str, Tuple[str, ...]]:
     found: Dict[str, set] = {}
+    # an alias the walk did not enter is still a name the project has (its target was walked)
+    for rel in truncated:
+        name = rel.rsplit("/", 1)[-1]
+        if name.isidentifier():
+            found.setdefault(name, set()).add(rel)
     for kind, rel in topology:
         parts = rel.split("/")
         if kind != "f" or any(p in _ENVIRONMENT_DIRS for p in parts):

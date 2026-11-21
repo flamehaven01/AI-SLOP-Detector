@@ -447,6 +447,12 @@ projects, with results compared per finding before any verdict changes.
 | S1h. A declaration file or `requirements/` that is a link out | not read; the file's declaration-based verdicts are unverified |
 | S1i. The project's `.venv` as a link out | not read; verdicts that rest on presence are unverified |
 | R23i. `sys_path_unresolved` | only on findings after a directory not known statically; not after a resolved one, before a change, or in another scope; kept after a cache round trip |
+| R24a/b. A declaration of the import in another subtree | listed in `related_declarations` (`SAME_NAME` or `KNOWN_PROVIDER`, `CONTEXT_ONLY`); the finding unchanged |
+| R24c. Declared on the file's own path | declared (no finding to inform), nothing listed |
+| R24d. Several subtrees, markers, a name on more than one line | one entry per file, marker as written, no line when ambiguous |
+| R24e. With and without the other declaration | identical finding and score |
+| R24f. The other declaration edited | the next analysis lists the new one |
+| R24g/h/i. Behind a link out, build-only, inside an environment directory | not listed |
 | R22. A provider from the shipped mapping | evidence carries the entry's `mapping_audit` |
 
 ### Experiments on the frozen set
