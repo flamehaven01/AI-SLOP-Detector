@@ -1235,10 +1235,11 @@ R25H_SRC = (
 
 def test_r25h_relative_import_with_absolute_fallback_is_run_mode_dependent(project):
     """R25h. `try: from .x import f / except ImportError: from x import f` is written for both
-    ways of running: the fallback runs only when the relative import fails (the file runs
-    directly), and then the sibling x.py is what it loads. Unverified (`depends_on_run_mode`, the
-    sibling as candidate), not a finding. Today (R13): phantom_import HIGH (corpus: PageIndex
-    retrieve.py, holdout 1: cognee cognee_client.py)."""
+    ways of running. The fallback runs when the relative import fails: when the file runs
+    directly (then the sibling x.py is what it loads), or when x itself fails to import inside a
+    package (then the cause is x's own import, reported in x: R25j). Unverified
+    (`depends_on_run_mode`, the sibling as candidate), not a finding. Today (R13):
+    phantom_import HIGH (corpus: PageIndex retrieve.py, holdout 1: cognee cognee_client.py)."""
     _write_pyproject(project, "")
     _write(project, "pkg/__init__.py", "")
     _write(project, "pkg/zz_helper_r25h.py", "def f():\n    return 1\n")
@@ -1310,3 +1311,20 @@ def test_hold2_f2_e4_root_does_not_answer_an_absolute_import(project):
     _write(project, "pkg/__init__.py", "")
     _write(project, "pkg/zz_r26/__init__.py", "")
     assert _ids(_issues_of(project, "pkg/other.py", "import zz_r26\n")) == ["phantom_import"]
+
+
+def test_r25j_withheld_fallback_does_not_hide_the_failure_behind_it(project):
+    """R25j. The package-mode way the fallback runs: the sibling x itself fails to import (it
+    imports an undeclared package). That cause is reported where it is, in x, while the fallback
+    in mod.py stays unverified: withholding the fallback hides no defect."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    helper_src = "import zz_missing_inside_r25j\n\n\ndef f():\n    return 1\n"
+    _write(project, "pkg/zz_helper_r25h.py", helper_src)
+    inside = _issues_of(project, "pkg/zz_helper_r25h.py", helper_src)
+    assert [(i["pattern_id"], i["line"]) for i in inside] == [("phantom_import", 1)], inside
+    assert _issues_of(project, "pkg/mod.py", R25H_SRC) == []
+    rows = _unverified_of(project, "pkg/mod.py", R25H_SRC)
+    assert [(r["requested_module"], r["reason"]) for r in rows] == [
+        ("zz_helper_r25h", "depends_on_run_mode")
+    ], rows
