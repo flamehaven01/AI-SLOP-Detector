@@ -13,8 +13,8 @@ Find warning signs of unfinished code in Python, JavaScript/TypeScript, Go, and 
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.17.0" alt="PyPI version"/></a>
-  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.17.0" alt="npm version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.18.0" alt="PyPI version"/></a>
+  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.18.0" alt="npm version"/></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector"><img src="https://vsmarketplacebadges.dev/version-short/Flamehaven.vscode-slop-detector.svg" alt="VS Code Marketplace version"/></a>
   <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/pyversions/ai-slop-detector.svg" alt="Python versions"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md"><img src="https://img.shields.io/badge/languages-Python%20%7C%20JS%2FTS%20%7C%20Go%20%7C%20Rust-informational" alt="Languages: Python, JS/TS, Go, Rust"/></a>
@@ -53,9 +53,6 @@ and gives every file a 0-100 score (higher = more warning signs). It does not
 tell whether a person or an AI wrote the code; it reports what is in the code.
 
 - **57 rules** across Python (39), JavaScript/TypeScript (8), Go (6) and Rust (4)
-  on this branch. The released 3.17.0 has 55 (Python 37); the two Python rules
-  `undeclared_dependency` and `provider_conflict` arrive with 3.18.0, which is
-  not released yet.
 - **Deterministic**: the same input gives byte-identical JSON
 - **Local only**: no API key, no model download, no network call during a scan
 - **Everywhere you work**: terminal, VS Code, CI gates, pre-commit, AI agents (CLI JSON and a Claude Code skill)
@@ -181,9 +178,7 @@ pip install "ai-slop-detector[js]"     # or [rust]; on Python 3.8/3.9 the base i
 ```
 
 Rule counts come from the pattern registry in [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md)
-(57 rules), which a test keeps in line with the analyzers. They describe this
-branch (3.18.0, unreleased); `pip install ai-slop-detector` gives 3.17.0 with
-55 rules. A scan says which reader ran for each language
+(57 rules), which a test keeps in line with the analyzers. A scan says which reader ran for each language
 (`scan_coverage.analysis_modes`).
 
 ## What It Detects
@@ -289,7 +284,7 @@ more: [CI/CD in the guide](https://github.com/flamehaven01/AI-SLOP-Detector/blob
 |---|---|
 | **Claude Code skill** | `cp -r claude-skills/slop-detector ~/.claude/skills/`: a review loop of `review`, `pulse`, `sweep` with JSON output |
 | **AI work order** | `--format ai-md`, bound to the SHA-256 of each scanned file (see [What You Get](#what-you-get)) |
-| **MCP server** | `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. Use the CLI JSON or the skill; a server on the official MCP SDK is planned for 3.18 |
+| **MCP server** | `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. Use the CLI JSON or the skill; a server on the official MCP SDK is planned for 3.19 |
 | **REST** | A local FastAPI server (`[api]` extra) that binds `127.0.0.1` |
 | **Node** | `npx ai-slop-detector` runs the same Python backend; typed results at `ai-slop-detector/types` |
 
@@ -400,6 +395,14 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 ---
 
 ## Release Highlights
+
+**v3.18.0**: Python import findings are judged by which distribution provides
+the import and where that evidence comes from: a declared `Pillow` is no
+longer reported as a missing `PIL`, a different installed distribution no
+longer decides `phantom_member`, the project's own virtual environment is read
+as files, and every import finding carries its evidence. `phantom_import` is
+HIGH at most. The REST API answers local clients only. Scores change where
+import findings occur.
 
 **v3.17.0**: the terminal summary fits one window (score, band and meter,
 `Fix first`, one `Next` step), progress shows in a box, `--interactive` lets

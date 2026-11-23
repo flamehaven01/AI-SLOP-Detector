@@ -139,7 +139,7 @@ Use when governance artifacts, not score output, are the enforcement boundary.
 `slop-detector mcp` frames each message with a `Content-Length` header; the MCP
 specification's stdio transport is newline-delimited JSON, so a client that
 follows the specification gets no reply. Use the CLI commands above with
-`--format json` instead. A server on the official MCP SDK is planned for 3.18.
+`--format json` instead. A server on the official MCP SDK is planned for 3.19.
 
 ---
 

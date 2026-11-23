@@ -3,7 +3,7 @@
   "mica_schema_version": "0.2.9",
   "project": {
     "name": "ai-slop-detector",
-    "version": "3.17.0",
+    "version": "3.18.0",
     "version_note": "the latest release; an invariant with an 'unreleased' status applies only to the development line after it",
     "status": "active",
     "summary": "Static analyzer for warning signs of unfinished code in Python, JS/TS, Go and Rust. Runs locally; reports for people (terminal, HTML, Markdown) and for AI agents (work order, JSON Lines, JSON, MCP)."

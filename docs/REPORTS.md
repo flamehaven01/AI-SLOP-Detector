@@ -64,7 +64,7 @@ most 5 findings and 3 review candidates, then what to do. Output for
 `examples/demo_project` (since 3.17.0):
 
 ```text
-╭─ AI SLOP Detector 3.17.0 ────────────────────────────────────────────────────────────────────╮
+╭─ AI SLOP Detector 3.18.0 ────────────────────────────────────────────────────────────────────╮
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
@@ -121,7 +121,7 @@ most 5 findings and 3 review candidates, then what to do. Output for
   save: --interactive`, is left out when the run already has `--interactive`.
 
 ```text
-╭─ AI SLOP Detector 3.17.0 ────────────────────────────────────────────────────────────────────╮
+╭─ AI SLOP Detector 3.18.0 ────────────────────────────────────────────────────────────────────╮
 │  ✓  Find files  3 files · Python 2 · JS/TS 1                                                 │
 │  ▸  Analyze     ━━━━━━━━━━━━━━━━────────  2/3  store.py                                      │
 │  ·  Score                                                                                    │

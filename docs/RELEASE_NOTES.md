@@ -5,6 +5,59 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.18.0 — 2026-11-23
+
+### Summary
+
+Python import findings are judged by which distribution provides the import
+and where that evidence comes from, instead of by spelling and by what the
+analyzer happens to have installed. The REST API answers local clients only,
+and the experimental `slop_detector.auth` package is removed. Scores change
+where import findings occur. Every change is listed in the
+[Changelog](../CHANGELOG.md); the design, the evidence ladder and the limits
+are in [IMPORT_PROVIDER_RESOLUTION.md](IMPORT_PROVIDER_RESOLUTION.md).
+
+### What moves when you upgrade
+
+- **Declared dependencies with another import name are declared**: `Pillow`
+  -> `PIL`, `scikit-learn` -> `sklearn` and the like are
+  `runtime_unavailable_dependency` (MEDIUM) or `declared_outside_primary_metadata`
+  (LOW) where the package is not installed, not `phantom_import`. Import names
+  are compared exactly. PEP 735 `[dependency-groups]` and `[tool.uv]
+  dev-dependencies` are read.
+- **`phantom_import` is HIGH at most** (it was CRITICAL) and means that no
+  installed distribution, declaration or known provider supplies the name. Its
+  suggestion asks which package was meant before anything is installed or
+  declared. The CI gate's `critical_patterns_fail`, purity, `has_critical`,
+  history and governance no longer count it as CRITICAL.
+- **New rules**: `undeclared_dependency` (the provider is known but not
+  declared; MEDIUM, HIGH only when the project's own environment identifies the
+  one provider) and `provider_conflict` (MEDIUM: the installed module comes
+  from another distribution than the declared one; `phantom_member` no longer
+  checks names against it).
+- **The project's own virtual environment** (a directory with `pyvenv.cfg`
+  directly in the project root) is read as files, never executed; markers and
+  platform tests are evaluated for it. Import resolution stays inside the scan
+  root and does not follow links out of it.
+- **Evidence on every import finding** (`evidence`: import name, provider,
+  provider state, environment, and more where it applies); other findings
+  serialize as before.
+- **Scores**: score contract `3.18` (an analyzer-only `provider_conflict` adds
+  nothing; `undeclared_dependency` adds once per file and provider) and the
+  `phantom_import` severity change; analysis cache `analysis-cache-v55`.
+- **REST API**: no cross-origin access by default and only loopback host
+  names; a browser page of another origin that called it must be listed with
+  `create_app(allowed_origins=[...])`.
+- **Removed**: `slop_detector.auth` (simulated OAuth, SAML without signature
+  verification, never used by the analyzer, CLI, MCP server or REST API).
+- **Known limits**: the shipped distribution-to-import mapping is
+  hand-curated (10 of 30 entries verified against local artifacts); the names
+  a relative import asks for are not checked; the MCP server still frames
+  messages with `Content-Length` (a server on the official MCP SDK is planned
+  for 3.19).
+
+---
+
 ## v3.17.0 — 2026-11-19
 
 ### Summary
@@ -2117,6 +2170,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
+| **v3.18.0** | import evidence release: providers judged by distribution (declared `Pillow` is `PIL`), PEP 735 groups read, the project's own `.venv` read as files, `evidence` on every import finding, `phantom_import` HIGH at most, new `undeclared_dependency` and `provider_conflict`; REST answers local clients only; `slop_detector.auth` removed; scores change where import findings occur |
 | **v3.17.0** | screen release: the terminal summary in one panel with a meter, `Fix first` and one `Next` step; progress in a box (ASCII where the console needs it); `--interactive` report choice; six fix texts name only changes that resolve the finding; the work order shows `cause_key`; the MCP server is no longer recommended (non-standard framing); scoring unchanged |
 | **v3.16.3** | cache patch: a file with an `fp:` declaration loads from the analysis cache, so it stays in every scan after the first (it failed with exit 1, or was left out of a project scan); scoring and the scan JSON format unchanged |
 | **v3.16.2** | calibration evidence: history of all four languages with unmeasured metrics stored as NULL (a checked copy kept before the one-time upgrade); `fp:` false-positive declarations; `--self-calibrate` shows each rule's evidence, reads history without writing it, and prints JSON with `--json`; scoring unchanged (a suppression comment with words after `fp:` can show findings again) |

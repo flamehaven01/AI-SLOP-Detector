@@ -1,6 +1,6 @@
 # CLI Usage
 
-**Current contract:** v3.17.0. Run `slop-detector --help` in the installed environment for the authoritative option list.
+**Current contract:** v3.18.0. Run `slop-detector --help` in the installed environment for the authoritative option list.
 
 ## Canonical Commands
 
@@ -162,6 +162,6 @@ slop-detector impact enable
 slop-detector telemetry inspect --example
 ```
 
-The npm wrapper (`ai-slop-detector` on npm) has the same version as the PyPI release. It delegates to an installed Python CLI, or, when none is installed, runs that PyPI release through uvx or pipx. It does not implement a second analyzer. `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. A server on the official MCP SDK is planned for 3.18; until then use the CLI with `--format json`. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
+The npm wrapper (`ai-slop-detector` on npm) has the same version as the PyPI release. It delegates to an installed Python CLI, or, when none is installed, runs that PyPI release through uvx or pipx. It does not implement a second analyzer. `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. A server on the official MCP SDK is planned for 3.19; until then use the CLI with `--format json`. Impact tracking is opt-in and local; telemetry is off by default. Inspect telemetry payloads before enabling it.
 
 For agent-specific guidance, see [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) and [CLAUDE_CODE_SKILL.md](CLAUDE_CODE_SKILL.md).

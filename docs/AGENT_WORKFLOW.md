@@ -129,7 +129,7 @@ Use the smallest surface that matches the job:
   - mitigation text
   - use when the agent needs human-readable remediation guidance
 - `mcp`
-  - do not use: `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. A server on the official MCP SDK is planned for 3.18; until then use the CLI with `--format json`.
+  - do not use: `slop-detector mcp` frames each message with a `Content-Length` header; the MCP specification's stdio transport is newline-delimited JSON, so a client that follows the specification gets no reply. A server on the official MCP SDK is planned for 3.19; until then use the CLI with `--format json`.
 
 ---
 

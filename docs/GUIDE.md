@@ -185,7 +185,7 @@ and never move the score.
 `--quiet` one line):
 
 ```text
-╭─ AI SLOP Detector 3.17.0 ────────────────────────────────────────────────────────────────────╮
+╭─ AI SLOP Detector 3.18.0 ────────────────────────────────────────────────────────────────────╮
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
@@ -279,7 +279,7 @@ Cleanup-family semantics are now more operational than a raw candidate list:
 `slop-detector mcp` frames each message with a `Content-Length` header; the MCP
 specification's stdio transport is newline-delimited JSON, so a client that
 follows the specification gets no reply. A server on the official MCP SDK is
-planned for 3.18; until then use the CLI with `--format json`.
+planned for 3.19; until then use the CLI with `--format json`.
 
 Adoption and observability surfaces are intentionally separate from scoring:
 
@@ -623,7 +623,7 @@ would analyze it.
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.17.0
+    rev: v3.18.0
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks

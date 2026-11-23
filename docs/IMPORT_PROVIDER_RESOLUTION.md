@@ -1,6 +1,6 @@
 # Import Provider Resolution
 
-**Status: implemented for v3.18.0 (unreleased).** Sections 1-7 are the design
+**Status: implemented in v3.18.0.** Sections 1-7 are the design
 as written before the code; where a paragraph says "today" it describes v3.17.
 Sections 8 and 10-12 describe what v3.18.0 implements. The finding contract is
 also in [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md). Not yet done: an evaluation on
@@ -371,9 +371,8 @@ moved it next to the two rules it adds for provider findings:
   fewer defects, and is not reported as an improvement.
 
 Scores therefore differ from 3.17 where these findings occur; a finding that
-did not change keeps its weight. The contract version stays `3.18` while 3.18.0
-is unreleased; the `phantom_import` severity was changed under it before
-release.
+did not change keeps its weight. The contract version is `3.18`, released with
+3.18.0; the `phantom_import` severity was changed under it before that release.
 
 **Compatibility.** Existing pattern IDs keep their meaning; new situations get
 new IDs (`undeclared_dependency`, `provider_conflict`). Every import-evidence

@@ -56,7 +56,7 @@ npx ai-slop-detector sweep dead-code . --format json
 `npx ai-slop-detector mcp` frames each message with a `Content-Length` header; the MCP
 specification's stdio transport is newline-delimited JSON, so a client that
 follows the specification gets no reply. A server on the official MCP SDK is
-planned for 3.18; until then use the CLI with `--format json`.
+planned for 3.19; until then use the CLI with `--format json`.
 
 ## Typed Output Contract
 

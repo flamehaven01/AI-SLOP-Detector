@@ -1,6 +1,6 @@
 # Phantom Import Detection
 
-**Current contract:** v3.18.0 (unreleased). The original pattern was introduced
+**Current contract:** v3.18.0. The original pattern was introduced
 in v2.9.0; this page describes its current resolution boundary. How the
 provider of an import is found, and why, is in
 [IMPORT_PROVIDER_RESOLUTION.md](IMPORT_PROVIDER_RESOLUTION.md).
