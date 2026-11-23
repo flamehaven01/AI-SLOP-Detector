@@ -17,6 +17,8 @@ from slop_detector.api.server import create_app  # noqa: E402
 def test_js_file_is_a_client_error(tmp_path, route):
     path = tmp_path / "app.js"
     path.write_text("function f() { return 1; }\n", encoding="utf-8")
-    response = TestClient(create_app()).post(route, json={"file_path": str(path)})
+    response = TestClient(base_url="http://127.0.0.1", app=create_app()).post(
+        route, json={"file_path": str(path)}
+    )
     assert response.status_code == 400
     assert "not Python source" in response.json()["detail"]

@@ -29,7 +29,9 @@ PUSH = {
 
 
 def test_project_status_answers_501():
-    client = TestClient(server.create_app(), raise_server_exceptions=False)
+    client = TestClient(
+        base_url="http://127.0.0.1", app=server.create_app(), raise_server_exceptions=False
+    )
     response = client.get("/status/project/abc")  # before: 500, None fails ProjectStatus
     assert response.status_code == 501
     assert "not implemented" in response.json()["detail"].lower()
@@ -40,14 +42,18 @@ def test_push_webhook_answers_501_and_schedules_nothing(monkeypatch):
     monkeypatch.setattr(
         BackgroundTasks, "add_task", lambda self, func, *a, **k: scheduled.append(func)
     )
-    response = TestClient(server.create_app()).post("/webhook/github", json=PUSH)
+    response = TestClient(base_url="http://127.0.0.1", app=server.create_app()).post(
+        "/webhook/github", json=PUSH
+    )
     assert response.status_code == 501
     assert "not implemented" in response.json()["detail"].lower()
     assert scheduled == [], f"background work was scheduled: {scheduled}"
 
 
 def test_push_webhook_never_reports_acceptance():
-    response = TestClient(server.create_app()).post("/webhook/github", json=PUSH)
+    response = TestClient(base_url="http://127.0.0.1", app=server.create_app()).post(
+        "/webhook/github", json=PUSH
+    )
     assert response.json().get("status") != "accepted"
 
 
@@ -61,5 +67,5 @@ def test_no_placeholder_helper_or_finding_remains():
 
 def test_preservation_supported_routes_still_answer(tmp_path):
     """PRESERVATION: the documented agent route is unaffected."""
-    response = TestClient(server.create_app()).get("/agent/schema")
+    response = TestClient(base_url="http://127.0.0.1", app=server.create_app()).get("/agent/schema")
     assert response.status_code == 200

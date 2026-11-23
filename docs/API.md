@@ -12,7 +12,12 @@ for most users and agents.
 This server is not a hardened public or multi-tenant deployment surface:
 
 - authentication and request authorization are not built in
-- the default CORS middleware permits all origins
+- it answers local clients only: no cross-origin access by default (a web page
+  of another origin cannot read a scan; `create_app(allowed_origins=[...])`
+  allows listed origins, without credentials), and only the host names
+  `127.0.0.1`, `localhost` and `[::1]` (another name, as a DNS-rebinding page
+  sends, gets `400`; `create_app(allowed_hosts=[...])` adds names, and
+  `run_server(host=...)` adds the address it binds)
 - `POST /webhook/github` and `GET /status/project/{project_id}` are not
   implemented: they answer `501 Not Implemented` and do no work
 

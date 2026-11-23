@@ -366,7 +366,7 @@ def test_api_history_rows_carry_provenance(tmp_path, monkeypatch):
     project.mkdir()
     (project / "requirements.txt").write_text("", encoding="utf-8")
     (project / "mod.py").write_text("def f():\n    return 1\n", encoding="utf-8")
-    client = TestClient(create_app())
+    client = TestClient(base_url="http://127.0.0.1", app=create_app())
 
     assert (
         client.post(

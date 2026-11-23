@@ -8,7 +8,7 @@ from slop_detector.api.server import create_app  # noqa: E402
 
 
 def test_agent_schema_exposes_structured_surface():
-    client = TestClient(create_app())
+    client = TestClient(base_url="http://127.0.0.1", app=create_app())
 
     response = client.get("/agent/schema")
 
@@ -20,7 +20,7 @@ def test_agent_schema_exposes_structured_surface():
 
 
 def test_agent_file_endpoint_returns_structured_snapshot(tmp_path):
-    client = TestClient(create_app())
+    client = TestClient(base_url="http://127.0.0.1", app=create_app())
     file_path = tmp_path / "sample.py"
     file_path.write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
 
@@ -35,7 +35,7 @@ def test_agent_file_endpoint_returns_structured_snapshot(tmp_path):
 
 
 def test_agent_project_endpoint_returns_hotspots_and_signals(tmp_path):
-    client = TestClient(create_app())
+    client = TestClient(base_url="http://127.0.0.1", app=create_app())
     project_path = tmp_path / "proj"
     project_path.mkdir()
     (project_path / "a.py").write_text("def a():\n    return 1\n", encoding="utf-8")

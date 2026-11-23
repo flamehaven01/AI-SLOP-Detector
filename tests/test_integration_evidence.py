@@ -44,7 +44,7 @@ def test_integration_detected_by_runtime_signal(detector):
     content = """from fastapi.testclient import TestClient
 
 def test_call_api():
-    client = TestClient(app)
+    client = TestClient(base_url="http://127.0.0.1", app=app)
     response = client.get("/")
     assert response.status_code == 200
 """

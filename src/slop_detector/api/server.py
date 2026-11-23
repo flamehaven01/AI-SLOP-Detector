@@ -6,11 +6,12 @@ Requires the [api] extras: pip install ai-slop-detector[api]
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
 try:
     from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.middleware.trustedhost import TrustedHostMiddleware
 except ImportError:
     raise ImportError(
         "FastAPI is required for the API server. " "Install with: pip install ai-slop-detector[api]"
@@ -45,8 +46,23 @@ def _project_id_for_path(path: Path) -> str:
     return hashlib.sha256(str(path.resolve()).encode("utf-8")).hexdigest()[:12]
 
 
-def create_app(config_path: Optional[Path] = None) -> FastAPI:
-    """Create FastAPI application"""
+# Host names the API answers by default. A page the user visits can reach 127.0.0.1 from the
+# browser; under its own host name (DNS rebinding) it gets 400 instead of a scan.
+LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "[::1]")
+
+
+def create_app(
+    config_path: Optional[Path] = None,
+    allowed_origins: Sequence[str] = (),
+    allowed_hosts: Sequence[str] = (),
+) -> FastAPI:
+    """Create the FastAPI application.
+
+    The API has no authentication and scans any path it is sent, so by default it answers
+    only local clients: no cross-origin access (a web page of another origin cannot read a
+    scan) and only loopback host names. `allowed_origins` lists origins that may call it
+    (without credentials); `allowed_hosts` adds host names, e.g. the address it is bound to.
+    """
 
     app = FastAPI(
         title="AI SLOP Detector API",
@@ -56,14 +72,17 @@ def create_app(config_path: Optional[Path] = None) -> FastAPI:
         redoc_url="/redoc",
     )
 
-    # CORS
     app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Configure in production
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        TrustedHostMiddleware, allowed_hosts=list(LOOPBACK_HOSTS) + list(allowed_hosts)
     )
+    if allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(allowed_origins),
+            allow_credentials=False,
+            allow_methods=["GET", "POST"],
+            allow_headers=["content-type"],
+        )
 
     def scan(target: Path, mode: str):
         """Read-only scan with the app's config only: no analysis cache, no history.
@@ -293,11 +312,13 @@ def run_server(
     """Run the API server on this machine only, unless a host is given.
 
     The API has no authentication and reads any path it is sent, so binding a
-    network interface (host="0.0.0.0") exposes that to the network.
+    network interface (host="0.0.0.0") exposes that to the network. The bound host
+    is answered as a host name besides the loopback names; other names get 400.
     """
     import uvicorn
 
-    app = create_app(config_path)
+    extra = () if host in LOOPBACK_HOSTS or host in ("0.0.0.0", "::") else (host,)
+    app = create_app(config_path, allowed_hosts=extra)
     uvicorn.run(app, host=host, port=port)
 
 

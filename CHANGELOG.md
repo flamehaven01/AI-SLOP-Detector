@@ -120,6 +120,19 @@ analyzer happens to have installed. Design and limits:
 - Analysis cache `analysis-cache-v55`: the first scan after upgrading analyzes
   each file again. The project's own environment is part of the cache key, by
   the content of the metadata files read.
+- The REST API answers local clients only. It no longer allows every origin
+  (CORS `allow_origins=["*"]` with credentials let any web page open in a local
+  browser make it scan a path and read the answer); no cross-origin access by
+  default, `create_app(allowed_origins=[...])` allows listed origins without
+  credentials. Requests whose host name is not `127.0.0.1`, `localhost` or
+  `[::1]` (a DNS-rebinding page) get `400`; `create_app(allowed_hosts=[...])`
+  adds names and `run_server(host=...)` adds the address it binds. A client
+  that called the API from a browser page of another origin must be listed.
+- Removed: the experimental `slop_detector.auth` package (OAuth handlers that
+  returned simulated tokens and users, a SAML handler that did not verify
+  signatures, RBAC, sessions, audit). Nothing in the analyzer, CLI, MCP server
+  or REST API used it, its `jwt` import was an undeclared dependency, and it
+  was never a supported surface. Code that imported it must remove the import.
 
 ### Known limits
 
@@ -138,6 +151,8 @@ analyzer happens to have installed. Design and limits:
   have.
 - An environment outside the project root, or an explicit target platform,
   cannot be configured yet.
+- The names a relative import asks for are not checked: `from .x import f`
+  where `x` exists but defines no `f` is not reported.
 
 ## [3.17.0] - 2026-11-19
 

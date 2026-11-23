@@ -183,7 +183,6 @@ def test_an_all_stub_file_is_placeholder_only(root):
 @pytest.mark.parametrize(
     "rel",
     [
-        "auth/sso.py",
         "autofix/engine.py",
         "languages/base.py",
         "languages/go_analyzer.py",
@@ -196,7 +195,7 @@ def test_an_all_stub_file_is_placeholder_only(root):
         "question_generator.py",
     ],
 )
-def test_the_eleven_self_false_positives_are_not_placeholder_only(rel):
+def test_the_self_false_positives_are_not_placeholder_only(rel):
     from slop_detector.operations_cleanup import _looks_like_dead_code
 
     assert _looks_like_dead_code(str(PKG / rel)) is False

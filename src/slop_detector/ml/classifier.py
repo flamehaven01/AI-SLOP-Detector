@@ -325,7 +325,12 @@ class SlopClassifier:
         logger.info(f"Model saved to {output_path}")
 
     def load(self, model_path: Path):
-        """Load trained model from disk."""
+        """Load a trained model from disk.
+
+        The file is unpickled, which runs code the file names: load only a model this
+        machine trained (SlopClassifier.save). Nothing in the analyzer, CLI, MCP server
+        or REST API calls this; scoring does not use a pickled model.
+        """
         with open(model_path, "rb") as f:
             model_data = pickle.load(f)
 

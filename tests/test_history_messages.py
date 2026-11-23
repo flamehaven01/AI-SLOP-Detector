@@ -143,7 +143,7 @@ def test_the_api_answers_and_records_nothing(setup, failing_copy, caplog):
 
     db, project = setup
     before = _rows(db)
-    client = TestClient(create_app())
+    client = TestClient(base_url="http://127.0.0.1", app=create_app())
     body = {"file_path": str(project / "mod.py"), "save_history": True}
 
     with caplog.at_level(logging.WARNING):

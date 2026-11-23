@@ -295,7 +295,12 @@ def test_the_api_project_route_records_every_language(project, history_db):
     from slop_detector.api.server import create_app
 
     body = {"project_path": str(project), "save_history": True}
-    assert TestClient(create_app()).post("/analyze/project", json=body).status_code == 200
+    assert (
+        TestClient(base_url="http://127.0.0.1", app=create_app())
+        .post("/analyze/project", json=body)
+        .status_code
+        == 200
+    )
 
     assert sorted(r["language"] for r in _rows(history_db)) == [
         "go",

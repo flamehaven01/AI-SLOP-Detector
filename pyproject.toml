@@ -104,7 +104,6 @@ addopts = "--cov=slop_detector --cov-report=term-missing --cov-report=html -p no
 [tool.coverage.run]
 # Experimental modules - not yet integrated with core
 omit = [
-    "*/auth/*",
     "*/api/*",
     "*/ml/*",
     "*/languages/*",
@@ -134,7 +133,6 @@ exclude = ["tests/corpus/", "tests/manual_test/"]
 
 [[tool.mypy.overrides]]
 module = [
-    "slop_detector.auth.*",
     "slop_detector.api.*",
     "slop_detector.ml.*",
     "slop_detector.languages.*",

@@ -2,9 +2,7 @@ import pytest
 
 pytest.importorskip("fastapi", reason="requires api extra: pip install ai-slop-detector[api]")
 
-from slop_detector import __version__  # noqa: E402
 from slop_detector.api.models import AnalysisResponse, TrendResponse  # noqa: E402
-from slop_detector.auth import __version__ as auth_version  # noqa: E402
 from slop_detector.models import (  # noqa: E402
     DDCResult,
     FileAnalysis,
@@ -53,7 +51,3 @@ def test_trend_response_maps_history_payload():
     assert payload.average_score == 16.0
     assert payload.trend_direction == "improving"
     assert payload.regression_count == 0
-
-
-def test_auth_module_version_tracks_package_version():
-    assert auth_version == __version__

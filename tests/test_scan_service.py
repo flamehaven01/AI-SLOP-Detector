@@ -352,7 +352,9 @@ def test_api_scans_run_through_the_service(targets, route, key, target):
 
     from slop_detector.api.server import create_app
 
-    client = TestClient(create_app(), raise_server_exceptions=False)
+    client = TestClient(
+        base_url="http://127.0.0.1", app=create_app(), raise_server_exceptions=False
+    )
     lock = _hold_scan_lock()
     try:
         response = client.post(route, json={key: str(targets[target])})
@@ -387,7 +389,7 @@ def test_api_does_not_discover_a_project_slopconfig(tmp_path):
     from slop_detector.api.server import create_app
 
     project = _project_with_broken_slopconfig(tmp_path)
-    client = TestClient(create_app())
+    client = TestClient(base_url="http://127.0.0.1", app=create_app())
     assert client.post("/agent/project", json={"project_path": str(project)}).status_code == 200
     assert client.post("/agent/file", json={"file_path": str(project / "a.py")}).status_code == 200
 
@@ -413,7 +415,9 @@ def test_api_config_error_is_a_500_with_the_config_message(targets, tmp_path):
 
     bad = tmp_path / "bad.yaml"
     bad.write_text("thresholds:\n  ldr: abc\n", encoding="utf-8")
-    client = TestClient(create_app(config_path=bad), raise_server_exceptions=False)
+    client = TestClient(
+        base_url="http://127.0.0.1", app=create_app(config_path=bad), raise_server_exceptions=False
+    )
     response = client.post("/agent/file", json={"file_path": str(targets["file"])})
     assert response.status_code == 500
     assert "invalid configuration" in response.json()["detail"]
@@ -436,6 +440,8 @@ def test_mcp_and_api_analysis_failure_keep_the_underlying_text(targets, monkeypa
 
     from slop_detector.api.server import create_app
 
-    client = TestClient(create_app(), raise_server_exceptions=False)
+    client = TestClient(
+        base_url="http://127.0.0.1", app=create_app(), raise_server_exceptions=False
+    )
     response = client.post("/agent/project", json={"project_path": str(targets["project"])})
     assert (response.status_code, response.json()["detail"]) == (500, "boom from the engine")

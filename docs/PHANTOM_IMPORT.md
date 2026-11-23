@@ -304,7 +304,7 @@ With `project_root`, the source is analyzed as the file
 
 | Scenario | Handled |
 |---|---|
-| Relative imports | Excluded (`node.level > 0`) |
+| Relative imports | Excluded (`node.level > 0`); the names they ask for are not checked either: `from .x import f` with no `f` in `x` is not reported |
 | Editable installs | Finder fallback |
 | Namespace packages | Finder fallback |
 | `PIL` declared as `Pillow`, `sklearn` as `scikit-learn` (installed or not) | provider resolution links the declaration to the import name (installed metadata, then the shipped mapping) |

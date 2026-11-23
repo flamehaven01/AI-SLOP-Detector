@@ -35,7 +35,7 @@ else:
     body = {key: target}
     if save != "default":
         body["save_history"] = save == "true"
-    answer = TestClient(create_app()).post(route, json=body)
+    answer = TestClient(base_url="http://127.0.0.1", app=create_app()).post(route, json=body)
     assert answer.status_code == 200, answer.text
 print("OK")
 """
