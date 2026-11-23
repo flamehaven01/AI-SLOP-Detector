@@ -463,11 +463,15 @@ def _same_named_sibling(file: Path, top: str, ctx: "_FileContext") -> Optional[D
     if not (parent / "__init__.py").is_file():
         return None
     module, package = parent / f"{top}.py", parent / top
+    init = package / "__init__.py"
+    # A regular package is known by its __init__.py entry, never by following it (R26c): an
+    # entry that links out of the boundary leaves nothing to walk, so importable_state cannot
+    # see it, yet the directory is still the sibling package (R27e/R27f).
+    regular = not leaves(package, ctx.boundary) and os.path.lexists(str(init))
     if not leaves(module, ctx.boundary) and module.is_file():
         found, kind, hashed = module, "module", module
-    elif not leaves(package, ctx.boundary) and importable_state(package, ctx.boundary):
-        hashed = package / "__init__.py"
-        regular = os.path.lexists(str(hashed))  # the entry, never its target
+    elif regular or (not leaves(package, ctx.boundary) and importable_state(package, ctx.boundary)):
+        hashed = init
         found, kind = package, "package" if regular else "namespace_package"
     else:
         return None

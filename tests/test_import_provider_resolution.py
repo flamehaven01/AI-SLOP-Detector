@@ -1464,6 +1464,33 @@ def test_r27e_sibling_init_linking_out_is_not_read(project, outside):
     assert seen == [], seen
 
 
+def test_r27f_sibling_package_known_by_its_init_entry_alone(project, monkeypatch):
+    """R27f (R27e without link privilege). A sibling directory whose only evidence of being a
+    package is its __init__.py entry (the entry links out of the scan root, so nothing below it
+    is walked: importable_state answers None) is still the sibling package; its __init__.py is
+    not read. Found by R27e on Linux CI: _same_named_sibling asked importable_state only, which
+    cannot see a package whose __init__.py leaves the boundary, so no evidence was attached."""
+    from slop_detector.patterns import python_imports as pi
+
+    _write_pyproject(project, "")
+    _write(project, "lib/pkg/__init__.py", "")
+    init = _write(project, "lib/pkg/zz_r27f/__init__.py", "z = 3\n")
+    real_leaves, real_state = pi.leaves, pi.importable_state
+    monkeypatch.setattr(pi, "leaves", lambda p, b: True if p == init else real_leaves(p, b))
+    monkeypatch.setattr(
+        pi, "importable_state", lambda p, b: None if p == init.parent else real_state(p, b)
+    )
+    issues = _issues_of(project, "lib/pkg/other.py", "import zz_r27f\n")
+    assert _ids(issues) == ["phantom_import"], issues
+    assert _sibling(issues[0]) == {
+        "path": "lib/pkg/zz_r27f",
+        "kind": "package",
+        "hash_state": "OUT_OF_BOUNDARY",
+        "relationship": "SIBLING_IN_PACKAGE",
+        "verification_state": "CONTEXT_ONLY",
+    }, issues[0]
+
+
 def test_r26c_init_entry_marks_a_package_without_following_it(project, outside):
     """R26c (R15-SEC-02). A first-level directory whose __init__.py is a link (here dangling,
     out of the project) is a package by its entry; the link is not followed to decide, so the
