@@ -101,7 +101,16 @@ analyzer happens to have installed. Design and limits:
   runs as a script (`if __name__ == "__main__":`), or that falls back to
   `from x import ...` after `from .x import ...` fails, gets an unverified
   `depends_on_run_mode` row instead: which one it loads depends on how it runs.
-  Siblings of a script outside a package are local, as before.
+  Siblings of a script outside a package are local, as before. Such a finding
+  carries `evidence.same_named_sibling` (path, module, package or namespace
+  package, SHA-256 with a `hash_state` saying why one is missing, `CONTEXT_ONLY`)
+  so whoever fixes it sees both readings. A file that links out of the scan root
+  is not read for the hash.
+- A first-level directory that is itself a regular package is no longer taken
+  as a module root because it holds subpackages: `pkg/fhir/` no longer answers
+  `import fhir` (the `fhir.resources` distribution), so findings such imports
+  had been hiding are reported. A non-package directory holding packages
+  (`backend/app`) is a module root as before.
 - Work order ruleset `2.1.0`: `undeclared_dependency` and `provider_conflict`
   are in the dependency group, whose question asks which distribution provides
   the name before anything is declared or installed.

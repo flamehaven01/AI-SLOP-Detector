@@ -1298,19 +1298,105 @@ def test_r25i_python_semantics_the_contract_rests_on(tmp_path):
     assert as_module.returncode != 0 and "No module named 'zz_helper_r25i'" in as_module.stderr
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="HOLD2-F2 (open, not fixed in 3.18 R14): a first-level regular package holding "
-    "subpackages is taken as a conditional module root (E4), so pkg/zz_r26/ answers an absolute "
-    "`import zz_r26` that Python does not resolve (pkg/ is not on sys.path)",
-)
 def test_hold2_f2_e4_root_does_not_answer_an_absolute_import(project):
-    """HOLD2-F2 reproduction, kept apart from HOLD2-F1 (R25f tests sibling discovery only). An
-    expected failure while open: when E4 is fixed this test passes and strict xfail flags it."""
+    """R26a (HOLD2-F2). A first-level regular package holding subpackages is not a module root:
+    Python never puts a package directory on sys.path, so pkg/zz_r26/ does not answer an absolute
+    `import zz_r26`. Today (b7d35f5): resolved through the conditional root pkg/ (corpus: 185
+    findings hidden this way, e.g. healthchain/fhir/ hiding the fhir-resources import)."""
     _write_pyproject(project, "")
     _write(project, "pkg/__init__.py", "")
     _write(project, "pkg/zz_r26/__init__.py", "")
     assert _ids(_issues_of(project, "pkg/other.py", "import zz_r26\n")) == ["phantom_import"]
+
+
+def test_r26b_monorepo_service_directory_still_holds_its_package(project):
+    """R26b. The case the conditional root exists for: backend/ is not a package and holds the
+    package app/, so `import app` from backend/ code (run with backend/ on sys.path) is the
+    project's own. Holds today; kept as a control."""
+    _write_pyproject(project, "")
+    _write(project, "backend/app/__init__.py", "")
+    _write(project, "backend/app/core.py", "")
+    assert _issues_of(project, "backend/main.py", "import app.core\n") == []
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="HOLD2-F3 (open): the members a relative import names are not checked, so "
+    "`from .x import f` with no f in x (an ImportError in package mode) is not reported",
+)
+def test_hold2_f3_relative_import_of_a_missing_member_is_reported(project):
+    """HOLD2-F3 (R25j follow-up): the way a withheld fallback could still hide a defect. The
+    sibling x exists but has no f, so `from .x import f` fails whenever the package imports it.
+    Expected failure while open."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_h_r25k.py", "def g():\n    return 1\n")
+    issues = _issues_of(project, "pkg/plain.py", "from .zz_h_r25k import f\n")
+    assert issues, issues
+
+
+def _sibling(issue: dict) -> Optional[dict]:
+    return (issue.get("evidence") or {}).get("same_named_sibling")
+
+
+def test_r27a_finding_names_the_same_named_sibling_module(project):
+    """R27a. An absolute import judged inside a regular package that has a module of the same
+    name beside the file carries that module as context (`evidence.same_named_sibling`): whoever
+    fixes it sees both readings (the distribution, or `from . import`). Verdict unchanged.
+    Today: no such field."""
+    _write_pyproject(project, "")
+    _write(project, "pkg/__init__.py", "")
+    sib = _write(project, "pkg/zz_r27a.py", "x = 1\n")
+    issues = _issues_of(project, "pkg/other.py", "import zz_r27a\n")
+    assert _ids(issues) == ["phantom_import"], issues
+    assert _sibling(issues[0]) == {
+        "path": "pkg/zz_r27a.py",
+        "kind": "module",
+        "sha256": _sha(sib),
+        "hash_state": "HASHED",
+        "relationship": "SIBLING_IN_PACKAGE",
+        "verification_state": "CONTEXT_ONLY",
+    }, issues[0]
+
+
+def test_r27b_finding_names_the_same_named_sibling_package(project):
+    """R27b. The same for a subpackage beside the file (its __init__.py is hashed)."""
+    _write_pyproject(project, "")
+    _write(project, "lib/pkg/__init__.py", "")
+    init = _write(project, "lib/pkg/zz_r27b/__init__.py", "y = 2\n")
+    issues = _issues_of(project, "lib/pkg/other.py", "import zz_r27b\n")
+    assert _ids(issues) == ["phantom_import"], issues
+    assert _sibling(issues[0]) == {
+        "path": "lib/pkg/zz_r27b",
+        "kind": "package",
+        "sha256": _sha(init),
+        "hash_state": "HASHED",
+        "relationship": "SIBLING_IN_PACKAGE",
+        "verification_state": "CONTEXT_ONLY",
+    }, issues[0]
+
+
+def test_r27c_no_sibling_no_field_and_the_finding_does_not_change(project, tmp_path):
+    """R27c. Without a sibling there is no field; with one, the finding (pattern, severity,
+    message, suggestion, other evidence) and the score are the same."""
+    twin = tmp_path / "twin27"
+    for root in (project, twin):
+        root.mkdir(exist_ok=True)
+        _write_pyproject(root, "")
+        _write(root, "pkg/__init__.py", "")
+    _write(project, "pkg/zz_r27c.py", "")
+    results = []
+    for root in (project, twin):
+        path = _write(root, "pkg/other.py", "import zz_r27c\n")
+        importlib.invalidate_caches()
+        results.append(SlopDetector(read_only=True).analyze_file(str(path)))
+    with_sib, without = ([i.to_dict() for i in r.pattern_issues] for r in results)
+    assert _sibling(without[0]) is None
+    for d in (with_sib[0], without[0]):
+        d.pop("file", None)
+        (d.get("evidence") or {}).pop("same_named_sibling", None)
+    assert with_sib == without
+    assert results[0].deficit_score == results[1].deficit_score
 
 
 def test_r25j_withheld_fallback_does_not_hide_the_failure_behind_it(project):
@@ -1328,3 +1414,63 @@ def test_r25j_withheld_fallback_does_not_hide_the_failure_behind_it(project):
     assert [(r["requested_module"], r["reason"]) for r in rows] == [
         ("zz_helper_r25h", "depends_on_run_mode")
     ], rows
+
+
+def test_r27d_namespace_package_sibling_says_it_has_nothing_to_hash(project):
+    """R27d (R15-EVIDENCE-01). A namespace package beside the file (no __init__.py) has no file
+    that stands for it: kind `namespace_package`, `hash_state` NO_INIT, no sha256, instead of a
+    silently missing hash. Today (R15 draft): kind `package`, no hash, no state."""
+    _write_pyproject(project, "")
+    _write(project, "lib/pkg/__init__.py", "")
+    _write(project, "lib/pkg/zz_r27d/mod.py", "")
+    issues = _issues_of(project, "lib/pkg/other.py", "import zz_r27d\n")
+    assert _ids(issues) == ["phantom_import"], issues
+    assert _sibling(issues[0]) == {
+        "path": "lib/pkg/zz_r27d",
+        "kind": "namespace_package",
+        "hash_state": "NO_INIT",
+        "relationship": "SIBLING_IN_PACKAGE",
+        "verification_state": "CONTEXT_ONLY",
+    }, issues[0]
+
+
+def _link_file(link: Path, target: Path) -> None:
+    link.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.symlink(str(target), str(link))
+    except (OSError, NotImplementedError):
+        pytest.skip("cannot create a file link here (no symlink privilege)")
+
+
+def test_r27e_sibling_init_linking_out_is_not_read(project, outside):
+    """R27e (R15-SEC-01). The sibling package's __init__.py links out of the project: it is not
+    opened, so no sha256, `hash_state` OUT_OF_BOUNDARY. Today (R15 draft): the file outside is
+    read and hashed."""
+    _write_pyproject(project, "")
+    _write(project, "lib/pkg/__init__.py", "")
+    secret = _write(outside, "init_r27e.py", "z = 3\n")
+    _link_file(project / "lib" / "pkg" / "zz_r27e" / "__init__.py", secret)
+    _watch(outside)
+    issues = _issues_of(project, "lib/pkg/other.py", "import zz_r27e\n")
+    seen = list(_FS_WATCH["seen"])  # type: ignore[arg-type]
+    assert _ids(issues) == ["phantom_import"], issues
+    assert _sibling(issues[0]) == {
+        "path": "lib/pkg/zz_r27e",
+        "kind": "package",
+        "hash_state": "OUT_OF_BOUNDARY",
+        "relationship": "SIBLING_IN_PACKAGE",
+        "verification_state": "CONTEXT_ONLY",
+    }, issues[0]
+    assert seen == [], seen
+
+
+def test_r26c_init_entry_marks_a_package_without_following_it(project, outside):
+    """R26c (R15-SEC-02). A first-level directory whose __init__.py is a link (here dangling,
+    out of the project) is a package by its entry; the link is not followed to decide, so the
+    directory is not a module root and its subpackage does not answer `import`. Today (R15
+    draft): `is_file()` follows the link, finds nothing, and takes the directory as a root."""
+    _write_pyproject(project, "")
+    _link_file(project / "zz_top_r26c" / "__init__.py", outside / "missing_r26c.py")
+    _write(project, "zz_top_r26c/zz_sub_r26c/__init__.py", "")
+    issues = _issues_of(project, "app.py", "import zz_sub_r26c\n")
+    assert _ids(issues) == ["phantom_import"], issues

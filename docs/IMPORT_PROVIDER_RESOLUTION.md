@@ -348,8 +348,12 @@ For `phantom_member`:
 | `PROVIDER_UNKNOWN` | listed in `unverified_imports` (existing channel, no score effect) |
 
 **Score contract (`SCORE_CONTRACT_VERSION = "3.18"`, `core_scoring.py`).**
-Severity weights are unchanged. Two rules decide which findings add to the
-pattern penalty; every finding is still reported:
+Severity weights are unchanged, and every finding is still reported. Three
+rules decide which findings add to the pattern penalty (`_scored`). One is not
+part of this contract: since 3.10.0, a `deep_nesting` finding at the location
+of a `nested_complexity` finding (the same function) adds nothing, because
+`nested_complexity` is that deep nesting plus a complexity condition; 3.18 only
+moved it next to the two rules it adds for provider findings:
 
 - `provider_conflict` seen only in the analyzer's environment adds nothing: an
   analysis environment that differs from the project's is not a defect of the
@@ -460,6 +464,13 @@ projects, with results compared per finding before any verdict changes.
 | R25g. A package module without one | absolute import (package membership is the default reading, not proof of how it runs) |
 | R25h. `try: from .x import f / except ImportError: from x import f` | the fallback is unverified `depends_on_run_mode` when x is a sibling; judged otherwise |
 | R25i. Python itself (synthetic package, run both ways) | runs directly: the sibling loads; `python -m`: it does not |
+| R25j. The relative module itself fails to import | the cause is reported in that module; the fallback stays unverified |
+| R26a. A first-level regular package holding subpackages | not a module root: its subpackages do not answer an absolute import |
+| R26b. A non-package directory holding a package (`backend/app`) | a conditional module root, as before |
+| R27a/b. A same-named module or package beside a package file | listed in `same_named_sibling` (`CONTEXT_ONLY`); verdict and score unchanged (R27c) |
+| R27d. The same-named sibling is a namespace package | `kind` `namespace_package`, `hash_state` `NO_INIT`, no hash |
+| R27e. The sibling's `__init__.py` links out of the scan root | not opened: no hash, `hash_state` `OUT_OF_BOUNDARY` (needs file-symlink rights) |
+| R26c. A first-level `__init__.py` that is a link | the entry marks the package; the link is not followed (needs file-symlink rights) |
 | R22. A provider from the shipped mapping | evidence carries the entry's `mapping_audit` |
 
 ### Experiments on the frozen set
@@ -503,6 +514,10 @@ not any ancestor directory. Open:
   a module of that name exists in the project; otherwise the finding carries
   `evidence.sys_path_unresolved: true`, a bounded static verdict, not proof
   that no provider exists outside the project.
+- **Members named by a relative import.** `from .x import f` is not checked for
+  an `f` in `x`, so a missing member (an ImportError whenever the package imports
+  it) is not reported, and a withheld `except ImportError` fallback after it can
+  rest on that failure. Pinned by a strict expected-failure test.
 - **Scan boundary.** Import resolution reads only inside the scan root (for a
   single file, its project root), by real path (PHANTOM_IMPORT.md, "What is
   read"). An environment behind a link out is recognised only under a

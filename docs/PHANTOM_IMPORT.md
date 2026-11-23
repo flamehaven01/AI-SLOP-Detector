@@ -128,6 +128,24 @@ Two fields carry what a `sys.path` change leaves open:
   project is left out. These are files and directories the project's layout
   could supply the import from, not modules shown to be the ones imported.
 
+`evidence.same_named_sibling` (3.18): when a finding's file is inside a regular
+package and a module or package of the import's name sits beside it, the
+finding carries it (`path`, `kind` module/package/namespace_package, `sha256`
+of the file or its `__init__.py`, `hash_state`, `relationship`
+`SIBLING_IN_PACKAGE`, `verification_state` `CONTEXT_ONLY`). `hash_state` says
+why a `sha256` is or is not there: `HASHED`; `NO_INIT` (a namespace package has
+no file standing for it); `OUT_OF_BOUNDARY` (the file links out of the scan
+root and is not read); `UNREADABLE`. The absolute import does not load it,
+but the author may have meant it (`from . import name`); a wrapper module
+named after the package it
+wraps is the opposite case, where a relative import would import itself. The
+verdict and score do not change.
+
+A first-level directory that is itself a regular package is not a module root
+(only a non-package directory holding packages is, as in a `backend/app`
+monorepo): its subpackages do not answer an absolute import of their name
+(3.18).
+
 `evidence.related_declarations` (3.18) points whoever fixes a finding to
 where else the project already declares the package. It appears on
 `phantom_import`, `undeclared_dependency` and `undeclared_optional_dependency`

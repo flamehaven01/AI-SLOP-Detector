@@ -16,6 +16,7 @@ under a particular runtime sys.path, so callers must treat them as conditional.
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -235,7 +236,7 @@ def is_namespace_package(path: Path, boundary: Path) -> bool:
         not leaves(path, boundary)
         and _is_layout_candidate(path)
         and path.name.isidentifier()
-        and not (path / "__init__.py").exists()
+        and not os.path.lexists(str(path / "__init__.py"))  # the entry, never its target
         and _holds_python_sources(path, boundary)
     )
 
@@ -261,11 +262,15 @@ def _conventional_src(project_root: Path, boundary: Path) -> Optional[Path]:
 
 
 def _conditional_children(project_root: Path, boundary: Path) -> List[Path]:
-    """First-level directories that hold a regular package (monorepo `backend/app`)."""
+    """First-level directories that hold a regular package (monorepo `backend/app`). A directory
+    that is itself a regular package is none: Python never puts a package directory on sys.path,
+    so its subpackages are not top-level names (`pkg/fhir/` does not answer `import fhir`). Any
+    `__init__.py` entry marks the package; a link is not followed to see what it names."""
     return [
         child
         for child in _subdirs(project_root, boundary)
         if _is_layout_candidate(child)
+        and not os.path.lexists(str(child / "__init__.py"))
         and any(is_regular_package(c, boundary) for c in _subdirs(child, boundary))
     ]
 

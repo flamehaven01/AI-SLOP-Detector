@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import logging
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -438,6 +439,49 @@ def _run_mode_sibling(file: Path, top: str, boundary: Path) -> Optional[Path]:
     return None
 
 
+def _hash_into(entry: Dict[str, object], hashed: Path, kind: str, boundary: Path) -> str:
+    """Put the sha256 of `hashed` into `entry` when it is a file read inside the boundary; return
+    the state either way. The boundary is checked before the file is touched."""
+    if kind == "namespace_package":
+        return "NO_INIT"
+    if leaves(hashed, boundary):
+        return "OUT_OF_BOUNDARY"
+    try:
+        entry["sha256"] = hashlib.sha256(hashed.read_bytes()).hexdigest()
+    except OSError:
+        return "UNREADABLE"
+    return "HASHED"
+
+
+def _same_named_sibling(file: Path, top: str, ctx: "_FileContext") -> Optional[Dict[str, object]]:
+    """For a file of a regular package: the module or package named `top` beside it, as context
+    for a finding about the absolute `import top` (it is not what that import loads, but it may be
+    what the author meant: `from . import top`). None when there is none. `hash_state` says why
+    a sha256 is or is not there: HASHED, NO_INIT (a namespace package has no file standing for
+    it), OUT_OF_BOUNDARY (the file links out and is not read) or UNREADABLE."""
+    parent = file.parent
+    if not (parent / "__init__.py").is_file():
+        return None
+    module, package = parent / f"{top}.py", parent / top
+    if not leaves(module, ctx.boundary) and module.is_file():
+        found, kind, hashed = module, "module", module
+    elif not leaves(package, ctx.boundary) and importable_state(package, ctx.boundary):
+        hashed = package / "__init__.py"
+        regular = os.path.lexists(str(hashed))  # the entry, never its target
+        found, kind = package, "package" if regular else "namespace_package"
+    else:
+        return None
+    base = ctx.declaration_root or parent
+    entry: Dict[str, object] = {
+        "path": found.relative_to(base).as_posix() if base in found.parents else found.name,
+        "kind": kind,
+    }
+    entry["hash_state"] = _hash_into(entry, hashed, kind, ctx.boundary)
+    entry["relationship"] = "SIBLING_IN_PACKAGE"
+    entry["verification_state"] = "CONTEXT_ONLY"
+    return entry
+
+
 def _blocked_sibling(file: Path, top: str, boundary: Path) -> Tuple[Path, ...]:
     """A sibling `top.py` or `top/` of the file (its directory is on sys.path when it runs as
     a script) that is, or holds only behind, a link out of the boundary."""
@@ -474,8 +518,10 @@ def _handler_is_import_guard(handler: ast.ExceptHandler) -> bool:
 
 def _relative_fallbacks(tree: ast.AST) -> FrozenSet[Tuple[int, str]]:
     """(line, name) of absolute imports in an `except ImportError` handler whose try body imports
-    the same name relatively (`try: from .x import f / except ImportError: from x import f`): the
-    fallback runs only when the file runs directly, where a sibling x is what it loads."""
+    the same name relatively (`try: from .x import f / except ImportError: from x import f`). The
+    fallback runs when the relative import fails: when the file runs directly (a sibling x is then
+    what it loads), or when x itself fails to import inside a package (that cause is x's own
+    import, reported in x; a missing member f is not checked: HOLD2-F3)."""
     found: set = set()
     for node in walk_nodes(tree):
         if not isinstance(node, ast.Try):
@@ -668,6 +714,12 @@ class PhantomImportPattern(BasePattern):
                     # a directory added before this import is not known (or not readable): the
                     # verdict stands, but the search path it rests on was not fully seen
                     issue.evidence = {**(issue.evidence or {}), "sys_path_unresolved": True}
+                sibling_context = _same_named_sibling(file, top, ctx)
+                if sibling_context is not None:
+                    issue.evidence = {
+                        **(issue.evidence or {}),
+                        "same_named_sibling": sibling_context,
+                    }
                 if issue.pattern_id in _UNDECLARED_IDS:
                     related = related_declarations(ctx, module, members)
                     if related:
