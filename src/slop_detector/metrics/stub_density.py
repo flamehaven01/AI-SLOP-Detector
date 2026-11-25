@@ -15,8 +15,7 @@ Two orthogonal measures of code structural quality derived from AST analysis:
    pattern gates. When N functions are structurally near-identical, the
    aggregate signal is: complexity was fragmented, not eliminated.
 
-Algorithm (adapted from Protocol-ReGenesis math_models.py, which ports
-Flamehaven-TOE v4.5.0 toe/math/di2.py):
+Algorithm:
   - ast_node_histogram(func_node) -> normalized 30-dim vector
   - jsd(p, q) -> [0, 1] (0 = identical distributions)
   - clone group: maximal clique of functions with JSD < CLONE_JSD_THRESHOLD

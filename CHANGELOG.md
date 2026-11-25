@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.18.1] - 2026-11-25
+
+A patch release: the VS Code extension is brought up to the 3.18 backend
+(and four of its commands that never worked are fixed), and the documentation
+is corrected where it no longer described the code. Analysis, findings and
+scores do not change; on the detector's own source a scan gives the same
+findings, evidence, metrics and project score as 3.18.0.
+
+### VS Code extension 3.18.1
+
+- The `phantom_import` Quick Fix **Allowlist '<module>'** is offered again
+  with a 3.18 backend. It read the module name from the finding's message,
+  which 3.18.0 reworded (`... known provider supplies 'x'`); both wordings are
+  read now.
+- **Show Gate Decision** works: the decision is the text block `--gate` prints
+  after the analysis (there is no JSON field for it); the command expected one
+  and failed (checked with the 3.17.0 and 3.18.0 backends). Output without a
+  readable decision is reported as UNVERIFIED, never as PASS or HALT.
+- **Show File History** and **Show History Trends** show the backend's tables
+  in the Output panel; they asked for JSON the backend does not print and
+  failed.
+- **Install Git Pre-Commit Hook** installs the backend's hook
+  (`GitIntegration.install_pre_commit_hook`: staged `.py` files,
+  `--ci-mode hard`, a hook another tool installed is left as is); it called a
+  CLI option that does not exist. Where git keeps hooks outside the workspace
+  folder (`core.hooksPath`, a worktree, a linked hooks directory) it asks
+  first, and it does nothing in an untrusted workspace; the extension declares
+  that it does not run in Restricted Mode.
+- New icon; the README has the logo, two screenshots, the 57 rule ids of
+  PATTERNS.md (it named four that do not exist: `go_print_format`,
+  `ruby_array_each`, `noqa_overuse`, `type_ignore_overuse`), the 3.18 import
+  rules, and every command.
+- Tests without VS Code: the Quick Fix from real 3.17.0 and 3.18.0 backend
+  output, and the gate block from real backend output.
+
+### Documentation corrections
+
+- 3.18.0 note, added: the module-root and scan-boundary changes of 3.18.0 apply
+  to the import graph too (import cycles, layer boundaries, `--cross-file`).
+  `import fhir` inside a regular package that holds `fhir/` was
+  `conditional_internal` and is `external`; an import only a link out of the
+  scan root could supply was a resolved edge and is `external`. Relative
+  imports, `pkg.fhir`, declared roots and `backend/app`-style roots resolve as
+  before. Controls in `tests/test_import_graph_resolution_318.py`;
+  [IMPORT_GRAPH.md](docs/IMPORT_GRAPH.md) describes it.
+- [PATTERNS.md](docs/PATTERNS.md): `phantom_import` was still described as
+  CRITICAL and "a direct signal of AI-hallucinated code"; it now gives the 3.18
+  definition and links to [PHANTOM_IMPORT.md](docs/PHANTOM_IMPORT.md).
+- [MATH_MODELS.md](docs/MATH_MODELS.md): the pattern penalty lists every
+  finding that is reported but does not add (score contract `3.18`).
+- [HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) drew LDR, inflation and DDC as
+  computed in parallel; they are computed in order on one parsed tree.
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) still said the REST API allows every
+  origin; [DEVELOPMENT.md](docs/DEVELOPMENT.md) still listed the removed
+  `auth/` package; [GUIDE.md](docs/GUIDE.md) called phantom imports
+  "hallucinated packages"; the 3.10.0 entry below said only the order of the
+  bounded excluded-file sample changed, while which files it lists changed too.
+- Source comments and docstrings no longer name private codebases; one
+  docstring no longer calls the project scan "parallel-ready" (files are
+  analyzed one after another).
+
+---
+
 ## [3.18.0] - 2026-11-23
 
 Python import findings are judged by which distribution provides the import
@@ -1318,8 +1381,9 @@ still applies. With `project_root` the source is analyzed as
 One project walk per scan (shared by coverage and Python/JS/Go discovery),
 one AST walk per module shared by every module-wide check, and a cheaper claim
 scan. Cold / warm on two private codebases: 33.09 s / 10.24 s -> 10.92 s / 3.24 s
-and 11.05 s / 1.55 s -> 4.31 s / 0.78 s; output byte-identical except the order of
-the bounded excluded-file sample. Symlinked directories are not followed.
+and 11.05 s / 1.55 s -> 4.31 s / 0.78 s; output byte-identical except the bounded
+excluded-file sample: which of the excluded files it lists (200 of 13,997 in one
+codebase) and in what order. Symlinked directories are not followed.
 
 #### Distribution says what was published
 

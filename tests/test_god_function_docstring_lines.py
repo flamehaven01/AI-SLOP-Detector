@@ -2,7 +2,7 @@
 
 The message says "N logic lines (limit 50)", but the count included docstring
 lines, while LDR already treats docstrings exactly like comments. In the
-TOE/RExSyn dogfood, 34 of 181 god_function findings existed only because of
+dogfood on two private codebases, 34 of 181 god_function findings existed only because of
 docstrings (e.g. spectral.py:49 reported 75 lines, 31 of them docstring).
 """
 

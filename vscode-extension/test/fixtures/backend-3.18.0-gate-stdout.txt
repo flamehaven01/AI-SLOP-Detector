@@ -1,0 +1,211 @@
+{
+  "file_path": "/fixture\\proj\\app\\stub.py",
+  "ldr": {
+    "total_lines": 9,
+    "logic_lines": 6,
+    "empty_lines": 3,
+    "ldr_score": 0.6666666666666666,
+    "grade": "A",
+    "is_abc_interface": false,
+    "is_type_stub": false,
+    "is_packaging_init": false
+  },
+  "inflation": {
+    "jargon_count": 0,
+    "avg_complexity": 1.3333333333333333,
+    "inflation_score": 0.0,
+    "status": "PASS",
+    "jargon_found": [],
+    "jargon_details": [],
+    "justified_jargon": [],
+    "is_config_file": false
+  },
+  "ddc": {
+    "imported": [],
+    "actually_used": [],
+    "unused": [],
+    "fake_imports": [],
+    "type_checking_imports": [],
+    "usage_ratio": 1.0,
+    "grade": "EXCELLENT"
+  },
+  "deficit_score": 25.971699958280617,
+  "status": "clean",
+  "warnings": [
+    "PATTERNS: 1 high-severity issues found"
+  ],
+  "pattern_issues": [
+    {
+      "pattern_id": "empty_except",
+      "severity": "medium",
+      "axis": "quality",
+      "file": "/fixture\\proj\\app\\stub.py",
+      "line": 9,
+      "column": 4,
+      "message": "Empty handler for 'Exception' silently discards the exception",
+      "code": null,
+      "suggestion": "Log the failure (logger.warning or logger.exception), re-raise it, or return a value the caller can tell is a failure. A comment alone does not resolve this finding; if the silence is correct, say why in the review.",
+      "subject": null,
+      "symbol": "handler",
+      "fingerprint": "e9dc52bf3963abec",
+      "locator": "body[0]/handlers[0]"
+    },
+    {
+      "pattern_id": "return_none_placeholder",
+      "severity": "medium",
+      "axis": "quality",
+      "file": "/fixture\\proj\\app\\stub.py",
+      "line": 13,
+      "column": 0,
+      "message": "Function only returns None - likely placeholder",
+      "code": null,
+      "suggestion": "Implement the function, or remove it with its callers. A docstring or comment alone does not resolve this finding; if the no-op is intended, say why in the review.",
+      "subject": null,
+      "symbol": "g",
+      "fingerprint": null,
+      "locator": ""
+    },
+    {
+      "pattern_id": "return_constant_stub",
+      "severity": "high",
+      "axis": "quality",
+      "file": "/fixture\\proj\\app\\stub.py",
+      "line": 1,
+      "column": 0,
+      "message": "Function 'fraud_score' returns constant 0.0 - likely stub",
+      "code": null,
+      "suggestion": "Implement meaningful logic or remove the function",
+      "subject": null,
+      "symbol": "fraud_score",
+      "fingerprint": null,
+      "locator": ""
+    },
+    {
+      "pattern_id": "ignored_parameter",
+      "severity": "medium",
+      "axis": "quality",
+      "file": "/fixture\\proj\\app\\stub.py",
+      "line": 1,
+      "column": 0,
+      "message": "Parameter 'tx' of 'fraud_score' is never used - it does not affect the result",
+      "code": null,
+      "suggestion": "Use 'tx' as the function promises, or remove it",
+      "subject": "tx",
+      "symbol": "fraud_score",
+      "fingerprint": null,
+      "locator": ""
+    }
+  ],
+  "docstring_inflation": {
+    "total_docstrings": 0,
+    "inflated_count": 0,
+    "avg_inflation_ratio": 0.0,
+    "max_inflation_ratio": 0.0,
+    "total_docstring_lines": 0,
+    "total_implementation_lines": 0,
+    "overall_ratio": 0.0,
+    "status": "PASS",
+    "details": []
+  },
+  "hallucination_deps": {
+    "total_hallucinated": 0,
+    "category_usage": [],
+    "hallucinated_deps": [],
+    "worst_category": "none",
+    "status": "PASS",
+    "evidence_state": "measured"
+  },
+  "context_jargon": {
+    "total_jargon": 0,
+    "justified_jargon": 0,
+    "unjustified_jargon": 0,
+    "evidence_details": [],
+    "worst_offenders": [],
+    "justification_ratio": 1.0,
+    "status": "PASS"
+  },
+  "ml_scoring": {
+    "status": "disabled",
+    "reason": "No ML model artifact was configured for this run.",
+    "model_path": null
+  },
+  "dcf": {
+    "Module": 0.045454545454545456,
+    "FunctionDef": 0.13636363636363635,
+    "arguments": 0.13636363636363635,
+    "Expr": 0.045454545454545456,
+    "Return": 0.13636363636363635,
+    "Try": 0.045454545454545456,
+    "arg": 0.09090909090909091,
+    "Constant": 0.18181818181818182,
+    "ExceptHandler": 0.045454545454545456,
+    "Name": 0.045454545454545456,
+    "Pass": 0.045454545454545456,
+    "Load": 0.045454545454545456
+  },
+  "deficit_breakdown": {
+    "ldr_penalty": 14.9717,
+    "inflation_penalty": -0.0,
+    "ddc_penalty": -0.0,
+    "purity_penalty": -0.0,
+    "pattern_hits": 11.0,
+    "total": 25.9717
+  },
+  "unverified_imports": [],
+  "file_role": "source",
+  "skipped_metrics": [],
+  "flags": [],
+  "pattern_errors": [],
+  "semantic_findings": [],
+  "semantic_coverage": {
+    "state": "MEASURED",
+    "functions": 3,
+    "effect_states": {
+      "EFFECT_OBSERVED": 0,
+      "EFFECT_UNKNOWN": 0,
+      "NO_EFFECT_IN_CLOSED_GRAPH": 3
+    },
+    "unknown_reasons": {},
+    "open_call_details": {
+      "ambiguous": 0,
+      "dynamic": 0,
+      "external": 0,
+      "module_defined_unresolved": 0,
+      "unclassified": 0
+    }
+  },
+  "claim_findings": [],
+  "claim_coverage": {
+    "functions": 3,
+    "eligible_functions": 1,
+    "functions_with_claims": 0,
+    "extracted_claims": 0,
+    "claims_by_kind": {},
+    "not_analyzed_by_reason": {
+      "no_docstring": 2
+    },
+    "excluded_matches_by_reason": {},
+    "out_of_scope": {},
+    "supported": 0,
+    "delegated_in_module": 0,
+    "provided_elsewhere": 0,
+    "undecided": 0,
+    "contradicted": 0,
+    "unmeasured": 0,
+    "not_evaluated": {},
+    "undecided_by_reason": {},
+    "by_kind": {},
+    "state": "MEASURED",
+    "candidates": 0,
+    "merged": 0
+  },
+  "source_sha256": "3b113bec57700e564b3ad9fff22bad894e0a8c3f6d15c485d8bf52a60813d2ba",
+  "content_origin": "file_bytes"
+}
+
+[Gate Decision]
+  Capability: PARTIAL (ML scoring disabled)
+  Status   : PASS
+  Allowed  : True
+  sr9=0.6667  di2=1.0000  jsd=1.0000  ove=0.7800
+  AuditHash: f4241da194b3e68c...

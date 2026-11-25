@@ -9,13 +9,6 @@ import { parseSlopReport, ISlopReport } from './schema';
 import * as client from './client';
 import { isSupported } from './languages';
 
-/** Extract first JSON object/array from stdout, ignoring leading [INFO] log lines. */
-export function extractJson(stdout: string): any {
-    const idx = stdout.search(/^\s*[{[]/m);
-    if (idx >= 0) { return JSON.parse(stdout.slice(idx)); }
-    return JSON.parse(stdout);
-}
-
 export async function runSlopDetector(filePath: string): Promise<ISlopReport> {
     outputChannel.appendLine(`[*] scan ${filePath}`);
     // A JS/TS or Go file comes back project-shaped: take its own result.

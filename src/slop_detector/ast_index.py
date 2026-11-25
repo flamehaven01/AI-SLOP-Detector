@@ -1,7 +1,7 @@
 """One walk per parsed module.
 
 Patterns and metrics each walked the whole module (`ast.walk(tree)`), about
-forty walks per file; on Flamehaven-TOE that was most of a cold scan. The
+forty walks per file; on a measured private codebase that was most of a cold scan. The
 node list of a module is built once and shared. It is `ast.walk` order
 (breadth first), so every reader sees exactly what it saw before. Only
 module roots are cached: analysis never changes a module's structure, while

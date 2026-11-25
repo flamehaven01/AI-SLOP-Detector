@@ -1,10 +1,10 @@
 """v3.10 coverage disclosure: what a "complete" scan did not look at is counted.
 
-Found by re-scanning NSRW, TOE and RExSyn with 3.9.3: every scan said
+Found by re-scanning three private codebases (A, B, C) with 3.9.3: every scan said
 `complete: true`, yet
-- NSRW has 8 `.lean` files and 1 `.ipynb` notebook (Python code) that appear
+- codebase B has 8 `.lean` files and 1 `.ipynb` notebook (Python code) that appear
   nowhere: `unsupported` only knew a fixed list of other-language extensions;
-- RExSyn's own config excludes four named service files, and the exclusion
+- codebase C's own config excludes four named service files, and the exclusion
   count mixed them with 16,714 `.venv` files, so a project hiding its own
   files by config looked the same as one skipping its virtualenv;
 - tests are excluded by default and no pattern evaluates them, but the scan

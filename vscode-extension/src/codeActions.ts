@@ -6,11 +6,13 @@ const PATTERN_SOURCE = 'SLOP Detector - Patterns';
 // Patterns that get QuickFix actions.
 const ACTIONABLE_PATTERNS = new Set(['phantom_import', 'god_function', 'lint_escape']);
 
-// Parse module name from phantom_import diagnostic message.
-// Matches: "Phantom import: 'module_name' cannot be resolved ..."
+// Parse module name from phantom_import diagnostic message (top-level name).
+// Matches: "Phantom import: ... known provider supplies 'module_name'"  (backend 3.18+)
+//      or: "Phantom import: 'module_name' cannot be resolved ..."      (before 3.18)
 //      or: "Undeclared optional dependency: 'module_name' is guarded ..."
-function _extractModuleName(message: string): string | undefined {
-    const m = message.match(/['"]([A-Za-z_][\w.]*)['"](?:\s+cannot|\s+is guarded)/);
+export function extractModuleName(message: string): string | undefined {
+    const m = message.match(/\bsupplies ['"]([A-Za-z_][\w.]*)['"]/)
+        ?? message.match(/['"]([A-Za-z_][\w.]*)['"](?:\s+cannot|\s+is guarded)/);
     return m ? m[1].split('.')[0] : undefined;
 }
 
@@ -81,7 +83,7 @@ function _sectionContainsValue(doc: vscode.TextDocument, key: string, value: str
     return false;
 }
 
-async function _appendListEntry(
+export async function appendListEntry(
     doc: vscode.TextDocument,
     editor: vscode.TextEditor,
     key: string,
@@ -145,7 +147,7 @@ export class SlopCodeActionProvider implements vscode.CodeActionProvider {
 
             if (code === 'phantom_import') {
                 actions.push(this._showOutputAction(diag));
-                const modName = _extractModuleName(diag.message);
+                const modName = extractModuleName(diag.message);
                 if (modName) {
                     actions.push(this._addToAllowlistAction(modName, diag));
                 }
@@ -207,7 +209,7 @@ export async function addModuleToAllowlist(moduleName: string): Promise<void> {
         return;
     }
 
-    const result = await _appendListEntry(
+    const result = await appendListEntry(
         editor.document,
         editor,
         'phantom_import_allowlist',
@@ -231,7 +233,7 @@ export async function addFileToIgnore(relPath: string): Promise<void> {
         return;
     }
 
-    const result = await _appendListEntry(editor.document, editor, 'ignore', relPath);
+    const result = await appendListEntry(editor.document, editor, 'ignore', relPath);
     if (result === 'exists') {
         vscode.window.showInformationMessage(`[=] "${relPath}" is already present under ignore`);
         return;

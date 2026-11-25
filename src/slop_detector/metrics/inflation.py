@@ -282,7 +282,7 @@ class InflationCalculator:
         self.use_radon = config.use_radon() and RADON_AVAILABLE
 
     def calculate(self, file_path: str, content: str, tree: ast.AST) -> InflationResult:
-        """Calculate Inflation with context awareness (v2.8.0 TOE formula)."""
+        """Calculate Inflation with context awareness (v2.8.0 scoped formula)."""
         lines = content.splitlines()
         logic_lines = sum(1 for ln in lines if ln.strip() and not ln.strip().startswith("#"))
         avg_complexity = self._calculate_avg_complexity(content, tree)
@@ -456,7 +456,7 @@ class InflationCalculator:
     ) -> bool:
         """Check if jargon is justified by structural use within its scope.
 
-        v2.8.0: Function-scoped justification (TOE: measure at minimum relevant scope).
+        v2.8.0: Function-scoped justification (measured at the minimum relevant scope).
         - If jargon is inside a function: the library must be used in that function
         - If jargon is module-level: the library may be used anywhere in the file
         """

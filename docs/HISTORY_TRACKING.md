@@ -1,6 +1,6 @@
 # History Tracking
 
-**Current contract:** v3.11.0. Historical version markers below
+**Current contract:** history schema v7 (since v3.16.2). Historical version markers below
 explain when fields were introduced; they are not a separate active protocol.
 
 AI-SLOP Detector records every CLI analysis run to a local SQLite database,

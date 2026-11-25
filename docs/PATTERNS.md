@@ -900,22 +900,27 @@ Detects lint and type suppression comments. Three sub-signals:
 
 ### phantom_import
 
-**Severity:** CRITICAL | **Axis:** QUALITY | **Added:** v2.9.0
+**Severity:** HIGH at most (3.18; CRITICAL before) | **Axis:** QUALITY | **Added:** v2.9.0
 
-Detects imports referencing packages that cannot be resolved in the current
-environment — a direct signal of AI-hallucinated code.
+An import that no installed distribution, dependency declaration or known
+provider supplies. That is what an invented package name looks like, and also
+what a real package looks like that is new, private, or missing from the
+declarations and the shipped mapping; the finding states what was observed,
+not that the package does not exist or that an AI wrote the import. Its
+suggestion asks which package was meant before anything is installed or
+declared.
 
-**Resolution index** (built once per process):
-1. `sys.builtin_module_names` — C extensions
-2. `sys.stdlib_module_names` — stdlib (Python 3.10+)
-3. `importlib.metadata.packages_distributions()` — pip-installed packages
-4. The import system's finders, as `importlib.util.find_spec` would use them, over
-   `sys.path` without the analyzer's working directory and without the analyzed
-   project's own roots — namespace packages, editable installs
+Since 3.18 an import is judged by the distribution that provides it and where
+that evidence comes from: a declared `Pillow` provides `PIL`, the project's own
+virtual environment (a directory with `pyvenv.cfg` directly in the project
+root) is read as files, and every import finding carries `evidence`. A provider that is known
+but not declared is `undeclared_dependency`, a declared one that is not
+installed `runtime_unavailable_dependency` (or `declared_outside_primary_metadata`
+when declared only outside `pyproject.toml`), and an installed module from a
+different distribution than the declared one `provider_conflict`.
 
-Relative imports are excluded by design. Declared `[project.optional-dependencies]`
-entries are recognised after stripping PEP-508 extras specifiers (`psycopg[binary]`
-→ `psycopg`), so guarded imports for properly declared optional packages are not flagged.
+Relative imports (`from . import x`) are not checked by this rule, and neither
+are the names they ask for (`from .x import f` with no `f` in `x`).
 
 ```python
 # HIGH (no provider known, not declared):
@@ -923,12 +928,14 @@ import tensorflow_magic
 from requests_async_v2 import get
 
 # OK:
-import numpy                   # installed
+import numpy                   # installed or declared
 from os import path            # stdlib
-from . import utils            # relative — excluded
+from . import utils            # relative: not checked
 ```
 
-See [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md) for full specification.
+The resolution order, the JSON evidence, the unverified imports and the limits
+are in [PHANTOM_IMPORT.md](PHANTOM_IMPORT.md); the design is in
+[IMPORT_PROVIDER_RESOLUTION.md](IMPORT_PROVIDER_RESOLUTION.md).
 
 ---
 

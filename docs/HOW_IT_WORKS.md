@@ -330,11 +330,10 @@ sequenceDiagram
     D->>M: Analyze file
     M->>M: Parse AST
     
-    par Parallel Analysis
-        M->>M: Calculate LDR
-        M->>M: Calculate Inflation
-        M->>M: Calculate DDC
-    end
+    Note over M: One parsed AST, shared; the metrics run in order
+    M->>M: Calculate LDR (no executable code: LDR and DDC do not apply)
+    M->>M: Calculate Inflation
+    M->>M: Calculate DDC
     
     M->>P: Run pattern detection
     P->>P: Run applicable pattern detectors
@@ -599,5 +598,4 @@ flowchart TD
 
 ---
 
-**Last reviewed:** 2026-10-04
-**Version:** v3.9.3
+**Last reviewed:** 2026-10-04 (v3.9.3); the analysis sequence diagram corrected 2026-11-25 (v3.18.1)

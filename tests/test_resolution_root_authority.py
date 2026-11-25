@@ -46,7 +46,7 @@ def _result_for(project, name):
 
 @pytest.fixture
 def service_repo(tmp_path):
-    """RExSyn-shaped: repo pyproject + src package + backend with its own requirements."""
+    """A private codebase's shape: repo pyproject + src package + backend with its own requirements."""
     repo = tmp_path / "repo"
     _write(repo, "pyproject.toml", '[project]\nname = "repo"\nversion = "0"\ndependencies = []\n')
     _write(repo, "src/__init__.py")

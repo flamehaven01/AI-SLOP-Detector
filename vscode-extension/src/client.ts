@@ -68,15 +68,6 @@ export function review(root: string, base?: string): Promise<ReviewOutput> {
 }
 
 /**
- * JSON escape hatch for clean-JSON subcommands not yet on the typed surface
- * (e.g. `--gate --json`, `--show-history --json`). Parses stdout directly; do
- * not use when the command emits leading log lines (use runText + extractJson).
- */
-export function runRaw<T = unknown>(args: string[], cwd: string): Promise<T> {
-    return runJsonCommand<T>(args, options(cwd));
-}
-
-/**
  * Raw-text escape hatch for human-output commands (fix, init, calibrate,
  * git-hook, cross-file, export) and JSON commands that print log lines first.
  * Unifies all backend execution through the wrapper; the extension never spawns
@@ -84,4 +75,70 @@ export function runRaw<T = unknown>(args: string[], cwd: string): Promise<T> {
  */
 export function runText(args: string[], cwd: string): Promise<TextResult> {
     return runTextCommand(args, options(cwd));
+}
+
+// Where install_pre_commit_hook(".") writes: the same git query and the same
+// resolve() (core.hooksPath, worktrees and a linked hook file included); None
+// outside a git repository.
+const TARGET_OF = [
+    'import subprocess, sys',
+    'from pathlib import Path',
+    'def target():',
+    '    r = subprocess.run(["git", "rev-parse", "--git-path", "hooks"], capture_output=True, encoding="utf-8", errors="replace")',
+    '    return None if r.returncode else str((Path(".") / r.stdout.strip() / "pre-commit").resolve())',
+];
+
+const HOOK_TARGET = [...TARGET_OF, 't = target()', 'sys.exit(1) if t is None else print(t)'].join('\n');
+
+// Installs only when the destination, computed again just before the write,
+// is the one confirmed (argv[1]); exit 3 when it changed in between.
+const INSTALL_HOOK = [
+    ...TARGET_OF,
+    'from slop_detector.git_integration import GitIntegration',
+    't = target()',
+    'if t != sys.argv[1]:',
+    '    print("[-] The hook destination changed after it was confirmed: " + str(t) + "; nothing installed")',
+    '    sys.exit(3)',
+    'sys.exit(0 if GitIntegration.install_pre_commit_hook(".") else 1)',
+].join('\n');
+
+function pythonCode(code: string): RunOptions['candidate'] {
+    const pythonPath = vscode.workspace.getConfiguration('slopDetector').get<string>('pythonPath', 'python');
+    return { kind: 'module', command: pythonPath, args: ['-c', code] };
+}
+
+/** The file the pre-commit hook would be written to for `root`; undefined
+ *  when `root` is not in a git repository. */
+export async function preCommitHookTarget(root: string): Promise<string | undefined> {
+    try {
+        const { stdout } = await runTextCommand([], { cwd: root, candidate: pythonCode(HOOK_TARGET) });
+        return stdout.trim() || undefined;
+    } catch (error: any) {
+        if (error?.code === 1) { return undefined; }
+        throw error;
+    }
+}
+
+/**
+ * Install the backend's git pre-commit hook in `root` (the CLI has no option
+ * for it) at `confirmedTarget`, the destination preCommitHookTarget reported
+ * and the user accepted. Runs the backend's own
+ * GitIntegration.install_pre_commit_hook with the configured interpreter, in
+ * the same process as a last check that the destination is still that one
+ * (`changed` when it is not: nothing is written). The backend computes the
+ * path itself, so a change after that check is not excluded. `output` is what
+ * it printed (where the hook went, or why it did not install).
+ */
+export async function installPreCommitHook(
+    root: string, confirmedTarget: string,
+): Promise<{ installed: boolean; changed: boolean; output: string }> {
+    try {
+        const { stdout } = await runTextCommand([confirmedTarget], { cwd: root, candidate: pythonCode(INSTALL_HOOK) });
+        return { installed: true, changed: false, output: stdout };
+    } catch (error: any) {
+        if (error?.code === 1 || error?.code === 3) {
+            return { installed: false, changed: error.code === 3, output: `${error.stdout ?? ''}${error.stderr ?? ''}` };
+        }
+        throw error;
+    }
 }

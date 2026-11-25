@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { statusBarItem, outputChannel, replaceFileResults } from './state';
-import { analyzeDocument, extractJson } from './analyzer';
+import { analyzeDocument } from './analyzer';
 import * as client from './client';
 import { projectFileResults } from './findings';
+import { isInside } from './backendText';
 
 interface ResultQuickPickItem extends vscode.QuickPickItem {
     filePath?: string;
@@ -75,19 +76,11 @@ export async function showFileHistory(): Promise<void> {
     const filePath = editor.document.uri.fsPath;
 
     try {
-        const history = await client.runRaw<any[]>(
-            [filePath, '--show-history', '--json'],
-            path.dirname(filePath),
-        );
-        if (history.length === 0) {
-            vscode.window.showInformationMessage('[+] No history found for this file'); return;
-        }
-        const items = history.map((entry: any) => ({
-            label: `${entry.timestamp}`,
-            description: `Deficit: ${entry.deficit_score?.toFixed(1) || entry.slop_score?.toFixed(1) || 'N/A'} (${entry.grade || entry.status || 'N/A'})`,
-            detail: `LDR: ${entry.ldr_score?.toFixed(3) || 'N/A'}, Inflation: ${entry.inflation_score?.toFixed(3) || 'N/A'}, DDC: ${entry.ddc_usage_ratio?.toFixed(3) || 'N/A'}`,
-        }));
-        vscode.window.showQuickPick(items, { placeHolder: 'File History' });
+        // The backend prints history as a table (it has no JSON form).
+        const { stdout } = await client.runText([filePath, '--show-history'], path.dirname(filePath));
+        outputChannel.appendLine('');
+        outputChannel.appendLine(stdout.trimEnd());
+        outputChannel.show(false);
     } catch (error) {
         vscode.window.showErrorMessage(`[-] Failed to load history: ${error}`);
     }
@@ -97,8 +90,43 @@ export async function installGitHook(): Promise<void> {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders) { vscode.window.showWarningMessage('[!] No workspace folder open'); return; }
 
+    if (!vscode.workspace.isTrusted) {
+        vscode.window.showWarningMessage('[!] Installing a git hook needs a trusted workspace.');
+        return;
+    }
+    const root = folders[0].uri.fsPath;
+
     try {
-        await client.runText(['--install-git-hook'], folders[0].uri.fsPath);
+        // The CLI has no option for this; the backend installs the hook through
+        // GitIntegration.install_pre_commit_hook (it reports False, and leaves
+        // a foreign hook in place, when it cannot install). It writes where git
+        // keeps hooks, which core.hooksPath, a worktree or a linked hook file
+        // can put outside this folder: that needs an explicit yes.
+        const target = await client.preCommitHookTarget(root);
+        if (!target) {
+            vscode.window.showWarningMessage('[!] No git repository here: the pre-commit hook was not installed.');
+            return;
+        }
+        if (!isInside(target, root)) {
+            const choice = await vscode.window.showWarningMessage(
+                `The pre-commit hook would be written outside this folder: ${target} ` +
+                '(git\'s hooks directory: core.hooksPath, a worktree or a linked hook). Install it there?',
+                { modal: true }, 'Install',
+            );
+            if (choice !== 'Install') { return; }
+        }
+        const { installed, changed, output } = await client.installPreCommitHook(root, target);
+        outputChannel.appendLine(output.trimEnd());
+        if (changed) {
+            vscode.window.showWarningMessage(
+                '[!] The hook destination changed after it was checked: nothing was installed. Run the command again.');
+            return;
+        }
+        if (!installed) {
+            vscode.window.showWarningMessage(
+                '[!] The pre-commit hook was not installed (a hook of another tool is there, or it could not be written). The reason is in the Output panel.');
+            return;
+        }
         vscode.window.showInformationMessage('[+] Git pre-commit hook installed successfully!');
     } catch (error) {
         vscode.window.showErrorMessage(`[-] Failed to install hook: ${error}`);
@@ -132,37 +160,12 @@ export async function showHistoryTrends(): Promise<void> {
 
     statusBarItem.text = '$(sync~spin) SLOP: Loading trends...';
     try {
-        const { stdout } = await client.runText(['--history-trends', '--json'], rootPath);
-        const trends = extractJson(stdout);
-        const files: any[] = Array.isArray(trends)
-            ? trends : trends.files ?? Object.values(trends);
-
+        // The backend prints trends as a table (it has no JSON form).
+        const { stdout } = await client.runText(['--history-trends'], rootPath);
         outputChannel.appendLine('');
-        outputChannel.appendLine('=== SLOP Detector — History Trends ===');
-        outputChannel.appendLine('');
-
-        if (files.length === 0) {
-            outputChannel.appendLine('  No history data. Run analysis on files to build history.');
-        } else {
-            const colW   = 40;
-            const header = `${'File'.padEnd(colW)}  ${'Runs'.padStart(4)}  ${'Latest'.padStart(7)}  ${'Best'.padStart(7)}  ${'Worst'.padStart(7)}  Trend`;
-            outputChannel.appendLine(header);
-            outputChannel.appendLine('-'.repeat(header.length));
-            for (const entry of files) {
-                const name    = path.basename(entry.file_path ?? entry.path ?? 'unknown').padEnd(colW).slice(0, colW);
-                const runs    = String(entry.run_count ?? entry.total_runs ?? '?').padStart(4);
-                const latest  = (entry.latest_deficit ?? entry.last_score ?? 0).toFixed(1).padStart(7);
-                const best    = (entry.best_deficit   ?? entry.min_score  ?? 0).toFixed(1).padStart(7);
-                const worst   = (entry.worst_deficit  ?? entry.max_score  ?? 0).toFixed(1).padStart(7);
-                const latestN = parseFloat(latest);
-                const prevN   = entry.previous_deficit ?? entry.prev_score ?? latestN;
-                const trend   = latestN < prevN - 1 ? 'improving' : latestN > prevN + 1 ? 'degrading' : 'stable';
-                outputChannel.appendLine(`${name}  ${runs}  ${latest}  ${best}  ${worst}  ${trend}`);
-            }
-        }
+        outputChannel.appendLine(stdout.trimEnd());
         outputChannel.appendLine('');
         outputChannel.show(false);
-        vscode.window.showInformationMessage(`[+] History Trends — ${files.length} file(s). See Output panel.`);
         statusBarItem.text = '$(check) SLOP: Ready';
     } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);

@@ -1,6 +1,7 @@
 # Import Graph
 
-**Current contract:** v3.9.0 (unchanged through v3.11.0). This page describes what the
+**Current contract:** v3.18.0 (module roots and the scan boundary below; the rest unchanged
+since v3.9.0). This page describes what the
 cross-file import graph does today. It is not a benchmark and it makes no accuracy claim.
 
 ## What it is for
@@ -41,7 +42,14 @@ A dotted name such as `pkg.sub` is looked up under the project's **module roots*
 4. **First-level child directories that contain a package** (for example `backend/app/`).
    These are *conditional*: the module exists on disk, but whether it is importable depends on
    how the program is launched, so it is recorded but not treated as a dependency edge until
-   you declare the root.
+   you declare the root. Since 3.18.0 a first-level directory that is itself a regular
+   package (it has an `__init__.py`) is not one: Python never puts a package directory on
+   `sys.path`, so `pkg/fhir/` does not answer `import fhir` (that import is `external`;
+   `from . import fhir` and `import pkg.fhir` still resolve to it).
+
+Since 3.18.0 module roots are read only inside the scan root, by real path: a symlink or
+Windows junction that leads out of it is not followed, so an import only such a link could
+supply is `external` and is not a dependency link.
 
 To include a conditional root, declare it:
 
@@ -93,7 +101,7 @@ Every import ends in one of these states, counted in `structure_evidence.coverag
 | `conditional_internal` | Found under a first-level child that is not a declared root |
 | `ambiguous` | Python's rules cannot be decided statically (see above), or several undeclared roots provide the same name |
 | `unresolved_internal` | Looks internal but no file was found (including a relative import past the top-level package) |
-| `external` | Not part of the project (standard library or installed package) |
+| `external` | No project file under the module roots (standard library, an installed package, or a name nothing in the project provides); not evidence that a package is installed |
 
 `evidence_complete` is `false` when any internal import is conditional, ambiguous, or
 unresolved. Those imports are listed in `unknowns` (file, line, requested module and name,

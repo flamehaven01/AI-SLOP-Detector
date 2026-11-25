@@ -3,6 +3,7 @@ import * as path from 'path';
 import { statusBarItem, outputChannel } from './state';
 import { analyzeDocument } from './analyzer';
 import * as client from './client';
+import { parseGateDecision } from './backendText';
 
 export async function autoFixCurrentFile(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
@@ -46,29 +47,30 @@ export async function showGateDecision(): Promise<void> {
 
     const filePath = editor.document.uri.fsPath;
 
+    // The decision is a text block after the analysis JSON; there is no JSON
+    // field for it. A non-zero exit can still carry the block, so it is read
+    // from the output either way; without a readable block nothing is assumed.
+    let stdout = '';
+    let failure = '';
     try {
-        const result = await client.runRaw<any>(
-            [filePath, '--gate', '--json'],
-            path.dirname(filePath),
-        );
-        const gate = result.gate_decision;
-        if (gate) {
-            const status = gate.allowed ? '[PASS]' : '[HALT]';
-            const msg    =
-                `Gate ${status}: sr9=${gate.metrics_snapshot.sr9?.toFixed(3)} ` +
-                `di2=${gate.metrics_snapshot.di2?.toFixed(3)} ` +
-                `jsd=${gate.metrics_snapshot.jsd?.toFixed(3)} ` +
-                `ove=${gate.metrics_snapshot.ove?.toFixed(3)}`;
-            gate.allowed
-                ? vscode.window.showInformationMessage(msg)
-                : vscode.window.showWarningMessage(`${msg}\n${gate.halt_reason || ''}`);
-        } else {
-            outputChannel.appendLine(JSON.stringify(result, null, 2));
-            outputChannel.show(false);
-        }
-    } catch (error) {
-        vscode.window.showErrorMessage(`[-] Gate check failed: ${error}`);
+        ({ stdout } = await client.runText([filePath, '--gate', '--json'], path.dirname(filePath)));
+    } catch (error: any) {
+        stdout = String(error?.stdout ?? '');
+        failure = error instanceof Error ? error.message : String(error);
     }
+    const gate = parseGateDecision(stdout);
+    if (!gate) {
+        outputChannel.appendLine(failure || stdout);
+        outputChannel.show(false);
+        vscode.window.showWarningMessage(
+            '[!] Gate decision UNVERIFIED: the backend gave no readable decision. See Output panel.');
+        return;
+    }
+    outputChannel.appendLine(gate.block);
+    const msg = `Gate [${gate.status}]: ${gate.metrics}`;
+    gate.allowed
+        ? vscode.window.showInformationMessage(msg)
+        : vscode.window.showWarningMessage(`${msg}\n${gate.halt ?? ''}`);
 }
 
 export async function initConfig(): Promise<void> {

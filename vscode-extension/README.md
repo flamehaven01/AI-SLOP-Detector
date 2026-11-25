@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/logo-hires.png" alt="AI-SLOP Detector - Ship Code. Not Slop." width="480"/>
+</p>
+
 # AI SLOP Detector for VS Code
 
 Finds code that looks finished but is not: stubs, swallowed failures,
@@ -12,6 +16,8 @@ Nothing is sent anywhere.
 ---
 
 ## What you see in the editor
+
+![A Rust file in VS Code: findings at the end of their lines, the file score above the code, and the same items in Problems](https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/vscode-rust.png)
 
 | Where | What |
 |---|---|
@@ -76,6 +82,8 @@ writes a report of the workspace, or of the open file when no folder is open:
 When it is written, an **Open** button opens it: HTML in a VS Code tab or
 your browser, Markdown with its preview, PDF in your PDF viewer.
 
+![The HTML report: summary cards, the top items, every finding with its severity, review candidates and score details](https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/html-report.png)
+
 **SLOP Detector: Open Report in VS Code** (the preview icon in the Issues
 view, or the hover link) builds the HTML report and shows it beside the
 editor.
@@ -107,12 +115,16 @@ saying so.
 | Show Pulse Dashboard (health + hotspots) | Project health and priority hotspots |
 | Show Changed-Code Review (diff-aware) | Findings in changed code only |
 | Auto-Fix Detected Issues | Apply or preview the auto-fixable patterns |
-| Show Gate Decision (SNP) | The quality gate result |
+| Show Gate Decision (SNP) | The quality gate result of the active file (PASS or HALT, with the reason) |
 | Run Cross-File Analysis | Import cycles, duplicates, hotspots |
-| Show File History / Show History Trends / Export History to JSONL | Scores over time |
+| Show File History / Show History Trends | Scores over time, as a table in the Output panel |
+| Export History to JSONL | Every recorded run, one line each |
 | Bootstrap .slopconfig.yaml | Write a config for the project |
 | Run Self-Calibration | Suggest weights from your history |
-| Install Git Pre-Commit Hook | Run the gate before each commit |
+| Install Git Pre-Commit Hook | Scan the staged `.py` files with `--ci-mode hard` before each commit; a hook another tool installed is left as is, and a hooks directory outside the workspace folder (`core.hooksPath`, a worktree) is used only after you confirm |
+| Add Module to phantom_import_allowlist | The Quick Fix of a `phantom_import` finding |
+| Add File to .slopconfig.yaml Ignore | The Quick Fix that leaves a file out of every scan |
+| Copy Work Order Item for an AI Agent | The hover link (see above) |
 | Show SLOP Output Panel | The log of every backend call |
 | Refresh Issues | Analyze the workspace again |
 
@@ -192,11 +204,15 @@ Open Settings (`Ctrl+,`) and search **SLOP Detector**, or edit `settings.json`:
 A band measures the score. A file can be CLEAN and still have findings; the
 editor shows them either way.
 
-### `phantom_import` in flat-module projects
+### `phantom_import` and your own modules
 
-Sibling `.py` files that import each other without a `pyproject.toml` or an
-`__init__.py` are discovered automatically. If one is still reported, use
-the Quick Fix in Problems, or add it to `.slopconfig.yaml`:
+Sibling `.py` files of a script outside a package, which import each other
+without a `pyproject.toml` or an `__init__.py`, are found automatically.
+Inside a regular package (a directory with `__init__.py`), `import name` is
+an absolute import: a sibling `name.py` does not answer it (backend 3.18),
+so write `from . import name` for the sibling. If a module of yours is still
+reported, use the Quick Fix **Allowlist '<module>'** in Problems, or add it to
+`.slopconfig.yaml`:
 
 ```yaml
 phantom_import_allowlist:
@@ -207,30 +223,40 @@ phantom_import_allowlist:
 
 ## Pattern reference
 
-The maintained catalog is [docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md); this list
-is an overview. Use the `pattern_id` as the Problems filter.
+The maintained catalog, with each rule's severity, is
+[docs/PATTERNS.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md) (57 rules). Use the `pattern_id`
+as the Problems filter.
 
-**Placeholder / stub**: `pass_placeholder`, `ellipsis_placeholder`,
+**Placeholder / stub** (Python): `pass_placeholder`, `ellipsis_placeholder`,
 `not_implemented`, `return_none_placeholder`, `return_constant_stub`,
-`todo_comment`, `fixme_comment`, `hack_comment`, `xxx_comment`
+`return_input_stub`, `interface_only_class`, `empty_except`, `todo_comment`,
+`fixme_comment`, `hack_comment`, `xxx_comment`
 
-**Structural**: `god_function` (over 50 logic lines or cyclomatic complexity
-over 10), `dead_code`, `deep_nesting`, `empty_except`, `interface_only_class`,
-`nested_complexity`, `placeholder_variable_naming`
+**Structural and complexity** (Python): `bare_except`, `mutable_default_arg`,
+`star_import`, `global_statement`, `ignored_parameter`, `failure_as_success`,
+`god_function` (over 50 logical lines or cyclomatic complexity over 10),
+`dead_code`, `deep_nesting`, `nested_complexity`, `placeholder_variable_naming`,
+`lint_escape` (`# noqa`, `# type: ignore`, `# pylint: disable`)
 
-**Quality**: `phantom_import` (an import that cannot be resolved),
-`function_clone_cluster` (structurally identical function bodies)
+**Imports** (Python; backend 3.18 judges an import by the distribution that
+provides it): `phantom_import` (no installed distribution, declaration or known
+provider supplies the name; HIGH at most), `undeclared_dependency`,
+`undeclared_optional_dependency`, `runtime_unavailable_dependency`,
+`declared_outside_primary_metadata`, `provider_conflict`, `phantom_member`
 
-**Cross-language**: `js_var_usage`, `js_console_log`, `ruby_array_each`,
-`go_print_format`
+**Clones** (Python): `exact_duplicate_pair`, `function_clone_cluster`
+
+**Other languages' idioms in Python**: `js_push`, `java_equals`, `ruby_each`,
+`csharp_length`, `go_println`, `php_strlen`
+
+**JS/TS**: `js_var_usage`, `js_console_log`, `js_any_type`, `js_empty_arrow`,
+`js_double_equals`, `js_god_function`, `js_dead_code`, `js_callback_hell`
 
 **Go** (`.go`, any install): `go_empty_func`, `go_panic`, `go_fmt_print`,
 `go_ignored_error`, `go_todo_comment`, `go_god_function`
 
 **Rust** (`.rs`, any install; `ai-slop-detector[rust]` adds tree-sitter): `rust_todo_macro`,
 `rust_unimplemented_macro`, `rust_dbg_macro`, `rust_todo_comment`
-
-**Lint escape**: `noqa_overuse`, `type_ignore_overuse`
 
 **Hollow review candidates** (backend 3.14+, not scored):
 `success_without_effect`, `input_never_used`, `effect_never_runs`,

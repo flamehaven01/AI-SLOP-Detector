@@ -5,7 +5,7 @@ same function location as deep_nesting. Both findings are kept, severities and
 the CRITICAL purity contribution are unchanged; only the additive +5 of the
 deep_nesting part is not charged a second time. god_function is an
 independent condition (length, or its own complexity limit) and keeps its
-penalty. In the RExSyn dogfood, all 26 nested_complexity findings shared their
+penalty. In a private-codebase dogfood, all 26 nested_complexity findings shared their
 function with a deep_nesting finding.
 """
 

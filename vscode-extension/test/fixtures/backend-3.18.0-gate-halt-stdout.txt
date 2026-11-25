@@ -1,0 +1,247 @@
+{
+  "file_path": "/fixture/halt\\halt.py",
+  "ldr": {
+    "total_lines": 13,
+    "logic_lines": 5,
+    "empty_lines": 8,
+    "ldr_score": 0.38461538461538464,
+    "grade": "C",
+    "is_abc_interface": false,
+    "is_type_stub": false,
+    "is_packaging_init": false
+  },
+  "inflation": {
+    "jargon_count": 0,
+    "avg_complexity": 1.2,
+    "inflation_score": 0.0,
+    "status": "PASS",
+    "jargon_found": [],
+    "jargon_details": [],
+    "justified_jargon": [],
+    "is_config_file": false
+  },
+  "ddc": {
+    "imported": [],
+    "actually_used": [],
+    "unused": [],
+    "fake_imports": [],
+    "type_checking_imports": [],
+    "usage_ratio": 1.0,
+    "grade": "EXCELLENT"
+  },
+  "deficit_score": 78.25792618629401,
+  "status": "critical_deficit",
+  "warnings": [
+    "WARNING: Low logic density 38.46%",
+    "PATTERNS: 2 critical issues found",
+    "PATTERNS: 4 high-severity issues found"
+  ],
+  "pattern_issues": [
+    {
+      "pattern_id": "bare_except",
+      "severity": "critical",
+      "axis": "structure",
+      "file": "/fixture/halt\\halt.py",
+      "line": 16,
+      "column": 4,
+      "message": "Bare except with only pass swallows all exceptions, including SystemExit and KeyboardInterrupt",
+      "code": null,
+      "suggestion": "Catch specific exceptions: except ValueError as e:",
+      "subject": null,
+      "symbol": "d",
+      "fingerprint": "7d5fed5e8e625fc5",
+      "locator": "body[0]/handlers[0]"
+    },
+    {
+      "pattern_id": "mutable_default_arg",
+      "severity": "critical",
+      "axis": "quality",
+      "file": "/fixture/halt\\halt.py",
+      "line": 13,
+      "column": 0,
+      "message": "Mutable default argument - shared state bug",
+      "code": null,
+      "suggestion": "Use None as default: def func(items=None):\n    if items is None:\n        items = []",
+      "subject": null,
+      "symbol": "d",
+      "fingerprint": null,
+      "locator": ""
+    },
+    {
+      "pattern_id": "not_implemented",
+      "severity": "high",
+      "axis": "quality",
+      "file": "/fixture/halt\\halt.py",
+      "line": 20,
+      "column": 0,
+      "message": "Function raises NotImplementedError - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or use ABC if intentional",
+      "subject": null,
+      "symbol": "e",
+      "fingerprint": null,
+      "locator": ""
+    },
+    {
+      "pattern_id": "pass_placeholder",
+      "severity": "high",
+      "axis": "quality",
+      "file": "/fixture/halt\\halt.py",
+      "line": 1,
+      "column": 0,
+      "message": "Empty function with only pass - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or remove it",
+      "subject": null,
+      "symbol": "a",
+      "fingerprint": null,
+      "locator": ""
+    },
+    {
+      "pattern_id": "pass_placeholder",
+      "severity": "high",
+      "axis": "quality",
+      "file": "/fixture/halt\\halt.py",
+      "line": 5,
+      "column": 0,
+      "message": "Empty function with only pass - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or remove it",
+      "subject": null,
+      "symbol": "b",
+      "fingerprint": null,
+      "locator": ""
+    },
+    {
+      "pattern_id": "ellipsis_placeholder",
+      "severity": "high",
+      "axis": "quality",
+      "file": "/fixture/halt\\halt.py",
+      "line": 9,
+      "column": 0,
+      "message": "Empty function with only ... - placeholder not implemented",
+      "code": null,
+      "suggestion": "Implement the function or remove it",
+      "subject": null,
+      "symbol": "c",
+      "fingerprint": null,
+      "locator": ""
+    }
+  ],
+  "docstring_inflation": {
+    "total_docstrings": 0,
+    "inflated_count": 0,
+    "avg_inflation_ratio": 0.0,
+    "max_inflation_ratio": 0.0,
+    "total_docstring_lines": 0,
+    "total_implementation_lines": 0,
+    "overall_ratio": 0.0,
+    "status": "PASS",
+    "details": []
+  },
+  "hallucination_deps": {
+    "total_hallucinated": 0,
+    "category_usage": [],
+    "hallucinated_deps": [],
+    "worst_category": "none",
+    "status": "PASS",
+    "evidence_state": "measured"
+  },
+  "context_jargon": {
+    "total_jargon": 0,
+    "justified_jargon": 0,
+    "unjustified_jargon": 0,
+    "evidence_details": [],
+    "worst_offenders": [],
+    "justification_ratio": 1.0,
+    "status": "PASS"
+  },
+  "ml_scoring": {
+    "status": "disabled",
+    "reason": "No ML model artifact was configured for this run.",
+    "model_path": null
+  },
+  "dcf": {
+    "Module": 0.037037037037037035,
+    "FunctionDef": 0.18518518518518517,
+    "arguments": 0.18518518518518517,
+    "Pass": 0.1111111111111111,
+    "Expr": 0.037037037037037035,
+    "Try": 0.037037037037037035,
+    "Raise": 0.037037037037037035,
+    "Constant": 0.037037037037037035,
+    "arg": 0.037037037037037035,
+    "List": 0.037037037037037035,
+    "Return": 0.037037037037037035,
+    "ExceptHandler": 0.037037037037037035,
+    "Name": 0.07407407407407407,
+    "Load": 0.1111111111111111
+  },
+  "deficit_breakdown": {
+    "ldr_penalty": 30.324,
+    "inflation_penalty": -0.0,
+    "ddc_penalty": -0.0,
+    "purity_penalty": 7.934,
+    "pattern_hits": 40.0,
+    "total": 78.2579
+  },
+  "unverified_imports": [],
+  "file_role": "source",
+  "skipped_metrics": [],
+  "flags": [],
+  "pattern_errors": [],
+  "semantic_findings": [],
+  "semantic_coverage": {
+    "state": "MEASURED",
+    "functions": 5,
+    "effect_states": {
+      "EFFECT_OBSERVED": 0,
+      "EFFECT_UNKNOWN": 0,
+      "NO_EFFECT_IN_CLOSED_GRAPH": 5
+    },
+    "unknown_reasons": {},
+    "open_call_details": {
+      "ambiguous": 0,
+      "dynamic": 0,
+      "external": 0,
+      "module_defined_unresolved": 0,
+      "unclassified": 0
+    }
+  },
+  "claim_findings": [],
+  "claim_coverage": {
+    "functions": 5,
+    "eligible_functions": 0,
+    "functions_with_claims": 0,
+    "extracted_claims": 0,
+    "claims_by_kind": {},
+    "not_analyzed_by_reason": {
+      "no_docstring": 5
+    },
+    "excluded_matches_by_reason": {},
+    "out_of_scope": {},
+    "supported": 0,
+    "delegated_in_module": 0,
+    "provided_elsewhere": 0,
+    "undecided": 0,
+    "contradicted": 0,
+    "unmeasured": 0,
+    "not_evaluated": {},
+    "undecided_by_reason": {},
+    "by_kind": {},
+    "state": "MEASURED",
+    "candidates": 0,
+    "merged": 0
+  },
+  "source_sha256": "8c2e0a220f5c949eff1eed0ab85d215146ac9d26d9fd364caba9c88e708a566a",
+  "content_origin": "file_bytes"
+}
+
+[Gate Decision]
+  Capability: PARTIAL (ML scoring disabled)
+  Status   : HALT
+  Allowed  : False
+  sr9=0.3846  di2=1.0000  jsd=1.0000  ove=0.2000
+  Halt     : Gate HALT [/fixture/halt\halt.py]: ldr=0.385 < threshold=0.6; pattern_penalty=40.0 > threshold=30.0
+  Recommend: Reduce empty/placeholder code (LDR), fix structural patterns (ove).
+  AuditHash: df98ec3354eeb9b6...

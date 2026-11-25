@@ -1,13 +1,13 @@
 """v3.10 scan performance: the same answers from less repeated work.
 
-Measured on NSRW (66 files) and Flamehaven-TOE (179 files): the project was
+Measured on two private codebases, B (66 files) and A (179 files): the project was
 walked four times (coverage plus discovery for Python, JS and Go) with an
 ignore-pattern check per file, each module was walked by every pattern
 (about forty `ast.walk` per file), every jargon regex was escaped per line,
 and four cross-language patterns analysed every scope of every module.
-Cold/warm before -> after: TOE 33.09 s / 10.24 s -> 10.92 s / 3.24 s,
-NSRW 11.05 s / 1.55 s -> 4.31 s / 0.78 s; full JSON output identical except
-which 200 of TOE's 13,997 excluded files the bounded detail list shows (now
+Cold/warm before -> after: A 33.09 s / 10.24 s -> 10.92 s / 3.24 s,
+B 11.05 s / 1.55 s -> 4.31 s / 0.78 s; full JSON output identical except
+which 200 of A's 13,997 excluded files the bounded detail list shows (now
 the walk's sorted depth-first order instead of the filesystem's).
 
 Contract: the shared walk, the per-module node list and the pattern cache

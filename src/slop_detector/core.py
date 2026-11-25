@@ -426,7 +426,7 @@ class SlopDetector:
         v2.0 improvements:
         - Weighted by file size (LOC)
         - Respects ignore patterns
-        - Parallel-ready architecture
+        - Files are analyzed one after another (no parallel execution)
         """
         project_path_obj = Path(project_path)
         ignore_patterns = self.config.get_ignore_patterns()

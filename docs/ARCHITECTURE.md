@@ -111,7 +111,7 @@ The optional `try_bridge_snp` adapter has not been integration-tested against `s
 
 The npm package is a transport layer over the Python CLI, not a second analyzer. The MCP server provides structured tools over the same core; its scans are read-only (no analysis cache, no history).
 
-The optional FastAPI service is a local integration surface. It binds `127.0.0.1` by default, scans read-only, and records history only when a request sets `save_history`. It has no built-in authentication or request authorization and permits all origins by default. Do not expose it directly to an untrusted network. Its webhook and project-status stubs are not supported deployment features; see [API.md](API.md).
+The optional FastAPI service is a local integration surface. It binds `127.0.0.1` by default, scans read-only, and records history only when a request sets `save_history`. It has no built-in authentication or request authorization. Since 3.18.0 it answers local clients only: no cross-origin access unless origins are listed with `create_app(allowed_origins=[...])`, and only loopback host names (`127.0.0.1`, `localhost`, `[::1]`) plus the address `run_server` binds. Do not expose it directly to an untrusted network. Its webhook and project-status stubs are not supported deployment features; see [API.md](API.md).
 
 ## Related Documents
 

@@ -1,0 +1,222 @@
+{
+ "file_path": "/fixture\\proj\\app\\imports.py",
+ "ldr": {
+  "total_lines": 5,
+  "logic_lines": 5,
+  "empty_lines": 0,
+  "ldr_score": 1.0,
+  "grade": "S++",
+  "is_abc_interface": false,
+  "is_type_stub": false,
+  "is_packaging_init": false
+ },
+ "inflation": {
+  "jargon_count": 0,
+  "avg_complexity": 1.0,
+  "inflation_score": 0.0,
+  "status": "PASS",
+  "jargon_found": [],
+  "jargon_details": [],
+  "justified_jargon": [],
+  "is_config_file": false
+ },
+ "ddc": {
+  "imported": [
+   "PIL",
+   "yaml",
+   "zzz_not_a_real_pkg_318"
+  ],
+  "actually_used": [
+   "PIL",
+   "yaml",
+   "zzz_not_a_real_pkg_318"
+  ],
+  "unused": [],
+  "fake_imports": [],
+  "type_checking_imports": [],
+  "usage_ratio": 1.0,
+  "grade": "EXCELLENT"
+ },
+ "deficit_score": 7.0,
+ "status": "clean",
+ "warnings": [
+  "PATTERNS: 1 high-severity issues found"
+ ],
+ "pattern_issues": [
+  {
+   "pattern_id": "phantom_import",
+   "severity": "high",
+   "axis": "quality",
+   "file": "/fixture\\proj\\app\\imports.py",
+   "line": 1,
+   "column": 0,
+   "message": "Phantom import: no installed distribution, dependency declaration or known provider supplies 'zzz_not_a_real_pkg_318'",
+   "code": null,
+   "suggestion": "Confirm which package 'zzz_not_a_real_pkg_318' was meant to come from before installing or declaring anything: a name that can be found on a package index is not proof that it is the intended package. AI models sometimes generate plausible-looking package names.",
+   "subject": "zzz_not_a_real_pkg_318",
+   "symbol": "<module>",
+   "fingerprint": "f66b21e1d3bc1ae7",
+   "locator": "body[0]",
+   "evidence": {
+    "import_name": "zzz_not_a_real_pkg_318",
+    "provider": null,
+    "provider_state": "PROVIDER_UNKNOWN",
+    "environment": "analyzer",
+    "target_platform": null
+   }
+  },
+  {
+   "pattern_id": "runtime_unavailable_dependency",
+   "severity": "medium",
+   "axis": "quality",
+   "file": "/fixture\\proj\\app\\imports.py",
+   "line": 3,
+   "column": 0,
+   "message": "Declared dependency 'PIL' (provided by 'Pillow') is unavailable in the analyzer runtime (declared in pyproject.toml).",
+   "code": null,
+   "suggestion": "Install the declared dependency in the analysis environment, then rerun. This is environment evidence, not proof of a phantom package.",
+   "subject": "PIL",
+   "symbol": "<module>",
+   "fingerprint": "f9d90603e13bc0c9",
+   "locator": "body[2]",
+   "evidence": {
+    "import_name": "PIL",
+    "provider": "Pillow",
+    "provider_state": "MAPPING_SUPPORTED",
+    "environment": "analyzer",
+    "mapping_audit": "ARTIFACT_VERIFIED",
+    "target_platform": null
+   }
+  }
+ ],
+ "docstring_inflation": {
+  "total_docstrings": 0,
+  "inflated_count": 0,
+  "avg_inflation_ratio": 0.0,
+  "max_inflation_ratio": 0.0,
+  "total_docstring_lines": 0,
+  "total_implementation_lines": 0,
+  "overall_ratio": 0.0,
+  "status": "PASS",
+  "details": []
+ },
+ "hallucination_deps": {
+  "total_hallucinated": 0,
+  "category_usage": [
+   {
+    "category": "vision",
+    "imported": [
+     "PIL"
+    ],
+    "used": [
+     "PIL"
+    ],
+    "unused": [],
+    "usage_ratio": 1.0
+   },
+   {
+    "category": "serialization",
+    "imported": [
+     "yaml"
+    ],
+    "used": [
+     "yaml"
+    ],
+    "unused": [],
+    "usage_ratio": 1.0
+   }
+  ],
+  "hallucinated_deps": [],
+  "worst_category": "none",
+  "status": "PASS",
+  "evidence_state": "measured"
+ },
+ "context_jargon": {
+  "total_jargon": 0,
+  "justified_jargon": 0,
+  "unjustified_jargon": 0,
+  "evidence_details": [],
+  "worst_offenders": [],
+  "justification_ratio": 1.0,
+  "status": "PASS"
+ },
+ "ml_scoring": {
+  "status": "disabled",
+  "reason": "No ML model artifact was configured for this run.",
+  "model_path": null
+ },
+ "dcf": {
+  "Module": 0.038461538461538464,
+  "Import": 0.11538461538461539,
+  "FunctionDef": 0.038461538461538464,
+  "alias": 0.11538461538461539,
+  "arguments": 0.038461538461538464,
+  "Expr": 0.038461538461538464,
+  "Return": 0.038461538461538464,
+  "arg": 0.038461538461538464,
+  "Constant": 0.038461538461538464,
+  "Tuple": 0.038461538461538464,
+  "Call": 0.038461538461538464,
+  "Name": 0.15384615384615385,
+  "Load": 0.23076923076923078,
+  "Attribute": 0.038461538461538464
+ },
+ "deficit_breakdown": {
+  "ldr_penalty": 0.0,
+  "inflation_penalty": 0.0,
+  "ddc_penalty": 0.0,
+  "purity_penalty": 0.0,
+  "pattern_hits": 7.0,
+  "total": 7.0
+ },
+ "unverified_imports": [],
+ "file_role": "source",
+ "skipped_metrics": [],
+ "flags": [],
+ "pattern_errors": [],
+ "semantic_findings": [],
+ "semantic_coverage": {
+  "state": "MEASURED",
+  "functions": 1,
+  "effect_states": {
+   "EFFECT_OBSERVED": 0,
+   "EFFECT_UNKNOWN": 1,
+   "NO_EFFECT_IN_CLOSED_GRAPH": 0
+  },
+  "unknown_reasons": {
+   "open_call": 1
+  },
+  "open_call_details": {
+   "ambiguous": 0,
+   "dynamic": 0,
+   "external": 1,
+   "module_defined_unresolved": 0,
+   "unclassified": 0
+  }
+ },
+ "claim_findings": [],
+ "claim_coverage": {
+  "functions": 1,
+  "eligible_functions": 1,
+  "functions_with_claims": 0,
+  "extracted_claims": 0,
+  "claims_by_kind": {},
+  "not_analyzed_by_reason": {},
+  "excluded_matches_by_reason": {},
+  "out_of_scope": {},
+  "supported": 0,
+  "delegated_in_module": 0,
+  "provided_elsewhere": 0,
+  "undecided": 0,
+  "contradicted": 0,
+  "unmeasured": 0,
+  "not_evaluated": {},
+  "undecided_by_reason": {},
+  "by_kind": {},
+  "state": "MEASURED",
+  "candidates": 0,
+  "merged": 0
+ },
+ "source_sha256": "849c383dd281d3896a0567b041ccc044d739f06123059e71e9cf132f7b2b3ff1",
+ "content_origin": "file_bytes"
+}

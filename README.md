@@ -1,6 +1,6 @@
 <!-- MICA:INVOKE manifest="mica.yaml" -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/logo.png" alt="AI-SLOP Detector - Ship Code. Not Slop." width="560"/>
+  <img src="https://raw.githubusercontent.com/flamehaven01/AI-SLOP-Detector/main/docs/assets/logo-hires.png" alt="AI-SLOP Detector - Ship Code. Not Slop." width="560"/>
 </p>
 
 <h1 align="center">AI-SLOP Detector</h1>
@@ -13,8 +13,8 @@ Find warning signs of unfinished code in Python, JavaScript/TypeScript, Go, and 
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.18.0" alt="PyPI version"/></a>
-  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.18.0" alt="npm version"/></a>
+  <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/v/ai-slop-detector.svg?v=3.18.1" alt="PyPI version"/></a>
+  <a href="https://www.npmjs.com/package/ai-slop-detector"><img src="https://img.shields.io/npm/v/ai-slop-detector.svg?v=3.18.1" alt="npm version"/></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=Flamehaven.vscode-slop-detector"><img src="https://vsmarketplacebadges.dev/version-short/Flamehaven.vscode-slop-detector.svg" alt="VS Code Marketplace version"/></a>
   <a href="https://pypi.org/project/ai-slop-detector/"><img src="https://img.shields.io/pypi/pyversions/ai-slop-detector.svg" alt="Python versions"/></a>
   <a href="https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/PATTERNS.md"><img src="https://img.shields.io/badge/languages-Python%20%7C%20JS%2FTS%20%7C%20Go%20%7C%20Rust-informational" alt="Languages: Python, JS/TS, Go, Rust"/></a>
@@ -395,6 +395,11 @@ Use a linter for correctness-of-form. Use this for "is this code real, or just p
 ---
 
 ## Release Highlights
+
+**v3.18.1**: the VS Code extension follows the 3.18 backend (the
+`phantom_import` Quick Fix works with the new message; gate, history and
+pre-commit hook commands fixed) and the documentation is corrected where it no
+longer described the code. Findings and scores do not change.
 
 **v3.18.0**: Python import findings are judged by which distribution provides
 the import and where that evidence comes from: a declared `Pillow` is no

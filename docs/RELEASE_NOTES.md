@@ -5,6 +5,31 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.18.1 — 2026-11-25
+
+### Summary
+
+A patch release with no change to analysis, findings or scores. The VS Code
+extension goes to 3.18.1 with the 3.18 backend: the `phantom_import` Quick Fix
+works again with the reworded 3.18 message, and Show Gate Decision, Show File
+History, Show History Trends and Install Git Pre-Commit Hook, which never
+worked, do. The documentation is corrected where it no longer described the
+code, including a 3.18.0 change the notes left out: the import graph follows
+the new module roots and scan boundary. Details in the
+[Changelog](../CHANGELOG.md).
+
+### Verification
+
+- The detector's own source scanned before and after: 127 files, the same
+  findings (rule, severity, message, evidence), metrics and project score; two
+  findings moved up one line where a docstring line was removed.
+- The changed source files have the same executable AST apart from docstrings
+  and comments.
+- The extension's Quick Fix and gate reading are tested on real 3.17.0 and
+  3.18.0 backend output, without VS Code.
+
+---
+
 ## v3.18.0 — 2026-11-23
 
 ### Summary
@@ -2170,6 +2195,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
+| **v3.18.1** | patch: VS Code extension 3.18.1 (phantom_import Quick Fix with the 3.18 message; gate, history, trends and pre-commit hook commands fixed; new icon, README screenshots); documentation corrected (import graph under the 3.18 module roots, phantom_import definition, score contract, REST, parallel claim); no change to findings or scores |
 | **v3.18.0** | import evidence release: providers judged by distribution (declared `Pillow` is `PIL`), PEP 735 groups read, the project's own `.venv` read as files, `evidence` on every import finding, `phantom_import` HIGH at most, new `undeclared_dependency` and `provider_conflict`; REST answers local clients only; `slop_detector.auth` removed; scores change where import findings occur |
 | **v3.17.0** | screen release: the terminal summary in one panel with a meter, `Fix first` and one `Next` step; progress in a box (ASCII where the console needs it); `--interactive` report choice; six fix texts name only changes that resolve the finding; the work order shows `cause_key`; the MCP server is no longer recommended (non-standard framing); scoring unchanged |
 | **v3.16.3** | cache patch: a file with an `fp:` declaration loads from the analysis cache, so it stays in every scan after the first (it failed with exit 1, or was left out of a project scan); scoring and the scan JSON format unchanged |

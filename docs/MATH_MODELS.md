@@ -1,7 +1,8 @@
 # Mathematical Models Reference — AI-SLOP Detector
 
-**Current contract:** `main` after v3.9.1 (unreleased changes included). Historical rows below describe prior
-releases; current defaults and formulas are identified explicitly.
+**Current contract:** v3.18.0 (score contract `3.18`, `SCORE_CONTRACT_VERSION` in `core_scoring.py`;
+unchanged in v3.18.1). Historical rows below describe prior releases; current defaults and formulas are
+identified explicitly.
 
 > **Audience:** Contributors, researchers, and integrators who need to understand
 > the precise scoring formulas and algorithmic decisions behind each metric.
@@ -175,8 +176,11 @@ GQG_4D = exp(
 total_w = w_ldr + w_inflation + w_ddc + w_purity
 
 pattern_penalty = min(Sigma(severity_weight[sev] * count[sev]), 50)
-# except: a deep_nesting finding at the location of a nested_complexity
-# finding (same function) adds 0; both findings are kept.
+# over the scored findings (core_scoring._scored); every finding is still reported:
+# - a deep_nesting finding at the location of a nested_complexity finding
+#   (same function) adds 0 (v3.9.2);
+# - a provider_conflict seen only in the analyzer's environment adds 0 (3.18);
+# - undeclared_dependency adds once per (file, provider) (3.18).
 
 deficit_score = min(base_deficit + pattern_penalty, 100)
 ```
@@ -206,7 +210,13 @@ writes nothing; see [SELF_CALIBRATION.md](SELF_CALIBRATION.md).
 | medium   | 2.0                    |
 | low      | 1.0                    |
 
-The penalty sum is capped at 50 points, and the final deficit at 100.
+The penalty sum is capped at 50 points, and the final deficit at 100. It adds
+the scored findings only (`core_scoring._scored`, score contract `3.18`): a
+`deep_nesting` finding where a `nested_complexity` finding is (the same
+function) adds nothing, a `provider_conflict` seen only in the analyzer's
+environment adds nothing, and `undeclared_dependency` adds once per file and
+provider however many lines import it. Those findings are still reported;
+their severities and the purity dimension do not change.
 
 ---
 
@@ -558,6 +568,8 @@ training without requiring a real codebase:
 
 | Version | Signal    | Change                                                          |
 |---------|-----------|-----------------------------------------------------------------|
+| v3.18.0 | Penalty | Score contract `3.18`: an analyzer-only `provider_conflict` adds 0; `undeclared_dependency` adds once per (file, provider); `phantom_import` is HIGH at most (it was CRITICAL), so it no longer counts toward purity |
+| v3.9.2  | Penalty | A `deep_nesting` finding at the location of a `nested_complexity` finding (same function) adds 0; both are reported |
 | v3.10.1 | Patterns | `god_function` length = logical lines; nesting depth rises for if/for/while/async for/except only (try and with are not levels) |
 | v3.10.0 | Project | `literal_data_module` files carry no line weight in `weighted_deficit_score` |
 | v3.10.0 | ICR | Claim words only: AI/ML category and domain nouns (distributed, optimization, equation, ...) removed |

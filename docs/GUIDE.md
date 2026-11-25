@@ -185,7 +185,7 @@ and never move the score.
 `--quiet` one line):
 
 ```text
-╭─ AI SLOP Detector 3.18.0 ────────────────────────────────────────────────────────────────────╮
+╭─ AI SLOP Detector 3.18.1 ────────────────────────────────────────────────────────────────────╮
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
@@ -314,7 +314,7 @@ dependency, and language-specific signals.** Full catalog:
 | **Structural** | `bare_except`, `mutable_default_arg`, `star_import`, `global_statement`, `failure_as_success`, `ignored_parameter` | Anti-patterns |
 | **Cross-Language** | `js_push`, `java_equals`, `ruby_each`, `go_println`, `csharp_length`, `php_strlen` | Wrong-language syntax |
 | **Python Advanced** | `god_function`, `dead_code`, `deep_nesting`, `nested_complexity`, `lint_escape`, `exact_duplicate_pair`, `function_clone_cluster`, `placeholder_variable_naming` | Structural complexity + evasion |
-| **Phantom** | `phantom_import`, `phantom_member` | Hallucinated packages, and names an installed package does not define |
+| **Phantom** | `phantom_import`, `phantom_member` | Imports no installed distribution, declaration or known provider supplies (an invented name looks like this; so does a real package missing from the declarations), and names an installed package does not define |
 
 **Four metric axes per file:**
 
@@ -623,7 +623,7 @@ would analyze it.
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.18.0
+    rev: v3.18.1
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks

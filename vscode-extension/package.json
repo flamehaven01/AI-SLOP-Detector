@@ -2,10 +2,16 @@
   "name": "vscode-slop-detector",
   "displayName": "AI SLOP Detector",
   "description": "Real-time AI-generated code quality analysis for VS Code",
-  "version": "3.17.0",
+  "version": "3.18.1",
   "publisher": "Flamehaven",
   "engines": {
     "vscode": "^1.80.0"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "The extension runs the Python interpreter and configuration a workspace can set, and can install a git hook; it stays off until the workspace is trusted."
+    }
   },
   "categories": [
     "Linters",
@@ -405,7 +411,7 @@
     "watch": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --platform=node --format=cjs --watch",
     "lint": "eslint src --ext ts",
     "package": "vsce package",
-    "test": "esbuild src/findings.ts --bundle --platform=node --format=cjs --outfile=.test-out/findings.js && node --test test/findings.test.js"
+    "test": "esbuild src/findings.ts --bundle --platform=node --format=cjs --outfile=.test-out/findings.js && esbuild test/harness.js --bundle --platform=node --format=cjs --alias:vscode=./test/vscode-stub.js --outfile=.test-out/harness.js && node --test test/findings.test.js test/codeActions.test.js test/backendText.test.js"
   },
   "dependencies": {
     "ai-slop-detector": "file:../npm-wrapper"

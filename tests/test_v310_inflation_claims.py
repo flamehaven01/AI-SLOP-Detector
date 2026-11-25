@@ -1,6 +1,6 @@
 """v3.10 inflation counts claims, not the vocabulary of the domain.
 
-Found on NSRW / Flamehaven-TOE / RExSyn and measured on 17 repositories
+Found on three private codebases and measured on 17 repositories
 (non-test Python): the jargon list mixed technical nouns with claim words.
 Hits per word (unjustified): embedding 316 (204), optimization 156 (156),
 transformer 136 (63), neural 53 (42), distributed 39 (37), equation 33 (33),

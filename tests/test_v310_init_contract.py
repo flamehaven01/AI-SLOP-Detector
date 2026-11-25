@@ -1,16 +1,16 @@
 """v3.10 --init contract: a generated config states evidence, never hides findings.
 
-Found by running --init on NSRW, TOE and RExSyn (3.9.3):
+Found by running --init on three private codebases A, B and C (3.9.3):
 - domain detection read every `*.py` under the root including `.venv`
-  (RExSyn: 241.7 s, ten ML libraries found only in site-packages) and the
+  (codebase C: 241.7 s, ten ML libraries found only in site-packages) and the
   ubiquitous numpy/matplotlib/argparse decided the domain;
-- the scientific/ml weights alone removed every CRITICAL file (RExSyn 4 -> 0,
-  TOE 1 -> 0) and the general profile still carried the weights v3.7.0 tried
+- the scientific/ml weights alone removed every CRITICAL file (codebase C 4 -> 0,
+  codebase A 1 -> 0) and the general profile still carried the weights v3.7.0 tried
   and the defaults reverted (ddc 0.6215), so `--init` changed scores with no
   derivation;
 - `--apply-init-suggestions` wrote god_function overrides that exempt the
   current worst functions by bare name, project-wide, and rewrote the whole
-  file with `yaml.safe_dump` (TOE config: 44 comment lines -> 3);
+  file with `yaml.safe_dump` (codebase A config: 44 comment lines -> 3);
 - the template's explicit test patterns made `--include-tests` fail;
 - ignore suggestions named default-excluded and code-free directories.
 

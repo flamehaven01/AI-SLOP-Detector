@@ -33,7 +33,6 @@ src/slop_detector/
   gate/                   legacy SlopGate (`--gate`)
   governance/             governance session and `verify-governance`
   ml/                     optional ML scoring and self-calibration
-  auth/                   experimental, not wired into the core
   config/                 bundled data (known dependency names)
   languages/              JS/TS, Go and Rust adapters
   mcp/                    stdio tool surface
