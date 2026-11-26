@@ -48,6 +48,12 @@ test('3.18.0 message: the module name is read', () => {
     'zzz_pkg');
 });
 
+test('3.18.2 message: the module name is read', () => {
+    assert.strictEqual(extractModuleName(
+        "Provider not found: no installed distribution, dependency declaration or known provider supplies 'zzz_pkg'"),
+    'zzz_pkg');
+});
+
 test('a dotted import gives its top-level module', () => {
     assert.strictEqual(extractModuleName(
         "Phantom import: no installed distribution, dependency declaration or known provider supplies 'foo.bar'"),

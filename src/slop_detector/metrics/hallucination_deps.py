@@ -5,8 +5,9 @@ from __future__ import annotations
 import ast
 import logging
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 
 from slop_detector.ast_index import walk_nodes
 
@@ -15,6 +16,45 @@ logger = logging.getLogger(__name__)
 # The category map this check measures against. If it cannot be loaded, or is
 # not shaped as {categories: {name: [libraries]}}, the check is unmeasured.
 KNOWN_DEPS_PATH = Path(__file__).parent.parent / "config" / "known_deps.yaml"
+
+
+def read_known_deps() -> Optional[Tuple[Dict[str, Set[str]], Dict[str, str]]]:
+    """(category -> import names, intent patterns) from known_deps.yaml; None when the
+    file cannot be read or is not shaped as {categories: {name: [libraries]}}."""
+    return _read_known_deps(str(KNOWN_DEPS_PATH))
+
+
+@lru_cache(maxsize=4)
+def _read_known_deps(path: str) -> Optional[Tuple[Dict[str, Set[str]], Dict[str, str]]]:
+    import yaml
+
+    try:
+        data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        logger.warning("hallucination_deps: %s not loaded (%s); check unmeasured", path, exc)
+        return None
+    # Parsing is not shape: a list, or categories that are not name -> libraries,
+    # would otherwise measure nothing and report PASS.
+    categories = data.get("categories") if isinstance(data, dict) else None
+    if not isinstance(categories, dict) or not all(
+        isinstance(libs, list) and all(isinstance(lib, str) for lib in libs)
+        for libs in categories.values()
+    ):
+        logger.warning("hallucination_deps: %s has no categories map; check unmeasured", path)
+        return None
+    intents = data.get("intent_patterns", {})
+    return (
+        {str(name): set(libs) for name, libs in categories.items()},
+        intents if isinstance(intents, dict) else {},
+    )
+
+
+def known_import_names() -> FrozenSet[str]:
+    """Import names known_deps.yaml lists as well-known packages (exact spelling)."""
+    loaded = read_known_deps()
+    return (
+        frozenset(name for libs in loaded[0].values() for name in libs) if loaded else frozenset()
+    )
 
 
 @dataclass
@@ -97,32 +137,15 @@ class HallucinationDepsDetector:
 
     def _load_known_deps(self):
         """Load the category map; on any failure the check is unavailable (unmeasured)."""
-        import yaml
-
         self.CATEGORY_MAP: Dict[str, Set[str]] = {}
         self.INTENT_PATTERNS: Dict[str, str] = {}
         self.available = False
-        try:
-            data = yaml.safe_load(Path(KNOWN_DEPS_PATH).read_text(encoding="utf-8"))
-        except (OSError, yaml.YAMLError) as exc:
-            logger.warning(
-                "hallucination_deps: %s not loaded (%s); check unmeasured", KNOWN_DEPS_PATH, exc
-            )
+        loaded = read_known_deps()
+        if loaded is None:
             return
-        # Parsing is not shape: a list, or categories that are not name -> libraries,
-        # would otherwise measure nothing and report PASS.
-        categories = data.get("categories") if isinstance(data, dict) else None
-        if not isinstance(categories, dict) or not all(
-            isinstance(libs, list) and all(isinstance(lib, str) for lib in libs)
-            for libs in categories.values()
-        ):
-            logger.warning(
-                "hallucination_deps: %s has no categories map; check unmeasured", KNOWN_DEPS_PATH
-            )
-            return
-        intents = data.get("intent_patterns", {})
-        self.CATEGORY_MAP = {str(name): set(libs) for name, libs in categories.items()}
-        self.INTENT_PATTERNS = intents if isinstance(intents, dict) else {}
+        # Copies: the parsed file is cached and shared.
+        self.CATEGORY_MAP = {name: set(libs) for name, libs in loaded[0].items()}
+        self.INTENT_PATTERNS = dict(loaded[1])
         self.available = True
 
     def analyze(

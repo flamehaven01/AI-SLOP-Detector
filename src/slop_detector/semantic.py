@@ -29,7 +29,19 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from slop_detector.patterns.declared_intent import declared_intent
-from slop_detector.patterns.ignored_parameter import _documented_as_kept, fixed_signature
+from slop_detector.patterns.ignored_parameter import (
+    DYNAMIC_EXECUTORS as _DYNAMIC_EXECUTORS,
+)
+from slop_detector.patterns.ignored_parameter import (
+    SNAPSHOT_READERS as _SNAPSHOT_READERS,
+)
+from slop_detector.patterns.ignored_parameter import (
+    VALUE_BUILTINS as _VALUE_BUILTINS,
+)
+from slop_detector.patterns.ignored_parameter import (
+    _documented_as_kept,
+    fixed_signature,
+)
 from slop_detector.patterns.placeholder import (
     _PURE_BUILTINS,
     _SUCCESS_KEYWORDS,
@@ -772,10 +784,7 @@ _VALUE_EXPRESSIONS = (
 )
 # `locals()` / `vars()` build a snapshot of the frame: its value flows like any
 # other. `eval` / `exec` may read any name: every input is left undecided.
-_SNAPSHOT_READERS = frozenset({"locals", "vars"})
-_DYNAMIC_EXECUTORS = frozenset({"eval", "exec"})
-# Builtins that only build a value from their arguments.
-_VALUE_BUILTINS = frozenset({"dict", "list", "tuple", "set", "frozenset", "sorted", "reversed"})
+# (_SNAPSHOT_READERS, _DYNAMIC_EXECUTORS, _VALUE_BUILTINS: patterns/ignored_parameter.)
 
 
 def _assigned_names(statement: ast.AST) -> Optional[List[str]]:

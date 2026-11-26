@@ -1,6 +1,6 @@
 {
   "schema": "ai-slop-work-order-rules/2",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "precedence": "HARD-STOP > INVARIANTS > ALLOWED > WORK-ORDER > BACKLOG",
   "tags": "[FACT] measured by the detector at the locator | [DERIVED] the detector's fix direction, advisory | [NORM] rule for the agent | [NULL] measured as nothing",
   "empty_values": "NOT-MEASURED | NOT-APPLICABLE: <why> | MISSING",
@@ -36,7 +36,7 @@
   ],
   "prove": {
     "suggestion": "re-scan the item's file with the same configuration",
-    "expect": "PASS needs prove_state FIXED_CANDIDATE and the project's tests passing, with no new item. prove_state: HOLD when the item's symbol is gone; PERSISTS when its id is still there, or its semantic_key is under another id as often as before (moved: a locator is an address in one snapshot); FIXED_CANDIDATE only when its semantic_key and its cause_key are both left fewer times and every other item sharing them kept its id, or none is left; HOLD when its cause_key is still there as often as before (reworded) or the match is ambiguous"
+    "expect": "PASS needs prove_state FIXED_CANDIDATE (re-scan and compare the item records; no command computes it yet), reached without a new suppression, fp: declaration, configuration change, excluded file or unparsable file (each of those also removes a finding), and the project's tests passing, with no new item. prove_state: HOLD when the item's symbol is gone; PERSISTS when its id is still there, or its semantic_key is under another id as often as before (moved: a locator is an address in one snapshot); FIXED_CANDIDATE only when its semantic_key and its cause_key are both left fewer times and every other item sharing them kept its id, or none is left; HOLD when its cause_key is still there as often as before (reworded) or the match is ambiguous"
   },
   "verify": {
     "FINDING": "check the evidence at file:line; ACK and fix, or REJECT with the reason it does not apply",
@@ -51,13 +51,17 @@
       "rules": [
         "god_function",
         "nested_complexity",
-        "deep_nesting"
+        "deep_nesting",
+        "js_god_function",
+        "go_god_function",
+        "js_callback_hell"
       ],
       "question": "Does the function do more than one job? ACK if it splits into named steps with the same behavior; REJECT if it is one job laid out flat (a table, a dispatch, a fixed sequence)."
     },
     "escape": {
       "rules": [
-        "lint_escape"
+        "lint_escape",
+        "js_any_type"
       ],
       "question": "Is the silenced warning a real defect here? ACK: fix the cause and drop the marker; REJECT: the marker is narrow (one code) and the reason is stated beside it."
     },
@@ -73,7 +77,13 @@
         "todo_comment",
         "fixme_comment",
         "hack_comment",
-        "xxx_comment"
+        "xxx_comment",
+        "go_empty_func",
+        "js_empty_arrow",
+        "rust_todo_macro",
+        "rust_unimplemented_macro",
+        "rust_todo_comment",
+        "go_todo_comment"
       ],
       "question": "Do callers get the behavior the name and docstring promise? ACK: implement it or say in the code what is intended; REJECT: the body is the whole contract (a declared default, a registered no-op, an abstract hook) and that is stated."
     },
@@ -81,7 +91,9 @@
       "rules": [
         "empty_except",
         "bare_except",
-        "failure_as_success"
+        "failure_as_success",
+        "go_ignored_error",
+        "go_panic"
       ],
       "question": "Can the caller tell that the operation failed? ACK: handle, re-raise or report the failure; REJECT: the failure is expected, harmless and the handler says why."
     },
@@ -120,6 +132,38 @@
         "success_ignores_outcome"
       ],
       "question": "Does the reported success reflect work that happened? ACK: perform the effect or report the real outcome; REJECT: name the effect the detector could not see (file:line)."
+    },
+    "dead": {
+      "rules": [
+        "dead_code",
+        "js_dead_code"
+      ],
+      "question": "Is the code meant to run? ACK: remove it or connect it to its caller; REJECT: it is reached in a way the detector cannot see (name it: a dynamic call, an export, a registry, a test)."
+    },
+    "debug_output": {
+      "rules": [
+        "js_console_log",
+        "go_fmt_print",
+        "rust_dbg_macro"
+      ],
+      "question": "Is this output meant for the program's users? ACK: remove it or route it through the project's logger; REJECT: it is the program's intended output (a CLI, a script, a test helper) and that is stated."
+    },
+    "idiom": {
+      "rules": [
+        "star_import",
+        "global_statement",
+        "mutable_default_arg",
+        "placeholder_variable_naming",
+        "js_var_usage",
+        "js_double_equals",
+        "js_push",
+        "java_equals",
+        "ruby_each",
+        "csharp_length",
+        "go_println",
+        "php_strlen"
+      ],
+      "question": "Does the construct behave here the way the code assumes? ACK: use the language's own form or make the behavior explicit; REJECT: it is correct in this context (name why: a deliberate shared default, a module meant to re-export, a known interface)."
     }
   },
   "modes": {

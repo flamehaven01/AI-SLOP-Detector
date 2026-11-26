@@ -20,16 +20,61 @@ def build_explain_payload(identifier: str) -> Dict[str, Any]:
             "Refactor cross-file dependencies to restore clear boundaries.",
         ),
     }
-    issue_key, summary = mapping.get(identifier, ("unknown", "Review the rule or target manually."))
+    if identifier in mapping:
+        issue_key, summary = mapping[identifier]
+        return {
+            "command": "explain",
+            "identifier": identifier,
+            "known": True,
+            "kind": "cleanup_family",
+            "summary": {
+                "category": identifier,
+                "message": summary,
+                "mitigation": get_mitigation(issue_key),
+            },
+            "mitigation": get_mitigation(issue_key),
+        }
+    return _explain_rule(identifier)
+
+
+def _explain_rule(rule: str) -> Dict[str, Any]:
+    """A rule as the work order states it (config/work_order_rules.json): its family's
+    VERIFY question (what to check, when to ACK and when to REJECT), what a finding does
+    not prove and what a fix may not do. Python rules add their default severity and
+    description from the pattern registry."""
+    from slop_detector.patterns import get_all_patterns
+    from slop_detector.work_order_rules import load_ruleset
+
+    rules, _ = load_ruleset()
+    family = next((name for name, fam in rules.families.items() if rule in fam.rules), None)
+    if family is None:
+        return {
+            "command": "explain",
+            "identifier": rule,
+            "known": False,
+            "summary": {
+                "category": rule,
+                "message": "No rule or cleanup family has this id (rule ids: docs/PATTERNS.md).",
+                "mitigation": "",
+            },
+        }
+    question = rules.families[family].question
+    limit = next((line for line in rules.invariants if "FINDING" in line), rules.invariants[0])
+    pattern = next((p for p in get_all_patterns() if p.id == rule), None)
+    doc = (type(pattern).__doc__ or "").strip().splitlines() if pattern is not None else []
     return {
         "command": "explain",
-        "identifier": identifier,
-        "summary": {
-            "category": identifier,
-            "message": summary,
-            "mitigation": get_mitigation(issue_key),
-        },
-        "mitigation": get_mitigation(issue_key),
+        "identifier": rule,
+        "known": True,
+        "kind": "rule",
+        "family": family,
+        "severity": pattern.severity.value if pattern is not None else None,
+        "description": doc[0] if doc else None,
+        "verify_question": question,
+        "limits": list(rules.invariants),
+        "forbid": list(rules.forbid),
+        "summary": {"category": rule, "message": question, "mitigation": limit},
+        "mitigation": limit,
     }
 
 

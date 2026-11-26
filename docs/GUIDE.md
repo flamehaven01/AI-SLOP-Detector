@@ -185,7 +185,7 @@ and never move the score.
 `--quiet` one line):
 
 ```text
-╭─ AI SLOP Detector 3.18.1 ────────────────────────────────────────────────────────────────────╮
+╭─ AI SLOP Detector 3.18.2 ────────────────────────────────────────────────────────────────────╮
 │  13.5 / 100  CLEAN             ━━━━━───────────────────────────────────                      │
 │  higher = more warning signs              30      50      70                                 │
 │  weighted by lines of code                                                                   │
@@ -261,6 +261,7 @@ slop-detector sweep unused-deps . --json
 slop-detector sweep boundary-violations . --json
 slop-detector watch . --follow
 slop-detector explain dead-code
+slop-detector explain ignored_parameter   # a rule: its VERIFY question, when to ACK or REJECT
 ```
 
 Legacy command forms such as `audit`, `health`, and direct cleanup-family names
@@ -623,7 +624,7 @@ would analyze it.
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/flamehaven01/AI-SLOP-Detector
-    rev: v3.18.1
+    rev: v3.18.2
     hooks:
       - id: slop-detector          # hard gate — fails on CRITICAL_DEFICIT >= 70
       # - id: slop-detector-warn   # soft mode — reports only, never blocks

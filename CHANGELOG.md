@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.18.2] - 2026-11-26
+
+A reliability patch for agents. Running the tool as the agent documents say
+showed findings that would make an agent change code that is already right,
+a rule explanation that said nothing, and agent documents that did not mention
+the work order. Findings change in two places; scores change where they occur.
+
+### Findings
+
+- `ignored_parameter` treats a `locals()` / `vars()` snapshot as the semantic
+  channel does: a snapshot that reaches the result, a call or a stored value
+  carries every parameter (a function that builds its options with
+  `{k: v for k, v in locals().items() ...}` no longer has every option
+  reported); a snapshot that is dropped (a bare statement, or assigned to a
+  name nothing reads) is still no use; a shadowed `locals` is not a snapshot;
+  `eval` / `exec` leave every input undecided, so the function is not
+  reported. The frame-reader names are defined once and shared with the
+  semantic channel. The suggestion no longer says "or remove it": removing a
+  parameter changes the signature, so it is dropped only together with every
+  caller that passes it.
+- An import whose provider was not identified, but whose name is a well-known
+  import name listed in `config/known_deps.yaml` (`numpy`, `pandas`,
+  `requests`, ...), is `undeclared_dependency` (MEDIUM, `evidence.known_name:
+  true`) instead of `phantom_import` (HIGH). The import is still reported; the
+  name is real, and which distribution to declare still needs a person. A name
+  known nowhere stays `phantom_import` HIGH; its message now reads "Provider
+  not found: ..." and its suggestion no longer suggests an invented name.
+- Measured on the frozen 14-repository corpus against 3.18.1: 291
+  `phantom_import` findings became `undeclared_dependency` at the same
+  location (10 distinct names), 8 `ignored_parameter` findings were removed
+  (one function), no other finding changed.
+- Analysis cache `analysis-cache-v56`.
+
+### Agents
+
+- `explain <rule>` answers with the rule's own VERIFY question (what to check,
+  when to ACK and when to REJECT), what a finding does not prove and what a fix
+  may not do, from the work order ruleset; Python rules add their default
+  severity and description. It answered every rule with the same placeholder
+  sentence. An unknown id exits 2.
+- Work order ruleset `2.2.0`: every documented rule (57) belongs to a family
+  with its own VERIFY question; JS/TS, Go and Rust rules and 11 Python rules
+  had only the generic one. The PROVE line states that no command computes the
+  comparison yet and that a suppression, `fp:` declaration, configuration
+  change, excluded file or unparsable file also removes a finding.
+- AGENT_WORKFLOW.md, the Claude Code skill and CLAUDE_CODE_SKILL.md show the
+  work order and the AI report as the path for fixing findings, and say that a
+  finding that disappears is not proof of a fix.
+
+---
+
 ## [3.18.1] - 2026-11-25
 
 A patch release: the VS Code extension is brought up to the 3.18 backend

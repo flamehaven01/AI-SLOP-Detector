@@ -143,6 +143,26 @@ follows the specification gets no reply. Use the CLI commands above with
 
 ---
 
+## Working findings one at a time: the AI work order
+
+To fix findings, read the work order rather than the full scan JSON: it is several
+times smaller and binds every item to its file's SHA-256.
+
+```bash
+slop-detector scan . --format ai-md --ai-mode auditor -o work-order.md  # read-only: verify each item
+slop-detector scan . --format ai -o report.jsonl                         # the same items as JSON Lines
+slop-detector explain <rule>                                             # what the rule asks, when to ACK or REJECT
+```
+
+For each item, answer the rule's VERIFY question, then ACK (fix) or REJECT it with
+the reason; a REJECT with evidence is a result, not a failure. After a fix, re-scan
+and read the item again. A finding that disappears is not proof of a fix: a
+suppression comment, an `fp:` declaration, a disabled rule, an ignored file or a
+file that no longer parses removes it too. Never install or declare a package
+because of an import finding alone. Details: [AI_WORK_ORDER.md](https://github.com/flamehaven01/AI-SLOP-Detector/blob/main/docs/AI_WORK_ORDER.md).
+
+---
+
 ## Recommended Agent Loop
 
 ### 1. Run changed-code review first

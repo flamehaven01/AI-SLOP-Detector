@@ -46,6 +46,7 @@ from slop_detector.import_providers import (
     shipped_table,
     unread_environment_links,
 )
+from slop_detector.metrics.hallucination_deps import known_import_names
 from slop_detector.path_boundary import (
     is_inside,
     leaves,
@@ -792,6 +793,11 @@ class PhantomImportPattern(BasePattern):
                 issue = self._undeclared_optional(file, line, column, module)
             elif known:
                 issue = self._undeclared_known(file, line, column, module, provider, state, known)
+            elif module.split(".")[0] in known_import_names():
+                # A well-known import name whose distribution was not identified: undeclared,
+                # not a name that may not exist (config/known_deps.yaml).
+                ev["known_name"] = True
+                issue = self._undeclared_named(file, line, column, module)
             else:
                 issue = self._unknown_provider(file, line, column, module)
         issue.subject = module  # one import line can name several modules
@@ -893,20 +899,41 @@ class PhantomImportPattern(BasePattern):
             ),
         )
 
+    def _undeclared_named(self, file: Path, line: int, column: int, module: str) -> Issue:
+        """A well-known import name, no identified distribution, no declaration: MEDIUM."""
+        return Issue(
+            pattern_id="undeclared_dependency",
+            severity=Severity.MEDIUM,
+            axis=self.axis,
+            file=file,
+            line=line,
+            column=column,
+            message=(
+                f"Undeclared dependency: '{module}' is a well-known import name, but no "
+                "distribution that provides it was identified and no dependency declaration "
+                "on this file's path names it"
+            ),
+            suggestion=(
+                f"Find which distribution provides '{module}' (its documentation, or a clean "
+                "environment), then declare it; never install or declare a package on this "
+                "finding alone."
+            ),
+        )
+
     def _unknown_provider(self, file: Path, line: int, column: int, module: str) -> Issue:
         return self.create_issue(
             file=file,
             line=line,
             column=column,
             message=(
-                f"Phantom import: no installed distribution, dependency declaration or known "
-                f"provider supplies '{module}'"
+                f"Provider not found: no installed distribution, dependency declaration or "
+                f"known provider supplies '{module}'"
             ),
             suggestion=(
                 f"Confirm which package '{module}' was meant to come from before installing or "
-                "declaring anything: a name that can be found on a package index is not proof "
-                "that it is the intended package. AI models sometimes generate plausible-looking "
-                "package names."
+                "declaring anything: the name may be new, private, misspelled or invented, and "
+                "a name that can be found on a package index is not proof that it is the "
+                "intended package."
             ),
             severity_override=Severity.HIGH,
         )

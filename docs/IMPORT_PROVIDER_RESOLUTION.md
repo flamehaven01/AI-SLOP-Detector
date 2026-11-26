@@ -362,6 +362,10 @@ moved it next to the two rules it adds for provider findings:
   declaration is one cause, however many lines import it. Every location stays
   in the finding list.
 
+- 3.18.2: an import whose provider is unknown but whose name is listed in
+  `config/known_deps.yaml` (a well-known import name, such as `numpy`) is
+  `undeclared_dependency` MEDIUM with `known_name: true`, not `phantom_import`;
+  the remaining `phantom_import` message reads "Provider not found".
 - `phantom_import` is HIGH, at most (it was CRITICAL through 3.17). This is a
   change of the finding's severity, not of a weight, so every consumer of
   CRITICAL changes with it: the CI gate's `critical_patterns_fail`, purity,

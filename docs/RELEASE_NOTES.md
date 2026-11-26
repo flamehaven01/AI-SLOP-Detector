@@ -5,6 +5,29 @@ For a condensed summary see the [Changelog](../CHANGELOG.md).
 
 ---
 
+## v3.18.2 — 2026-11-26
+
+### Summary
+
+A reliability patch for agents. `ignored_parameter` no longer reports
+parameters that a `locals()` / `vars()` snapshot carries into the result, a
+well-known import name with no identified provider is an undeclared dependency
+(MEDIUM) instead of a phantom import (HIGH), `explain <rule>` gives the rule's
+own question, and the agent documents point at the work order. Scores change
+where those findings occur. Details in the [Changelog](../CHANGELOG.md).
+
+### Verification
+
+- Frozen 14-repository corpus against 3.18.1: 291 `phantom_import` findings
+  became `undeclared_dependency` at the same location, 8 `ignored_parameter`
+  findings were removed, no other finding changed.
+- Semantics-preserving pairs (a value read directly or through `locals()`)
+  and the cases that must still be reported (a dropped snapshot, an unread
+  parameter, a shadowed `locals`) are tests; each guard was removed in a copy
+  of the source and a test failed every time.
+
+---
+
 ## v3.18.1 — 2026-11-25
 
 ### Summary
@@ -2195,6 +2218,7 @@ Full spec: [HISTORY_TRACKING.md](HISTORY_TRACKING.md)
 
 | Version | Highlights |
 |---|---|
+| **v3.18.2** | reliability patch: `ignored_parameter` reads `locals()`/`vars()` snapshots as uses; well-known import names with no identified provider are `undeclared_dependency` MEDIUM, not `phantom_import`; `explain <rule>` from the work order ruleset (2.2.0, every rule in a family); agent docs show the work order |
 | **v3.18.1** | patch: VS Code extension 3.18.1 (phantom_import Quick Fix with the 3.18 message; gate, history, trends and pre-commit hook commands fixed; new icon, README screenshots); documentation corrected (import graph under the 3.18 module roots, phantom_import definition, score contract, REST, parallel claim); no change to findings or scores |
 | **v3.18.0** | import evidence release: providers judged by distribution (declared `Pillow` is `PIL`), PEP 735 groups read, the project's own `.venv` read as files, `evidence` on every import finding, `phantom_import` HIGH at most, new `undeclared_dependency` and `provider_conflict`; REST answers local clients only; `slop_detector.auth` removed; scores change where import findings occur |
 | **v3.17.0** | screen release: the terminal summary in one panel with a meter, `Fix first` and one `Next` step; progress in a box (ASCII where the console needs it); `--interactive` report choice; six fix texts name only changes that resolve the finding; the work order shows `cause_key`; the MCP server is no longer recommended (non-standard framing); scoring unchanged |

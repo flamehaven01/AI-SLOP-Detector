@@ -91,7 +91,9 @@ def run_operations_command(
     if command == "explain":
         from slop_detector.operations import build_explain_payload
 
-        return _emit_command_payload(args, build_explain_payload(args.identifier))
+        payload = build_explain_payload(args.identifier)
+        code = _emit_command_payload(args, payload)
+        return code if payload.get("known", True) else 2  # an unknown id is an error
 
     target_path = Path(args.target).resolve()
     project_path = target_path if target_path.is_dir() else target_path.parent

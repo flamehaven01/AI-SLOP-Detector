@@ -47,6 +47,12 @@ import numpy_extended            # HIGH: no provider known, not declared
 import fake_llm_sdk              # HIGH: no provider known, not declared
 ```
 
+A well-known import name that no source identifies a distribution for (it is
+listed in `config/known_deps.yaml`, such as `numpy` or `pymongo`) is not a
+`phantom_import`: undeclared, it is `undeclared_dependency` (MEDIUM, evidence
+`known_name: true`, 3.18.2). The name is real; which distribution to declare
+still needs a person.
+
 ### What is not flagged
 
 ```python
@@ -346,12 +352,12 @@ simultaneously. Both contribute to the deficit score.
 
 ```
 [HIGH] phantom_import — src/pipeline.py:4
-  Phantom import: no installed distribution, dependency declaration or known
-  provider supplies 'tensorflow_magic'
+  Provider not found: no installed distribution, dependency declaration or
+  known provider supplies 'tensorflow_magic'
   Suggestion: Confirm which package 'tensorflow_magic' was meant to come from
-  before installing or declaring anything: a name that can be found on a
-  package index is not proof that it is the intended package. AI models
-  sometimes generate plausible-looking package names.
+  before installing or declaring anything: the name may be new, private,
+  misspelled or invented, and a name that can be found on a package index is
+  not proof that it is the intended package.
 ```
 
 ---

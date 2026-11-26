@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import ast
 import re
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Tuple
 
 from slop_detector.patterns.base import Axis, Issue, Severity
 from slop_detector.patterns.declared_intent import _SCOPE_NODES, _local_names
@@ -55,6 +55,74 @@ def _uses(function: ast.AST) -> Set[str]:
                 used.add(node.id)
         stack.extend((child, shadowed) for child in ast.iter_child_nodes(node))
     return used
+
+
+# The frame readers the semantic channel follows (semantic._frame_calls): `locals()`
+# and `vars()` without arguments copy every local, parameters included, into their
+# value; `eval` / `exec` may read any name. Defined here, imported by semantic.
+SNAPSHOT_READERS = frozenset({"locals", "vars"})
+DYNAMIC_EXECUTORS = frozenset({"eval", "exec"})
+# Builtins that only build a value from their arguments.
+VALUE_BUILTINS = frozenset({"dict", "list", "tuple", "set", "frozenset", "sorted", "reversed"})
+
+_NESTED = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)
+
+
+def _own_nodes(function: ast.AST) -> List[ast.AST]:
+    """The function's nodes without nested functions, lambdas and classes (their
+    `locals()` is their own frame)."""
+    nodes: List[ast.AST] = []
+    stack = list(ast.iter_child_nodes(function))
+    while stack:
+        node = stack.pop()
+        nodes.append(node)
+        if not isinstance(node, _NESTED):
+            stack.extend(ast.iter_child_nodes(node))
+    return nodes
+
+
+def _frame_reads(function: ast.AST, shadowed: Set[str]) -> Tuple[bool, bool]:
+    """(a frame snapshot that carries the parameters on, an `eval` / `exec` call).
+
+    A snapshot is dropped when it, alone or copied by a value builtin, is a bare
+    statement or is assigned only to names the function never reads; anywhere else
+    it goes (returned, passed, iterated, stored) carries every parameter with it.
+    """
+    nodes = _own_nodes(function)
+    parents = {child: parent for parent in nodes for child in ast.iter_child_nodes(parent)}
+    loads = {n.id for n in nodes if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)}
+    snapshot = dynamic = False
+    for node in nodes:
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+            continue
+        name = node.func.id
+        if name in shadowed:
+            continue
+        if name in DYNAMIC_EXECUTORS:
+            dynamic = True
+        elif name in SNAPSHOT_READERS and not node.args and not node.keywords:
+            outer: ast.AST = node
+            while _copies(parents.get(outer), outer):
+                outer = parents[outer]
+            holder = parents.get(outer)
+            if isinstance(holder, ast.Expr):
+                continue
+            if isinstance(holder, ast.Assign) and all(
+                isinstance(t, ast.Name) and t.id not in loads for t in holder.targets
+            ):
+                continue
+            snapshot = True
+    return snapshot, dynamic
+
+
+def _copies(parent: Optional[ast.AST], child: ast.AST) -> bool:
+    """`parent` is a value builtin called with `child` as an argument (`dict(locals())`)."""
+    return (
+        isinstance(parent, ast.Call)
+        and isinstance(parent.func, ast.Name)
+        and parent.func.id in VALUE_BUILTINS
+        and child in parent.args
+    )
 
 
 # Docstring words that say a parameter is kept on purpose without being used.
@@ -354,6 +422,14 @@ class IgnoredParameterPattern(_IntentAwarePattern):
         if _is_stub_body(node):
             return None
         used = _uses(node)
+        shadowed = set(_local_names(node))
+        if self._intent is not None:
+            shadowed |= self._intent.module_bindings
+        snapshot, dynamic = _frame_reads(node, shadowed)
+        if dynamic:
+            return None  # eval / exec may read any parameter: undecided, not reported
+        if snapshot:
+            used = used | set(names)  # the frame snapshot carries every parameter on
         options = _with_defaults(args)
         # A positional parameter left unused is reported only when a module
         # function answers with a literal that reads no input at all or only
@@ -374,7 +450,10 @@ class IgnoredParameterPattern(_IntentAwarePattern):
                     f"Parameter '{name}' of '{node.name}' is never used{evidence} - it does "
                     "not affect the result"
                 ),
-                suggestion=f"Use '{name}' as the function promises, or remove it",
+                suggestion=(
+                    f"Use '{name}' as the function promises; removing it changes the "
+                    "signature, so drop it only together with every caller that passes it"
+                ),
             )
             issue.subject = name  # one finding per parameter at the same def line
             issues.append(issue)
